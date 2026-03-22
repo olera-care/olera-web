@@ -52,8 +52,6 @@ export interface OpenAuthOptions {
   claimProfile?: Profile | null;
   /** Deferred action after auth */
   deferred?: Omit<DeferredAction, "createdAt">;
-  /** Start in post-auth onboarding (for returning OAuth users) */
-  startAtPostAuth?: boolean;
   /** Custom headline for the entry screen (context-specific copy) */
   headline?: string;
   /** Custom subline for the entry screen (context-specific copy) */
@@ -223,10 +221,16 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
       const supabase = createClient();
 
-      console.time("[olera] fetchAccountData");
+      // Use unique timer labels to avoid conflicts from concurrent calls
+      const timerId = Math.random().toString(36).slice(2, 8);
+      const timerLabel = `[olera] fetchAccountData-${timerId}`;
+      const accountsLabel = `[olera] query: accounts-${timerId}`;
+      const profilesLabel = `[olera] query: profiles+membership-${timerId}`;
+
+      console.time(timerLabel);
 
       // Step 1: Get account (required for everything else)
-      console.time("[olera] query: accounts");
+      console.time(accountsLabel);
       const accountResult = await withBoundedTimeout(
         supabase
           .from("accounts")
@@ -238,15 +242,15 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       );
       const account = accountResult.data;
       const accountError = accountResult.error;
-      console.timeEnd("[olera] query: accounts");
+      console.timeEnd(accountsLabel);
 
       if (accountError || !account) {
-        console.timeEnd("[olera] fetchAccountData");
+        console.timeEnd(timerLabel);
         return null;
       }
 
       // Step 2: Fetch profiles and membership in parallel
-      console.time("[olera] query: profiles+membership");
+      console.time(profilesLabel);
       const [profilesResult, membershipResult] = await withBoundedTimeout(
         Promise.all([
           supabase
@@ -263,7 +267,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         QUERY_TIMEOUT_MS,
         "profiles+membership query"
       );
-      console.timeEnd("[olera] query: profiles+membership");
+      console.timeEnd(profilesLabel);
 
       const profiles = (profilesResult.data as Profile[]) || [];
       const membershipRows = (membershipResult.data as Membership[]) || [];
@@ -275,7 +279,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           profiles.find((p) => p.id === account.active_profile_id) || null;
       }
 
-      console.timeEnd("[olera] fetchAccountData");
+      console.timeEnd(timerLabel);
       return { account, activeProfile, profiles, membership };
     },
     [configured]
@@ -351,12 +355,17 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               window.history.replaceState(null, "", window.location.pathname + window.location.search);
 
               // Ensure account exists and claim placeholder profile
+              let isNewUser = false;
               try {
-                await fetch("/api/auth/ensure-account", {
+                const res = await fetch("/api/auth/ensure-account", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ claimToken }),
                 });
+                if (res.ok) {
+                  const { account } = await res.json();
+                  isNewUser = account?.onboarding_completed === false;
+                }
               } catch (err) {
                 console.error("[olera] ensure-account error:", err);
               }
@@ -368,11 +377,18 @@ export default function AuthProvider({ children }: AuthProviderProps) {
                 // Ignore
               }
 
-              // Redirect to inbox (or stored destination)
+              // Determine final destination
+              // New user (onboarding_completed=false) + no deferred action → /welcome
+              const hasDeferredAction = !!getDeferredAction()?.action;
+              const finalDestination = (isNewUser && !hasDeferredAction)
+                ? `/welcome?next=${encodeURIComponent(redirectTo)}`
+                : redirectTo;
+
+              // Redirect to destination
               // Use window.location for a hard redirect to ensure navigation completes
               // (router.replace can be interrupted by React re-renders)
-              console.log("[olera] Redirecting to:", redirectTo);
-              window.location.replace(redirectTo);
+              console.log("[olera] Redirecting to:", finalDestination);
+              window.location.replace(finalDestination);
               return; // Exit init - we're redirecting
             }
           }
@@ -426,22 +442,20 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       const cached = getCachedAuthData(userId);
       const hasCachedData = !!cached?.account;
 
-      // Set user immediately so the avatar pill shows. If cache is warm,
-      // also set account/profiles for instant render. If cache is cold,
-      // keep isLoading true — the dropdown will show a brief loading state
-      // instead of an empty-then-full flash.
+      // ALWAYS set user immediately so they appear logged in.
+      // If cache is warm, also set profiles for instant render.
+      // If cache is cold, keep isLoading true until fetch completes.
       setState({
         user: { id: userId, email: userEmail!, email_confirmed_at: emailConfirmedAt },
         account: cached?.account ?? null,
         activeProfile: cached?.activeProfile ?? null,
         profiles: cached?.profiles ?? [],
         membership: cached?.membership ?? null,
-        isLoading: !hasCachedData, // Only "done" if we have cached data
+        isLoading: !hasCachedData,
         fetchError: false,
       });
 
-      // Fetch fresh data. When cache is cold this is the critical path —
-      // the UI stays in loading state until this completes.
+      // Fetch fresh data. When cache is cold this is the critical path.
       try {
         const data = await fetchAccountData(userId);
         if (cancelled) return;
@@ -514,7 +528,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             }
           } catch {
             if (cancelled) return;
-            setState((prev) => ({ ...prev, isLoading: false, fetchError: !hasCachedData }));
+            setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
           }
         }
       } catch (err) {
@@ -553,25 +567,27 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         if (initHandlingRef.current) return;
 
         const userId = session.user.id;
+        const userEmail = session.user.email!;
+        const emailConfirmedAt = session.user.email_confirmed_at ?? undefined;
 
-        // Set user + any cached data immediately
+        // Check for cached data
         const cached = getCachedAuthData(userId);
         const hasCachedData = !!cached?.account;
+
+        // ALWAYS set user immediately so they appear logged in.
+        // If cache is warm, also set profiles. If cold, keep isLoading true.
         setState((prev) => ({
           ...prev,
-          user: { id: userId, email: session.user.email!, email_confirmed_at: session.user.email_confirmed_at ?? undefined },
+          user: { id: userId, email: userEmail, email_confirmed_at: emailConfirmedAt },
           account: cached?.account ?? prev.account,
           activeProfile: cached?.activeProfile ?? prev.activeProfile,
           profiles: cached?.profiles ?? prev.profiles,
           membership: cached?.membership ?? prev.membership,
-          // Only mark as "done loading" if we have cached data — otherwise
-          // keep loading until the background fetch completes to avoid
-          // showing empty states that flash to populated states.
           isLoading: !hasCachedData && !prev.account,
           fetchError: false,
         }));
 
-        // Fetch fresh data in the background. Don't block the user.
+        // Fetch fresh data in the background.
         // Only retry (once) if the account row is missing (DB trigger delay),
         // NOT on timeout — retrying a timeout just doubles the wait.
         const version = ++versionRef.current;
@@ -693,18 +709,18 @@ export default function AuthProvider({ children }: AuthProviderProps) {
                   fetchError: false,
                 }));
               } else {
-                setState((prev) => ({ ...prev, isLoading: false, fetchError: !cached?.account }));
+                setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
               }
             } catch {
               if (cancelled || versionRef.current !== version) return;
-              setState((prev) => ({ ...prev, isLoading: false, fetchError: !cached?.account }));
+              setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
             }
           }
         } catch (err) {
           // Timeout or network error — don't retry, just use cache
           console.error("[olera] SIGNED_IN fetch failed:", err);
           if (cancelled || versionRef.current !== version) return;
-          setState((prev) => ({ ...prev, isLoading: false, fetchError: !cached?.account }));
+          setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
         }
       }
 
@@ -740,63 +756,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       subscription.unsubscribe();
     };
   }, [configured, fetchAccountData]);
-
-  // Detect authenticated users who haven't completed onboarding and auto-open
-  useEffect(() => {
-    if (state.isLoading || !state.user) return;
-    if (state.account && !state.account.onboarding_completed && !isUnifiedAuthOpen) {
-      // Try to restore saved intent for context (OAuth redirects, CTA clicks)
-      let intent: AuthFlowIntent = null;
-      let providerType: AuthFlowProviderType = null;
-      try {
-        const saved = sessionStorage.getItem(AUTH_INTENT_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          sessionStorage.removeItem(AUTH_INTENT_KEY);
-          intent = parsed.intent;
-          providerType = parsed.providerType;
-        }
-      } catch {
-        // sessionStorage unavailable
-      }
-
-      // Check for guest connection flow — if there's a claim token, skip onboarding
-      // (user came from magic link after guest connection)
-      try {
-        const hasClaimToken = !!localStorage.getItem(CLAIM_TOKEN_KEY);
-        if (hasClaimToken) {
-          // Guest connection flow — don't show onboarding, let them access inbox
-          return;
-        }
-      } catch {
-        // localStorage unavailable
-      }
-
-      // Only route to provider onboarding if that's their explicit intent
-      // (from the current auth flow, stored in sessionStorage)
-      if (intent === "provider") {
-        router.push("/provider/onboarding");
-        return;
-      }
-
-      // Check for deferred action — if user has a pending action (save, inquiry, etc.),
-      // skip onboarding and let them complete their action first
-      const deferred = getDeferredAction();
-      if (deferred?.action) {
-        // User has a deferred action — skip onboarding, let them complete it
-        // The connection/save/etc. API will mark onboarding_completed=true
-        return;
-      }
-
-      // New users with NO deferred action: show onboarding popup
-      // This handles Google OAuth signups and main nav signups
-      // Don't pass intent — let them choose "Find care" vs "List my business"
-      openAuth({
-        startAtPostAuth: true,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.isLoading, state.user, state.account]);
 
   /** @deprecated Use openAuth instead */
   const openAuthModal = useCallback(
@@ -836,7 +795,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     } else if (options.intent) {
       // Clear stale deferred actions when an explicit intent is set.
       // Prevents e.g. a prior "Inquire" returnUrl from overriding
-      // the post-auth redirect for "List your organization".
+      // the redirect for "List your organization".
       clearDeferredAction();
     }
     // Persist intent to sessionStorage for OAuth redirects
@@ -864,12 +823,17 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   /**
-   * Sign out. Clears local state and navigates immediately,
-   * then fires the Supabase signOut in the background.
+   * Sign out. Navigates first, then clears local state.
+   * This prevents a flash of loading skeleton on protected pages.
    */
   const signOut = useCallback(
     async (onComplete?: () => void) => {
       if (!configured) return;
+
+      // Navigate FIRST — user sees landing page immediately
+      onComplete?.();
+
+      // THEN clear state (happens after navigation starts)
       clearAuthCache();
       // Clear onboarding session so a different user doesn't see stale data
       try {
@@ -883,7 +847,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       }
       versionRef.current++;
       setState({ ...EMPTY_STATE });
-      onComplete?.();
+
       // Fire-and-forget — session invalidation happens in the background
       const supabase = createClient();
       supabase.auth.signOut().catch((err) => {
@@ -917,6 +881,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           activeProfile: data.activeProfile,
           profiles: data.profiles,
           membership: data.membership,
+          isLoading: false,
           fetchError: false,
         }));
       }

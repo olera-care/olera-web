@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 import Select from "@/components/ui/Select";
 import { PROVIDER_CATEGORIES } from "@/lib/types";
+import { useCitySearch } from "@/hooks/use-city-search";
+import GooglePlaceSearch from "@/components/providers/GooglePlaceSearch";
 import type { DirectoryProvider } from "@/lib/types";
 
 interface ImageMetadata {
@@ -35,6 +37,37 @@ export default function AdminDirectoryDetailPage() {
   const [images, setImages] = useState<ImageMetadata[]>([]);
   const [rawImages, setRawImages] = useState<string[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Owner/staff state (stored in business_profiles.metadata.staff)
+  const [staffName, setStaffName] = useState("");
+  const [staffPosition, setStaffPosition] = useState("");
+  const [staffBio, setStaffBio] = useState("");
+  const [staffCareMotivation, setStaffCareMotivation] = useState("");
+  const [staffImage, setStaffImage] = useState("");
+  const [originalStaff, setOriginalStaff] = useState<Record<string, string>>({});
+  const [savingStaff, setSavingStaff] = useState(false);
+  const [staffMessage, setStaffMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const staffFileRef = useRef<HTMLInputElement>(null);
+  const [uploadingStaffPhoto, setUploadingStaffPhoto] = useState(false);
+
+  // City search state
+  const [cityQuery, setCityQuery] = useState("");
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const { results: cityResults, preload: preloadCities } = useCitySearch(cityQuery);
+  const cityDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close city dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target as Node)) {
+        setShowCityDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const fetchProvider = useCallback(async () => {
     try {
@@ -48,6 +81,23 @@ export default function AdminDirectoryDetailPage() {
       setOriginalData({ ...data.provider });
       setImages(data.images ?? []);
       setRawImages(data.rawImages ?? []);
+
+      // Populate staff/owner data
+      const staff = data.staffData as Record<string, string> | null;
+      if (staff) {
+        setStaffName(staff.name || "");
+        setStaffPosition(staff.position || "");
+        setStaffBio(staff.bio || "");
+        setStaffCareMotivation(staff.care_motivation || "");
+        setStaffImage(staff.image || "");
+        setOriginalStaff({
+          name: staff.name || "",
+          position: staff.position || "",
+          bio: staff.bio || "",
+          care_motivation: staff.care_motivation || "",
+          image: staff.image || "",
+        });
+      }
     } catch (err) {
       console.error("Failed to fetch provider:", err);
     } finally {
@@ -149,6 +199,119 @@ export default function AdminDirectoryDetailPage() {
     }
   }
 
+  async function handleImageUpload(file: File) {
+    setUploading(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      body.append("providerId", providerId);
+
+      const res = await fetch("/api/admin/directory/upload", {
+        method: "POST",
+        body,
+      });
+
+      if (res.ok) {
+        // Refresh to show new image
+        const detailRes = await fetch(`/api/admin/directory/${providerId}`);
+        if (detailRes.ok) {
+          const data = await detailRes.json();
+          setFormData((prev) => ({ ...prev, provider_images: data.provider.provider_images }));
+          setOriginalData((prev) => ({ ...prev, provider_images: data.provider.provider_images }));
+          setImages(data.images ?? []);
+          setRawImages(data.rawImages ?? []);
+        }
+        setSaveMessage({ type: "success", text: "Image uploaded successfully." });
+        setTimeout(() => setSaveMessage(null), 3000);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setSaveMessage({ type: "error", text: err.error || "Failed to upload image." });
+      }
+    } catch {
+      setSaveMessage({ type: "error", text: "Network error uploading image." });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  const isStaffDirty =
+    staffName !== (originalStaff.name || "") ||
+    staffPosition !== (originalStaff.position || "") ||
+    staffBio !== (originalStaff.bio || "") ||
+    staffCareMotivation !== (originalStaff.care_motivation || "") ||
+    staffImage !== (originalStaff.image || "");
+
+  async function handleSaveStaff() {
+    setSavingStaff(true);
+    setStaffMessage(null);
+    try {
+      const staffData = {
+        name: staffName.trim(),
+        position: staffPosition.trim(),
+        bio: staffBio.trim(),
+        image: staffImage,
+        care_motivation: staffCareMotivation.trim() || undefined,
+      };
+      const res = await fetch(`/api/admin/directory/${providerId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ _staff: staffName.trim() ? staffData : null }),
+      });
+      if (res.ok) {
+        setOriginalStaff({
+          name: staffName.trim(),
+          position: staffPosition.trim(),
+          bio: staffBio.trim(),
+          care_motivation: staffCareMotivation.trim(),
+          image: staffImage,
+        });
+        setStaffMessage({ type: "success", text: "Owner info saved." });
+        setTimeout(() => setStaffMessage(null), 3000);
+      } else {
+        const err = await res.json();
+        setStaffMessage({ type: "error", text: err.error || "Failed to save." });
+      }
+    } catch {
+      setStaffMessage({ type: "error", text: "Network error." });
+    } finally {
+      setSavingStaff(false);
+    }
+  }
+
+  async function handleStaffPhotoUpload(file: File) {
+    setUploadingStaffPhoto(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      body.append("providerId", providerId);
+
+      const res = await fetch("/api/admin/directory/upload", {
+        method: "POST",
+        body,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.imageUrl) setStaffImage(data.imageUrl);
+        // Also refresh provider images
+        const detailRes = await fetch(`/api/admin/directory/${providerId}`);
+        if (detailRes.ok) {
+          const detail = await detailRes.json();
+          setImages(detail.images ?? []);
+          setRawImages(detail.rawImages ?? []);
+        }
+      } else {
+        setStaffMessage({ type: "error", text: "Failed to upload photo." });
+      }
+    } catch {
+      setStaffMessage({ type: "error", text: "Network error uploading photo." });
+    } finally {
+      setUploadingStaffPhoto(false);
+      if (staffFileRef.current) staffFileRef.current.value = "";
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -196,6 +359,15 @@ export default function AdminDirectoryDetailPage() {
           <Badge variant={provider.deleted ? "rejected" : "verified"}>
             {provider.deleted ? "Deleted" : "Published"}
           </Badge>
+          {typeof formData.slug === "string" && (
+            <Link
+              href={`/provider/${formData.slug}`}
+              target="_blank"
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+            >
+              View Public Profile &rarr;
+            </Link>
+          )}
         </div>
       </div>
 
@@ -211,7 +383,17 @@ export default function AdminDirectoryDetailPage() {
               onChange={(val) => updateField("provider_category", val)}
               size="sm"
             />
-            <FieldInput label="Main Category" value={formData.main_category as string} onChange={(v) => updateField("main_category", v)} />
+            <Select
+              label="Main Category"
+              options={[
+                { value: "", label: "Select..." },
+                { value: "Home Care", label: "Home Care" },
+                { value: "Senior Community", label: "Senior Community" },
+              ]}
+              value={(formData.main_category as string) || ""}
+              onChange={(val) => updateField("main_category", val)}
+              size="sm"
+            />
           </div>
           <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
@@ -239,20 +421,61 @@ export default function AdminDirectoryDetailPage() {
             <div className="sm:col-span-2">
               <FieldInput label="Address" value={formData.address as string} onChange={(v) => updateField("address", v)} />
             </div>
-            <FieldInput label="City" value={formData.city as string} onChange={(v) => updateField("city", v)} />
+
+            {/* Smart city selector */}
+            <div className="space-y-1.5 relative" ref={cityDropdownRef}>
+              <label className="block text-sm font-medium text-gray-700">City</label>
+              <input
+                type="text"
+                value={showCityDropdown ? cityQuery : (formData.city as string) ?? ""}
+                onChange={(e) => {
+                  setCityQuery(e.target.value);
+                  if (!showCityDropdown) setShowCityDropdown(true);
+                }}
+                onFocus={() => {
+                  preloadCities();
+                  setCityQuery((formData.city as string) ?? "");
+                  setShowCityDropdown(true);
+                }}
+                placeholder="Search city or ZIP..."
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              />
+              {showCityDropdown && cityResults.length > 0 && (
+                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {cityResults.map((result) => (
+                    <button
+                      key={result.full}
+                      type="button"
+                      onClick={() => {
+                        updateField("city", result.city);
+                        updateField("state", result.state);
+                        setShowCityDropdown(false);
+                        setCityQuery("");
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors"
+                    >
+                      {result.full}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <FieldInput label="State" value={formData.state as string} onChange={(v) => updateField("state", v)} />
             <FieldInput label="Zipcode" value={formData.zipcode as string} onChange={(v) => updateField("zipcode", v === "" ? null : Number(v))} type="number" />
             <FieldInput label="Latitude" value={formData.lat as string} onChange={(v) => updateField("lat", v === "" ? null : Number(v))} type="number" step="any" />
             <FieldInput label="Longitude" value={formData.lon as string} onChange={(v) => updateField("lon", v === "" ? null : Number(v))} type="number" step="any" />
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Place ID</label>
-              <input
-                type="text"
-                value={(formData.place_id as string) || ""}
-                readOnly
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-500"
-              />
-            </div>
+            <GooglePlaceSearch
+              value={(formData.place_id as string) || null}
+              selectedName={(formData.provider_name as string) || null}
+              onSelect={(placeId, name, rating) => {
+                updateField("place_id", placeId);
+                if (rating != null) updateField("google_rating", rating);
+              }}
+              onClear={() => {
+                updateField("place_id", null);
+              }}
+            />
           </div>
         </Section>
 
@@ -275,13 +498,10 @@ export default function AdminDirectoryDetailPage() {
           </div>
         </Section>
 
-        {/* Scores */}
-        <Section title="Scores">
+        {/* Google Rating (read-only reference) */}
+        <Section title="Google Rating">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <FieldInput label="Google Rating" value={formData.google_rating as string} onChange={(v) => updateField("google_rating", v === "" ? null : Number(v))} type="number" step="0.1" />
-            <FieldInput label="Community Score" value={formData.community_Score as string} onChange={(v) => updateField("community_Score", v === "" ? null : Number(v))} type="number" step="0.1" />
-            <FieldInput label="Value Score" value={formData.value_score as string} onChange={(v) => updateField("value_score", v === "" ? null : Number(v))} type="number" step="0.1" />
-            <FieldInput label="Info Availability" value={formData.information_availability_score as string} onChange={(v) => updateField("information_availability_score", v === "" ? null : Number(v))} type="number" step="0.1" />
           </div>
         </Section>
 
@@ -304,6 +524,31 @@ export default function AdminDirectoryDetailPage() {
 
           <div className="mb-4">
             <FieldInput label="Provider Logo URL" value={formData.provider_logo as string} onChange={(v) => updateField("provider_logo", v || null)} />
+          </div>
+
+          {/* Image upload */}
+          <div className="mb-4">
+            <p className="text-sm font-medium text-gray-700 mb-2">Upload Image</p>
+            <div className="flex items-center gap-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImageUpload(file);
+                }}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-primary-400 hover:text-primary-600 transition-colors disabled:opacity-50"
+              >
+                {uploading ? "Uploading..." : "Choose file or drag here"}
+              </button>
+              <span className="text-xs text-gray-400">JPEG, PNG, or WebP. Max 5MB.</span>
+            </div>
           </div>
 
           {/* Classified images */}
@@ -451,25 +696,171 @@ export default function AdminDirectoryDetailPage() {
           )}
         </Section>
 
-        {/* Status */}
-        <Section title="Status">
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
+        {/* Facility Manager / Owner */}
+        <Section title="Facility Manager">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FieldInput label="Full Name" value={staffName} onChange={setStaffName} />
+            <FieldInput label="Title / Position" value={staffPosition} onChange={setStaffPosition} />
+          </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Care Motivation</label>
+            <textarea
+              value={staffCareMotivation}
+              onChange={(e) => setStaffCareMotivation(e.target.value)}
+              rows={3}
+              placeholder="Why did this person start this care home?"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+            />
+          </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Short Bio</label>
+            <textarea
+              value={staffBio}
+              onChange={(e) => setStaffBio(e.target.value)}
+              rows={2}
+              placeholder="Background, credentials..."
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+            />
+          </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Photo</label>
+            <div className="flex items-center gap-4">
+              {staffImage ? (
+                <img src={staffImage} alt="Owner" className="w-14 h-14 rounded-full object-cover" />
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-lg font-bold">
+                  {staffName ? staffName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) : "?"}
+                </div>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => staffFileRef.current?.click()}
+                  disabled={uploadingStaffPhoto}
+                  className="px-3 py-1.5 text-sm font-medium text-primary-600 border border-primary-300 rounded-lg hover:bg-primary-50 transition-colors disabled:opacity-50"
+                >
+                  {uploadingStaffPhoto ? "Uploading..." : staffImage ? "Change" : "Upload"}
+                </button>
+                {staffImage && (
+                  <button
+                    type="button"
+                    onClick={() => setStaffImage("")}
+                    className="px-3 py-1.5 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
               <input
-                type="checkbox"
-                checked={!!formData.deleted}
-                onChange={(e) => updateField("deleted", e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                ref={staffFileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleStaffPhotoUpload(file);
+                }}
+                className="hidden"
               />
-              <span className="text-sm font-medium text-gray-700">Deleted</span>
-            </label>
-            {!!formData.deleted_at && (
-              <span className="text-sm text-gray-500">
-                Deleted at: {new Date(formData.deleted_at as string).toLocaleString()}
-              </span>
-            )}
+            </div>
+          </div>
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+            <div>
+              {staffMessage && (
+                <span className={`text-sm ${staffMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                  {staffMessage.text}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={handleSaveStaff}
+              disabled={!isStaffDirty || savingStaff}
+              className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {savingStaff ? "Saving..." : "Save Owner Info"}
+            </button>
           </div>
         </Section>
+
+        {/* Danger Zone */}
+        <div className={`rounded-xl border ${formData.deleted ? "border-amber-300 bg-amber-50" : "border-red-200 bg-red-50"} p-6`}>
+          {formData.deleted ? (
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-amber-800">This provider is deleted</h2>
+                <p className="text-sm text-amber-600 mt-1">
+                  Deleted {formData.deleted_at ? new Date(formData.deleted_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""}. It is hidden from public search results.
+                </p>
+              </div>
+              <button
+                onClick={async () => {
+                  setSaving(true);
+                  try {
+                    const res = await fetch(`/api/admin/directory/${providerId}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ deleted: false }),
+                    });
+                    if (res.ok) {
+                      setFormData((prev) => ({ ...prev, deleted: false, deleted_at: null }));
+                      setOriginalData((prev) => ({ ...prev, deleted: false, deleted_at: null }));
+                      setSaveMessage({ type: "success", text: "Provider restored." });
+                      setTimeout(() => setSaveMessage(null), 3000);
+                    } else {
+                      setSaveMessage({ type: "error", text: "Failed to restore provider." });
+                    }
+                  } catch {
+                    setSaveMessage({ type: "error", text: "Network error." });
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 disabled:opacity-50 transition-colors"
+              >
+                Restore Provider
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-red-800">Danger Zone</h2>
+                <p className="text-sm text-red-600 mt-1">
+                  Removing this provider will hide it from all public search results.
+                </p>
+              </div>
+              <button
+                onClick={async () => {
+                  if (!confirm(`Are you sure you want to delete "${provider.provider_name}"? It will be hidden from public search.`)) return;
+                  setSaving(true);
+                  try {
+                    const res = await fetch(`/api/admin/directory/${providerId}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ deleted: true }),
+                    });
+                    if (res.ok) {
+                      const now = new Date().toISOString();
+                      setFormData((prev) => ({ ...prev, deleted: true, deleted_at: now }));
+                      setOriginalData((prev) => ({ ...prev, deleted: true, deleted_at: now }));
+                      setSaveMessage({ type: "success", text: "Provider deleted." });
+                      setTimeout(() => setSaveMessage(null), 3000);
+                    } else {
+                      setSaveMessage({ type: "error", text: "Failed to delete provider." });
+                    }
+                  } catch {
+                    setSaveMessage({ type: "error", text: "Network error." });
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                Delete Provider
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Bottom save bar */}

@@ -8,7 +8,7 @@
  */
 
 import { generateProviderSlug } from "@/lib/slugify";
-import type { BusinessProfile, ProfileCategory } from "@/lib/types";
+import type { BusinessProfile, ProfileCategory, GoogleReviewsData, CMSData, AiTrustSignals } from "@/lib/types";
 
 export interface Provider {
   provider_id: string;
@@ -39,6 +39,10 @@ export interface Provider {
   deleted_at: string | null;
   hero_image_url: string | null;
   slug: string | null; // Human-readable URL slug (populated via migration)
+  google_reviews_data: GoogleReviewsData | null; // Cached Google review snippets (JSONB)
+  cms_data: CMSData | null; // CMS Medicare quality data (JSONB)
+  ai_trust_signals: AiTrustSignals | null; // AI-verified trust signals (JSONB)
+  last_viewed_at: string | null; // Tracks page views for tiered refresh
 }
 
 /**
@@ -163,6 +167,9 @@ export interface ProviderCardData {
   description?: string;
   lat?: number | null;
   lon?: number | null;
+  cmsRating?: number | null;
+  cmsSource?: string | null;
+  trustSignalCount?: number; // count of AI-confirmed trust signals
 }
 
 /** URL patterns that strongly suggest a logo rather than a facility photo */
@@ -309,8 +316,8 @@ export function toCardFormat(provider: Provider): ProviderCardData {
     imageType,
     images: images.length > 0 ? images : [],
     address: formatLocation(provider),
-    rating: provider.google_rating || 0,
-    reviewCount: undefined,
+    rating: provider.google_reviews_data?.rating ?? provider.google_rating ?? 0,
+    reviewCount: provider.google_reviews_data?.review_count ?? undefined,
     priceRange: formatPriceRange(provider) || "Contact for pricing",
     primaryCategory: getCategoryDisplayName(provider.provider_category),
     careTypes: [provider.provider_category],
@@ -320,6 +327,9 @@ export function toCardFormat(provider: Provider): ProviderCardData {
     description: provider.provider_description?.slice(0, 200) || undefined,
     lat: provider.lat,
     lon: provider.lon,
+    cmsRating: provider.cms_data?.overall_rating ?? null,
+    cmsSource: provider.cms_data?.source ?? null,
+    trustSignalCount: provider.ai_trust_signals?.summary_score ?? undefined,
   };
 }
 
@@ -403,6 +413,26 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
   const primaryImage = bp.image_url || metaImages[0] || null;
   const hasImage = !!primaryImage;
 
+  // Pricing: read from metadata fields, fall back to "Contact for pricing"
+  const contactForPricing = meta?.contact_for_pricing === true;
+  let priceRange = "Contact for pricing";
+
+  if (!contactForPricing) {
+    const lowerPrice = meta?.lower_price as number | undefined;
+    const upperPrice = meta?.upper_price as number | undefined;
+    const frequency = (meta?.price_frequency as string | undefined) || "per month";
+    const suffix = frequency === "per hour" ? "/hr" : frequency === "per day" ? "/day" : "/mo";
+
+    if (lowerPrice && upperPrice && upperPrice > lowerPrice) {
+      priceRange = `$${lowerPrice.toLocaleString()} - $${upperPrice.toLocaleString()}${suffix}`;
+    } else if (lowerPrice) {
+      priceRange = `From $${lowerPrice.toLocaleString()}${suffix}`;
+    } else if (meta?.price_range) {
+      // Fallback to legacy price_range string
+      priceRange = meta.price_range as string;
+    }
+  }
+
   return {
     id: bp.id,
     slug: bp.slug,
@@ -413,7 +443,7 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
     address: [bp.city, bp.state].filter(Boolean).join(", "),
     rating: 0,
     reviewCount: undefined,
-    priceRange: "Contact for pricing",
+    priceRange,
     primaryCategory: displayCategory,
     careTypes: bp.care_types.length > 0 ? bp.care_types : (supabaseCat ? [supabaseCat] : []),
     highlights: getHighlightsForCategory(supabaseCat),

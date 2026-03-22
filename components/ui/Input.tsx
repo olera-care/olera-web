@@ -42,8 +42,8 @@ const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProps>(
     void _as;
 
     return (
-      <div className="space-y-1.5">
-        <label htmlFor={id} className="block text-base font-medium text-gray-700">
+      <div className="space-y-2">
+        <label htmlFor={id} className="block text-base font-semibold text-gray-900">
           {label}
         </label>
 

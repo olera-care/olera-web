@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState, useCallback, useRef, useMemo, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Connection, ConnectionStatus, Profile } from "@/lib/types";
@@ -10,6 +10,8 @@ import type { ConnectionWithProfile } from "@/components/messaging/ConversationL
 import ConversationPanel from "@/components/messaging/ConversationPanel";
 import ProviderDetailPanel from "@/components/messaging/ProviderDetailPanel";
 import ReportConnectionModal from "@/components/messaging/ReportConnectionModal";
+
+type RoleFilter = "all" | "family" | "provider";
 
 interface ThreadMessage {
   from_profile_id: string;
@@ -32,11 +34,57 @@ const CLAIM_TOKEN_KEY = "olera_claim_token";
 
 function InboxContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { activeProfile, profiles, user } = useAuth();
 
   // Extract URL params explicitly so changes trigger re-renders on client-side navigation
   const urlConnectionId = searchParams.get("id");
   const urlToken = searchParams.get("token");
+  const urlRole = searchParams.get("role") as RoleFilter | null;
+
+  // Compute provider profile IDs and whether user has both account types
+  const { providerProfileIds, hasProviderProfile, hasFamilyProfile } = useMemo(() => {
+    const providerIds = new Set<string>();
+    let hasProvider = false;
+    let hasFamily = false;
+
+    for (const p of profiles) {
+      if (p.type === "organization" || p.type === "caregiver") {
+        providerIds.add(p.id);
+        hasProvider = true;
+      } else {
+        hasFamily = true;
+      }
+    }
+
+    return {
+      providerProfileIds: providerIds,
+      hasProviderProfile: hasProvider,
+      hasFamilyProfile: hasFamily,
+    };
+  }, [profiles]);
+
+  // Only show role filters for users with both family AND provider profiles
+  const showRoleFilters = hasProviderProfile && hasFamilyProfile;
+
+  // Role filter state — default from URL param, or "all"
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>(() => {
+    if (urlRole === "family" || urlRole === "provider") return urlRole;
+    return "all";
+  });
+
+  // Update URL when role filter changes (without full navigation)
+  const handleRoleFilterChange = useCallback((filter: RoleFilter) => {
+    setRoleFilter(filter);
+    const params = new URLSearchParams(searchParams.toString());
+    if (filter === "all") {
+      params.delete("role");
+    } else {
+      params.set("role", filter);
+    }
+    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+    router.replace(newUrl, { scroll: false });
+  }, [router, searchParams]);
 
   const [connections, setConnections] = useState<ConnectionWithProfile[]>([]);
   const connectionsRef = useRef(connections);
@@ -478,20 +526,6 @@ function InboxContent() {
     );
   }, []);
 
-  // Handle care request updated — update message + metadata in local state
-  const handleCareRequestUpdated = useCallback(
-    (connectionId: string, message: string, metadata: Record<string, unknown>) => {
-      setConnections((prev) =>
-        prev.map((conn) =>
-          conn.id === connectionId
-            ? { ...conn, message, metadata }
-            : conn
-        )
-      );
-    },
-    []
-  );
-
   const selectedConnection = connections.find((c) => c.id === selectedId) || null;
 
   // Determine the "other" profile for the detail panel
@@ -660,6 +694,11 @@ function InboxContent() {
         onLoadArchived={fetchArchived}
         archivedCount={archivedCount}
         className={`w-full lg:w-[360px] lg:shrink-0 ${selectedId ? "hidden lg:flex" : "flex"}`}
+        variant={roleFilter === "provider" ? "provider" : "family"}
+        roleFilter={roleFilter}
+        onRoleFilterChange={handleRoleFilterChange}
+        providerProfileIds={providerProfileIds}
+        showRoleFilters={showRoleFilters}
       />
 
       {/* Middle panel — conversation detail */}
@@ -667,7 +706,6 @@ function InboxContent() {
         connection={selectedConnection}
         activeProfile={activeProfile ?? null}
         onMessageSent={handleMessageSent}
-        onCareRequestUpdated={handleCareRequestUpdated}
         onBack={() => setSelectedId(null)}
         detailOpen={detailOpen}
         onToggleDetail={() => setDetailOpen((p) => !p)}

@@ -140,17 +140,16 @@ export default function Navbar() {
     pathname.startsWith("/provider/account") ||
     // Claim/onboard flow shows provider portal nav
     (pathname.startsWith("/provider/") && pathname.endsWith("/onboard"));
-  const isMinimalNav = pathname.startsWith("/portal/inbox");
+  const isMinimalNav = pathname.startsWith("/portal/inbox") || pathname.startsWith("/welcome");
 
   // Show auth pill as soon as we know a user session exists.
   const hasSession = !!user;
-  const isFullyLoaded = !!user && !authLoading;
   // Mode switcher — shown when user has both a family and a provider profile
   const hasFamilyProfile = (profiles || []).some((p) => p.type === "family");
   const hasProviderProfile = (profiles || []).some(
     (p) => p.type === "organization" || p.type === "caregiver"
   );
-  const showModeSwitcher = isFullyLoaded && hasFamilyProfile && hasProviderProfile;
+  const showModeSwitcher = hasSession && hasFamilyProfile && hasProviderProfile;
 
   // Profile IDs for hub switching — used by the mode switcher to also switch activeProfile
   const familyProfileId = (profiles || []).find((p) => p.type === "family")?.id;
@@ -317,106 +316,120 @@ export default function Navbar() {
         </>
       )}
 
-      {/* Tier 1 — Hub-specific links (show immediately, no skeleton) */}
+      {/* Hub-specific links */}
       <div className="px-2 py-1.5">
-        {isProviderPortal ? (
-          <>
-            {/* Provider Hub links */}
-            <Link
-              href="/portal/profile"
-              className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-              onClick={() => setIsUserMenuOpen(false)}
-            >
-              <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-              Account
-            </Link>
-            <Link
-              href="/provider/pro"
-              className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-              onClick={() => setIsUserMenuOpen(false)}
-            >
-              <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-              </svg>
-              Olera Pro
-            </Link>
-            <Link
-              href="/provider/verification"
-              className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-              onClick={() => setIsUserMenuOpen(false)}
-            >
-              <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <polyline points="9 12 11 14 15 10" />
-              </svg>
-              Identity Verification
-            </Link>
-          </>
-        ) : (
-          <>
-            {/* Family Portal links */}
-            <Link
-              href="/portal/inbox"
-              className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-              onClick={() => setIsUserMenuOpen(false)}
-            >
-              <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                <rect x="2" y="4" width="20" height="16" rx="2" />
-                <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" />
-              </svg>
-              Inbox
-              {unreadInboxCount > 0 && (
-                <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
-                  {unreadInboxCount}
-                </span>
-              )}
-            </Link>
-            <Link
-              href="/portal/profile"
-              className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-              onClick={() => setIsUserMenuOpen(false)}
-            >
-              <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-              Account
-            </Link>
-            {hasFamilyProfile && (
+          {isProviderPortal ? (
+            <>
+              {/* Provider Hub links */}
               <Link
-                href="/portal/matches"
+                href="/portal/profile"
                 className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 onClick={() => setIsUserMenuOpen(false)}
               >
                 <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                  <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
+                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
                 </svg>
-                Matches
-                {matchesPendingCount > 0 && (
+                Account
+              </Link>
+              <Link
+                href="/provider/pro"
+                className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                </svg>
+                Olera Pro
+              </Link>
+              <Link
+                href="/provider/verification"
+                className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <polyline points="9 12 11 14 15 10" />
+                </svg>
+                Identity Verification
+              </Link>
+            </>
+          ) : (
+            <>
+              {/* Family Portal links */}
+              <Link
+                href="/portal/inbox"
+                className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" />
+                </svg>
+                Inbox
+                {unreadInboxCount > 0 && (
                   <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
-                    {matchesPendingCount}
+                    {unreadInboxCount}
                   </span>
                 )}
               </Link>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* Profile switcher */}
-      {isFullyLoaded && <div className="mx-4 border-t border-gray-100" />}
-      {isFullyLoaded && (
-        <div className="px-2 py-1">
-          <ProfileSwitcher
-            onSwitch={() => setIsUserMenuOpen(false)}
-            variant="dropdown"
-            allowedTypes={isProviderPortal ? ["organization", "caregiver"] : ["family"]}
-            navigateTo={isProviderPortal ? "/provider" : "/"}
-          />
+              <Link
+                href="/portal/profile"
+                className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                Account
+              </Link>
+              {hasFamilyProfile && (
+                <>
+                  <Link
+                    href="/portal/matches"
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    onClick={() => setIsUserMenuOpen(false)}
+                  >
+                    <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                      <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
+                    </svg>
+                    Matches
+                    {matchesPendingCount > 0 && (
+                      <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                        {matchesPendingCount}
+                      </span>
+                    )}
+                  </Link>
+                  <Link
+                    href="/medjobs/apply"
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    onClick={() => setIsUserMenuOpen(false)}
+                  >
+                    <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                      <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    Become a Caregiver
+                  </Link>
+                </>
+              )}
+            </>
+          )}
         </div>
+
+      {/* Profile switcher - only show on provider side where switching between org profiles is useful */}
+      {isProviderPortal && (
+        <>
+          <div className="mx-4 border-t border-gray-100" />
+          <div className="px-2 py-1">
+            <ProfileSwitcher
+              onSwitch={() => setIsUserMenuOpen(false)}
+              variant="dropdown"
+              allowedTypes={["organization", "caregiver"]}
+              navigateTo="/provider"
+            />
+          </div>
+        </>
       )}
 
       {isAdmin && (
@@ -548,7 +561,7 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`${navbarVisible ? "sticky" : "fixed"} top-0 left-0 right-0 z-50 bg-white ${isPortal || isProviderPortal ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
+        className={`${navbarVisible ? "sticky" : "fixed"} top-0 left-0 right-0 z-50 bg-white ${isPortal || isProviderPortal || pathname.startsWith("/welcome") ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
         style={{
           transform: navbarVisible ? "translateY(0)" : "translateY(-100%)",
           transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"
@@ -766,13 +779,15 @@ export default function Navbar() {
                 ) : (
                   /* Family mode: For Providers + heart + user menu */
                   <>
-                    {/* For Providers link */}
-                    <button
-                      onClick={handleForProviders}
-                      className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
-                    >
-                      For Providers
-                    </button>
+                    {/* For Providers link — hidden on minimal nav pages */}
+                    {!isMinimalNav && (
+                      <button
+                        onClick={handleForProviders}
+                        className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
+                      >
+                        For Providers
+                      </button>
+                    )}
 
                     {/* Saved providers heart */}
                     <Link
@@ -1069,19 +1084,15 @@ export default function Navbar() {
                       </div>
 
                       {/* Provider profile switcher */}
-                      {isFullyLoaded && (
-                        <>
-                          <div className="my-3 border-t border-gray-100" />
-                          <div className="px-3">
-                            <ProfileSwitcher
-                              onSwitch={() => setIsMobileMenuOpen(false)}
-                              variant="dropdown"
-                              allowedTypes={["organization", "caregiver"]}
-                              navigateTo="/provider"
-                            />
-                          </div>
-                        </>
-                      )}
+                      <div className="my-3 border-t border-gray-100" />
+                      <div className="px-3">
+                        <ProfileSwitcher
+                          onSwitch={() => setIsMobileMenuOpen(false)}
+                          variant="dropdown"
+                          allowedTypes={["organization", "caregiver"]}
+                          navigateTo="/provider"
+                        />
+                      </div>
 
                       {/* Switch to Family */}
                       {hasFamilyProfile && (
@@ -1217,22 +1228,9 @@ export default function Navbar() {
                         )}
                       </div>
 
-                      {/* Profile switcher & other actions */}
+                      {/* Switch to Provider - show when user has provider access */}
                       <div className="my-3 border-t border-gray-100" />
-
-                      {isFullyLoaded && (
-                        <div className="px-3">
-                          <ProfileSwitcher
-                            onSwitch={() => setIsMobileMenuOpen(false)}
-                            variant="dropdown"
-                            allowedTypes={["family"]}
-                            navigateTo="/"
-                          />
-                        </div>
-                      )}
-
-                      {/* Switch to Provider - show while loading or when user has provider access */}
-                      {(hasProviderProfile || hasAttemptedOnboarding || authLoading) && (
+                      {(hasProviderProfile || hasAttemptedOnboarding) && (
                         <button
                           type="button"
                           onClick={() => {
@@ -1251,10 +1249,7 @@ export default function Navbar() {
                               router.push("/provider/onboarding");
                             }
                           }}
-                          disabled={authLoading && !hasProviderProfile && !hasAttemptedOnboarding}
-                          className={`flex items-center gap-3 px-3 py-3 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-xl transition-colors text-left w-full ${
-                            (authLoading && !hasProviderProfile && !hasAttemptedOnboarding) ? "opacity-50" : ""
-                          }`}
+                          className="flex items-center gap-3 px-3 py-3 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-xl transition-colors text-left w-full"
                         >
                           <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
@@ -1346,6 +1341,18 @@ export default function Navbar() {
 
                   {/* Divider before provider section */}
                   <div className="my-3 border-t border-gray-100" />
+
+                  {/* MedJobs */}
+                  <Link
+                    href="/medjobs"
+                    className={`flex items-center gap-3 py-3 font-medium ${pathname.startsWith("/medjobs") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/medjobs") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                    </svg>
+                    MedJobs
+                  </Link>
 
                   {/* For Providers */}
                   <Link

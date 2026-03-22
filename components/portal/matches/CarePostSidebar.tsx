@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import EditCarePostModal from "./EditCarePostModal";
 
@@ -20,6 +21,12 @@ interface CarePostSidebarProps {
   onDeactivate: () => Promise<void>;
   onDelete?: (reasons: string[]) => Promise<void>;
   onProfileUpdated?: () => void;
+  /** If true, profile can go live (has location + care types) */
+  canGoLive?: boolean;
+  /** Called when user clicks "Go Live" - activates the profile */
+  onGoLive?: () => Promise<void>;
+  /** Show loading state for Go Live button */
+  activating?: boolean;
 }
 
 export default function CarePostSidebar({
@@ -30,6 +37,9 @@ export default function CarePostSidebar({
   onDeactivate,
   onDelete,
   onProfileUpdated,
+  canGoLive = true,
+  onGoLive,
+  activating = false,
 }: CarePostSidebarProps) {
   const meta = (activeProfile.metadata || {}) as FamilyMetadata;
   const carePost = meta.care_post;
@@ -177,30 +187,120 @@ export default function CarePostSidebar({
     }
   };
 
-  // ── No care profile ──
+  // ── No care profile — "Go Live" CTA ──
   if (!hasPost) {
     return (
       <div className="sticky top-24">
         <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-          <div className="p-6 text-center">
-            <div className="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center text-xl mx-auto mb-3">
-              📣
+          <div className="p-5">
+            {/* Header */}
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-[15px] font-semibold text-gray-900">
+                  Let providers find you
+                </h4>
+                <p className="text-[12px] text-gray-500">
+                  Go live to start getting matched
+                </p>
+              </div>
             </div>
-            <h4 className="text-[15px] font-semibold text-gray-900 mb-1">
-              Let providers find you
-            </h4>
-            <p className="text-[13px] text-gray-500 leading-relaxed mb-4">
-              Share your care profile so qualified providers can reach out directly.
-            </p>
+
+            {/* Benefits list */}
+            <ul className="space-y-2.5 mb-5">
+              <li className="flex items-start gap-2.5">
+                <svg className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span className="text-[13px] text-gray-600">Providers in your area can find and reach out to you</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <svg className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span className="text-[13px] text-gray-600">Review interested providers at your own pace</span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <svg className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span className="text-[13px] text-gray-600">Pause or delete your profile anytime</span>
+              </li>
+            </ul>
+
+            {/* Go Live button */}
+            {canGoLive && onGoLive ? (
+              <button
+                onClick={onGoLive}
+                disabled={activating}
+                className="w-full min-h-[48px] py-3 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold hover:from-primary-400 hover:to-primary-500 transition-all shadow-[0_1px_3px_rgba(25,144,135,0.3)] disabled:opacity-70 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+              >
+                {activating ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Going live...
+                  </>
+                ) : (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-white/80 animate-pulse" />
+                    Go Live
+                  </>
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={handlePublishAction}
+                disabled={publishing || !canGoLive}
+                className="w-full min-h-[48px] py-3 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold hover:from-primary-400 hover:to-primary-500 transition-all shadow-[0_1px_3px_rgba(25,144,135,0.3)] disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+              >
+                {publishing ? "Publishing..." : "Go Live"}
+              </button>
+            )}
+
+            {/* Hint if can't go live - link to complete setup */}
+            {!canGoLive && (
+              <p className="text-[12px] text-gray-400 text-center mt-3">
+                <Link href="/welcome" className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
+                  Complete your profile
+                </Link>
+                {" "}to go live
+              </p>
+            )}
+
+            {/* Edit profile link - always available */}
             <button
-              onClick={handlePublishAction}
-              disabled={publishing}
-              className="w-full py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold hover:from-primary-400 hover:to-primary-500 transition-all shadow-sm disabled:opacity-50"
+              type="button"
+              onClick={() => setEditModalOpen(true)}
+              className="w-full mt-3 min-h-[44px] py-2.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors flex items-center justify-center gap-1.5"
             >
-              {publishing ? "Publishing..." : "Publish Care Profile"}
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+              </svg>
+              Edit profile
             </button>
           </div>
         </div>
+
+        {/* Edit modal for Not Live state */}
+        {editModalOpen && (
+          <EditCarePostModal
+            profile={activeProfile}
+            userEmail={userEmail}
+            onClose={() => setEditModalOpen(false)}
+            onSaved={() => {
+              setEditModalOpen(false);
+              onProfileUpdated?.();
+            }}
+          />
+        )}
       </div>
     );
   }
@@ -217,8 +317,8 @@ export default function CarePostSidebar({
                 Your Care Profile
               </h4>
               {acceptingMatches ? (
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary-50 border border-primary-100/60 text-[10px] font-semibold text-primary-600">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-[10px] font-semibold text-emerald-700">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Live
                 </span>
               ) : (
@@ -304,11 +404,7 @@ export default function CarePostSidebar({
         {/* Stats */}
         <div className="border-t border-gray-100 px-5 py-3.5 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[12px] text-gray-400">Total views</span>
-            <span className="text-[13px] font-semibold text-gray-800">—</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] text-gray-400">Conversations started</span>
+            <span className="text-[12px] text-gray-400">Providers interested</span>
             <span className="text-[13px] font-semibold text-gray-800">{interestedCount}</span>
           </div>
           {activeDays && (
@@ -470,7 +566,7 @@ export default function CarePostSidebar({
         <p className="text-[13px] text-gray-600 leading-relaxed">
           {interestedCount > 0
             ? <>Take your time. There&apos;s <span className="font-semibold text-gray-800">no pressure</span> to respond immediately.</>
-            : <>Most providers respond within <span className="font-semibold text-gray-800">3–5 days</span> of seeing a matching profile.</>
+            : <>Providers typically respond within <span className="font-semibold text-gray-800">3–5 days</span>. We&apos;ll email you when someone reaches out.</>
           }
         </p>
       </div>

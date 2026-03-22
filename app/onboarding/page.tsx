@@ -8,50 +8,27 @@ import Button from "@/components/ui/Button";
 /**
  * /onboarding — Simplified redirect page.
  *
- * - Authenticated + onboarding complete → redirect to /portal (unless intent=provider)
- * - Authenticated + no profile → open unified auth modal in post-auth mode
- * - Unauthenticated → open unified auth modal in sign-up mode
+ * - Authenticated → redirect to /portal
+ * - Unauthenticated → show sign-up page with buttons
  */
 export default function OnboardingPage() {
-  const { user, account, isLoading, openAuth } = useAuth();
+  const { user, isLoading, openAuth } = useAuth();
   const router = useRouter();
   const [prompted, setPrompted] = useState(false);
 
   useEffect(() => {
     if (isLoading || prompted) return;
 
-    const params = new URLSearchParams(window.location.search);
-    const intent = params.get("intent");
-
-    // Signed in + onboarded + has an intent (provider or organization) →
-    // open post-auth flow so they can add another profile
-    if (user && account?.onboarding_completed && (intent === "provider" || intent === "organization")) {
-      setPrompted(true);
-      openAuth({
-        startAtPostAuth: true,
-        intent: intent === "organization" ? "provider" : "provider",
-        providerType: intent === "organization" ? "organization" : undefined,
-      });
-      return;
-    }
-
-    // Signed in + onboarded + no intent → already done, go to portal
-    if (user && account?.onboarding_completed) {
+    // Signed in → redirect to portal
+    if (user) {
       router.replace("/portal");
       return;
     }
 
-    if (user && account && !account.onboarding_completed) {
-      setPrompted(true);
-      openAuth({ startAtPostAuth: true });
-      return;
-    }
-
-    if (!user) {
-      setPrompted(true);
-      openAuth({ defaultMode: "sign-up" });
-    }
-  }, [isLoading, user, account, prompted, openAuth, router]);
+    // Not signed in → open sign-up modal
+    setPrompted(true);
+    openAuth({ defaultMode: "sign-up" });
+  }, [isLoading, user, prompted, openAuth, router]);
 
   if (isLoading) {
     return (

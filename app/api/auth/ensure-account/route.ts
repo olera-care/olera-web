@@ -3,6 +3,8 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import type { Account } from "@/lib/types";
 import { sendLoopsEvent } from "@/lib/loops";
+import { sendEmail } from "@/lib/email";
+import { welcomeEmail } from "@/lib/email-templates";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { sanitizeDisplayName } from "@/lib/validation";
 
@@ -145,6 +147,27 @@ export async function POST(request: Request) {
         } catch {
           // Non-blocking
         }
+
+        // Welcome email (fire-and-forget) — first time seeing this account
+        try {
+          if (user.email && !claimToken) {
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+            const welcomeName = (existingAccount as Account).display_name
+              || user.user_metadata?.full_name
+              || user.user_metadata?.name
+              || "";
+            await sendEmail({
+              to: user.email,
+              subject: "Welcome to Olera",
+              html: welcomeEmail({
+                familyName: welcomeName.split(/\s+/)[0] || "there",
+                browseUrl: `${siteUrl}/browse`,
+              }),
+            });
+          }
+        } catch {
+          // Non-blocking
+        }
       }
 
       // Handle placeholder profile claim for EXISTING accounts (guest connection flow)
@@ -171,11 +194,28 @@ export async function POST(request: Request) {
               .from("business_profiles")
               .delete()
               .eq("id", placeholder.id);
+
+            // Ensure active_profile_id is set so welcome page can find connections
+            if (!(existingAccount as Account).active_profile_id) {
+              await dbClient
+                .from("accounts")
+                .update({ active_profile_id: mainFamilyId })
+                .eq("id", acctId);
+            }
           }
         } catch (err) {
           console.error("[ensure-account] placeholder handling error (existing):", err);
           // Non-blocking
         }
+      }
+
+      // Also ensure active_profile_id is set even without a claim token
+      // Some accounts may exist without active_profile_id being set
+      if (existingFamilyProfile && !(existingAccount as Account).active_profile_id) {
+        await dbClient
+          .from("accounts")
+          .update({ active_profile_id: existingFamilyProfile.id })
+          .eq("id", acctId);
       }
 
       // If requested, mark onboarding as complete (used when skipping popup for users with deferred actions or existing profiles)
@@ -252,6 +292,23 @@ export async function POST(request: Request) {
           lastName: nameParts.slice(1).join(" ") || "",
         },
       });
+    } catch {
+      // Non-blocking
+    }
+
+    // Welcome email (fire-and-forget) — only for new accounts, not guest connections
+    try {
+      if (user.email && !claimToken) {
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+        await sendEmail({
+          to: user.email,
+          subject: "Welcome to Olera",
+          html: welcomeEmail({
+            familyName: sanitizedName.split(/\s+/)[0] || "there",
+            browseUrl: `${siteUrl}/browse`,
+          }),
+        });
+      }
     } catch {
       // Non-blocking
     }

@@ -3,12 +3,13 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
 import { sendEmail } from "@/lib/email";
-import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail } from "@/lib/email-templates";
+import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail, verifyEmailEmail } from "@/lib/email-templates";
 import { sendSlackAlert, slackNewLead, slackMissingEmail } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { sendLoopsEvent } from "@/lib/loops";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
+import { syncIntentToProfile, recipientMap, timelineMap, careTypeMap } from "@/lib/sync-intent-to-profile";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -33,6 +34,8 @@ function generateSlug(name: string): string {
 
 interface GuestConnectionParams {
   guestEmail: string;
+  guestFullName?: string;
+  guestPhone?: string;
   providerId: string;
   providerName: string;
   providerSlug: string;
@@ -49,6 +52,8 @@ interface GuestConnectionParams {
 
 async function handleGuestConnection({
   guestEmail,
+  guestFullName,
+  guestPhone,
   providerId,
   providerName,
   providerSlug,
@@ -89,62 +94,312 @@ async function handleGuestConnection({
     );
   }
 
-  // Find or create placeholder profile for this guest email
+  // ═══════════════════════════════════════════════════════════════════════════
+  // INSTANT ACCOUNT CREATION
+  // Create real Supabase user + account + profile (not placeholder)
+  // User gets instant session via tokenHash returned to client
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const { createClient: createAdminAuthClient } = await import("@supabase/supabase-js");
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceKey) {
+    return NextResponse.json({ error: "Server configuration error." }, { status: 500 });
+  }
+
+  const authClient = createAdminAuthClient(supabaseUrl, serviceKey);
+  const siteUrl = getSiteUrl();
+
   let fromProfileId: string;
-  let claimToken: string;
+  let accountId: string;
+  let userId: string;
+  let tokenHash: string | null = null;
+  let actionLink: string | null = null;
+  let accessToken: string | null = null;
+  let refreshToken: string | null = null;
+  let isNewUser = false;
+  const displayName = guestFullName?.trim() || normalizedEmail.split("@")[0] || "Guest";
 
-  const { data: existingProfile } = await db
-    .from("business_profiles")
-    .select("id, claim_token")
-    .eq("email", normalizedEmail)
-    .is("account_id", null)
-    .eq("type", "family")
-    .limit(1)
-    .single();
+  // Try to create user — if already exists, we'll handle that case
+  const { data: newUser, error: createUserErr } = await authClient.auth.admin.createUser({
+    email: normalizedEmail,
+    email_confirm: false,
+    user_metadata: {
+      full_name: displayName,
+    },
+  });
 
-  if (existingProfile) {
-    fromProfileId = existingProfile.id;
-    claimToken = existingProfile.claim_token;
+  if (createUserErr) {
+    // Check if user already exists (error code for duplicate email)
+    if (createUserErr.message?.includes("already been registered") ||
+        createUserErr.message?.includes("already exists")) {
+      // User exists — look up by email in accounts table via business_profiles
+      const { data: existingProfile } = await db
+        .from("business_profiles")
+        .select("id, account_id")
+        .eq("email", normalizedEmail)
+        .eq("type", "family")
+        .not("account_id", "is", null)
+        .limit(1)
+        .single();
+
+      if (existingProfile && existingProfile.account_id) {
+        // Existing user with account and profile
+        fromProfileId = existingProfile.id;
+        accountId = existingProfile.account_id;
+
+        // Get user_id from account
+        const { data: accountData } = await db
+          .from("accounts")
+          .select("user_id")
+          .eq("id", accountId)
+          .single();
+
+        userId = accountData?.user_id || "";
+
+        // Generate magic link token and verify server-side for instant session
+        const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
+          type: "magiclink",
+          email: normalizedEmail,
+          options: {
+            redirectTo: `${siteUrl}/welcome`,
+          },
+        });
+
+        if (!linkError && linkData?.properties) {
+          tokenHash = linkData.properties.hashed_token || null;
+          actionLink = linkData.properties.action_link || null;
+
+          // Verify server-side to get session tokens
+          try {
+            const { data: verifyData, error: verifyError } = await authClient.auth.verifyOtp({
+              token_hash: linkData.properties.hashed_token,
+              type: "magiclink",
+            });
+
+            if (!verifyError && verifyData?.session) {
+              accessToken = verifyData.session.access_token;
+              refreshToken = verifyData.session.refresh_token;
+              console.log("[guest-connection] Server-side session created for existing user:", normalizedEmail);
+            } else {
+              console.warn("[guest-connection] Server-side verify failed for existing user:", verifyError?.message);
+            }
+          } catch (verifyErr) {
+            console.error("[guest-connection] Server-side verify error for existing user:", verifyErr);
+          }
+        }
+      } else {
+        // Edge case: auth user exists but no profile in our DB
+        // Generate magic link and verify server-side for instant session
+        const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
+          type: "magiclink",
+          email: normalizedEmail,
+          options: {
+            redirectTo: `${siteUrl}/welcome`,
+          },
+        });
+
+        if (linkError) {
+          console.error("Failed to generate link for existing user:", linkError);
+          return NextResponse.json({ error: "Failed to create session." }, { status: 500 });
+        }
+
+        tokenHash = linkData?.properties?.hashed_token || null;
+        actionLink = linkData?.properties?.action_link || null;
+        userId = ""; // We don't have easy access to the user ID here
+
+        // Verify server-side to get session tokens
+        if (linkData?.properties?.hashed_token) {
+          try {
+            const { data: verifyData, error: verifyError } = await authClient.auth.verifyOtp({
+              token_hash: linkData.properties.hashed_token,
+              type: "magiclink",
+            });
+
+            if (!verifyError && verifyData?.session) {
+              accessToken = verifyData.session.access_token;
+              refreshToken = verifyData.session.refresh_token;
+              userId = verifyData.session.user?.id || "";
+              console.log("[guest-connection] Server-side session created for auth-only user:", normalizedEmail);
+            } else {
+              console.warn("[guest-connection] Server-side verify failed for auth-only user:", verifyError?.message);
+            }
+          } catch (verifyErr) {
+            console.error("[guest-connection] Server-side verify error for auth-only user:", verifyErr);
+          }
+        }
+
+        // Create account and profile for this existing auth user
+        // First, we need to look up the user via the auth admin API
+        // Since we can't easily get user by email, we'll create profile with null account for now
+        // and let the magic link callback claim it
+        const slug = await generateUniqueSlugFromName(db, displayName);
+        const normalizedPhone = guestPhone ? normalizeUSPhone(guestPhone) : null;
+        const { data: newProfile, error: profileErr } = await db
+          .from("business_profiles")
+          .insert({
+            account_id: null, // Will be claimed when user uses magic link
+            email: normalizedEmail,
+            phone: normalizedPhone,
+            slug,
+            type: "family",
+            display_name: displayName,
+            care_types: intentData.careType && careTypeMap[intentData.careType]
+              ? [careTypeMap[intentData.careType]]
+              : [],
+            claim_state: "unclaimed",
+            verification_state: "unverified",
+            source: "guest_connection",
+            metadata: {
+              relationship_to_recipient: intentData.careRecipient
+                ? recipientMap[intentData.careRecipient] ?? null
+                : null,
+              timeline: intentData.urgency
+                ? timelineMap[intentData.urgency] ?? null
+                : null,
+              about_situation: intentData.additionalNotes || null,
+            },
+          })
+          .select("id")
+          .single();
+
+        if (profileErr) {
+          console.error("Failed to create profile for existing user:", profileErr);
+          return NextResponse.json({ error: "Failed to create profile." }, { status: 500 });
+        }
+        fromProfileId = newProfile.id;
+        accountId = ""; // Will be set when magic link is used
+      }
+    } else {
+      // Actual error creating user
+      console.error("Failed to create auth user:", createUserErr);
+      return NextResponse.json({ error: "Failed to create account." }, { status: 500 });
+    }
   } else {
-    // Create placeholder profile
-    const displayName = normalizedEmail.split("@")[0] || "Guest";
-    const slug = generateSlug(displayName);
+    // Successfully created new user
+    isNewUser = true;
+    userId = newUser.user.id;
 
-    const { data: newProfile, error: profileError } = await db
+    // Create account
+    const { data: newAccount, error: accountErr } = await db
+      .from("accounts")
+      .insert({
+        user_id: userId,
+        display_name: displayName,
+        onboarding_completed: false,
+      })
+      .select("id")
+      .single();
+
+    if (accountErr) {
+      console.error("Failed to create account:", accountErr);
+      return NextResponse.json({ error: "Failed to create account." }, { status: 500 });
+    }
+    accountId = newAccount.id;
+
+    // Create family profile with phone if provided
+    const slug = await generateUniqueSlugFromName(db, displayName);
+    const normalizedPhone = guestPhone ? normalizeUSPhone(guestPhone) : null;
+    const { data: newProfile, error: profileErr } = await db
       .from("business_profiles")
       .insert({
-        account_id: null, // Placeholder — no account yet
+        account_id: accountId,
         email: normalizedEmail,
+        phone: normalizedPhone,
         slug,
         type: "family",
-        category: null,
         display_name: displayName,
-        care_types: [],
-        claim_state: "unclaimed",
+        care_types: intentData.careType && careTypeMap[intentData.careType]
+          ? [careTypeMap[intentData.careType]]
+          : [],
+        claim_state: "claimed",
         verification_state: "unverified",
         source: "guest_connection",
         metadata: {
           relationship_to_recipient: intentData.careRecipient
-            ? { self: "Myself", parent: "My parent", spouse: "My spouse", other: "Someone else" }[intentData.careRecipient]
+            ? recipientMap[intentData.careRecipient] ?? null
             : null,
           timeline: intentData.urgency
-            ? { asap: "immediate", within_month: "within_1_month", few_months: "within_3_months", researching: "exploring" }[intentData.urgency]
+            ? timelineMap[intentData.urgency] ?? null
             : null,
+          about_situation: intentData.additionalNotes || null,
         },
       })
-      .select("id, claim_token")
+      .select("id")
       .single();
 
-    if (profileError) {
-      console.error("Failed to create guest profile:", profileError);
-      return NextResponse.json(
-        { error: "Failed to create your profile." },
-        { status: 500 }
-      );
+    if (profileErr) {
+      console.error("Failed to create family profile:", profileErr);
+      return NextResponse.json({ error: "Failed to create profile." }, { status: 500 });
+    }
+    fromProfileId = newProfile.id;
+
+    // Set as active profile
+    await db.from("accounts").update({ active_profile_id: fromProfileId }).eq("id", accountId);
+
+    // Generate session tokens for instant login
+    // We use generateLink to get the OTP, then verify it server-side to get session tokens
+    const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
+      type: "magiclink",
+      email: normalizedEmail,
+      options: {
+        redirectTo: `${siteUrl}/welcome`,
+      },
+    });
+
+    if (!linkError && linkData?.properties) {
+      tokenHash = linkData.properties.hashed_token || null;
+      actionLink = linkData.properties.action_link || null;
+
+      // Try to verify the token server-side and get session tokens
+      // This creates a session we can pass to the client
+      try {
+        const { data: verifyData, error: verifyError } = await authClient.auth.verifyOtp({
+          token_hash: linkData.properties.hashed_token,
+          type: "magiclink",
+        });
+
+        if (!verifyError && verifyData?.session) {
+          accessToken = verifyData.session.access_token;
+          refreshToken = verifyData.session.refresh_token;
+          console.log("[guest-connection] Server-side session created for:", normalizedEmail);
+        } else {
+          console.warn("[guest-connection] Server-side verify failed:", verifyError?.message);
+        }
+      } catch (verifyErr) {
+        console.error("[guest-connection] Server-side verify error:", verifyErr);
+      }
     }
 
-    fromProfileId = newProfile.id;
-    claimToken = newProfile.claim_token;
+    // Loops: new account created
+    try {
+      const nameParts = displayName.trim().split(/\s+/);
+      await sendLoopsEvent({
+        email: normalizedEmail,
+        eventName: "user_signup",
+        audience: "seeker",
+        eventProperties: { source: "guest_connection" },
+        contactProperties: {
+          firstName: nameParts[0] || "",
+          lastName: nameParts.slice(1).join(" ") || "",
+        },
+      });
+    } catch {
+      // Non-blocking
+    }
+  }
+
+  // Sync intent data to profile
+  try {
+    await syncIntentToProfile(db, fromProfileId, {
+      careRecipient: intentData.careRecipient,
+      careType: intentData.careType,
+      urgency: intentData.urgency,
+      additionalNotes: intentData.additionalNotes,
+    });
+  } catch (syncErr) {
+    console.error("Failed to sync intent to profile:", syncErr);
   }
 
   // Resolve target provider (same logic as authenticated flow)
@@ -255,52 +510,93 @@ async function handleGuestConnection({
       status: "duplicate",
       connectionId: existingConnection.id,
       created_at: existingConnection.created_at,
-      claimToken,
+      tokenHash: accessToken ? null : (tokenHash || null),
+      actionLink: accessToken ? null : (actionLink || null),
+      accessToken: accessToken || null,
+      refreshToken: refreshToken || null,
+      providerSlug,
     });
   }
 
-  // Build message payload
-  const firstName = normalizedEmail.split("@")[0] || "";
-
-  const messagePayload = JSON.stringify({
-    care_recipient: intentData?.careRecipient || null,
-    care_type: intentData?.careType || null,
-    care_type_other: intentData?.careTypeOtherText || null,
-    urgency: intentData?.urgency || null,
-    additional_notes: intentData?.additionalNotes || null,
-    contact_preference: null,
-    seeker_phone: null,
-    seeker_email: normalizedEmail,
-    seeker_first_name: firstName,
-    seeker_last_name: "",
-  });
-
-  // Look up provider info for notifications
+  // Look up provider info for summary card and notifications
   let providerEmail: string | null = null;
   let providerDisplayName: string | null = null;
+  let providerCity: string | null = null;
+  let providerState: string | null = null;
   try {
     const { data: bp } = await db
       .from("business_profiles")
-      .select("email, display_name")
+      .select("email, display_name, city, state")
       .eq("id", toProfileId)
       .single();
     providerEmail = bp?.email || null;
     providerDisplayName = bp?.display_name || null;
+    providerCity = bp?.city || null;
+    providerState = bp?.state || null;
 
-    if (!providerEmail) {
+    // Fallback to olera-providers for email and location
+    if (!providerEmail || !providerCity) {
       const { data: ios } = await db
         .from("olera-providers")
-        .select("email")
+        .select("email, city, state")
         .eq("provider_id", providerId)
         .single();
-      providerEmail = ios?.email || null;
+      providerEmail = providerEmail || ios?.email || null;
+      providerCity = providerCity || ios?.city || null;
+      providerState = providerState || ios?.state || null;
     }
   } catch {
     // Non-blocking
   }
 
+  // Build message payload with all available seeker info
+  const seekerName = guestFullName?.trim() || displayName;
+  const nameParts = seekerName.split(/\s+/);
+  const firstName = nameParts[0] || normalizedEmail.split("@")[0] || "";
+  const lastName = nameParts.slice(1).join(" ") || "";
+  const normalizedPhone = guestPhone ? normalizeUSPhone(guestPhone) : null;
+
+  // Build location string for summary
+  const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
+
+  const messagePayload = JSON.stringify({
+    // Seeker identity (always available)
+    seeker_name: seekerName,
+    seeker_first_name: firstName,
+    seeker_last_name: lastName,
+    seeker_email: normalizedEmail,
+    seeker_phone: normalizedPhone,
+    // Location context (from provider)
+    looking_in_city: providerCity,
+    looking_in_state: providerState,
+    // Custom message from form
+    message: intentData?.additionalNotes || null,
+    // Care details (may be filled later via profile)
+    care_recipient: intentData?.careRecipient || null,
+    care_type: intentData?.careType || null,
+    care_type_other: intentData?.careTypeOtherText || null,
+    urgency: intentData?.urgency || null,
+    // Legacy field for backward compatibility
+    additional_notes: intentData?.additionalNotes || null,
+    contact_preference: null,
+  });
+
+  // Build auto_intro - a natural language summary
+  let autoIntro: string;
+  if (intentData?.additionalNotes) {
+    // User wrote a custom message - use it as the intro
+    autoIntro = intentData.additionalNotes;
+  } else if (locationStr) {
+    // No custom message - generate based on location
+    autoIntro = `${firstName} is interested in care services in ${locationStr}.`;
+  } else {
+    // Fallback
+    autoIntro = `${firstName} is interested in learning more about your services.`;
+  }
+
   // Build connection metadata
   const connectionMetadata: Record<string, unknown> = {};
+  connectionMetadata.auto_intro = autoIntro;
   if (!providerEmail) connectionMetadata.needs_provider_email = true;
 
   // Auto-reply from provider (marked as auto to exclude from unread reminders)
@@ -333,67 +629,31 @@ async function handleGuestConnection({
     return NextResponse.json({ error: "Failed to send request." }, { status: 500 });
   }
 
-  // Send SINGLE combined email: connection confirmation + magic link
-  // Uses generateLink() to create magic link without Supabase sending its own email
+  // Send "Verify your email" email (user already has instant session via tokenHash)
   try {
-    const { createClient: createAdminAuthClient } = await import("@supabase/supabase-js");
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    // Use environment-aware URL so magic links work in preview/staging deployments
-    const siteUrl = getSiteUrl();
+    // Generate a verification link for the email
+    const { data: verifyLinkData, error: verifyLinkError } = await authClient.auth.admin.generateLink({
+      type: "magiclink",
+      email: normalizedEmail,
+      options: {
+        redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent("/portal/inbox")}&verify=true`,
+      },
+    });
 
-    const careTypeMap: Record<string, string> = {
-      home_care: "Home Care",
-      home_health: "Home Health Care",
-      assisted_living: "Assisted Living",
-      memory_care: "Memory Care",
-    };
-
-    if (url && serviceKey) {
-      const authClient = createAdminAuthClient(url, serviceKey);
-
-      // Generate magic link without sending Supabase's default email
-      // Use client-side /auth/magic-link handler (not server-side /auth/callback)
-      // because generateLink() uses implicit flow which puts tokens in hash fragment
-      const finalDestination = `/portal/inbox?id=${newConnection.id}&token=${claimToken}`;
-      const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
-        type: "magiclink",
-        email: normalizedEmail,
-        options: {
-          redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(finalDestination)}&token=${claimToken}`,
-        },
+    if (!verifyLinkError && verifyLinkData?.properties?.action_link) {
+      await sendEmail({
+        to: normalizedEmail,
+        subject: `Verify your email — Olera`,
+        html: verifyEmailEmail({
+          familyName: firstName || "there",
+          providerName,
+          verifyUrl: verifyLinkData.properties.action_link,
+        }),
       });
-
-      if (linkError) {
-        console.error("Failed to generate magic link:", linkError);
-        // Fall back to simple confirmation email without magic link
-        await sendEmail({
-          to: normalizedEmail,
-          subject: `You're connected with ${providerName} on Olera`,
-          html: connectionSentEmail({
-            familyName: firstName || "there",
-            providerName,
-            careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
-            viewUrl: `${siteUrl}${finalDestination}`,
-          }),
-        });
-      } else {
-        // Send our combined email with the magic link embedded
-        await sendEmail({
-          to: normalizedEmail,
-          subject: `You're connected with ${providerName} on Olera`,
-          html: guestConnectionEmail({
-            familyName: firstName || "there",
-            providerName,
-            careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
-            magicLinkUrl: linkData.properties.action_link,
-          }),
-        });
-      }
     }
   } catch (emailErr) {
-    console.error("Failed to send guest connection email:", emailErr);
-    // Non-blocking — connection was created
+    console.error("Failed to send verify email:", emailErr);
+    // Non-blocking — user has instant session, verification is optional
   }
 
   // Provider notifications (fire-and-forget)
@@ -510,11 +770,18 @@ async function handleGuestConnection({
     // Non-blocking
   }
 
+  // If we have session tokens, don't send tokenHash/actionLink (they're consumed)
+  // If we don't have session tokens, send tokenHash/actionLink for fallback
   return NextResponse.json({
     status: "created",
     connectionId: newConnection.id,
     created_at: newConnection.created_at,
-    claimToken,
+    tokenHash: accessToken ? null : (tokenHash || null),
+    actionLink: accessToken ? null : (actionLink || null),
+    accessToken: accessToken || null,
+    refreshToken: refreshToken || null,
+    providerSlug,
+    isNewUser,
   });
 }
 
@@ -543,6 +810,7 @@ export async function POST(request: Request) {
       intentData,
       guest,
       guestEmail,
+      formData,
       website, // Honeypot field
     } = body as {
       providerId: string;
@@ -557,6 +825,7 @@ export async function POST(request: Request) {
       };
       guest?: boolean;
       guestEmail?: string;
+      formData?: { fullName?: string; phone?: string; message?: string };
       website?: string; // Honeypot
     };
 
@@ -583,6 +852,8 @@ export async function POST(request: Request) {
     if (guest && guestEmail) {
       return handleGuestConnection({
         guestEmail,
+        guestFullName: formData?.fullName,
+        guestPhone: formData?.phone,
         providerId,
         providerName,
         providerSlug,
@@ -836,73 +1107,121 @@ export async function POST(request: Request) {
       });
     }
 
-    // 5. Build message payload
-    const nameParts = (account.display_name || "").trim().split(/\s+/);
-    const firstName = nameParts[0] || "";
-    const lastName = nameParts.slice(1).join(" ") || "";
-
-    const messagePayload = JSON.stringify({
-      care_recipient: intentData?.careRecipient || null,
-      care_type: intentData?.careType || null,
-      care_type_other: intentData?.careTypeOtherText || null,
-      urgency: intentData?.urgency || null,
-      additional_notes: intentData?.additionalNotes || null,
-      contact_preference: null,
-      seeker_phone: null,
-      seeker_email: user.email || "",
-      seeker_first_name: firstName,
-      seeker_last_name: lastName,
-    });
-
-    // 6a. Look up provider email (used for metadata flag + notification)
+    // 5. Look up provider info for summary card and notifications
     let providerEmail: string | null = null;
     let providerDisplayName: string | null = null;
+    let providerCity: string | null = null;
+    let providerState: string | null = null;
     try {
       const { data: bp } = await db
         .from("business_profiles")
-        .select("email, display_name")
+        .select("email, display_name, city, state")
         .eq("id", toProfileId)
         .single();
       providerEmail = bp?.email || null;
       providerDisplayName = bp?.display_name || null;
+      providerCity = bp?.city || null;
+      providerState = bp?.state || null;
 
-      if (!providerEmail) {
+      // Fallback to olera-providers for email and location
+      if (!providerEmail || !providerCity) {
         const { data: ios } = await db
           .from("olera-providers")
-          .select("email")
+          .select("email, city, state")
           .eq("provider_id", providerId)
           .single();
-        providerEmail = ios?.email || null;
+        providerEmail = providerEmail || ios?.email || null;
+        providerCity = providerCity || ios?.city || null;
+        providerState = providerState || ios?.state || null;
       }
     } catch {
       // Non-blocking
     }
 
-    // 6. Build auto-intro message from profile + intent data
-    let autoIntro: string | null = null;
+    // 6. Get seeker's profile data for richer summary card
+    let seekerPhone: string | null = null;
+    let seekerCareTypes: string[] = [];
+    let seekerRelationship: string | null = null;
+    let seekerTimeline: string | null = null;
     try {
-      const [{ data: familyProfile }, { data: providerProfile }] = await Promise.all([
-        db.from("business_profiles").select("care_types, metadata").eq("id", fromProfileId).single(),
-        db.from("business_profiles").select("care_types").eq("id", toProfileId).single(),
-      ]);
+      const { data: familyProfile } = await db
+        .from("business_profiles")
+        .select("phone, care_types, metadata")
+        .eq("id", fromProfileId)
+        .single();
 
+      seekerPhone = familyProfile?.phone || null;
+      seekerCareTypes = familyProfile?.care_types || [];
       const familyMeta = (familyProfile?.metadata || {}) as Record<string, string | undefined>;
-      autoIntro = buildIntroMessage(
-        familyProfile?.care_types || [],
-        providerProfile?.care_types || [],
-        familyMeta.relationship_to_recipient,
-        familyMeta.timeline,
-        intentData?.careType,
-        intentData?.careRecipient,
-        intentData?.urgency,
-      );
+      seekerRelationship = familyMeta.relationship_to_recipient || null;
+      seekerTimeline = familyMeta.timeline || null;
     } catch {
-      // Non-blocking — connection creation should not fail if intro generation fails
+      // Non-blocking
     }
 
-    // 7. Build connection metadata with auto-intro and provider auto-reply
+    // Build message payload with all available seeker info
+    const seekerName = account.display_name || user.email?.split("@")[0] || "";
+    const nameParts = seekerName.trim().split(/\s+/);
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
+
+    // Build location string for summary
+    const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
+
+    // Resolve care details: prefer intent data, fall back to profile data
+    const careRecipient = intentData?.careRecipient || seekerRelationship;
+    const careType = intentData?.careType || (seekerCareTypes.length > 0 ? seekerCareTypes[0] : null);
+    const urgency = intentData?.urgency || seekerTimeline;
+
+    const messagePayload = JSON.stringify({
+      // Seeker identity (always available)
+      seeker_name: seekerName,
+      seeker_first_name: firstName,
+      seeker_last_name: lastName,
+      seeker_email: user.email || "",
+      seeker_phone: seekerPhone,
+      // Location context (from provider)
+      looking_in_city: providerCity,
+      looking_in_state: providerState,
+      // Custom message from form
+      message: intentData?.additionalNotes || null,
+      // Care details (from intent or profile)
+      care_recipient: careRecipient,
+      care_type: careType,
+      care_type_other: intentData?.careTypeOtherText || null,
+      urgency: urgency,
+      // Legacy field for backward compatibility
+      additional_notes: intentData?.additionalNotes || null,
+      contact_preference: null,
+    });
+
+    // 7. Build auto-intro message
+    let autoIntro: string;
+    if (intentData?.additionalNotes) {
+      // User wrote a custom message - use it
+      autoIntro = intentData.additionalNotes;
+    } else {
+      // Try to build from profile data using existing function
+      const generatedIntro = buildIntroMessage(
+        seekerCareTypes,
+        [], // provider care types not needed for this
+        seekerRelationship || undefined,
+        seekerTimeline || undefined,
+        careType,
+        careRecipient,
+        urgency,
+      );
+      // If buildIntroMessage returns generic fallback, use location-based intro instead
+      if (generatedIntro === "Hi, I'd love to learn more about your services." && locationStr) {
+        autoIntro = `${firstName} is interested in care services in ${locationStr}.`;
+      } else {
+        autoIntro = generatedIntro;
+      }
+    }
+
+    // 8. Build connection metadata with auto-intro and provider auto-reply
     const connectionMetadata: Record<string, unknown> = {};
-    if (autoIntro) connectionMetadata.auto_intro = autoIntro;
+    connectionMetadata.auto_intro = autoIntro;
     if (!providerEmail) connectionMetadata.needs_provider_email = true;
 
     // Seed an automatic reply from the provider so the seeker has an
@@ -1090,60 +1409,12 @@ export async function POST(request: Request) {
     // 10. Sync intent data back to user's family profile
     if (intentData) {
       try {
-        const { data: currentProfile } = await db
-          .from("business_profiles")
-          .select("metadata, care_types")
-          .eq("id", fromProfileId)
-          .single();
-
-        if (currentProfile) {
-          const currentMeta = (currentProfile.metadata || {}) as Record<string, unknown>;
-          const currentCareTypes: string[] = currentProfile.care_types || [];
-          const updates: Record<string, unknown> = {};
-
-          // Map CTA recipient → profile relationship_to_recipient
-          const recipientMap: Record<string, string> = {
-            self: "Myself",
-            parent: "My parent",
-            spouse: "My spouse",
-            other: "Someone else",
-          };
-          if (intentData.careRecipient && recipientMap[intentData.careRecipient]) {
-            currentMeta.relationship_to_recipient = recipientMap[intentData.careRecipient];
-          }
-
-          // Map CTA urgency → profile timeline
-          const timelineMap: Record<string, string> = {
-            asap: "immediate",
-            within_month: "within_1_month",
-            few_months: "within_3_months",
-            researching: "exploring",
-          };
-          if (intentData.urgency && timelineMap[intentData.urgency]) {
-            currentMeta.timeline = timelineMap[intentData.urgency];
-          }
-
-          updates.metadata = currentMeta;
-
-          // Map CTA careType → profile care_types display name
-          const careTypeMap: Record<string, string> = {
-            home_care: "Home Care",
-            home_health: "Home Health Care",
-            assisted_living: "Assisted Living",
-            memory_care: "Memory Care",
-          };
-          if (intentData.careType && careTypeMap[intentData.careType]) {
-            const displayName = careTypeMap[intentData.careType];
-            if (!currentCareTypes.includes(displayName)) {
-              updates.care_types = [...currentCareTypes, displayName];
-            }
-          }
-
-          await db
-            .from("business_profiles")
-            .update(updates)
-            .eq("id", fromProfileId);
-        }
+        await syncIntentToProfile(db, fromProfileId, {
+          careRecipient: intentData.careRecipient,
+          careType: intentData.careType,
+          urgency: intentData.urgency,
+          additionalNotes: intentData.additionalNotes,
+        });
       } catch (syncErr) {
         // Non-blocking — connection was created, profile sync is best-effort
         console.error("Failed to sync intent to profile:", syncErr);

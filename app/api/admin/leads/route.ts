@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 
 /**
  * GET /api/admin/leads
@@ -25,22 +25,54 @@ export async function GET(request: NextRequest) {
     const countOnly = searchParams.get("count_only") === "true";
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const search = searchParams.get("search")?.trim() || "";
 
     const db = getServiceClient();
     const needsEmail = searchParams.get("needs_email") === "true";
+
+    // If searching, find matching profile IDs first (fast indexed lookup)
+    let searchProfileIds: string[] | null = null;
+    if (search) {
+      const { data: matchingProfiles } = await db
+        .from("business_profiles")
+        .select("id")
+        .ilike("display_name", `%${search}%`)
+        .limit(200);
+
+      searchProfileIds = (matchingProfiles ?? []).map((p) => p.id);
+      if (searchProfileIds.length === 0) {
+        return NextResponse.json({ connections: [], total: 0 });
+      }
+    }
+
+    // Build base filter helper
+    function applyFilters(q: typeof query) {
+      if (status) q = q.eq("status", status);
+      if (type) q = q.eq("type", type);
+      if (needsEmail) q = q.contains("metadata", { needs_provider_email: true });
+      if (searchProfileIds) {
+        q = q.or(
+          `from_profile_id.in.(${searchProfileIds.join(",")}),to_profile_id.in.(${searchProfileIds.join(",")})`
+        );
+      }
+      return q;
+    }
 
     if (countOnly) {
       let countQuery = db
         .from("connections")
         .select("*", { count: "exact", head: true });
-
-      if (status) countQuery = countQuery.eq("status", status);
-      if (type) countQuery = countQuery.eq("type", type);
-      if (needsEmail) countQuery = countQuery.contains("metadata", { needs_provider_email: true });
-
+      countQuery = applyFilters(countQuery);
       const { count } = await countQuery;
       return NextResponse.json({ count: count ?? 0 });
     }
+
+    // Get total count for pagination
+    let totalQuery = db
+      .from("connections")
+      .select("*", { count: "exact", head: true });
+    totalQuery = applyFilters(totalQuery);
+    const { count: total } = await totalQuery;
 
     // Fetch connections with joined profile names
     let query = db
@@ -52,15 +84,13 @@ export async function GET(request: NextRequest) {
         message,
         metadata,
         created_at,
-        from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type),
+        from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type, email, phone, metadata, care_types),
         to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, slug, source_provider_id)
       `)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (status) query = query.eq("status", status);
-    if (type) query = query.eq("type", type);
-    if (needsEmail) query = query.contains("metadata", { needs_provider_email: true });
+    query = applyFilters(query);
 
     const { data: connections, error } = await query;
 
@@ -69,9 +99,84 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch leads" }, { status: 500 });
     }
 
-    return NextResponse.json({ connections: connections ?? [] });
+    return NextResponse.json({ connections: connections ?? [], total: total ?? 0 });
   } catch (err) {
     console.error("Admin leads error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE /api/admin/leads
+ *
+ * Hard delete one or more connections by ID.
+ * Body: { ids: string[] }
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+    const adminUser = await getAdminUser(user.id);
+    if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+    const body = await request.json();
+    const ids: string[] = body.ids;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: "ids array is required" }, { status: 400 });
+    }
+
+    if (ids.length > 100) {
+      return NextResponse.json({ error: "Cannot delete more than 100 leads at once" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+
+    // Fetch connection details before deleting (for audit log)
+    const { data: toDelete } = await db
+      .from("connections")
+      .select(`
+        id,
+        type,
+        status,
+        created_at,
+        from_profile:business_profiles!connections_from_profile_id_fkey(display_name),
+        to_profile:business_profiles!connections_to_profile_id_fkey(display_name)
+      `)
+      .in("id", ids);
+
+    // Hard delete
+    const { error: deleteError, count } = await db
+      .from("connections")
+      .delete({ count: "exact" })
+      .in("id", ids);
+
+    if (deleteError) {
+      console.error("Admin leads delete error:", deleteError);
+      return NextResponse.json({ error: "Failed to delete leads" }, { status: 500 });
+    }
+
+    // Audit log each deletion
+    for (const conn of toDelete ?? []) {
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "delete_lead",
+        targetType: "connection",
+        targetId: conn.id,
+        details: {
+          type: conn.type,
+          status: conn.status,
+          from: (conn.from_profile as unknown as { display_name: string } | null)?.display_name,
+          to: (conn.to_profile as unknown as { display_name: string } | null)?.display_name,
+          created_at: conn.created_at,
+        },
+      });
+    }
+
+    return NextResponse.json({ success: true, deleted: count ?? 0 });
+  } catch (err) {
+    console.error("Admin leads delete error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

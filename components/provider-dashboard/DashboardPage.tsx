@@ -18,6 +18,7 @@ import StaffScreeningCard from "./StaffScreeningCard";
 import AboutCard from "./AboutCard";
 import PricingCard from "./PricingCard";
 import PaymentInsuranceCard from "./PaymentInsuranceCard";
+import OwnerCard from "./OwnerCard";
 import ProfileCompletenessSidebar from "./ProfileCompletenessSidebar";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
 import EditGalleryModal from "./edit-modals/EditGalleryModal";
@@ -26,17 +27,19 @@ import EditStaffScreeningModal from "./edit-modals/EditStaffScreeningModal";
 import EditAboutModal from "./edit-modals/EditAboutModal";
 import EditPricingModal from "./edit-modals/EditPricingModal";
 import EditPaymentModal from "./edit-modals/EditPaymentModal";
+import EditOwnerModal from "./edit-modals/EditOwnerModal";
 
 export default function DashboardPage() {
   const profile = useProviderProfile();
-  const { metadata, loading } = useProviderDashboardData(profile);
+  const { metadata } = useProviderDashboardData(profile);
   const { refreshAccountData } = useAuth();
 
   // Modal state
   const [editingSection, setEditingSection] = useState<SectionId | null>(null);
 
-  // Loading state
-  if (!profile || loading) {
+  // Only show skeleton if we don't have a profile yet
+  // Metadata is returned immediately (base data), enrichment happens in background
+  if (!profile) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -270,6 +273,11 @@ function DashboardContent({
               completionPercent={sectionPercent("payment")}
               onEdit={() => handleEdit("payment")}
             />,
+            <OwnerCard
+              key="owner"
+              metadata={meta}
+              onEdit={() => handleEdit("owner")}
+            />,
           ].map((card, i) => (
             <div
               key={i}
@@ -308,6 +316,7 @@ function DashboardContent({
       {editingSection === "about" && <EditAboutModal {...modalProps} />}
       {editingSection === "pricing" && <EditPricingModal {...modalProps} />}
       {editingSection === "payment" && <EditPaymentModal {...modalProps} />}
+      {editingSection === "owner" && <EditOwnerModal {...modalProps} />}
     </div>
     </div>
   );

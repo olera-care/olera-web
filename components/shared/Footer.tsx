@@ -238,8 +238,8 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/waiver-library" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    Benefits Hub
+                  <Link href="/benefits/finder" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Benefits Finder
                   </Link>
                 </li>
               </ul>
@@ -259,6 +259,16 @@ export default function Footer() {
                 <li>
                   <Link href="/for-providers/create" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
                     Claim Your Listing
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/medjobs" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    MedJobs
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/medjobs/providers" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    MedJobs for Providers
                   </Link>
                 </li>
               </ul>

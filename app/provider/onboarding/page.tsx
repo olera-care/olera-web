@@ -14,6 +14,7 @@ import Select from "@/components/ui/Select";
 import WizardNav from "@/components/ui/WizardNav";
 import Pagination from "@/components/ui/Pagination";
 import OtpInput from "@/components/auth/OtpInput";
+import GooglePlaceSearch from "@/components/providers/GooglePlaceSearch";
 import type { Provider } from "@/lib/types/provider";
 
 type ProviderType = "organization" | "caregiver";
@@ -63,6 +64,9 @@ interface WizardData {
   email: string;
   website: string;
   careTypes: string[];
+  googlePlaceId: string;
+  googlePlaceName: string;
+  googleRating: string;
 }
 
 const EMPTY: WizardData = {
@@ -76,6 +80,9 @@ const EMPTY: WizardData = {
   email: "",
   website: "",
   careTypes: [],
+  googlePlaceId: "",
+  googlePlaceName: "",
+  googleRating: "",
 };
 
 function getProviderImage(provider: Provider): string | null {
@@ -688,6 +695,9 @@ function ProviderOnboardingContent() {
           zip: data.zip || undefined,
           careTypes: data.careTypes,
           isAddingProfile: isAdding,
+          googlePlaceId: data.googlePlaceId || undefined,
+          googlePlaceName: data.googlePlaceName || undefined,
+          googleRating: data.googleRating ? Number(data.googleRating) : undefined,
         }),
       });
 
@@ -733,7 +743,7 @@ function ProviderOnboardingContent() {
   const wizardTotal = 6;
   const wizardCurrentMap: Record<string, number> = { "1": 1, search: 2, verify: 2, "2": 3, "3": 4, "4": 5, "5": 6 };
   const wizardCurrentStep = wizardCurrentMap[String(step)] ?? 1;
-  const showWizardNav = step !== "resume" && step !== "caregiver-coming-soon";
+  const showWizardNav = step !== "resume" && step !== "caregiver-coming-soon" && step !== "search";
 
   // Show loading while auth is loading or while checking for landing page prefill
   if (isLoading || checkingPrefill) {
@@ -1108,6 +1118,19 @@ function ProviderOnboardingContent() {
                   </button>
                 </p>
 
+                {/* Back button */}
+                <div className="flex justify-center mt-8">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    Back
+                  </button>
+                </div>
               </div>
             )}
 
@@ -1374,6 +1397,20 @@ function ProviderOnboardingContent() {
                     showItemCount={false}
                     className="justify-center"
                   />
+
+                  {/* Back link */}
+                  <div className="flex justify-center mt-8">
+                    <button
+                      type="button"
+                      onClick={() => setStep(1)}
+                      className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                      </svg>
+                      Back
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -1410,6 +1447,18 @@ function ProviderOnboardingContent() {
                     Create new listing
                   </button>
                 </div>
+
+                {/* Back link */}
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors mt-8"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                  </svg>
+                  Back
+                </button>
               </div>
             )}
           </>
@@ -1814,6 +1863,21 @@ function ProviderOnboardingContent() {
                 }
                 placeholder="https://example.com"
               />
+
+              <GooglePlaceSearch
+                value={data.googlePlaceId || null}
+                selectedName={data.googlePlaceName || null}
+                onSelect={(placeId, name, rating) => {
+                  update("googlePlaceId", placeId);
+                  update("googlePlaceName", name);
+                  update("googleRating", rating != null ? String(rating) : "");
+                }}
+                onClear={() => {
+                  update("googlePlaceId", "");
+                  update("googlePlaceName", "");
+                  update("googleRating", "");
+                }}
+              />
             </div>
           </div>
         )}
@@ -1965,8 +2029,6 @@ function ProviderOnboardingContent() {
           onBack={
             step === 1
               ? undefined
-              : step === "search"
-              ? () => setStep(1)
               : step === "verify"
               ? () => {
                   setStep("search");
@@ -1990,8 +2052,6 @@ function ProviderOnboardingContent() {
           onNext={
             step === 1
               ? handleStep1Next
-              : step === "search"
-              ? () => setStep(2)
               : step === "verify"
               ? handleVerifyCode
               : step === 5
@@ -2005,8 +2065,6 @@ function ProviderOnboardingContent() {
           nextLabel={
             step === 1
               ? "Next"
-              : step === "search"
-              ? "Create new listing"
               : step === "verify"
               ? "Verify"
               : step === 5

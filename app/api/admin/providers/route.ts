@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     let query = db
       .from("business_profiles")
-      .select("id, display_name, type, category, city, state, claim_state, created_at, email, phone")
+      .select("id, display_name, type, category, city, state, claim_state, created_at, email, phone, slug, source_provider_id")
       .in("type", ["organization", "caregiver"])
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);

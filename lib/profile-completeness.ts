@@ -1,4 +1,4 @@
-import type { Profile } from "@/lib/types";
+import type { Profile, StaffInfo } from "@/lib/types";
 
 // Extended metadata shape — matches the JSONB metadata stored on provider profiles
 export interface ExtendedMetadata {
@@ -12,6 +12,9 @@ export interface ExtendedMetadata {
   amenities?: string[];
   hours?: string;
   price_range?: string;
+  lower_price?: number;
+  upper_price?: number;
+  price_frequency?: string;
   contact_for_pricing?: boolean;
 
   // Caregiver fields
@@ -26,10 +29,10 @@ export interface ExtendedMetadata {
   rating?: number;
   review_count?: number;
   images?: string[];
-  staff?: { name: string; position: string; bio: string; image: string };
+  staff?: StaffInfo;
   badge?: string;
   accepted_payments?: string[];
-  pricing_details?: { service: string; rate: string; rateType: string }[];
+  pricing_details?: { service: string; rate: string; rateMin?: string; rateMax?: string; rateType: string }[];
   staff_screening?: string[];
   reviews?: {
     name: string;
@@ -70,7 +73,8 @@ function scoreProfileOverview(profile: Profile): number {
 
 function scorePricing(meta: ExtendedMetadata): number {
   let score = 0;
-  if (meta.contact_for_pricing || meta.price_range?.trim()) score += 50;
+  // Check for pricing display option (either showing rates or contact for pricing)
+  if (meta.contact_for_pricing || meta.lower_price || meta.price_range?.trim()) score += 50;
   if (meta.pricing_details && meta.pricing_details.length > 0) score += 50;
   return clamp(score);
 }

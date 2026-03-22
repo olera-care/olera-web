@@ -163,9 +163,6 @@ function providerToProfile(provider: Provider): Profile {
   const metadata: OrganizationMetadata & ExtendedMetadata = {
     price_range: priceRange,
     images: images.length > 0 ? images : primaryImage ? [primaryImage] : [],
-    community_score: provider.community_Score || undefined,
-    value_score: provider.value_score || undefined,
-    info_score: provider.information_availability_score || undefined,
   };
 
   const careTypes: string[] = [provider.provider_category];

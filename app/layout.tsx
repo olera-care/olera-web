@@ -2,12 +2,9 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { DM_Serif_Display } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/shared/Navbar";
-import ConditionalFooter from "@/components/shared/ConditionalFooter";
 import AuthProvider from "@/components/auth/AuthProvider";
-import GlobalUnifiedAuthModal from "@/components/auth/GlobalUnifiedAuthModal";
 import { SavedProvidersProvider } from "@/hooks/use-saved-providers";
-import { NavbarProvider } from "@/components/shared/NavbarContext";
+import LayoutShell from "./LayoutShell";
 
 const dmSerifDisplay = DM_Serif_Display({
   weight: "400",
@@ -16,7 +13,7 @@ const dmSerifDisplay = DM_Serif_Display({
   variable: "--font-dm-serif-display",
 });
 
-const GA_MEASUREMENT_ID = "G-F2F7FG745B";
+const GA_MEASUREMENT_ID = "G-ZLP95NWSZW";
 
 export const metadata: Metadata = {
   title: {
@@ -123,7 +120,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org" />
         <link rel="dns-prefetch" href="https://api.maptiler.com" />
 
-        {/* GA4 — same property as v1.0 */}
+        {/* GA4 — Olera Google tag, routes to olera.care - GA4 as destination */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
           strategy="afterInteractive"
@@ -147,12 +144,7 @@ export default function RootLayout({
         <Script src="https://cdn.lordicon.com/lordicon.js" strategy="afterInteractive" />
         <AuthProvider>
           <SavedProvidersProvider>
-          <NavbarProvider>
-            <Navbar />
-            <main className="flex-grow">{children}</main>
-            <ConditionalFooter />
-            <GlobalUnifiedAuthModal />
-          </NavbarProvider>
+            <LayoutShell>{children}</LayoutShell>
           </SavedProvidersProvider>
         </AuthProvider>
       </body>

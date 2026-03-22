@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
+import { syncIntentToProfile } from "@/lib/sync-intent-to-profile";
 
 interface ThreadMessage {
   from_profile_id: string;
@@ -26,11 +27,12 @@ export async function PATCH(request: Request) {
     } = await supabase.auth.getUser();
 
     const body = await request.json();
-    const { connectionId, careType, careRecipient, urgency, additionalNotes, claimToken } = body as {
+    const { connectionId, careType, careRecipient, urgency, message, additionalNotes, claimToken } = body as {
       connectionId?: string;
       careType?: string;
       careRecipient?: string;
       urgency?: string;
+      message?: string;
       additionalNotes?: string;
       claimToken?: string;
     };
@@ -57,6 +59,7 @@ export async function PATCH(request: Request) {
 
     // Determine profile ID — from authenticated user or claim token
     let profileId: string | null = null;
+    console.log("[update-intent] user:", !!user, "claimToken:", !!claimToken, "connectionId:", connectionId);
 
     if (user) {
       // Authenticated user: get active profile
@@ -80,11 +83,13 @@ export async function PATCH(request: Request) {
     }
 
     if (!profileId) {
+      console.log("[update-intent] no profileId resolved — returning 401");
       return NextResponse.json(
         { error: "Not authenticated" },
         { status: 401 }
       );
     }
+    console.log("[update-intent] profileId:", profileId);
 
     // Fetch the connection (using admin client for RLS bypass)
     const { data: connection, error: fetchError } = await admin
@@ -127,6 +132,8 @@ export async function PATCH(request: Request) {
     if (careType !== undefined) existingMessage.care_type = careType;
     if (careRecipient !== undefined) existingMessage.care_recipient = careRecipient;
     if (urgency !== undefined) existingMessage.urgency = urgency;
+    // Support both new 'message' field and legacy 'additional_notes'
+    if (message !== undefined) existingMessage.message = message;
     if (additionalNotes !== undefined) existingMessage.additional_notes = additionalNotes;
 
     // Regenerate auto_intro with updated intent data
@@ -176,6 +183,22 @@ export async function PATCH(request: Request) {
         { error: "Failed to update care request" },
         { status: 500 }
       );
+    }
+
+    // Sync updated intent back to the sender's profile
+    try {
+      const syncData = {
+        careRecipient: existingMessage.care_recipient as string | null,
+        careType: existingMessage.care_type as string | null,
+        urgency: existingMessage.urgency as string | null,
+        additionalNotes: existingMessage.additional_notes as string | null,
+      };
+      console.log("[update-intent] syncing to profile:", profileId, syncData);
+      await syncIntentToProfile(admin, profileId, syncData);
+      console.log("[update-intent] profile sync complete");
+    } catch (syncErr) {
+      // Non-blocking — connection update succeeded
+      console.error("[update-intent] profile sync error:", syncErr);
     }
 
     return NextResponse.json({

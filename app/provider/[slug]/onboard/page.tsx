@@ -31,7 +31,7 @@ export default function ProviderOnboardPage() {
   const tokenParam = searchParams.get("token");
   const stateParam = searchParams.get("state") as ActionCardState | null;
   const router = useRouter();
-  const { user, openAuth, refreshAccountData, switchProfile } = useAuth();
+  const { user, account, openAuth, refreshAccountData, switchProfile } = useAuth();
 
   // Core state
   const [step, setStep] = useState<OnboardStep>("loading");
@@ -121,7 +121,12 @@ export default function ProviderOnboardPage() {
         .maybeSingle();
 
       if (bp?.claim_state === "claimed") {
-        // Show dashboard with dispute form in ActionCard
+        // If the signed-in user owns this listing, send them to their dashboard
+        if (account && bp.account_id && account.id === bp.account_id) {
+          router.replace("/provider");
+          return;
+        }
+        // Otherwise show dashboard with dispute form in ActionCard
         setActionCardState("already-claimed");
         setStep("dashboard");
         return;

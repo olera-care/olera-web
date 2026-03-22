@@ -6,6 +6,7 @@ import { matchesLiveEmail } from "@/lib/email-templates";
 import { PRIMARY_NEEDS, type PrimaryNeed } from "@/lib/types/benefits";
 import { generateUniqueSlug } from "@/lib/slug";
 import { sanitizeDisplayName } from "@/lib/validation";
+import { getSiteUrl } from "@/lib/site-url";
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -169,6 +170,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Failed to create or find family profile" }, { status: 500 });
     }
 
+    // Mark onboarding as completed when going live
+    // This prevents users from being stuck on Welcome page forever
+    await db
+      .from("accounts")
+      .update({ onboarding_completed: true })
+      .eq("id", account.id);
+
     const metadata = (profile.metadata || {}) as Record<string, unknown>;
 
     // Check if already active
@@ -207,14 +215,40 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Failed to activate" }, { status: 500 });
     }
 
-    // Send confirmation email (best-effort - don't fail the API if email fails)
+    // Send confirmation email with magic link (best-effort - don't fail the API if email fails)
     const userEmail = user.email;
     const familyName = profile.display_name || "there";
     const locationCity = city || profile.city || "your area";
-    const matchesUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/portal/matches`;
+    const siteUrl = getSiteUrl();
+    const finalDestination = "/portal/matches";
 
     if (userEmail) {
       try {
+        // Generate magic link so user can access matches without logging in again
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        let matchesUrl = `${siteUrl}${finalDestination}`;
+
+        if (url && serviceKey) {
+          const authClient = createClient(url, serviceKey);
+          const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
+            type: "magiclink",
+            email: userEmail,
+            options: {
+              // Use /auth/magic-link handler which processes implicit flow tokens
+              redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(finalDestination)}`,
+            },
+          });
+
+          if (!linkError && linkData?.properties?.action_link) {
+            // Use the Supabase-generated magic link URL
+            matchesUrl = linkData.properties.action_link;
+          } else if (linkError) {
+            console.warn("[activate-matches] Failed to generate magic link, using regular URL:", linkError);
+          }
+        }
+
         await sendEmail({
           to: userEmail,
           subject: "Your Matches profile is live",

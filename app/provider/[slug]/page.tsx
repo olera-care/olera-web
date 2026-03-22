@@ -2,7 +2,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { Profile, OrganizationMetadata, CaregiverMetadata } from "@/lib/types";
+import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData, CMSData, AiTrustSignals, StaffInfo } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
 import type { Provider as IOSProvider } from "@/lib/types/provider";
 import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
@@ -20,9 +20,11 @@ import MobileGalleryActionBar from "@/components/providers/MobileGalleryActionBa
 import MobileStickyBottomCTA from "@/components/providers/MobileStickyBottomCTA";
 import MobileClaimLink from "@/components/providers/MobileClaimLink";
 import PriceEstimate from "@/components/providers/PriceEstimate";
-import { ManagePageButton } from "@/components/providers/ManageListingModal";
+import ManagePageCTA from "@/components/providers/ManagePageCTA";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
 import ReviewsSection from "@/components/providers/ReviewsSection";
+import CMSQualitySection from "@/components/providers/CMSQualitySection";
+import AiTrustSignalsSection from "@/components/providers/AiTrustSignalsSection";
 import ScrollToConnectionCard from "@/components/providers/ScrollToConnectionCard";
 import {
   getInitials,
@@ -149,7 +151,7 @@ interface ExtendedMetadata extends OrganizationMetadata, CaregiverMetadata {
   rating?: number;
   review_count?: number;
   images?: string[];
-  staff?: { name: string; position: string; bio: string; image: string };
+  staff?: StaffInfo;
   badge?: string;
   accepted_payments?: string[];
   pricing_details?: { service: string; rate: string; rateType: string }[];
@@ -250,6 +252,12 @@ export default async function ProviderPage({
 
   // --- Data fetching ---
   let profile: Profile | null = null;
+  let googleReviewsData: GoogleReviewsData | null = null;
+  let cmsData: CMSData | null = null;
+  let aiTrustSignals: AiTrustSignals | null = null;
+  let providerPlaceId: string | null = null;
+  let rawProviderId: string | null = null;
+  let providerSource: "ios" | "bp" = "ios";
 
   // 1. Try iOS Supabase (olera-providers table) — slug first, then provider_id
   try {
@@ -265,6 +273,11 @@ export default async function ProviderPage({
 
     if (bySlug) {
       profile = iosProviderToProfile(bySlug);
+      googleReviewsData = bySlug.google_reviews_data;
+      cmsData = bySlug.cms_data ?? null;
+      aiTrustSignals = bySlug.ai_trust_signals ?? null;
+      providerPlaceId = bySlug.place_id;
+      rawProviderId = bySlug.provider_id;
     } else {
       // Fall back to provider_id (legacy alphanumeric ID)
       const { data: byId } = await supabase
@@ -276,6 +289,11 @@ export default async function ProviderPage({
 
       if (byId) {
         profile = iosProviderToProfile(byId);
+        googleReviewsData = byId.google_reviews_data;
+        cmsData = byId.cms_data ?? null;
+        aiTrustSignals = byId.ai_trust_signals ?? null;
+        providerPlaceId = byId.place_id;
+        rawProviderId = byId.provider_id;
       }
     }
   } catch {
@@ -292,7 +310,21 @@ export default async function ProviderPage({
         .eq("slug", slug)
         .in("type", ["organization", "caregiver"])
         .single<Profile>();
-      profile = data;
+      if (data) {
+        profile = data;
+        providerSource = "bp";
+        // Extract Google data from business_profile metadata
+        const bpMeta = data.metadata as Record<string, unknown> | null;
+        const gm = bpMeta?.google_metadata as { place_id?: string; rating?: number; review_count?: number } | undefined;
+        const bpGoogleReviews = bpMeta?.google_reviews_data as GoogleReviewsData | undefined;
+        if (bpGoogleReviews) {
+          googleReviewsData = bpGoogleReviews;
+        }
+        if (gm?.place_id) {
+          providerPlaceId = gm.place_id;
+        }
+        rawProviderId = data.id;
+      }
     } catch {
       // Supabase not configured — fall through to mock lookup
     }
@@ -312,7 +344,7 @@ export default async function ProviderPage({
 
   const rating = meta?.rating;
   const images = meta?.images || (profile.image_url ? [profile.image_url] : []);
-  const staff = meta?.staff;
+  let staff = meta?.staff;
   const acceptedPayments = meta?.accepted_payments || [];
 
   const categoryLabel = formatCategory(profile.category);
@@ -327,7 +359,7 @@ export default async function ProviderPage({
             const supabase = await createClient();
             const { data: bp } = await supabase
               .from("business_profiles")
-              .select("claim_state, account_id")
+              .select("claim_state, account_id, metadata")
               .eq("source_provider_id", profile.source_provider_id!)
               .maybeSingle();
             return bp;
@@ -375,6 +407,11 @@ export default async function ProviderPage({
   if (claimResult) {
     actualClaimState = claimResult.claim_state;
     claimAccountId = claimResult.account_id;
+    // Merge staff/owner data from business_profiles metadata (iOS metadata doesn't have it)
+    const bpMeta = claimResult.metadata as ExtendedMetadata | null;
+    if (bpMeta?.staff) {
+      staff = bpMeta.staff;
+    }
   }
 
   const answeredQuestions = qaResult.questions as { id: string; question: string; answer: string; asker_name: string; created_at: string }[];
@@ -401,16 +438,31 @@ export default async function ProviderPage({
   // Google rating (external, read-only) - stored in google_metadata
   const googleRating = meta?.google_metadata?.rating ?? null;
 
-  // Olera Score: prioritize community_score, then fall back to rating (for legacy data)
-  // For claimed profiles with no reviews, don't show a rating
-  const oleraScore = meta?.community_score || (rating ? Math.round(rating * 10) / 10 : null);
+  // --- Non-blocking background tasks (view tracking + on-demand backfill) ---
+  if (rawProviderId) {
+    const db = getServiceClient();
+    // Task 6: Update last_viewed_at (debounced: only if >24h stale)
+    db.from("olera-providers")
+      .update({ last_viewed_at: new Date().toISOString() })
+      .eq("provider_id", rawProviderId)
+      .or("last_viewed_at.is.null,last_viewed_at.lt." + new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      .then(() => { /* fire and forget */ });
+
+    // Task 7: On-demand backfill if provider has place_id but no cached reviews
+    if (providerPlaceId && !googleReviewsData) {
+      fetch(new URL("/api/internal/backfill-google-review", process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: rawProviderId, place_id: providerPlaceId, source: providerSource }),
+      }).catch(() => { /* fire and forget */ });
+    }
+  }
 
   // --- Boolean flags for real data availability ---
   const hasRating = rating != null;
   const hasPriceRange = priceRange != null;
   const hasStaff = staff != null;
   const hasReviews = reviewsToShow.length > 0 || realReviewCount > 0;
-  const hasOleraScore = oleraScore != null;
   const hasStaffScreening = staffScreening != null &&
     (staffScreening.background_checked || staffScreening.licensed || staffScreening.insured);
   const hasAcceptedPayments = acceptedPayments.length > 0;
@@ -444,25 +496,21 @@ export default async function ProviderPage({
     }
   }
 
-  // Score breakdowns — only real values, no hardcoded fallbacks
-  const scoreBreakdown = [
-    meta?.community_score != null ? { label: "Community", value: meta.community_score } : null,
-    meta?.value_score != null ? { label: "Value", value: meta.value_score } : null,
-    meta?.info_score != null ? { label: "Transparency", value: meta.info_score } : null,
-  ].filter((item): item is { label: string; value: number } => item !== null);
-  const hasScoreBreakdown = scoreBreakdown.length > 0;
-
   // ============================================================
   // Section navigation items — only show tabs for visible sections
   // ============================================================
   const sectionItems: SectionItem[] = [];
   sectionItems.push({ id: "highlights", label: "Highlights" });
+  const hasGoogleReviews = (googleReviewsData?.reviews?.length ?? 0) > 0;
+  if (hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
   sectionItems.push({ id: "services", label: "Services" });
   sectionItems.push({ id: "qa", label: "Q&A" });
+  if (!hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
+  if (cmsData?.overall_rating) sectionItems.push({ id: "quality", label: "Quality" });
+  if (aiTrustSignals && aiTrustSignals.summary_score > 0) sectionItems.push({ id: "trust-signals", label: "Verified" });
   sectionItems.push({ id: "about", label: "About" });
   if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
   if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
-  sectionItems.push({ id: "reviews", label: "Reviews" });
 
   // ============================================================
   // Render
@@ -508,13 +556,13 @@ export default async function ProviderPage({
     }),
     ...(profile.phone && { telephone: profile.phone }),
     ...(images.length > 0 && { image: images[0] }),
-    ...(oleraScore != null && {
+    ...(googleReviewsData && googleReviewsData.rating > 0 && {
       aggregateRating: {
         "@type": "AggregateRating",
-        ratingValue: oleraScore,
+        ratingValue: googleReviewsData.rating,
         bestRating: 5,
         worstRating: 0,
-        ...(reviewCount != null && { reviewCount }),
+        ...(googleReviewsData.review_count != null && { reviewCount: googleReviewsData.review_count }),
       },
     }),
     ...(priceRange && { priceRange }),
@@ -579,7 +627,6 @@ export default async function ProviderPage({
       <SectionNav
         sections={sectionItems}
         providerName={profile.display_name}
-        oleraScore={oleraScore}
       />
 
       {/* ===== Hero Zone — Vanilla Background ===== */}
@@ -678,9 +725,9 @@ export default async function ProviderPage({
                   </div>
                   {hasRating && (
                     <span className="flex items-center gap-1.5">
-                      <StarIcon className="w-5 h-5 text-primary-500" />
+                      <StarIcon className="w-5 h-5 text-amber-400" />
                       <span className="text-base font-bold text-gray-900">{rating!.toFixed(1)}</span>
-                      {reviewCount != null && <span className="text-sm text-gray-400">({reviewCount})</span>}
+                      <span className="text-sm text-gray-400">on Google</span>
                     </span>
                   )}
                 </div>
@@ -710,9 +757,9 @@ export default async function ProviderPage({
                   )}
                   {hasRating && (
                     <span className="flex items-center gap-1">
-                      <StarIcon className="w-4 h-4 text-primary-500" />
+                      <StarIcon className="w-4 h-4 text-amber-400" />
                       <span className="font-semibold text-gray-900">{rating!.toFixed(1)}</span>
-                      {reviewCount != null && <span>({reviewCount})</span>}
+                      <span>on Google</span>
                     </span>
                   )}
                 </div>
@@ -750,16 +797,31 @@ export default async function ProviderPage({
                 </div>
               </div>
 
+              {/* ── "Manage this page" CTA ── */}
+              <ManagePageCTA
+                providerSlug={profile.slug}
+                providerName={profile.display_name}
+                providerId={profile.id}
+              />
+
               {/* Managed by — only show when staff data exists */}
               {hasStaff && (
                 <div className="flex items-center gap-2.5 mt-4">
-                  {staff!.image ? (
-                    <Image src={staff!.image} alt={staff!.name} width={28} height={28} className="rounded-full object-cover" />
-                  ) : (
-                    <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
-                      <span className="text-[10px] font-semibold text-gray-500">{getInitials(staff!.name)}</span>
-                    </div>
-                  )}
+                  <div className="relative flex-shrink-0">
+                    {staff!.image ? (
+                      <Image src={staff!.image} alt={staff!.name} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+                        <span className="text-[10px] font-semibold text-gray-500">{getInitials(staff!.name)}</span>
+                      </div>
+                    )}
+                    {actualClaimState === "claimed" && (
+                      <svg className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
+                        <circle cx="10" cy="10" r="10" fill="white" />
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-500">
                     Managed by: <span className="font-medium text-gray-700">{staff!.name}</span>
                   </p>
@@ -786,8 +848,24 @@ export default async function ProviderPage({
                ══════════════════════════════════════════ */}
             <div>
 
+              {/* ── What families are saying (above services when reviews exist) ── */}
+              {(googleReviewsData?.reviews?.length ?? 0) > 0 && (
+                <div id="reviews" className="scroll-mt-20">
+                  <ReviewsSection
+                    providerId={profile.slug}
+                    providerSlug={profile.slug}
+                    providerName={profile.display_name}
+                    mockReviews={reviewsToShow}
+                    isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
+                    googleReviewsData={googleReviewsData}
+                    placeId={providerPlaceId}
+                    hideBorder
+                  />
+                </div>
+              )}
+
               {/* ── Care Services ── */}
-              <div id="services" className="py-8 scroll-mt-20">
+              <div id="services" className={`py-8 scroll-mt-20 ${(googleReviewsData?.reviews?.length ?? 0) > 0 ? "border-t border-gray-200" : ""}`}>
                 <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Care Services</h2>
                 <CareServicesList services={careServices} initialCount={6} />
               </div>
@@ -826,6 +904,35 @@ export default async function ProviderPage({
                   }))}
                 />
               </div>
+
+              {/* ── What families are saying (below Q&A when no reviews — empty state) ── */}
+              {(googleReviewsData?.reviews?.length ?? 0) === 0 && (
+                <div id="reviews" className="scroll-mt-20">
+                  <ReviewsSection
+                    providerId={profile.slug}
+                    providerSlug={profile.slug}
+                    providerName={profile.display_name}
+                    mockReviews={reviewsToShow}
+                    isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
+                    googleReviewsData={googleReviewsData}
+                    placeId={providerPlaceId}
+                  />
+                </div>
+              )}
+
+              {/* ── CMS Quality & Safety ── */}
+              {cmsData && cmsData.overall_rating && (
+                <div className="py-8 border-t border-gray-200">
+                  <CMSQualitySection cmsData={cmsData} />
+                </div>
+              )}
+
+              {/* ── AI Verified Credentials ── */}
+              {aiTrustSignals && aiTrustSignals.summary_score > 0 && (
+                <div className="py-8 border-t border-gray-200">
+                  <AiTrustSignalsSection signals={aiTrustSignals} />
+                </div>
+              )}
 
               {/* ── About ── */}
               <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
@@ -891,55 +998,6 @@ export default async function ProviderPage({
                 </div>
               )}
 
-              {/* ── Olera Score — hidden when no scores exist ── */}
-              {hasOleraScore && (
-                <div id="reviews" className="py-12 scroll-mt-20 border-t border-gray-200">
-                  {/* Centered score display */}
-                  <div className="flex flex-col items-center text-center mb-10">
-                    <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary-700 mb-5">Olera Score</p>
-                    <div className="w-24 h-24 rounded-full border-4 border-gray-200 flex items-center justify-center mb-4">
-                      <span className="text-4xl font-bold text-gray-900">{oleraScore!.toFixed(1)}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <StarIcon
-                          key={star}
-                          className={`w-5 h-5 ${star <= Math.round(oleraScore!) ? "text-primary-500" : "text-gray-200"}`}
-                          filled={star <= Math.round(oleraScore!)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Breakdown cards — only items with real values */}
-                  {hasScoreBreakdown && (
-                    <div className={`grid grid-cols-2 ${scoreBreakdown.length === 3 ? "md:grid-cols-3" : scoreBreakdown.length >= 4 ? "md:grid-cols-4" : ""} gap-4`}>
-                      {scoreBreakdown.map((item) => (
-                        <div key={item.label} className="text-center">
-                          <p className="text-2xl font-bold text-gray-900 mb-2">{item.value.toFixed(1)}</p>
-                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-3">
-                            <div
-                              className="h-full bg-primary-600 rounded-full"
-                              style={{ width: `${(item.value / 5) * 100}%` }}
-                            />
-                          </div>
-                          <p className="text-xs font-semibold tracking-[0.1em] uppercase text-gray-500">{item.label}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ── What families are saying ── */}
-              <ReviewsSection
-                providerId={profile.slug}
-                providerSlug={profile.slug}
-                providerName={profile.display_name}
-                mockReviews={reviewsToShow}
-                isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
-              />
-
               {/* ── Facility Manager — hidden when no staff data ── */}
               {hasStaff && (
                 <div id="team" className="py-8 border-t border-gray-200 scroll-mt-20">
@@ -950,20 +1008,28 @@ export default async function ProviderPage({
                     </ScrollToConnectionCard>
                   </div>
                   <div className="flex flex-col sm:flex-row items-start gap-6">
-                    <div className="border border-gray-200 rounded-xl p-5 text-center flex-shrink-0 w-40">
-                      {staff!.image ? (
-                        <Image src={staff!.image} alt={staff!.name} width={80} height={80} className="rounded-full object-cover mx-auto mb-3" />
-                      ) : (
-                        <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                          <span className="text-2xl font-bold text-gray-500">{getInitials(staff!.name)}</span>
-                        </div>
-                      )}
-                      <p className="text-sm font-semibold text-gray-900">{staff!.name}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{staff!.position}</p>
+                    <div className="border border-gray-100 rounded-2xl px-6 pt-8 pb-6 text-center flex-shrink-0 w-52 shadow-md">
+                      <div className="relative mx-auto mb-5 w-24 h-24">
+                        {staff!.image ? (
+                          <Image src={staff!.image} alt={staff!.name} width={96} height={96} className="w-24 h-24 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center">
+                            <span className="text-3xl font-bold text-gray-500">{getInitials(staff!.name)}</span>
+                          </div>
+                        )}
+                        {actualClaimState === "claimed" && (
+                          <svg className="absolute bottom-0 right-0 w-6 h-6 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
+                            <circle cx="10" cy="10" r="10" fill="white" />
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                      <p className="text-base font-bold text-gray-900">{staff!.name}</p>
+                      <p className="text-sm text-gray-500 mt-0.5">{staff!.position}</p>
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-base font-semibold text-gray-900 mb-2">Care motivation</h3>
-                      <ExpandableText text={staff!.bio} maxLength={200} />
+                      <ExpandableText text={staff!.care_motivation || staff!.bio} maxLength={200} />
                     </div>
                   </div>
                   <div className="flex items-center gap-2 mt-6 text-sm text-gray-500">
@@ -982,15 +1048,13 @@ export default async function ProviderPage({
                   We strive to keep this page accurate and current, but some details may not be up to date. To confirm whether {profile.display_name} is the right fit for you or your loved one, please verify all information directly with the provider by submitting a connect request or contacting them.
                 </p>
                 <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-200">
-                  <p className="text-base font-semibold text-gray-900">Are you the owner of this business?</p>
-                  <ManagePageButton
-                    providerName={profile.display_name}
-                    providerSlug={profile.slug}
-                    providerId={profile.id}
-                    sourceProviderId={profile.source_provider_id}
-                    claimState={actualClaimState}
-                    claimAccountId={claimAccountId}
-                  />
+                  <p className="text-sm text-gray-500">Are you the owner of this business?</p>
+                  <a
+                    href={`/provider/${profile.slug}/onboard`}
+                    className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                  >
+                    Manage this page <span aria-hidden="true">→</span>
+                  </a>
                 </div>
               </div>
 
@@ -1005,7 +1069,6 @@ export default async function ProviderPage({
                 providerName={profile.display_name}
                 providerSlug={profile.slug}
                 priceRange={priceRange}
-                oleraScore={oleraScore}
                 reviewCount={reviewCount}
                 phone={profile.phone}
                 acceptedPayments={acceptedPayments}
@@ -1042,7 +1105,6 @@ export default async function ProviderPage({
         priceRange={priceRange}
         providerId={profile.id}
         providerSlug={profile.slug}
-        oleraScore={oleraScore}
         reviewCount={reviewCount}
         phone={profile.phone}
         acceptedPayments={acceptedPayments}

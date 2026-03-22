@@ -2,14 +2,30 @@
 
 import { useState, useCallback, Suspense, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { createClient } from "@/lib/supabase/client";
 import type { FamilyMetadata } from "@/lib/types";
-import CarePostView from "@/components/portal/matches/CarePostView";
 import InterestedTabContent from "@/components/portal/matches/InterestedTabContent";
 import CarePostSidebar from "@/components/portal/matches/CarePostSidebar";
 import CareProfileControlsMobile from "@/components/portal/matches/CareProfileControlsMobile";
 import EditCarePostModal from "@/components/portal/matches/EditCarePostModal";
+import MatchesTabs from "@/components/portal/matches/MatchesTabs";
+import RecommendedTabContent from "@/components/portal/matches/RecommendedTabContent";
 import { useInterestedProviders } from "@/hooks/useInterestedProviders";
+
+interface RecommendedProvider {
+  provider_id: string;
+  provider_name: string;
+  provider_category: string;
+  provider_logo: string | null;
+  provider_images: string | null;
+  city: string | null;
+  state: string | null;
+  google_rating: number | null;
+  lower_price: number | null;
+  upper_price: number | null;
+}
 
 export default function MatchesPage() {
   return (
@@ -32,12 +48,19 @@ function MatchesContent() {
   const hasPost = isActive || isPaused;
   const totalInterested = pending.length + declined.length;
 
-  const [step, setStep] = useState<"default" | "review" | "active">(
-    hasPost ? "active" : "default"
+  // Tab state - default to "interested" if there are interested providers
+  const [activeTab, setActiveTab] = useState<"recommended" | "interested">(
+    totalInterested > 0 ? "interested" : "recommended"
   );
 
+  // Sync tab when interested count changes (e.g., first provider reaches out)
+  useEffect(() => {
+    if (totalInterested > 0 && activeTab === "recommended") {
+      // Don't auto-switch if user is already on recommended tab
+    }
+  }, [totalInterested, activeTab]);
+
   // Refresh account data on mount to ensure fresh profile state
-  // (e.g., after navigating here from onboarding banner)
   const hasRefreshedRef = useRef(false);
   useEffect(() => {
     if (!hasRefreshedRef.current) {
@@ -46,34 +69,125 @@ function MatchesContent() {
     }
   }, [refreshAccountData]);
 
-  // Sync step state when hasPost changes (e.g., after refresh reveals activated profile)
-  useEffect(() => {
-    if (hasPost && step === "default") {
-      setStep("active");
-    }
-  }, [hasPost, step]);
-
-  const [howItWorksOpen, setHowItWorksOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const router = useRouter();
+
+  // Recommended providers - always fetch (no longer gated by hasPost)
+  const [recommendedProviders, setRecommendedProviders] = useState<RecommendedProvider[]>([]);
+  const [loadingProviders, setLoadingProviders] = useState(false);
+
+  // Fetch recommended providers using smart matching API
+  useEffect(() => {
+    async function fetchRecommendedProviders() {
+      if (!activeProfile?.city || !activeProfile?.state) return;
+
+      setLoadingProviders(true);
+      try {
+        // Try smart matching API first (care-type aware, excludes dismissed)
+        const res = await fetch("/api/matches/fetch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sort: "relevance", limit: 12 }),
+        });
+
+        if (res.ok) {
+          const { providers } = await res.json();
+          if (providers && providers.length > 0) {
+            // Map API response to our interface
+            setRecommendedProviders(providers.map((p: Record<string, unknown>) => ({
+              provider_id: p.provider_id,
+              provider_name: p.provider_name,
+              provider_category: p.provider_category,
+              provider_logo: p.provider_logo,
+              provider_images: p.provider_images,
+              city: p.city,
+              state: p.state,
+              google_rating: p.google_rating,
+              lower_price: p.lower_price,
+              upper_price: p.upper_price,
+            })));
+            return;
+          }
+        }
+
+        // Fallback: direct Supabase query if API fails or returns empty
+        console.log("[matches] Smart matching returned empty, falling back to direct query");
+        const supabase = createClient();
+        const { data } = await supabase
+          .from("olera-providers")
+          .select("provider_id, provider_name, provider_category, provider_logo, provider_images, city, state, google_rating, lower_price, upper_price")
+          .eq("state", activeProfile.state)
+          .eq("deleted", false)
+          .order("google_rating", { ascending: false, nullsFirst: false })
+          .limit(12);
+
+        if (data) {
+          setRecommendedProviders(data);
+        }
+      } catch (err) {
+        console.error("[matches] Failed to fetch recommendations:", err);
+        // Fallback on error
+        try {
+          const supabase = createClient();
+          const { data } = await supabase
+            .from("olera-providers")
+            .select("provider_id, provider_name, provider_category, provider_logo, provider_images, city, state, google_rating, lower_price, upper_price")
+            .eq("state", activeProfile.state)
+            .eq("deleted", false)
+            .order("google_rating", { ascending: false, nullsFirst: false })
+            .limit(12);
+
+          if (data) {
+            setRecommendedProviders(data);
+          }
+        } catch {
+          // Silent fail on fallback
+        }
+      } finally {
+        setLoadingProviders(false);
+      }
+    }
+
+    fetchRecommendedProviders();
+  }, [activeProfile?.city, activeProfile?.state]);
+
+  // Handle sending a message to a provider (creates inquiry connection)
+  // Always uses the API to ensure proper summary card with seeker info
+  const handleSendMessage = useCallback(async (providerId: string, message: string) => {
+    if (!activeProfile) return;
+
+    const res = await fetch("/api/connections/create-inquiry", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        providerId,
+        message,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to send message");
+    }
+
+    const data = await res.json();
+    router.push(`/portal/inbox?connection=${data.connectionId}`);
+  }, [activeProfile, router]);
 
   // Dynamic subtitle based on state
   const subtitle = (() => {
-    if (hasPost && totalInterested === 0) {
-      return isActive
-        ? "Your care profile is live — providers are looking."
-        : "Your care profile is paused. Resume to get new matches.";
-    }
-    if (totalInterested > 0) {
-      if (isActive) {
+    if (activeTab === "interested") {
+      if (totalInterested > 0) {
         return `${totalInterested} provider${totalInterested === 1 ? "" : "s"} interested in your care needs.`;
       }
-      if (isPaused) {
-        return "Your profile is paused, but you can still review matches.";
-      }
-      return "Review providers who reached out.";
+      return "No providers have reached out yet.";
     }
-    if (step === "review") return "Review your care profile before publishing.";
-    return "Discover providers or let them find you.";
+    // Recommended tab
+    if (hasPost) {
+      return isActive
+        ? "Your care profile is live — explore providers while you wait."
+        : "Your care profile is paused. Explore providers below.";
+    }
+    return "Discover providers in your area.";
   })();
 
   // Care Profile handlers
@@ -85,7 +199,6 @@ function MatchesContent() {
     });
     if (!res.ok) throw new Error("Failed to publish");
     await refreshAccountData();
-    setStep("active");
   }, [refreshAccountData]);
 
   const handleDeactivate = useCallback(async () => {
@@ -106,275 +219,43 @@ function MatchesContent() {
     });
     if (!res.ok) throw new Error("Failed to delete");
     await refreshAccountData();
-    // If no interested providers, go back to default state
-    if (totalInterested === 0) {
-      setStep("default");
+  }, [refreshAccountData]);
+
+  // Check if profile has minimum data to go live
+  const hasLocation = Boolean(activeProfile?.city && activeProfile?.state);
+  const hasCareTypes = Boolean(activeProfile?.care_types && activeProfile.care_types.length > 0);
+  const canGoLive = hasLocation && hasCareTypes;
+  const [activatingProfile, setActivatingProfile] = useState(false);
+
+  const handleQuickGoLive = useCallback(async () => {
+    if (!canGoLive) return;
+    setActivatingProfile(true);
+    try {
+      const res = await fetch("/api/care-post/activate-matches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          city: activeProfile?.city,
+          state: activeProfile?.state,
+        }),
+      });
+      if (res.ok) {
+        await refreshAccountData();
+      }
+    } catch (err) {
+      console.error("[matches] Failed to activate:", err);
+    } finally {
+      setActivatingProfile(false);
     }
-  }, [refreshAccountData, totalInterested]);
+  }, [canGoLive, activeProfile?.city, activeProfile?.state, refreshAccountData]);
 
-  // ── DEFAULT STATE — no care profile and no interested providers ──
-  if (step === "default" && !hasPost && totalInterested === 0) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
-        <div className="mb-6">
-          <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
-          <p className="text-[15px] text-gray-500 mt-1">
-            {subtitle}
-          </p>
-        </div>
+  const locationDisplay = [activeProfile?.city, activeProfile?.state].filter(Boolean).join(", ");
 
-        <div className="max-w-2xl">
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-            {/* Main content */}
-            <div className="px-8 pt-10 pb-8 text-center">
-              {/* Speech bubble icon */}
-              <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-5">
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="text-primary-500"
-                >
-                  <path
-                    d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-
-              <h3 className="text-xl font-display font-bold text-gray-900 mb-2">
-                Let providers find you
-              </h3>
-              <p className="text-[15px] text-gray-500 leading-relaxed max-w-[380px] mx-auto mb-7">
-                Share your care profile and qualified providers in your area will
-                reach out directly. It only takes a moment.
-              </p>
-
-              <button
-                onClick={() => setEditModalOpen(true)}
-                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[15px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-400 hover:to-primary-500 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] transition-all duration-200"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                Share your care profile
-              </button>
-            </div>
-
-            {/* Divider */}
-            <div className="mx-6 border-t border-gray-200/60" />
-
-            {/* How it works accordion */}
-            <div>
-              <button
-                type="button"
-                onClick={() => setHowItWorksOpen(!howItWorksOpen)}
-                className="w-full flex items-center justify-between px-8 py-4 text-left hover:bg-warm-50/30 transition-colors"
-              >
-                <span className="text-[13px] font-semibold text-gray-400">How it works</span>
-                <svg
-                  className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${howItWorksOpen ? "rotate-180" : ""}`}
-                  fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                </svg>
-              </button>
-              <div
-                className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]"
-                style={{ gridTemplateRows: howItWorksOpen ? "1fr" : "0fr" }}
-              >
-                <div className="overflow-hidden">
-                  <div className="px-8 pb-6 space-y-4 border-t border-warm-100/60 pt-4">
-                    {[
-                      { num: 1, bold: "Share your care profile", rest: "— we use your existing profile details" },
-                      { num: 2, bold: "Providers review", rest: "your profile and reach out if they're a good fit" },
-                      { num: 3, bold: "You choose", rest: "— review their profiles and start a conversation" },
-                    ].map((s) => (
-                      <div key={s.num} className="flex items-start gap-3">
-                        <div className="w-6 h-6 rounded-full bg-warm-100/70 flex items-center justify-center shrink-0 mt-0.5">
-                          <span className="text-[12px] font-bold text-gray-500">{s.num}</span>
-                        </div>
-                        <p className="text-[13px] text-gray-500 leading-relaxed">
-                          <span className="font-semibold text-gray-700">{s.bold}</span> {s.rest}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {activeProfile && editModalOpen && (
-          <EditCarePostModal
-            profile={activeProfile}
-            userEmail={user?.email}
-            onClose={() => setEditModalOpen(false)}
-            onSaved={async () => {
-              setEditModalOpen(false);
-              await refreshAccountData();
-              setStep("review");
-            }}
-          />
-        )}
-      </div>
-      </div>
-    );
-  }
-
-  // ── REVIEW STATE — reviewing care profile before publishing ──
-  if (step === "review" && !hasPost) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
-        <div className="mb-6">
-          <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
-          <p className="text-[15px] text-gray-500 mt-1">
-            {subtitle}
-          </p>
-        </div>
-
-        <div className="max-w-2xl">
-          {activeProfile && (
-            <CarePostView
-              activeProfile={activeProfile}
-              userEmail={user?.email}
-              onPublish={handlePublish}
-              onDeactivate={handleDeactivate}
-              initialStep="review"
-              onBack={() => setStep("default")}
-            />
-          )}
-        </div>
-      </div>
-      </div>
-    );
-  }
-
-  // ── WAITING STATE — care profile exists (active/paused) but no providers yet ──
-  if (hasPost && totalInterested === 0) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-        {/* Mobile: Sticky controls bar */}
-        <div className="lg:hidden">
-          {activeProfile && (
-            <CareProfileControlsMobile
-              activeProfile={activeProfile}
-              userEmail={user?.email}
-              onPublish={handlePublish}
-              onDeactivate={handleDeactivate}
-              onDelete={handleDelete}
-              onEditProfile={() => setEditModalOpen(true)}
-            />
-          )}
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
-          <div className="mb-6">
-            <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
-            <p className="text-[15px] text-gray-500 mt-1">
-              {subtitle}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            {/* Left — waiting card */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-                <div className="px-8 pt-10 pb-8 text-center">
-                  {/* Animated dots */}
-                  <div className="flex items-center justify-center gap-2 mb-6">
-                    {[0, 1, 2].map((i) => (
-                      <span
-                        key={i}
-                        className="w-3 h-3 rounded-full bg-primary-400"
-                        style={{
-                          animation: "waitingPulse 1.4s ease-in-out infinite",
-                          animationDelay: `${i * 0.2}s`,
-                        }}
-                      />
-                    ))}
-                  </div>
-                  <style jsx>{`
-                    @keyframes waitingPulse {
-                      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-                      40% { opacity: 1; transform: scale(1); }
-                    }
-                  `}</style>
-
-                  <h3 className="text-xl font-display font-bold text-gray-900 mb-2">
-                    Your profile is out there
-                  </h3>
-                  <p className="text-[15px] text-gray-500 leading-relaxed max-w-[420px] mx-auto">
-                    Providers in your area are reviewing profiles daily.
-                    We&apos;ll email you when someone reaches out.
-                  </p>
-                </div>
-
-                {/* Divider */}
-                <div className="mx-8 border-t border-gray-200/60" />
-
-                {/* Browse link */}
-                <div className="px-8 py-5">
-                  <Link
-                    href="/browse"
-                    className="inline-flex items-center gap-1.5 text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors"
-                  >
-                    Browse providers while you wait
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Right — sidebar (desktop only) */}
-            <div className="hidden lg:block lg:col-span-1">
-              {activeProfile && (
-                <CarePostSidebar
-                  activeProfile={activeProfile}
-                  interestedCount={totalInterested}
-                  userEmail={user?.email}
-                  onPublish={handlePublish}
-                  onDeactivate={handleDeactivate}
-                  onDelete={handleDelete}
-                  onProfileUpdated={refreshAccountData}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Edit modal for mobile */}
-        {activeProfile && editModalOpen && (
-          <EditCarePostModal
-            profile={activeProfile}
-            userEmail={user?.email}
-            onClose={() => setEditModalOpen(false)}
-            onSaved={async () => {
-              setEditModalOpen(false);
-              await refreshAccountData();
-            }}
-          />
-        )}
-      </div>
-    );
-  }
-
-  // ── ACTIVE STATE — providers interested (regardless of profile status), show grid ──
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-      {/* Mobile: Sticky controls bar - show whenever there are interested providers */}
+      {/* Mobile: Sticky controls bar (only when profile is live/paused) */}
       <div className="lg:hidden">
-        {activeProfile && (
+        {activeProfile && hasPost && (
           <CareProfileControlsMobile
             activeProfile={activeProfile}
             userEmail={user?.email}
@@ -388,57 +269,185 @@ function MatchesContent() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
         {/* Header */}
-        <div className="mb-6">
-          <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
-          <p className="text-[15px] text-gray-500 mt-1">
-            {subtitle}
-          </p>
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-display font-bold text-gray-900">Matches</h1>
+              {hasPost && (
+                isActive ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Live
+                  </span>
+                ) : isPaused ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                    Paused
+                  </span>
+                ) : null
+              )}
+            </div>
+            <p className="text-[15px] text-gray-500 mt-1">
+              {subtitle}
+            </p>
+          </div>
         </div>
 
-        {/* Desktop: 2/3 + 1/3 grid */}
-        <div className="hidden lg:grid lg:grid-cols-3 gap-8 items-start">
-          {/* Main content — 2/3 */}
+        {/* Mobile: Go Live CTA (when profile is NOT live) */}
+        {!hasPost && (
+          <div className="lg:hidden mb-6">
+            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-[15px] font-semibold text-gray-900">
+                    Go live to get matches
+                  </h2>
+                  <p className="text-[13px] text-gray-500">
+                    Let providers in your area discover you
+                  </p>
+                </div>
+              </div>
+
+              {canGoLive ? (
+                <button
+                  onClick={handleQuickGoLive}
+                  disabled={activatingProfile}
+                  className="w-full py-3 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold hover:from-primary-400 hover:to-primary-500 transition-all shadow-[0_1px_3px_rgba(25,144,135,0.3)] disabled:opacity-70 flex items-center justify-center gap-2"
+                >
+                  {activatingProfile ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Going live...
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-white/80 animate-pulse" />
+                      Go Live
+                    </>
+                  )}
+                </button>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${hasLocation ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                      {hasLocation ? (
+                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      ) : (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="10" strokeWidth="2" />
+                        </svg>
+                      )}
+                      Location
+                    </span>
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${hasCareTypes ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                      {hasCareTypes ? (
+                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      ) : (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="10" strokeWidth="2" />
+                        </svg>
+                      )}
+                      Care needs
+                    </span>
+                  </div>
+                  <Link
+                    href="/welcome"
+                    className="w-full min-h-[48px] py-3 rounded-xl bg-primary-600 text-white text-[14px] font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    Complete setup
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Main content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          {/* Left — Tabs + Content (2/3) */}
           <div className="lg:col-span-2">
-            {activeProfile && (
-              <InterestedTabContent
-                profileId={activeProfile.id}
-                hasCarePost={hasPost}
-                familyLat={activeProfile.lat}
-                familyLng={activeProfile.lng}
-                variant="desktop"
+            {/* Tab bar */}
+            <MatchesTabs
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              interestedCount={totalInterested}
+            />
+
+            {/* Tab content - Desktop shows inline, mobile shows in separate section below for interested */}
+            {activeTab === "recommended" ? (
+              <RecommendedTabContent
+                providers={recommendedProviders}
+                loading={loadingProviders}
+                onSendMessage={handleSendMessage}
               />
+            ) : (
+              /* Desktop: Interested content inline */
+              <div className="hidden lg:block">
+                {activeProfile && (
+                  <InterestedTabContent
+                    profileId={activeProfile.id}
+                    hasCarePost={hasPost}
+                    familyLat={activeProfile.lat}
+                    familyLng={activeProfile.lng}
+                    variant="desktop"
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Mobile: Interested content in main column */}
+            {activeTab === "interested" && (
+              <div className="lg:hidden">
+                {activeProfile && (
+                  <InterestedTabContent
+                    profileId={activeProfile.id}
+                    hasCarePost={hasPost}
+                    familyLat={activeProfile.lat}
+                    familyLng={activeProfile.lng}
+                    variant="mobile"
+                  />
+                )}
+              </div>
             )}
           </div>
 
-          {/* Sidebar — 1/3 */}
-          <div className="lg:col-span-1">
+          {/* Right — Sidebar (1/3, desktop only, sticky, aligned with provider cards) */}
+          <div className="hidden lg:block lg:col-span-1 mt-[72px]">
             {activeProfile && (
               <CarePostSidebar
                 activeProfile={activeProfile}
                 interestedCount={totalInterested}
+                userEmail={user?.email}
                 onPublish={handlePublish}
                 onDeactivate={handleDeactivate}
                 onDelete={handleDelete}
+                onProfileUpdated={refreshAccountData}
+                canGoLive={canGoLive}
+                onGoLive={handleQuickGoLive}
+                activating={activatingProfile}
               />
             )}
           </div>
         </div>
-
-        {/* Mobile: Full-width compact cards */}
-        <div className="lg:hidden">
-          {activeProfile && (
-            <InterestedTabContent
-              profileId={activeProfile.id}
-              hasCarePost={hasPost}
-              familyLat={activeProfile.lat}
-              familyLng={activeProfile.lng}
-              variant="mobile"
-            />
-          )}
-        </div>
       </div>
 
-      {/* Edit modal for mobile */}
+      {/* Edit modal */}
       {activeProfile && editModalOpen && (
         <EditCarePostModal
           profile={activeProfile}

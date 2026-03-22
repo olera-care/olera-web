@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { useRouter } from "next/navigation";
 import BrowseCard from "@/components/browse/BrowseCard";
-import MatchesActivatedBanner from "@/components/browse/MatchesActivatedBanner";
 import { useNavbar } from "@/components/shared/NavbarContext";
 import Pagination from "@/components/ui/Pagination";
 import { createClient } from "@/lib/supabase/client";
@@ -717,9 +716,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       <div className="lg:flex">
         {/* Left Panel - Provider List */}
         <div className="flex-1 min-w-0 px-4 sm:px-6 lg:pl-8 lg:pr-6 py-6">
-          {/* Matches Activated Banner (one-time, post-onboarding) */}
-          <MatchesActivatedBanner />
-
           {/* Heading + Sort */}
           <div className="relative z-20">
             <div className="flex items-baseline justify-between gap-4 mb-6">

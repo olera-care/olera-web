@@ -145,6 +145,25 @@ export function guestConnectionEmail(opts: {
   `);
 }
 
+/** Email to verify email address after instant account creation */
+export function verifyEmailEmail(opts: {
+  familyName: string;
+  providerName: string;
+  verifyUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Verify your email</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, you're connected with <strong>${opts.providerName}</strong> on Olera.
+      Verify your email to sign in from any device and keep your account secure.
+    </p>
+    <div style="margin:24px 0;">${button("Verify Email", opts.verifyUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
+      You can continue using Olera without verifying, but we recommend it for account security.
+    </p>
+  `);
+}
+
 /** Email to family when a provider responds (accept/decline) */
 export function connectionResponseEmail(opts: {
   familyName: string;
@@ -362,5 +381,342 @@ export function matchesLiveEmail(opts: {
       You're in control. When a provider contacts you, you decide whether to respond.
     </p>
     <div>${button("View your Matches", opts.matchesUrl)}</div>
+  `);
+}
+
+/** Email to family when a provider sends a reach-out (Matches F2) */
+export function providerReachOutEmail(opts: {
+  familyName: string;
+  providerName: string;
+  city: string;
+  message: string | null;
+  matchesUrl: string;
+}): string {
+  const messageLine = opts.message
+    ? `<div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
+        <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${opts.message}"</p>
+      </div>`
+    : "";
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A provider in ${opts.city} is interested</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, <strong>${opts.providerName}</strong> in ${opts.city} saw your care profile and wants to connect.
+    </p>
+    ${messageLine}
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      You're in control — review their profile and decide if you'd like to start a conversation.
+    </p>
+    <div>${button("View on Matches", opts.matchesUrl)}</div>
+  `);
+}
+
+/** Email to family when they have unanswered messages and Matches is not active (F3) */
+export function matchesNudgeEmail(opts: {
+  familyName: string;
+  unansweredCount: number;
+  matchesUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Still waiting to hear back? There's a better way.</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, you've reached out to ${opts.unansweredCount} providers but haven't heard back yet.
+    </p>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      With Matches, providers come to you. Share what you're looking for once, and qualified providers in your area will reach out directly.
+    </p>
+    <div>${button("Activate Matches", opts.matchesUrl)}</div>
+  `);
+}
+
+/** Email to provider when their profile is still incomplete 48hrs after signup (P1) */
+export function providerIncompleteProfileEmail(opts: {
+  providerName: string;
+  city: string;
+  profileUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Families are searching in ${opts.city}</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Hi ${opts.providerName}, families in ${opts.city} are looking for care providers on Olera — but your profile isn't ready yet.
+      Complete it so families can find and connect with you.
+    </p>
+    <div>${button("Complete your profile", opts.profileUrl)}</div>
+  `);
+}
+
+/** Email to provider when a family accepts their reach-out (P2) */
+export function reachOutAcceptedEmail(opts: {
+  providerName: string;
+  familyName: string;
+  viewUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You're connected!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      <strong>${opts.familyName}</strong> accepted your reach-out on Olera. You can now message each other directly.
+    </p>
+    <div>${button("View conversation", opts.viewUrl)}</div>
+  `);
+}
+
+/** Document checklist email for benefits applications */
+export function checklistEmail(opts: {
+  programName: string;
+  programShortName: string;
+  stateName: string;
+  checked: string[];
+}): string {
+  const categories = [
+    {
+      name: "Identity & Personal",
+      items: [
+        "Government-issued photo ID",
+        "Social Security card",
+        "Birth certificate",
+        "Marriage certificate (if applicable)",
+        "Passport-size photo",
+      ],
+    },
+    {
+      name: "Medical & Health",
+      items: [
+        "Medical records or doctor's statement",
+        "Diagnosis or disability documentation",
+        "Current medication list",
+        "Health insurance card (Medicare/Medicaid)",
+      ],
+    },
+    {
+      name: "Financial & Income",
+      items: [
+        "Proof of income (pay stubs, tax return, SSI letter)",
+        "Bank statements (last 3 months)",
+        "Proof of assets (property, investments)",
+        "Proof of expenses (rent, utilities, medical bills)",
+      ],
+    },
+    {
+      name: "Residency & Housing",
+      items: [
+        "Proof of state residency (utility bill, lease)",
+        "Current living arrangement documentation",
+        "Proof of U.S. citizenship or immigration status",
+      ],
+    },
+  ];
+
+  const checkedSet = new Set(opts.checked);
+  const totalItems = categories.reduce((s, c) => s + c.items.length, 0);
+  const checkedCount = opts.checked.length;
+
+  const categoriesHtml = categories
+    .map((cat) => {
+      const itemsHtml = cat.items
+        .map((item) => {
+          const done = checkedSet.has(item);
+          const icon = done ? "&#9745;" : "&#9744;";
+          const style = done
+            ? "color:#9ca3af;text-decoration:line-through;"
+            : "color:#374151;";
+          return `<tr><td style="padding:4px 0;font-size:14px;${style}">${icon}&nbsp; ${item}</td></tr>`;
+        })
+        .join("");
+
+      return `
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+          <tr><td style="font-size:15px;font-weight:600;color:#111827;padding:0 0 8px;border-bottom:1px solid #f3f4f6;">
+            ${cat.name}
+          </td></tr>
+          ${itemsHtml}
+        </table>`;
+    })
+    .join("");
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your Document Checklist</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 4px;line-height:1.5;">
+      For <strong>${opts.programName}</strong> in ${opts.stateName}
+    </p>
+    <p style="font-size:14px;color:${BRAND_COLOR};font-weight:600;margin:0 0 24px;">
+      ${checkedCount} of ${totalItems} documents gathered
+    </p>
+    ${categoriesHtml}
+    <div style="background:#f0fdfa;border-radius:8px;padding:16px;margin:0 0 24px;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
+        <strong>Next step:</strong> Once you've gathered all documents, visit the ${opts.programShortName} page on Olera to start your application.
+      </p>
+    </div>
+    <div>${button("View program details", `${BASE_URL}/waiver-library`)}</div>
+  `);
+}
+
+// ── Care Seeker Notification Emails ──────────────────────────────
+
+/** Welcome email for new signups (Google OAuth / email OTP — NOT guest connections) */
+export function welcomeEmail(opts: {
+  familyName: string;
+  browseUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to Olera</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, thanks for joining Olera — where families find trusted senior care providers.
+    </p>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 8px;line-height:1.5;">Here's what you can do:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.8;">
+      <li><strong>Browse providers</strong> in your area</li>
+      <li><strong>Complete your profile</strong> so providers can reach out to you</li>
+      <li><strong>Go live on Matches</strong> and let qualified providers come to you</li>
+    </ul>
+    <div>${button("Browse care providers", opts.browseUrl)}</div>
+  `);
+}
+
+// ── Provider card helper for email templates ──
+
+interface EmailProviderCard {
+  name: string;
+  category: string;
+  slug: string;
+  rating: number;
+  reviewCount: number;
+  reviewSnippet?: string | null;
+  city: string;
+  state: string;
+}
+
+function providerCardRow(provider: EmailProviderCard, showSnippet = false): string {
+  const snippetHtml = showSnippet && provider.reviewSnippet
+    ? `<p style="font-size:13px;color:#6b7280;margin:6px 0 0;line-height:1.4;font-style:italic;">&ldquo;${provider.reviewSnippet.slice(0, 120)}${provider.reviewSnippet.length > 120 ? "..." : ""}&rdquo;</p>`
+    : "";
+  return `
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;margin:0 0 8px;">
+      <tr><td style="padding:12px 16px;">
+        <a href="${BASE_URL}/provider/${provider.slug}" style="font-size:15px;font-weight:600;color:#111827;text-decoration:none;">${provider.name}</a>
+        <p style="font-size:13px;color:#6b7280;margin:2px 0 0;">${provider.category} &middot; ${provider.city}, ${provider.state}</p>
+        <p style="font-size:13px;color:#d97706;margin:4px 0 0;">&starf; ${provider.rating.toFixed(1)} (${provider.reviewCount.toLocaleString()} reviews) on Google</p>
+        ${snippetHtml}
+      </td></tr>
+    </table>`;
+}
+
+function providerCardsBlock(providers: EmailProviderCard[], showSnippets = false): string {
+  if (providers.length === 0) return "";
+  return `<div style="margin:0 0 24px;">${providers.map((p) => providerCardRow(p, showSnippets)).join("")}</div>`;
+}
+
+/** Go-live reminder — shows nearby provider count + top providers */
+export function goLiveReminderEmail(opts: {
+  familyName: string;
+  matchesUrl: string;
+  city?: string;
+  providerCount?: number;
+  topProviders?: EmailProviderCard[];
+}): string {
+  const cityText = opts.city || "your area";
+  const countText = opts.providerCount ? `${opts.providerCount} care` : "Care";
+  const providersHtml = opts.topProviders?.length ? providerCardsBlock(opts.topProviders) : "";
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${countText} providers in ${cityText} are looking for families like yours</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, your care profile is looking great. Activate Matches and let providers in your area reach out to you directly.
+    </p>
+    ${providersHtml}
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      You're always in control — you decide which providers to respond to.
+    </p>
+    <div>${button("Go live on Matches", opts.matchesUrl)}</div>
+  `);
+}
+
+/** Profile incomplete reminder — specific about what's missing */
+export function familyProfileIncompleteEmail(opts: {
+  familyName: string;
+  welcomeUrl: string;
+  missingCareTypes?: boolean;
+  missingLocation?: boolean;
+  providerCount?: number;
+  state?: string;
+}): string {
+  let headline: string;
+  let body: string;
+
+  if (opts.missingCareTypes && !opts.missingLocation) {
+    headline = "Tell us what you're looking for";
+    body = `We'd love to help you find the right care. Tell us what type of care you need and we'll show you providers that match.`;
+  } else if (!opts.missingCareTypes && opts.missingLocation) {
+    const countText = opts.providerCount ? ` the ${opts.providerCount}` : "";
+    headline = "Add your location to see providers near you";
+    body = `Add your city so we can show you${countText} providers near you. It only takes a moment.`;
+  } else {
+    const stateText = opts.state ? ` in ${opts.state}` : "";
+    headline = `Unlock care options${stateText}`;
+    body = `A few quick details — your care needs and location — will unlock personalized provider matches${stateText}.`;
+  }
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${headline}</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Hi ${opts.familyName}, ${body}
+    </p>
+    <div>${button("Complete your profile", opts.welcomeUrl)}</div>
+  `);
+}
+
+/** Provider recommendation — shows top providers matching family's needs */
+export function providerRecommendationEmail(opts: {
+  familyName: string;
+  city: string;
+  providers: EmailProviderCard[];
+  browseUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Top-rated providers in ${opts.city} for you</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, we found some highly-rated care providers in ${opts.city} that match what you're looking for.
+    </p>
+    ${providerCardsBlock(opts.providers, true)}
+    <div>${button("Browse all providers near you", opts.browseUrl)}</div>
+  `);
+}
+
+/** Post-connection follow-up — asks about experience, builds review system */
+export function postConnectionFollowupEmail(opts: {
+  familyName: string;
+  providerName: string;
+  providerSlug: string;
+  reviewUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">How was your experience with ${opts.providerName}?</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, you connected with ${opts.providerName} on Olera about a month ago. We'd love to hear how it went.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Your feedback helps other families make informed decisions — and helps great providers get the recognition they deserve.
+    </p>
+    <div>${button("Share your experience", opts.reviewUrl)}</div>
+  `);
+}
+
+/** Dormant re-engagement — social proof with popular providers */
+export function dormantReengagementEmail(opts: {
+  familyName: string;
+  state: string;
+  providers: EmailProviderCard[];
+  browseUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Families in ${opts.state} are finding care on Olera</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, finding the right care takes time — and we're here when you're ready. Here are some providers other families are connecting with:
+    </p>
+    ${providerCardsBlock(opts.providers)}
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Whenever you're ready, Olera makes it easy to compare providers, read reviews, and connect directly.
+    </p>
+    <div>${button("Browse providers near you", opts.browseUrl)}</div>
   `);
 }

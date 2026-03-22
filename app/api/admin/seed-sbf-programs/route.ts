@@ -31,17 +31,11 @@ export async function POST(request: NextRequest) {
 async function handleSeed(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const isDiagnose = searchParams.get("diagnose") === "true";
-    const tempBypass = searchParams.get("bypass") === "seed2026";
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
-    // Skip auth for diagnose mode or temporary seed bypass
-    if (!isDiagnose && !tempBypass) {
-      const user = await getAuthUser();
-      if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-
-      const adminUser = await getAdminUser(user.id);
-      if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
-    }
+    const adminUser = await getAdminUser(user.id);
+    if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
     const dryRun = searchParams.get("dry_run") === "true";
     const stateFilter = searchParams.get("state")?.toUpperCase();
@@ -95,29 +89,6 @@ async function handleSeed(request: NextRequest) {
         has_waiver_url: programs.filter((p) => p.waiver_library_url != null).length,
         requires_medicaid: programs.filter((p) => p.requires_medicaid).length,
         requires_veteran: programs.filter((p) => p.requires_veteran).length,
-      });
-    }
-
-    // Diagnostic mode: try inserting a single row to surface errors
-    if (searchParams.get("diagnose") === "true") {
-      const testRow = programs[0];
-      const { data, error } = await db
-        .from("sbf_state_programs")
-        .upsert([testRow], { onConflict: "id" })
-        .select();
-
-      // Also check what columns exist
-      const { data: schemaData } = await db
-        .from("sbf_state_programs")
-        .select("*")
-        .limit(1);
-
-      return NextResponse.json({
-        diagnose: true,
-        test_row_keys: Object.keys(testRow),
-        existing_columns: schemaData?.[0] ? Object.keys(schemaData[0]) : "no_rows",
-        insert_result: data,
-        insert_error: error ? { message: error.message, details: error.details, hint: error.hint, code: error.code } : null,
       });
     }
 

@@ -109,6 +109,7 @@ async function handleSeed(request: NextRequest) {
     // Upsert in batches of 50
     let upserted = 0;
     let errors = 0;
+    const errorDetails: { batch: number; message: string; code: string }[] = [];
     for (let i = 0; i < programs.length; i += 50) {
       const batch = programs.slice(i, i + 50);
       const { error } = await db
@@ -118,6 +119,7 @@ async function handleSeed(request: NextRequest) {
       if (error) {
         console.error(`Batch ${i} error:`, error);
         errors++;
+        errorDetails.push({ batch: i, message: error.message, code: error.code });
       } else {
         upserted += batch.length;
       }
@@ -128,6 +130,7 @@ async function handleSeed(request: NextRequest) {
       deactivated_old_rows: true,
       upserted,
       errors,
+      errorDetails: errorDetails.slice(0, 3),
       total: programs.length,
     });
   } catch (err) {

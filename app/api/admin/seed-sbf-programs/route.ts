@@ -57,7 +57,7 @@ async function handleSeed(request: NextRequest) {
         const category = inferCategory(program.name, program.description, program.eligibilityHighlights);
 
         programs.push({
-          id: program.id,
+          id: `${state.abbreviation.toLowerCase()}-${program.id}`,
           name: program.name,
           short_name: program.shortName || null,
           description: program.description,

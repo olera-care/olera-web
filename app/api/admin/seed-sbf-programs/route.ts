@@ -92,6 +92,29 @@ async function handleSeed(request: NextRequest) {
       });
     }
 
+    // Diagnostic mode: try inserting a single row to surface errors
+    if (searchParams.get("diagnose") === "true") {
+      const testRow = programs[0];
+      const { data, error } = await db
+        .from("sbf_state_programs")
+        .upsert([testRow], { onConflict: "id" })
+        .select();
+
+      // Also check what columns exist
+      const { data: schemaData } = await db
+        .from("sbf_state_programs")
+        .select("*")
+        .limit(1);
+
+      return NextResponse.json({
+        diagnose: true,
+        test_row_keys: Object.keys(testRow),
+        existing_columns: schemaData?.[0] ? Object.keys(schemaData[0]) : "no_rows",
+        insert_result: data,
+        insert_error: error ? { message: error.message, details: error.details, hint: error.hint, code: error.code } : null,
+      });
+    }
+
     // Deactivate all existing rows so old iOS data stops appearing in results
     const { error: deactivateError } = await db
       .from("sbf_state_programs")
@@ -126,11 +149,11 @@ async function handleSeed(request: NextRequest) {
     }
 
     return NextResponse.json({
-      success: true,
+      success: errors === 0,
       deactivated_old_rows: true,
       upserted,
       errors,
-      errorDetails: errorDetails.slice(0, 3),
+      error_details: errorDetails.slice(0, 5),
       total: programs.length,
     });
   } catch (err) {

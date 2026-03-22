@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { allStates } from "@/data/waiver-library";
 import type { BenefitCategory } from "@/lib/types/benefits";
+import { buildWaiverLibraryUrl } from "@/lib/benefits/state-utils";
 
 /**
  * GET/POST /api/admin/seed-sbf-programs
@@ -69,6 +70,8 @@ async function handleSeed(request: NextRequest) {
           priority_score: computePriorityScore(category, parsed),
           is_active: true,
           state_code: state.abbreviation,
+          savings_range: program.savingsRange || null,
+          waiver_library_url: buildWaiverLibraryUrl(state.abbreviation, program.id),
         });
       }
     }
@@ -82,9 +85,25 @@ async function handleSeed(request: NextRequest) {
         categories: countByField(programs, "category"),
         has_income: programs.filter((p) => p.max_income_single != null).length,
         has_age: programs.filter((p) => p.min_age != null).length,
+        has_savings_range: programs.filter((p) => p.savings_range != null).length,
+        has_waiver_url: programs.filter((p) => p.waiver_library_url != null).length,
         requires_medicaid: programs.filter((p) => p.requires_medicaid).length,
         requires_veteran: programs.filter((p) => p.requires_veteran).length,
       });
+    }
+
+    // Deactivate all existing rows so old iOS data stops appearing in results
+    const { error: deactivateError } = await db
+      .from("sbf_state_programs")
+      .update({ is_active: false })
+      .eq("is_active", true);
+
+    if (deactivateError) {
+      console.error("Failed to deactivate old rows:", deactivateError);
+      return NextResponse.json({
+        error: "Failed to deactivate existing programs",
+        details: deactivateError.message,
+      }, { status: 500 });
     }
 
     // Upsert in batches of 50
@@ -106,6 +125,7 @@ async function handleSeed(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      deactivated_old_rows: true,
       upserted,
       errors,
       total: programs.length,

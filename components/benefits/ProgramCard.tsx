@@ -59,6 +59,15 @@ export default function ProgramCard({ match, isSaved, onToggleSave, defaultExpan
               {program.short_name || program.name}
             </h4>
             {(() => {
+              // Prefer savings_range from waiver library data (e.g., "$5,000 – $20,000/year")
+              if (program.savings_range) {
+                return (
+                  <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                    Save {program.savings_range}
+                  </span>
+                );
+              }
+              // Fallback to hardcoded estimates
               const range = getSavingsRange(program.name);
               if (!range) return null;
               return (
@@ -272,6 +281,19 @@ export default function ProgramCard({ match, isSaved, onToggleSave, defaultExpan
                 </a>
               )}
             </div>
+
+            {/* Waiver library detail link */}
+            {program.waiver_library_url && (
+              <a
+                href={program.waiver_library_url}
+                className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium text-primary-600 hover:text-primary-700 no-underline transition-colors"
+              >
+                View full details — forms, checklists &amp; FAQs
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M7 17l9.2-9.2M17 17V7H7" />
+                </svg>
+              </a>
+            )}
           </div>
         </div>
       </div>

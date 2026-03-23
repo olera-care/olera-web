@@ -201,7 +201,8 @@ export async function POST(request: Request) {
           } else {
             // Generate magic link for provider one-click sign-in
             const redirectPath = `/provider/welcome?action=message&id=${connectionId}`;
-            viewUrl = `${siteUrl}/provider/connections`; // Fallback
+            // Fallback: direct to welcome page (handles both claimed and unclaimed providers)
+            viewUrl = `${siteUrl}${redirectPath}`;
 
             try {
               const { data: providerLinkData, error: providerLinkError } = await admin.auth.admin.generateLink({
@@ -216,7 +217,7 @@ export async function POST(request: Request) {
               }
             } catch (linkErr) {
               console.error("Failed to generate provider magic link for message:", linkErr);
-              // Continue with fallback URL
+              // Continue with fallback URL (welcome page)
             }
           }
 

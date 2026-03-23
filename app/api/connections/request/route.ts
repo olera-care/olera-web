@@ -671,7 +671,8 @@ async function handleGuestConnection({
       // Generate magic link for provider one-click sign-in
       const siteUrl = getSiteUrl();
       const redirectPath = `/provider/welcome?action=lead&id=${newConnection.id}`;
-      let viewUrl = `${siteUrl}/provider/connections`; // Fallback
+      // Fallback: direct to welcome page (handles both claimed and unclaimed providers)
+      let viewUrl = `${siteUrl}${redirectPath}`;
 
       try {
         const { data: providerLinkData, error: providerLinkError } = await authClient.auth.admin.generateLink({
@@ -686,7 +687,7 @@ async function handleGuestConnection({
         }
       } catch (linkErr) {
         console.error("Failed to generate provider magic link:", linkErr);
-        // Continue with fallback URL
+        // Continue with fallback URL (welcome page)
       }
 
       await sendEmail({
@@ -1326,7 +1327,8 @@ export async function POST(request: Request) {
         // Generate magic link for provider one-click sign-in
         const siteUrl = getSiteUrl();
         const redirectPath = `/provider/welcome?action=lead&id=${newConnection.id}`;
-        let viewUrl = `${siteUrl}/provider/connections`; // Fallback
+        // Fallback: direct to welcome page (handles both claimed and unclaimed providers)
+        let viewUrl = `${siteUrl}${redirectPath}`;
 
         try {
           const { data: providerLinkData, error: providerLinkError } = await admin.auth.admin.generateLink({
@@ -1341,7 +1343,7 @@ export async function POST(request: Request) {
           }
         } catch (linkErr) {
           console.error("Failed to generate provider magic link:", linkErr);
-          // Continue with fallback URL
+          // Continue with fallback URL (welcome page)
         }
 
         await sendEmail({

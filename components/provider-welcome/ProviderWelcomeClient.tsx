@@ -1,11 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import type { ActionType } from "@/app/provider/welcome/page";
 import { createClient } from "@/lib/supabase/client";
+import {
+  getOrCreateClaimSession,
+  getClaimSession,
+  updateClaimSession,
+  markSessionVerified,
+  clearClaimSession,
+} from "@/lib/claim-session";
 
 // ============================================================
 // Types
@@ -72,8 +80,13 @@ interface ProviderForAuth {
     image_url: string | null;
     city: string | null;
     state: string | null;
+    slug: string | null;
   } | null;
   email: string | null;
+  // For unclaimed providers (State 3)
+  isClaimed: boolean;
+  sourceProviderId: string | null;
+  providerEmail: string | null;
 }
 
 interface ProviderWelcomeClientProps {
@@ -616,6 +629,125 @@ function FallbackCard({ action, config }: FallbackCardProps) {
 }
 
 // ============================================================
+// Inline Context Components (for State 3 unified card)
+// ============================================================
+
+function LeadContextInline({ data }: { data: ConnectionData }) {
+  const profile = data.from_profile;
+  const name = profile?.display_name || "A family";
+  const message = data.metadata?.message || data.metadata?.thread?.[0]?.text;
+  const timeAgo = formatTimeAgo(data.created_at);
+
+  return (
+    <div className="flex items-start gap-3">
+      {profile?.image_url ? (
+        <Image
+          src={profile.image_url}
+          alt={name}
+          width={40}
+          height={40}
+          className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+        />
+      ) : (
+        <div
+          className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+          style={{ background: avatarGradient(name) }}
+        >
+          <span className="text-sm font-bold text-white">{getInitials(name)}</span>
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        {message ? (
+          <p className="text-text-md text-gray-700 line-clamp-2">&ldquo;{message}&rdquo;</p>
+        ) : (
+          <p className="text-text-md text-gray-700">Wants to connect with you</p>
+        )}
+        <p className="text-text-sm text-gray-500 mt-1">— {getFirstName(name)} · {timeAgo}</p>
+      </div>
+    </div>
+  );
+}
+
+function QuestionContextInline({ data }: { data: QuestionData }) {
+  const name = data.asker_name || "Someone";
+  const timeAgo = formatTimeAgo(data.created_at);
+
+  return (
+    <div className="flex items-start gap-3">
+      <div
+        className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+        style={{ background: avatarGradient(name) }}
+      >
+        <span className="text-sm font-bold text-white">{getInitials(name)}</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-text-md text-gray-700 line-clamp-2">&ldquo;{data.question}&rdquo;</p>
+        <p className="text-text-sm text-gray-500 mt-1">— {getFirstName(name)} · {timeAgo}</p>
+      </div>
+    </div>
+  );
+}
+
+function ReviewContextInline({ data }: { data: ReviewData }) {
+  const name = data.reviewer_name || "Someone";
+  const timeAgo = formatTimeAgo(data.created_at);
+  const stars = "★".repeat(data.rating);
+
+  return (
+    <div className="flex items-start gap-3">
+      <div
+        className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+        style={{ background: avatarGradient(name) }}
+      >
+        <span className="text-sm font-bold text-white">{getInitials(name)}</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-amber-500 text-lg leading-none mb-1">{stars}</p>
+        {data.comment && (
+          <p className="text-text-md text-gray-700 line-clamp-2">&ldquo;{data.comment}&rdquo;</p>
+        )}
+        <p className="text-text-sm text-gray-500 mt-1">— {getFirstName(name)} · {timeAgo}</p>
+      </div>
+    </div>
+  );
+}
+
+function MessageContextInline({ data, providerId }: { data: ConnectionData; providerId: string }) {
+  const isFromProvider = data.from_profile?.id === providerId;
+  const otherParty = isFromProvider ? data.to_profile : data.from_profile;
+  const name = otherParty?.display_name || "Someone";
+  const thread = data.metadata?.thread || [];
+  const latestMessage = thread.length > 0 ? thread[thread.length - 1] : null;
+  const messagePreview = latestMessage?.text || "New message";
+  const timeAgo = latestMessage?.created_at ? formatTimeAgo(latestMessage.created_at) : "";
+
+  return (
+    <div className="flex items-start gap-3">
+      {otherParty?.image_url ? (
+        <Image
+          src={otherParty.image_url}
+          alt={name}
+          width={40}
+          height={40}
+          className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+        />
+      ) : (
+        <div
+          className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+          style={{ background: avatarGradient(name) }}
+        >
+          <span className="text-sm font-bold text-white">{getInitials(name)}</span>
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-text-md text-gray-700 line-clamp-2">{messagePreview}</p>
+        <p className="text-text-sm text-gray-500 mt-1">— {getFirstName(name)}{timeAgo && ` · ${timeAgo}`}</p>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // Main Component
 // ============================================================
 
@@ -632,11 +764,23 @@ export default function ProviderWelcomeClient({
   const firstName = getFirstName(providerProfile?.display_name || user?.email);
   const config = useMemo(() => getActionConfig(action, actionData), [action, actionData]);
 
+  const router = useRouter();
+
   // State 2: Magic link / sign-in states
   const [linkSent, setLinkSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
+
+  // State 3: Claim flow states
+  type ClaimStep = "verify" | "code" | "verified" | "signup-link-sent" | "finalizing";
+  const [claimStep, setClaimStep] = useState<ClaimStep>("verify");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [emailHint, setEmailHint] = useState<string | null>(null);
+  const [claimError, setClaimError] = useState<string | null>(null);
+  const [claimLoading, setClaimLoading] = useState(false);
+  const [signupCooldown, setSignupCooldown] = useState(0);
+  const codeInputRef = useRef<HTMLInputElement>(null);
 
   // Resend cooldown timer
   useEffect(() => {
@@ -645,6 +789,76 @@ export default function ProviderWelcomeClient({
       return () => clearTimeout(timer);
     }
   }, [resendCooldown]);
+
+  // Signup cooldown timer
+  useEffect(() => {
+    if (signupCooldown > 0) {
+      const timer = setTimeout(() => setSignupCooldown(signupCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [signupCooldown]);
+
+  // Initialize claim session for State 3
+  useEffect(() => {
+    if (!user && providerForAuth?.profile && !providerForAuth.isClaimed && providerForAuth.sourceProviderId) {
+      const session = getOrCreateClaimSession(
+        providerForAuth.sourceProviderId,
+        providerForAuth.profile.slug || "",
+        providerForAuth.profile.display_name
+      );
+      // Restore step from session
+      if (session.verified) {
+        setClaimStep("verified");
+        setEmailHint(session.emailHint || null);
+      } else if (session.step === "code-sent") {
+        setClaimStep("code");
+        setEmailHint(session.emailHint || null);
+      }
+    }
+  }, [user, providerForAuth]);
+
+  // Auto-finalize claim if user just authenticated and session is verified
+  useEffect(() => {
+    async function autoFinalize() {
+      if (!user) return;
+
+      const session = getClaimSession();
+      if (!session || !session.verified) return;
+
+      // Don't auto-finalize if we already have a provider profile
+      if (providerProfile) return;
+
+      setClaimLoading(true);
+      try {
+        const res = await fetch("/api/claim/finalize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            providerId: session.providerId,
+            claimSession: session.sessionId,
+          }),
+        });
+
+        if (res.ok) {
+          const { profileSlug } = await res.json();
+          clearClaimSession();
+          // Redirect to the action destination or provider dashboard
+          const redirectTo = config.routeTo || `/provider/${profileSlug}`;
+          router.push(redirectTo);
+          router.refresh();
+        } else {
+          const data = await res.json();
+          setClaimError(data.error || "Failed to claim page. Please try again.");
+          setClaimLoading(false);
+        }
+      } catch {
+        setClaimError("Something went wrong. Please try again.");
+        setClaimLoading(false);
+      }
+    }
+
+    autoFinalize();
+  }, [user, providerProfile, config.routeTo, router]);
 
   const handleSendMagicLink = async () => {
     if (!providerForAuth?.email) return;
@@ -688,6 +902,151 @@ export default function ProviderWelcomeClient({
       options: { redirectTo },
     });
   };
+
+  // State 3 handlers
+  const handleSendVerificationCode = useCallback(async () => {
+    if (!providerForAuth?.sourceProviderId) return;
+
+    setClaimLoading(true);
+    setClaimError(null);
+
+    const session = getClaimSession();
+    if (!session) {
+      setClaimError("Session expired. Please refresh the page.");
+      setClaimLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/claim/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId: providerForAuth.sourceProviderId,
+          claimSession: session.sessionId,
+          method: "email",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setClaimError(data.error || "Failed to send verification code.");
+        setClaimLoading(false);
+        return;
+      }
+
+      // Update session and transition to code entry
+      updateClaimSession({ step: "code-sent", emailHint: data.emailHint });
+      setEmailHint(data.emailHint);
+      setClaimStep("code");
+      setClaimLoading(false);
+      setResendCooldown(30);
+
+      // Focus code input
+      setTimeout(() => codeInputRef.current?.focus(), 100);
+    } catch {
+      setClaimError("Something went wrong. Please try again.");
+      setClaimLoading(false);
+    }
+  }, [providerForAuth?.sourceProviderId]);
+
+  const handleVerifyCode = useCallback(async () => {
+    if (!providerForAuth?.sourceProviderId || !verificationCode.trim()) return;
+
+    const session = getClaimSession();
+    if (!session) {
+      setClaimError("Session expired. Please refresh the page.");
+      return;
+    }
+
+    setClaimLoading(true);
+    setClaimError(null);
+
+    try {
+      const res = await fetch("/api/claim/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId: providerForAuth.sourceProviderId,
+          code: verificationCode.trim(),
+          claimSession: session.sessionId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.verified) {
+        setClaimError(data.error || "Invalid code. Please try again.");
+        setClaimLoading(false);
+        return;
+      }
+
+      // Mark session as verified
+      markSessionVerified(emailHint || undefined);
+
+      // Auto-send magic link for sign-in
+      if (providerForAuth?.providerEmail) {
+        const supabase = createClient();
+        const redirectUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+
+        await supabase.auth.signInWithOtp({
+          email: providerForAuth.providerEmail,
+          options: { emailRedirectTo: redirectUrl },
+        });
+
+        setSignupCooldown(30);
+      }
+
+      setClaimStep("verified");
+      setClaimLoading(false);
+    } catch {
+      setClaimError("Something went wrong. Please try again.");
+      setClaimLoading(false);
+    }
+  }, [providerForAuth?.sourceProviderId, providerForAuth?.providerEmail, verificationCode, emailHint]);
+
+  const handleSignupMagicLink = useCallback(async () => {
+    if (!providerForAuth?.providerEmail) return;
+
+    setClaimLoading(true);
+    setClaimError(null);
+
+    const supabase = createClient();
+    const redirectUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+
+    try {
+      const { error: signupError } = await supabase.auth.signInWithOtp({
+        email: providerForAuth.providerEmail,
+        options: {
+          emailRedirectTo: redirectUrl,
+        },
+      });
+
+      if (signupError) {
+        setClaimError(signupError.message || "Failed to send sign-up link.");
+        setClaimLoading(false);
+        return;
+      }
+
+      setClaimStep("signup-link-sent");
+      setSignupCooldown(30);
+      setClaimLoading(false);
+    } catch {
+      setClaimError("Something went wrong. Please try again.");
+      setClaimLoading(false);
+    }
+  }, [providerForAuth?.providerEmail]);
+
+  const handleSignupGoogle = useCallback(async () => {
+    const supabase = createClient();
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo },
+    });
+  }, []);
 
   // State 1: Claimed + Authenticated
   if (user && providerProfile) {
@@ -940,13 +1299,245 @@ export default function ProviderWelcomeClient({
     );
   }
 
-  // State 3: Unclaimed or no provider info found — show generic loading/redirect
-  // TODO: State 3 (Unclaimed) will be implemented later
+  // State 3: Unclaimed provider — simplified claim flow
+  if (!user && providerForAuth?.profile && !providerForAuth.isClaimed) {
+    const profile = providerForAuth.profile;
+    const providerEmail = providerForAuth.providerEmail;
+
+    // Context messages based on action type
+    const contextMessages: Record<ActionType, string> = {
+      lead: "A family is looking for care",
+      match: "A family wants to connect",
+      question: "Someone has a question for you",
+      review: "You received a new review",
+      message: "You have a new message",
+    };
+
+    // If no email on file, redirect to full onboard
+    if (!providerEmail && !emailHint) {
+      return (
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className="text-center max-w-md px-4">
+            <p className="text-text-md text-gray-500 mb-4">
+              Redirecting to claim your page...
+            </p>
+            <Link
+              href={`/provider/${profile.slug}/onboard`}
+              className="text-primary-600 hover:text-primary-700 font-medium"
+            >
+              Click here if not redirected
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
+    // After verification: Check email for sign-in link
+    if (claimStep === "verified" || claimStep === "signup-link-sent") {
+      return (
+        <div className="min-h-screen bg-white">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <section className="pt-8 sm:pt-12 pb-6">
+              <h1 className="text-display-xs sm:text-display-sm font-display text-gray-900">
+                Check your email
+              </h1>
+            </section>
+
+            <section className="pb-20">
+              <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+                <div className="p-6 sm:p-8 text-center">
+                  <div className="w-14 h-14 rounded-xl bg-primary-50 flex items-center justify-center mx-auto mb-5">
+                    <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+
+                  <p className="text-text-md text-gray-600 mb-1">
+                    Click the link we sent to
+                  </p>
+                  <p className="text-text-md text-gray-900 font-medium mb-4">
+                    {emailHint || providerEmail}
+                  </p>
+                  <p className="text-text-sm text-gray-500">
+                    to access your dashboard.
+                  </p>
+
+                  <div className="mt-6 pt-5 border-t border-gray-100">
+                    {signupCooldown > 0 ? (
+                      <p className="text-text-sm text-gray-400">
+                        Resend in {signupCooldown}s
+                      </p>
+                    ) : (
+                      <button
+                        onClick={handleSignupMagicLink}
+                        disabled={claimLoading}
+                        className="text-text-sm text-primary-600 hover:text-primary-700 font-medium"
+                      >
+                        Resend link
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      );
+    }
+
+    // Step: Enter verification code
+    if (claimStep === "code") {
+      return (
+        <div className="min-h-screen bg-white">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <section className="pt-8 sm:pt-12 pb-6">
+              <h1 className="text-display-xs sm:text-display-sm font-display text-gray-900">
+                Enter your code
+              </h1>
+            </section>
+
+            <section className="pb-20">
+              <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+                <div className="p-6 sm:p-8">
+                  <p className="text-text-md text-gray-600 text-center mb-6">
+                    We sent a 6-digit code to <span className="font-medium text-gray-900">{emailHint || providerEmail}</span>
+                  </p>
+
+                  {claimError && (
+                    <div className="mb-4 bg-red-50 text-red-600 px-4 py-3 rounded-xl text-text-sm text-center" role="alert">
+                      {claimError}
+                    </div>
+                  )}
+
+                  <input
+                    ref={codeInputRef}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ""))}
+                    placeholder="000000"
+                    className="w-full px-4 py-4 text-center text-2xl font-mono tracking-[0.5em] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent mb-4"
+                  />
+
+                  <button
+                    onClick={handleVerifyCode}
+                    disabled={claimLoading || verificationCode.length !== 6}
+                    className="w-full px-6 py-3.5 text-text-md font-medium text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {claimLoading ? "Verifying..." : "Verify"}
+                  </button>
+
+                  <div className="mt-5 text-center">
+                    {resendCooldown > 0 ? (
+                      <p className="text-text-sm text-gray-400">Resend in {resendCooldown}s</p>
+                    ) : (
+                      <button
+                        onClick={handleSendVerificationCode}
+                        disabled={claimLoading}
+                        className="text-text-sm text-primary-600 hover:text-primary-700 font-medium"
+                      >
+                        Resend code
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      );
+    }
+
+    // Default: ONE unified card with context + claim prompt
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <section className="pt-8 sm:pt-12 pb-6">
+            <p className="text-text-md sm:text-text-lg text-gray-500">
+              {greeting}
+            </p>
+            <h1 className="mt-1 text-display-xs sm:text-display-sm font-display text-gray-900">
+              {contextMessages[action]}
+            </h1>
+          </section>
+
+          {/* ONE unified card: context + claim */}
+          <section className="pb-20">
+            <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+              <div className="p-5 sm:p-6">
+                {/* Context preview */}
+                {actionData && (
+                  <div className="pb-5 border-b border-gray-100">
+                    {(action === "lead" || action === "match") && (
+                      <LeadContextInline data={actionData as ConnectionData} />
+                    )}
+                    {action === "question" && (
+                      <QuestionContextInline data={actionData as QuestionData} />
+                    )}
+                    {action === "review" && (
+                      <ReviewContextInline data={actionData as ReviewData} />
+                    )}
+                    {action === "message" && (
+                      <MessageContextInline data={actionData as ConnectionData} providerId={profile.id} />
+                    )}
+                  </div>
+                )}
+
+                {/* Claim section */}
+                <div className={actionData ? "pt-5" : ""}>
+                  <p className="text-text-md text-gray-900 font-semibold mb-1">
+                    Claim your page to respond
+                  </p>
+                  <p className="text-text-sm text-gray-500 mb-4">
+                    We&apos;ll send a code to <span className="font-medium text-gray-700">{providerEmail}</span>
+                  </p>
+
+                  {claimError && (
+                    <div className="mb-4 bg-red-50 text-red-600 px-4 py-3 rounded-xl text-text-sm" role="alert">
+                      {claimError}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleSendVerificationCode}
+                    disabled={claimLoading}
+                    className="w-full px-6 py-3.5 text-text-md font-medium text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {claimLoading ? "Sending..." : "Send verification code"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback: No provider info found — show generic error
   return (
     <div className="min-h-screen bg-white flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
-        <p className="mt-4 text-gray-500">Loading...</p>
+      <div className="text-center max-w-md px-4">
+        <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
+          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h2 className="text-text-lg font-semibold text-gray-900 mb-2">
+          Page not found
+        </h2>
+        <p className="text-text-md text-gray-500 mb-6">
+          We couldn&apos;t find the page you&apos;re looking for. The link may have expired.
+        </p>
+        <Link
+          href="/"
+          className="inline-flex items-center justify-center px-6 py-3 text-text-md font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+        >
+          Go home
+        </Link>
       </div>
     </div>
   );

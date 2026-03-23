@@ -19,19 +19,44 @@ interface ProviderWelcomePageProps {
   }>;
 }
 
+interface ProviderAuthInfo {
+  profile: {
+    id: string;
+    display_name: string;
+    image_url: string | null;
+    city: string | null;
+    state: string | null;
+    slug: string | null;
+  } | null;
+  email: string | null;
+  // For unclaimed providers: data needed for claim flow
+  isClaimed: boolean;
+  sourceProviderId: string | null;
+  providerEmail: string | null; // Contact email from business_profiles or ios_provider_profiles
+}
+
 /**
- * Helper to get provider info for unauthenticated users (State 2: expired magic link)
- * Returns provider profile and email if found
+ * Helper to get provider info for unauthenticated users
+ * - State 2 (claimed + expired magic link): Returns profile + auth email
+ * - State 3 (unclaimed): Returns profile + contact email for verification
  */
 async function getProviderInfoForAuth(
   action: ActionType,
   actionId: string | undefined
-): Promise<{ profile: { id: string; display_name: string; image_url: string | null; city: string | null; state: string | null } | null; email: string | null }> {
-  if (!actionId) return { profile: null, email: null };
+): Promise<ProviderAuthInfo> {
+  const nullResult: ProviderAuthInfo = {
+    profile: null,
+    email: null,
+    isClaimed: false,
+    sourceProviderId: null,
+    providerEmail: null
+  };
+
+  if (!actionId) return nullResult;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) return { profile: null, email: null };
+  if (!url || !serviceKey) return nullResult;
 
   const adminDb = createAdminClient(url, serviceKey);
 
@@ -78,33 +103,80 @@ async function getProviderInfoForAuth(
     }
   }
 
-  if (!providerProfileId) return { profile: null, email: null };
+  if (!providerProfileId) return nullResult;
 
-  // Step 2: Get provider profile details
+  // Step 2: Get provider profile details (including claim data)
   const { data: profile } = await adminDb
     .from("business_profiles")
-    .select("id, display_name, image_url, city, state, account_id")
+    .select("id, display_name, image_url, city, state, slug, account_id, source_provider_id, email, claim_state")
     .eq("id", providerProfileId)
     .single();
 
-  if (!profile?.account_id) return { profile: profile ? { id: profile.id, display_name: profile.display_name, image_url: profile.image_url, city: profile.city, state: profile.state } : null, email: null };
+  if (!profile) return nullResult;
 
-  // Step 3: Get account to find user_id
-  const { data: account } = await adminDb
-    .from("accounts")
-    .select("user_id")
-    .eq("id", profile.account_id)
-    .single();
+  const profileData = {
+    id: profile.id,
+    display_name: profile.display_name,
+    image_url: profile.image_url,
+    city: profile.city,
+    state: profile.state,
+    slug: profile.slug,
+  };
 
-  if (!account?.user_id) return { profile: { id: profile.id, display_name: profile.display_name, image_url: profile.image_url, city: profile.city, state: profile.state }, email: null };
+  // Check if claimed (has account_id AND claim_state is claimed)
+  const isClaimed = !!profile.account_id && profile.claim_state === "claimed";
 
-  // Step 4: Get user email from auth.users
-  const { data: { user: authUser } } = await adminDb.auth.admin.getUserById(account.user_id);
-  const email = authUser?.email || null;
+  // For CLAIMED providers: get auth user email (State 2)
+  if (isClaimed && profile.account_id) {
+    const { data: account } = await adminDb
+      .from("accounts")
+      .select("user_id")
+      .eq("id", profile.account_id)
+      .single();
+
+    if (account?.user_id) {
+      const { data: { user: authUser } } = await adminDb.auth.admin.getUserById(account.user_id);
+      const email = authUser?.email || null;
+
+      return {
+        profile: profileData,
+        email,
+        isClaimed: true,
+        sourceProviderId: profile.source_provider_id,
+        providerEmail: null,
+      };
+    }
+  }
+
+  // For UNCLAIMED providers: get contact email for verification (State 3)
+  let providerEmail = profile.email || null;
+
+  // Fallback to ios_provider_profiles if no email on business_profile
+  if (!providerEmail && profile.source_provider_id) {
+    const { data: ios } = await adminDb
+      .from("ios_provider_profiles")
+      .select("email")
+      .eq("provider_id", profile.id)
+      .single();
+    providerEmail = ios?.email || null;
+  }
+
+  // Last fallback to olera-providers table
+  if (!providerEmail && profile.source_provider_id) {
+    const { data: sourceProvider } = await adminDb
+      .from("olera-providers")
+      .select("email")
+      .eq("provider_id", profile.source_provider_id)
+      .single();
+    providerEmail = sourceProvider?.email || null;
+  }
 
   return {
-    profile: { id: profile.id, display_name: profile.display_name, image_url: profile.image_url, city: profile.city, state: profile.state },
-    email,
+    profile: profileData,
+    email: null, // No auth email for unclaimed
+    isClaimed: false,
+    sourceProviderId: profile.source_provider_id,
+    providerEmail,
   };
 }
 
@@ -121,8 +193,8 @@ export default async function ProviderWelcomePage({ searchParams }: ProviderWelc
   let providerStats = null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let actionData: any = null;
-  // For unauthenticated users (State 2: expired magic link)
-  let providerForAuth: { profile: { id: string; display_name: string; image_url: string | null; city: string | null; state: string | null } | null; email: string | null } | null = null;
+  // For unauthenticated users (State 2: expired magic link, State 3: unclaimed)
+  let providerForAuth: ProviderAuthInfo | null = null;
 
   if (user) {
     // Get the user's account and active profile
@@ -265,8 +337,98 @@ export default async function ProviderWelcomePage({ searchParams }: ProviderWelc
       }
     }
   } else {
-    // User not authenticated — fetch provider info for State 2 (expired magic link)
+    // User not authenticated — fetch provider info for State 2/3
     providerForAuth = await getProviderInfoForAuth(action, actionId);
+
+    // Also fetch action data for unauthenticated users (to show context in State 2/3)
+    if (actionId && providerForAuth?.profile) {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (url && serviceKey) {
+        const adminDb = createAdminClient(url, serviceKey);
+
+        switch (action) {
+          case "lead":
+          case "match": {
+            const { data: connection } = await adminDb
+              .from("connections")
+              .select(`
+                id,
+                created_at,
+                metadata,
+                from_profile:from_profile_id (
+                  id,
+                  display_name,
+                  city,
+                  state,
+                  image_url
+                )
+              `)
+              .eq("id", actionId)
+              .single();
+            if (connection) {
+              actionData = {
+                ...connection,
+                from_profile: Array.isArray(connection.from_profile)
+                  ? connection.from_profile[0]
+                  : connection.from_profile,
+              };
+            }
+            break;
+          }
+          case "question": {
+            const { data: question } = await adminDb
+              .from("provider_questions")
+              .select("id, question, asker_name, created_at")
+              .eq("id", actionId)
+              .single();
+            actionData = question;
+            break;
+          }
+          case "review": {
+            const { data: review } = await adminDb
+              .from("reviews")
+              .select("id, rating, comment, reviewer_name, created_at")
+              .eq("id", actionId)
+              .single();
+            actionData = review;
+            break;
+          }
+          case "message": {
+            const { data: connection } = await adminDb
+              .from("connections")
+              .select(`
+                id,
+                metadata,
+                from_profile:from_profile_id (
+                  id,
+                  display_name,
+                  image_url
+                ),
+                to_profile:to_profile_id (
+                  id,
+                  display_name,
+                  image_url
+                )
+              `)
+              .eq("id", actionId)
+              .single();
+            if (connection) {
+              actionData = {
+                ...connection,
+                from_profile: Array.isArray(connection.from_profile)
+                  ? connection.from_profile[0]
+                  : connection.from_profile,
+                to_profile: Array.isArray(connection.to_profile)
+                  ? connection.to_profile[0]
+                  : connection.to_profile,
+              };
+            }
+            break;
+          }
+        }
+      }
+    }
   }
 
   return (

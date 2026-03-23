@@ -94,6 +94,10 @@
   - All enrichment complete: descriptions, reviews, images, trust signals
   - Notion: all 14 checkboxes checked, status Complete
 
+- **Ramapo, NY City Expansion** (branch: `great-euler`, no code changes) — COMPLETE ✅
+  - Full pipeline: discovery → classification → upload → enrichment
+  - 204 legitimate providers across 6 categories
+
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
 
@@ -140,6 +144,9 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-03-23 | Post-geocoding area check is required | 36/269 Ramapo providers geocoded outside the area — discovery assigns city=Ramapo to everything regardless of actual location. Must validate coordinates fall within ~0.5° of target city after geocoding |
+| 2026-03-23 | Slugs must include city to avoid collisions | Many NY providers share names across cities. Slug format `{name}-{city}-{state}` prevents unique constraint violations |
+| 2026-03-23 | Don't run google_reviews_data hydration and review snippets in parallel | Both write to the same JSONB column — race condition causes data loss. Run hydration first, then snippets |
 | 2026-03-22 | Never store raw Google Places photo reference URLs | Raw `places.googleapis.com/v1/.../photos/...` URLs are ephemeral API resource paths requiring an API key. Must resolve to permanent `lh3.googleusercontent.com` URLs using `skipHttpRedirect=true` |
 | 2026-03-22 | Jettison "Add Score" from city pipeline | olera_score/community_Score/value_score/information_availability_score are dead columns from the old Perplexity AI scoring system, removed in commit 302a4e5. New system uses Google Reviews + CMS data + AI Trust Signals |
 | 2026-03-22 | Replace "Add Score" with "Hydrate Google Reviews Data" | New pipeline step populates google_reviews_data JSONB (rating, review_count, snippets) instead of the old proprietary scores |
@@ -197,6 +204,36 @@
 ---
 
 ## Session Log
+
+### 2026-03-23 (Session 54) — Ramapo, NY City Expansion Pipeline
+
+**Branch:** `great-euler` (no code changes — pipeline ops only)
+
+**What:** Full city expansion pipeline for Ramapo, NY. Discovery → keyword filter → AI classification → dedup → upload → parallel enrichment → geocoding → out-of-area cleanup.
+
+**Pipeline Results:**
+- **Discovered:** 523 providers (quick search, ~$5.22)
+- **Keyword filter:** removed 26 (hospitals, physical therapy, storage, insurance, etc.)
+- **AI classification:** removed 179 (36% false positive rate — memory_care pulled in therapy/counseling, retail stores like Costco/Staples/Apple, data recovery)
+- **Dedup:** 49 duplicates against existing 33K providers
+- **Uploaded:** 269 providers to Supabase
+- **Geocoding:** 269 re-geocoded, 98 corrections (>0.01°)
+- **Trust signals:** 147 confirmed, 29 more false positives deleted (disability orgs, child care, staffing agencies, beauty salon, travel plaza)
+- **Out-of-area cleanup:** 36 providers with coordinates outside Ramapo deleted (cross-location contamination — Tampa FL, Arizona, Long Island, Albany, etc.)
+- **Final count:** 204 legitimate providers
+
+**Category Breakdown:**
+- Assisted Living: 107, Home Health Care: 51, Nursing Home: 29, Home Care (Non-medical): 22, Memory Care: 19, Independent Living: 12
+
+**Enrichment Coverage:**
+- Descriptions: 240/240→204 (100%), Google Reviews: 215/240 (90%), Review Snippets: 215/240 (90%), Trust Signals: 147/240 (61%), Images: 192/240 (80%), Emails: deferred
+
+**Key Issues Found:**
+- Slug collisions: providers sharing names across NY state require city suffix in slug (`-ramapo-ny`)
+- Parallel enrichment race condition: reviews data and review snippets scripts both wrote to `google_reviews_data` JSONB — snippets overwrote ratings. Fixed with a re-hydration pass.
+- Out-of-area contamination: 36 providers had addresses saying "Ramapo, NY" but geocoded to completely different locations (discovery assigned city=Ramapo to all results regardless of actual location). Added post-geocoding area check.
+
+---
 
 ### 2026-03-23 (Session 53) — Sunrise Manor, NV City Pipeline
 

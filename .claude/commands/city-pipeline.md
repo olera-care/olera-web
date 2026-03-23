@@ -2,9 +2,10 @@
 
 You are helping TJ expand Olera's senior care provider directory to new cities. The pipeline discovers providers via Google Places API, cleans and enriches the data, imports to Supabase, and tracks progress in Notion.
 
-This skill supports two modes:
+This skill supports three modes:
 - **Resume mode** (default): Query Notion for cities already in progress, pick up where they left off
 - **New city mode**: Start a fresh expansion for a city TJ specifies
+- **Batch mode**: Process multiple cities from a `.md` file exported by the expansion map tool
 
 Always start with Step 0 to understand the current state before doing any work.
 
@@ -146,6 +147,95 @@ Parallel (run all at once after upload):
 **Note:** The unified entity+trust step replaces BOTH the old "AI classification" pass from the Verify step AND the old separate "Trust Signals" step. One Perplexity call per provider does both. False positives caught here get soft-deleted immediately — no wasted enrichment on fake providers.
 
 Use `run_in_background: true` for long-running batches (trust signals, images) and work on other steps while they process. Check progress periodically via direct DB queries rather than watching output.
+
+## Batch Mode
+
+When TJ provides a `.md` file (exported from the expansion map tool), switch to batch mode. The file contains a human-readable table and a machine-readable city list at the bottom.
+
+### Parsing the Batch File
+
+The machine-readable block is at the bottom of the `.md` file, fenced with triple backticks and labeled `batch-cities`. Format:
+
+```
+City,StateID
+Omaha,NE
+Lincoln,NE
+Des Moines,IA
+```
+
+Parse this block to extract the city list. Ignore the human-readable table above it (that's for TJ's reference).
+
+### Pre-Flight: Cost Estimate & Guardrails
+
+Before processing any cities:
+
+1. **Count cities** in the batch
+2. **Estimate total cost**: `city_count × $9` (per-city average from Cost Per City table)
+3. **Warn if estimate > $100**: Print the estimate and ask TJ to confirm before proceeding
+4. **Track actual spend**: If actual cumulative cost hits **2× the estimate**, pause and ask TJ before continuing
+
+### Pre-Flight: Notion Setup
+
+Create Notion tracking pages for **all batch cities upfront** so the full batch is visible on the Kanban board immediately:
+
+1. Query Notion for existing city pages (to avoid duplicates)
+2. For each city NOT already in Notion, create a page with:
+   - Title: `{City}, {State}`
+   - City Status: `Planning`
+   - All checkboxes unchecked
+3. Print a summary: `Created N new Notion pages, M already existed`
+
+### Processing Loop
+
+Process cities **sequentially** (one at a time, not parallel). Each city runs through the full pipeline (Step 0 through completion) before the next starts. Sequential processing:
+- Avoids API rate limit issues across concurrent cities
+- Prevents Notion update collisions
+- Makes it easy to resume — the last completed city is clear
+
+**Idempotent behavior:**
+- If a city's Notion status is **"Complete"** → skip it entirely
+- If a city's Notion status is **in progress** (any pipeline stage) → resume from the first unchecked step
+- If a city's Notion status is **"Planning"** → start from Discovery
+
+For each city:
+1. Print: `▶ Starting city {N}/{total}: {City}, {State}`
+2. Run the full pipeline (all unchecked steps)
+3. On completion, print a one-line summary: providers uploaded, cost, trust signal pass rate
+4. Update the **batch progress table** (see below)
+
+### Batch Progress Table
+
+After each city completes, print a running progress table:
+
+```
+┌─────────────────────┬──────────┬───────────┬────────┬──────────┐
+│ City                │ Status   │ Providers │ Cost   │ Duration │
+├─────────────────────┼──────────┼───────────┼────────┼──────────┤
+│ Omaha, NE           │ Complete │ 247       │ $8.40  │ 12m      │
+│ Lincoln, NE         │ Complete │ 183       │ $7.90  │ 9m       │
+│ Des Moines, IA      │ Running  │ —         │ —      │ —        │
+│ Cedar Rapids, IA    │ Pending  │ —         │ —      │ —        │
+├─────────────────────┼──────────┼───────────┼────────┼──────────┤
+│ Total (2/4)         │          │ 430       │ $16.30 │ 21m      │
+└─────────────────────┴──────────┴───────────┴────────┴──────────┘
+```
+
+### Error Handling
+
+If a city fails mid-pipeline:
+1. Log the error and which step failed
+2. Leave the city's Notion status at the failing step (so resume works)
+3. **Continue to the next city** — don't abort the entire batch
+4. Mark the failed city as "Failed" in the progress table with the error reason
+5. At the end, print a summary of failures so TJ can investigate
+
+### Batch Completion
+
+After all cities are processed (or skipped/failed):
+1. Print the final progress table
+2. Print totals: cities completed, cities skipped (already complete), cities failed
+3. Print total cost and total providers added
+4. Verify a sample of 2-3 completed cities on the live site (same checks as single-city completion)
 
 ## Pipeline Steps
 

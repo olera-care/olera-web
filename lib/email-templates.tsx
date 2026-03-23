@@ -47,9 +47,10 @@ function button(label: string, href: string): string {
   return `<a href="${href}" style="display:inline-block;padding:12px 24px;background:${BRAND_COLOR};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">${label}</a>`;
 }
 
-/** "Maria Johnson" → "Maria" / "A family" → "A family" (no-op if single word) */
+/** "Maria Johnson" → "Maria" / "Anonymous" → "Someone" / "A family" → "A family" */
 function firstName(name: string): string {
-  return name.trim().split(/\s+/)[0];
+  const first = name.trim().split(/\s+/)[0];
+  return first.toLowerCase() === "anonymous" ? "Someone" : first;
 }
 
 function secondaryLink(label: string, href: string): string {

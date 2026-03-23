@@ -49,11 +49,11 @@ export async function GET(request: NextRequest) {
     // Use service client for database operations
     const db = getServiceClient();
 
-    // Build query
+    // Build query - reviews are stored with provider_id = profile.id (UUID)
     let query = db
       .from("reviews")
       .select("id, provider_id, account_id, reviewer_name, rating, title, comment, relationship, status, created_at, updated_at, provider_reply, replied_at, replied_by")
-      .eq("provider_id", profile.slug)
+      .eq("provider_id", profile.id)
       .eq("status", "published")
       .order("created_at", { ascending: false });
 
@@ -169,8 +169,9 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Review not found" }, { status: 404 });
     }
 
-    if (review.provider_id !== profile.slug) {
-      console.error("Provider mismatch:", { reviewProviderId: review.provider_id, profileSlug: profile.slug });
+    // Reviews are stored with provider_id = profile.id (UUID)
+    if (review.provider_id !== profile.id) {
+      console.error("Provider mismatch:", { reviewProviderId: review.provider_id, profileId: profile.id });
       return NextResponse.json({ error: "Not authorized to reply to this review" }, { status: 403 });
     }
 

@@ -207,12 +207,13 @@ export async function POST(request: NextRequest) {
       if (pEmail) {
         await sendEmail({
           to: pEmail,
-          subject: `New question on your Olera page`,
+          subject: `A family has a question about ${providerDisplayName}`,
           html: questionReceivedEmail({
             providerName: providerDisplayName,
             askerName,
             question: question.trim(),
             providerUrl: providerPortalUrl,
+            providerSlug: provider_id,
           }),
         });
       }

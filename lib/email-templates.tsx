@@ -47,6 +47,30 @@ function button(label: string, href: string): string {
   return `<a href="${href}" style="display:inline-block;padding:12px 24px;background:${BRAND_COLOR};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">${label}</a>`;
 }
 
+/** "Maria Johnson" → "Maria" / "A family" → "A family" (no-op if single word) */
+function firstName(name: string): string {
+  return name.trim().split(/\s+/)[0];
+}
+
+function secondaryLink(label: string, href: string): string {
+  return `<a href="${href}" style="color:#9ca3af;text-decoration:underline;font-size:13px;">${label}</a>`;
+}
+
+function trustIntro(): string {
+  return `<p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.6;">Olera is an NIH-backed platform helping families find quality senior care providers like you. Families in your area are actively researching care options on your profile.</p>`;
+}
+
+function offRampBlock(providerSlug?: string): string {
+  const removalUrl = providerSlug
+    ? `${BASE_URL}/for-providers/removal-request/${providerSlug}`
+    : `mailto:support@olera.care?subject=Listing%20inquiry`;
+  return `
+    <div style="margin:32px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:13px;color:#9ca3af;margin:0 0 6px;line-height:1.5;">Not the right contact? Please forward this to the appropriate person on your team.</p>
+      <p style="font-size:13px;color:#9ca3af;margin:0;">${secondaryLink("Manage your listing", removalUrl)}</p>
+    </div>`;
+}
+
 // ── Templates ───────────────────────────────────────────────────
 
 /** Verification code email for provider claims (existing flow) */
@@ -76,24 +100,22 @@ export function connectionRequestEmail(opts: {
   careType: string | null;
   message: string | null;
   viewUrl: string;
+  providerSlug?: string;
 }): string {
   const careLine = opts.careType
-    ? `<p style="font-size:14px;color:#6b7280;margin:0 0 8px;"><strong>Care type:</strong> ${opts.careType}</p>`
-    : "";
-  const messageLine = opts.message
-    ? `<div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
-        <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">${opts.message}</p>
-      </div>`
+    ? `<p style="font-size:14px;color:#6b7280;margin:0 0 20px;"><strong>Care type:</strong> ${opts.careType}</p>`
     : "";
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">New care inquiry</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      <strong>${opts.familyName}</strong> is looking for care and reached out to <strong>${opts.providerName}</strong> on Olera.
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A family is looking for care from ${opts.providerName}</h1>
+    ${trustIntro()}
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      <strong>${firstName(opts.familyName)}</strong> is actively searching for care and chose to reach out to your organization.
     </p>
     ${careLine}
-    ${messageLine}
-    <div style="margin:24px 0 0;">${button("View request", opts.viewUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">A timely response makes all the difference for families navigating care decisions. Log in to view the full inquiry and respond.</p>
+    <div>${button("View care inquiry", opts.viewUrl)}</div>
+    ${offRampBlock(opts.providerSlug)}
   `);
 }
 
@@ -285,20 +307,21 @@ export function newReviewEmail(opts: {
   rating: number;
   comment: string;
   viewUrl: string;
+  providerSlug?: string;
 }): string {
   // Generate star rating display
   const stars = "★".repeat(opts.rating) + "☆".repeat(5 - opts.rating);
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You received a new review!</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      <strong>${opts.reviewerName}</strong> left a review for <strong>${opts.providerName}</strong> on Olera.
-    </p>
-    <div style="background:#f9fafb;border-radius:12px;padding:20px;margin:0 0 24px;">
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">${firstName(opts.reviewerName)} left a review for ${opts.providerName}</h1>
+    ${trustIntro()}
+    <div style="background:#f9fafb;border-radius:12px;padding:20px;margin:0 0 20px;">
       <p style="font-size:20px;color:#f59e0b;margin:0 0 12px;letter-spacing:2px;">${stars}</p>
       <p style="font-size:14px;color:#374151;margin:0;line-height:1.6;">"${opts.comment}"</p>
     </div>
-    <div>${button("View review", opts.viewUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">Reviews help families make confident decisions about care — and yours is getting noticed.</p>
+    <div>${button("View your review", opts.viewUrl)}</div>
+    ${offRampBlock(opts.providerSlug)}
   `);
 }
 
@@ -308,16 +331,17 @@ export function questionReceivedEmail(opts: {
   askerName: string;
   question: string;
   providerUrl: string;
+  providerSlug?: string;
 }): string {
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">New question on your page</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      <strong>${opts.askerName}</strong> asked a question about <strong>${opts.providerName}</strong> on Olera.
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A family has a question about ${opts.providerName}</h1>
+    ${trustIntro()}
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      <strong>${firstName(opts.askerName)}</strong> is researching care options and asked a question on your profile. Log in to read and respond.
     </p>
-    <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
-      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">${opts.question}</p>
-    </div>
-    <div>${button("View your page", opts.providerUrl)}</div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">A thoughtful answer helps families see your expertise and builds trust with people actively looking for care.</p>
+    <div>${button("View and respond", opts.providerUrl)}</div>
+    ${offRampBlock(opts.providerSlug)}
   `);
 }
 

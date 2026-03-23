@@ -85,6 +85,11 @@
   - **New files:** 13 components, 3 hooks, 2 plans, voice-intent-parser, speech-recognition types
   - **Design principle:** Progressive disclosure — 3 beats: (1) moment of relief, (2) explore at your pace, (3) tools when ready
 
+- **Provider Email Outreach Revamp** (branch: `joyful-pasteur`) — IN PROGRESS
+  - Plan: `plans/provider-email-outreach-plan.md`
+  - Rewrite 3 provider-facing emails (question, connection, review) from cold → warm/trust-building
+  - Template-only changes in `lib/email-templates.tsx` + subject line updates in 4 API routes
+
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
 

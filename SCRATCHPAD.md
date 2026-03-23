@@ -85,10 +85,14 @@
   - **New files:** 13 components, 3 hooks, 2 plans, voice-intent-parser, speech-recognition types
   - **Design principle:** Progressive disclosure — 3 beats: (1) moment of relief, (2) explore at your pace, (3) tools when ready
 
-- **Provider Email Outreach Revamp** (branch: `joyful-pasteur`) — IN PROGRESS
-  - Plan: `plans/provider-email-outreach-plan.md`
+- **Provider Email Outreach Revamp** (branch: `joyful-pasteur`) — DONE ✅
+  - PR #354 merged
   - Rewrite 3 provider-facing emails (question, connection, review) from cold → warm/trust-building
-  - Template-only changes in `lib/email-templates.tsx` + subject line updates in 4 API routes
+
+- **City Pipeline: Sunrise Manor, NV** (branch: `bright-dijkstra`) — DONE ✅
+  - 632 discovered → 315 active providers after 3 rounds of filtering
+  - All enrichment complete: descriptions, reviews, images, trust signals
+  - Notion: all 14 checkboxes checked, status Complete
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
@@ -193,6 +197,44 @@
 ---
 
 ## Session Log
+
+### 2026-03-23 (Session 53) — Sunrise Manor, NV City Pipeline
+
+**Branch:** `bright-dijkstra` (no code changes — pipeline ops only)
+
+**What:** Full city expansion pipeline for Sunrise Manor, NV (Las Vegas metro). Discovery → classification → upload → enrichment. All done autonomously end-to-end.
+
+**Pipeline Results:**
+- **Discovered:** 632 providers (quick search, ~$5.18)
+- **Keyword filter:** removed 21 (hospitals, dialysis, plumbing, pediatric, auto)
+- **AI classification:** removed 188 (30% false positive rate — worst: memory_care pulling mental health clinics, assisted_living pulling general apartments)
+- **Dedup:** 56 duplicates against existing NV providers
+- **Slug collisions:** 10 (existing providers from other cities with same name)
+- **Uploaded:** 357 providers to Supabase
+- **Geocoding:** 357 re-geocoded, 40 corrections (>0.01°), 0 out of bounds
+- **Trust signals:** 157 confirmed, 42 more false positives deleted (general apartments, mobile home parks, referral services, rehab centers, unverifiable businesses)
+- **Final count:** 315 legitimate active providers
+
+**Category Breakdown:**
+- Assisted Living: 105, Home Health Care: 92, Home Care (Non-medical): 41, Nursing Home: 39, Memory Care: 23, Independent Living: 15
+
+**Enrichment Coverage:**
+- Descriptions: 357/357 (100%)
+- Google Reviews Data: 302/357 (85%)
+- Review Snippets: 298/357 (83%)
+- Trust Signals: 157/226 non-CMS (69%)
+- Images: 237/357 (66%)
+- Emails: deferred to Email Finder script
+
+**Key Observations:**
+- 50% overall false positive rate (632 → 315) — highest of any city so far
+- Las Vegas metro pulls in massive amounts of general apartments, rehab centers (addiction), mobile home parks, and mental health clinics
+- Memory care category continues to be worst offender for false positives
+- NV is first state outside NE — pipeline handled state expansion seamlessly
+
+**Notion:** All 14 checkboxes checked, status → Complete (green)
+
+---
 
 ### 2026-03-22 (Session 52) — Fix Broken Grand Island Provider Images
 

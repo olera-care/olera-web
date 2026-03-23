@@ -362,7 +362,7 @@ export async function PATCH(
 
                 await sendEmail({
                   to: newEmail,
-                  subject: `New care inquiry from ${familyName} on Olera`,
+                  subject: `A family is looking for care from ${current.provider_name || "your organization"}`,
                   html: connectionRequestEmail({
                     providerName: current.provider_name || "Provider",
                     familyName,

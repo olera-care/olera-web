@@ -159,13 +159,14 @@ export async function POST(request: NextRequest) {
             const viewUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/reviews`;
             await sendEmail({
               to: providerEmail,
-              subject: `New review for ${provider.display_name || "your listing"}`,
+              subject: `${reviewerName.split(" ")[0]} left a review for ${provider.display_name || "your listing"}`,
               html: newReviewEmail({
                 providerName: provider.display_name || "Your organization",
                 reviewerName,
                 rating,
                 comment: comment.trim().slice(0, 200) + (comment.trim().length > 200 ? "..." : ""),
                 viewUrl,
+                providerSlug: provider.slug || undefined,
               }),
             });
             await sendLoopsEvent({

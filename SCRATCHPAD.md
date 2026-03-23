@@ -85,6 +85,11 @@
   - **New files:** 13 components, 3 hooks, 2 plans, voice-intent-parser, speech-recognition types
   - **Design principle:** Progressive disclosure — 3 beats: (1) moment of relief, (2) explore at your pace, (3) tools when ready
 
+- **Provider Email Outreach Revamp** (branch: `joyful-pasteur`) — IN PROGRESS
+  - Plan: `plans/provider-email-outreach-plan.md`
+  - Rewrite 3 provider-facing emails (question, connection, review) from cold → warm/trust-building
+  - Template-only changes in `lib/email-templates.tsx` + subject line updates in 4 API routes
+
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
 
@@ -131,6 +136,7 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-03-22 | Never store raw Google Places photo reference URLs | Raw `places.googleapis.com/v1/.../photos/...` URLs are ephemeral API resource paths requiring an API key. Must resolve to permanent `lh3.googleusercontent.com` URLs using `skipHttpRedirect=true` |
 | 2026-03-22 | Jettison "Add Score" from city pipeline | olera_score/community_Score/value_score/information_availability_score are dead columns from the old Perplexity AI scoring system, removed in commit 302a4e5. New system uses Google Reviews + CMS data + AI Trust Signals |
 | 2026-03-22 | Replace "Add Score" with "Hydrate Google Reviews Data" | New pipeline step populates google_reviews_data JSONB (rating, review_count, snippets) instead of the old proprietary scores |
 | 2026-03-22 | AI Trust Signals run as part of city pipeline | Unified workflow: after upload, run /api/admin/verify-trust-signals for non-CMS categories in the target city |
@@ -187,6 +193,56 @@
 ---
 
 ## Session Log
+
+### 2026-03-22 (Session 52) — Fix Broken Grand Island Provider Images
+
+**Branch:** `jolly-franklin`
+
+**What:** All 64 Grand Island provider images were broken on the browse page — showing alt text instead of photos. Root cause: the city pipeline stored raw Google Places API photo reference URLs (`places.googleapis.com/v1/.../photos/...`) which are ephemeral and require an API key. Bellevue images worked because the Python enrichment script resolves them to permanent `lh3.googleusercontent.com` URLs.
+
+**Fix:**
+1. **Data:** Re-fetched all 64 images via Google Places Photos API with `skipHttpRedirect=true` to get permanent `googleusercontent.com` URLs. 64/64 succeeded.
+2. **Pipeline:** Updated `.claude/commands/city-pipeline.md` "Fetch Unique Images" step with explicit instructions to resolve photo references — never store raw API paths.
+
+**Files changed:** `.claude/commands/city-pipeline.md`
+
+---
+
+### 2026-03-22 (Session 51) — Grand Island NE Pipeline Complete
+
+**Branch:** `hardy-elion` (no code changes — pipeline ops only)
+
+**What:** Full city expansion pipeline for Grand Island, NE. Discovery → classification → upload → enrichment. All done autonomously end-to-end.
+
+**Pipeline Results:**
+- **Discovered:** 409 providers (quick search, ~$4.26)
+- **Keyword filter:** removed 20 (storage, physical therapy, urgent care, etc.)
+- **AI classification:** removed 217 (56% false positive rate — worst: memory_care category pulling in retail, mental health, community orgs)
+- **Dedup:** 25 duplicates against existing NE providers
+- **Uploaded:** 147 providers to Supabase
+- **Geocoding:** 147 re-geocoded, 77 corrections (>0.01°), 0 out of bounds
+- **Trust signals:** 67 confirmed, 44 more false positives deleted (wrong-location Senior Helpers ×10, disability orgs, general apartments)
+- **Final count:** 103 legitimate providers
+
+**Category Breakdown:**
+- Assisted Living: 35, Home Health Care: 29, Home Care (Non-medical): 21, Memory Care: 8, Nursing Home: 7, Independent Living: 3
+
+**Enrichment Coverage:**
+- Descriptions: 103/103 (100%)
+- Google Reviews Data: 79/103 (77%)
+- Review Snippets: 79/103 (77%)
+- Trust Signals: 67/103 (non-CMS only)
+- Images: 64/103 (62%)
+- Emails: deferred to Email Finder script
+
+**Key Issues Found:**
+- `deleted` column defaults to `false` not `null` — enrichment queries using `.is('deleted', null)` returned 0 rows. Fixed to `.eq('deleted', false)`
+- Slug collision: providers sharing names across states need city in slug (`-grand-island-ne` suffix)
+- 75% overall false positive rate (409 → 103) — Grand Island had 10 bogus "Senior Helpers" listings from other states
+
+**Notion:** All 14 checkboxes checked, status → Complete (green)
+
+---
 
 ### 2026-03-22 (Session 50) — Bellevue NE Pipeline Complete + Major Pipeline Overhaul
 

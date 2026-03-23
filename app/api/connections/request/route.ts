@@ -668,13 +668,14 @@ async function handleGuestConnection({
 
       await sendEmail({
         to: providerEmail,
-        subject: `New care inquiry from ${firstName || "a family"} on Olera`,
+        subject: `A family is looking for care from ${providerDisplayName || providerName}`,
         html: connectionRequestEmail({
           providerName: providerDisplayName || providerName,
           familyName: firstName || "A family",
           careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
           message: intentData?.additionalNotes || null,
           viewUrl: `${getSiteUrl()}/provider/connections`,
+          providerSlug: providerSlug || undefined,
         }),
       });
     }
@@ -1295,13 +1296,14 @@ export async function POST(request: Request) {
 
         await sendEmail({
           to: providerEmail,
-          subject: `New care inquiry from ${firstName || "a family"} on Olera`,
+          subject: `A family is looking for care from ${providerDisplayName || providerName}`,
           html: connectionRequestEmail({
             providerName: providerDisplayName || providerName,
             familyName: account.display_name || "A family",
             careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
             message: intentData?.additionalNotes || null,
             viewUrl: `${getSiteUrl()}/provider/connections`,
+            providerSlug: providerSlug || undefined,
           }),
         });
       }

@@ -421,11 +421,25 @@ Report: How many had snippets, how many fetched, how many remain empty.
 ### Fetch Unique Images
 
 For each provider missing an image (`provider_images` is null or empty):
-1. Try Google Places Photos API using the provider's `place_id`
-2. Fall back to a category-appropriate placeholder if nothing is found
-3. Store the image URL in the `provider_images` column
 
-Report: How many had images, how many fetched, how many fell back to placeholders.
+1. Fetch the `photos` field from Google Places API using the provider's `place_id`:
+   ```
+   GET https://places.googleapis.com/v1/places/{placeId}?fields=photos&key={API_KEY}
+   ```
+2. Take the first photo's `name` field (e.g., `places/{placeId}/photos/{photoRef}`)
+3. **Resolve to a permanent URL** using `skipHttpRedirect=true`:
+   ```
+   GET https://places.googleapis.com/v1/{photoName}/media?maxWidthPx=800&key={API_KEY}&skipHttpRedirect=true
+   ```
+   This returns JSON with a `photoUri` field — a permanent `lh3.googleusercontent.com` URL.
+4. Store the `photoUri` value in `provider_images`
+5. If no photos available, leave `provider_images` as null (the frontend shows a gradient placeholder)
+
+**CRITICAL:** Never store raw `places.googleapis.com` API reference URLs. These are ephemeral and require an API key to access. The frontend needs permanent public URLs (`lh3.googleusercontent.com/places/...`). The `skipHttpRedirect=true` parameter is what gives you the permanent URL instead of a binary image response.
+
+Rate limit: 200ms between requests. Cost: ~$5 per 1,000 photos.
+
+Report: How many had images, how many fetched, how many had no photos available.
 
 ### Fetch Email & Contact Info
 

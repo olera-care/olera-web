@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
 
           await sendEmail({
             to: email,
-            subject: `New care inquiry from ${familyName} on Olera`,
+            subject: `A family is looking for care from ${profile.display_name || "your organization"}`,
             html: connectionRequestEmail({
               providerName: profile.display_name || "Provider",
               familyName,

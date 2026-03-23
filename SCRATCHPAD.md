@@ -98,6 +98,19 @@
   - Full pipeline: discovery → classification → upload → enrichment
   - 204 legitimate providers across 6 categories
 
+- **Greece, NY City Expansion** (branch: `silly-thompson`, no code changes) — COMPLETE ✅
+  - Full pipeline: discovery → classification → dedup → upload → geocoding → parallel enrichment
+  - 109 legitimate providers across 6 categories
+  - Notion: all 14 checkboxes checked, status Complete
+
+- **Batch Pipeline Optimization** (branch: `silly-thompson`) — IMPLEMENTED, NEEDS E2E TEST
+  - Plan: `plans/batch-pipeline-optimization-plan.md`
+  - `scripts/discovery-batch.py` — non-interactive batch discovery with `--batch` CLI
+  - `scripts/pipeline-batch.js` — 4-phase processor (clean/load/enrich/finalize)
+  - Clean phase validated: 3 cities processed, dedup CSV loaded once, AI batch-50 working
+  - `.claude/commands/city-pipeline.md` updated with new batch mode instructions
+  - Next: full E2E test with fresh cities, then 80-city batch
+
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
 
@@ -204,6 +217,33 @@
 ---
 
 ## Session Log
+
+### 2026-03-23 (Session 55) — Greece, NY City Expansion Pipeline
+
+**Branch:** `silly-thompson` (no code changes — pipeline ops only)
+
+**What:** Full city expansion pipeline for Greece, NY (batch mode — Ramapo skipped as already complete).
+
+**Pipeline Results:**
+- **Discovered:** 358 providers ($4.10, quick search)
+- **Keyword filter:** removed 27 (hospitals, PT, storage, pharmacies, urgent care)
+- **AI classification:** removed 117 (35% false positive rate — retail stores like Best Buy/Staples/JCPenney, spas, gyms, general apartments, counseling services, rehab centers, nonprofits)
+- **Dedup:** 61 duplicates against existing 33K providers
+- **Uploaded:** 155 providers to Supabase
+- **Geocoding:** 155 re-geocoded, 32 corrections
+- **Out-of-area cleanup:** 34 providers with coordinates outside Greece/Rochester area deleted (mostly NYC, Buffalo, Syracuse contamination)
+- **Trust signals:** 65 confirmed, 12 more false positives deleted (childcare centers, retail, apartment complexes, unverifiable entities)
+- **Final count:** 109 legitimate providers
+
+**Category Breakdown:**
+- Assisted Living: 55, Home Health Care: 24, Nursing Home: 17, Memory Care: 6, Home Care (Non-medical): 6, Independent Living: 1
+
+**Enrichment Coverage:**
+- Descriptions: 109/109 (100%), Google Reviews: 98/109 (90%), Review Snippets: 98/109 (90%), Trust Signals: 65/109 (non-CMS only), Images: 87/109 (80%)
+
+**Key Issue:** Race condition between hydration and review snippets struck again — both ran in parallel and snippets overwrote JSONB. Fixed with a re-hydration pass. Decision from session 54 to not run these in parallel was correct but wasn't enforced in this session's parallel launch.
+
+---
 
 ### 2026-03-23 (Session 54) — Ramapo, NY City Expansion Pipeline
 

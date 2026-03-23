@@ -76,18 +76,40 @@ async function getProviderInfoForAuth(
       break;
     }
     case "question": {
-      // Questions use provider slug, need to look up profile
+      // Questions store provider_id as slug (e.g., "effys-home-care")
       const { data: question } = await adminDb
         .from("provider_questions")
         .select("provider_id")
         .eq("id", actionId)
         .single();
       if (question?.provider_id) {
-        const { data: profile } = await adminDb
+        // Try lookup by slug first
+        let { data: profile } = await adminDb
           .from("business_profiles")
           .select("id")
           .eq("slug", question.provider_id)
           .single();
+
+        // Fallback: try source_provider_id (for iOS-imported providers)
+        if (!profile) {
+          const { data: fallbackProfile } = await adminDb
+            .from("business_profiles")
+            .select("id")
+            .eq("source_provider_id", question.provider_id)
+            .single();
+          profile = fallbackProfile;
+        }
+
+        // Last fallback: try as UUID directly
+        if (!profile) {
+          const { data: uuidProfile } = await adminDb
+            .from("business_profiles")
+            .select("id")
+            .eq("id", question.provider_id)
+            .single();
+          profile = uuidProfile;
+        }
+
         providerProfileId = profile?.id || null;
       }
       break;

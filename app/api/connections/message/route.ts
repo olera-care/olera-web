@@ -192,11 +192,33 @@ export async function POST(request: Request) {
               ? text.trim().slice(0, 200) + "..."
               : text.trim();
 
-          // Route families to portal inbox, providers to provider connections
+          // Route families to portal inbox, providers to provider welcome with magic link
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-          const viewUrl = recipientProfile?.type === "family"
-            ? `${siteUrl}/portal/inbox`
-            : `${siteUrl}/provider/connections`;
+          let viewUrl: string;
+
+          if (recipientProfile?.type === "family") {
+            viewUrl = `${siteUrl}/portal/inbox`;
+          } else {
+            // Generate magic link for provider one-click sign-in
+            const redirectPath = `/provider/welcome?action=message&id=${connectionId}`;
+            viewUrl = `${siteUrl}/provider/connections`; // Fallback
+
+            try {
+              const { data: providerLinkData, error: providerLinkError } = await admin.auth.admin.generateLink({
+                type: "magiclink",
+                email: recipientEmail,
+                options: {
+                  redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
+                },
+              });
+              if (!providerLinkError && providerLinkData?.properties?.action_link) {
+                viewUrl = providerLinkData.properties.action_link;
+              }
+            } catch (linkErr) {
+              console.error("Failed to generate provider magic link for message:", linkErr);
+              // Continue with fallback URL
+            }
+          }
 
           await sendEmail({
             to: recipientEmail,

@@ -156,7 +156,27 @@ export async function POST(request: NextRequest) {
           const providerEmail = authUser?.user?.email;
 
           if (providerEmail) {
-            const viewUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/reviews`;
+            // Generate magic link for provider one-click sign-in
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+            const redirectPath = `/provider/welcome?action=review&id=${newReview.id}`;
+            let viewUrl = `${siteUrl}/provider/reviews`; // Fallback
+
+            try {
+              const { data: providerLinkData, error: providerLinkError } = await db.auth.admin.generateLink({
+                type: "magiclink",
+                email: providerEmail,
+                options: {
+                  redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
+                },
+              });
+              if (!providerLinkError && providerLinkData?.properties?.action_link) {
+                viewUrl = providerLinkData.properties.action_link;
+              }
+            } catch (linkErr) {
+              console.error("Failed to generate provider magic link for review:", linkErr);
+              // Continue with fallback URL
+            }
+
             await sendEmail({
               to: providerEmail,
               subject: `${reviewerName.split(" ")[0]} left a review for ${provider.display_name || "your listing"}`,

@@ -1,0 +1,953 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import type { User } from "@supabase/supabase-js";
+import type { ActionType } from "@/app/provider/welcome/page";
+import { createClient } from "@/lib/supabase/client";
+
+// ============================================================
+// Types
+// ============================================================
+
+interface ProviderProfile {
+  id: string;
+  display_name: string;
+  type: string;
+  slug: string | null;
+  image_url: string | null;
+  city: string | null;
+  state: string | null;
+}
+
+interface ProviderStats {
+  leads: number;
+  questions: number;
+  reviews: number;
+  messages: number;
+}
+
+interface FromProfile {
+  id: string;
+  display_name: string;
+  city?: string | null;
+  state?: string | null;
+  image_url?: string | null;
+}
+
+interface ConnectionData {
+  id: string;
+  created_at: string;
+  metadata?: {
+    care_type?: string;
+    message?: string;
+    thread?: Array<{ text: string; created_at: string }>;
+  } | null;
+  from_profile?: FromProfile | null;
+  to_profile?: FromProfile | null;
+}
+
+interface QuestionData {
+  id: string;
+  question: string;
+  asker_name: string | null;
+  created_at: string;
+}
+
+interface ReviewData {
+  id: string;
+  rating: number;
+  comment: string;
+  reviewer_name: string;
+  created_at: string;
+}
+
+type ActionData = ConnectionData | QuestionData | ReviewData | null;
+
+interface ProviderForAuth {
+  profile: {
+    id: string;
+    display_name: string;
+    image_url: string | null;
+    city: string | null;
+    state: string | null;
+  } | null;
+  email: string | null;
+}
+
+interface ProviderWelcomeClientProps {
+  user: User | null;
+  providerProfile: ProviderProfile | null;
+  providerStats: ProviderStats | null;
+  action: ActionType;
+  actionId?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  actionData: any;
+  providerForAuth?: ProviderForAuth | null;
+}
+
+// ============================================================
+// Helper Functions
+// ============================================================
+
+function getTimeOfDayGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function getFirstName(name: string | null | undefined): string {
+  if (!name) return "there";
+  return name.split(" ")[0];
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+function avatarGradient(name: string): string {
+  const gradients = [
+    "linear-gradient(135deg, #5fa3a3, #7ab8b8)",
+    "linear-gradient(135deg, #417272, #5fa3a3)",
+    "linear-gradient(135deg, #4d8a8a, #7ab8b8)",
+    "linear-gradient(135deg, #385e5e, #5fa3a3)",
+    "linear-gradient(135deg, #5fa3a3, #96c8c8)",
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return gradients[Math.abs(hash) % gradients.length];
+}
+
+function formatTimeAgo(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins} minute${diffMins === 1 ? "" : "s"} ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
+  if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? "" : "s"} ago`;
+  return date.toLocaleDateString();
+}
+
+const CARE_TYPE_LABELS: Record<string, string> = {
+  home_care: "Home Care",
+  home_health: "Home Health",
+  assisted_living: "Assisted Living",
+  memory_care: "Memory Care",
+  nursing_home: "Nursing Home",
+  independent_living: "Independent Living",
+};
+
+// ============================================================
+// Action Config
+// ============================================================
+
+interface ActionConfig {
+  subtitle: string;
+  routeTo: string;
+  icon: React.ReactNode;
+}
+
+function getActionConfig(action: ActionType, actionData: ActionData): ActionConfig {
+  const configs: Record<ActionType, ActionConfig> = {
+    lead: {
+      subtitle: "You have a new lead",
+      routeTo: "/provider/connections",
+      icon: (
+        <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      ),
+    },
+    match: {
+      subtitle: "A family wants to connect",
+      routeTo: "/provider/connections",
+      icon: (
+        <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      ),
+    },
+    question: {
+      subtitle: "Someone has a question",
+      routeTo: "/provider/qna",
+      icon: (
+        <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+    review: {
+      subtitle: "You received a review",
+      routeTo: "/provider/reviews",
+      icon: (
+        <svg className="w-6 h-6 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ),
+    },
+    message: {
+      subtitle: "New message",
+      routeTo: "/provider/inbox",
+      icon: (
+        <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+      ),
+    },
+  };
+
+  return configs[action];
+}
+
+// ============================================================
+// Stats Row Component — Matches family welcome card style
+// ============================================================
+
+interface StatsRowProps {
+  stats: ProviderStats;
+  excludeAction: ActionType;
+}
+
+const STAT_ICONS: Record<string, React.ReactNode> = {
+  lead: (
+    <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  ),
+  question: (
+    <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  ),
+  review: (
+    <svg className="w-6 h-6 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+    </svg>
+  ),
+  message: (
+    <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+    </svg>
+  ),
+};
+
+function StatsRow({ stats, excludeAction }: StatsRowProps) {
+  const statItems = [
+    { key: "lead", label: "Leads", sublabel: "new", count: stats.leads, href: "/provider/connections", excludeOn: ["lead", "match"] },
+    { key: "question", label: "Q&A", sublabel: "unanswered", count: stats.questions, href: "/provider/qna", excludeOn: ["question"] },
+    { key: "review", label: "Reviews", sublabel: "total", count: stats.reviews, href: "/provider/reviews", excludeOn: ["review"] },
+    { key: "message", label: "Inbox", sublabel: "unread", count: stats.messages, href: "/provider/inbox", excludeOn: ["message"] },
+  ];
+
+  const visibleStats = statItems.filter((item) => !item.excludeOn.includes(excludeAction));
+
+  return (
+    <div className="space-y-3">
+      {visibleStats.map((stat) => (
+        <Link
+          key={stat.key}
+          href={stat.href}
+          className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
+        >
+          <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary-50">
+            {STAT_ICONS[stat.key]}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-text-md font-semibold text-gray-900">{stat.label}</p>
+            <p className="text-text-sm mt-0.5 text-gray-500">
+              {stat.count > 0 ? (
+                <span className="text-primary-600">{stat.count} {stat.sublabel}</span>
+              ) : (
+                <span>No {stat.sublabel}</span>
+              )}
+            </p>
+          </div>
+          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 transition-colors">
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+// ============================================================
+// Context Card Components
+// ============================================================
+
+interface LeadCardProps {
+  data: ConnectionData;
+  routeTo: string;
+}
+
+function LeadCard({ data, routeTo }: LeadCardProps) {
+  const profile = data.from_profile;
+  const name = profile?.display_name || "A family";
+  const location = [profile?.city, profile?.state].filter(Boolean).join(", ");
+  const careType = data.metadata?.care_type;
+  const message = data.metadata?.message || data.metadata?.thread?.[0]?.text;
+  const timeAgo = formatTimeAgo(data.created_at);
+
+  return (
+    <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+      <div className="flex flex-col sm:flex-row">
+        {/* Avatar — matches family welcome card dimensions */}
+        <div className="relative w-full sm:w-[240px] aspect-[16/10] sm:aspect-auto sm:min-h-[200px] flex-shrink-0 bg-gray-100 overflow-hidden sm:rounded-l-2xl">
+          {profile?.image_url ? (
+            <Image
+              src={profile.image_url}
+              alt={name}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <div
+              className="w-full h-full flex items-center justify-center"
+              style={{ background: avatarGradient(name) }}
+            >
+              <span className="text-4xl font-bold text-white">
+                {getInitials(name)}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 p-5 sm:p-6 flex flex-col min-w-0">
+          <h2 className="text-text-xl sm:text-display-xs font-semibold text-gray-900 leading-tight">
+            {getFirstName(name)}
+          </h2>
+          {location && (
+            <p className="mt-1 text-text-md text-gray-500">{location}</p>
+          )}
+
+          {(message || careType) && (
+            <>
+              <div className="my-4 border-t border-gray-100" />
+              {message && (
+                <p className="text-text-md text-gray-600 line-clamp-2 leading-relaxed">
+                  &ldquo;{message}&rdquo;
+                </p>
+              )}
+              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-text-sm text-gray-500">
+                {careType && <span>{CARE_TYPE_LABELS[careType] || careType}</span>}
+                {careType && <span className="text-gray-300">·</span>}
+                <span>{timeAgo}</span>
+              </div>
+            </>
+          )}
+
+          {/* Spacer */}
+          <div className="flex-1 min-h-4" />
+
+          {/* CTA */}
+          <div className="mt-4 sm:mt-5 flex sm:justify-end">
+            <Link
+              href={routeTo}
+              className="flex items-center justify-center w-full sm:w-auto px-6 py-3 text-text-md font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-200 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+            >
+              View and respond
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface QuestionCardProps {
+  data: QuestionData;
+  routeTo: string;
+}
+
+function QuestionCard({ data, routeTo }: QuestionCardProps) {
+  const name = data.asker_name || "Someone";
+  const timeAgo = formatTimeAgo(data.created_at);
+
+  return (
+    <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+      <div className="p-5 sm:p-6 flex flex-col">
+        {/* Header — larger avatar to match lead card feel */}
+        <div className="flex items-start gap-4">
+          <div
+            className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: avatarGradient(name) }}
+          >
+            <span className="text-xl font-bold text-white">
+              {getInitials(name)}
+            </span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-text-xl sm:text-display-xs font-semibold text-gray-900 leading-tight">
+              {getFirstName(name)}
+            </h2>
+            <p className="mt-1 text-text-md text-gray-500">{timeAgo}</p>
+          </div>
+        </div>
+
+        {/* Question — styled quote block */}
+        <div className="mt-4 p-4 bg-gray-50 rounded-xl border-l-4 border-primary-200">
+          <p className="text-text-md text-gray-700 leading-relaxed">
+            &ldquo;{data.question}&rdquo;
+          </p>
+        </div>
+
+        {/* Spacer for consistent height */}
+        <div className="flex-1 min-h-4" />
+
+        {/* CTA — matches family welcome button style */}
+        <div className="mt-4 sm:mt-5 flex sm:justify-end">
+          <Link
+            href={routeTo}
+            className="flex items-center justify-center w-full sm:w-auto px-6 py-3 text-text-md font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-200 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+          >
+            View and respond
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface ReviewCardProps {
+  data: ReviewData;
+  routeTo: string;
+}
+
+function ReviewCard({ data, routeTo }: ReviewCardProps) {
+  const name = data.reviewer_name || "Someone";
+  const timeAgo = formatTimeAgo(data.created_at);
+  const stars = "★".repeat(data.rating) + "☆".repeat(5 - data.rating);
+
+  return (
+    <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+      <div className="p-5 sm:p-6 flex flex-col">
+        {/* Header — larger avatar to match lead card feel */}
+        <div className="flex items-start gap-4">
+          <div
+            className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: avatarGradient(name) }}
+          >
+            <span className="text-xl font-bold text-white">
+              {getInitials(name)}
+            </span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-text-xl sm:text-display-xs font-semibold text-gray-900 leading-tight">
+              {getFirstName(name)}
+            </h2>
+            <p className="mt-1 text-text-md text-gray-500">{timeAgo}</p>
+          </div>
+        </div>
+
+        {/* Rating — prominent display */}
+        <div className="mt-4 flex items-center gap-2">
+          <span className="text-2xl text-amber-400 tracking-wider">{stars}</span>
+          <span className="text-text-md font-medium text-gray-700">{data.rating}.0</span>
+        </div>
+
+        {/* Comment — styled quote block */}
+        {data.comment && (
+          <div className="mt-3 p-4 bg-gray-50 rounded-xl">
+            <p className="text-text-md text-gray-700 leading-relaxed line-clamp-3">
+              &ldquo;{data.comment}&rdquo;
+            </p>
+          </div>
+        )}
+
+        {/* Spacer for consistent height */}
+        <div className="flex-1 min-h-4" />
+
+        {/* CTA — matches family welcome button style */}
+        <div className="mt-4 sm:mt-5 flex sm:justify-end">
+          <Link
+            href={routeTo}
+            className="flex items-center justify-center w-full sm:w-auto px-6 py-3 text-text-md font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-200 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+          >
+            View and respond
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface MessageCardProps {
+  data: ConnectionData;
+  providerId: string;
+  routeTo: string;
+}
+
+function MessageCard({ data, providerId, routeTo }: MessageCardProps) {
+  // Determine who sent the message (the other party)
+  const isFromProvider = data.from_profile?.id === providerId;
+  const otherParty = isFromProvider ? data.to_profile : data.from_profile;
+  const name = otherParty?.display_name || "Someone";
+
+  // Get latest message from thread
+  const thread = data.metadata?.thread || [];
+  const latestMessage = thread.length > 0 ? thread[thread.length - 1] : null;
+  const messagePreview = latestMessage?.text || "New message";
+  const timeAgo = latestMessage?.created_at ? formatTimeAgo(latestMessage.created_at) : "";
+
+  return (
+    <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+      <div className="p-5 sm:p-6 flex flex-col">
+        {/* Header — larger avatar to match lead card feel */}
+        <div className="flex items-start gap-4">
+          {otherParty?.image_url ? (
+            <Image
+              src={otherParty.image_url}
+              alt={name}
+              width={56}
+              height={56}
+              className="w-14 h-14 rounded-xl object-cover flex-shrink-0"
+            />
+          ) : (
+            <div
+              className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: avatarGradient(name) }}
+            >
+              <span className="text-xl font-bold text-white">
+                {getInitials(name)}
+              </span>
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-text-xl sm:text-display-xs font-semibold text-gray-900 leading-tight">
+              {getFirstName(name)}
+            </h2>
+            {timeAgo && <p className="mt-1 text-text-md text-gray-500">{timeAgo}</p>}
+          </div>
+        </div>
+
+        {/* Message preview — styled quote block */}
+        <div className="mt-4 p-4 bg-gray-50 rounded-xl border-l-4 border-primary-200">
+          <p className="text-text-md text-gray-700 leading-relaxed line-clamp-2">
+            {messagePreview}
+          </p>
+        </div>
+
+        {/* Spacer for consistent height */}
+        <div className="flex-1 min-h-4" />
+
+        {/* CTA — matches family welcome button style */}
+        <div className="mt-4 sm:mt-5 flex sm:justify-end">
+          <Link
+            href={routeTo}
+            className="flex items-center justify-center w-full sm:w-auto px-6 py-3 text-text-md font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-200 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+          >
+            View and respond
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// Fallback Card (when no specific action data)
+// ============================================================
+
+interface FallbackCardProps {
+  action: ActionType;
+  config: ActionConfig;
+}
+
+function FallbackCard({ action, config }: FallbackCardProps) {
+  const descriptions: Record<ActionType, string> = {
+    lead: "A family reached out to your organization. View and respond to start the conversation.",
+    match: "A family accepted your reach-out. You can now message each other directly.",
+    question: "Someone asked a question about your services. A thoughtful answer builds trust.",
+    review: "You received a new review. See what families are saying about your care.",
+    message: "You have a new message. Continue the conversation with the family.",
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+      <div className="p-5 sm:p-6 flex flex-col">
+        {/* Icon + Content row */}
+        <div className="flex items-start gap-4">
+          <div className="w-14 h-14 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
+            {config.icon}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-text-xl sm:text-display-xs font-semibold text-gray-900 leading-tight">
+              {config.subtitle}
+            </h2>
+            <p className="mt-2 text-text-md text-gray-500 leading-relaxed">
+              {descriptions[action]}
+            </p>
+          </div>
+        </div>
+
+        {/* Spacer for consistent height */}
+        <div className="flex-1 min-h-4" />
+
+        {/* CTA — matches family welcome button style */}
+        <div className="mt-4 sm:mt-5 flex sm:justify-end">
+          <Link
+            href={config.routeTo}
+            className="flex items-center justify-center w-full sm:w-auto px-6 py-3 text-text-md font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-200 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+          >
+            View and respond
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// Main Component
+// ============================================================
+
+export default function ProviderWelcomeClient({
+  user,
+  providerProfile,
+  providerStats,
+  action,
+  actionId,
+  actionData,
+  providerForAuth,
+}: ProviderWelcomeClientProps) {
+  const greeting = getTimeOfDayGreeting();
+  const firstName = getFirstName(providerProfile?.display_name || user?.email);
+  const config = useMemo(() => getActionConfig(action, actionData), [action, actionData]);
+
+  // State 2: Magic link / sign-in states
+  const [linkSent, setLinkSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  const handleSendMagicLink = async () => {
+    if (!providerForAuth?.email) return;
+
+    setSending(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/provider/send-magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: providerForAuth.email,
+          action,
+          actionId,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Failed to send sign-in link. Please try again.");
+        setSending(false);
+        return;
+      }
+
+      setLinkSent(true);
+      setResendCooldown(30);
+      setSending(false);
+    } catch {
+      setError("Something went wrong. Please try again.");
+      setSending(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    const supabase = createClient();
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo },
+    });
+  };
+
+  // State 1: Claimed + Authenticated
+  if (user && providerProfile) {
+    return (
+      <div className="min-h-screen bg-white">
+        {/* Main content container — matches family welcome */}
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header — matches family welcome spacing */}
+          <section className="pt-8 sm:pt-12 pb-6">
+            <p className="text-text-md sm:text-text-lg text-gray-500">
+              {greeting}, {firstName}
+            </p>
+            <h1 className="mt-1 text-display-xs sm:text-display-sm font-display text-gray-900">
+              {config.subtitle}
+            </h1>
+          </section>
+
+          {/* Context Card — pb-12 matches family welcome */}
+          <section className="pb-12">
+            {actionData ? (
+              <>
+                {(action === "lead" || action === "match") && (
+                  <LeadCard data={actionData as ConnectionData} routeTo={config.routeTo} />
+                )}
+                {action === "question" && (
+                  <QuestionCard data={actionData as QuestionData} routeTo={config.routeTo} />
+                )}
+                {action === "review" && (
+                  <ReviewCard data={actionData as ReviewData} routeTo={config.routeTo} />
+                )}
+                {action === "message" && providerProfile && (
+                  <MessageCard
+                    data={actionData as ConnectionData}
+                    providerId={providerProfile.id}
+                    routeTo={config.routeTo}
+                  />
+                )}
+              </>
+            ) : (
+              <FallbackCard action={action} config={config} />
+            )}
+          </section>
+
+          {/* Stats Navigation — styled like family welcome action cards */}
+          {providerStats && (
+            <section className="pb-20">
+              <StatsRow stats={providerStats} excludeAction={action} />
+            </section>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // State 2: Claimed + Not logged in (expired magic link)
+  if (!user && providerForAuth?.email && providerForAuth?.profile) {
+    const profile = providerForAuth.profile;
+    const location = [profile.city, profile.state].filter(Boolean).join(", ");
+
+    // Context messages based on action type
+    const contextMessages: Record<ActionType, string> = {
+      lead: "You have a new care inquiry",
+      match: "A family wants to connect",
+      question: "Someone asked you a question",
+      review: "You received a new review",
+      message: "You have a new message",
+    };
+
+    // Link sent confirmation view
+    if (linkSent) {
+      return (
+        <div className="min-h-screen bg-white">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Header — matches State 1 spacing */}
+            <section className="pt-8 sm:pt-12 pb-6">
+              <p className="text-text-md sm:text-text-lg text-gray-500">
+                Almost there
+              </p>
+              <h1 className="mt-1 text-display-xs sm:text-display-sm font-display text-gray-900">
+                Check your email
+              </h1>
+            </section>
+
+            {/* Card — matches State 1 padding and shadow */}
+            <section className="pb-20">
+              <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+                <div className="p-5 sm:p-6">
+                  {/* Email icon — consistent 14x14 icon container */}
+                  <div className="flex justify-center mb-6">
+                    <div className="w-14 h-14 rounded-xl bg-primary-50 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="text-text-lg text-gray-900 font-semibold mb-1">
+                      We sent a sign-in link to
+                    </p>
+                    <p className="text-text-md text-primary-600 font-medium mb-5">
+                      {providerForAuth.email}
+                    </p>
+
+                    <p className="text-text-md text-gray-500 leading-relaxed max-w-sm mx-auto">
+                      Click the link in your email to sign in and respond to the {action === "lead" || action === "match" ? "inquiry" : action}.
+                    </p>
+                  </div>
+
+                  {/* Divider and resend — consistent spacing */}
+                  <div className="mt-6 pt-5 border-t border-gray-100 text-center">
+                    {resendCooldown > 0 ? (
+                      <p className="text-text-sm text-gray-400">
+                        Resend in {resendCooldown}s
+                      </p>
+                    ) : (
+                      <button
+                        onClick={handleSendMagicLink}
+                        disabled={sending}
+                        className="text-text-sm text-primary-600 hover:text-primary-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-lg px-2 py-1 -mx-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {sending ? "Sending..." : "Didn't receive it? Resend link"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      );
+    }
+
+    // Sign-in form view
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header — matches State 1 with greeting + heading */}
+          <section className="pt-8 sm:pt-12 pb-6">
+            <p className="text-text-md sm:text-text-lg text-gray-500">
+              {greeting}
+            </p>
+            <h1 className="mt-1 text-display-xs sm:text-display-sm font-display text-gray-900">
+              Sign in to continue
+            </h1>
+          </section>
+
+          {/* Card — matches State 1 shadow and padding */}
+          <section className="pb-20">
+            <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+              <div className="p-5 sm:p-6">
+                {/* Provider info header — consistent icon size */}
+                <div className="flex items-center gap-4 pb-5 border-b border-gray-100">
+                  {profile.image_url ? (
+                    <Image
+                      src={profile.image_url}
+                      alt={profile.display_name}
+                      width={56}
+                      height={56}
+                      className="w-14 h-14 rounded-xl object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div
+                      className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: avatarGradient(profile.display_name) }}
+                    >
+                      <span className="text-xl font-bold text-white">
+                        {getInitials(profile.display_name)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-text-lg font-semibold text-gray-900 truncate">
+                      {profile.display_name}
+                    </h2>
+                    {location && (
+                      <p className="text-text-sm text-gray-500 mt-0.5">{location}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Context message — consistent 14x14 icon container */}
+                <div className="flex items-center gap-4 py-5 border-b border-gray-100">
+                  <div className="w-14 h-14 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
+                    {config.icon}
+                  </div>
+                  <p className="text-text-md text-gray-900 font-medium">
+                    {contextMessages[action]}
+                  </p>
+                </div>
+
+                {/* Sign-in section */}
+                <div className="pt-5">
+                  <p className="text-text-md text-gray-500 mb-4">
+                    Sign in to respond
+                  </p>
+
+                  {error && (
+                    <div className="mb-4 bg-red-50 text-red-600 px-4 py-3 rounded-xl text-text-sm" role="alert">
+                      {error}
+                    </div>
+                  )}
+
+                  {/* Email display (read-only) — consistent height with buttons */}
+                  <div className="mb-4 px-4 py-3.5 bg-gray-50 rounded-xl border border-gray-200 flex items-center justify-between">
+                    <span className="text-text-md text-gray-700">{providerForAuth.email}</span>
+                    <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+
+                  {/* Primary CTA: Magic link — matches family welcome button style */}
+                  <button
+                    onClick={handleSendMagicLink}
+                    disabled={sending}
+                    className="w-full px-6 py-3.5 text-text-md font-medium text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {sending ? "Sending..." : "Send me a sign-in link"}
+                  </button>
+
+                  {/* Divider — consistent styling */}
+                  <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-100" />
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="bg-white px-4 text-xs font-medium text-gray-400 uppercase tracking-wider">or</span>
+                    </div>
+                  </div>
+
+                  {/* Secondary CTA: Google — with proper focus state */}
+                  <button
+                    onClick={handleGoogleSignIn}
+                    className="w-full flex items-center justify-center gap-3 px-4 py-3.5 border border-gray-200 rounded-xl text-text-md font-medium text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                    </svg>
+                    Continue with Google
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
+
+  // State 3: Unclaimed or no provider info found — show generic loading/redirect
+  // TODO: State 3 (Unclaimed) will be implemented later
+  return (
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
+        <p className="mt-4 text-gray-500">Loading...</p>
+      </div>
+    </div>
+  );
+}

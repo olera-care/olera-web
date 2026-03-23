@@ -205,6 +205,26 @@ export async function POST(request: NextRequest) {
       }
 
       if (pEmail) {
+        // Generate magic link for provider one-click sign-in
+        const redirectPath = `/provider/welcome?action=question&id=${newQuestion.id}`;
+        let providerUrl = providerPortalUrl; // Fallback
+
+        try {
+          const { data: providerLinkData, error: providerLinkError } = await db.auth.admin.generateLink({
+            type: "magiclink",
+            email: pEmail,
+            options: {
+              redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
+            },
+          });
+          if (!providerLinkError && providerLinkData?.properties?.action_link) {
+            providerUrl = providerLinkData.properties.action_link;
+          }
+        } catch (linkErr) {
+          console.error("Failed to generate provider magic link for question:", linkErr);
+          // Continue with fallback URL
+        }
+
         await sendEmail({
           to: pEmail,
           subject: `A family has a question about ${providerDisplayName}`,
@@ -212,7 +232,7 @@ export async function POST(request: NextRequest) {
             providerName: providerDisplayName,
             askerName,
             question: question.trim(),
-            providerUrl: providerPortalUrl,
+            providerUrl,
             providerSlug: provider_id,
           }),
           emailType: 'question_received',

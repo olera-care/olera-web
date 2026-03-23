@@ -36,8 +36,12 @@ export default function Navbar() {
   const { savedCount, hasInitialized: savedInitialized } = useSavedProviders();
   const profileIds = (profiles || []).map((p) => p.id);
   const unreadInboxCount = useUnreadInboxCount(profileIds);
-  const providerProfileIds = (profiles || []).filter((p) => p.type !== "family").map((p) => p.id);
-  const providerInboxCount = useUnreadInboxCount(providerProfileIds);
+  // For provider inbox badge: only count unread for the ACTIVE provider profile, not all providers
+  // This ensures proper data isolation when users have multiple provider profiles
+  const activeProviderProfileId = activeProfile && (activeProfile.type === "organization" || activeProfile.type === "caregiver")
+    ? activeProfile.id
+    : null;
+  const providerInboxCount = useUnreadInboxCount(activeProviderProfileId ? [activeProviderProfileId] : []);
   // Use activeProfile slug if it's a provider, otherwise fall back to first provider
   const activeProviderSlug =
     activeProfile && (activeProfile.type === "organization" || activeProfile.type === "caregiver")

@@ -103,6 +103,14 @@
   - 109 legitimate providers across 6 categories
   - Notion: all 14 checkboxes checked, status Complete
 
+- **Batch Pipeline Optimization** (branch: `silly-thompson`) — IMPLEMENTED, NEEDS E2E TEST
+  - Plan: `plans/batch-pipeline-optimization-plan.md`
+  - `scripts/discovery-batch.py` — non-interactive batch discovery with `--batch` CLI
+  - `scripts/pipeline-batch.js` — 4-phase processor (clean/load/enrich/finalize)
+  - Clean phase validated: 3 cities processed, dedup CSV loaded once, AI batch-50 working
+  - `.claude/commands/city-pipeline.md` updated with new batch mode instructions
+  - Next: full E2E test with fresh cities, then 80-city batch
+
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
 

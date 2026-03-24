@@ -22,8 +22,8 @@ interface Question {
 type TabValue = "unanswered" | "needs_email" | "answered" | "removed" | "";
 
 const TABS: { label: string; value: TabValue; showCount?: boolean }[] = [
-  { label: "Unanswered", value: "unanswered", showCount: true },
   { label: "Needs Email", value: "needs_email", showCount: true },
+  { label: "Unanswered", value: "unanswered", showCount: true },
   { label: "Answered", value: "answered" },
   { label: "Removed", value: "removed" },
   { label: "All", value: "" },
@@ -124,7 +124,7 @@ function formatDate(dateStr: string): string {
 export default function AdminQuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabValue>("unanswered");
+  const [activeTab, setActiveTab] = useState<TabValue>("needs_email");
   const [count, setCount] = useState(0);
   const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number }>({ pending: 0, needs_email: 0 });
   const [actionLoading, setActionLoading] = useState<string | null>(null);

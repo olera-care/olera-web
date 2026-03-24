@@ -613,6 +613,17 @@ export default function MedJobsApplyPage() {
                   <SearchDropdown options={HOURS_OPTIONS} value={hoursPerWeekRange} onSelect={setHoursPerWeekRange} placeholder="Select" />
                 </div>
               </div>
+
+              {hoursPerWeekRange && ["5-10", "10-15"].includes(hoursPerWeekRange) && (
+                <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-50/60">
+                  <svg className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm text-amber-700">
+                    Most providers prefer 15+ hours/week. Consider applying during a break or lighter semester for more opportunities.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

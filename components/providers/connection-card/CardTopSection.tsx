@@ -1,10 +1,15 @@
 "use client";
 
+import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
+import { getPricingConfig } from "@/lib/pricing-config";
+
 interface CardTopSectionProps {
   priceRange: string | null;
   reviewCount: number | undefined;
   responseTime: string | null;
   hideResponseTime?: boolean;
+  /** Provider category — enables Tier 3 education badge */
+  category?: string | null;
 }
 
 function ZapIcon() {
@@ -34,19 +39,24 @@ export default function CardTopSection({
   reviewCount,
   responseTime,
   hideResponseTime,
+  category,
 }: CardTopSectionProps) {
   const hasPrice = !!priceRange;
+  const config = category ? getPricingConfig(category) : null;
+  const isTier3 = config?.tier === 3;
 
   // If nothing to show, don't render the section at all
-  if (!hasPrice && (!responseTime || hideResponseTime)) {
+  if (!hasPrice && !isTier3 && (!responseTime || hideResponseTime)) {
     return null;
   }
 
   return (
     <div className="px-5 pt-4 pb-3">
       <div className="flex justify-between items-center">
-        {/* Price — de-emphasized */}
-        {hasPrice ? (
+        {/* Price — de-emphasized, or education badge for Tier 3 */}
+        {isTier3 && !hasPrice ? (
+          <PricingEducationBadge category={category!} compact />
+        ) : hasPrice ? (
           <button
             onClick={() => scrollToSection("pricing")}
             className="text-left cursor-pointer hover:opacity-80 transition-opacity"

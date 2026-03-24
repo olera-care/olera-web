@@ -17,6 +17,7 @@ import {
   SUPABASE_CAT_TO_PROFILE_CATEGORY,
 } from "@/lib/types/provider";
 import type { BusinessProfile } from "@/lib/types";
+import { getStateMedian, getPricingConfig, PRICING_DATA_SOURCE } from "@/lib/pricing-config";
 
 // ============================================================
 // Category slug ↔ Supabase mapping
@@ -171,6 +172,10 @@ export interface PowerPageData {
   totalCount: number;
   avgLowerPrice: number | null;
   avgUpperPrice: number | null;
+  /** True when avgLowerPrice/avgUpperPrice are state-level medians (not from local providers) */
+  isStateAverage: boolean;
+  /** Category-specific cost context note for SEO content */
+  costNote: string | null;
   topCities?: { city: string; count: number }[];
 }
 
@@ -246,20 +251,38 @@ export async function fetchPowerPageData(opts: {
 
   const mergedCards = mergeProviderCards(seededCards, bpCards, dedupeSourceIds);
 
-  // Compute average prices (from seeded providers only — BPs don't have pricing yet)
+  // Compute average prices with minimum sample size requirement
+  const MIN_SAMPLE_SIZE = 5;
   const priced = (providers as Provider[]).filter((p) => p.lower_price && p.upper_price);
-  const avgLowerPrice = priced.length > 0
-    ? Math.round(priced.reduce((s, p) => s + (p.lower_price ?? 0), 0) / priced.length)
-    : null;
-  const avgUpperPrice = priced.length > 0
-    ? Math.round(priced.reduce((s, p) => s + (p.upper_price ?? 0), 0) / priced.length)
-    : null;
+  let avgLowerPrice: number | null = null;
+  let avgUpperPrice: number | null = null;
+  let isStateAverage = false;
+
+  if (priced.length >= MIN_SAMPLE_SIZE) {
+    // Enough local data — use provider-based average
+    avgLowerPrice = Math.round(priced.reduce((s, p) => s + (p.lower_price ?? 0), 0) / priced.length);
+    avgUpperPrice = Math.round(priced.reduce((s, p) => s + (p.upper_price ?? 0), 0) / priced.length);
+  } else if (opts.stateAbbrev) {
+    // Not enough local data — fall back to state-level median
+    const stateMedian = getStateMedian(opts.category, opts.stateAbbrev);
+    if (stateMedian) {
+      avgLowerPrice = Math.round(stateMedian.value * 0.85);
+      avgUpperPrice = Math.round(stateMedian.value * 1.15);
+      isStateAverage = true;
+    }
+  }
+
+  // Category-specific cost context note
+  const pricingConfig = getPricingConfig(opts.category);
+  const costNote = pricingConfig.cityPageNote;
 
   return {
     providers: mergedCards,
     totalCount: (count ?? providers.length) + (bpResult.count ?? 0),
     avgLowerPrice,
     avgUpperPrice,
+    isStateAverage,
+    costNote,
   };
 }
 

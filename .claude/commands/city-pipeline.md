@@ -148,94 +148,100 @@ Parallel (run all at once after upload):
 
 Use `run_in_background: true` for long-running batches (trust signals, images) and work on other steps while they process. Check progress periodically via direct DB queries rather than watching output.
 
-## Batch Mode
+## Batch Mode (Optimized)
 
-When TJ provides a `.md` file (exported from the expansion map tool), switch to batch mode. The file contains a human-readable table and a machine-readable city list at the bottom.
+When TJ provides a `.md` file (exported from the expansion map tool), use the **standalone batch scripts** for maximum speed. These scripts handle everything internally — no step-by-step tool calls needed.
 
-### Parsing the Batch File
+### Overview
 
-The machine-readable block is at the bottom of the `.md` file, fenced with triple backticks and labeled `batch-cities`. Format:
+The batch pipeline runs in two stages via standalone scripts:
 
+1. **Discovery** (`scripts/discovery-batch.py`) — Discovers providers for all cities via Google Places API
+2. **Processing** (`scripts/pipeline-batch.js`) — Cleans, uploads, enriches, and finalizes all cities
+
+Claude's role in batch mode:
+- Parse the batch file and show cost/time estimates
+- Create Notion pages for all cities (via the script's built-in pre-flight)
+- Execute the two scripts and monitor output
+- Report final results
+- Handle any errors that need human judgment
+
+### Pre-Flight
+
+When TJ provides a batch `.md` file:
+
+1. **Parse the city list** from the machine-readable block at the bottom
+2. **Show estimates**:
+   - Discovery: `cities × ~$4 = $X` (Google Places), `cities × ~2.5min = Xh`
+   - Processing: `cities × ~$2 = $X` (geocoding + enrichment), `~35min enrichment overhead`
+   - Total: `~$6/city`
+3. **If >20 cities**, warn about discovery time and suggest running discovery in background while TJ does other work
+4. **Ask TJ to confirm**, then proceed
+
+### Stage 1: Discovery
+
+Save the batch file's city list to a temporary CSV, then run:
+
+```bash
+python3 scripts/discovery-batch.py \
+  --batch <cities.csv or batch.md> \
+  --mode quick \
+  --auto-confirm \
+  --output-dir ~/Desktop/TJ-hq/Olera/Provider\ Database/Expansion
 ```
-City,StateID
-Omaha,NE
-Lincoln,NE
-Des Moines,IA
+
+This runs non-interactively, outputs one CSV per city, prints per-city progress. For large batches (>20 cities), run in background:
+
+```bash
+# Run in background for large batches
+python3 scripts/discovery-batch.py --batch batch.md --mode quick --auto-confirm &
 ```
 
-Parse this block to extract the city list. Ignore the human-readable table above it (that's for TJ's reference).
+The script is **idempotent** — cities with existing discovery CSVs are skipped unless `--force` is used.
 
-### Pre-Flight: Cost Estimate & Guardrails
+### Stage 2: Processing
 
-Before processing any cities:
+After discovery completes, run the processing pipeline:
 
-1. **Count cities** in the batch
-2. **Estimate total cost**: `city_count × $9` (per-city average from Cost Per City table)
-3. **Warn if estimate > $100**: Print the estimate and ask TJ to confirm before proceeding
-4. **Track actual spend**: If actual cumulative cost hits **2× the estimate**, pause and ask TJ before continuing
-
-### Pre-Flight: Notion Setup
-
-Create Notion tracking pages for **all batch cities upfront** so the full batch is visible on the Kanban board immediately:
-
-1. Query Notion for existing city pages (to avoid duplicates)
-2. For each city NOT already in Notion, create a page with:
-   - Title: `{City}, {State}`
-   - City Status: `Planning`
-   - All checkboxes unchecked
-3. Print a summary: `Created N new Notion pages, M already existed`
-
-### Processing Loop
-
-Process cities **sequentially** (one at a time, not parallel). Each city runs through the full pipeline (Step 0 through completion) before the next starts. Sequential processing:
-- Avoids API rate limit issues across concurrent cities
-- Prevents Notion update collisions
-- Makes it easy to resume — the last completed city is clear
-
-**Idempotent behavior:**
-- If a city's Notion status is **"Complete"** → skip it entirely
-- If a city's Notion status is **in progress** (any pipeline stage) → resume from the first unchecked step
-- If a city's Notion status is **"Planning"** → start from Discovery
-
-For each city:
-1. Print: `▶ Starting city {N}/{total}: {City}, {State}`
-2. Run the full pipeline (all unchecked steps)
-3. On completion, print a one-line summary: providers uploaded, cost, trust signal pass rate
-4. Update the **batch progress table** (see below)
-
-### Batch Progress Table
-
-After each city completes, print a running progress table:
-
+```bash
+cd ~/Desktop/olera-web && node scripts/pipeline-batch.js \
+  --batch ~/Desktop/TJ-hq/Olera/Provider\ Database/Expansion \
+  --phase all \
+  --resume
 ```
-┌─────────────────────┬──────────┬───────────┬────────┬──────────┐
-│ City                │ Status   │ Providers │ Cost   │ Duration │
-├─────────────────────┼──────────┼───────────┼────────┼──────────┤
-│ Omaha, NE           │ Complete │ 247       │ $8.40  │ 12m      │
-│ Lincoln, NE         │ Complete │ 183       │ $7.90  │ 9m       │
-│ Des Moines, IA      │ Running  │ —         │ —      │ —        │
-│ Cedar Rapids, IA    │ Pending  │ —         │ —      │ —        │
-├─────────────────────┼──────────┼───────────┼────────┼──────────┤
-│ Total (2/4)         │          │ 430       │ $16.30 │ 21m      │
-└─────────────────────┴──────────┴───────────┴────────┴──────────┘
-```
+
+This runs 4 internal phases:
+- **Clean**: Keyword filter + AI classify + category map + name check + IDs + dedup (all cities at once, loads 61MB dedup CSV once)
+- **Load**: Upload to Supabase + geocode + out-of-area cleanup (per city)
+- **Enrich**: Descriptions + reviews + trust signals + images (all providers as one pool, parallel streams)
+- **Finalize**: Notion updates (one call per city) + final report
+
+Phases can be run individually: `--phase clean`, `--phase enrich`, etc.
+
+The `--resume` flag skips cities already marked Complete in Notion, enabling multi-session batches.
 
 ### Error Handling
 
-If a city fails mid-pipeline:
-1. Log the error and which step failed
-2. Leave the city's Notion status at the failing step (so resume works)
-3. **Continue to the next city** — don't abort the entire batch
-4. Mark the failed city as "Failed" in the progress table with the error reason
-5. At the end, print a summary of failures so TJ can investigate
+Both scripts handle errors per-city:
+- Log the error
+- Skip the failed city
+- Continue to next city
+- Report all failures at the end
 
-### Batch Completion
+### Multi-Session Strategy
 
-After all cities are processed (or skipped/failed):
-1. Print the final progress table
-2. Print totals: cities completed, cities skipped (already complete), cities failed
-3. Print total cost and total providers added
-4. Verify a sample of 2-3 completed cities on the live site (same checks as single-city completion)
+For very large batches (80+ cities):
+- Session 1: Run discovery for all cities (can run in background, ~3.3 hours for 80)
+- Session 2: Run `--phase clean` (fast, ~5 min for all cities)
+- Session 3: Run `--phase load` (~4 hours for 80 cities)
+- Session 4: Run `--phase enrich` (~35 min for all providers)
+- Session 5: Run `--phase finalize` (~5 min)
+
+Or run `--phase all` in one session if time permits.
+
+## Batch Mode (Legacy — Single-City Fallback)
+
+For processing a **single city** or when the batch scripts aren't available, use the legacy step-by-step approach below. This is also the default for resume mode and new-city mode.
 
 ## Pipeline Steps
 
@@ -248,13 +254,15 @@ Report results at the end with a summary table, not step-by-step.
 
 ### Discovery
 
-Run the discovery script:
+For **single city** mode, run the discovery script interactively:
 ```bash
 cd ~/Desktop/TJ-hq/Olera/Olera\ Data\ Analysis\ Scripts/senior-care-discovery/
 python discovery.py
 ```
 
 Select option 1 (manual city entry), enter city/state, confirm cost (~$4-5 per city in quick search mode). Copy the output CSV (`providers_discovered_*.csv`) to the city's expansion directory.
+
+For **batch mode**, use the batch discovery script instead (see Batch Mode section above).
 
 Report: Number of providers discovered.
 

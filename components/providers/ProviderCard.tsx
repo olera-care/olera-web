@@ -4,6 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import type { CardImageType } from "@/lib/types/provider";
+import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
+import RegionalEstimateLabel from "@/components/providers/RegionalEstimateLabel";
+import { getPricingConfig } from "@/lib/pricing-config";
 
 export interface StaffMember {
   name: string;
@@ -33,6 +36,9 @@ export interface Provider {
   staffImage?: string; // Optional staff/caregiver avatar (legacy, use staff instead)
   staff?: StaffMember; // Staff member info for overlay
   description?: string; // Short tagline or description
+  isRegionalEstimate?: boolean; // True when priceRange is a regional estimate
+  isMetroAdjusted?: boolean; // True when estimate uses metro-level adjustment
+  providerCategory?: string; // Raw category for pricing tier logic
   // Detailed pricing breakdown
   pricingDetails?: {
     service: string; // e.g., "Assisted Living"
@@ -310,9 +316,19 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
         <div className="flex-1 min-h-2" />
 
         {/* Price */}
-        {provider.priceRange && (
+        {provider.providerCategory && getPricingConfig(provider.providerCategory).tier === 3 && !provider.isRegionalEstimate && provider.priceRange === "Contact for pricing" ? (
+          <div className="mt-3"><PricingEducationBadge category={provider.providerCategory} compact /></div>
+        ) : provider.priceRange && provider.priceRange !== "Contact for pricing" ? (
+          <div className="mt-3">
+            <RegionalEstimateLabel
+              priceRange={provider.priceRange}
+              isRegionalEstimate={!!provider.isRegionalEstimate}
+              isMetroAdjusted={!!provider.isMetroAdjusted}
+            />
+          </div>
+        ) : provider.priceRange ? (
           <p className="text-sm font-bold text-gray-900 mt-3">{provider.priceRange}</p>
-        )}
+        ) : null}
       </div>
     </Link>
   );

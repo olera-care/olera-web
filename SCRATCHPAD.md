@@ -98,6 +98,28 @@
   - Full pipeline: discovery → classification → upload → enrichment
   - 204 legitimate providers across 6 categories
 
+- **Greece, NY City Expansion** (branch: `silly-thompson`, no code changes) — COMPLETE ✅
+  - Full pipeline: discovery → classification → dedup → upload → geocoding → parallel enrichment
+  - 109 legitimate providers across 6 categories
+  - Notion: all 14 checkboxes checked, status Complete
+
+- **Batch Pipeline Optimization** (branch: `silly-thompson`) — IMPLEMENTED, NEEDS E2E TEST
+  - Plan: `plans/batch-pipeline-optimization-plan.md`
+  - `scripts/discovery-batch.py` — non-interactive batch discovery with `--batch` CLI
+  - `scripts/pipeline-batch.js` — 4-phase processor (clean/load/enrich/finalize)
+  - Clean phase validated: 3 cities processed, dedup CSV loaded once, AI batch-50 working
+  - `.claude/commands/city-pipeline.md` updated with new batch mode instructions
+  - Next: full E2E test with fresh cities, then 80-city batch
+
+- **Provider Pricing Strategy & Disclaimers Overhaul** (branch: `easy-ramanujan`) — PHASES 1-7 COMPLETE, PHASE 8-9 PLANNED
+  - Plan: `plans/provider-pricing-strategy-plan.md`
+  - Notion: [Task](https://www.notion.so/Provider-Pricing-Strategy-Disclaimers-Overhaul-32d5903a0ffe8076b473df7f96d02937)
+  - Commit: `af193dc` — 16 files, 1,050 insertions
+  - Phases 1-7 done: pricing config, category disclaimers, detail page, cards, city pages, portal guidance, schema
+  - **Pending: Home Health → Tier 3** (should not show hourly prices — Medicare covers most services)
+  - **Pending: Metro-level adjustment factors** using HUD FMR data (~400 MSAs) + BLS wage data
+  - **Pending: Medicaid nursing home per-diem rates** for Tier 3 education
+
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
 
@@ -127,7 +149,11 @@
 
 ## Next Up
 
-1. **Merge PR #219** (waiver library redesign) — waiting on Chantel to remove `package.json.tmp` + `.mcp.json`
+1. **Pricing: Home Health → Tier 3** — one-line config change, suppress dollar estimates for home health (Medicare covers it)
+2. **Pricing: Metro-level adjustment factors** — download HUD FMR + BLS wage data, compute ~400 MSA adjustment factors, build city→MSA mapping, integrate into getRegionalEstimate()
+3. **Pricing: Medicaid nursing home per-diem rates** — curate state-level Medicaid reimbursement rates for Tier 3 education
+4. **Pricing: Calibrate estimates against real provider data** — cross-check adjusted estimates vs. claimed profiles with real pricing
+5. **Merge PR #219** (waiver library redesign) — waiting on Chantel to remove `package.json.tmp` + `.mcp.json`
 2. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
 3. **Test Google OAuth on olera.care** — verify sign-in flow end-to-end
 4. **Monitor GSC for 404 spikes** — check over next few days post-cutover
@@ -144,6 +170,12 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-03-24 | 3-tier pricing strategy by care category | Tier 1 (Home Care, AL, IL): show estimates freely. Tier 2 (Memory Care): estimates + coverage education. Tier 3 (Nursing Home, Hospice, Home Health): education first, suppress dollar estimates. Not all categories should show prices the same way |
+| 2026-03-24 | Home Health Care belongs in Tier 3, not Tier 2 | Home health is medically prescribed and mostly covered by Medicare Part A. Showing hourly rates implies families pay out of pocket when most pay $0. Same treatment as nursing homes and hospice |
+| 2026-03-24 | State-level pricing is too coarse for facility categories | Texas median AL = $5,250 but Houston = ~$6,600 and rural TX = ~$3,400. Use HUD Fair Market Rents as metro-level adjustment factors (covers ~400 MSAs = 85% of US population). Formula: state_median × (metro_FMR / state_median_FMR) |
+| 2026-03-24 | Google Places price_level is not useful for senior care | price_level (1-4) is designed for restaurants/retail, almost always null for care facilities. Captured in discovery CSV but rightfully not stored in DB |
+| 2026-03-24 | Use CareScout state medians as ground truth, adjust with free federal data | CareScout 2024 survey = authoritative care costs by state. HUD FMRs = geographic precision (metro housing costs). BLS OEWS = caregiver wage precision. Combined: survey accuracy × geographic precision |
+| 2026-03-24 | Display data year in pricing attribution | "Based on 2024 cost data" builds trust. Plan annual refresh rather than applying compounding inflation escalator |
 | 2026-03-23 | Post-geocoding area check is required | 36/269 Ramapo providers geocoded outside the area — discovery assigns city=Ramapo to everything regardless of actual location. Must validate coordinates fall within ~0.5° of target city after geocoding |
 | 2026-03-23 | Slugs must include city to avoid collisions | Many NY providers share names across cities. Slug format `{name}-{city}-{state}` prevents unique constraint violations |
 | 2026-03-23 | Don't run google_reviews_data hydration and review snippets in parallel | Both write to the same JSONB column — race condition causes data loss. Run hydration first, then snippets |
@@ -204,6 +236,78 @@
 ---
 
 ## Session Log
+
+### 2026-03-24 (Session 56) — Provider Pricing Strategy & Disclaimers Overhaul
+
+**Branch:** `easy-ramanujan`
+**Commit:** `af193dc` — 16 files changed, 1,050 insertions
+
+**What:** Full implementation of category-aware pricing system. Replaced one-size-fits-all "Contact for pricing" with a 3-tier strategy using real CareScout/Genworth 2024 survey data for all 51 states.
+
+**Phases Completed (1-7):**
+1. `lib/pricing-config.ts` — central config: 3 tiers, 7 category configs, 51 states of CareScout data, helper functions
+2. `PriceEstimate.tsx` refactored — category-specific disclaimers (Tier 1: standard, Tier 2: + coverage note, Tier 3: education-first)
+3. `PricingEducationBadge.tsx` (new) — teal badge for Tier 3: "Medicare / Medicaid may cover" or "Usually covered by Medicare"
+4. `RegionalEstimateLabel.tsx` (new) — visual distinction: provider-entered (bold) vs. regional estimate ("State avg." prefix, lighter)
+5. Provider detail page — hero shows education badge for Tier 3, pricing section gets category footer, JSON-LD suppresses Tier 3
+6. Cards (ProviderCard, CompactProviderCard, BrowseCard) — all use new components, regional fallbacks from state data
+7. City pages — averages require n>=5 sample (was n>=1), fall back to state median, category-specific cost notes
+8. Provider dashboard — EditPricingModal shows category-specific guidance (nursing home: Medicare/Medicaid note, home health: Medicare tip)
+
+**Key Review Findings (post-implementation):**
+- **Home Health must move to Tier 3** — currently Tier 2, but Medicare covers most home health services. Showing "$19-$29/hr" implies families pay out of pocket when most pay $0. Fix pending.
+- **State-level averages too coarse for facility care** — TX state median AL = $5,250 but Houston ≈ $6,600, rural TX ≈ $3,400. Need metro-level adjustment factors.
+- **Best approach: HUD FMR + BLS wages** — HUD Fair Market Rents cover ~400 MSAs (85% US pop) + ~2,200 non-metro counties. Formula: `state_median × (metro_FMR / state_avg_FMR)`. Free federal data, updated annually.
+- **Google Places price_level not useful** — designed for restaurants, almost always null for care facilities
+- **Medicaid nursing home per-diem rates** would enhance Tier 3 education (free state-level data)
+
+**Files Created:**
+- `lib/pricing-config.ts` — pricing tiers, state data, helpers
+- `components/providers/PricingEducationBadge.tsx` — Tier 3 coverage badge
+- `components/providers/RegionalEstimateLabel.tsx` — provider vs. regional distinction
+- `plans/provider-pricing-strategy-plan.md` — implementation plan
+
+**Files Modified:**
+- `lib/types/provider.ts` — added `isRegionalEstimate`, `providerCategory` to ProviderCardData; regional fallbacks in toCardFormat() and businessProfileToCardFormat()
+- `lib/power-pages.ts` — n>=5 sample requirement, state median fallback, costNote field
+- `components/providers/PriceEstimate.tsx` — category-aware with 3 tier behaviors
+- `components/providers/ProviderCard.tsx`, `CompactProviderCard.tsx`, `components/browse/BrowseCard.tsx` — education badges + regional labels
+- `components/browse/CityBrowseClient.tsx` — "State Avg. Cost" label + cost context note
+- `components/providers/connection-card/CardTopSection.tsx` — Tier 3 compact badge
+- `components/provider-dashboard/edit-modals/EditPricingModal.tsx` — category guidance notes
+- `app/provider/[slug]/page.tsx` — hero, pricing section, JSON-LD updates
+- `app/[category]/[state]/[city]/page.tsx` — hourly unit fix, new seoContent fields
+
+**Build:** Clean — zero type errors, successful production build
+
+---
+
+### 2026-03-23 (Session 55) — Greece, NY City Expansion Pipeline
+
+**Branch:** `silly-thompson` (no code changes — pipeline ops only)
+
+**What:** Full city expansion pipeline for Greece, NY (batch mode — Ramapo skipped as already complete).
+
+**Pipeline Results:**
+- **Discovered:** 358 providers ($4.10, quick search)
+- **Keyword filter:** removed 27 (hospitals, PT, storage, pharmacies, urgent care)
+- **AI classification:** removed 117 (35% false positive rate — retail stores like Best Buy/Staples/JCPenney, spas, gyms, general apartments, counseling services, rehab centers, nonprofits)
+- **Dedup:** 61 duplicates against existing 33K providers
+- **Uploaded:** 155 providers to Supabase
+- **Geocoding:** 155 re-geocoded, 32 corrections
+- **Out-of-area cleanup:** 34 providers with coordinates outside Greece/Rochester area deleted (mostly NYC, Buffalo, Syracuse contamination)
+- **Trust signals:** 65 confirmed, 12 more false positives deleted (childcare centers, retail, apartment complexes, unverifiable entities)
+- **Final count:** 109 legitimate providers
+
+**Category Breakdown:**
+- Assisted Living: 55, Home Health Care: 24, Nursing Home: 17, Memory Care: 6, Home Care (Non-medical): 6, Independent Living: 1
+
+**Enrichment Coverage:**
+- Descriptions: 109/109 (100%), Google Reviews: 98/109 (90%), Review Snippets: 98/109 (90%), Trust Signals: 65/109 (non-CMS only), Images: 87/109 (80%)
+
+**Key Issue:** Race condition between hydration and review snippets struck again — both ran in parallel and snippets overwrote JSONB. Fixed with a re-hydration pass. Decision from session 54 to not run these in parallel was correct but wasn't enforced in this session's parallel launch.
+
+---
 
 ### 2026-03-23 (Session 54) — Ramapo, NY City Expansion Pipeline
 

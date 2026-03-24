@@ -111,6 +111,16 @@
   - `.claude/commands/city-pipeline.md` updated with new batch mode instructions
   - Next: full E2E test with fresh cities, then 80-city batch
 
+- **ZIP Code Search Fix + No-Coverage Fallback** (branch: `gifted-zhukovsky`) — READY FOR PR
+  - Plan: `plans/zip-search-fix-plan.md`
+  - Phase 1 (city alias map): DONE — NYC boroughs + Butte-Silver Bow aliases expand in all 3 query paths
+  - Phase 2 (graceful fallback): DONE — warm empty state with nearest city suggestion
+  - System docs: `docs/SYSTEMS.md` updated with "City Alias System" section
+  - Build: passes clean
+  - New files: `lib/city-aliases.ts`, `lib/nearest-city.ts`
+  - Modified: `lib/power-pages.ts`, `components/browse/CityBrowseClient.tsx`, `components/browse/BrowseClient.tsx`, `app/[category]/[state]/[city]/page.tsx`
+  - Next: commit, PR to staging, manual verification of 8 ZIP test matrix
+
 - **Provider Pricing Strategy & Disclaimers Overhaul** (branch: `easy-ramanujan`) — PHASES 1-7 COMPLETE, PHASE 8-9 PLANNED
   - Plan: `plans/provider-pricing-strategy-plan.md`
   - Notion: [Task](https://www.notion.so/Provider-Pricing-Strategy-Disclaimers-Overhaul-32d5903a0ffe8076b473df7f96d02937)
@@ -170,6 +180,10 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-03-24 | City alias map over data migration for NYC | Changing 153 providers from "Manhattan"/"Brooklyn" to "New York" is lossy — borough info is useful. Better to expand queries at the search layer |
+| 2026-03-24 | Prefer same-state nearest city in fallback | When no providers exist in a small town, suggest the closest major city in the same state. Cross-state suggestions are confusing for users |
+| 2026-03-24 | Static alias map, not database table | Only 2 known mismatches (NYC + Butte). Code-level constant is simpler than a DB table. Revisit if it grows past 20 entries |
+| 2026-03-24 | Abbreviation audit came back clean | St./Saint, Ft./Fort, Mt./Mount are all consistent between zip-index and DB. No action needed |
 | 2026-03-24 | 3-tier pricing strategy by care category | Tier 1 (Home Care, AL, IL): show estimates freely. Tier 2 (Memory Care): estimates + coverage education. Tier 3 (Nursing Home, Hospice, Home Health): education first, suppress dollar estimates. Not all categories should show prices the same way |
 | 2026-03-24 | Home Health Care belongs in Tier 3, not Tier 2 | Home health is medically prescribed and mostly covered by Medicare Part A. Showing hourly rates implies families pay out of pocket when most pay $0. Same treatment as nursing homes and hospice |
 | 2026-03-24 | State-level pricing is too coarse for facility categories | Texas median AL = $5,250 but Houston = ~$6,600 and rural TX = ~$3,400. Use HUD Fair Market Rents as metro-level adjustment factors (covers ~400 MSAs = 85% of US population). Formula: state_median × (metro_FMR / state_median_FMR) |
@@ -236,6 +250,48 @@
 ---
 
 ## Session Log
+
+### 2026-03-24 (Session 57) — WEB-01: Fix ZIP Code Search for Large Metros
+
+**Branch:** `gifted-zhukovsky`
+**Notion task:** WEB-01: Fix zip code search — fails for large metros (P1 🔥)
+
+**What:** Explored, diagnosed, and fixed the ZIP code search failure for NYC and other metro areas. Built a graceful no-coverage fallback for small towns without providers.
+
+**Exploration Findings:**
+- ZIP 10001 (Manhattan) → resolves to "New York" → 0 results because DB stores providers under borough names (Manhattan, Brooklyn, Bronx, Queens)
+- Tested 20 major metros: only NYC fails (LA, Chicago, Houston, etc. all pass)
+- Tested 15 small towns: found Butte, MT also fails ("Butte" vs "Butte-Silver Bow" in DB)
+- Abbreviation audit (St./Saint, Ft./Fort, Mt./Mount): all clean, no mismatches
+- ~153 NYC providers + 10 Butte providers were invisible to search
+
+**Phase 1 — City Alias Map:**
+- Created `lib/city-aliases.ts` with `expandCityAliases()` function
+- "New York" → [Manhattan, Brooklyn, Bronx, Queens, Staten Island]
+- "Butte" → [Butte-Silver Bow]
+- Updated 3 query paths: `lib/power-pages.ts` (server), `CityBrowseClient.tsx` (client), `BrowseClient.tsx` (client)
+- Single-alias uses `.ilike()`, multi-alias uses `.in()` for efficiency
+
+**Phase 2 — Graceful No-Coverage Fallback:**
+- Created `lib/nearest-city.ts` — haversine distance against top 200 cities, prefers same-state
+- Replaced cold "No providers found yet" with warm fallback:
+  - Map pin icon + "We're expanding to {city} soon"
+  - Nearest city suggestion card with distance and CTA button
+  - State-level browse link
+  - Cross-category links
+- Reads cities-tier1.json server-side via fs for build compatibility
+
+**Phase 3 — ZIP Auto-Resolve on Submit:**
+- Homepage `handleSearch`: if input is 3-5 digits, use `cityResults[0]` from hook (already in memory) or sync fallback from `citySearchService.search()`
+- Browse page: if `?location=10001`, resolve ZIP to city name on mount before first Supabase query
+- Zero latency — uses already-loaded zip-index data
+
+**System Documentation:**
+- Added "City Alias System" section to `docs/SYSTEMS.md` with alias map, query paths, and maintenance notes
+
+**Build:** Passes clean. PR #369.
+
+---
 
 ### 2026-03-24 (Session 56) — Provider Pricing Strategy & Disclaimers Overhaul
 

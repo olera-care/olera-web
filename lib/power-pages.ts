@@ -17,6 +17,7 @@ import {
   SUPABASE_CAT_TO_PROFILE_CATEGORY,
 } from "@/lib/types/provider";
 import type { BusinessProfile } from "@/lib/types";
+import { expandCityAliases } from "@/lib/city-aliases";
 import { getStateMedian, getPricingConfig, PRICING_DATA_SOURCE } from "@/lib/pricing-config";
 
 // ============================================================
@@ -202,7 +203,15 @@ export async function fetchPowerPageData(opts: {
     .or("deleted.is.null,deleted.eq.false");
 
   if (stateAbbrev) query = query.eq("state", stateAbbrev);
-  if (city) query = query.ilike("city", city);
+  // Expand city aliases (e.g. "New York" → boroughs, "Butte" → "Butte-Silver Bow")
+  const cityNames = city ? expandCityAliases(city) : null;
+  if (cityNames) {
+    if (cityNames.length === 1) {
+      query = query.ilike("city", cityNames[0]);
+    } else {
+      query = query.in("city", cityNames);
+    }
+  }
 
   query = query
     .order("community_Score", { ascending: false, nullsFirst: false })
@@ -223,7 +232,13 @@ export async function fetchPowerPageData(opts: {
 
   if (bpQuery) {
     if (stateAbbrev) bpQuery = bpQuery.eq("state", stateAbbrev);
-    if (city) bpQuery = bpQuery.ilike("city", city);
+    if (cityNames) {
+      if (cityNames.length === 1) {
+        bpQuery = bpQuery.ilike("city", cityNames[0]);
+      } else {
+        bpQuery = bpQuery.in("city", cityNames);
+      }
+    }
     bpQuery = bpQuery.order("created_at", { ascending: false }).limit(limit);
   }
 

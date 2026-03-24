@@ -116,12 +116,42 @@ async function getProviderInfoForAuth(
       break;
     }
     case "review": {
+      // Reviews store provider_id as slug (e.g., "test-effy-s-homecare")
       const { data: review } = await adminDb
         .from("reviews")
         .select("provider_id")
         .eq("id", actionId)
         .single();
-      providerProfileId = review?.provider_id || null;
+      if (review?.provider_id) {
+        // Try lookup by slug first
+        let { data: profile } = await adminDb
+          .from("business_profiles")
+          .select("id")
+          .eq("slug", review.provider_id)
+          .single();
+
+        // Fallback: try source_provider_id (for iOS-imported providers)
+        if (!profile) {
+          const { data: fallbackProfile } = await adminDb
+            .from("business_profiles")
+            .select("id")
+            .eq("source_provider_id", review.provider_id)
+            .single();
+          profile = fallbackProfile;
+        }
+
+        // Last fallback: try as UUID directly
+        if (!profile) {
+          const { data: uuidProfile } = await adminDb
+            .from("business_profiles")
+            .select("id")
+            .eq("id", review.provider_id)
+            .single();
+          profile = uuidProfile;
+        }
+
+        providerProfileId = profile?.id || null;
+      }
       break;
     }
   }

@@ -5,21 +5,22 @@ interface RegionalEstimateLabelProps {
   priceRange: string;
   /** Whether this is a provider-entered price or a regional fallback */
   isRegionalEstimate: boolean;
-  /** Optional: state name for attribution (e.g., "Texas") */
-  stateName?: string;
+  /** Whether the estimate uses metro-level adjustment (vs flat state average) */
+  isMetroAdjusted?: boolean;
 }
 
 /**
  * Displays a price with visual distinction between provider-entered
- * and regional estimate (state average fallback) prices.
+ * and regional estimate prices.
  *
  * - Provider-entered: bold, standard styling (same as today)
- * - Regional estimate: lighter weight, "State avg." prefix
+ * - Metro-adjusted estimate: "Area avg." prefix, lighter styling
+ * - State-level estimate: "State avg." prefix, lighter styling
  */
 export default function RegionalEstimateLabel({
   priceRange,
   isRegionalEstimate,
-  stateName,
+  isMetroAdjusted,
 }: RegionalEstimateLabelProps) {
   if (!isRegionalEstimate) {
     // Provider-entered price — display as today
@@ -29,7 +30,7 @@ export default function RegionalEstimateLabel({
   }
 
   // Regional estimate — visually lighter with attribution
-  const label = stateName ? `${stateName} avg.` : "State avg.";
+  const label = isMetroAdjusted ? "Area avg." : "State avg.";
 
   return (
     <div className="flex items-baseline gap-1.5">

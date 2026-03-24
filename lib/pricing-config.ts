@@ -109,15 +109,15 @@ export const CATEGORY_PRICING_CONFIG: Record<string, CategoryPricingConfig> = {
 
   "Home Health Care": {
     label: "Home Health",
-    tier: 2,
+    tier: 3,
     unit: "hour",
-    showEstimate: true,
+    showEstimate: false,
     disclaimer:
-      "Rates shown are for private-pay services. Many home health services are covered by Medicare.",
+      "Most home health services are covered by Medicare at no cost to patients when ordered by a doctor.",
     coverageNote:
-      "Medicare covers many home health services including skilled nursing, physical therapy, and occupational therapy when ordered by a doctor.",
+      "Medicare covers most home health services — skilled nursing, physical therapy, occupational therapy, and speech therapy — at no cost when you are homebound and have a doctor's order.",
     cityPageNote:
-      "Many home health services are covered by Medicare. Private-pay rates apply for non-covered services.",
+      "Most home health services are covered by Medicare at no cost to patients. A doctor's order is required.",
   },
 
   "Nursing Home": {
@@ -239,6 +239,55 @@ export const PRICING_DATA_SOURCE = {
 } as const;
 
 // ---------------------------------------------------------------------------
+// Metro-Level Cost Adjustment Factors (HUD FMR 2025)
+// ---------------------------------------------------------------------------
+
+/**
+ * Metro cost adjustment factors derived from HUD Fair Market Rents (FY 2025).
+ * Each factor represents how a metro area's housing costs compare to its
+ * state's population-weighted median. Loaded lazily on first use.
+ *
+ * Key format: "CityName|ST" (e.g., "Houston|TX")
+ * Value: adjustment factor (e.g., 1.23 = 23% above state median)
+ * Cities with factor ≈ 1.0 are omitted to save space.
+ *
+ * Coverage: ~15,800 cities across 618 metro areas (~86% of US population).
+ * Cities not in the dataset fall back to state median (factor = 1.0).
+ *
+ * Source: HUD Fair Market Rents FY 2025 (revised April 2025)
+ * Methodology: MSA pop-weighted FMR / state pop-weighted-median FMR
+ */
+let _metroCostFactors: Record<string, number> | null = null;
+
+function getMetroCostFactors(): Record<string, number> {
+  if (_metroCostFactors) return _metroCostFactors;
+  try {
+    // Dynamic import for server-side use
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const fs = require("fs");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const path = require("path");
+    const filePath = path.join(process.cwd(), "public/data/metro-cost-factors.json");
+    _metroCostFactors = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch {
+    // Client-side or file not found — fall back to empty (factor = 1.0 for all)
+    _metroCostFactors = {};
+  }
+  return _metroCostFactors!;
+}
+
+/**
+ * Get metro-level cost adjustment factor for a city.
+ * Returns 1.0 if city is not in a metro area or data unavailable.
+ */
+export function getMetroFactor(city: string | null | undefined, state: string): number {
+  if (!city) return 1.0;
+  const factors = getMetroCostFactors();
+  const key = `${city}|${normalizeStateCode(state)}`;
+  return factors[key] ?? 1.0;
+}
+
+// ---------------------------------------------------------------------------
 // Derived Pricing Multipliers
 // ---------------------------------------------------------------------------
 
@@ -303,8 +352,9 @@ export function getPricingConfig(category: string): CategoryPricingConfig {
  */
 export function getRegionalEstimate(
   category: string,
-  state: string
-): { low: number; high: number; unit: PriceUnit; formatted: string } | null {
+  state: string,
+  city?: string | null
+): { low: number; high: number; unit: PriceUnit; formatted: string; isMetroAdjusted: boolean } | null {
   const config = getPricingConfig(category);
   // Normalize to display name for switch matching
   const cat = PROFILE_CATEGORY_TO_CONFIG_KEY[category] ?? category;
@@ -316,10 +366,14 @@ export function getRegionalEstimate(
   const stateCode = normalizeStateCode(state);
   const costs = STATE_MEDIAN_COSTS[stateCode] ?? NATIONAL_MEDIANS;
 
+  // Metro adjustment factor (1.0 = state average, >1 = more expensive metro)
+  const metroFactor = city ? getMetroFactor(city, state) : 1.0;
+  const isMetroAdjusted = metroFactor !== 1.0;
+
   switch (cat) {
     case "Home Care (Non-medical)": {
-      const rate = costs.homeCareHourly;
-      // Range: ±15% of median to approximate local variation
+      const rate = Math.round(costs.homeCareHourly * metroFactor);
+      // Range: ±15% of adjusted median
       const low = Math.round(rate * 0.85);
       const high = Math.round(rate * 1.15);
       return {
@@ -327,36 +381,31 @@ export function getRegionalEstimate(
         high,
         unit: "hour",
         formatted: `$${low}–$${high}/hr`,
+        isMetroAdjusted,
       };
     }
 
     case "Home Health Care": {
-      const rate = costs.homeHealthHourly;
-      const low = Math.round(rate * 0.85);
-      const high = Math.round(rate * 1.15);
-      return {
-        low,
-        high,
-        unit: "hour",
-        formatted: `$${low}–$${high}/hr`,
-      };
+      // Home Health is Tier 3, won't reach here due to showEstimate=false check above
+      return null;
     }
 
     case "Assisted Living": {
-      const monthly = costs.assistedLivingMonthly;
-      const low = roundToHundred(monthly * 0.8);
-      const high = roundToHundred(monthly * 1.2);
+      const monthly = costs.assistedLivingMonthly * metroFactor;
+      const low = roundToHundred(monthly * 0.85);
+      const high = roundToHundred(monthly * 1.15);
       return {
         low,
         high,
         unit: "month",
         formatted: `$${low.toLocaleString()}–$${high.toLocaleString()}/mo`,
+        isMetroAdjusted,
       };
     }
 
     case "Memory Care": {
-      // Derived: assisted living + 25% premium
-      const base = costs.assistedLivingMonthly * MEMORY_CARE_PREMIUM;
+      // Derived: assisted living + 25% premium, then metro-adjusted
+      const base = costs.assistedLivingMonthly * MEMORY_CARE_PREMIUM * metroFactor;
       const low = roundToHundred(base * 0.85);
       const high = roundToHundred(base * 1.2);
       return {
@@ -364,12 +413,13 @@ export function getRegionalEstimate(
         high,
         unit: "month",
         formatted: `$${low.toLocaleString()}–$${high.toLocaleString()}/mo`,
+        isMetroAdjusted,
       };
     }
 
     case "Independent Living": {
-      // Derived: ~55% of assisted living
-      const base = costs.assistedLivingMonthly * INDEPENDENT_LIVING_RATIO;
+      // Derived: ~55% of assisted living, then metro-adjusted
+      const base = costs.assistedLivingMonthly * INDEPENDENT_LIVING_RATIO * metroFactor;
       const low = roundToHundred(base * 0.8);
       const high = roundToHundred(base * 1.2);
       return {
@@ -377,10 +427,11 @@ export function getRegionalEstimate(
         high,
         unit: "month",
         formatted: `$${low.toLocaleString()}–$${high.toLocaleString()}/mo`,
+        isMetroAdjusted,
       };
     }
 
-    // Nursing Home & Hospice: showEstimate is false, handled above
+    // Nursing Home, Hospice, Home Health: showEstimate is false, handled above
     default:
       return null;
   }

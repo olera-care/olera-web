@@ -171,8 +171,10 @@ export interface ProviderCardData {
   cmsRating?: number | null;
   cmsSource?: string | null;
   trustSignalCount?: number; // count of AI-confirmed trust signals
-  /** True when priceRange is a state-level estimate, not provider-entered */
+  /** True when priceRange is a regional estimate, not provider-entered */
   isRegionalEstimate?: boolean;
+  /** True when regional estimate uses metro-level adjustment (vs flat state average) */
+  isMetroAdjusted?: boolean;
   /** Raw provider_category for pricing tier logic (e.g., "Nursing Home", "nursing_home") */
   providerCategory?: string;
 }
@@ -316,12 +318,14 @@ export function toCardFormat(provider: Provider): ProviderCardData {
   // Pricing: provider-entered first, then regional estimate fallback
   let priceRange = formatPriceRange(provider) || "";
   let isRegionalEstimate = false;
+  let isMetroAdjusted = false;
 
   if (!priceRange && provider.state) {
-    const regional = getRegionalEstimate(provider.provider_category, provider.state);
+    const regional = getRegionalEstimate(provider.provider_category, provider.state, provider.city);
     if (regional) {
       priceRange = regional.formatted;
       isRegionalEstimate = true;
+      isMetroAdjusted = regional.isMetroAdjusted;
     }
   }
 
@@ -341,6 +345,7 @@ export function toCardFormat(provider: Provider): ProviderCardData {
     reviewCount: provider.google_reviews_data?.review_count ?? undefined,
     priceRange,
     isRegionalEstimate,
+    isMetroAdjusted,
     providerCategory: provider.provider_category,
     primaryCategory: getCategoryDisplayName(provider.provider_category),
     careTypes: [provider.provider_category],
@@ -440,6 +445,7 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
   const contactForPricing = meta?.contact_for_pricing === true;
   let priceRange = "Contact for pricing";
   let isRegionalEstimate = false;
+  let isMetroAdjusted = false;
 
   if (!contactForPricing) {
     const lowerPrice = meta?.lower_price as number | undefined;
@@ -456,10 +462,11 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
       priceRange = meta.price_range as string;
     } else if (bp.state && bp.category) {
       // Regional estimate fallback
-      const regional = getRegionalEstimate(bp.category, bp.state);
+      const regional = getRegionalEstimate(bp.category, bp.state, bp.city);
       if (regional) {
         priceRange = regional.formatted;
         isRegionalEstimate = true;
+        isMetroAdjusted = regional.isMetroAdjusted;
       }
     }
   }
@@ -476,6 +483,7 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
     reviewCount: undefined,
     priceRange,
     isRegionalEstimate,
+    isMetroAdjusted,
     providerCategory: bp.category ?? undefined,
     primaryCategory: displayCategory,
     careTypes: bp.care_types.length > 0 ? bp.care_types : (supabaseCat ? [supabaseCat] : []),

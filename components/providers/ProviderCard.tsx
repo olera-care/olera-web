@@ -36,7 +36,8 @@ export interface Provider {
   staffImage?: string; // Optional staff/caregiver avatar (legacy, use staff instead)
   staff?: StaffMember; // Staff member info for overlay
   description?: string; // Short tagline or description
-  isRegionalEstimate?: boolean; // True when priceRange is a state-level estimate
+  isRegionalEstimate?: boolean; // True when priceRange is a regional estimate
+  isMetroAdjusted?: boolean; // True when estimate uses metro-level adjustment
   providerCategory?: string; // Raw category for pricing tier logic
   // Detailed pricing breakdown
   pricingDetails?: {
@@ -322,6 +323,7 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
             <RegionalEstimateLabel
               priceRange={provider.priceRange}
               isRegionalEstimate={!!provider.isRegionalEstimate}
+              isMetroAdjusted={!!provider.isMetroAdjusted}
             />
           </div>
         ) : provider.priceRange ? (

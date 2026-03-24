@@ -190,6 +190,7 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
             <RegionalEstimateLabel
               priceRange={provider.priceRange}
               isRegionalEstimate={!!provider.isRegionalEstimate}
+              isMetroAdjusted={!!provider.isMetroAdjusted}
             />
           </div>
         ) : provider.priceRange ? (

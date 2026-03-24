@@ -293,9 +293,14 @@ export default function AdminQuestionsPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     {/* Question text */}
-                    <p className={`text-[15px] font-medium leading-snug ${isRemoved ? "text-gray-400 line-through" : "text-gray-900"}`}>
+                    <a
+                      href={`/provider/${q.provider_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`text-[15px] font-medium leading-snug hover:underline transition-colors ${isRemoved ? "text-gray-400 line-through" : "text-gray-900 hover:text-primary-600"}`}
+                    >
                       {q.question}
-                    </p>
+                    </a>
 
                     {/* Meta line */}
                     <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">

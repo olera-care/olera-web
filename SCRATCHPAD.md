@@ -338,6 +338,41 @@
 
 ---
 
+### 2026-03-24 (Session 56b) — 5-City NY Batch Expansion Pipeline
+
+**Branch:** `silly-hopper` (pipeline scripts + ops)
+
+**What:** Batch city expansion for 5 New York cities from the expansion map tool. Built reusable processing and enrichment scripts (`scripts/process-city.js`, `scripts/enrich-city.js`) that automate the full pipeline end-to-end.
+
+**Pipeline Results:**
+
+| City | Discovered | Uploaded | Final Active |
+|------|-----------|---------|-------------|
+| Greenburgh | 412 | 200 | 146 |
+| Clarkstown | 386 | 177 | 135 |
+| Glens Falls | 307 | 73 | 42 |
+| Clay | 214 | 103 | 73 |
+| Union | 556 | 310 | 118 |
+| **Total** | **1,875** | **863** | **514** |
+
+**Filtering breakdown:** 85 keyword, 624 AI classification, 303 dedup, 225 out-of-area, 124 trust signal false positives
+
+**Cost:** ~$31 total (discovery $19, AI/geocoding/enrichment ~$12)
+
+**New scripts created:**
+- `scripts/process-city.js` — Full clean/upload pipeline: keyword filter → AI classify → dedup → category map → name check → IDs → upload → geocode → out-of-area cleanup
+- `scripts/enrich-city.js` — Parallel enrichment: descriptions + reviews data + trust signals + images (parallel), then review snippets (sequential to avoid JSONB race condition)
+
+**Key observations:**
+- Union had massive out-of-area contamination (177/310 deleted) — Binghamton metro area pulls providers from all over NY
+- Glens Falls had highest AI rejection rate (66%) — lots of mobile home parks, vacation rentals, event venues
+- Clarkstown had many disability services orgs (OPWDD-funded) misclassified as senior care
+- Trust signal step continues to be high-value QC — caught 124 additional false positives across all cities
+
+**Notion:** All 5 cities marked Complete with all 14 checkboxes checked.
+
+---
+
 ### 2026-03-23 (Session 55) — Greece, NY City Expansion Pipeline
 
 **Branch:** `silly-thompson` (no code changes — pipeline ops only)

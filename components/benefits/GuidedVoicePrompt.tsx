@@ -9,7 +9,7 @@ const GUIDED_PROMPTS: Record<IntakeStep, string> = {
   1: "How old is the person who needs care?",
   2: "Would they prefer to stay at home, or are you exploring facilities?",
   3: "What kind of help do they need most? You can mention a few things.",
-  4: "To match the right programs, roughly what\u2019s their monthly income? You can also say \u201Cprefer not to say.\u201D",
+  4: "To match the right programs, roughly what\u2019s the monthly budget for care? You can also say \u201Cprefer not to say.\u201D",
   5: "Do they currently have Medicaid?",
   6: "Last one \u2014 is the person who needs care a veteran?",
 };

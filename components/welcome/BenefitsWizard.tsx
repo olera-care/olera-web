@@ -74,7 +74,7 @@ const STEPS = [
   { id: "age", title: "Age", subtitle: "How old is the person who needs care?" },
   { id: "care", title: "Care Setting", subtitle: "Hoping to stay home or explore facilities?" },
   { id: "needs", title: "Primary Needs", subtitle: "What kind of help is most needed?" },
-  { id: "income", title: "Income", subtitle: "About how much is the monthly income?" },
+  { id: "income", title: "Budget", subtitle: "What is your monthly budget for care expenses?" },
   { id: "medicaid", title: "Medicaid", subtitle: "Do you currently have Medicaid?" },
 ] as const;
 

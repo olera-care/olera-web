@@ -898,9 +898,12 @@ export default function BenefitsIntakeForm() {
       <p className="text-xs text-gray-400 mb-3 tabular-nums">
         {step + 1} / {TOTAL_INTAKE_STEPS}
       </p>
-      <h2 className="font-display text-display-sm font-medium text-gray-900 mb-8 leading-snug tracking-tight">
+      <h2 className={`font-display text-display-sm font-medium text-gray-900 leading-snug tracking-tight ${step === 4 ? "mb-2" : "mb-8"}`}>
         {step === 0 ? "Where are you located?" : stepInfo.question}
       </h2>
+      {step === 4 && (
+        <p className="text-sm text-gray-500 mb-8">This helps us find programs and providers that fit your budget. It does not need to be exact.</p>
+      )}
 
       {/* Step 0: Smart Location Input */}
       {step === 0 && (

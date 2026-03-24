@@ -60,19 +60,24 @@ export async function GET(request: NextRequest) {
     // Enrich with provider display names
     const slugs = [...new Set((questions ?? []).map((q) => q.provider_id).filter(Boolean))];
     let providerNames: Record<string, string> = {};
+    let providerEditorIds: Record<string, string> = {};
     if (slugs.length > 0) {
       const { data: providers } = await db
         .from("business_profiles")
-        .select("slug, display_name")
+        .select("slug, display_name, source_provider_id")
         .in("slug", slugs);
       providerNames = Object.fromEntries(
         (providers ?? []).map((p) => [p.slug, p.display_name])
+      );
+      providerEditorIds = Object.fromEntries(
+        (providers ?? []).filter((p) => p.source_provider_id).map((p) => [p.slug, p.source_provider_id])
       );
     }
 
     const enriched = (questions ?? []).map((q) => ({
       ...q,
       provider_name: providerNames[q.provider_id] || null,
+      provider_editor_id: providerEditorIds[q.provider_id] || null,
     }));
 
     // Fetch tab counts for pending and needs_email

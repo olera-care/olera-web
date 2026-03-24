@@ -7,6 +7,7 @@ interface Question {
   id: string;
   provider_id: string;
   provider_name: string | null;
+  provider_editor_id: string | null;
   asker_name: string;
   asker_email: string | null;
   question: string;
@@ -278,12 +279,23 @@ export default function AdminQuestionsPage() {
                     <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
                       <span>{q.asker_name}</span>
                       <span className="text-gray-200">·</span>
-                      <Link
-                        href={`/admin/directory/${q.provider_id}`}
-                        className="text-gray-500 hover:text-primary-600 transition-colors"
-                      >
-                        {providerLabel}
-                      </Link>
+                      {q.provider_editor_id ? (
+                        <Link
+                          href={`/admin/directory/${q.provider_editor_id}`}
+                          className="text-gray-500 hover:text-primary-600 transition-colors"
+                        >
+                          {providerLabel}
+                        </Link>
+                      ) : (
+                        <a
+                          href={`/provider/${q.provider_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-500 hover:text-primary-600 transition-colors"
+                        >
+                          {providerLabel}
+                        </a>
+                      )}
                       {needsEmail && (
                         <>
                           <span className="text-gray-200">·</span>

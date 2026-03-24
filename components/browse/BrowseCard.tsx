@@ -5,6 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import { type ProviderCardData, getCategoryDisplayName } from "@/lib/types/provider";
+import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
+import RegionalEstimateLabel from "@/components/providers/RegionalEstimateLabel";
+import { getPricingConfig } from "@/lib/pricing-config";
 
 function getInitials(name: string): string {
   return name
@@ -142,8 +145,8 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
           {careTypeLabel}{provider.address ? ` · ${provider.address}` : ""}
         </p>
 
-        {/* CMS Medicare Quality */}
-        {provider.cmsRating != null && provider.cmsRating > 0 && (
+        {/* CMS Medicare Quality — only show 4/5 and 5/5 publicly (lower scores used for ranking only) */}
+        {provider.cmsRating != null && provider.cmsRating >= 4 && (
           <div className="flex items-center gap-1 mt-1.5">
             <svg className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
@@ -152,8 +155,8 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
           </div>
         )}
 
-        {/* AI Verified Credentials */}
-        {!provider.cmsRating && provider.trustSignalCount != null && provider.trustSignalCount > 0 && (
+        {/* AI Verified Credentials — show when no CMS badge displayed */}
+        {!(provider.cmsRating != null && provider.cmsRating >= 4) && provider.trustSignalCount != null && provider.trustSignalCount > 0 && (
           <div className="flex items-center gap-1 mt-1.5">
             <svg className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
@@ -180,9 +183,19 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
         <div className="flex-1 min-h-2" />
 
         {/* Price */}
-        {provider.priceRange && (
+        {provider.providerCategory && getPricingConfig(provider.providerCategory).tier === 3 && !provider.isRegionalEstimate && provider.priceRange === "Contact for pricing" ? (
+          <div className="mt-3"><PricingEducationBadge category={provider.providerCategory} compact /></div>
+        ) : provider.priceRange && provider.priceRange !== "Contact for pricing" ? (
+          <div className="mt-3">
+            <RegionalEstimateLabel
+              priceRange={provider.priceRange}
+              isRegionalEstimate={!!provider.isRegionalEstimate}
+              isMetroAdjusted={!!provider.isMetroAdjusted}
+            />
+          </div>
+        ) : provider.priceRange ? (
           <p className="text-sm font-bold text-gray-900 mt-3">{provider.priceRange}</p>
-        )}
+        ) : null}
       </div>
     </Link>
   );

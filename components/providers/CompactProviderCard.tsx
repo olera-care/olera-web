@@ -4,6 +4,9 @@ import Link from "next/link";
 import type { Provider } from "./ProviderCard";
 import { FallbackImage } from "./FallbackImage";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
+import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
+import RegionalEstimateLabel from "@/components/providers/RegionalEstimateLabel";
+import { getPricingConfig } from "@/lib/pricing-config";
 
 function getInitials(name: string): string {
   return name
@@ -129,9 +132,19 @@ export default function CompactProviderCard({ provider }: CompactProviderCardPro
         <div className="flex-1 min-h-1" />
 
         {/* Price */}
-        {provider.priceRange && (
+        {provider.providerCategory && getPricingConfig(provider.providerCategory).tier === 3 && !provider.isRegionalEstimate && provider.priceRange === "Contact for pricing" ? (
+          <div className="mt-2"><PricingEducationBadge category={provider.providerCategory} compact /></div>
+        ) : provider.priceRange && provider.priceRange !== "Contact for pricing" ? (
+          <div className="mt-2">
+            <RegionalEstimateLabel
+              priceRange={provider.priceRange}
+              isRegionalEstimate={!!provider.isRegionalEstimate}
+              isMetroAdjusted={!!provider.isMetroAdjusted}
+            />
+          </div>
+        ) : provider.priceRange ? (
           <p className="text-sm font-bold text-gray-900 mt-2">{provider.priceRange}</p>
-        )}
+        ) : null}
       </div>
     </Link>
   );

@@ -20,6 +20,8 @@ import MobileGalleryActionBar from "@/components/providers/MobileGalleryActionBa
 import MobileStickyBottomCTA from "@/components/providers/MobileStickyBottomCTA";
 import MobileClaimLink from "@/components/providers/MobileClaimLink";
 import PriceEstimate from "@/components/providers/PriceEstimate";
+import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
+import { getPricingConfig } from "@/lib/pricing-config";
 import ManagePageCTA from "@/components/providers/ManagePageCTA";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
 import ReviewsSection from "@/components/providers/ReviewsSection";
@@ -349,6 +351,7 @@ export default async function ProviderPage({
 
   const categoryLabel = formatCategory(profile.category);
   const locationStr = [profile.city, profile.state].filter(Boolean).join(", ");
+  const pricingConfig = profile.category ? getPricingConfig(profile.category) : null;
 
   // --- Parallel data fetching (claim state, similar providers, Q&A, reviews) ---
   const [claimResult, similarProviders, qaResult] = await Promise.all([
@@ -506,7 +509,7 @@ export default async function ProviderPage({
   sectionItems.push({ id: "services", label: "Services" });
   sectionItems.push({ id: "qa", label: "Q&A" });
   if (!hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
-  if (cmsData?.overall_rating) sectionItems.push({ id: "quality", label: "Quality" });
+  if (cmsData?.overall_rating && cmsData.overall_rating >= 4) sectionItems.push({ id: "quality", label: "Quality" });
   if (aiTrustSignals && aiTrustSignals.summary_score > 0) sectionItems.push({ id: "trust-signals", label: "Verified" });
   sectionItems.push({ id: "about", label: "About" });
   if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
@@ -565,7 +568,8 @@ export default async function ProviderPage({
         ...(googleReviewsData.review_count != null && { reviewCount: googleReviewsData.review_count }),
       },
     }),
-    ...(priceRange && { priceRange }),
+    // Suppress priceRange in schema for Tier 3 unless provider explicitly entered pricing
+    ...(priceRange && (pricingConfig?.tier !== 3 || (meta?.price_min != null)) && { priceRange }),
     ...(meta?.price_min != null && meta?.price_max != null && {
       priceSpecification: {
         "@type": "UnitPriceSpecification",
@@ -717,8 +721,10 @@ export default async function ProviderPage({
                 {/* Row 2: Price (left) — Rating (right) */}
                 <div className="flex items-center justify-between mt-3">
                   <div>
-                    {hasPriceRange ? (
-                      <PriceEstimate priceRange={priceRange!} />
+                    {pricingConfig?.tier === 3 && !hasPriceRange ? (
+                      <PricingEducationBadge category={profile.category!} />
+                    ) : hasPriceRange ? (
+                      <PriceEstimate priceRange={priceRange!} category={profile.category ?? undefined} />
                     ) : (
                       <p className="text-sm text-gray-400">Contact for pricing</p>
                     )}
@@ -764,8 +770,10 @@ export default async function ProviderPage({
                   )}
                 </div>
 
-                {hasPriceRange ? (
-                  <PriceEstimate priceRange={priceRange!} />
+                {pricingConfig?.tier === 3 && !hasPriceRange ? (
+                  <div className="mt-1"><PricingEducationBadge category={profile.category!} /></div>
+                ) : hasPriceRange ? (
+                  <PriceEstimate priceRange={priceRange!} category={profile.category ?? undefined} />
                 ) : (
                   <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
                 )}
@@ -920,8 +928,8 @@ export default async function ProviderPage({
                 </div>
               )}
 
-              {/* ── CMS Quality & Safety ── */}
-              {cmsData && cmsData.overall_rating && (
+              {/* ── CMS Quality & Safety — only show 4/5 and 5/5 publicly (lower scores used for ranking only) ── */}
+              {cmsData && cmsData.overall_rating && cmsData.overall_rating >= 4 && (
                 <div className="py-8 border-t border-gray-200">
                   <CMSQualitySection cmsData={cmsData} />
                 </div>
@@ -967,6 +975,14 @@ export default async function ProviderPage({
                       </div>
                     ))}
                   </div>
+                  {pricingConfig && (
+                    <p className="text-xs text-gray-400 mt-4 leading-relaxed">
+                      {pricingConfig.disclaimer}
+                      {pricingConfig.coverageNote && (
+                        <> {pricingConfig.coverageNote}</>
+                      )}
+                    </p>
+                  )}
                 </div>
               )}
 

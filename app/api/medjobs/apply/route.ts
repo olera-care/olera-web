@@ -190,6 +190,34 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
         }
 
+        // Fire-and-forget: welcome email (first email student receives — partial creation didn't send one)
+        try {
+          const supabaseAdmin = getSupabaseAdmin();
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+          let magicLinkForEmail: string | undefined;
+          const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+            type: "magiclink",
+            email: normalizedEmailEarly,
+            options: { redirectTo: `${siteUrl}/portal/medjobs` },
+          });
+          if (linkData?.properties?.action_link) {
+            magicLinkForEmail = linkData.properties.action_link;
+          }
+
+          await sendEmail({
+            to: normalizedEmailEarly,
+            subject: "Welcome to Olera MedJobs!",
+            html: studentWelcomeEmail({
+              studentName: trimmedName,
+              university: (updateMetadata.university as string) || "",
+              profileSlug: resolvedSlug,
+              magicLink: magicLinkForEmail,
+            }),
+          });
+        } catch (err) {
+          console.error("[medjobs/apply] welcome email error (update path):", err);
+        }
+
         // Fire-and-forget: Slack alert for full completion
         try {
           const alert = slackMedJobsNewStudent({

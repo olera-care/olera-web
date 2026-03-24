@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { sendEmail } from "@/lib/email";
-import { studentWelcomeEmail } from "@/lib/medjobs-email-templates";
 import { sendSlackAlert, slackMedJobsNewStudent } from "@/lib/slack";
 
 // Lazy initialization to avoid build-time errors when env vars are not available
@@ -97,7 +95,6 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Create Supabase Auth user + accounts row + link to profile ──
-    let magicLink: string | undefined;
     let autoSignInToken: string | undefined;
 
     try {
@@ -166,17 +163,7 @@ export async function POST(req: NextRequest) {
 
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
 
-      // Generate magic link for welcome email
-      const { data: emailLink } = await supabaseAdmin.auth.admin.generateLink({
-        type: "magiclink",
-        email: normalizedEmail,
-        options: { redirectTo: `${siteUrl}/portal/medjobs` },
-      });
-      if (emailLink?.properties?.action_link) {
-        magicLink = emailLink.properties.action_link;
-      }
-
-      // Generate a separate token for auto-sign-in (client-side session)
+      // Generate token for auto-sign-in (client-side session)
       const { data: signInLink } = await supabaseAdmin.auth.admin.generateLink({
         type: "magiclink",
         email: normalizedEmail,
@@ -189,21 +176,8 @@ export async function POST(req: NextRequest) {
       console.error("[medjobs/apply-partial] account creation error:", err);
     }
 
-    // Fire-and-forget: welcome email
-    try {
-      await sendEmail({
-        to: normalizedEmail,
-        subject: "Welcome to Olera MedJobs!",
-        html: studentWelcomeEmail({
-          studentName: trimmedName,
-          university: "",
-          profileSlug: slug,
-          magicLink,
-        }),
-      });
-    } catch (err) {
-      console.error("[medjobs/apply-partial] welcome email error:", err);
-    }
+    // No welcome email on partial creation — the full submit (step 4) sends it.
+    // If student abandons, the 48h nudge cron handles follow-up.
 
     // Fire-and-forget: Slack alert
     try {

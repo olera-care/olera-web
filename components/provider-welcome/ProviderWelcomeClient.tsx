@@ -5,8 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
-import type { ActionType } from "@/app/provider/welcome/page";
+import type { ActionType, TokenValidationInfo } from "@/app/provider/welcome/page";
 import { createClient } from "@/lib/supabase/client";
+import { markSessionTokenValidated } from "@/lib/claim-session";
 import {
   getOrCreateClaimSession,
   getClaimSession,
@@ -98,6 +99,11 @@ interface ProviderWelcomeClientProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   actionData: any;
   providerForAuth?: ProviderForAuth | null;
+  // Token validation for campaign emails (pre-verified)
+  tokenInfo?: TokenValidationInfo | null;
+  // Campaign-specific content
+  campaignHeadline?: string;
+  campaignMessage?: string;
 }
 
 // ============================================================
@@ -219,6 +225,15 @@ function getActionConfig(action: ActionType, actionData: ActionData): ActionConf
       icon: (
         <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+      ),
+    },
+    campaign: {
+      subtitle: "Families are looking for care",
+      routeTo: "/provider",
+      icon: (
+        <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       ),
     },
@@ -591,6 +606,7 @@ function FallbackCard({ action, config }: FallbackCardProps) {
     question: "Someone asked a question about your services. A thoughtful answer builds trust.",
     review: "You received a new review. See what families are saying about your care.",
     message: "You have a new message. Continue the conversation with the family.",
+    campaign: "Families in your area are actively searching for care providers like you.",
   };
 
   return (
@@ -629,8 +645,76 @@ function FallbackCard({ action, config }: FallbackCardProps) {
 }
 
 // ============================================================
+// Campaign Card (for marketing emails)
+// ============================================================
+
+interface CampaignCardProps {
+  headline?: string;
+  message?: string;
+  config: ActionConfig;
+}
+
+function CampaignCard({ headline, message, config }: CampaignCardProps) {
+  const displayHeadline = headline || "Families are searching for care in your area";
+  const displayMessage = message || "Your listing is visible to families looking for care providers. Claim your page to respond to inquiries and manage your profile.";
+
+  return (
+    <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+      <div className="p-5 sm:p-6 flex flex-col">
+        {/* Icon + Content row */}
+        <div className="flex items-start gap-4">
+          <div className="w-14 h-14 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
+            {config.icon}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-text-xl sm:text-display-xs font-semibold text-gray-900 leading-tight">
+              {displayHeadline}
+            </h2>
+            <p className="mt-2 text-text-md text-gray-500 leading-relaxed">
+              {displayMessage}
+            </p>
+          </div>
+        </div>
+
+        {/* Spacer for consistent height */}
+        <div className="flex-1 min-h-4" />
+
+        {/* CTA */}
+        <div className="mt-4 sm:mt-5 flex sm:justify-end">
+          <Link
+            href={config.routeTo}
+            className="flex items-center justify-center w-full sm:w-auto px-6 py-3 text-text-md font-medium text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-700 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          >
+            Manage your listing
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // Inline Context Components (for State 3 unified card)
 // ============================================================
+
+function CampaignContextInline({ headline, message }: { headline?: string; message?: string }) {
+  const displayHeadline = headline || "Families are searching for care";
+  const displayMessage = message || "Claim your page to respond to inquiries and grow your business.";
+
+  return (
+    <div className="flex items-start gap-3">
+      <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
+        <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-text-md font-medium text-gray-900">{displayHeadline}</p>
+        <p className="text-text-sm text-gray-500 mt-1">{displayMessage}</p>
+      </div>
+    </div>
+  );
+}
 
 function LeadContextInline({ data }: { data: ConnectionData }) {
   const profile = data.from_profile;
@@ -759,6 +843,9 @@ export default function ProviderWelcomeClient({
   actionId,
   actionData,
   providerForAuth,
+  tokenInfo,
+  campaignHeadline,
+  campaignMessage,
 }: ProviderWelcomeClientProps) {
   const greeting = getTimeOfDayGreeting();
   const firstName = getFirstName(providerProfile?.display_name || user?.email);
@@ -806,6 +893,17 @@ export default function ProviderWelcomeClient({
         providerForAuth.profile.slug || "",
         providerForAuth.profile.display_name
       );
+
+      // Token-based pre-verification (from campaign emails)
+      // If token is valid, skip verification and go directly to signup
+      if (tokenInfo?.isValid && tokenInfo.emailHint) {
+        markSessionTokenValidated(tokenInfo.emailHint);
+        markSessionVerified(tokenInfo.emailHint);
+        setEmailHint(tokenInfo.emailHint);
+        setClaimStep("verified");
+        return;
+      }
+
       // Restore step from session
       if (session.verified) {
         setClaimStep("verified");
@@ -815,7 +913,7 @@ export default function ProviderWelcomeClient({
         setEmailHint(session.emailHint || null);
       }
     }
-  }, [user, providerForAuth]);
+  }, [user, providerForAuth, tokenInfo]);
 
   // Auto-finalize claim if user just authenticated and session is verified
   useEffect(() => {
@@ -1066,7 +1164,13 @@ export default function ProviderWelcomeClient({
 
           {/* Context Card — pb-12 matches family welcome */}
           <section className="pb-12">
-            {actionData ? (
+            {action === "campaign" ? (
+              <CampaignCard
+                headline={campaignHeadline}
+                message={campaignMessage}
+                config={config}
+              />
+            ) : actionData ? (
               <>
                 {(action === "lead" || action === "match") && (
                   <LeadCard data={actionData as ConnectionData} routeTo={config.routeTo} />
@@ -1113,6 +1217,7 @@ export default function ProviderWelcomeClient({
       question: "Someone asked you a question",
       review: "You received a new review",
       message: "You have a new message",
+      campaign: "Families are looking for care",
     };
 
     // Link sent confirmation view
@@ -1311,6 +1416,7 @@ export default function ProviderWelcomeClient({
       question: "Someone has a question for you",
       review: "You received a new review",
       message: "You have a new message",
+      campaign: "Families are searching for care",
     };
 
     // If no email on file, redirect to full onboard
@@ -1469,19 +1575,22 @@ export default function ProviderWelcomeClient({
             <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
               <div className="p-5 sm:p-6">
                 {/* Context preview */}
-                {actionData && (
+                {(actionData || action === "campaign") && (
                   <div className="pb-5 border-b border-gray-100">
-                    {(action === "lead" || action === "match") && (
+                    {(action === "lead" || action === "match") && actionData && (
                       <LeadContextInline data={actionData as ConnectionData} />
                     )}
-                    {action === "question" && (
+                    {action === "question" && actionData && (
                       <QuestionContextInline data={actionData as QuestionData} />
                     )}
-                    {action === "review" && (
+                    {action === "review" && actionData && (
                       <ReviewContextInline data={actionData as ReviewData} />
                     )}
-                    {action === "message" && (
+                    {action === "message" && actionData && (
                       <MessageContextInline data={actionData as ConnectionData} providerId={profile.id} />
+                    )}
+                    {action === "campaign" && (
+                      <CampaignContextInline headline={campaignHeadline} message={campaignMessage} />
                     )}
                   </div>
                 )}

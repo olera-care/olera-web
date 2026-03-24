@@ -60,7 +60,7 @@ const CLARIFICATIONS: Record<IntakeStep, string> = {
   1: "I need a number for the age. How old is the person who needs care?",
   2: "Would you like to stay at home, or are you exploring facility options?",
   3: "What kind of help is needed? For example: bathing, cooking, medications, or companionship.",
-  4: "What's the approximate monthly income? For example, about fifteen hundred, or two thousand.",
+  4: "What's the approximate monthly budget for care? For example, about fifteen hundred, or two thousand.",
   5: "Do you have Medicaid, are you applying, or not sure?",
   6: "Is the person who needs care a veteran? You can say yes, no, or prefer not to say.",
 };

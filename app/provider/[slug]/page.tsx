@@ -509,7 +509,7 @@ export default async function ProviderPage({
   sectionItems.push({ id: "services", label: "Services" });
   sectionItems.push({ id: "qa", label: "Q&A" });
   if (!hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
-  if (cmsData?.overall_rating) sectionItems.push({ id: "quality", label: "Quality" });
+  if (cmsData?.overall_rating && cmsData.overall_rating >= 4) sectionItems.push({ id: "quality", label: "Quality" });
   if (aiTrustSignals && aiTrustSignals.summary_score > 0) sectionItems.push({ id: "trust-signals", label: "Verified" });
   sectionItems.push({ id: "about", label: "About" });
   if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
@@ -928,8 +928,8 @@ export default async function ProviderPage({
                 </div>
               )}
 
-              {/* ── CMS Quality & Safety ── */}
-              {cmsData && cmsData.overall_rating && (
+              {/* ── CMS Quality & Safety — only show 4/5 and 5/5 publicly (lower scores used for ranking only) ── */}
+              {cmsData && cmsData.overall_rating && cmsData.overall_rating >= 4 && (
                 <div className="py-8 border-t border-gray-200">
                   <CMSQualitySection cmsData={cmsData} />
                 </div>

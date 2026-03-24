@@ -8,7 +8,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 const PREFILL_KEY = "olera_provider_search_prefill";
 
 export default function HeroSection() {
-  const { user, profiles, openAuth } = useAuth();
+  const { user, profiles } = useAuth();
   const router = useRouter();
   const [searchInput, setSearchInput] = useState("");
 
@@ -34,23 +34,12 @@ export default function HeroSection() {
       }
     }
 
-    // Determine the target URL
-    const targetUrl = hasProviderProfile
+    // Navigate directly to onboarding (auth moved to end of flow)
+    const targetUrl = (user && hasProviderProfile)
       ? "/provider/onboarding?adding=true"
       : "/provider/onboarding";
 
-    if (user) {
-      router.push(targetUrl);
-    } else {
-      // Include returnUrl so user is redirected after auth
-      openAuth({
-        intent: "provider",
-        deferred: {
-          action: "claim",
-          returnUrl: targetUrl,
-        },
-      });
-    }
+    router.push(targetUrl);
   };
 
   return (

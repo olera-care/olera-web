@@ -459,7 +459,7 @@ export default function MedJobsApplyPage() {
         <input type="text" name="website" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} tabIndex={-1} autoComplete="off" />
       </div>
 
-      <div ref={containerRef} className="max-w-xl mx-auto px-4 sm:px-6 pt-14 pb-12">
+      <div ref={containerRef} className="max-w-xl mx-auto px-4 sm:px-6 pt-14 pb-40">
         {/* Header */}
         <div className="mb-2">
           <Link href="/medjobs" className="text-sm text-gray-300 hover:text-gray-500 transition-colors">

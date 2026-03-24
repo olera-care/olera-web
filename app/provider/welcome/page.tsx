@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { getServiceClient } from "@/lib/admin";
 import ProviderWelcomeClient from "@/components/provider-welcome/ProviderWelcomeClient";
 
 export const dynamic = "force-dynamic";
@@ -230,12 +231,21 @@ export default async function ProviderWelcomePage({ searchParams }: ProviderWelc
       // Get the provider profile
       const { data: profile } = await supabase
         .from("business_profiles")
-        .select("id, display_name, type, slug, image_url, city, state")
+        .select("id, display_name, type, slug, image_url, city, state, source_provider_id")
         .eq("id", account.active_profile_id)
         .single();
 
       if (profile && (profile.type === "organization" || profile.type === "caregiver")) {
         providerProfile = profile;
+
+        // Build list of possible provider_id values for question lookups
+        const providerIdVariants = [profile.slug, profile.id];
+        if (profile.source_provider_id) {
+          providerIdVariants.push(profile.source_provider_id);
+        }
+
+        // Use service client for operations that need RLS bypass
+        const db = getServiceClient();
 
         // Fetch stats for the provider
         const [leadsResult, questionsResult, reviewsResult, messagesResult] = await Promise.all([
@@ -245,11 +255,11 @@ export default async function ProviderWelcomePage({ searchParams }: ProviderWelc
             .select("id", { count: "exact", head: true })
             .eq("to_profile_id", profile.id)
             .eq("status", "pending"),
-          // Unanswered questions
-          supabase
+          // Unanswered questions - check multiple provider_id formats
+          db
             .from("provider_questions")
             .select("id", { count: "exact", head: true })
-            .eq("provider_id", profile.slug)
+            .in("provider_id", providerIdVariants)
             .is("answer", null),
           // Total reviews
           supabase
@@ -304,7 +314,8 @@ export default async function ProviderWelcomePage({ searchParams }: ProviderWelc
               break;
             }
             case "question": {
-              const { data: question } = await supabase
+              // Use service client to bypass RLS for question lookup
+              const { data: question } = await db
                 .from("provider_questions")
                 .select("id, question, asker_name, created_at")
                 .eq("id", actionId)

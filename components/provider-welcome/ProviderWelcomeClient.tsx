@@ -1205,6 +1205,55 @@ export default function ProviderWelcomeClient({
     );
   }
 
+  // State 1b: Authenticated but no provider profile (family account or no active profile)
+  // Show campaign content and prompt to switch to provider account
+  if (user && !providerProfile && action === "campaign") {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <section className="pt-8 sm:pt-12 pb-6">
+            <p className="text-text-md sm:text-text-lg text-gray-500">
+              {greeting}
+            </p>
+            <h1 className="mt-1 text-display-xs sm:text-display-sm font-display text-gray-900">
+              {campaignHeadline || "Families are looking for care"}
+            </h1>
+          </section>
+
+          <section className="pb-12">
+            <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+              <div className="p-5 sm:p-6 flex flex-col">
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-text-md text-gray-600 leading-relaxed">
+                      {campaignMessage || "Your listing is visible to families searching for care. Claim or manage your provider page to respond to inquiries."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex-1 min-h-4" />
+
+                <div className="mt-4 sm:mt-5 flex flex-col sm:flex-row gap-3 sm:justify-end">
+                  <Link
+                    href="/for-providers"
+                    className="flex items-center justify-center w-full sm:w-auto px-6 py-3 text-text-md font-medium text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-700 rounded-xl transition-colors"
+                  >
+                    Claim your listing
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
+
   // State 2: Claimed + Not logged in (expired magic link)
   if (!user && providerForAuth?.email && providerForAuth?.profile) {
     const profile = providerForAuth.profile;

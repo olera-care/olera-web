@@ -27,65 +27,37 @@ interface StudentProfile {
   };
 }
 
-type ChecklistItem = {
+type Step = {
   key: string;
   label: string;
-  desc: string;
   done: boolean;
   locked?: boolean;
   action?: "video" | "upload_license" | "upload_insurance" | "complete_application";
 };
 
-function getChecklist(profile: StudentProfile | null): ChecklistItem[] {
+function getSteps(profile: StudentProfile | null): Step[] {
   const meta = profile?.metadata || {};
-  const applicationIncomplete = !meta.application_completed;
-  const items: ChecklistItem[] = [];
+  const appDone = !!meta.application_completed;
 
-  if (applicationIncomplete) {
-    items.push({
-      key: "application",
-      label: "Complete your application",
-      desc: "Finish the intake form to unlock next steps",
-      done: false,
-      action: "complete_application",
-    });
+  const steps: Step[] = [];
+
+  if (!appDone) {
+    steps.push({ key: "application", label: "Complete your application", done: false, action: "complete_application" });
   }
 
-  items.push(
-    {
-      key: "video",
-      label: "Intro video",
-      desc: applicationIncomplete ? "Complete your application first" : "2-3 min video so providers can get to know you",
-      done: !!meta.video_intro_url,
-      locked: applicationIncomplete,
-      action: meta.video_intro_url || applicationIncomplete ? undefined : "video",
-    },
-    {
-      key: "license",
-      label: "Driver\u2019s license",
-      desc: applicationIncomplete ? "Complete your application first" : "Required before your first assignment",
-      done: !!meta.drivers_license_url,
-      locked: applicationIncomplete,
-      action: meta.drivers_license_url || applicationIncomplete ? undefined : "upload_license",
-    },
-    {
-      key: "insurance",
-      label: "Car insurance",
-      desc: applicationIncomplete ? "Complete your application first" : "Proof of coverage for transportation",
-      done: !!meta.car_insurance_url,
-      locked: applicationIncomplete,
-      action: meta.car_insurance_url || applicationIncomplete ? undefined : "upload_insurance",
-    },
+  steps.push(
+    { key: "video", label: "Intro video", done: !!meta.video_intro_url, locked: !appDone, action: meta.video_intro_url || !appDone ? undefined : "video" },
+    { key: "license", label: "Driver\u2019s license", done: !!meta.drivers_license_url, locked: !appDone, action: meta.drivers_license_url || !appDone ? undefined : "upload_license" },
+    { key: "insurance", label: "Car insurance", done: !!meta.car_insurance_url, locked: !appDone, action: meta.car_insurance_url || !appDone ? undefined : "upload_insurance" },
   );
 
-  return items;
+  return steps;
 }
 
-/* ─── Document Upload (inline) ─────────────────────────────── */
+/* ─── Inline Upload ────────────────────────────────────────── */
 
-function InlineUpload({ profileId, documentType, label, onComplete }: {
-  profileId: string; documentType: "drivers_license" | "car_insurance";
-  label: string; onComplete: () => void;
+function InlineUpload({ profileId, documentType, onComplete }: {
+  profileId: string; documentType: "drivers_license" | "car_insurance"; onComplete: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -108,17 +80,15 @@ function InlineUpload({ profileId, documentType, label, onComplete }: {
   };
 
   return (
-    <div>
+    <>
       <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,application/pdf"
         className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); }} />
-      {error && <p className="text-xs text-red-600 mb-1">{error}</p>}
-      <button type="button" disabled={uploading}
-        onClick={() => inputRef.current?.click()}
-        className="text-sm font-medium text-gray-900 underline underline-offset-2 hover:text-gray-600 disabled:opacity-40 transition-colors">
-        {uploading ? "Uploading..." : `Upload ${label.toLowerCase()}`}
+      {error && <p className="text-xs text-red-600 mb-2">{error}</p>}
+      <button type="button" disabled={uploading} onClick={() => inputRef.current?.click()}
+        className="px-5 py-2.5 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 rounded-lg text-sm font-medium text-white transition-colors">
+        {uploading ? "Uploading..." : "Upload"}
       </button>
-      <p className="text-xs text-gray-300 mt-0.5">JPEG, PNG, WebP, or PDF</p>
-    </div>
+    </>
   );
 }
 
@@ -130,37 +100,18 @@ export default function StudentPortalPage() {
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Find student profile from auth context or fetch directly
   useEffect(() => {
     if (authLoading) return;
-
     const studentProfile = profiles?.find((p) => p.type === "student");
-    if (studentProfile) {
-      // We have the basic profile from auth context, but need full metadata
-      fetchFullProfile(studentProfile.id);
-      return;
-    }
-
-    // Fallback: query by account_id
-    if (account?.id) {
-      fetchByAccount(account.id);
-      return;
-    }
-
+    if (studentProfile) { fetchFullProfile(studentProfile.id); return; }
+    if (account?.id) { fetchByAccount(account.id); return; }
     setLoading(false);
   }, [authLoading, account?.id, profiles, refreshKey]);
 
   const fetchFullProfile = useCallback(async (profileId: string) => {
     try {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
-      const { data } = await supabase
-        .from("business_profiles")
-        .select("id, slug, display_name, email, is_active, image_url, metadata")
-        .eq("id", profileId)
-        .single();
+      const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+      const { data } = await sb.from("business_profiles").select("id, slug, display_name, email, is_active, image_url, metadata").eq("id", profileId).single();
       if (data) setProfile(data as StudentProfile);
     } catch { /* ignore */ }
     finally { setLoading(false); }
@@ -168,17 +119,8 @@ export default function StudentPortalPage() {
 
   const fetchByAccount = useCallback(async (accountId: string) => {
     try {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
-      const { data } = await supabase
-        .from("business_profiles")
-        .select("id, slug, display_name, email, is_active, image_url, metadata")
-        .eq("account_id", accountId)
-        .eq("type", "student")
-        .limit(1)
-        .maybeSingle();
+      const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+      const { data } = await sb.from("business_profiles").select("id, slug, display_name, email, is_active, image_url, metadata").eq("account_id", accountId).eq("type", "student").limit(1).maybeSingle();
       if (data) setProfile(data as StudentProfile);
     } catch { /* ignore */ }
     finally { setLoading(false); }
@@ -186,28 +128,17 @@ export default function StudentPortalPage() {
 
   const handleUploadComplete = () => setRefreshKey((k) => k + 1);
 
-  /* ─── Loading ──────────────────────────────────────────── */
-
   if (authLoading || loading) {
-    return (
-      <main className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-gray-300 text-sm">Loading your profile...</div>
-      </main>
-    );
+    return <main className="min-h-screen bg-white flex items-center justify-center"><div className="text-gray-300 text-sm">Loading...</div></main>;
   }
-
-  /* ─── No Student Profile ───────────────────────────────── */
 
   if (!profile) {
     return (
       <main className="min-h-screen bg-white flex items-center justify-center px-4">
         <div className="max-w-sm text-center">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-3">No student profile found</h1>
-          <p className="text-gray-500 mb-6">
-            It looks like you haven&apos;t applied to MedJobs yet.
-          </p>
-          <Link href="/medjobs/apply"
-            className="inline-flex items-center justify-center px-6 py-3 bg-gray-900 hover:bg-gray-800 rounded-lg text-sm font-semibold text-white transition-colors">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-3">No profile yet</h1>
+          <p className="text-gray-400 mb-6">Apply to MedJobs to get started.</p>
+          <Link href="/medjobs/apply" className="inline-flex items-center justify-center px-6 py-3 bg-gray-900 hover:bg-gray-800 rounded-lg text-sm font-semibold text-white transition-colors">
             Apply now
           </Link>
         </div>
@@ -215,132 +146,124 @@ export default function StudentPortalPage() {
     );
   }
 
-  /* ─── Dashboard ────────────────────────────────────────── */
-
-  const checklist = getChecklist(profile);
-  const doneCount = checklist.filter((i) => i.done).length;
-  const allDone = doneCount === checklist.length;
+  const steps = getSteps(profile);
+  const doneCount = steps.filter((s) => s.done).length;
+  const totalCount = steps.length;
+  const allDone = doneCount === totalCount;
   const firstName = profile.display_name?.split(" ")[0] || "there";
+
+  // Find the first incomplete, unlocked step — this is the "hero" action
+  const nextStep = steps.find((s) => !s.done && !s.locked);
+  const remainingSteps = steps.filter((s) => s !== nextStep);
 
   return (
     <main className="min-h-screen bg-white">
-      <div className="max-w-xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        {/* Header */}
-        <div className="mb-2">
-          <Link href="/medjobs" className="text-sm text-gray-300 hover:text-gray-500 transition-colors">
-            &larr; MedJobs
-          </Link>
-        </div>
+      <div className="max-w-lg mx-auto px-4 sm:px-6 py-10 sm:py-16">
+        {/* Back */}
+        <Link href="/medjobs" className="text-sm text-gray-300 hover:text-gray-500 transition-colors">
+          &larr; MedJobs
+        </Link>
 
-        <div className="mb-10 pt-4">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            {allDone ? `You\u2019re all set, ${firstName}!` : `Hey ${firstName}, let\u2019s finish up`}
+        {/* Heading */}
+        <div className="mt-8 mb-8">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-1">
+            {allDone ? `You\u2019re live, ${firstName}` : `Hey ${firstName}`}
           </h1>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-gray-400">
             {allDone
-              ? "Your profile is live. Providers can see you now."
-              : `${doneCount} of ${checklist.length} steps complete`
+              ? "Providers in your area can now find your profile."
+              : "Complete these steps and providers will be able to find you."
             }
           </p>
         </div>
 
-        {/* Status badge */}
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-8 ${
-          profile.is_active
-            ? "bg-emerald-50 text-emerald-700"
-            : "bg-amber-50 text-amber-700"
-        }`}>
-          <div className={`w-1.5 h-1.5 rounded-full ${profile.is_active ? "bg-emerald-500" : "bg-amber-500"}`} />
-          {profile.is_active ? "Profile visible to providers" : "Profile not yet visible"}
-        </div>
-
-        {/* Checklist */}
-        <div className="space-y-3 mb-10">
-          {checklist.map((item, i) => (
-            <div key={item.key}
-              className={`flex items-start gap-4 p-4 rounded-lg transition-all ${
-                item.done ? "bg-gray-50" : item.locked ? "border border-gray-100 opacity-50" : "border border-gray-200"
-              }`}>
-              {/* Badge */}
-              <span className={`inline-flex items-center justify-center w-6 h-6 rounded text-xs font-semibold shrink-0 mt-0.5 ${
-                item.done ? "bg-gray-900 text-white" : item.locked ? "bg-gray-50 text-gray-300" : "bg-gray-100 text-gray-400"
-              }`}>
-                {item.done ? "\u2713" : item.locked ? "\u2014" : i + 1}
-              </span>
-
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm font-medium ${item.done ? "text-gray-500" : item.locked ? "text-gray-400" : "text-gray-900"}`}>
-                  {item.label}
-                  {item.done && <span className="ml-2 text-xs text-gray-400">Done</span>}
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>
-
-                {/* Actions */}
-                {!item.done && item.action === "complete_application" && (
-                  <div className="mt-3">
-                    <Link href="/medjobs/apply"
-                      className="text-sm font-medium text-gray-900 underline underline-offset-2 hover:text-gray-600 transition-colors">
-                      Continue application
-                    </Link>
-                  </div>
-                )}
-                {!item.done && item.action === "video" && (
-                  <div className="mt-3">
-                    <Link href={`/medjobs/submit-video?slug=${profile.slug}&profileId=${profile.id}`}
-                      className="text-sm font-medium text-gray-900 underline underline-offset-2 hover:text-gray-600 transition-colors">
-                      Submit video
-                    </Link>
-                  </div>
-                )}
-                {!item.done && item.action === "upload_license" && (
-                  <div className="mt-3">
-                    <InlineUpload profileId={profile.id} documentType="drivers_license"
-                      label="Driver's license" onComplete={handleUploadComplete} />
-                  </div>
-                )}
-                {!item.done && item.action === "upload_insurance" && (
-                  <div className="mt-3">
-                    <InlineUpload profileId={profile.id} documentType="car_insurance"
-                      label="Car insurance" onComplete={handleUploadComplete} />
-                  </div>
-                )}
-              </div>
-            </div>
+        {/* Progress arc — simple segmented bar */}
+        <div className="flex gap-1.5 mb-10">
+          {steps.map((s) => (
+            <div key={s.key} className={`h-1 flex-1 rounded-full transition-colors ${s.done ? "bg-gray-900" : "bg-gray-100"}`} />
           ))}
         </div>
 
-        {/* Profile preview */}
-        {profile.is_active && (
-          <Link href={`/medjobs/candidates/${profile.slug}`}
-            className="inline-flex items-center justify-center w-full px-6 py-3.5 bg-gray-900 hover:bg-gray-800 rounded-lg text-sm font-semibold text-white transition-colors">
-            View your public profile
-          </Link>
-        )}
-
-        {/* Profile info card */}
-        <div className="mt-10 border-t border-gray-100 pt-8">
-          <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-4">Your application</p>
-          <div className="grid grid-cols-2 gap-4">
-            {profile.metadata.university && (
-              <div>
-                <p className="text-xs text-gray-400">University</p>
-                <p className="text-sm text-gray-900">{profile.metadata.university}</p>
+        {/* ── Hero: Next Action ── */}
+        {nextStep && !allDone && (
+          <div className="mb-8">
+            {nextStep.action === "complete_application" && (
+              <div className="p-6 rounded-xl border border-gray-200">
+                <p className="text-lg font-medium text-gray-900 mb-1">Finish your application</p>
+                <p className="text-sm text-gray-400 mb-5">Pick up where you left off — takes about 3 minutes.</p>
+                <Link href="/medjobs/apply"
+                  className="inline-flex items-center px-6 py-3 bg-gray-900 hover:bg-gray-800 rounded-lg text-sm font-semibold text-white transition-colors">
+                  Continue
+                </Link>
               </div>
             )}
-            {profile.metadata.intended_professional_school && (
-              <div>
-                <p className="text-xs text-gray-400">Career path</p>
-                <p className="text-sm text-gray-900 capitalize">{profile.metadata.intended_professional_school.replace(/_/g, " ")}</p>
+            {nextStep.action === "video" && (
+              <div className="p-6 rounded-xl border border-gray-200">
+                <p className="text-lg font-medium text-gray-900 mb-1">Record your intro video</p>
+                <p className="text-sm text-gray-400 mb-5">2-3 minutes. Providers want to see who they&apos;re working with.</p>
+                <Link href={`/medjobs/submit-video?slug=${profile.slug}&profileId=${profile.id}`}
+                  className="inline-flex items-center px-6 py-3 bg-gray-900 hover:bg-gray-800 rounded-lg text-sm font-semibold text-white transition-colors">
+                  Submit video
+                </Link>
               </div>
             )}
-            {profile.email && (
-              <div>
-                <p className="text-xs text-gray-400">Email</p>
-                <p className="text-sm text-gray-900">{profile.email}</p>
+            {nextStep.action === "upload_license" && (
+              <div className="p-6 rounded-xl border border-gray-200">
+                <p className="text-lg font-medium text-gray-900 mb-1">Upload your driver&apos;s license</p>
+                <p className="text-sm text-gray-400 mb-5">Required before your first assignment. Stored securely.</p>
+                <InlineUpload profileId={profile.id} documentType="drivers_license" onComplete={handleUploadComplete} />
+              </div>
+            )}
+            {nextStep.action === "upload_insurance" && (
+              <div className="p-6 rounded-xl border border-gray-200">
+                <p className="text-lg font-medium text-gray-900 mb-1">Upload your car insurance</p>
+                <p className="text-sm text-gray-400 mb-5">Proof of coverage for getting to assignments.</p>
+                <InlineUpload profileId={profile.id} documentType="car_insurance" onComplete={handleUploadComplete} />
               </div>
             )}
           </div>
-        </div>
+        )}
+
+        {/* ── Remaining steps: compact list ── */}
+        {remainingSteps.length > 0 && !allDone && (
+          <div className="space-y-0 mb-10">
+            {remainingSteps.map((s) => (
+              <div key={s.key} className="flex items-center gap-3 py-3 border-b border-gray-50 last:border-0">
+                {s.done ? (
+                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <div className="w-4 h-4 rounded-full border border-gray-200 shrink-0" />
+                )}
+                <span className={`text-sm ${s.done ? "text-gray-400 line-through" : s.locked ? "text-gray-300" : "text-gray-600"}`}>
+                  {s.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── All done state ── */}
+        {allDone && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-6">
+              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${
+                profile.is_active ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+              }`}>
+                <div className={`w-1.5 h-1.5 rounded-full ${profile.is_active ? "bg-emerald-500" : "bg-amber-500"}`} />
+                {profile.is_active ? "Live" : "Under review"}
+              </div>
+            </div>
+
+            {profile.is_active && (
+              <Link href={`/medjobs/candidates/${profile.slug}`}
+                className="inline-flex items-center justify-center w-full px-6 py-3.5 bg-gray-900 hover:bg-gray-800 rounded-lg text-sm font-semibold text-white transition-colors">
+                View your public profile
+              </Link>
+            )}
+          </div>
+        )}
       </div>
     </main>
   );

@@ -115,6 +115,26 @@ export async function POST(req: NextRequest) {
     }
 
     const trimmedName = displayName.trim().slice(0, 100);
+    const normalizedEmailEarly = email.trim().toLowerCase();
+
+    // Check for existing student profile with this email
+    const supabaseCheck = getSupabaseAdmin();
+    const { data: existingProfile } = await supabaseCheck
+      .from("business_profiles")
+      .select("id, slug")
+      .eq("email", normalizedEmailEarly)
+      .eq("type", "student")
+      .limit(1)
+      .maybeSingle();
+
+    if (existingProfile) {
+      return NextResponse.json({
+        profileId: existingProfile.id,
+        slug: existingProfile.slug,
+        existing: true,
+      });
+    }
+
     const slug = generateSlug(trimmedName, university || "student");
 
     const metadata = {

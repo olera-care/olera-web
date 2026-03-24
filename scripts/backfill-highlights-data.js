@@ -131,27 +131,42 @@ async function backfillTrustSignals() {
     return { confirmed: 0, deleted: 0, errors: 0 };
   }
 
-  // Query non-CMS providers without trust signals
-  let query = supabase
-    .from('olera-providers')
-    .select('provider_id, provider_name, provider_category, address, city, state, website', { count: 'exact' })
-    .is('ai_trust_signals', null)
-    .or('deleted.is.null,deleted.eq.false');
+  // Query non-CMS providers without trust signals (paginated to avoid timeout)
+  const PAGE_SIZE = 1000;
+  let all = [];
+  let page = 0;
+  let hasMore = true;
 
-  if (CATEGORY_FILTER) {
-    query = query.eq('provider_category', CATEGORY_FILTER);
-  } else {
-    query = query.in('provider_category', NON_CMS_CATEGORIES);
+  while (hasMore) {
+    let query = supabase
+      .from('olera-providers')
+      .select('provider_id, provider_name, provider_category, address, city, state, website')
+      .is('ai_trust_signals', null)
+      .or('deleted.is.null,deleted.eq.false')
+      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+    if (CATEGORY_FILTER) {
+      query = query.eq('provider_category', CATEGORY_FILTER);
+    } else {
+      query = query.in('provider_category', NON_CMS_CATEGORIES);
+    }
+
+    const { data, error: pageError } = await query;
+
+    if (pageError) {
+      console.error(`Query error (page ${page}):`, pageError.message);
+      break;
+    }
+
+    all = all.concat(data || []);
+    hasMore = (data || []).length === PAGE_SIZE;
+    page++;
+    process.stdout.write(`[Query] Fetched ${all.length} providers...\r`);
   }
 
-  const { data: all, count, error } = await query.limit(LIMIT || 50000);
+  if (LIMIT && all.length > LIMIT) all = all.slice(0, LIMIT);
 
-  if (error) {
-    console.error('Query error:', error.message);
-    return { confirmed: 0, deleted: 0, errors: 0 };
-  }
-
-  console.log(`Found ${count} non-CMS providers needing trust signals`);
+  console.log(`Found ${all.length} non-CMS providers needing trust signals`);
 
   if (DRY_RUN) {
     const byCat = {};
@@ -159,8 +174,8 @@ async function backfillTrustSignals() {
       byCat[p.provider_category] = (byCat[p.provider_category] || 0) + 1;
     }
     console.log('By category:', JSON.stringify(byCat, null, 2));
-    const estimatedCost = (count / 1000).toFixed(2);
-    const estimatedMinutes = ((count * 1.2) / CONCURRENCY / 60).toFixed(0);
+    const estimatedCost = (all.length / 1000).toFixed(2);
+    const estimatedMinutes = ((all.length * 1.2) / CONCURRENCY / 60).toFixed(0);
     console.log(`Estimated cost: ~$${estimatedCost}`);
     console.log(`Estimated time: ~${estimatedMinutes} minutes (${CONCURRENCY} concurrent workers)`);
     return { confirmed: 0, deleted: 0, errors: 0 };

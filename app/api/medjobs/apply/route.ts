@@ -3,7 +3,6 @@ import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import { studentWelcomeEmail } from "@/lib/medjobs-email-templates";
 import { sendSlackAlert, slackMedJobsNewStudent } from "@/lib/slack";
-import { sendLoopsEvent } from "@/lib/loops";
 import type { IntendedProfessionalSchool, StudentProgramTrack } from "@/lib/types";
 
 // Lazy initialization to avoid build-time errors when env vars are not available
@@ -301,28 +300,9 @@ export async function POST(req: NextRequest) {
       console.error("[medjobs/apply] slack error:", err);
     }
 
-    // Fire-and-forget: Loops event (student audience — seeker domain)
-    try {
-      await sendLoopsEvent({
-        email: normalizedEmail,
-        eventName: "medjobs_student_signup",
-        audience: "seeker",
-        eventProperties: {
-          university: metadata.university || "",
-          intended_school: metadata.intended_professional_school || "",
-          program_track: metadata.program_track || "",
-          city: city || "",
-          state: state || "",
-        },
-        contactProperties: {
-          firstName: trimmedName.split(" ")[0],
-          lastName: trimmedName.split(" ").slice(1).join(" "),
-          source: "medjobs",
-        },
-      });
-    } catch (err) {
-      console.error("[medjobs/apply] loops error:", err);
-    }
+    // NOTE: Do NOT send Loops event here — adding students to the seeker audience
+    // enrolls them in the care-seeker onboarding drip (Logan's intro email).
+    // MedJobs students get their own email flow via Resend (welcome + nudge).
 
     return NextResponse.json({ profileId: profile.id, slug });
   } catch (err) {

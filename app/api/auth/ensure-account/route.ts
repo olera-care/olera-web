@@ -101,6 +101,18 @@ export async function POST(request: Request) {
         .maybeSingle();
 
       if (!existingFamilyProfile) {
+        // Check if this is a MedJobs student — they get their own welcome flow,
+        // so skip the generic family welcome email and Loops seeker drip
+        const { data: studentProfile } = await dbClient
+          .from("business_profiles")
+          .select("id")
+          .eq("account_id", acctId)
+          .eq("type", "student")
+          .limit(1)
+          .maybeSingle();
+
+        const isMedJobsStudent = !!studentProfile;
+
         const familyName = sanitizeDisplayName((existingAccount as Account).display_name, user.email?.split("@")[0] || "My Family");
         const familySlug = await generateUniqueSlugFromName(dbClient, familyName);
         const { data: newFamilyProfile, error: profileError } = await dbClient.from("business_profiles").insert({
@@ -126,47 +138,50 @@ export async function POST(request: Request) {
           }).eq("id", acctId);
         }
 
-        // Send welcome email for fresh signups where DB trigger created the account
-        // No family profile = first time seeing this account = fresh signup
-        try {
-          const fullName = (existingAccount as Account).display_name
-            || user.user_metadata?.full_name
-            || user.user_metadata?.name
-            || "";
-          const nameParts = fullName.trim().split(/\s+/);
-          await sendLoopsEvent({
-            email: user.email || "",
-            eventName: "user_signup",
-            audience: "seeker",
-            eventProperties: { source: "web_v2" },
-            contactProperties: {
-              firstName: nameParts[0] || "",
-              lastName: nameParts.slice(1).join(" ") || "",
-            },
-          });
-        } catch {
-          // Non-blocking
-        }
-
-        // Welcome email (fire-and-forget) — first time seeing this account
-        try {
-          if (user.email && !claimToken) {
-            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-            const welcomeName = (existingAccount as Account).display_name
+        // Send welcome email + Loops event for fresh signups ONLY
+        // Skip for MedJobs students — they already got their own welcome email
+        if (!isMedJobsStudent) {
+          // Loops: seeker signup event
+          try {
+            const fullName = (existingAccount as Account).display_name
               || user.user_metadata?.full_name
               || user.user_metadata?.name
               || "";
-            await sendEmail({
-              to: user.email,
-              subject: "Welcome to Olera",
-              html: welcomeEmail({
-                familyName: welcomeName.split(/\s+/)[0] || "there",
-                browseUrl: `${siteUrl}/browse`,
-              }),
+            const nameParts = fullName.trim().split(/\s+/);
+            await sendLoopsEvent({
+              email: user.email || "",
+              eventName: "user_signup",
+              audience: "seeker",
+              eventProperties: { source: "web_v2" },
+              contactProperties: {
+                firstName: nameParts[0] || "",
+                lastName: nameParts.slice(1).join(" ") || "",
+              },
             });
+          } catch {
+            // Non-blocking
           }
-        } catch {
-          // Non-blocking
+
+          // Welcome email (fire-and-forget)
+          try {
+            if (user.email && !claimToken) {
+              const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+              const welcomeName = (existingAccount as Account).display_name
+                || user.user_metadata?.full_name
+                || user.user_metadata?.name
+                || "";
+              await sendEmail({
+                to: user.email,
+                subject: "Welcome to Olera",
+                html: welcomeEmail({
+                  familyName: welcomeName.split(/\s+/)[0] || "there",
+                  browseUrl: `${siteUrl}/browse`,
+                }),
+              });
+            }
+          } catch {
+            // Non-blocking
+          }
         }
       }
 
@@ -278,39 +293,52 @@ export async function POST(request: Request) {
       );
     }
 
-    // Loops: new account created (fire-and-forget)
-    try {
-      const fullName = sanitizedName;
-      const nameParts = fullName.split(/\s+/);
-      await sendLoopsEvent({
-        email: user.email || "",
-        eventName: "user_signup",
-        audience: "seeker",
-        eventProperties: { source: "web_v2" },
-        contactProperties: {
-          firstName: nameParts[0] || "",
-          lastName: nameParts.slice(1).join(" ") || "",
-        },
-      });
-    } catch {
-      // Non-blocking
-    }
+    // Check if this is a MedJobs student — skip generic welcome + Loops seeker drip
+    const { data: studentProfileForNew } = await dbClient
+      .from("business_profiles")
+      .select("id")
+      .eq("type", "student")
+      .eq("email", user.email?.toLowerCase() || "")
+      .limit(1)
+      .maybeSingle();
 
-    // Welcome email (fire-and-forget) — only for new accounts, not guest connections
-    try {
-      if (user.email && !claimToken) {
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-        await sendEmail({
-          to: user.email,
-          subject: "Welcome to Olera",
-          html: welcomeEmail({
-            familyName: sanitizedName.split(/\s+/)[0] || "there",
-            browseUrl: `${siteUrl}/browse`,
-          }),
+    const isNewMedJobsStudent = !!studentProfileForNew;
+
+    if (!isNewMedJobsStudent) {
+      // Loops: new account created (fire-and-forget)
+      try {
+        const fullName = sanitizedName;
+        const nameParts = fullName.split(/\s+/);
+        await sendLoopsEvent({
+          email: user.email || "",
+          eventName: "user_signup",
+          audience: "seeker",
+          eventProperties: { source: "web_v2" },
+          contactProperties: {
+            firstName: nameParts[0] || "",
+            lastName: nameParts.slice(1).join(" ") || "",
+          },
         });
+      } catch {
+        // Non-blocking
       }
-    } catch {
-      // Non-blocking
+
+      // Welcome email (fire-and-forget) — only for new accounts, not guest connections
+      try {
+        if (user.email && !claimToken) {
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+          await sendEmail({
+            to: user.email,
+            subject: "Welcome to Olera",
+            html: welcomeEmail({
+              familyName: sanitizedName.split(/\s+/)[0] || "there",
+              browseUrl: `${siteUrl}/browse`,
+            }),
+          });
+        }
+      } catch {
+        // Non-blocking
+      }
     }
 
     // Also ensure a baseline family profile exists so the Family Portal

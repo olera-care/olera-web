@@ -49,33 +49,77 @@ export function studentWelcomeEmail({
   studentName,
   university,
   profileSlug,
+  magicLink,
 }: {
   studentName: string;
   university: string;
   profileSlug: string;
+  magicLink?: string;
 }): string {
+  const completeProfileUrl = magicLink || `${BASE_URL}/portal/medjobs`;
+
+  const universityBlock = university
+    ? `<table cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;color:#6b7280;margin:0 0 4px;">University</p>
+        <p style="font-size:15px;color:#111827;font-weight:600;margin:0;">${university}</p>
+      </td></tr>
+    </table>`
+    : "";
+
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to MedJobs, ${studentName}!</h2>
     <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
       Your account has been created. Your profile is <strong>not yet visible</strong> to providers.
       Complete the steps below to activate it.
     </p>
-    <table cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
-      <tr><td>
-        <p style="font-size:13px;color:#6b7280;margin:0 0 4px;">University</p>
-        <p style="font-size:15px;color:#111827;font-weight:600;margin:0;">${university}</p>
-      </td></tr>
-    </table>
+    ${universityBlock}
     <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.6;">
       <strong>To activate your profile:</strong>
     </p>
     <ol style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
-      <li><strong>Submit your intro video</strong> (required to activate your profile)</li>
-      <li>Upload course schedule (optional)</li>
-      <li>Complete driver&apos;s license verification (optional)</li>
+      <li><strong>Complete your application</strong></li>
+      <li><strong>Submit your intro video</strong></li>
+      <li><strong>Upload driver&apos;s license</strong></li>
+      <li><strong>Upload car insurance</strong></li>
     </ol>
-    <p style="margin:0 0 4px;">
-      ${button("Submit Your Intro Video", `${BASE_URL}/medjobs/submit-video?slug=${profileSlug}`)}
+    <p style="margin:0 0 16px;">
+      ${button("Complete Your Profile", completeProfileUrl)}
+    </p>
+    <table cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;padding:16px;width:100%;margin:0 0 4px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#166534;margin:0 0 6px;">What happens next?</p>
+        <ol style="font-size:13px;color:#166534;margin:0;padding-left:16px;line-height:1.8;">
+          <li>Complete the steps above to activate your profile</li>
+          <li>Providers in your area will be able to view your profile</li>
+          <li>You&apos;ll receive an email when a provider is interested</li>
+        </ol>
+      </td></tr>
+    </table>
+  `);
+}
+
+export function studentReturningEmail({
+  studentName,
+  profileSlug,
+  magicLink,
+}: {
+  studentName: string;
+  profileSlug: string;
+  magicLink?: string;
+}): string {
+  const completeProfileUrl = magicLink || `${BASE_URL}/portal/medjobs`;
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome back, ${studentName}!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Looks like you already started an application. Your profile is still waiting for you &mdash; pick up where you left off.
+    </p>
+    <p style="margin:0 0 16px;">
+      ${button("Continue Your Profile", completeProfileUrl)}
+    </p>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.6;">
+      If you didn&apos;t request this, you can safely ignore this email.
     </p>
   `);
 }

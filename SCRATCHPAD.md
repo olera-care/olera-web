@@ -111,24 +111,18 @@
   - `.claude/commands/city-pipeline.md` updated with new batch mode instructions
   - Next: full E2E test with fresh cities, then 80-city batch
 
-- **ZIP Code Search Fix + No-Coverage Fallback** (branch: `gifted-zhukovsky`) — READY FOR PR
-  - Plan: `plans/zip-search-fix-plan.md`
-  - Phase 1 (city alias map): DONE — NYC boroughs + Butte-Silver Bow aliases expand in all 3 query paths
-  - Phase 2 (graceful fallback): DONE — warm empty state with nearest city suggestion
-  - System docs: `docs/SYSTEMS.md` updated with "City Alias System" section
-  - Build: passes clean
-  - New files: `lib/city-aliases.ts`, `lib/nearest-city.ts`
-  - Modified: `lib/power-pages.ts`, `components/browse/CityBrowseClient.tsx`, `components/browse/BrowseClient.tsx`, `app/[category]/[state]/[city]/page.tsx`
-  - Next: commit, PR to staging, manual verification of 8 ZIP test matrix
-
-- **Provider Pricing Strategy & Disclaimers Overhaul** (branch: `easy-ramanujan`) — PHASES 1-7 COMPLETE, PHASE 8-9 PLANNED
-  - Plan: `plans/provider-pricing-strategy-plan.md`
-  - Notion: [Task](https://www.notion.so/Provider-Pricing-Strategy-Disclaimers-Overhaul-32d5903a0ffe8076b473df7f96d02937)
-  - Commit: `af193dc` — 16 files, 1,050 insertions
-  - Phases 1-7 done: pricing config, category disclaimers, detail page, cards, city pages, portal guidance, schema
-  - **Pending: Home Health → Tier 3** (should not show hourly prices — Medicare covers most services)
-  - **Pending: Metro-level adjustment factors** using HUD FMR data (~400 MSAs) + BLS wage data
-  - **Pending: Medicaid nursing home per-diem rates** for Tier 3 education
+- **MedJobs: Full Onboarding Overhaul** (branch: `fresh-ramanujan`, PR #368) — IN QA
+  - Plan: `plans/medjobs-account-creation-plan.md`
+  - Notion: [Task](https://www.notion.so/32c5903a0ffe811e80eadeb088f96bd3)
+  - **Account creation:** Auth user + account created after step 1 (name+email), not step 4. Auto-sign-in via verifyOtp token.
+  - **Two-phase profile:** Partial profile on step 1 (`application_completed: false`), full update on step 4 (`application_completed: true`)
+  - **Student dashboard:** `/portal/medjobs` — completion checklist with inline doc upload, locked items when application incomplete
+  - **Seamless return flow:** All auth paths (OAuth, magic link, OTP) auto-redirect incomplete students to dashboard
+  - **UI redesign:** Typeform-inspired — borderless inputs, custom searchable dropdowns, letter-badged multi-select cards, slide transitions, warm microcopy
+  - **Email distinction:** New user = "Welcome to MedJobs!", returning user = "Welcome back!", no Loops seeker drip
+  - **Document upload:** Private `student-documents` bucket, auth-gated endpoint, inline on dashboard + submit-video page
+  - **Footer hidden** on apply/submit-video/portal-medjobs pages
+  - **Bugs fixed:** Duplicate email, generic welcome email to students, Loops drip, nudge cron inactive profiles, dropdown clipping
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
@@ -159,11 +153,7 @@
 
 ## Next Up
 
-1. **Pricing: Home Health → Tier 3** — one-line config change, suppress dollar estimates for home health (Medicare covers it)
-2. **Pricing: Metro-level adjustment factors** — download HUD FMR + BLS wage data, compute ~400 MSA adjustment factors, build city→MSA mapping, integrate into getRegionalEstimate()
-3. **Pricing: Medicaid nursing home per-diem rates** — curate state-level Medicaid reimbursement rates for Tier 3 education
-4. **Pricing: Calibrate estimates against real provider data** — cross-check adjusted estimates vs. claimed profiles with real pricing
-5. **Merge PR #219** (waiver library redesign) — waiting on Chantel to remove `package.json.tmp` + `.mcp.json`
+1. **Merge PR #219** (waiver library redesign) — waiting on Chantel to remove `package.json.tmp` + `.mcp.json`
 2. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
 3. **Test Google OAuth on olera.care** — verify sign-in flow end-to-end
 4. **Monitor GSC for 404 spikes** — check over next few days post-cutover
@@ -180,16 +170,17 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
-| 2026-03-24 | City alias map over data migration for NYC | Changing 153 providers from "Manhattan"/"Brooklyn" to "New York" is lossy — borough info is useful. Better to expand queries at the search layer |
-| 2026-03-24 | Prefer same-state nearest city in fallback | When no providers exist in a small town, suggest the closest major city in the same state. Cross-state suggestions are confusing for users |
-| 2026-03-24 | Static alias map, not database table | Only 2 known mismatches (NYC + Butte). Code-level constant is simpler than a DB table. Revisit if it grows past 20 entries |
-| 2026-03-24 | Abbreviation audit came back clean | St./Saint, Ft./Fort, Mt./Mount are all consistent between zip-index and DB. No action needed |
-| 2026-03-24 | 3-tier pricing strategy by care category | Tier 1 (Home Care, AL, IL): show estimates freely. Tier 2 (Memory Care): estimates + coverage education. Tier 3 (Nursing Home, Hospice, Home Health): education first, suppress dollar estimates. Not all categories should show prices the same way |
-| 2026-03-24 | Home Health Care belongs in Tier 3, not Tier 2 | Home health is medically prescribed and mostly covered by Medicare Part A. Showing hourly rates implies families pay out of pocket when most pay $0. Same treatment as nursing homes and hospice |
-| 2026-03-24 | State-level pricing is too coarse for facility categories | Texas median AL = $5,250 but Houston = ~$6,600 and rural TX = ~$3,400. Use HUD Fair Market Rents as metro-level adjustment factors (covers ~400 MSAs = 85% of US population). Formula: state_median × (metro_FMR / state_median_FMR) |
-| 2026-03-24 | Google Places price_level is not useful for senior care | price_level (1-4) is designed for restaurants/retail, almost always null for care facilities. Captured in discovery CSV but rightfully not stored in DB |
-| 2026-03-24 | Use CareScout state medians as ground truth, adjust with free federal data | CareScout 2024 survey = authoritative care costs by state. HUD FMRs = geographic precision (metro housing costs). BLS OEWS = caregiver wage precision. Combined: survey accuracy × geographic precision |
-| 2026-03-24 | Display data year in pricing attribution | "Based on 2024 cost data" builds trust. Plan annual refresh rather than applying compounding inflation escalator |
+| 2026-03-24 | Don't send MedJobs students to Loops seeker audience | Adding students as seeker contacts enrolls them in Logan's care-seeker onboarding drip. Students get their own Resend email flow |
+| 2026-03-24 | Collapse 15 acknowledgment checkboxes into single "I agree" | Wall of legal text killed momentum at step 4. Consolidated into 5 summary bullets + one toggle. Same legal coverage, 90% less friction |
+| 2026-03-24 | Dark buttons (bg-gray-900) over teal for MedJobs apply | Calm confidence aesthetic. Teal felt like every SaaS template. Dark is quieter, more Linear/Notion |
+| 2026-03-24 | Private storage bucket for student documents | Driver's license and car insurance are PII. Unlike profile photos (public), these must be access-controlled |
+| 2026-03-24 | Use generateLink to resolve existing auth users | `listUsers` has no email filter in this Supabase version. `generateLink` always returns the user object, even for existing users — clean and efficient |
+| 2026-03-24 | Early account creation after step 1, not step 4 | Capture the lead as soon as we have name+email. Students who abandon mid-form can be nudged back. Two-phase: partial on step 1, full update on step 4 |
+| 2026-03-24 | Save step 1 data only, not progressive per-step (approach B) | Steps 2-3 (certifications, availability) are fast to re-fill. Simpler than PATCH-per-step. We capture the valuable lead data (name, email, phone, city, state) |
+| 2026-03-24 | Auto-sign-in via dual magic link tokens | Generate two magic links: one for email (reusable), one consumed client-side via verifyOtp. Student gets a browser session without clicking the email, nav updates mid-form |
+| 2026-03-24 | Dashboard as the canonical return destination | `/portal/medjobs` is the persistent home for students. All magic links, auth redirects, and success screens point here. No more URL-param-dependent flows |
+| 2026-03-24 | Hide footer on MedJobs form pages | Senior care discovery footer is wrong context for student application. Apply, submit-video, and portal/medjobs get no footer |
+| 2026-03-24 | Typeform hybrid: 4 sections + Typeform components | Pure one-question-per-screen (17 clicks) is friction disguised as simplicity. Keep grouped fields but bring Typeform-quality interactions: borderless inputs, custom dropdowns, letter-badged multi-selects, slide transitions |
 | 2026-03-23 | Post-geocoding area check is required | 36/269 Ramapo providers geocoded outside the area — discovery assigns city=Ramapo to everything regardless of actual location. Must validate coordinates fall within ~0.5° of target city after geocoding |
 | 2026-03-23 | Slugs must include city to avoid collisions | Many NY providers share names across cities. Slug format `{name}-{city}-{state}` prevents unique constraint violations |
 | 2026-03-23 | Don't run google_reviews_data hydration and review snippets in parallel | Both write to the same JSONB column — race condition causes data loss. Run hydration first, then snippets |
@@ -251,129 +242,91 @@
 
 ## Session Log
 
-### 2026-03-24 (Session 57) — WEB-01: Fix ZIP Code Search for Large Metros
+### 2026-03-24 (Session 56) — MedJobs Full Onboarding Overhaul
 
-**Branch:** `gifted-zhukovsky`
-**Notion task:** WEB-01: Fix zip code search — fails for large metros (P1 🔥)
+**Branch:** `fresh-ramanujan` | **PR:** #368
 
-**What:** Explored, diagnosed, and fixed the ZIP code search failure for NYC and other metro areas. Built a graceful no-coverage fallback for small towns without providers.
+**What:** Complete overhaul of MedJobs student onboarding — from account creation timing to UI redesign to return flow.
 
-**Exploration Findings:**
-- ZIP 10001 (Manhattan) → resolves to "New York" → 0 results because DB stores providers under borough names (Manhattan, Brooklyn, Bronx, Queens)
-- Tested 20 major metros: only NYC fails (LA, Chicago, Houston, etc. all pass)
-- Tested 15 small towns: found Butte, MT also fails ("Butte" vs "Butte-Silver Bow" in DB)
-- Abbreviation audit (St./Saint, Ft./Fort, Mt./Mount): all clean, no mismatches
-- ~153 NYC providers + 10 Butte providers were invisible to search
+**Commits (10):**
+- `e75e588` — Core account creation on form submit + document upload + welcome email
+- `5b360a0` — Skip generic welcome email + Loops seeker drip for students
+- `a083033` — UI redesign: progress bar, collapsed acks, celebratory success, duplicate guard
+- `a695efd` — Typeform-inspired hybrid: borderless inputs, custom dropdowns, letter-badged multi-selects
+- `25a54e4` — Restore hours-per-week warning
+- `3f3a42e` — Student dashboard `/portal/medjobs` + seamless return flow + auth-aware submit-video
+- `485dae1` — Hide footer on MedJobs form pages + fix dropdown clipping
+- `25aced5` — Early account creation after step 1 + dashboard handles incomplete applications
+- `7cade92` — Fix welcome email: hide empty university block, add "Complete application" step
+- `1c3eef8` — Replace "Y" badge with proper checkbox on acknowledgment toggle
+- `b053370` — Auto-sign-in student via dual magic link tokens after partial creation
 
-**Phase 1 — City Alias Map:**
-- Created `lib/city-aliases.ts` with `expandCityAliases()` function
-- "New York" → [Manhattan, Brooklyn, Bronx, Queens, Staten Island]
-- "Butte" → [Butte-Silver Bow]
-- Updated 3 query paths: `lib/power-pages.ts` (server), `CityBrowseClient.tsx` (client), `BrowseClient.tsx` (client)
-- Single-alias uses `.ilike()`, multi-alias uses `.in()` for efficiency
+**Files Created (3):**
+- `app/portal/medjobs/page.tsx` — Student completion dashboard
+- `app/api/medjobs/upload-document/route.ts` — Auth-gated document upload (private bucket)
+- `app/api/medjobs/apply-partial/route.ts` — Early account creation after step 1
 
-**Phase 2 — Graceful No-Coverage Fallback:**
-- Created `lib/nearest-city.ts` — haversine distance against top 200 cities, prefers same-state
-- Replaced cold "No providers found yet" with warm fallback:
-  - Map pin icon + "We're expanding to {city} soon"
-  - Nearest city suggestion card with distance and CTA button
-  - State-level browse link
-  - Cross-category links
-- Reads cities-tier1.json server-side via fs for build compatibility
+**Files Modified (9):**
+- `app/medjobs/apply/page.tsx` — Full Typeform-inspired redesign + partial creation on step 0→1
+- `app/medjobs/submit-video/page.tsx` — Auth-aware (no URL params needed) + restyled
+- `app/api/medjobs/apply/route.ts` — Two-phase profile (partial update vs full insert), duplicate guard, returning email
+- `app/api/cron/medjobs-nudge/route.ts` — Include inactive profiles, add document + application checks
+- `app/api/auth/ensure-account/route.ts` — Skip welcome/Loops for students
+- `app/auth/callback/route.ts` — Student-aware redirect to `/portal/medjobs`
+- `components/auth/UnifiedAuthModal.tsx` — Student-aware redirect after OTP
+- `components/shared/ConditionalFooter.tsx` — Hide footer on MedJobs pages
+- `lib/medjobs-email-templates.tsx` — New + returning templates, conditional university block
 
-**Phase 3 — ZIP Auto-Resolve on Submit:**
-- Homepage `handleSearch`: if input is 3-5 digits, use `cityResults[0]` from hook (already in memory) or sync fallback from `citySearchService.search()`
-- Browse page: if `?location=10001`, resolve ZIP to city name on mount before first Supabase query
-- Zero latency — uses already-loaded zip-index data
+**Bugs Found & Fixed:**
+1. Students received generic "Welcome to Olera" email (Resend) — ensure-account skips for students
+2. Students enrolled in Loops seeker drip (Logan's intro) — removed sendLoopsEvent
+3. Duplicate email created duplicate profiles — returns existing + "Welcome back!" UX
+4. Nudge cron missed inactive profiles — removed `is_active: true` filter
+5. Dropdown clipped by footer — hide footer on form pages + increase bottom padding
+6. Empty university block in early welcome email — conditionally hidden
+7. "Y" badge on acknowledgment toggle — replaced with proper checkbox
 
-**System Documentation:**
-- Added "City Alias System" section to `docs/SYSTEMS.md` with alias map, query paths, and maintenance notes
+**Architecture:**
+- Two-phase profile creation: partial (step 1) → full update (step 4)
+- Auto-sign-in via dual magic link tokens (one for email, one for client verifyOtp)
+- `/portal/medjobs` as canonical return destination (all auth paths redirect here)
+- Dashboard checklist: application → video → license → insurance (locked when prior incomplete)
 
-**Build:** Passes clean. PR #369.
-
----
-
-### 2026-03-24 (Session 56) — Provider Pricing Strategy & Disclaimers Overhaul
-
-**Branch:** `easy-ramanujan`
-**Commit:** `af193dc` — 16 files changed, 1,050 insertions
-
-**What:** Full implementation of category-aware pricing system. Replaced one-size-fits-all "Contact for pricing" with a 3-tier strategy using real CareScout/Genworth 2024 survey data for all 51 states.
-
-**Phases Completed (1-7):**
-1. `lib/pricing-config.ts` — central config: 3 tiers, 7 category configs, 51 states of CareScout data, helper functions
-2. `PriceEstimate.tsx` refactored — category-specific disclaimers (Tier 1: standard, Tier 2: + coverage note, Tier 3: education-first)
-3. `PricingEducationBadge.tsx` (new) — teal badge for Tier 3: "Medicare / Medicaid may cover" or "Usually covered by Medicare"
-4. `RegionalEstimateLabel.tsx` (new) — visual distinction: provider-entered (bold) vs. regional estimate ("State avg." prefix, lighter)
-5. Provider detail page — hero shows education badge for Tier 3, pricing section gets category footer, JSON-LD suppresses Tier 3
-6. Cards (ProviderCard, CompactProviderCard, BrowseCard) — all use new components, regional fallbacks from state data
-7. City pages — averages require n>=5 sample (was n>=1), fall back to state median, category-specific cost notes
-8. Provider dashboard — EditPricingModal shows category-specific guidance (nursing home: Medicare/Medicaid note, home health: Medicare tip)
-
-**Key Review Findings (post-implementation):**
-- **Home Health must move to Tier 3** — currently Tier 2, but Medicare covers most home health services. Showing "$19-$29/hr" implies families pay out of pocket when most pay $0. Fix pending.
-- **State-level averages too coarse for facility care** — TX state median AL = $5,250 but Houston ≈ $6,600, rural TX ≈ $3,400. Need metro-level adjustment factors.
-- **Best approach: HUD FMR + BLS wages** — HUD Fair Market Rents cover ~400 MSAs (85% US pop) + ~2,200 non-metro counties. Formula: `state_median × (metro_FMR / state_avg_FMR)`. Free federal data, updated annually.
-- **Google Places price_level not useful** — designed for restaurants, almost always null for care facilities
-- **Medicaid nursing home per-diem rates** would enhance Tier 3 education (free state-level data)
-
-**Files Created:**
-- `lib/pricing-config.ts` — pricing tiers, state data, helpers
-- `components/providers/PricingEducationBadge.tsx` — Tier 3 coverage badge
-- `components/providers/RegionalEstimateLabel.tsx` — provider vs. regional distinction
-- `plans/provider-pricing-strategy-plan.md` — implementation plan
-
-**Files Modified:**
-- `lib/types/provider.ts` — added `isRegionalEstimate`, `providerCategory` to ProviderCardData; regional fallbacks in toCardFormat() and businessProfileToCardFormat()
-- `lib/power-pages.ts` — n>=5 sample requirement, state median fallback, costNote field
-- `components/providers/PriceEstimate.tsx` — category-aware with 3 tier behaviors
-- `components/providers/ProviderCard.tsx`, `CompactProviderCard.tsx`, `components/browse/BrowseCard.tsx` — education badges + regional labels
-- `components/browse/CityBrowseClient.tsx` — "State Avg. Cost" label + cost context note
-- `components/providers/connection-card/CardTopSection.tsx` — Tier 3 compact badge
-- `components/provider-dashboard/edit-modals/EditPricingModal.tsx` — category guidance notes
-- `app/provider/[slug]/page.tsx` — hero, pricing section, JSON-LD updates
-- `app/[category]/[state]/[city]/page.tsx` — hourly unit fix, new seoContent fields
-
-**Build:** Clean — zero type errors, successful production build
+**Build:** Clean, zero errors.
 
 ---
 
-### 2026-03-24 (Session 56b) — 5-City NY Batch Expansion Pipeline
+### 2026-03-24 (Session 56 — earlier entry) — MedJobs Account Creation + Application Redesign
 
-**Branch:** `silly-hopper` (pipeline scripts + ops)
+**Branch:** `fresh-ramanujan`
 
-**What:** Batch city expansion for 5 New York cities from the expansion map tool. Built reusable processing and enrichment scripts (`scripts/process-city.js`, `scripts/enrich-city.js`) that automate the full pipeline end-to-end.
+**What:** Full implementation of MedJobs account creation on onboarding submit (Notion P1 from Logan's audit) + UI/UX redesign of the entire application flow.
 
-**Pipeline Results:**
+**Commits:**
+- `e75e588` — Core: auth user creation, magic link, document upload endpoint, welcome email, nudge cron, completeness calc
+- `5b360a0` — Fix: skip generic welcome email + Loops seeker drip for MedJobs students
+- `a083033` — Redesign: progress bar, no card box, collapsed acknowledgments, celebratory success, dark pills, duplicate email guard
 
-| City | Discovered | Uploaded | Final Active |
-|------|-----------|---------|-------------|
-| Greenburgh | 412 | 200 | 146 |
-| Clarkstown | 386 | 177 | 135 |
-| Glens Falls | 307 | 73 | 42 |
-| Clay | 214 | 103 | 73 |
-| Union | 556 | 310 | 118 |
-| **Total** | **1,875** | **863** | **514** |
+**Files Modified (8):**
+- `app/api/medjobs/apply/route.ts` — auth.admin.createUser, accounts row, account_id linking, magic link, duplicate email check
+- `app/api/medjobs/upload-document/route.ts` — NEW: auth-gated document upload (private bucket)
+- `app/api/cron/medjobs-nudge/route.ts` — include inactive profiles, add document checks
+- `app/api/auth/ensure-account/route.ts` — skip welcome email + Loops for student profiles
+- `app/medjobs/apply/page.tsx` — full UI redesign (progress bar, collapsed acks, success screen, pills)
+- `app/medjobs/submit-video/page.tsx` — DocumentUpload component for license/insurance
+- `lib/medjobs-email-templates.tsx` — welcome email: magic link, doc checklist, "what happens next"
+- `plans/medjobs-account-creation-plan.md` — implementation plan
 
-**Filtering breakdown:** 85 keyword, 624 AI classification, 303 dedup, 225 out-of-area, 124 trust signal false positives
+**Bugs Found & Fixed:**
+1. MedJobs students received generic "Welcome to Olera" email (Resend) — ensure-account now checks for student profile
+2. MedJobs students enrolled in Loops seeker drip (Logan's intro email) — removed sendLoopsEvent from apply route
+3. Duplicate email submission created duplicate profiles — now returns existing profile with "Welcome back!" UX
 
-**Cost:** ~$31 total (discovery $19, AI/geocoding/enrichment ~$12)
-
-**New scripts created:**
-- `scripts/process-city.js` — Full clean/upload pipeline: keyword filter → AI classify → dedup → category map → name check → IDs → upload → geocode → out-of-area cleanup
-- `scripts/enrich-city.js` — Parallel enrichment: descriptions + reviews data + trust signals + images (parallel), then review snippets (sequential to avoid JSONB race condition)
-
-**Key observations:**
-- Union had massive out-of-area contamination (177/310 deleted) — Binghamton metro area pulls providers from all over NY
-- Glens Falls had highest AI rejection rate (66%) — lots of mobile home parks, vacation rentals, event venues
-- Clarkstown had many disability services orgs (OPWDD-funded) misclassified as senior care
-- Trust signal step continues to be high-value QC — caught 124 additional false positives across all cities
-
-**Notion:** All 5 cities marked Complete with all 14 checkboxes checked.
+**Build:** Clean, no errors.
 
 ---
 
-### 2026-03-23 (Session 55) — Greece, NY City Expansion Pipeline
+
 
 **Branch:** `silly-thompson` (no code changes — pipeline ops only)
 

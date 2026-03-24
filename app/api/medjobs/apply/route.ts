@@ -213,6 +213,8 @@ export async function POST(req: NextRequest) {
               profileSlug: resolvedSlug,
               magicLink: magicLinkForEmail,
             }),
+            emailType: "student_welcome",
+            recipientType: "student",
           });
         } catch (err) {
           console.error("[medjobs/apply] welcome email error (update path):", err);
@@ -258,6 +260,8 @@ export async function POST(req: NextRequest) {
             profileSlug: existingProfile.slug,
             magicLink,
           }),
+          emailType: "student_returning",
+          recipientType: "student",
         });
       } catch (err) {
         console.error("[medjobs/apply] returning email error:", err);
@@ -438,6 +442,8 @@ export async function POST(req: NextRequest) {
           profileSlug: slug,
           magicLink,
         }),
+        emailType: "student_welcome",
+        recipientType: "student",
       });
     } catch (err) {
       console.error("[medjobs/apply] welcome email error:", err);

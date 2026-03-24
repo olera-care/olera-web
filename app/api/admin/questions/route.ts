@@ -126,6 +126,9 @@ export async function PATCH(request: NextRequest) {
             answer,
             providerUrl: `${siteUrl}/provider/${providerSlug}`,
           }),
+          emailType: "question_answered",
+          recipientType: "family",
+          providerId: providerSlug,
         });
       } catch (emailErr) {
         console.error("Answer notification email failed:", emailErr);

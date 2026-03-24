@@ -168,6 +168,8 @@ export async function POST(request: Request) {
                 accepted: action === "accept",
                 viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/connections`,
               }),
+              emailType: 'connection_response',
+              recipientType: 'family',
             });
           }
         } catch (emailErr) {

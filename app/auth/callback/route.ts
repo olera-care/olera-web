@@ -175,6 +175,8 @@ export async function GET(request: NextRequest) {
                 familyName: displayName.split(/\s+/)[0] || "there",
                 browseUrl: `${siteUrl}/browse`,
               }),
+              emailType: "welcome",
+              recipientType: "family",
             });
             // Mark as sent on family profile
             if (newFamilyId) {

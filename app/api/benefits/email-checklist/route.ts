@@ -21,6 +21,8 @@ export async function POST(req: NextRequest) {
     to: email,
     subject: `Your ${programShortName} Document Checklist — Olera`,
     html,
+    emailType: "checklist",
+    recipientType: "family",
   });
 
   if (!result.success) {

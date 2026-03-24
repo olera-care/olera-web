@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     // For now, send to all claimed providers. Later: filter by MedJobs interest/subscription.
     const { data: providers, error: providersError } = await db
       .from("business_profiles")
-      .select("display_name, email")
+      .select("id, display_name, email")
       .in("type", ["organization", "caregiver"])
       .eq("claim_state", "claimed")
       .eq("is_active", true)
@@ -79,6 +79,9 @@ export async function GET(request: NextRequest) {
             providerName: provider.display_name,
             candidates,
           }),
+          emailType: "new_candidate_alert",
+          recipientType: "provider",
+          providerId: provider.id,
         });
         sent++;
       } catch (err) {

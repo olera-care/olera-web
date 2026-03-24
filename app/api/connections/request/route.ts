@@ -649,6 +649,8 @@ async function handleGuestConnection({
           providerName,
           verifyUrl: verifyLinkData.properties.action_link,
         }),
+        emailType: 'verify_email',
+        recipientType: 'family',
       });
     }
   } catch (emailErr) {
@@ -677,6 +679,9 @@ async function handleGuestConnection({
           viewUrl: `${getSiteUrl()}/provider/connections`,
           providerSlug: providerSlug || undefined,
         }),
+        emailType: 'connection_request',
+        recipientType: 'provider',
+        providerId: toProfileId,
       });
     }
   } catch (emailErr) {
@@ -1278,6 +1283,9 @@ export async function POST(request: Request) {
             careType: intentData?.careType ? (careTypeMap0[intentData.careType] || intentData.careType) : null,
             viewUrl: `${getSiteUrl()}/portal/inbox?id=${newConnection.id}`,
           }),
+          emailType: 'connection_sent',
+          recipientType: 'family',
+          providerId: toProfileId,
         });
       }
     } catch (emailErr) {
@@ -1305,6 +1313,9 @@ export async function POST(request: Request) {
             viewUrl: `${getSiteUrl()}/provider/connections`,
             providerSlug: providerSlug || undefined,
           }),
+          emailType: 'connection_request',
+          recipientType: 'provider',
+          providerId: toProfileId,
         });
       }
     } catch (emailErr) {

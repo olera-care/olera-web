@@ -207,6 +207,9 @@ export async function POST(request: Request) {
               messagePreview: preview,
               viewUrl,
             }),
+            emailType: 'new_message',
+            recipientType: recipientProfile?.type === "family" ? "family" : "provider",
+            providerId: recipientProfile?.type !== "family" ? recipientProfileId : undefined,
           });
         }
       }

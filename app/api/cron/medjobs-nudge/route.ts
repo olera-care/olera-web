@@ -72,6 +72,8 @@ export async function GET(request: NextRequest) {
             completeness,
             missingItems: missingItems.slice(0, 4),
           }),
+          emailType: "profile_incomplete_nudge",
+          recipientType: "student",
         });
 
         // Update last_nudge_sent_at

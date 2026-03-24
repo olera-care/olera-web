@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const providerId = searchParams.get("provider_id");
+    const needsEmail = searchParams.get("needs_email") === "true";
     const countOnly = searchParams.get("count_only") === "true";
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest) {
       let countQuery = db.from("provider_questions").select("*", { count: "exact", head: true });
       if (status) countQuery = countQuery.eq("status", status);
       if (providerId) countQuery = countQuery.eq("provider_id", providerId);
+      if (needsEmail) countQuery = countQuery.contains("metadata", { needs_provider_email: true });
       const { count, error } = await countQuery;
       if (error) {
         console.error("Admin questions count error:", error);
@@ -46,6 +48,7 @@ export async function GET(request: NextRequest) {
 
     if (status) query = query.eq("status", status);
     if (providerId) query = query.eq("provider_id", providerId);
+    if (needsEmail) query = query.contains("metadata", { needs_provider_email: true });
 
     const { data: questions, count, error } = await query;
 

@@ -219,6 +219,12 @@ export async function POST(request: NextRequest) {
           recipientType: 'provider',
           providerId: providerForEmail?.id,
         });
+      } else if (newQuestion?.id) {
+        // No provider email — flag for admin "Needs Email" tab
+        await db
+          .from("provider_questions")
+          .update({ metadata: { needs_provider_email: true } })
+          .eq("id", newQuestion.id);
       }
 
       // 2. Confirmation email to the asker (if they have an email)

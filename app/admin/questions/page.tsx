@@ -13,10 +13,12 @@ interface Question {
   is_public: boolean;
   created_at: string;
   updated_at: string;
+  metadata?: Record<string, unknown> | null;
 }
 
 const STATUS_TABS = [
   { label: "Pending", value: "pending" },
+  { label: "Needs Email", value: "needs_email" },
   { label: "Approved", value: "approved" },
   { label: "Answered", value: "answered" },
   { label: "Rejected", value: "rejected" },
@@ -30,6 +32,76 @@ const STATUS_COLORS: Record<string, string> = {
   rejected: "bg-red-100 text-red-800",
   flagged: "bg-gray-100 text-gray-800",
 };
+
+function InlineEmailInput({
+  providerSlug,
+  onEmailAdded,
+}: {
+  providerSlug: string;
+  onEmailAdded: () => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim() || !providerSlug) return;
+
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/questions/add-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerSlug, email: email.trim() }),
+      });
+
+      if (res.ok) {
+        setSuccess(true);
+        setTimeout(() => onEmailAdded(), 1500);
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to save");
+      }
+    } catch {
+      setError("Network error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (success) {
+    return (
+      <span className="text-xs font-medium text-green-600">
+        Saved & notified
+      </span>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex items-center gap-2">
+      <input
+        type="email"
+        placeholder="provider@email.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="w-44 px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+        disabled={saving}
+        required
+      />
+      <button
+        type="submit"
+        disabled={saving || !email.trim()}
+        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors disabled:opacity-50"
+      >
+        {saving ? "..." : "Save"}
+      </button>
+      {error && <span className="text-xs text-red-600">{error}</span>}
+    </form>
+  );
+}
 
 export default function AdminQuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -45,7 +117,11 @@ export default function AdminQuestionsPage() {
     setError(null);
     try {
       const params = new URLSearchParams({ limit: "50" });
-      if (activeTab) params.set("status", activeTab);
+      if (activeTab === "needs_email") {
+        params.set("needs_email", "true");
+      } else if (activeTab) {
+        params.set("status", activeTab);
+      }
       const res = await fetch(`/api/admin/questions?${params}`);
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
@@ -138,95 +214,121 @@ export default function AdminQuestionsPage() {
         </div>
       ) : questions.length === 0 ? (
         <div className="text-center py-16 text-gray-500">
-          No {activeTab || ""} questions found.
+          No {activeTab === "needs_email" ? "questions needing email" : activeTab || ""} questions found.
         </div>
       ) : (
         <div className="space-y-4">
-          {questions.map((q) => (
-            <div key={q.id} className="border border-gray-200 rounded-lg p-5">
-              {/* Header */}
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <a
-                    href={`/provider/${q.provider_id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-base font-semibold text-gray-900 hover:text-primary-600 hover:underline transition-colors"
-                  >
-                    {q.question}
-                  </a>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                    <span>By {q.asker_name}</span>
-                    {q.asker_email && <span>{q.asker_email}</span>}
-                    <span>{new Date(q.created_at).toLocaleDateString()}</span>
-                  </div>
-                  <div className="mt-2 text-xs text-gray-400">
-                    Provider:{" "}
+          {questions.map((q) => {
+            const needsEmail = q.metadata?.needs_provider_email === true;
+            return (
+              <div
+                key={q.id}
+                className={`border border-gray-200 rounded-lg p-5 ${needsEmail ? "bg-amber-50 border-amber-200" : ""}`}
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
                     <a
                       href={`/provider/${q.provider_id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-mono text-gray-500 hover:text-primary-600 hover:underline"
+                      className="text-base font-semibold text-gray-900 hover:text-primary-600 hover:underline transition-colors"
                     >
-                      {q.provider_id}
+                      {q.question}
                     </a>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                      <span>By {q.asker_name}</span>
+                      {q.asker_email && <span>{q.asker_email}</span>}
+                      <span>{new Date(q.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
+                      <span>
+                        Provider:{" "}
+                        <a
+                          href={`/provider/${q.provider_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono text-gray-500 hover:text-primary-600 hover:underline"
+                        >
+                          {q.provider_id}
+                        </a>
+                      </span>
+                      {needsEmail && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                          No email
+                        </span>
+                      )}
+                    </div>
                   </div>
+                  <span className={`px-2.5 py-1 text-xs font-medium rounded-full flex-shrink-0 ${STATUS_COLORS[q.status] || "bg-gray-100 text-gray-600"}`}>
+                    {q.status}
+                  </span>
                 </div>
-                <span className={`px-2.5 py-1 text-xs font-medium rounded-full flex-shrink-0 ${STATUS_COLORS[q.status] || "bg-gray-100 text-gray-600"}`}>
-                  {q.status}
-                </span>
-              </div>
 
-              {/* Answer (if exists) */}
-              {q.answer && (
-                <div className="mt-4 bg-gray-50 rounded-lg px-4 py-3">
-                  <p className="text-xs font-medium text-gray-500 mb-1">Answer:</p>
-                  <p className="text-sm text-gray-700">{q.answer}</p>
-                </div>
-              )}
-
-              {/* Actions */}
-              {q.status === "pending" && (
-                <div className="mt-4 space-y-3">
-                  {/* Quick actions */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleAction(q.id, "approve")}
-                      disabled={actionLoading === q.id}
-                      className="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50"
-                    >
-                      Approve & Publish
-                    </button>
-                    <button
-                      onClick={() => handleAction(q.id, "reject")}
-                      disabled={actionLoading === q.id}
-                      className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
-                    >
-                      Reject
-                    </button>
+                {/* Answer (if exists) */}
+                {q.answer && (
+                  <div className="mt-4 bg-gray-50 rounded-lg px-4 py-3">
+                    <p className="text-xs font-medium text-gray-500 mb-1">Answer:</p>
+                    <p className="text-sm text-gray-700">{q.answer}</p>
                   </div>
+                )}
 
-                  {/* Answer inline */}
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Type an answer on behalf of the provider..."
-                      value={answerDrafts[q.id] || ""}
-                      onChange={(e) => setAnswerDrafts((prev) => ({ ...prev, [q.id]: e.target.value }))}
-                      className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300"
+                {/* Inline email input for needs_email questions */}
+                {needsEmail && (
+                  <div className="mt-4 pt-3 border-t border-amber-200">
+                    <p className="text-xs text-amber-700 mb-2">
+                      Provider has no email — add one to send this question:
+                    </p>
+                    <InlineEmailInput
+                      providerSlug={q.provider_id}
+                      onEmailAdded={fetchQuestions}
                     />
-                    <button
-                      onClick={() => handleAction(q.id, "answer")}
-                      disabled={actionLoading === q.id || !answerDrafts[q.id]?.trim()}
-                      className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
-                    >
-                      Answer
-                    </button>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+
+                {/* Actions */}
+                {q.status === "pending" && (
+                  <div className="mt-4 space-y-3">
+                    {/* Quick actions */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleAction(q.id, "approve")}
+                        disabled={actionLoading === q.id}
+                        className="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50"
+                      >
+                        Approve & Publish
+                      </button>
+                      <button
+                        onClick={() => handleAction(q.id, "reject")}
+                        disabled={actionLoading === q.id}
+                        className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                      >
+                        Reject
+                      </button>
+                    </div>
+
+                    {/* Answer inline */}
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Type an answer on behalf of the provider..."
+                        value={answerDrafts[q.id] || ""}
+                        onChange={(e) => setAnswerDrafts((prev) => ({ ...prev, [q.id]: e.target.value }))}
+                        className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300"
+                      />
+                      <button
+                        onClick={() => handleAction(q.id, "answer")}
+                        disabled={actionLoading === q.id || !answerDrafts[q.id]?.trim()}
+                        className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                      >
+                        Answer
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

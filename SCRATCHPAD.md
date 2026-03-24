@@ -111,24 +111,6 @@
   - `.claude/commands/city-pipeline.md` updated with new batch mode instructions
   - Next: full E2E test with fresh cities, then 80-city batch
 
-- **Email Audit Log** (branch: `joyful-poitras`, PR #374) — MERGED TO STAGING ✅
-  - Plan: `plans/email-audit-log-plan.md`
-  - Notion: [Task](https://www.notion.so/Email-audit-log-admin-panel-with-full-send-history-32c5903a0ffe819983b2ee8d3d9e56ed)
-  - Every Resend email now logged to `email_log` table with full HTML, type, recipient, Resend ID
-  - Admin page at `/admin/emails`: search, filter (type/status/recipient/date), click-to-expand HTML preview, CSV export
-  - Extended `sendEmail()` with `emailType`, `recipientType`, `providerId` metadata across 30+ callers
-  - Migration 024: `email_log` table with indexes + RLS
-
-- **Q&A Needs Email + Admin Redesign** (branch: `joyful-poitras`, PR #377) — IN QA
-  - Notion: [Task](https://www.notion.so/We-need-a-Needs-Email-section-for-Q-A-like-we-have-for-leads-32d5903a0ffe80218935d42e95fc692e)
-  - "Needs Email" tab on Q&A admin page — same pattern as leads
-  - Flag questions on submit when provider has no email, inline email input to add + send
-  - Admin page redesigned as triage inbox: removed "Answer on behalf", removed fake approval gate
-  - Tabs: Needs Email (default) → Unanswered → Answered → Removed → All
-  - Provider names from API join, question text links to provider page
-  - Migration 025: `metadata JSONB` on `provider_questions`
-  - Fixed `ios_provider_profiles` → `olera-providers` table reference bug
-
 - **MedJobs: Full Onboarding Overhaul** (branch: `fresh-ramanujan`, PR #368) — IN QA
   - Plan: `plans/medjobs-account-creation-plan.md`
   - Notion: [Task](https://www.notion.so/32c5903a0ffe811e80eadeb088f96bd3)
@@ -142,13 +124,17 @@
   - **Footer hidden** on apply/submit-video/portal-medjobs pages
   - **Bugs fixed:** Duplicate email, generic welcome email to students, Loops drip, nudge cron inactive profiles, dropdown clipping
 
-- **Provider Highlights Dedup + Data-Driven Generation** (branch: `fair-morse`) — PLANNED
+- **Provider Highlights Dedup + Data-Driven Generation** (branch: `fair-morse`, PR #376) — CODE COMPLETE, BACKFILL RUNNING
   - Plan: `plans/provider-highlights-dedup-plan.md`
   - Notion: [Task](https://www.notion.so/Logan-s-Audit-QA-de-duplicate-care-service-labels-on-all-provider-pages-32c5903a0ffe8166a12bf29c98319e7e)
-  - Replace static category-template highlights with verified per-provider data (trust signals, reviews, CMS)
-  - Synonym normalization map for care_types dedup
-  - Graceful degradation: fewer honest highlights > 4 generic ones
-  - Consolidate duplicate CATEGORY_HIGHLIGHTS maps
+  - 5-tier highlight waterfall: trust signals → social proof → CMS → staff screening → capability
+  - Browse cards skip tautological category label (skipCapability flag)
+  - "Well Reviewed" tier added (4.0★ + 15 reviews) below "Highly Rated" (4.5★ + 10)
+  - Synonym normalization map (~25 entries) for care_types dedup
+  - Deleted duplicate CATEGORY_HIGHLIGHTS maps from provider.ts + provider-utils.ts
+  - **Backfill Pass 1 DONE**: 8,101 providers hydrated with google_reviews_data (free)
+  - **Backfill Pass 2 RUNNING**: 22,292 non-CMS providers getting trust signals via Perplexity (~$22, ~3hrs, 10 concurrent workers). Early stats: 92% confirmed, 8% false positives deleted
+  - Backfill script: `scripts/backfill-highlights-data.js` (paginated queries, concurrent workers, 429 retry)
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
@@ -196,12 +182,10 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
-| 2026-03-24 | Log at sendEmail() chokepoint, not per-caller | One change captures all 44+ email call sites. No need to touch 30 files for logging logic — just pass metadata |
-| 2026-03-24 | Store full rendered HTML in email_log | Templates change over time — regenerating from params won't match what was actually sent. ~5-15KB per email is fine |
-| 2026-03-24 | Q&A questions go live immediately, no approval gate | Current system auto-publishes. Admin role is moderation (remove spam) + email supply, not gatekeeping |
-| 2026-03-24 | "Needs Email" as default Q&A tab | The primary admin action is supplying emails, not browsing questions. Default to the actionable queue |
-| 2026-03-24 | Remove "Answer on behalf" from Q&A admin | Providers answer their own questions through the portal. Admin answering was a power-user escape hatch dominating the UI |
-| 2026-03-24 | ios_provider_profiles → olera-providers | Pre-existing bug: questions route referenced non-existent table. Correct table is `olera-providers` with `provider_id` = `source_provider_id` |
+| 2026-03-24 | Highlights are earned, not defaulted — fewer honest > 4 generic | Every Home Care agency showed identical "In-Home Care, Certified Caregivers, Companionship, Light Housekeeping". Users see through it. 1 verified fact ("State Licensed") builds more trust than 4 templated labels |
+| 2026-03-24 | Skip capability label on browse cards (skipCapability) | On a Home Care filtered page, showing "In-Home Care" as a highlight is tautological. Category already visible in card header line. Only show Tiers 1-4 (earned signals) on cards |
+| 2026-03-24 | "Well Reviewed" at 4.0★/15+ reviews below "Highly Rated" at 4.5★/10+ | Binary "Highly Rated" was too exclusive — many good providers missed Tier 2. Second tier creates visible variety across cards |
+| 2026-03-24 | Backfill trust signals for all 22K non-CMS providers (~$22) | Trust signals are the only differentiator for Home Care/Assisted Living/Memory Care/Independent Living (no CMS data). Pipeline already existed, just hadn't been run on pre-existing providers |
 | 2026-03-24 | Don't send MedJobs students to Loops seeker audience | Adding students as seeker contacts enrolls them in Logan's care-seeker onboarding drip. Students get their own Resend email flow |
 | 2026-03-24 | Collapse 15 acknowledgment checkboxes into single "I agree" | Wall of legal text killed momentum at step 4. Consolidated into 5 summary bullets + one toggle. Same legal coverage, 90% less friction |
 | 2026-03-24 | Dark buttons (bg-gray-900) over teal for MedJobs apply | Calm confidence aesthetic. Teal felt like every SaaS template. Dark is quieter, more Linear/Notion |
@@ -274,54 +258,37 @@
 
 ## Session Log
 
-### 2026-03-24 (Session 57) — Email Audit Log + Q&A Needs Email
+### 2026-03-24 (Session 57) — Provider Highlights Dedup + Data-Driven Generation
 
-**Branch:** `joyful-poitras` | **PRs:** #374 (merged), #377 (in QA)
+**Branch:** `fair-morse` | **PR:** #376 (5 commits)
 
-**What:** Two features from the roadmap — email audit log for full send history visibility, and "Needs Email" workflow for Q&A matching the existing leads pattern. Plus a UX overhaul of the Q&A admin page.
+**What:** Replace static per-category highlight templates with a data-driven 5-tier waterfall. Highlights now show verified per-provider facts (trust signals, Google reviews, CMS quality) instead of generic category labels. Backfill script enriches all 40K existing providers.
 
-**Email Audit Log (PR #374 — merged to staging):**
-- Migration 024: `email_log` table with indexes + RLS
-- Extended `sendEmail()` in `lib/email.ts` to log every send with type, recipient, HTML, Resend ID
-- Added `emailType` metadata to all 30+ `sendEmail()` callers across the codebase
-- Admin API: `/api/admin/emails` (list + preview) + `/api/admin/emails/export` (CSV)
-- Admin page: `app/admin/emails/page.tsx` — search, filter tabs, click-to-expand HTML preview
-- Added "Emails" to AdminSidebar
+**Problem (3 layers):**
+1. Duplicate labels — "Home care" / "In-home care" / "Non-medical home care" as separate highlights (dedup only caught exact case matches)
+2. Highlights were services in disguise — "In-Home Care" on a Home Care page is tautological
+3. Zero differentiation — every Home Care agency showed identical 4 highlights (hardcoded templates)
 
-**Q&A Needs Email (PR #377 — in QA):**
-- Migration 025: `metadata JSONB` column on `provider_questions`
-- Flag questions on submit when provider has no email (`app/api/questions/route.ts`)
-- Admin Q&A API: `needs_email` filter + provider name join + tab counts
-- Admin Q&A page redesigned as triage inbox:
-  - Removed "Answer on behalf" input (providers answer their own questions)
-  - Removed fake approval gate ("Approve" button was meaningless — questions go live immediately)
-  - Tabs: Needs Email (default) → Unanswered → Answered → Removed → All
-  - "Remove" + "Restore" actions instead of Approve/Reject
-  - Provider names instead of raw slugs, question text links to provider page
-- New `/api/admin/questions/add-email` endpoint — updates email, sends deferred notifications, clears flags on both questions and leads
-- Backfill SQL script for existing questions
-- Fixed `ios_provider_profiles` → `olera-providers` table reference bug
+**Commits (5):**
+- `5aedf78` — Core: `lib/provider-highlights.ts` waterfall + synonym map, detail page + browse card integration, delete duplicate highlight maps
+- `54f74ee` — Skip tautological category on browse cards (`skipCapability`), add "Well Reviewed" tier
+- `497579c` — Backfill script `scripts/backfill-highlights-data.js` (reviews hydration + trust signals)
+- `2504abf` — Concurrent workers (10x faster — 10 workers default, configurable)
+- `93c09f2` — Fix Supabase query timeout with pagination
 
-**Files Created (7):**
-- `supabase/migrations/024_email_log.sql`
-- `supabase/migrations/025_questions_metadata.sql`
-- `app/api/admin/emails/route.ts`
-- `app/api/admin/emails/export/route.ts`
-- `app/admin/emails/page.tsx`
-- `app/api/admin/questions/add-email/route.ts`
-- `scripts/backfill-questions-needs-email.sql`
+**Files Created (2):**
+- `lib/provider-highlights.ts` — Shared highlight builder with 5-tier waterfall + `normalizeCareLabel()` synonym map
+- `scripts/backfill-highlights-data.js` — One-time backfill for reviews data + trust signals (paginated, concurrent, 429 retry)
 
-**Files Modified (34):**
-- `lib/email.ts` — extended with audit logging
-- `components/admin/AdminSidebar.tsx` — added Emails nav
-- `app/admin/questions/page.tsx` — full redesign
-- `app/api/admin/questions/route.ts` — needs_email filter + provider join + tab counts
-- `app/api/questions/route.ts` — needs_email flag + table reference fix
-- 30 API route files — added emailType metadata
+**Files Modified (4):**
+- `app/provider/[slug]/page.tsx` — Replaced highlight builder with `buildHighlights()`, refactored `HighlightIcon` to enum-based dispatch, flex-wrap layout (1-4 items)
+- `lib/types/provider.ts` — `toCardFormat()` + `businessProfileToCardFormat()` use waterfall with `skipCapability: true`. Deleted `CATEGORY_HIGHLIGHTS` map + `getHighlightsForCategory()`
+- `lib/provider-utils.ts` — Deleted `categoryHighlights` map + `getCategoryHighlights()`
+- `plans/provider-highlights-dedup-plan.md` — Full implementation plan
 
-**Bugs Found & Fixed:**
-1. `ios_provider_profiles` table doesn't exist — was a stale reference in questions route, should be `olera-providers`
-2. Provider link in Q&A admin used slug instead of `source_provider_id` — went to directory list not detail page
+**Backfill Results:**
+- Pass 1 (reviews hydration): 8,101 providers hydrated (free, instant)
+- Pass 2 (trust signals): 22,292 providers processing (~$22, ~3hrs, 10 workers). Early: 92% confirmed, 8% false positives soft-deleted
 
 **Build:** Clean, zero errors.
 

@@ -10,6 +10,7 @@
 import { generateProviderSlug } from "@/lib/slugify";
 import type { BusinessProfile, ProfileCategory, GoogleReviewsData, CMSData, AiTrustSignals } from "@/lib/types";
 import { getRegionalEstimate, getPricingConfig } from "@/lib/pricing-config";
+import { buildHighlights } from "@/lib/provider-highlights";
 
 export interface Provider {
   provider_id: string;
@@ -124,24 +125,6 @@ export function getCategoryDisplayName(category: string | null): string {
  * The Supabase table name
  */
 export const PROVIDERS_TABLE = "olera-providers";
-
-/**
- * Map Supabase provider_category → inferred highlights (4 per category).
- * These are sensible defaults superseded when a provider claims their page.
- */
-const CATEGORY_HIGHLIGHTS: Record<string, string[]> = {
-  "Home Care (Non-medical)": ["In-Home Care", "Certified Caregivers", "Companionship", "Light Housekeeping"],
-  "Home Health Care":        ["Skilled Nursing", "Health Monitoring", "In-Home Care", "Licensed Providers"],
-  "Hospice":                 ["Nursing Care", "Wellness Support", "Community Resources", "Medication Management"],
-  "Assisted Living":         ["Licensed Community", "Social Activities", "Health Services", "Light Housekeeping"],
-  "Memory Care":             ["Licensed Community", "Certified Staff", "Health Monitoring", "Social Activities"],
-  "Independent Living":      ["Community Living", "Social Activities", "Light Housekeeping", "Wellness Programs"],
-  "Nursing Home":            ["Skilled Nursing", "Licensed Facility", "Medical Care", "Rehabilitation"],
-};
-
-function getHighlightsForCategory(category: string): string[] {
-  return CATEGORY_HIGHLIGHTS[category] ?? ["Senior Care", "Professional Staff", "Quality Services", "Community Support"];
-}
 
 /**
  * Type for provider card display data
@@ -349,7 +332,13 @@ export function toCardFormat(provider: Provider): ProviderCardData {
     providerCategory: provider.provider_category,
     primaryCategory: getCategoryDisplayName(provider.provider_category),
     careTypes: [provider.provider_category],
-    highlights: getHighlightsForCategory(provider.provider_category),
+    highlights: buildHighlights({
+      trustSignals: provider.ai_trust_signals,
+      googleReviews: provider.google_reviews_data,
+      cmsData: provider.cms_data,
+      category: provider.provider_category,
+      maxItems: 3,
+    }).map((h) => h.label),
     acceptedPayments: [],
     verified: false,
     description: provider.provider_description?.slice(0, 200) || undefined,
@@ -487,7 +476,11 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
     providerCategory: bp.category ?? undefined,
     primaryCategory: displayCategory,
     careTypes: bp.care_types.length > 0 ? bp.care_types : (supabaseCat ? [supabaseCat] : []),
-    highlights: getHighlightsForCategory(supabaseCat),
+    highlights: buildHighlights({
+      careTypes: bp.care_types.length > 0 ? bp.care_types : undefined,
+      category: bp.category || supabaseCat,
+      maxItems: 3,
+    }).map((h) => h.label),
     acceptedPayments: [],
     verified: bp.claim_state === "claimed",
     description: bp.description?.slice(0, 200) || undefined,

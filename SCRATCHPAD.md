@@ -142,6 +142,14 @@
   - **Footer hidden** on apply/submit-video/portal-medjobs pages
   - **Bugs fixed:** Duplicate email, generic welcome email to students, Loops drip, nudge cron inactive profiles, dropdown clipping
 
+- **Provider Highlights Dedup + Data-Driven Generation** (branch: `fair-morse`) — PLANNED
+  - Plan: `plans/provider-highlights-dedup-plan.md`
+  - Notion: [Task](https://www.notion.so/Logan-s-Audit-QA-de-duplicate-care-service-labels-on-all-provider-pages-32c5903a0ffe8166a12bf29c98319e7e)
+  - Replace static category-template highlights with verified per-provider data (trust signals, reviews, CMS)
+  - Synonym normalization map for care_types dedup
+  - Graceful degradation: fewer honest highlights > 4 generic ones
+  - Consolidate duplicate CATEGORY_HIGHLIGHTS maps
+
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
 

@@ -19,23 +19,28 @@ interface Question {
   metadata?: Record<string, unknown> | null;
 }
 
-type TabValue = "pending" | "needs_email" | "approved" | "answered" | "rejected" | "";
+type TabValue = "unanswered" | "needs_email" | "answered" | "removed" | "";
 
 const TABS: { label: string; value: TabValue; showCount?: boolean }[] = [
-  { label: "Pending", value: "pending", showCount: true },
+  { label: "Unanswered", value: "unanswered", showCount: true },
   { label: "Needs Email", value: "needs_email", showCount: true },
-  { label: "Approved", value: "approved" },
   { label: "Answered", value: "answered" },
-  { label: "Rejected", value: "rejected" },
+  { label: "Removed", value: "removed" },
   { label: "All", value: "" },
 ];
 
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Live",
+  approved: "Live",
+  answered: "Answered",
+  rejected: "Removed",
+};
+
 const STATUS_COLORS: Record<string, string> = {
-  pending: "bg-amber-50 text-amber-700",
-  approved: "bg-sky-50 text-sky-700",
-  answered: "bg-emerald-50 text-emerald-700",
-  rejected: "bg-red-50 text-red-600",
-  flagged: "bg-gray-100 text-gray-600",
+  pending: "bg-emerald-50 text-emerald-600",
+  approved: "bg-emerald-50 text-emerald-600",
+  answered: "bg-sky-50 text-sky-700",
+  rejected: "bg-red-50 text-red-500",
 };
 
 function InlineEmailInput({
@@ -119,7 +124,7 @@ function formatDate(dateStr: string): string {
 export default function AdminQuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabValue>("pending");
+  const [activeTab, setActiveTab] = useState<TabValue>("unanswered");
   const [count, setCount] = useState(0);
   const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number }>({ pending: 0, needs_email: 0 });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -132,6 +137,11 @@ export default function AdminQuestionsPage() {
       const params = new URLSearchParams({ limit: "50" });
       if (activeTab === "needs_email") {
         params.set("needs_email", "true");
+      } else if (activeTab === "unanswered") {
+        // Unanswered = pending + approved (both are live, awaiting provider response)
+        params.set("status", "pending");
+      } else if (activeTab === "removed") {
+        params.set("status", "rejected");
       } else if (activeTab) {
         params.set("status", activeTab);
       }
@@ -152,28 +162,37 @@ export default function AdminQuestionsPage() {
     fetchQuestions();
   }, [fetchQuestions]);
 
-  const handleAction = async (id: string, action: "approve" | "reject") => {
+  const handleRemove = async (id: string) => {
     setActionLoading(id);
     try {
-      const body: Record<string, unknown> = { id };
-      if (action === "approve") {
-        body.status = "approved";
-        body.is_public = true;
-      } else {
-        body.status = "rejected";
-        body.is_public = false;
-      }
-
       const res = await fetch("/api/admin/questions", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ id, status: "rejected", is_public: false }),
       });
 
       if (!res.ok) throw new Error("Failed to update");
       await fetchQuestions();
     } catch {
-      setError("Failed to update question");
+      setError("Failed to remove question");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    setActionLoading(id);
+    try {
+      const res = await fetch("/api/admin/questions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: "pending", is_public: true }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update");
+      await fetchQuestions();
+    } catch {
+      setError("Failed to restore question");
     } finally {
       setActionLoading(null);
     }
@@ -185,7 +204,7 @@ export default function AdminQuestionsPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Questions</h1>
         <p className="text-sm text-gray-400 mt-1">
-          Approve questions and supply provider emails so they get forwarded.
+          Questions go live immediately. Supply provider emails and remove spam.
         </p>
       </div>
 
@@ -198,7 +217,7 @@ export default function AdminQuestionsPage() {
       {/* Tabs */}
       <div className="flex gap-1 mb-6 border-b border-gray-100">
         {TABS.map((tab) => {
-          const tabCount = tab.value === "pending" ? tabCounts.pending
+          const tabCount = tab.value === "unanswered" ? tabCounts.pending
             : tab.value === "needs_email" ? tabCounts.needs_email
             : null;
 
@@ -247,7 +266,7 @@ export default function AdminQuestionsPage() {
             </div>
           ) : (
             <p className="text-sm text-gray-400">
-              No {activeTab || "questions"} found
+              No {activeTab === "unanswered" ? "unanswered" : activeTab === "removed" ? "removed" : activeTab || ""} questions
             </p>
           )}
         </div>
@@ -256,7 +275,8 @@ export default function AdminQuestionsPage() {
           {questions.map((q) => {
             const needsEmail = q.metadata?.needs_provider_email === true;
             const providerLabel = q.provider_name || q.provider_id;
-            const isActionable = q.status === "pending";
+            const isRemoved = q.status === "rejected";
+            const isLive = q.status === "pending" || q.status === "approved";
 
             return (
               <div
@@ -264,14 +284,16 @@ export default function AdminQuestionsPage() {
                 className={`rounded-xl border px-5 py-4 transition-colors ${
                   needsEmail
                     ? "border-amber-200 bg-amber-50/50"
-                    : "border-gray-100 bg-white hover:border-gray-200"
+                    : isRemoved
+                      ? "border-gray-100 bg-gray-50/50 opacity-60"
+                      : "border-gray-100 bg-white hover:border-gray-200"
                 }`}
               >
                 {/* Main row */}
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     {/* Question text */}
-                    <p className="text-[15px] font-medium text-gray-900 leading-snug">
+                    <p className={`text-[15px] font-medium leading-snug ${isRemoved ? "text-gray-400 line-through" : "text-gray-900"}`}>
                       {q.question}
                     </p>
 
@@ -307,29 +329,29 @@ export default function AdminQuestionsPage() {
                     </div>
                   </div>
 
-                  {/* Right side: status + actions */}
+                  {/* Right side: actions */}
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {isActionable && (
-                      <>
-                        <button
-                          onClick={() => handleAction(q.id, "approve")}
-                          disabled={actionLoading === q.id}
-                          className="px-3 py-1.5 text-xs font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-40"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleAction(q.id, "reject")}
-                          disabled={actionLoading === q.id}
-                          className="px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-red-600 transition-colors disabled:opacity-40"
-                        >
-                          Reject
-                        </button>
-                      </>
+                    {isLive && (
+                      <button
+                        onClick={() => handleRemove(q.id)}
+                        disabled={actionLoading === q.id}
+                        className="px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40"
+                      >
+                        Remove
+                      </button>
                     )}
-                    {!isActionable && (
+                    {isRemoved && (
+                      <button
+                        onClick={() => handleRestore(q.id)}
+                        disabled={actionLoading === q.id}
+                        className="px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-40"
+                      >
+                        Restore
+                      </button>
+                    )}
+                    {!isLive && !isRemoved && (
                       <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${STATUS_COLORS[q.status] || "bg-gray-50 text-gray-500"}`}>
-                        {q.status}
+                        {STATUS_LABELS[q.status] || q.status}
                       </span>
                     )}
                   </div>
@@ -360,7 +382,7 @@ export default function AdminQuestionsPage() {
       {/* Footer count */}
       {!loading && questions.length > 0 && (
         <div className="mt-4 text-xs text-gray-300 text-right">
-          {count} {activeTab === "needs_email" ? "needing email" : activeTab || "total"}
+          {count} {activeTab === "needs_email" ? "needing email" : activeTab === "unanswered" ? "unanswered" : activeTab === "removed" ? "removed" : "total"}
         </div>
       )}
     </div>

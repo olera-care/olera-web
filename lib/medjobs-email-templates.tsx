@@ -56,7 +56,7 @@ export function studentWelcomeEmail({
   profileSlug: string;
   magicLink?: string;
 }): string {
-  const completeProfileUrl = magicLink || `${BASE_URL}/medjobs/submit-video?slug=${profileSlug}`;
+  const completeProfileUrl = magicLink || `${BASE_URL}/portal/medjobs`;
 
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to MedJobs, ${studentName}!</h2>
@@ -91,6 +91,31 @@ export function studentWelcomeEmail({
         </ol>
       </td></tr>
     </table>
+  `);
+}
+
+export function studentReturningEmail({
+  studentName,
+  profileSlug,
+  magicLink,
+}: {
+  studentName: string;
+  profileSlug: string;
+  magicLink?: string;
+}): string {
+  const completeProfileUrl = magicLink || `${BASE_URL}/portal/medjobs`;
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome back, ${studentName}!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Looks like you already started an application. Your profile is still waiting for you &mdash; pick up where you left off.
+    </p>
+    <p style="margin:0 0 16px;">
+      ${button("Continue Your Profile", completeProfileUrl)}
+    </p>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.6;">
+      If you didn&apos;t request this, you can safely ignore this email.
+    </p>
   `);
 }
 

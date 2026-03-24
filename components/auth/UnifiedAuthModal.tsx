@@ -564,6 +564,32 @@ export default function UnifiedAuthModal({
             router.push(`/welcome?next=${encodeURIComponent(currentPath)}`);
             return;
           }
+
+          // Check for incomplete student profile → redirect to student dashboard
+          if (freshAccount?.id) {
+            try {
+              const { createBrowserClient } = await import("@supabase/ssr");
+              const sb = createBrowserClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+              );
+              const { data: studentProfile } = await sb
+                .from("business_profiles")
+                .select("id, is_active")
+                .eq("account_id", freshAccount.id)
+                .eq("type", "student")
+                .limit(1)
+                .maybeSingle();
+
+              if (studentProfile && !studentProfile.is_active) {
+                onClose();
+                router.push("/portal/medjobs");
+                return;
+              }
+            } catch {
+              // Non-blocking
+            }
+          }
         }
       } catch {
         // Non-blocking — continue to close modal

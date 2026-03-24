@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
-import { studentWelcomeEmail } from "@/lib/medjobs-email-templates";
+import { studentWelcomeEmail, studentReturningEmail } from "@/lib/medjobs-email-templates";
 import { sendSlackAlert, slackMedJobsNewStudent } from "@/lib/slack";
 import type { IntendedProfessionalSchool, StudentProgramTrack } from "@/lib/types";
 
@@ -128,6 +128,30 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     if (existingProfile) {
+      // Fire-and-forget: returning user email with sign-in link
+      try {
+        const supabaseAdmin = getSupabaseAdmin();
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+        const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+          type: "magiclink",
+          email: normalizedEmailEarly,
+          options: { redirectTo: `${siteUrl}/portal/medjobs` },
+        });
+        const magicLink = linkData?.properties?.action_link;
+
+        await sendEmail({
+          to: normalizedEmailEarly,
+          subject: "Welcome back to Olera MedJobs",
+          html: studentReturningEmail({
+            studentName: displayName?.trim() || "there",
+            profileSlug: existingProfile.slug,
+            magicLink,
+          }),
+        });
+      } catch (err) {
+        console.error("[medjobs/apply] returning email error:", err);
+      }
+
       return NextResponse.json({
         profileId: existingProfile.id,
         slug: existingProfile.slug,
@@ -280,7 +304,7 @@ export async function POST(req: NextRequest) {
       const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
         type: "magiclink",
         email: normalizedEmail,
-        options: { redirectTo: `${siteUrl}/medjobs/submit-video?slug=${slug}` },
+        options: { redirectTo: `${siteUrl}/portal/medjobs` },
       });
       if (!linkError && linkData?.properties?.action_link) {
         magicLink = linkData.properties.action_link;

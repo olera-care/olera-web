@@ -3,8 +3,7 @@
 --
 -- Sets metadata.needs_provider_email = true on questions where:
 -- 1. The provider (by slug) has no email in business_profiles
--- 2. The provider also has no email in ios_provider_profiles (if linked)
--- 3. The question doesn't already have metadata set
+-- 2. The question doesn't already have the flag set
 
 UPDATE provider_questions pq
 SET metadata = jsonb_set(
@@ -15,10 +14,4 @@ SET metadata = jsonb_set(
 FROM business_profiles bp
 WHERE bp.slug = pq.provider_id
   AND (bp.email IS NULL OR bp.email = '')
-  AND NOT EXISTS (
-    SELECT 1 FROM ios_provider_profiles ipp
-    WHERE ipp.provider_id = bp.id
-      AND ipp.email IS NOT NULL
-      AND ipp.email != ''
-  )
   AND (pq.metadata IS NULL OR NOT (pq.metadata ? 'needs_provider_email'));

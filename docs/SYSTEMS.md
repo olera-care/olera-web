@@ -345,4 +345,60 @@ Every automated email sent by Olera, organized by trigger type. All emails sent 
 
 ---
 
-*Last updated: 2026-03-21*
+## City Alias System (ZIP Code Search)
+
+Resolves the mismatch between ZIP-index city names and how providers are stored in Supabase.
+
+### Problem
+
+ZIP code search resolves ZIPs to city names via `zip-index.json` (3-digit prefix lookup). Some cities have a different "official" name than what the provider database uses:
+
+- **NYC**: ZIP 10001 → "New York" but providers are stored under borough names (Manhattan, Brooklyn, Bronx, Queens, Staten Island)
+- **Butte, MT**: ZIP 59701 → "Butte" but providers are stored as "Butte-Silver Bow" (consolidated city-county)
+
+Without aliases, these searches return 0 results despite having 150+ NYC and 10 Butte providers in the database.
+
+### How It Works
+
+```
+User enters ZIP → zip-index resolves to city name → expandCityAliases() checks alias map
+  → If alias exists: query expands to .in("city", [...aliases])
+  → If no alias: query uses original city name as before
+```
+
+The alias map is a static code-level constant — no database table, no API call. There are currently only 2 entries (NYC + Butte). If this grows to 20+, consider moving to Supabase.
+
+### Alias Map (as of 2026-03-24)
+
+| Search Term | Expands To | Reason |
+|------------|------------|--------|
+| New York | Manhattan, Brooklyn, Bronx, Queens, Staten Island | USPS uses borough names, not "New York" |
+| Butte | Butte-Silver Bow | Consolidated city-county government |
+
+### Where Aliases Are Applied
+
+Alias expansion runs in **3 query paths** — every way a user can search by city:
+
+1. **Power pages** (server-side): `lib/power-pages.ts` → `fetchPowerPageData()` — uses `.in()` for multi-alias, `.ilike()` for single
+2. **City browse** (client-side): `components/browse/CityBrowseClient.tsx` — same pattern
+3. **General browse** (client-side): `components/browse/BrowseClient.tsx` — same pattern
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `lib/city-aliases.ts` | Alias map + `expandCityAliases()` / `hasCityAliases()` |
+| `lib/power-pages.ts` | Server-side query with alias expansion |
+| `components/browse/CityBrowseClient.tsx` | Client-side city browse with alias expansion |
+| `components/browse/BrowseClient.tsx` | Client-side general browse with alias expansion |
+| `public/data/zip-index.json` | ZIP prefix → city mapping (source of search terms) |
+
+### Maintenance
+
+- **When adding new pipeline cities**: Check if the zip-index name matches the DB city name. If not, add an alias.
+- **Audit command**: Query Supabase for distinct city names, cross-reference against zip-index entries for the same state. Look for mismatches.
+- **Known clean**: St./Saint, Ft./Fort, Mt./Mount abbreviations are consistent across both systems (audited 2026-03-24).
+
+---
+
+*Last updated: 2026-03-24*

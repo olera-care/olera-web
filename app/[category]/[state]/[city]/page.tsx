@@ -10,6 +10,7 @@ import {
   fetchPowerPageData,
 } from "@/lib/power-pages";
 import CityBrowseClient from "@/components/browse/CityBrowseClient";
+import { getNearestCoveredCity } from "@/lib/nearest-city";
 
 export const revalidate = 3600;
 
@@ -147,36 +148,116 @@ export default async function CityPage({
           seoContent={seoContent}
         />
       ) : (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="text-center py-16">
-            <h1 className="text-2xl font-bold text-gray-900 font-serif mb-4">
-              {config.displayName} in {cityName}, {abbrev}
-            </h1>
-            <p className="text-lg text-gray-500">
-              No {config.displayName.toLowerCase()} providers found yet.
-            </p>
-            <Link href={`/${catSlug}/${stateSlug}`} className="mt-4 inline-block text-primary-600 hover:text-primary-700 font-medium">
-              Browse all {config.displayName.toLowerCase()} in {stateName}
-            </Link>
-          </div>
+        <NoCoverageFallback
+          cityName={cityName}
+          stateAbbrev={abbrev}
+          stateName={stateName}
+          stateSlug={stateSlug}
+          categorySlug={catSlug}
+          categoryLabel={config.displayName}
+          crossLinks={crossLinks}
+        />
+      )}
+    </div>
+  );
+}
 
-          <section className="mt-12 pt-8 border-t border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900 font-serif mb-4">
-              More Senior Care Options in {stateName}
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {crossLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="px-3 py-1.5 text-sm text-gray-600 bg-gray-50 rounded-full hover:bg-primary-50 hover:text-primary-700 transition-colors"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          </section>
+// ---------------------------------------------------------------------------
+// No-coverage fallback — warm, helpful empty state with nearest city suggestion
+// ---------------------------------------------------------------------------
+
+async function NoCoverageFallback({
+  cityName,
+  stateAbbrev,
+  stateName,
+  stateSlug,
+  categorySlug,
+  categoryLabel,
+  crossLinks,
+}: {
+  cityName: string;
+  stateAbbrev: string;
+  stateName: string;
+  stateSlug: string;
+  categorySlug: string;
+  categoryLabel: string;
+  crossLinks: { href: string; label: string }[];
+}) {
+  const nearest = await getNearestCoveredCity(cityName, stateAbbrev);
+  const categoryLower = categoryLabel.toLowerCase();
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      {/* Warm heading */}
+      <div className="text-center mb-10">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-50 mb-6">
+          <svg className="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+          </svg>
         </div>
+        <h1 className="text-2xl font-bold text-gray-900 font-serif mb-3">
+          We&apos;re expanding to {cityName} soon
+        </h1>
+        <p className="text-lg text-gray-500 max-w-lg mx-auto">
+          We don&apos;t have {categoryLower} providers in {cityName} yet, but we&apos;re
+          adding new communities every week.
+        </p>
+      </div>
+
+      {/* Nearest city suggestion */}
+      {nearest && (
+        <div className="bg-gray-50 rounded-2xl p-6 sm:p-8 mb-10">
+          <p className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">
+            In the meantime
+          </p>
+          <p className="text-lg text-gray-900 mb-4">
+            Explore {categoryLower} providers in{" "}
+            <span className="font-semibold">{nearest.city}, {nearest.state}</span>
+            {nearest.distance > 0 && (
+              <span className="text-gray-500"> — {nearest.distance} miles away</span>
+            )}
+          </p>
+          <Link
+            href={`/${categorySlug}/${nearest.stateSlug}/${nearest.citySlug}`}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
+          >
+            Browse {categoryLabel} in {nearest.city}
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          </Link>
+        </div>
+      )}
+
+      {/* Browse state */}
+      <div className="text-center mb-10">
+        <Link
+          href={`/${categorySlug}/${stateSlug}`}
+          className="text-primary-600 hover:text-primary-700 font-medium"
+        >
+          Browse all {categoryLower} in {stateName} →
+        </Link>
+      </div>
+
+      {/* Cross-category links */}
+      {crossLinks.length > 0 && (
+        <section className="pt-8 border-t border-gray-200">
+          <h2 className="text-lg font-bold text-gray-900 font-serif mb-4">
+            More Senior Care Options in {stateName}
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {crossLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="px-3 py-1.5 text-sm text-gray-600 bg-gray-50 rounded-full hover:bg-primary-50 hover:text-primary-700 transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </section>
       )}
     </div>
   );

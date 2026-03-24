@@ -111,6 +111,11 @@
   - `.claude/commands/city-pipeline.md` updated with new batch mode instructions
   - Next: full E2E test with fresh cities, then 80-city batch
 
+- **Provider Pricing Strategy & Disclaimers Overhaul** (branch: `easy-ramanujan`) — PLANNED
+  - Plan: `plans/provider-pricing-strategy-plan.md`
+  - Notion: [Task](https://www.notion.so/Provider-Pricing-Strategy-Disclaimers-Overhaul-32d5903a0ffe8076b473df7f96d02937)
+  - 7 phases: pricing config → category disclaimers → detail page → cards → city pages → portal → schema
+
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
 

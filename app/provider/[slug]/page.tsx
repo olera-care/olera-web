@@ -20,6 +20,8 @@ import MobileGalleryActionBar from "@/components/providers/MobileGalleryActionBa
 import MobileStickyBottomCTA from "@/components/providers/MobileStickyBottomCTA";
 import MobileClaimLink from "@/components/providers/MobileClaimLink";
 import PriceEstimate from "@/components/providers/PriceEstimate";
+import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
+import { getPricingConfig } from "@/lib/pricing-config";
 import ManagePageCTA from "@/components/providers/ManagePageCTA";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
 import ReviewsSection from "@/components/providers/ReviewsSection";
@@ -349,6 +351,7 @@ export default async function ProviderPage({
 
   const categoryLabel = formatCategory(profile.category);
   const locationStr = [profile.city, profile.state].filter(Boolean).join(", ");
+  const pricingConfig = profile.category ? getPricingConfig(profile.category) : null;
 
   // --- Parallel data fetching (claim state, similar providers, Q&A, reviews) ---
   const [claimResult, similarProviders, qaResult] = await Promise.all([
@@ -565,7 +568,8 @@ export default async function ProviderPage({
         ...(googleReviewsData.review_count != null && { reviewCount: googleReviewsData.review_count }),
       },
     }),
-    ...(priceRange && { priceRange }),
+    // Suppress priceRange in schema for Tier 3 unless provider explicitly entered pricing
+    ...(priceRange && (pricingConfig?.tier !== 3 || (meta?.price_min != null)) && { priceRange }),
     ...(meta?.price_min != null && meta?.price_max != null && {
       priceSpecification: {
         "@type": "UnitPriceSpecification",
@@ -717,8 +721,10 @@ export default async function ProviderPage({
                 {/* Row 2: Price (left) — Rating (right) */}
                 <div className="flex items-center justify-between mt-3">
                   <div>
-                    {hasPriceRange ? (
-                      <PriceEstimate priceRange={priceRange!} />
+                    {pricingConfig?.tier === 3 && !hasPriceRange ? (
+                      <PricingEducationBadge category={profile.category!} />
+                    ) : hasPriceRange ? (
+                      <PriceEstimate priceRange={priceRange!} category={profile.category ?? undefined} />
                     ) : (
                       <p className="text-sm text-gray-400">Contact for pricing</p>
                     )}
@@ -764,8 +770,10 @@ export default async function ProviderPage({
                   )}
                 </div>
 
-                {hasPriceRange ? (
-                  <PriceEstimate priceRange={priceRange!} />
+                {pricingConfig?.tier === 3 && !hasPriceRange ? (
+                  <div className="mt-1"><PricingEducationBadge category={profile.category!} /></div>
+                ) : hasPriceRange ? (
+                  <PriceEstimate priceRange={priceRange!} category={profile.category ?? undefined} />
                 ) : (
                   <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
                 )}
@@ -967,6 +975,14 @@ export default async function ProviderPage({
                       </div>
                     ))}
                   </div>
+                  {pricingConfig && (
+                    <p className="text-xs text-gray-400 mt-4 leading-relaxed">
+                      {pricingConfig.disclaimer}
+                      {pricingConfig.coverageNote && (
+                        <> {pricingConfig.coverageNote}</>
+                      )}
+                    </p>
+                  )}
                 </div>
               )}
 

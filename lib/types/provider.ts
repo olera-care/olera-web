@@ -9,6 +9,7 @@
 
 import { generateProviderSlug } from "@/lib/slugify";
 import type { BusinessProfile, ProfileCategory, GoogleReviewsData, CMSData, AiTrustSignals } from "@/lib/types";
+import { getRegionalEstimate, getPricingConfig } from "@/lib/pricing-config";
 
 export interface Provider {
   provider_id: string;
@@ -170,6 +171,10 @@ export interface ProviderCardData {
   cmsRating?: number | null;
   cmsSource?: string | null;
   trustSignalCount?: number; // count of AI-confirmed trust signals
+  /** True when priceRange is a state-level estimate, not provider-entered */
+  isRegionalEstimate?: boolean;
+  /** Raw provider_category for pricing tier logic (e.g., "Nursing Home", "nursing_home") */
+  providerCategory?: string;
 }
 
 /** URL patterns that strongly suggest a logo rather than a facility photo */
@@ -308,6 +313,22 @@ export function toCardFormat(provider: Provider): ProviderCardData {
   const images = parseProviderImages(provider.provider_images);
   const { image: cardImage, imageType } = resolveCardImage(provider);
 
+  // Pricing: provider-entered first, then regional estimate fallback
+  let priceRange = formatPriceRange(provider) || "";
+  let isRegionalEstimate = false;
+
+  if (!priceRange && provider.state) {
+    const regional = getRegionalEstimate(provider.provider_category, provider.state);
+    if (regional) {
+      priceRange = regional.formatted;
+      isRegionalEstimate = true;
+    }
+  }
+
+  if (!priceRange) {
+    priceRange = "Contact for pricing";
+  }
+
   return {
     id: provider.provider_id,
     slug: provider.slug || generateProviderSlug(provider.provider_name, provider.state),
@@ -318,7 +339,9 @@ export function toCardFormat(provider: Provider): ProviderCardData {
     address: formatLocation(provider),
     rating: provider.google_reviews_data?.rating ?? provider.google_rating ?? 0,
     reviewCount: provider.google_reviews_data?.review_count ?? undefined,
-    priceRange: formatPriceRange(provider) || "Contact for pricing",
+    priceRange,
+    isRegionalEstimate,
+    providerCategory: provider.provider_category,
     primaryCategory: getCategoryDisplayName(provider.provider_category),
     careTypes: [provider.provider_category],
     highlights: getHighlightsForCategory(provider.provider_category),
@@ -413,9 +436,10 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
   const primaryImage = bp.image_url || metaImages[0] || null;
   const hasImage = !!primaryImage;
 
-  // Pricing: read from metadata fields, fall back to "Contact for pricing"
+  // Pricing: read from metadata fields, fall back to regional estimate, then "Contact for pricing"
   const contactForPricing = meta?.contact_for_pricing === true;
   let priceRange = "Contact for pricing";
+  let isRegionalEstimate = false;
 
   if (!contactForPricing) {
     const lowerPrice = meta?.lower_price as number | undefined;
@@ -430,6 +454,13 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
     } else if (meta?.price_range) {
       // Fallback to legacy price_range string
       priceRange = meta.price_range as string;
+    } else if (bp.state && bp.category) {
+      // Regional estimate fallback
+      const regional = getRegionalEstimate(bp.category, bp.state);
+      if (regional) {
+        priceRange = regional.formatted;
+        isRegionalEstimate = true;
+      }
     }
   }
 
@@ -444,6 +475,8 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
     rating: 0,
     reviewCount: undefined,
     priceRange,
+    isRegionalEstimate,
+    providerCategory: bp.category ?? undefined,
     primaryCategory: displayCategory,
     careTypes: bp.care_types.length > 0 ? bp.care_types : (supabaseCat ? [supabaseCat] : []),
     highlights: getHighlightsForCategory(supabaseCat),

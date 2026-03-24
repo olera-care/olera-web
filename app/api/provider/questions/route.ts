@@ -52,8 +52,11 @@ export async function GET(request: NextRequest) {
       providerIdVariants.push(profile.source_provider_id);
     }
 
+    // Use service client to bypass RLS for question lookups
+    const db = getServiceClient();
+
     // Build query - match any of the possible provider_id formats
-    let query = supabase
+    let query = db
       .from("provider_questions")
       .select("id, question, answer, asker_name, asker_email, status, is_public, answered_at, created_at, updated_at")
       .in("provider_id", providerIdVariants)

@@ -37,10 +37,10 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: "bg-emerald-50 text-emerald-600",
-  approved: "bg-emerald-50 text-emerald-600",
-  answered: "bg-sky-50 text-sky-700",
-  rejected: "bg-red-50 text-red-500",
+  pending: "bg-gray-50 text-gray-500",
+  approved: "bg-gray-50 text-gray-500",
+  answered: "bg-gray-50 text-gray-500",
+  rejected: "bg-gray-50 text-gray-400",
 };
 
 function InlineEmailInput({
@@ -84,7 +84,7 @@ function InlineEmailInput({
 
   if (success) {
     return (
-      <div className="flex items-center gap-2 text-sm text-emerald-600 font-medium transition-opacity duration-200">
+      <div className="flex items-center gap-2 text-sm text-gray-900 font-medium">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
@@ -100,14 +100,14 @@ function InlineEmailInput({
         placeholder="provider@email.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="w-56 px-3 py-2 text-sm bg-white/80 border-0 border-b border-gray-200 rounded-none focus:outline-none focus:border-gray-900 placeholder:text-gray-300 transition-colors"
+        className="w-56 px-3 py-1.5 text-sm bg-transparent border-b border-gray-200 focus:outline-none focus:border-gray-900 placeholder:text-gray-300 transition-colors"
         disabled={saving}
         required
       />
       <button
         type="submit"
         disabled={saving || !email.trim()}
-        className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition-all duration-150 disabled:opacity-40"
+        className="px-4 py-1.5 rounded-lg text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition-colors disabled:opacity-40"
       >
         {saving ? "Saving..." : "Add & Send"}
       </button>
@@ -196,11 +196,11 @@ export default function AdminQuestionsPage() {
   };
 
   return (
-    <div className="bg-[#faf9f7] -mx-4 sm:-mx-6 lg:-mx-8 -my-8 px-4 sm:px-6 lg:px-8 py-8 min-h-full">
+    <div>
       {/* Header */}
       <div className="mb-10">
         <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Questions</h1>
-        <p className="text-[13px] text-gray-300 mt-1.5 tracking-wide">
+        <p className="text-sm text-gray-400 mt-1">
           Questions go live immediately. Supply provider emails and remove spam.
         </p>
       </div>
@@ -212,7 +212,7 @@ export default function AdminQuestionsPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-8 border-b border-gray-200/60">
+      <div className="flex gap-1 mb-8 border-b border-gray-100">
         {TABS.map((tab) => {
           const tabCount = tab.value === "unanswered" ? tabCounts.pending
             : tab.value === "needs_email" ? tabCounts.needs_email
@@ -222,21 +222,15 @@ export default function AdminQuestionsPage() {
             <button
               key={tab.value}
               onClick={() => setActiveTab(tab.value)}
-              className={`px-4 py-2.5 text-[13px] font-medium border-b tracking-wide transition-colors ${
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === tab.value
                   ? "border-gray-900 text-gray-900"
-                  : "border-transparent text-gray-300 hover:text-gray-500"
+                  : "border-transparent text-gray-400 hover:text-gray-600"
               }`}
             >
               {tab.label}
               {tab.showCount && tabCount !== null && tabCount > 0 && (
-                <span className={`ml-1.5 text-[12px] ${
-                  activeTab === tab.value
-                    ? "text-gray-900"
-                    : tab.value === "needs_email"
-                      ? "text-amber-500"
-                      : "text-gray-300"
-                }`}>
+                <span className="ml-1.5 text-xs text-gray-400">
                   {tabCount}
                 </span>
               )}
@@ -254,21 +248,21 @@ export default function AdminQuestionsPage() {
         <div className="text-center py-24">
           {activeTab === "needs_email" ? (
             <div className="space-y-3">
-              <div className="w-10 h-10 mx-auto rounded-full bg-emerald-50 flex items-center justify-center">
-                <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 mx-auto rounded-full bg-gray-50 flex items-center justify-center">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <p className="text-sm text-gray-300">All questions have provider emails</p>
+              <p className="text-sm text-gray-400">All questions have provider emails</p>
             </div>
           ) : (
-            <p className="text-sm text-gray-300">
+            <p className="text-sm text-gray-400">
               No {activeTab === "unanswered" ? "unanswered" : activeTab === "removed" ? "removed" : activeTab || ""} questions
             </p>
           )}
         </div>
       ) : (
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           {questions.map((q) => {
             const needsEmail = q.metadata?.needs_provider_email === true;
             const providerLabel = q.provider_name || q.provider_id;
@@ -279,23 +273,18 @@ export default function AdminQuestionsPage() {
             return (
               <div
                 key={q.id}
-                className={`group rounded-xl px-5 py-4 transition-all duration-150 ${
-                  needsEmail && !isRemoved
-                    ? "bg-amber-50/60"
-                    : isRemoved
-                      ? "bg-gray-50/40 opacity-50"
-                      : "bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
+                className={`group rounded-lg px-5 py-4 transition-colors ${
+                  isRemoved ? "opacity-40" : "hover:bg-gray-50"
                 }`}
               >
                 {/* Main row */}
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    {/* Question text */}
                     <a
                       href={`/provider/${q.provider_id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`text-[15px] font-medium leading-snug transition-colors duration-150 ${
+                      className={`text-[15px] font-medium leading-snug transition-colors ${
                         isRemoved
                           ? "text-gray-400 line-through"
                           : "text-gray-900 hover:text-primary-600"
@@ -304,13 +293,12 @@ export default function AdminQuestionsPage() {
                       {q.question}
                     </a>
 
-                    {/* Meta line */}
-                    <div className="flex items-center gap-3 mt-1.5 text-[12px] text-gray-300">
+                    <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400">
                       <span>{q.asker_name}</span>
                       {q.provider_editor_id ? (
                         <Link
                           href={`/admin/directory/${q.provider_editor_id}`}
-                          className="text-gray-400 hover:text-primary-600 transition-colors duration-150"
+                          className="hover:text-primary-600 transition-colors"
                         >
                           {providerLabel}
                         </Link>
@@ -319,25 +307,24 @@ export default function AdminQuestionsPage() {
                           href={`/provider/${q.provider_id}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-gray-400 hover:text-primary-600 transition-colors duration-150"
+                          className="hover:text-primary-600 transition-colors"
                         >
                           {providerLabel}
                         </a>
                       )}
                       {needsEmail && !isRemoved && (
-                        <span className="text-amber-500 font-medium">No email</span>
+                        <span className="font-medium text-gray-900">Needs email</span>
                       )}
                       <span>{formatDate(q.created_at)}</span>
                     </div>
                   </div>
 
-                  {/* Right side: actions — hover reveal for Remove */}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {isLive && (
                       <button
                         onClick={() => handleRemove(q.id)}
                         disabled={actionLoading === q.id}
-                        className="opacity-0 group-hover:opacity-100 px-3 py-1.5 text-xs font-medium text-gray-300 hover:text-red-500 rounded-lg transition-all duration-150 disabled:opacity-40"
+                        className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-red-500 transition-all disabled:opacity-40"
                       >
                         Remove
                       </button>
@@ -346,29 +333,27 @@ export default function AdminQuestionsPage() {
                       <button
                         onClick={() => handleRestore(q.id)}
                         disabled={actionLoading === q.id}
-                        className="px-3 py-1.5 text-xs font-medium text-gray-300 hover:text-gray-600 rounded-lg transition-colors duration-150 disabled:opacity-40"
+                        className="text-xs text-gray-400 hover:text-gray-900 transition-colors disabled:opacity-40"
                       >
                         Restore
                       </button>
                     )}
                     {!isLive && !isRemoved && (
-                      <span className={`px-2.5 py-1 text-[11px] font-medium rounded-full ${STATUS_COLORS[q.status] || "bg-gray-50 text-gray-400"}`}>
+                      <span className={`px-2 py-0.5 text-[11px] font-medium rounded ${STATUS_COLORS[q.status] || "bg-gray-50 text-gray-400"}`}>
                         {STATUS_LABELS[q.status] || q.status}
                       </span>
                     )}
                   </div>
                 </div>
 
-                {/* Answer display */}
                 {q.answer && (
-                  <div className="mt-3 pl-4 border-l-2 border-gray-100">
+                  <div className="mt-2.5 pl-4 border-l-2 border-gray-100">
                     <p className="text-sm text-gray-500">{q.answer}</p>
                   </div>
                 )}
 
-                {/* Email input — only on live needs_email questions */}
                 {showEmailInput && (
-                  <div className="mt-3 pt-3 border-t border-amber-100/60">
+                  <div className="mt-3">
                     <InlineEmailInput
                       providerSlug={q.provider_id}
                       onEmailAdded={fetchQuestions}
@@ -381,9 +366,8 @@ export default function AdminQuestionsPage() {
         </div>
       )}
 
-      {/* Footer count */}
       {!loading && questions.length > 0 && (
-        <div className="mt-6 text-[11px] text-gray-300 text-right tracking-wide">
+        <div className="mt-6 text-xs text-gray-300 text-right">
           {count} {activeTab === "needs_email" ? "needing email" : activeTab === "unanswered" ? "unanswered" : activeTab === "removed" ? "removed" : "total"}
         </div>
       )}

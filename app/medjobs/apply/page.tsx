@@ -680,10 +680,10 @@ export default function MedJobsApplyPage() {
                 className={`w-full flex items-center gap-3 px-4 py-4 rounded-lg text-left transition-all ${
                   acknowledged ? "border-2 border-gray-900 bg-gray-50" : "border border-gray-200 hover:border-gray-300"
                 }`}>
-                <span className={`inline-flex items-center justify-center w-6 h-6 rounded text-xs font-semibold shrink-0 ${
-                  acknowledged ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-400"
+                <span className={`inline-flex items-center justify-center w-5 h-5 rounded border-2 shrink-0 transition-colors ${
+                  acknowledged ? "bg-gray-900 border-gray-900 text-white" : "border-gray-300"
                 }`}>
-                  {acknowledged ? "\u2713" : "Y"}
+                  {acknowledged && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                 </span>
                 <span className="text-sm font-medium text-gray-900">I&apos;ve read and agree to all of the above</span>
               </button>

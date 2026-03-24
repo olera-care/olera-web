@@ -287,11 +287,27 @@ export default function MedJobsApplyPage() {
           }),
         })
           .then((res) => res.json())
-          .then((data) => {
+          .then(async (data) => {
             if (data.profileId && data.profileId !== "ok") {
               setPartialProfileId(data.profileId);
               setPartialSlug(data.slug || "");
               if (data.existing) setPartialExisting(true);
+
+              // Auto-sign-in: establish browser session silently
+              if (data.tokenHash) {
+                try {
+                  const supabase = createBrowserClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+                  );
+                  await supabase.auth.verifyOtp({
+                    token_hash: data.tokenHash,
+                    type: "magiclink",
+                  });
+                } catch {
+                  // Non-blocking — sign-in is a nice-to-have during form fill
+                }
+              }
             }
           })
           .catch(() => {

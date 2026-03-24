@@ -249,6 +249,8 @@ function getActionConfig(action: ActionType, actionData: ActionData): ActionConf
 interface StatsRowProps {
   stats: ProviderStats;
   excludeAction: ActionType;
+  onHighlightContextCard?: () => void;
+  sectionTitle?: string;
 }
 
 const STAT_ICONS: Record<string, React.ReactNode> = {
@@ -274,7 +276,15 @@ const STAT_ICONS: Record<string, React.ReactNode> = {
   ),
 };
 
-function StatsRow({ stats, excludeAction }: StatsRowProps) {
+// Value-focused messaging for zero-stat items
+const ZERO_STAT_MESSAGES: Record<string, string> = {
+  lead: "Connect with families",
+  question: "Build trust with answers",
+  review: "Collect client reviews",
+  message: "Message families directly",
+};
+
+function StatsRow({ stats, excludeAction, onHighlightContextCard, sectionTitle }: StatsRowProps) {
   const statItems = [
     { key: "lead", label: "Leads", sublabel: "new", count: stats.leads, href: "/provider/connections", excludeOn: ["lead", "match"] },
     { key: "question", label: "Q&A", sublabel: "unanswered", count: stats.questions, href: "/provider/qna", excludeOn: ["question"] },
@@ -284,12 +294,24 @@ function StatsRow({ stats, excludeAction }: StatsRowProps) {
 
   const visibleStats = statItems.filter((item) => !item.excludeOn.includes(excludeAction));
 
+  const handleStatClick = (e: React.MouseEvent, stat: typeof statItems[0]) => {
+    // If count is zero and we have a highlight handler, highlight instead of navigating
+    if (stat.count === 0 && onHighlightContextCard) {
+      e.preventDefault();
+      onHighlightContextCard();
+    }
+  };
+
   return (
     <div className="space-y-3">
+      {sectionTitle && (
+        <h2 className="text-text-md font-semibold text-gray-900 mb-4">{sectionTitle}</h2>
+      )}
       {visibleStats.map((stat) => (
         <Link
           key={stat.key}
           href={stat.href}
+          onClick={(e) => handleStatClick(e, stat)}
           className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
         >
           <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary-50">
@@ -301,7 +323,7 @@ function StatsRow({ stats, excludeAction }: StatsRowProps) {
               {stat.count > 0 ? (
                 <span className="text-primary-600">{stat.count} {stat.sublabel}</span>
               ) : (
-                <span>No {stat.sublabel}</span>
+                <span>{ZERO_STAT_MESSAGES[stat.key]}</span>
               )}
             </p>
           </div>
@@ -652,14 +674,21 @@ interface CampaignCardProps {
   headline?: string;
   message?: string;
   config: ActionConfig;
+  highlighted?: boolean;
+  cardRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-function CampaignCard({ headline, message, config }: CampaignCardProps) {
+function CampaignCard({ headline, message, config, highlighted, cardRef }: CampaignCardProps) {
   const displayHeadline = headline || "Families are searching for care in your area";
   const displayMessage = message || "Your listing is visible to families looking for care providers. Claim your page to respond to inquiries and manage your profile.";
 
+  const baseCardClass = "bg-white rounded-2xl overflow-hidden transition-all duration-300";
+  const cardClass = highlighted
+    ? `${baseCardClass} border-2 border-orange-400 ring-4 ring-orange-200 shadow-lg shadow-orange-100/50`
+    : `${baseCardClass} shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)]`;
+
   return (
-    <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+    <div ref={cardRef} className={cardClass}>
       <div className="p-5 sm:p-6 flex flex-col">
         {/* Icon + Content row */}
         <div className="flex items-start gap-4">
@@ -868,6 +897,19 @@ export default function ProviderWelcomeClient({
   const [claimLoading, setClaimLoading] = useState(false);
   const [signupCooldown, setSignupCooldown] = useState(0);
   const codeInputRef = useRef<HTMLInputElement>(null);
+
+  // Context card highlight state (for zero-stat clicks)
+  const contextCardRef = useRef<HTMLDivElement>(null);
+  const [contextCardHighlighted, setContextCardHighlighted] = useState(false);
+
+  const handleHighlightContextCard = useCallback(() => {
+    // Scroll to the context card
+    contextCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Highlight it
+    setContextCardHighlighted(true);
+    // Remove highlight after animation
+    setTimeout(() => setContextCardHighlighted(false), 2000);
+  }, []);
 
   // Resend cooldown timer
   useEffect(() => {
@@ -1169,6 +1211,8 @@ export default function ProviderWelcomeClient({
                 headline={campaignHeadline}
                 message={campaignMessage}
                 config={config}
+                highlighted={contextCardHighlighted}
+                cardRef={contextCardRef}
               />
             ) : actionData ? (
               <>
@@ -1197,7 +1241,12 @@ export default function ProviderWelcomeClient({
           {/* Stats Navigation — styled like family welcome action cards */}
           {providerStats && (
             <section className="pb-20">
-              <StatsRow stats={providerStats} excludeAction={action} />
+              <StatsRow
+                stats={providerStats}
+                excludeAction={action}
+                sectionTitle="What you can do on Olera"
+                onHighlightContextCard={action === "campaign" ? handleHighlightContextCard : undefined}
+              />
             </section>
           )}
         </div>

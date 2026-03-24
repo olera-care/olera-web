@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useCitySearch } from "@/hooks/use-city-search";
+import { citySearchService } from "@/lib/us-city-search";
 import { useRouter } from "next/navigation";
 import BrowseCard from "@/components/browse/BrowseCard";
 import { useNavbar } from "@/components/shared/NavbarContext";
@@ -100,10 +101,26 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     return () => disableAutoHide();
   }, [enableAutoHide, disableAutoHide]);
 
-  // Filter states
-  const initialLocation = searchQuery?.trim() || "";
-  const [searchLocation, setSearchLocation] = useState(initialLocation);
-  const [locationInput, setLocationInput] = useState(initialLocation);
+  // Filter states — resolve ZIP codes to city names before first query
+  const rawLocation = searchQuery?.trim() || "";
+  const [searchLocation, setSearchLocation] = useState(rawLocation);
+  const [locationInput, setLocationInput] = useState(rawLocation);
+
+  // If the URL contains a raw ZIP (e.g. ?location=10001), resolve it to a city
+  // once the zip-index loads. This prevents "0 Home Care in 10001".
+  const zipResolvedRef = useRef(false);
+  useEffect(() => {
+    if (zipResolvedRef.current || !/^\d{3,5}$/.test(rawLocation)) return;
+    // Preload ZIP data then resolve
+    citySearchService.preloadZips().then(() => {
+      const resolved = citySearchService.search(rawLocation, 1)[0];
+      if (resolved) {
+        zipResolvedRef.current = true;
+        setSearchLocation(resolved.full);
+        setLocationInput(resolved.full);
+      }
+    });
+  }, [rawLocation]);
   const [selectedRating, setSelectedRating] = useState("any");
   const [sortBy, setSortBy] = useState("recommended");
   const [hoveredProviderId, setHoveredProviderId] = useState<string | null>(null);
@@ -332,7 +349,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
 
   // Auto-detect location on mount ONLY if no location was provided via URL
   useEffect(() => {
-    if (!initialLocation) {
+    if (!rawLocation) {
       detectLocation();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

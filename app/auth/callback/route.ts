@@ -301,6 +301,41 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // If user has an incomplete student profile and no explicit destination,
+    // redirect to the student dashboard instead of home
+    if (next === "/" || next === "") {
+      try {
+        const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (sbUrl && sbKey) {
+          const db = createClient(sbUrl, sbKey);
+          const { data: acct } = await db
+            .from("accounts")
+            .select("id")
+            .eq("user_id", data.user.id)
+            .maybeSingle();
+
+          if (acct) {
+            const { data: studentProfile } = await db
+              .from("business_profiles")
+              .select("id, is_active")
+              .eq("account_id", acct.id)
+              .eq("type", "student")
+              .limit(1)
+              .maybeSingle();
+
+            if (studentProfile && !studentProfile.is_active) {
+              return NextResponse.redirect(`${origin}/portal/medjobs`, {
+                headers: response.headers,
+              });
+            }
+          }
+        }
+      } catch {
+        // Non-blocking — fall through to default redirect
+      }
+    }
+
     return response;
   } catch (err) {
     console.error("OAuth callback unexpected error:", err);

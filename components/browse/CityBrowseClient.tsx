@@ -7,6 +7,7 @@ import BrowseCard from "@/components/browse/BrowseCard";
 import { useNavbar } from "@/components/shared/NavbarContext";
 import Pagination from "@/components/ui/Pagination";
 import { createClient } from "@/lib/supabase/client";
+import { expandCityAliases } from "@/lib/city-aliases";
 import {
   type Provider as SupabaseProvider,
   PROVIDERS_TABLE,
@@ -218,14 +219,19 @@ export default function CityBrowseClient({
           }
         }
 
-        // Location filter
+        // Location filter (with city alias expansion for metros like NYC)
         if (searchLocation) {
           const trimmed = searchLocation.trim();
           const cityStateMatch = trimmed.match(/^(.+),\s*([A-Z]{2})$/i);
           if (cityStateMatch) {
             const city = cityStateMatch[1].trim();
             const state = cityStateMatch[2].toUpperCase();
-            query = query.ilike("city", `%${city}%`).eq("state", state);
+            const aliases = expandCityAliases(city);
+            if (aliases.length === 1) {
+              query = query.ilike("city", `%${aliases[0]}%`).eq("state", state);
+            } else {
+              query = query.in("city", aliases).eq("state", state);
+            }
           } else if (/^[A-Z]{2}$/i.test(trimmed)) {
             query = query.eq("state", trimmed.toUpperCase());
           } else {
@@ -256,7 +262,12 @@ export default function CityBrowseClient({
           if (cityStateMatch) {
             const city = cityStateMatch[1].trim();
             const state = cityStateMatch[2].toUpperCase();
-            bpQuery = bpQuery.ilike("city", `%${city}%`).eq("state", state);
+            const aliases = expandCityAliases(city);
+            if (aliases.length === 1) {
+              bpQuery = bpQuery.ilike("city", `%${aliases[0]}%`).eq("state", state);
+            } else {
+              bpQuery = bpQuery.in("city", aliases).eq("state", state);
+            }
           } else if (/^[A-Z]{2}$/i.test(trimmed)) {
             bpQuery = bpQuery.eq("state", trimmed.toUpperCase());
           } else {

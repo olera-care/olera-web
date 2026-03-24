@@ -52,6 +52,7 @@ export async function GET(request: NextRequest) {
 
       // Determine what's missing (required items first)
       const missingItems: string[] = [];
+      if (meta.application_completed === false) missingItems.push("Finish your application");
       if (!meta.video_intro_url) missingItems.push("Submit your intro video (required)");
       if (!meta.drivers_license_url) missingItems.push("Upload driver's license (required)");
       if (!meta.car_insurance_url) missingItems.push("Upload car insurance (required)");

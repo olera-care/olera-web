@@ -22,6 +22,7 @@ interface StudentProfile {
     car_insurance_url?: string;
     car_insurance_uploaded_at?: string;
     profile_completeness?: number;
+    application_completed?: boolean;
     [key: string]: unknown;
   };
 }
@@ -31,34 +32,53 @@ type ChecklistItem = {
   label: string;
   desc: string;
   done: boolean;
-  action?: "video" | "upload_license" | "upload_insurance";
+  locked?: boolean;
+  action?: "video" | "upload_license" | "upload_insurance" | "complete_application";
 };
 
 function getChecklist(profile: StudentProfile | null): ChecklistItem[] {
   const meta = profile?.metadata || {};
-  return [
+  const applicationIncomplete = !meta.application_completed;
+  const items: ChecklistItem[] = [];
+
+  if (applicationIncomplete) {
+    items.push({
+      key: "application",
+      label: "Complete your application",
+      desc: "Finish the intake form to unlock next steps",
+      done: false,
+      action: "complete_application",
+    });
+  }
+
+  items.push(
     {
       key: "video",
       label: "Intro video",
-      desc: "2-3 min video so providers can get to know you",
+      desc: applicationIncomplete ? "Complete your application first" : "2-3 min video so providers can get to know you",
       done: !!meta.video_intro_url,
-      action: meta.video_intro_url ? undefined : "video",
+      locked: applicationIncomplete,
+      action: meta.video_intro_url || applicationIncomplete ? undefined : "video",
     },
     {
       key: "license",
       label: "Driver\u2019s license",
-      desc: "Required before your first assignment",
+      desc: applicationIncomplete ? "Complete your application first" : "Required before your first assignment",
       done: !!meta.drivers_license_url,
-      action: meta.drivers_license_url ? undefined : "upload_license",
+      locked: applicationIncomplete,
+      action: meta.drivers_license_url || applicationIncomplete ? undefined : "upload_license",
     },
     {
       key: "insurance",
       label: "Car insurance",
-      desc: "Proof of coverage for transportation",
+      desc: applicationIncomplete ? "Complete your application first" : "Proof of coverage for transportation",
       done: !!meta.car_insurance_url,
-      action: meta.car_insurance_url ? undefined : "upload_insurance",
+      locked: applicationIncomplete,
+      action: meta.car_insurance_url || applicationIncomplete ? undefined : "upload_insurance",
     },
-  ];
+  );
+
+  return items;
 }
 
 /* ─── Document Upload (inline) ─────────────────────────────── */
@@ -239,23 +259,31 @@ export default function StudentPortalPage() {
           {checklist.map((item, i) => (
             <div key={item.key}
               className={`flex items-start gap-4 p-4 rounded-lg transition-all ${
-                item.done ? "bg-gray-50" : "border border-gray-200"
+                item.done ? "bg-gray-50" : item.locked ? "border border-gray-100 opacity-50" : "border border-gray-200"
               }`}>
               {/* Badge */}
               <span className={`inline-flex items-center justify-center w-6 h-6 rounded text-xs font-semibold shrink-0 mt-0.5 ${
-                item.done ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-400"
+                item.done ? "bg-gray-900 text-white" : item.locked ? "bg-gray-50 text-gray-300" : "bg-gray-100 text-gray-400"
               }`}>
-                {item.done ? "\u2713" : i + 1}
+                {item.done ? "\u2713" : item.locked ? "\u2014" : i + 1}
               </span>
 
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-medium ${item.done ? "text-gray-500" : "text-gray-900"}`}>
+                <p className={`text-sm font-medium ${item.done ? "text-gray-500" : item.locked ? "text-gray-400" : "text-gray-900"}`}>
                   {item.label}
                   {item.done && <span className="ml-2 text-xs text-gray-400">Done</span>}
                 </p>
                 <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>
 
                 {/* Actions */}
+                {!item.done && item.action === "complete_application" && (
+                  <div className="mt-3">
+                    <Link href="/medjobs/apply"
+                      className="text-sm font-medium text-gray-900 underline underline-offset-2 hover:text-gray-600 transition-colors">
+                      Continue application
+                    </Link>
+                  </div>
+                )}
                 {!item.done && item.action === "video" && (
                   <div className="mt-3">
                     <Link href={`/medjobs/submit-video?slug=${profile.slug}&profileId=${profile.id}`}

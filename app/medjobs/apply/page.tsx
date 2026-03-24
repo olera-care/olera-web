@@ -267,9 +267,40 @@ export default function MedJobsApplyPage() {
     }, 200);
   }, [animating, step]);
 
+  // Track partial creation state
+  const [partialProfileId, setPartialProfileId] = useState("");
+  const [partialSlug, setPartialSlug] = useState("");
+  const [partialExisting, setPartialExisting] = useState(false);
+  const partialFiredRef = useRef(false);
+
   const goNext = useCallback(() => {
-    if (step < TOTAL_STEPS - 1) goTo((step + 1) as Step);
-  }, [step, goTo]);
+    if (step < TOTAL_STEPS - 1) {
+      // Fire partial creation after step 0 (about_you) completes
+      if (step === 0 && !partialFiredRef.current) {
+        partialFiredRef.current = true;
+        fetch("/api/medjobs/apply-partial", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            displayName, email, phone, city, state,
+            website: honeypot,
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.profileId && data.profileId !== "ok") {
+              setPartialProfileId(data.profileId);
+              setPartialSlug(data.slug || "");
+              if (data.existing) setPartialExisting(true);
+            }
+          })
+          .catch(() => {
+            // Non-blocking — don't interrupt the user
+          });
+      }
+      goTo((step + 1) as Step);
+    }
+  }, [step, goTo, displayName, email, phone, city, state, honeypot]);
 
   const goBack = useCallback(() => {
     if (step > 0) goTo((step - 1) as Step);

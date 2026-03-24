@@ -121,13 +121,96 @@ export async function POST(req: NextRequest) {
     const supabaseCheck = getSupabaseAdmin();
     const { data: existingProfile } = await supabaseCheck
       .from("business_profiles")
-      .select("id, slug")
+      .select("id, slug, metadata")
       .eq("email", normalizedEmailEarly)
       .eq("type", "student")
       .limit(1)
       .maybeSingle();
 
     if (existingProfile) {
+      const existingMeta = (existingProfile.metadata || {}) as Record<string, unknown>;
+      const applicationCompleted = existingMeta.application_completed === true;
+
+      if (!applicationCompleted) {
+        // Incomplete profile from partial creation — update with full form data
+        const resolvedSlug = existingProfile.slug;
+
+        const updateMetadata = {
+          ...existingMeta,
+          university: university?.trim() || existingMeta.university || undefined,
+          university_id: universityId || existingMeta.university_id || undefined,
+          major: major?.trim() || existingMeta.major || undefined,
+          intended_professional_school: intendedSchool || existingMeta.intended_professional_school || undefined,
+          program_track: mapToProgramTrack(intendedSchool as IntendedProfessionalSchool) || existingMeta.program_track || undefined,
+          certifications: certifications?.filter(Boolean) || [],
+          years_caregiving: yearsCaregiving ? (yearsCaregiving === "family" ? 0 : Number(yearsCaregiving)) : undefined,
+          care_experience_types: careExperienceTypes?.filter(Boolean) || [],
+          languages: languages?.filter(Boolean) || [],
+          availability_types: availabilityTypes?.filter(Boolean) || [],
+          seasonal_availability: seasonalAvailability?.filter(Boolean) || [],
+          duration_commitment: durationCommitment || undefined,
+          hours_per_week_range: hoursPerWeekRange || undefined,
+          acknowledgments_completed: !!acknowledgmentsCompleted,
+          acknowledgment_date: acknowledgmentsCompleted ? new Date().toISOString() : undefined,
+          seeking_status: "actively_looking" as const,
+          application_completed: true,
+          profile_completeness: 0,
+        };
+
+        // Compute completeness
+        updateMetadata.profile_completeness = computeCompleteness({
+          displayName: trimmedName,
+          university: updateMetadata.university as string | undefined,
+          major: updateMetadata.major as string | undefined,
+          intendedSchool: updateMetadata.intended_professional_school as string | undefined,
+          city,
+          state,
+          availabilityTypes: updateMetadata.availability_types as string[],
+          certifications: updateMetadata.certifications as string[],
+          careExperienceTypes: updateMetadata.care_experience_types as string[],
+          videoIntroUrl: undefined,
+          acknowledgmentsCompleted: updateMetadata.acknowledgments_completed as boolean,
+        });
+
+        const { error: updateError } = await supabaseCheck
+          .from("business_profiles")
+          .update({
+            display_name: trimmedName,
+            phone: phone?.trim() || null,
+            city: city?.trim() || null,
+            state: state?.trim() || null,
+            zip: zip?.trim() || null,
+            care_types: careExperienceTypes?.filter(Boolean) || [],
+            metadata: updateMetadata,
+          })
+          .eq("id", existingProfile.id);
+
+        if (updateError) {
+          console.error("[medjobs/apply] update error:", updateError);
+          return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
+        }
+
+        // Fire-and-forget: Slack alert for full completion
+        try {
+          const alert = slackMedJobsNewStudent({
+            studentName: trimmedName,
+            university: (updateMetadata.university as string) || "Not specified",
+            programTrack: (updateMetadata.intended_professional_school as string) || (updateMetadata.program_track as string) || "Not specified",
+            location: [city, state].filter(Boolean).join(", ") || "Not specified",
+          });
+          await sendSlackAlert(alert.text, alert.blocks);
+        } catch (err) {
+          console.error("[medjobs/apply] slack error:", err);
+        }
+
+        return NextResponse.json({
+          profileId: existingProfile.id,
+          slug: resolvedSlug,
+          updated: true,
+        });
+      }
+
+      // Application already completed — returning user
       // Fire-and-forget: returning user email with sign-in link
       try {
         const supabaseAdmin = getSupabaseAdmin();
@@ -182,6 +265,7 @@ export async function POST(req: NextRequest) {
       // Status
       profile_completeness: 0,
       seeking_status: "actively_looking" as const,
+      application_completed: true,
     };
 
     // Compute completeness

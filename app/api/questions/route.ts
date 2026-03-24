@@ -215,6 +215,9 @@ export async function POST(request: NextRequest) {
             providerUrl: providerPortalUrl,
             providerSlug: provider_id,
           }),
+          emailType: 'question_received',
+          recipientType: 'provider',
+          providerId: providerForEmail?.id,
         });
       }
 
@@ -229,6 +232,8 @@ export async function POST(request: NextRequest) {
             question: question.trim(),
             providerUrl: providerPageUrl,
           }),
+          emailType: 'question_confirmation',
+          recipientType: 'family',
         });
       }
     } catch (emailErr) {
@@ -326,6 +331,8 @@ export async function PATCH(request: NextRequest) {
               question: updated.question,
               providerUrl: `${siteUrl}/provider/${providerSlug}`,
             }),
+            emailType: 'question_confirmation',
+            recipientType: 'family',
           });
         } catch (emailErr) {
           console.error("Question confirmation email failed:", emailErr);

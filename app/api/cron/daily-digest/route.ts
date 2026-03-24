@@ -85,6 +85,8 @@ export async function GET(request: NextRequest) {
         to: adminEmail,
         subject: `Olera Daily Digest: ${newLeads} leads, ${newClaims} claims, ${newDisputes} disputes`,
         html: lines.join("\n"),
+        emailType: "daily_digest",
+        recipientType: "admin",
       });
     }
 

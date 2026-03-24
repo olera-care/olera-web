@@ -96,6 +96,9 @@ export async function PATCH(
                 approved: action === "approve",
                 listingUrl,
               }),
+              emailType: "verification_decision",
+              recipientType: "provider",
+              providerId: id,
             });
             await sendLoopsEvent({
               email: providerEmail,

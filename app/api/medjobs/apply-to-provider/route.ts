@@ -125,6 +125,9 @@ export async function POST(req: NextRequest) {
             programTrack: getTrackLabel(studentMeta) || "Not specified",
             profileSlug: studentProfile.slug,
           }),
+          emailType: "application_received",
+          recipientType: "provider",
+          providerId: providerProfile.id,
         });
       } catch (err) {
         console.error("[medjobs/apply-to-provider] provider email error:", err);
@@ -141,6 +144,8 @@ export async function POST(req: NextRequest) {
             studentName: studentProfile.display_name,
             providerName: providerProfile.display_name,
           }),
+          emailType: "application_sent",
+          recipientType: "student",
         });
       } catch (err) {
         console.error("[medjobs/apply-to-provider] student email error:", err);

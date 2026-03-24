@@ -106,6 +106,9 @@ export async function POST(request: NextRequest) {
               message: additionalNotes,
               viewUrl: `${siteUrl}/provider/connections`,
             }),
+            emailType: "add_email_notification",
+            recipientType: "provider",
+            providerId: profileId,
           });
 
           // Clear the flag

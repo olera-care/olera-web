@@ -231,6 +231,9 @@ export async function POST(request: Request) {
               familyName,
               viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/connections`,
             }),
+            emailType: 'reach_out_accepted',
+            recipientType: 'provider',
+            providerId: connection.from_profile_id,
           });
         }
       } catch (emailErr) {

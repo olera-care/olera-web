@@ -177,6 +177,8 @@ export async function POST(request: Request) {
                   familyName: welcomeName.split(/\s+/)[0] || "there",
                   browseUrl: `${siteUrl}/browse`,
                 }),
+                emailType: "welcome",
+                recipientType: "family",
               });
             }
           } catch {
@@ -334,6 +336,8 @@ export async function POST(request: Request) {
               familyName: sanitizedName.split(/\s+/)[0] || "there",
               browseUrl: `${siteUrl}/browse`,
             }),
+            emailType: "welcome",
+            recipientType: "family",
           });
         }
       } catch {

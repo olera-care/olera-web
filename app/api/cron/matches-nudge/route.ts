@@ -101,6 +101,8 @@ export async function GET(request: NextRequest) {
               unansweredCount: stats?.total || 2,
               matchesUrl: `${siteUrl}/portal/matches`,
             }),
+            emailType: "matches_nudge",
+            recipientType: "family",
           });
 
           // Mark as sent
@@ -150,6 +152,9 @@ export async function GET(request: NextRequest) {
           city: prov.city || prov.state || "your area",
           profileUrl: `${siteUrl}/provider/profile`,
         }),
+        emailType: "provider_incomplete_profile",
+        recipientType: "provider",
+        providerId: prov.id,
       });
 
       // Mark as sent

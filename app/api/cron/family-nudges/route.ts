@@ -307,6 +307,8 @@ export async function GET(request: NextRequest) {
               providerCount,
               topProviders,
             }),
+            emailType: "go_live_reminder",
+            recipientType: "family",
           });
           await db.from("business_profiles")
             .update({ metadata: { ...meta, go_live_reminder_sent: true } })
@@ -350,6 +352,8 @@ export async function GET(request: NextRequest) {
               providerCount,
               state: family.state || undefined,
             }),
+            emailType: "family_profile_incomplete",
+            recipientType: "family",
           });
           await db.from("business_profiles")
             .update({ metadata: { ...meta, profile_incomplete_reminder_sent: true } })
@@ -378,6 +382,8 @@ export async function GET(request: NextRequest) {
                 providers,
                 browseUrl: `${siteUrl}/browse?city=${encodeURIComponent(family.city!)}&state=${encodeURIComponent(family.state!)}`,
               }),
+              emailType: "provider_recommendation",
+              recipientType: "family",
             });
             await db.from("business_profiles")
               .update({ metadata: { ...meta, provider_recommendation_sent: true } })
@@ -408,6 +414,8 @@ export async function GET(request: NextRequest) {
                 providers,
                 browseUrl: `${siteUrl}/browse${family.state ? `?state=${encodeURIComponent(family.state)}` : ""}`,
               }),
+              emailType: "dormant_reengagement",
+              recipientType: "family",
             });
             await db.from("business_profiles")
               .update({ metadata: { ...meta, dormant_reengagement_sent: true } })
@@ -450,6 +458,8 @@ export async function GET(request: NextRequest) {
               providerSlug,
               reviewUrl: `${siteUrl}/provider/${providerSlug}#reviews`,
             }),
+            emailType: "post_connection_followup",
+            recipientType: "family",
           });
           await db.from("business_profiles")
             .update({ metadata: { ...meta, post_connection_followup_sent: true } })

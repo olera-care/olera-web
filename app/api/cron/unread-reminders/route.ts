@@ -108,6 +108,8 @@ export async function GET(request: NextRequest) {
           messagePreview: preview,
           viewUrl,
         }),
+        emailType: "unread_reminder",
+        recipientType: recipient.type === "family" ? "family" : "provider",
       });
 
       // Mark as reminded so we don't send again for the same message

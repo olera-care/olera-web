@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -46,9 +46,110 @@ export default function SubmitVideoPage() {
   );
 }
 
+function DocumentUpload({
+  label,
+  documentType,
+  profileId,
+}: {
+  label: string;
+  documentType: "drivers_license" | "car_insurance";
+  profileId: string;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploaded, setUploaded] = useState(false);
+  const [fileName, setFileName] = useState("");
+  const [uploadError, setUploadError] = useState("");
+
+  const handleUpload = async (file: File) => {
+    setUploadError("");
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("profileId", profileId);
+      formData.append("documentType", documentType);
+
+      const res = await fetch("/api/medjobs/upload-document", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setUploadError(data.error || "Upload failed. Please try again.");
+        return;
+      }
+
+      setUploaded(true);
+      setFileName(file.name);
+    } catch {
+      setUploadError("Network error. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  if (uploaded) {
+    return (
+      <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+        <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-emerald-800">{label} uploaded</p>
+          <p className="text-xs text-emerald-600 truncate">{fileName}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,application/pdf"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleUpload(file);
+        }}
+      />
+      {uploadError && (
+        <p className="text-xs text-red-600 mb-1">{uploadError}</p>
+      )}
+      <button
+        type="button"
+        disabled={uploading || !profileId}
+        onClick={() => inputRef.current?.click()}
+        className="w-full flex items-center gap-3 p-4 border-2 border-dashed border-gray-300 hover:border-primary-400 rounded-xl text-left transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <div className="shrink-0 w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+          {uploading ? (
+            <svg className="w-5 h-5 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          )}
+        </div>
+        <div>
+          <p className="text-sm font-medium text-gray-700">{uploading ? "Uploading..." : label}</p>
+          <p className="text-xs text-gray-400">JPEG, PNG, WebP, or PDF — max 10MB</p>
+        </div>
+      </button>
+    </div>
+  );
+}
+
 function SubmitVideoContent() {
   const searchParams = useSearchParams();
   const slug = searchParams.get("slug") || "";
+  const profileId = searchParams.get("profileId") || "";
 
   const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -198,6 +299,34 @@ function SubmitVideoContent() {
           >
             {loading ? "Submitting..." : "Submit Video & Activate Profile"}
           </button>
+        </div>
+
+        {/* Document Uploads */}
+        <div className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 space-y-5">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Required Documents</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Upload the following to complete your application. These are stored securely and only shared with matched providers.
+            </p>
+          </div>
+
+          <DocumentUpload
+            label="Driver's License"
+            documentType="drivers_license"
+            profileId={profileId}
+          />
+
+          <DocumentUpload
+            label="Car Insurance"
+            documentType="car_insurance"
+            profileId={profileId}
+          />
+
+          {!profileId && (
+            <p className="text-xs text-amber-600 bg-amber-50 p-3 rounded-lg">
+              Sign in to upload documents. Check your email for a sign-in link.
+            </p>
+          )}
         </div>
       </div>
     </main>

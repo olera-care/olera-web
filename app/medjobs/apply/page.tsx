@@ -159,6 +159,7 @@ export default function MedJobsApplyPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [resultSlug, setResultSlug] = useState("");
+  const [resultProfileId, setResultProfileId] = useState("");
 
   // About You (merged old Steps 1+2)
   const [displayName, setDisplayName] = useState("");
@@ -299,6 +300,7 @@ export default function MedJobsApplyPage() {
       }
 
       setResultSlug(data.slug);
+      setResultProfileId(data.profileId);
       setStep("success");
     } catch {
       setError("Network error. Please try again.");
@@ -352,7 +354,7 @@ export default function MedJobsApplyPage() {
 
           <div className="flex flex-col gap-3">
             <Link
-              href={`/medjobs/submit-video?slug=${resultSlug}`}
+              href={`/medjobs/submit-video?slug=${resultSlug}&profileId=${resultProfileId}`}
               className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
             >
               Submit Intro Video

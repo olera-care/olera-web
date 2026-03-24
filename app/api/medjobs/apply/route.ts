@@ -48,18 +48,22 @@ function computeCompleteness(data: {
   certifications?: string[];
   careExperienceTypes?: string[];
   videoIntroUrl?: string;
+  driversLicenseUrl?: string;
+  carInsuranceUrl?: string;
   acknowledgmentsCompleted?: boolean;
 }): number {
   const fields = [
-    { filled: !!data.displayName, weight: 15 },
-    { filled: !!data.university, weight: 15 },
-    { filled: !!data.major, weight: 10 },
-    { filled: !!data.intendedSchool, weight: 10 },
+    { filled: !!data.displayName, weight: 10 },
+    { filled: !!data.university, weight: 10 },
+    { filled: !!data.major, weight: 5 },
+    { filled: !!data.intendedSchool, weight: 5 },
     { filled: !!data.city && !!data.state, weight: 10 },
     { filled: (data.availabilityTypes?.length ?? 0) > 0, weight: 10 },
     { filled: (data.certifications?.length ?? 0) > 0, weight: 5 },
     { filled: (data.careExperienceTypes?.length ?? 0) > 0, weight: 5 },
     { filled: !!data.videoIntroUrl, weight: 15 },
+    { filled: !!data.driversLicenseUrl, weight: 10 },
+    { filled: !!data.carInsuranceUrl, weight: 10 },
     { filled: !!data.acknowledgmentsCompleted, weight: 5 },
   ];
   return fields.reduce((sum, f) => sum + (f.filled ? f.weight : 0), 0);
@@ -182,15 +186,102 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to create profile" }, { status: 500 });
     }
 
+    // ── Create Supabase Auth user + accounts row + link to profile ──
+    const normalizedEmail = email.trim().toLowerCase();
+    let magicLink: string | undefined;
+
+    try {
+      // Try to create auth user — if email already exists, look up the existing one
+      let authUserId: string;
+
+      const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+        email: normalizedEmail,
+        email_confirm: true,
+        user_metadata: {
+          display_name: trimmedName,
+          source: "medjobs",
+        },
+      });
+
+      if (createUserError) {
+        // Email already registered — use generateLink to get existing user info
+        if (
+          createUserError.message?.includes("already been registered") ||
+          createUserError.message?.includes("already exists")
+        ) {
+          const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+            type: "magiclink",
+            email: normalizedEmail,
+          });
+          if (!linkData?.user?.id) {
+            throw new Error("User exists but could not be resolved");
+          }
+          authUserId = linkData.user.id;
+          console.log("[medjobs/apply] existing auth user found:", authUserId);
+        } else {
+          throw createUserError;
+        }
+      } else {
+        authUserId = newUser.user.id;
+      }
+
+      // Check if accounts row exists (existing care seeker may already have one)
+      const { data: existingAccount } = await supabaseAdmin
+        .from("accounts")
+        .select("id")
+        .eq("user_id", authUserId)
+        .maybeSingle();
+
+      let accountId: string;
+
+      if (existingAccount) {
+        accountId = existingAccount.id;
+      } else {
+        const { data: newAccount, error: accountError } = await supabaseAdmin
+          .from("accounts")
+          .insert({
+            user_id: authUserId,
+            display_name: trimmedName,
+            onboarding_completed: true,
+          })
+          .select("id")
+          .single();
+        if (accountError) throw accountError;
+        accountId = newAccount.id;
+      }
+
+      // Link student profile to account
+      await supabaseAdmin
+        .from("business_profiles")
+        .update({ account_id: accountId, claim_state: "claimed" })
+        .eq("id", profile.id);
+
+      // Generate magic link for welcome email
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+      const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+        type: "magiclink",
+        email: normalizedEmail,
+        options: { redirectTo: `${siteUrl}/medjobs/submit-video?slug=${slug}` },
+      });
+      if (!linkError && linkData?.properties?.action_link) {
+        magicLink = linkData.properties.action_link;
+      }
+    } catch (err) {
+      // Non-blocking: profile was created, account linking failed
+      // Student can still sign in later via ensure-account flow
+      console.error("[medjobs/apply] account creation error:", err);
+    }
+
     // Fire-and-forget: welcome email
     try {
       await sendEmail({
-        to: email.trim().toLowerCase(),
+        to: normalizedEmail,
         subject: "Welcome to Olera MedJobs!",
         html: studentWelcomeEmail({
           studentName: trimmedName,
           university: metadata.university || "",
           profileSlug: slug,
+          magicLink,
         }),
       });
     } catch (err) {
@@ -213,7 +304,7 @@ export async function POST(req: NextRequest) {
     // Fire-and-forget: Loops event (student audience — seeker domain)
     try {
       await sendLoopsEvent({
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         eventName: "medjobs_student_signup",
         audience: "seeker",
         eventProperties: {

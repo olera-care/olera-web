@@ -21,11 +21,11 @@ export async function GET(request: NextRequest) {
     const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
 
     // Find incomplete student profiles created > 48h ago
+    // Include inactive profiles — students who haven't submitted video yet need nudging most
     const { data: students, error } = await db
       .from("business_profiles")
-      .select("id, slug, display_name, email, metadata")
+      .select("id, slug, display_name, email, metadata, is_active")
       .eq("type", "student")
-      .eq("is_active", true)
       .lte("created_at", twoDaysAgo)
       .not("email", "is", null);
 
@@ -50,12 +50,14 @@ export async function GET(request: NextRequest) {
         if (daysSinceNudge < 7) continue;
       }
 
-      // Determine what's missing
+      // Determine what's missing (required items first)
       const missingItems: string[] = [];
+      if (!meta.video_intro_url) missingItems.push("Submit your intro video (required)");
+      if (!meta.drivers_license_url) missingItems.push("Upload driver's license (required)");
+      if (!meta.car_insurance_url) missingItems.push("Upload car insurance (required)");
       if (!meta.resume_url) missingItems.push("Upload your resume");
-      if (!meta.video_intro_url) missingItems.push("Record a video introduction");
       if (!meta.certifications || (meta.certifications as string[]).length === 0) missingItems.push("Add certifications (CNA, BLS, etc.)");
-      if (!meta.availability_type) missingItems.push("Specify your availability");
+      if (!meta.availability_types || (meta.availability_types as string[]).length === 0) missingItems.push("Specify your availability");
       if (!meta.major) missingItems.push("Add your major");
 
       if (missingItems.length === 0) continue;

@@ -130,6 +130,11 @@
   - **Pending: Metro-level adjustment factors** using HUD FMR data (~400 MSAs) + BLS wage data
   - **Pending: Medicaid nursing home per-diem rates** for Tier 3 education
 
+- **MedJobs: Full Onboarding Overhaul** (branch: `fresh-ramanujan`, PR #368) — IN QA
+  - Plan: `plans/medjobs-account-creation-plan.md`
+  - Notion: [Task](https://www.notion.so/32c5903a0ffe811e80eadeb088f96bd3)
+  - Account creation after step 1, Typeform-inspired UI, student dashboard, seamless return flow
+
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
 

@@ -46,6 +46,8 @@ export interface BuildHighlightsOpts {
   category?: ProfileCategory | string | null;
   /** Max highlights to return. Default 4 (detail page). Use 3 for cards. */
   maxItems?: number;
+  /** Skip Tier 5 capability label (use on browse cards where category is already visible). */
+  skipCapability?: boolean;
 }
 
 // ============================================================
@@ -237,14 +239,14 @@ export function buildHighlights(opts: BuildHighlightsOpts): HighlightItem[] {
     }
   }
 
-  // Google reviews → "Highly Rated"
-  if (
-    items.length < maxItems &&
-    opts.googleReviews &&
-    opts.googleReviews.rating >= 4.5 &&
-    opts.googleReviews.review_count >= 10
-  ) {
-    push({ label: "Highly Rated", icon: "star" });
+  // Google reviews → "Highly Rated" or "Well Reviewed"
+  if (items.length < maxItems && opts.googleReviews) {
+    const { rating, review_count } = opts.googleReviews;
+    if (rating >= 4.5 && review_count >= 10) {
+      push({ label: "Highly Rated", icon: "star" });
+    } else if (rating >= 4.0 && review_count >= 15) {
+      push({ label: "Well Reviewed", icon: "star" });
+    }
   }
 
   // ── Tier 3: CMS Medicare Quality (5-star only in highlights) ──
@@ -270,7 +272,8 @@ export function buildHighlights(opts: BuildHighlightsOpts): HighlightItem[] {
   }
 
   // ── Tier 5: One capability label (max 1) ──
-  if (items.length < maxItems) {
+  // Skipped on browse cards where category is already visible in the card header.
+  if (!opts.skipCapability && items.length < maxItems) {
     // Try care_types first (normalized)
     if (opts.careTypes && opts.careTypes.length > 0) {
       const normalized = normalizeCareLabel(opts.careTypes[0]);

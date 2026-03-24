@@ -111,6 +111,24 @@
   - `.claude/commands/city-pipeline.md` updated with new batch mode instructions
   - Next: full E2E test with fresh cities, then 80-city batch
 
+- **Email Audit Log** (branch: `joyful-poitras`, PR #374) — MERGED TO STAGING ✅
+  - Plan: `plans/email-audit-log-plan.md`
+  - Notion: [Task](https://www.notion.so/Email-audit-log-admin-panel-with-full-send-history-32c5903a0ffe819983b2ee8d3d9e56ed)
+  - Every Resend email now logged to `email_log` table with full HTML, type, recipient, Resend ID
+  - Admin page at `/admin/emails`: search, filter (type/status/recipient/date), click-to-expand HTML preview, CSV export
+  - Extended `sendEmail()` with `emailType`, `recipientType`, `providerId` metadata across 30+ callers
+  - Migration 024: `email_log` table with indexes + RLS
+
+- **Q&A Needs Email + Admin Redesign** (branch: `joyful-poitras`, PR #377) — IN QA
+  - Notion: [Task](https://www.notion.so/We-need-a-Needs-Email-section-for-Q-A-like-we-have-for-leads-32d5903a0ffe80218935d42e95fc692e)
+  - "Needs Email" tab on Q&A admin page — same pattern as leads
+  - Flag questions on submit when provider has no email, inline email input to add + send
+  - Admin page redesigned as triage inbox: removed "Answer on behalf", removed fake approval gate
+  - Tabs: Needs Email (default) → Unanswered → Answered → Removed → All
+  - Provider names from API join, question text links to provider page
+  - Migration 025: `metadata JSONB` on `provider_questions`
+  - Fixed `ios_provider_profiles` → `olera-providers` table reference bug
+
 - **MedJobs: Full Onboarding Overhaul** (branch: `fresh-ramanujan`, PR #368) — IN QA
   - Plan: `plans/medjobs-account-creation-plan.md`
   - Notion: [Task](https://www.notion.so/32c5903a0ffe811e80eadeb088f96bd3)
@@ -170,6 +188,12 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-03-24 | Log at sendEmail() chokepoint, not per-caller | One change captures all 44+ email call sites. No need to touch 30 files for logging logic — just pass metadata |
+| 2026-03-24 | Store full rendered HTML in email_log | Templates change over time — regenerating from params won't match what was actually sent. ~5-15KB per email is fine |
+| 2026-03-24 | Q&A questions go live immediately, no approval gate | Current system auto-publishes. Admin role is moderation (remove spam) + email supply, not gatekeeping |
+| 2026-03-24 | "Needs Email" as default Q&A tab | The primary admin action is supplying emails, not browsing questions. Default to the actionable queue |
+| 2026-03-24 | Remove "Answer on behalf" from Q&A admin | Providers answer their own questions through the portal. Admin answering was a power-user escape hatch dominating the UI |
+| 2026-03-24 | ios_provider_profiles → olera-providers | Pre-existing bug: questions route referenced non-existent table. Correct table is `olera-providers` with `provider_id` = `source_provider_id` |
 | 2026-03-24 | Don't send MedJobs students to Loops seeker audience | Adding students as seeker contacts enrolls them in Logan's care-seeker onboarding drip. Students get their own Resend email flow |
 | 2026-03-24 | Collapse 15 acknowledgment checkboxes into single "I agree" | Wall of legal text killed momentum at step 4. Consolidated into 5 summary bullets + one toggle. Same legal coverage, 90% less friction |
 | 2026-03-24 | Dark buttons (bg-gray-900) over teal for MedJobs apply | Calm confidence aesthetic. Teal felt like every SaaS template. Dark is quieter, more Linear/Notion |
@@ -241,6 +265,59 @@
 ---
 
 ## Session Log
+
+### 2026-03-24 (Session 57) — Email Audit Log + Q&A Needs Email
+
+**Branch:** `joyful-poitras` | **PRs:** #374 (merged), #377 (in QA)
+
+**What:** Two features from the roadmap — email audit log for full send history visibility, and "Needs Email" workflow for Q&A matching the existing leads pattern. Plus a UX overhaul of the Q&A admin page.
+
+**Email Audit Log (PR #374 — merged to staging):**
+- Migration 024: `email_log` table with indexes + RLS
+- Extended `sendEmail()` in `lib/email.ts` to log every send with type, recipient, HTML, Resend ID
+- Added `emailType` metadata to all 30+ `sendEmail()` callers across the codebase
+- Admin API: `/api/admin/emails` (list + preview) + `/api/admin/emails/export` (CSV)
+- Admin page: `app/admin/emails/page.tsx` — search, filter tabs, click-to-expand HTML preview
+- Added "Emails" to AdminSidebar
+
+**Q&A Needs Email (PR #377 — in QA):**
+- Migration 025: `metadata JSONB` column on `provider_questions`
+- Flag questions on submit when provider has no email (`app/api/questions/route.ts`)
+- Admin Q&A API: `needs_email` filter + provider name join + tab counts
+- Admin Q&A page redesigned as triage inbox:
+  - Removed "Answer on behalf" input (providers answer their own questions)
+  - Removed fake approval gate ("Approve" button was meaningless — questions go live immediately)
+  - Tabs: Needs Email (default) → Unanswered → Answered → Removed → All
+  - "Remove" + "Restore" actions instead of Approve/Reject
+  - Provider names instead of raw slugs, question text links to provider page
+- New `/api/admin/questions/add-email` endpoint — updates email, sends deferred notifications, clears flags on both questions and leads
+- Backfill SQL script for existing questions
+- Fixed `ios_provider_profiles` → `olera-providers` table reference bug
+
+**Files Created (7):**
+- `supabase/migrations/024_email_log.sql`
+- `supabase/migrations/025_questions_metadata.sql`
+- `app/api/admin/emails/route.ts`
+- `app/api/admin/emails/export/route.ts`
+- `app/admin/emails/page.tsx`
+- `app/api/admin/questions/add-email/route.ts`
+- `scripts/backfill-questions-needs-email.sql`
+
+**Files Modified (34):**
+- `lib/email.ts` — extended with audit logging
+- `components/admin/AdminSidebar.tsx` — added Emails nav
+- `app/admin/questions/page.tsx` — full redesign
+- `app/api/admin/questions/route.ts` — needs_email filter + provider join + tab counts
+- `app/api/questions/route.ts` — needs_email flag + table reference fix
+- 30 API route files — added emailType metadata
+
+**Bugs Found & Fixed:**
+1. `ios_provider_profiles` table doesn't exist — was a stale reference in questions route, should be `olera-providers`
+2. Provider link in Q&A admin used slug instead of `source_provider_id` — went to directory list not detail page
+
+**Build:** Clean, zero errors.
+
+---
 
 ### 2026-03-24 (Session 56) — MedJobs Full Onboarding Overhaul
 

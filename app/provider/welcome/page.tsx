@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { getServiceClient } from "@/lib/admin";
+import { validateClaimToken } from "@/lib/claim-tokens";
 import ProviderWelcomeClient from "@/components/provider-welcome/ProviderWelcomeClient";
 
 export const dynamic = "force-dynamic";
@@ -11,13 +12,27 @@ export const metadata: Metadata = {
   description: "View and respond to families looking for care.",
 };
 
-export type ActionType = "lead" | "question" | "review" | "message" | "match";
+export type ActionType = "lead" | "question" | "review" | "message" | "match" | "campaign";
 
 interface ProviderWelcomePageProps {
   searchParams: Promise<{
     action?: ActionType;
     id?: string;
+    token?: string;
+    // Campaign-specific params for dynamic content
+    headline?: string;
+    message?: string;
   }>;
+}
+
+// Token validation result passed to client
+export interface TokenValidationInfo {
+  isValid: boolean;
+  providerId?: string;
+  providerSlug?: string;
+  providerName?: string;
+  emailHint?: string;
+  error?: string;
 }
 
 interface ProviderAuthInfo {
@@ -233,13 +248,168 @@ async function getProviderInfoForAuth(
   };
 }
 
+/**
+ * Validate token server-side for campaign emails.
+ * If valid, returns provider info so client can skip verification.
+ */
+async function validateTokenServerSide(token: string): Promise<TokenValidationInfo> {
+  const result = validateClaimToken(token);
+
+  if (!result.valid) {
+    return { isValid: false, error: result.error };
+  }
+
+  const { providerId, email } = result;
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) {
+    return { isValid: false, error: "Server configuration error" };
+  }
+
+  const adminDb = createAdminClient(url, serviceKey);
+
+  // Verify provider exists and email matches
+  const { data: provider, error: providerErr } = await adminDb
+    .from("olera-providers")
+    .select("email, provider_name, slug, provider_id")
+    .eq("provider_id", providerId)
+    .single();
+
+  if (providerErr || !provider) {
+    return { isValid: false, error: "Provider not found" };
+  }
+
+  if (provider.email?.toLowerCase() !== email.toLowerCase()) {
+    return { isValid: false, error: "Provider email has changed" };
+  }
+
+  // Check if already claimed
+  const { data: existingProfile } = await adminDb
+    .from("business_profiles")
+    .select("claim_state, account_id")
+    .eq("source_provider_id", providerId)
+    .maybeSingle();
+
+  if (existingProfile?.claim_state === "claimed" && existingProfile?.account_id) {
+    return { isValid: false, error: "This listing has already been claimed" };
+  }
+
+  // Mask email for display
+  const [local, domain] = email.split("@");
+  const maskedLocal = local.length <= 2
+    ? "*".repeat(local.length)
+    : local[0] + "***" + local[local.length - 1];
+  const emailHint = `${maskedLocal}@${domain}`;
+
+  return {
+    isValid: true,
+    providerId,
+    providerSlug: provider.slug || providerId,
+    providerName: provider.provider_name,
+    emailHint,
+  };
+}
+
+/**
+ * Get provider info for campaign action (from token).
+ * Similar to getProviderInfoForAuth but uses token-derived data.
+ */
+async function getProviderInfoFromToken(tokenInfo: TokenValidationInfo): Promise<ProviderAuthInfo> {
+  if (!tokenInfo.isValid || !tokenInfo.providerId) {
+    return {
+      profile: null,
+      email: null,
+      isClaimed: false,
+      sourceProviderId: null,
+      providerEmail: null,
+    };
+  }
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) {
+    return {
+      profile: null,
+      email: null,
+      isClaimed: false,
+      sourceProviderId: null,
+      providerEmail: null,
+    };
+  }
+
+  const adminDb = createAdminClient(url, serviceKey);
+
+  // Get business_profile for this provider
+  const { data: bp } = await adminDb
+    .from("business_profiles")
+    .select("id, display_name, image_url, city, state, slug, source_provider_id, email")
+    .eq("source_provider_id", tokenInfo.providerId)
+    .maybeSingle();
+
+  // Get provider email from olera-providers if not on business_profile
+  let providerEmail = bp?.email || null;
+  if (!providerEmail) {
+    const { data: oleraProvider } = await adminDb
+      .from("olera-providers")
+      .select("email")
+      .eq("provider_id", tokenInfo.providerId)
+      .single();
+    providerEmail = oleraProvider?.email || null;
+  }
+
+  if (bp) {
+    return {
+      profile: {
+        id: bp.id,
+        display_name: bp.display_name || tokenInfo.providerName || "Your Business",
+        image_url: bp.image_url,
+        city: bp.city,
+        state: bp.state,
+        slug: bp.slug,
+      },
+      email: null,
+      isClaimed: false,
+      sourceProviderId: bp.source_provider_id,
+      providerEmail,
+    };
+  }
+
+  // No business_profile yet - return minimal info from token
+  return {
+    profile: {
+      id: tokenInfo.providerId,
+      display_name: tokenInfo.providerName || "Your Business",
+      image_url: null,
+      city: null,
+      state: null,
+      slug: tokenInfo.providerSlug || null,
+    },
+    email: null,
+    isClaimed: false,
+    sourceProviderId: tokenInfo.providerId,
+    providerEmail,
+  };
+}
+
 export default async function ProviderWelcomePage({ searchParams }: ProviderWelcomePageProps) {
   const params = await searchParams;
   const action = params.action || "lead";
   const actionId = params.id;
+  const token = params.token;
+  const campaignHeadline = params.headline;
+  const campaignMessage = params.message;
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+
+  // Token validation for campaign emails
+  let tokenInfo: TokenValidationInfo | null = null;
+
+  // Validate token if provided (campaign emails)
+  if (token) {
+    tokenInfo = await validateTokenServerSide(token);
+  }
 
   // Fetch provider profile for the authenticated user
   let providerProfile = null;
@@ -401,7 +571,12 @@ export default async function ProviderWelcomePage({ searchParams }: ProviderWelc
     }
   } else {
     // User not authenticated — fetch provider info for State 2/3
-    providerForAuth = await getProviderInfoForAuth(action, actionId);
+    // For campaign action with token, use token-derived provider info
+    if (action === "campaign" && tokenInfo?.isValid) {
+      providerForAuth = await getProviderInfoFromToken(tokenInfo);
+    } else {
+      providerForAuth = await getProviderInfoForAuth(action, actionId);
+    }
 
     // Also fetch action data for unauthenticated users (to show context in State 2/3)
     if (actionId && providerForAuth?.profile) {
@@ -503,6 +678,9 @@ export default async function ProviderWelcomePage({ searchParams }: ProviderWelc
       actionId={actionId}
       actionData={actionData}
       providerForAuth={providerForAuth}
+      tokenInfo={tokenInfo}
+      campaignHeadline={campaignHeadline}
+      campaignMessage={campaignMessage}
     />
   );
 }

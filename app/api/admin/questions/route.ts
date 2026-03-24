@@ -57,7 +57,38 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
     }
 
-    return NextResponse.json({ questions: questions ?? [], count: count ?? 0 });
+    // Enrich with provider display names
+    const slugs = [...new Set((questions ?? []).map((q) => q.provider_id).filter(Boolean))];
+    let providerNames: Record<string, string> = {};
+    if (slugs.length > 0) {
+      const { data: providers } = await db
+        .from("business_profiles")
+        .select("slug, display_name")
+        .in("slug", slugs);
+      providerNames = Object.fromEntries(
+        (providers ?? []).map((p) => [p.slug, p.display_name])
+      );
+    }
+
+    const enriched = (questions ?? []).map((q) => ({
+      ...q,
+      provider_name: providerNames[q.provider_id] || null,
+    }));
+
+    // Fetch tab counts for pending and needs_email
+    const [pendingCount, needsEmailCount] = await Promise.all([
+      db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "pending"),
+      db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }),
+    ]);
+
+    return NextResponse.json({
+      questions: enriched,
+      count: count ?? 0,
+      tabCounts: {
+        pending: pendingCount.count ?? 0,
+        needs_email: needsEmailCount.count ?? 0,
+      },
+    });
   } catch (err) {
     console.error("Admin questions error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

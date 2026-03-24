@@ -116,6 +116,8 @@ interface SeoContent {
   description: string;
   breadcrumbs: { label: string; href?: string }[];
   avgCost: string | null;
+  isStateAverage: boolean;
+  costNote: string | null;
   totalCount: number;
 }
 
@@ -1065,9 +1067,14 @@ export default function CityBrowseClient({
             </h2>
 
             {seoContent.avgCost && (
-              <p className="text-lg font-semibold text-gray-900 mb-2">
-                Avg. Cost: {seoContent.avgCost}
-              </p>
+              <div className="mb-2">
+                <p className="text-lg font-semibold text-gray-900">
+                  {seoContent.isStateAverage ? "State Avg. Cost" : "Avg. Cost"}: {seoContent.avgCost}
+                </p>
+                {seoContent.costNote && (
+                  <p className="text-xs text-gray-400 mt-1">{seoContent.costNote}</p>
+                )}
+              </div>
             )}
 
             <p className="text-sm text-gray-500 leading-relaxed max-w-2xl">

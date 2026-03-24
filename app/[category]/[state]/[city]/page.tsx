@@ -115,8 +115,12 @@ export default async function CityPage({
       { label: cityName },
     ],
     avgCost: data?.avgLowerPrice && data?.avgUpperPrice
-      ? `$${data.avgLowerPrice.toLocaleString()} – $${data.avgUpperPrice.toLocaleString()}/mo`
+      ? `$${data.avgLowerPrice.toLocaleString()} – $${data.avgUpperPrice.toLocaleString()}${
+          config.dbValue === "Home Care (Non-medical)" || config.dbValue === "Home Health Care" ? "/hr" : "/mo"
+        }`
       : null,
+    isStateAverage: data?.isStateAverage ?? false,
+    costNote: data?.costNote ?? null,
     totalCount: data?.totalCount ?? 0,
   };
 

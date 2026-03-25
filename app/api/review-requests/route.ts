@@ -77,7 +77,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No provider profile found" }, { status: 400 });
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+    // Use request origin for correct preview/staging URLs, fallback to env variable
+    const requestHost = request.headers.get("host");
+    const protocol = requestHost?.includes("localhost") ? "http" : "https";
+    const siteUrl = requestHost
+      ? `${protocol}://${requestHost}`
+      : process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
     const results: { name: string; email?: string; status: "sent" | "skipped" | "failed"; error?: string }[] = [];
 
     // Process each client

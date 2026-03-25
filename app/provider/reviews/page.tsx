@@ -941,9 +941,11 @@ function RequestOnsiteContent({ providerSlug }: { providerSlug: string | null })
   const [copied, setCopied] = useState(false);
   const [qrLoaded, setQrLoaded] = useState(false);
 
+  // Use current site origin for dynamic deployment support (preview URLs, staging, production)
+  const siteOrigin = typeof window !== "undefined" ? window.location.origin : "https://olera.care";
   const reviewUrl = providerSlug
-    ? `https://olera.care/review/${providerSlug}?ref=qr`
-    : "https://olera.care/review/your-profile";
+    ? `${siteOrigin}/review/${providerSlug}?ref=qr`
+    : `${siteOrigin}/review/your-profile`;
 
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(reviewUrl)}&bgcolor=ffffff&color=1a1a1a&format=svg`;
 
@@ -1380,7 +1382,8 @@ function ReviewsSidebar({ stats, providerSlug }: { stats: ReviewStats; providerS
   const handleCopyLink = async () => {
     if (!providerSlug) return;
     try {
-      const profileUrl = `https://olera.care/provider/${providerSlug}`;
+      const siteOrigin = typeof window !== "undefined" ? window.location.origin : "https://olera.care";
+      const profileUrl = `${siteOrigin}/provider/${providerSlug}`;
       await navigator.clipboard.writeText(profileUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);

@@ -517,6 +517,7 @@ export default function ReviewsSection({
         providerId={providerId}
         providerSlug={providerSlug}
         providerName={providerName}
+        googlePlaceId={placeId}
         onReviewSubmitted={(review) => setRealReviews((prev) => [review, ...prev])}
       />
 

@@ -211,9 +211,10 @@ export default function AdminDirectoryDetailPage() {
           }
         }
       } else {
-        const err = await res.json();
-        setSaveMessage({ type: "error", text: err.error || `Image action failed.` });
-        setTimeout(() => setSaveMessage(null), 4000);
+        const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        console.error(`[handleImageAction] ${action} failed:`, res.status, err);
+        setSaveMessage({ type: "error", text: err.error || `Image action failed (${res.status}).` });
+        setTimeout(() => setSaveMessage(null), 6000);
       }
     } catch (err) {
       console.error("Image action failed:", err);

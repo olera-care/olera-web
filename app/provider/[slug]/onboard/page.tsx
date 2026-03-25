@@ -93,12 +93,13 @@ export default function ProviderOnboardPage() {
 
       // Strategy 4: Look up in business_profiles by slug (for native/claimed providers)
       // These providers may not exist in olera-providers
+      // Include both "organization" and "caregiver" types (both are provider profiles)
       if (!foundProvider) {
         const { data: bp } = await supabase
           .from("business_profiles")
           .select("id, slug, display_name, claim_state, account_id, source_provider_id, email, phone, address, city, state, zip, description, image_url, care_types, metadata, type, category")
           .eq("slug", slug)
-          .eq("type", "organization")
+          .in("type", ["organization", "caregiver"])
           .maybeSingle();
 
         if (bp) {

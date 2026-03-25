@@ -4,15 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 
-interface OverviewStats {
-  pendingProviders: number;
-  totalInquiries: number;
-  needsEmailCount: number;
-  imagesToReview: number;
-  totalProviders: number;
-  totalQuestions: number;
-  questionsNeedEmail: number;
-  totalReviews: number;
+interface StatCard {
+  label: string;
+  value: number | null;
+  subtitle: string;
+  href: string;
+  isWarning?: boolean;
 }
 
 interface AuditEntry {
@@ -25,80 +22,71 @@ interface AuditEntry {
   admin_email?: string;
 }
 
+/** Fetch a count from an admin API endpoint */
+async function fetchCount(url: string, key = "count"): Promise<number> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${url} failed`);
+  const data = await res.json();
+  return data[key] ?? 0;
+}
+
 export default function AdminOverviewPage() {
-  const [stats, setStats] = useState<OverviewStats | null>(null);
-  const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Each stat loads independently — no more Promise.all blocking
+  const [pendingProviders, setPendingProviders] = useState<number | null>(null);
+  const [totalInquiries, setTotalInquiries] = useState<number | null>(null);
+  const [needsEmail, setNeedsEmail] = useState<number | null>(null);
+  const [questionsNeedEmail, setQuestionsNeedEmail] = useState<number | null>(null);
+  const [totalReviews, setTotalReviews] = useState<number | null>(null);
+  const [totalProviders, setTotalProviders] = useState<number | null>(null);
+  const [auditLog, setAuditLog] = useState<AuditEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchData() {
-      setError(null);
-      try {
-        const [providersRes, leadsRes, needsEmailRes, auditRes, imageStatsRes, directoryRes, questionsRes, questionsNeedEmailRes, reviewsRes] = await Promise.all([
-          fetch("/api/admin/providers?status=pending&count_only=true"),
-          fetch("/api/admin/leads?count_only=true"),
-          fetch("/api/admin/leads?needs_email=true&count_only=true"),
-          fetch("/api/admin/audit?limit=10"),
-          fetch("/api/admin/images/stats"),
-          fetch("/api/admin/directory?tab=all&per_page=1"),
-          fetch("/api/admin/questions?count_only=true"),
-          fetch("/api/admin/questions?needs_email=true&count_only=true"),
-          fetch("/api/admin/reviews?status=all&limit=1"),
-        ]);
+    // Fire all fetches independently — each card updates on its own
+    fetchCount("/api/admin/providers?status=pending&count_only=true")
+      .then(setPendingProviders)
+      .catch(() => { setPendingProviders(0); setError("Some data failed to load."); });
 
-        const pendingData = providersRes.ok ? await providersRes.json() : { count: 0 };
-        const leadsData = leadsRes.ok ? await leadsRes.json() : { count: 0 };
-        const needsEmailData = needsEmailRes.ok ? await needsEmailRes.json() : { count: 0 };
-        const auditData = auditRes.ok ? await auditRes.json() : { entries: [] };
-        const imageStats = imageStatsRes.ok ? await imageStatsRes.json() : { needs_review: 0 };
-        const directoryData = directoryRes.ok ? await directoryRes.json() : { total: 0 };
-        const questionsData = questionsRes.ok ? await questionsRes.json() : { count: 0 };
-        const questionsNeedEmailData = questionsNeedEmailRes.ok ? await questionsNeedEmailRes.json() : { count: 0 };
-        const reviewsData = reviewsRes.ok ? await reviewsRes.json() : { count: 0 };
+    fetchCount("/api/admin/leads?count_only=true")
+      .then(setTotalInquiries)
+      .catch(() => { setTotalInquiries(0); setError("Some data failed to load."); });
 
-        const anyFailed = [providersRes, leadsRes, needsEmailRes, auditRes, imageStatsRes, directoryRes, questionsRes, questionsNeedEmailRes, reviewsRes].some((r) => !r.ok);
-        if (anyFailed) {
-          setError("Some dashboard data failed to load. Numbers shown may be incomplete.");
-        }
+    fetchCount("/api/admin/leads?needs_email=true&count_only=true")
+      .then(setNeedsEmail)
+      .catch(() => { setNeedsEmail(0); setError("Some data failed to load."); });
 
-        setStats({
-          pendingProviders: pendingData.count ?? 0,
-          totalInquiries: leadsData.count ?? 0,
-          needsEmailCount: needsEmailData.count ?? 0,
-          imagesToReview: imageStats.needs_review ?? 0,
-          totalProviders: directoryData.total ?? 0,
-          totalQuestions: questionsData.count ?? 0,
-          questionsNeedEmail: questionsNeedEmailData.count ?? 0,
-          totalReviews: reviewsData.count ?? 0,
-        });
-        setAuditLog(auditData.entries ?? []);
-      } catch (err) {
-        console.error("Failed to fetch admin overview:", err);
-        setError("Failed to load dashboard data. Please check your connection.");
-      } finally {
-        setLoading(false);
-      }
-    }
+    fetchCount("/api/admin/questions?needs_email=true&count_only=true")
+      .then(setQuestionsNeedEmail)
+      .catch(() => { setQuestionsNeedEmail(0); setError("Some data failed to load."); });
 
-    fetchData();
+    fetchCount("/api/admin/reviews?status=all&limit=1")
+      .then(setTotalReviews)
+      .catch(() => { setTotalReviews(0); setError("Some data failed to load."); });
+
+    fetchCount("/api/admin/directory?tab=all&count_only=true", "total")
+      .then(setTotalProviders)
+      .catch(() => { setTotalProviders(0); setError("Some data failed to load."); });
+
+    // Audit log
+    fetch("/api/admin/audit?limit=10")
+      .then((r) => r.ok ? r.json() : { entries: [] })
+      .then((d) => setAuditLog(d.entries ?? []))
+      .catch(() => setAuditLog([]));
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-lg text-gray-500">Loading...</div>
-      </div>
-    );
-  }
+  const cards: StatCard[] = [
+    { label: "Pending Providers", value: pendingProviders, subtitle: "Awaiting review", href: "/admin/providers" },
+    { label: "Total Inquiries", value: totalInquiries, subtitle: "All connections", href: "/admin/leads" },
+    { label: "Needs Email", value: needsEmail, subtitle: "Leads awaiting email", href: "/admin/leads?tab=needs_email", isWarning: true },
+    { label: "Q&A Needs Email", value: questionsNeedEmail, subtitle: "Questions blocked", href: "/admin/questions", isWarning: true },
+    { label: "Reviews", value: totalReviews, subtitle: "Total reviews", href: "/admin/reviews" },
+    { label: "Provider Directory", value: totalProviders, subtitle: "Total providers", href: "/admin/directory" },
+  ];
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p className="text-lg text-gray-600 mt-1">
-          Manage providers, view leads, and administer the team.
-        </p>
+        <h1 className="text-2xl font-semibold text-gray-900">Overview</h1>
       </div>
 
       {error && (
@@ -107,83 +95,75 @@ export default function AdminOverviewPage() {
         </div>
       )}
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <Link href="/admin/providers" className="block">
-          <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
-            <p className="text-base text-gray-500 mb-1">Pending Providers</p>
-            <p className="text-3xl font-bold text-gray-900 mb-1">
-              {stats?.pendingProviders ?? 0}
-            </p>
-            <p className="text-base text-gray-500">Awaiting review</p>
-          </div>
-        </Link>
-        <Link href="/admin/leads" className="block">
-          <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
-            <p className="text-base text-gray-500 mb-1">Total Inquiries</p>
-            <p className="text-3xl font-bold text-gray-900 mb-1">
-              {stats?.totalInquiries ?? 0}
-            </p>
-            <p className="text-base text-gray-500">All connections</p>
-          </div>
-        </Link>
-        <Link href="/admin/leads?tab=needs_email" className="block">
-          <div className={`p-6 rounded-xl border transition-colors ${(stats?.needsEmailCount ?? 0) > 0 ? "bg-amber-50 border-amber-200 hover:border-amber-300" : "bg-white border-gray-200 hover:border-primary-200"}`}>
-            <p className="text-base text-gray-500 mb-1">Needs Email</p>
-            <p className={`text-3xl font-bold mb-1 ${(stats?.needsEmailCount ?? 0) > 0 ? "text-amber-600" : "text-gray-900"}`}>
-              {stats?.needsEmailCount ?? 0}
-            </p>
-            <p className="text-base text-gray-500">Leads awaiting email</p>
-          </div>
-        </Link>
-        <Link href="/admin/questions" className="block">
-          <div className={`p-6 rounded-xl border transition-colors ${(stats?.questionsNeedEmail ?? 0) > 0 ? "bg-amber-50 border-amber-200 hover:border-amber-300" : "bg-white border-gray-200 hover:border-primary-200"}`}>
-            <p className="text-base text-gray-500 mb-1">Q&A Needs Email</p>
-            <p className={`text-3xl font-bold mb-1 ${(stats?.questionsNeedEmail ?? 0) > 0 ? "text-amber-600" : "text-gray-900"}`}>
-              {stats?.questionsNeedEmail ?? 0}
-            </p>
-            <p className="text-base text-gray-500">Questions blocked</p>
-          </div>
-        </Link>
-        <Link href="/admin/reviews" className="block">
-          <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
-            <p className="text-base text-gray-500 mb-1">Reviews</p>
-            <p className="text-3xl font-bold text-gray-900 mb-1">
-              {stats?.totalReviews?.toLocaleString() ?? 0}
-            </p>
-            <p className="text-base text-gray-500">Total reviews</p>
-          </div>
-        </Link>
-        <Link href="/admin/directory" className="block">
-          <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
-            <p className="text-base text-gray-500 mb-1">Provider Directory</p>
-            <p className="text-3xl font-bold text-gray-900 mb-1">
-              {stats?.totalProviders?.toLocaleString() ?? 0}
-            </p>
-            <p className="text-base text-gray-500">Total providers</p>
-          </div>
-        </Link>
+      {/* Stats grid — each card loads independently */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+        {cards.map((card) => {
+          const showWarning = card.isWarning && card.value !== null && card.value > 0;
+          return (
+            <Link key={card.href} href={card.href} className="block">
+              <div
+                className={[
+                  "p-5 rounded-xl border transition-colors",
+                  showWarning
+                    ? "bg-amber-50 border-amber-200 hover:border-amber-300"
+                    : "bg-white border-gray-200 hover:border-gray-300",
+                ].join(" ")}
+              >
+                <p className="text-[13px] text-gray-500 mb-1">{card.label}</p>
+                {card.value === null ? (
+                  <div className="h-9 flex items-center">
+                    <div className="w-12 h-6 bg-gray-100 rounded animate-pulse" />
+                  </div>
+                ) : (
+                  <p
+                    className={[
+                      "text-2xl font-semibold mb-1",
+                      showWarning ? "text-amber-600" : "text-gray-900",
+                    ].join(" ")}
+                  >
+                    {card.value.toLocaleString()}
+                  </p>
+                )}
+                <p className="text-[13px] text-gray-400">{card.subtitle}</p>
+              </div>
+            </Link>
+          );
+        })}
       </div>
 
       {/* Recent Activity */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-lg font-medium text-gray-900 mb-3">
           Recent Activity
         </h2>
-        {auditLog.length === 0 ? (
+        {auditLog === null ? (
+          <div className="bg-white rounded-xl border border-gray-200 p-8">
+            <div className="space-y-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="space-y-1.5">
+                    <div className="w-48 h-4 bg-gray-100 rounded animate-pulse" />
+                    <div className="w-32 h-3 bg-gray-50 rounded animate-pulse" />
+                  </div>
+                  <div className="w-24 h-6 bg-gray-100 rounded animate-pulse" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : auditLog.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
             <p className="text-gray-500">No activity yet.</p>
           </div>
         ) : (
           <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
             {auditLog.map((entry) => (
-              <div key={entry.id} className="px-6 py-4 flex items-center justify-between">
+              <div key={entry.id} className="px-5 py-3.5 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-[13px] font-medium text-gray-900">
                     {formatAction(entry.action, entry.target_type)}
                   </p>
-                  <p className="text-sm text-gray-500">
-                    by {entry.admin_email ?? "Unknown"} &middot; {formatDate(entry.created_at)}
+                  <p className="text-[13px] text-gray-400">
+                    {entry.admin_email ?? "Unknown"} &middot; {formatDate(entry.created_at)}
                   </p>
                 </div>
                 <Badge variant={getActionBadgeVariant(entry.action)}>
@@ -208,6 +188,9 @@ function formatAction(action: string, targetType: string): string {
     add_admin: "Added an admin",
     remove_admin: "Removed an admin",
     update_directory_provider: "Updated a directory provider",
+    delete_image: "Deleted a provider image",
+    deferred_lead_emails_sent: "Sent deferred lead emails",
+    add_provider_email_via_questions: "Added provider email via Q&A",
   };
   return actionLabels[action] ?? `${action} on ${targetType}`;
 }

@@ -181,12 +181,34 @@ export async function POST(request: NextRequest) {
 
     // Email notifications — must await in serverless
     try {
-      // Look up provider for emails (reuse from Slack block or fetch fresh)
-      const { data: providerForEmail } = await db
+      // Look up provider for emails with fallback strategies
+      // Strategy 1: by slug
+      let providerForEmail = await db
         .from("business_profiles")
         .select("id, display_name, email, slug, source_provider_id")
         .eq("slug", provider_id)
-        .single();
+        .maybeSingle()
+        .then(r => r.data);
+
+      // Strategy 2: by source_provider_id (iOS providers)
+      if (!providerForEmail) {
+        providerForEmail = await db
+          .from("business_profiles")
+          .select("id, display_name, email, slug")
+          .eq("source_provider_id", provider_id)
+          .maybeSingle()
+          .then(r => r.data);
+      }
+
+      // Strategy 3: by id (UUID)
+      if (!providerForEmail && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(provider_id)) {
+        providerForEmail = await db
+          .from("business_profiles")
+          .select("id, display_name, email, slug")
+          .eq("id", provider_id)
+          .maybeSingle()
+          .then(r => r.data);
+      }
 
       const providerDisplayName = providerForEmail?.display_name || provider_id;
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
@@ -195,12 +217,13 @@ export async function POST(request: NextRequest) {
 
       // 1. Email the provider about the new question (if they have an email)
       let pEmail = providerForEmail?.email || null;
+      // Fallback: check olera-providers for email
       if (!pEmail && providerForEmail?.source_provider_id) {
         const { data: ios } = await db
           .from("olera-providers")
           .select("email")
           .eq("provider_id", providerForEmail.source_provider_id)
-          .single();
+          .maybeSingle();
         pEmail = ios?.email || null;
       }
 

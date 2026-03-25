@@ -3,6 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getStateById, getProgramById, activeStateIds } from "@/data/waiver-library";
 import { Breadcrumb } from "@/components/waiver-library/Breadcrumb";
+import { ServiceAreasMap } from "@/components/waiver-library/ServiceAreasMapLoader";
+import { ExpandableText } from "@/components/waiver-library/ExpandableText";
+import { FaqAccordion } from "@/components/waiver-library/FaqAccordion";
+import { CityBadge } from "@/components/waiver-library/CityBadge";
+import { getCategory } from "@/lib/waiver-category";
 
 interface Props {
   params: Promise<{ state: string; benefit: string }>;
@@ -27,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const program = getProgramById(stateId, benefitId);
   if (!state || !program) return {};
   const title = `${program.name} | ${state.name} | Benefits Hub | Olera`;
-  const description = `${program.tagline} Learn about eligibility, benefits, and how to apply for ${program.shortName} in ${state.name}.`;
+  const description = `${program.tagline} Learn about eligibility, home care benefits, and how to apply for ${program.shortName} in ${state.name}.`;
   return {
     title,
     description,
@@ -61,19 +66,51 @@ export default async function BenefitPage({ params }: Props) {
     `${program.name} ${program.id}`.toLowerCase().includes(kw)
   );
 
+  const faqJsonLd = program.faqs && program.faqs.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": program.faqs.map((faq) => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer,
+      },
+    })),
+  } : null;
+
   return (
     <div className="bg-vanilla-100 min-h-screen">
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
       {/* Program hero */}
       <section className="bg-primary-800 text-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-5">
-          <Breadcrumb
-            variant="dark"
-            items={[
-              { label: "Benefits Hub", href: "/waiver-library" },
-              { label: state.name, href: `/waiver-library/${state.id}` },
-              { label: program.shortName },
-            ]}
-          />
+          <div className="flex items-center gap-3 mb-1">
+            <Link
+              href={`/waiver-library/${state.id}?tab=${getCategory(program)}`}
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+              aria-label={`Back to ${state.name}`}
+            >
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </Link>
+            <Breadcrumb
+              variant="dark"
+              items={[
+                { label: "Benefits Hub", href: "/waiver-library" },
+                { label: state.name, href: `/waiver-library/${state.id}` },
+                { label: program.shortName, current: true },
+                { label: "Document Checklist", href: `/waiver-library/${state.id}/${program.id}/checklist` },
+                { label: "Application Forms", href: `/waiver-library/${state.id}/${program.id}/forms` },
+              ]}
+            />
+          </div>
           <div className="mt-3 flex items-center gap-2">
             <span className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full ${
               isFederal ? "bg-secondary-100 text-secondary-700" : "bg-primary-100 text-primary-700"
@@ -99,7 +136,7 @@ export default async function BenefitPage({ params }: Props) {
                 </svg>
                 Program Overview
               </h2>
-              <p className="text-gray-700 leading-relaxed">{program.description}</p>
+              <ExpandableText text={program.intro || program.description} />
               {program.savingsRange && (
                 <div className="mt-4 flex items-center gap-2.5 p-3 bg-success-50 border border-success-100 rounded-xl">
                   <div className="w-8 h-8 bg-success-100 rounded-lg flex items-center justify-center shrink-0">
@@ -178,7 +215,8 @@ export default async function BenefitPage({ params }: Props) {
       <section className="py-3 md:py-4">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-primary-50 rounded-xl border border-primary-100 shadow-sm p-5 md:p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">What to Gather Before Applying</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">What to Gather Before Applying for {program.name} in {state.name}</h2>
+            <p className="text-sm text-gray-600 mb-4">To apply for {program.name} in {state.name} you will need the following documents ready before contacting your local Medicaid office or calling 211.</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-start gap-4 bg-white rounded-xl border border-gray-100 p-5">
                 <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center shrink-0">
@@ -217,7 +255,7 @@ export default async function BenefitPage({ params }: Props) {
             <div className="mt-4">
               <Link
                 href={`/waiver-library/${state.id}/${program.id}/checklist`}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-primary-600/30 hover:bg-primary-700 hover:shadow-xl hover:shadow-primary-600/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-primary-700 text-sm font-semibold rounded-xl border border-primary-200 hover:bg-primary-50 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -238,11 +276,11 @@ export default async function BenefitPage({ params }: Props) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12h16" />
               </svg>
-              How to Apply
+              How to Apply for {program.shortName} in {state.name}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Step 1: Check eligibility */}
-              <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col shadow-[0_4px_12px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]">
+              <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col min-h-[220px] shadow-[0_4px_12px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]">
                 <div className="flex items-center gap-3 mb-3 min-h-[44px]">
                   <div className="w-9 h-9 bg-primary-600 rounded-full flex items-center justify-center shrink-0 shadow-md shadow-primary-600/25">
                     <span className="text-white font-bold text-sm">1</span>
@@ -250,7 +288,7 @@ export default async function BenefitPage({ params }: Props) {
                   <h3 className="font-semibold text-gray-900 text-sm">Check your eligibility</h3>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-                  <p className="text-sm text-gray-600">See if you qualify using the eligibility highlights above.</p>
+                  <p className="text-sm text-gray-600">{program.applicationSteps[0]?.description || "See if you qualify using the eligibility highlights above."}</p>
                 </div>
                 <div className="mt-auto pt-3">
                   <Link
@@ -266,7 +304,7 @@ export default async function BenefitPage({ params }: Props) {
               </div>
 
               {/* Step 2: Gather documents */}
-              <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col shadow-[0_4px_12px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]">
+              <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col min-h-[220px] shadow-[0_4px_12px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]">
                 <div className="flex items-center gap-3 mb-3 min-h-[44px]">
                   <div className="w-9 h-9 bg-primary-600 rounded-full flex items-center justify-center shrink-0 shadow-md shadow-primary-600/25">
                     <span className="text-white font-bold text-sm">2</span>
@@ -274,7 +312,7 @@ export default async function BenefitPage({ params }: Props) {
                   <h3 className="font-semibold text-gray-900 text-sm">Gather required documents</h3>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-                  <p className="text-sm text-gray-600">Collect proof of age, income, and residency.</p>
+                  <p className="text-sm text-gray-600">{program.applicationSteps[1]?.description || "Collect proof of age, income, and residency."}</p>
                 </div>
                 <div className="mt-auto pt-3">
                   <Link
@@ -291,42 +329,32 @@ export default async function BenefitPage({ params }: Props) {
 
               {/* Step 3: Download forms */}
               {program.forms.length > 0 && (
-                <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col shadow-[0_4px_12px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]">
+                <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col min-h-[220px] shadow-[0_4px_12px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]">
                   <div className="flex items-center gap-3 mb-3 min-h-[44px]">
                     <div className="w-9 h-9 bg-primary-600 rounded-full flex items-center justify-center shrink-0 shadow-md shadow-primary-600/25">
                       <span className="text-white font-bold text-sm">3</span>
                     </div>
                     <h3 className="font-semibold text-gray-900 text-sm">Download forms</h3>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-100 mb-3">
-                    <p className="text-sm text-gray-600">Download and submit by mail or at your local office.</p>
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                    <p className="text-sm text-gray-600">{program.applicationSteps[2]?.description || "Download and submit by mail or at your local office."}</p>
                   </div>
-                  <div className="space-y-2 flex-1">
-                    {program.forms.map((form) => (
-                      <a
-                        key={form.id}
-                        href={form.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 p-2 bg-white rounded-lg border border-gray-100 hover:border-primary-200 hover:shadow-sm transition-all group"
-                      >
-                        <div className="w-7 h-7 bg-error-50 rounded-lg flex items-center justify-center shrink-0">
-                          <svg className="w-3.5 h-3.5 text-error-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                        </div>
-                        <p className="flex-1 min-w-0 text-xs font-semibold text-gray-900 group-hover:text-primary-700 transition-colors truncate">{form.name}</p>
-                        <svg className="w-3 h-3 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                      </a>
-                    ))}
+                  <div className="mt-auto pt-3">
+                    <Link
+                      href={`/waiver-library/${state.id}/${program.id}/forms`}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary-50 text-primary-700 text-xs font-semibold rounded-lg border border-primary-200 shadow-md shadow-primary-200/50 hover:bg-primary-100 hover:shadow-lg hover:shadow-primary-200/60 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download required forms &rarr;
+                    </Link>
                   </div>
                 </div>
               )}
 
               {/* Step 4: Submit application */}
-              <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col shadow-[0_4px_12px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]">
+              <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col min-h-[220px] shadow-[0_4px_12px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]">
                 <div className="flex items-center gap-3 mb-3 min-h-[44px]">
                   <div className="w-9 h-9 bg-primary-600 rounded-full flex items-center justify-center shrink-0 shadow-md shadow-primary-600/25">
                     <span className="text-white font-bold text-sm">{program.forms.length > 0 ? "4" : "3"}</span>
@@ -334,7 +362,7 @@ export default async function BenefitPage({ params }: Props) {
                   <h3 className="font-semibold text-gray-900 text-sm">Submit your application</h3>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-                  <p className="text-sm text-gray-600">Complete and submit the form. Processing takes 30–90 days.</p>
+                  <p className="text-sm text-gray-600">{program.applicationSteps[3]?.description || "Complete and submit the form. Processing takes 30–90 days."}</p>
                 </div>
                 {program.forms.length > 0 && (
                   <div className="mt-auto pt-3">
@@ -357,6 +385,121 @@ export default async function BenefitPage({ params }: Props) {
         </div>
       </section>
 
+
+      {/* Service Areas */}
+      {program.serviceAreas && program.serviceAreas.length > 0 && (
+        <section className="py-3 md:py-4">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            {program.serviceAreasHeading ? (
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="grid grid-cols-1 lg:grid-cols-2">
+                  {/* Left — cities & info */}
+                  <div className="p-6 md:p-8 flex flex-col justify-center">
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+                      <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      {program.serviceAreasHeading}
+                    </h2>
+                    <div className="grid gap-2.5 grid-cols-1 sm:grid-cols-2">
+                      {program.serviceAreas.map((area) => (
+                        <div key={area.name} className="bg-gray-50 border border-gray-100 rounded-lg px-4 py-3">
+                          <CityBadge name={area.name} />
+                          <p className="text-sm text-gray-600 mt-1.5">{area.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                    {program.serviceAreasCta && (
+                      <div className="mt-5 pt-4 border-t border-gray-200">
+                        <p className="text-base font-medium text-gray-700">
+                          {program.serviceAreasCta.split(/(https?:\/\/\S+|\S+\.\S+\.\S+|\S+\.org|\S+\.com|\S+\.net)/gi).map((part, i) =>
+                            /\.\w{2,}$/i.test(part) ? (
+                              <a key={i} href={part.startsWith("http") ? part : `https://${part}`} target="_blank" rel="noopener noreferrer" className="text-primary-600 font-semibold hover:text-primary-500 underline underline-offset-2 transition-colors">
+                                {part}
+                              </a>
+                            ) : (
+                              <span key={i}>{part}</span>
+                            )
+                          )}
+                        </p>
+                      </div>
+                    )}
+                    {/* Don't see a location CTA */}
+                    <div className="mt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-primary-50 border border-primary-100 rounded-lg px-4 py-3.5">
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">Don&apos;t see a location close to you?</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Call the {program.shortName} Help Line to learn about service areas and enrollment options.</p>
+                      </div>
+                      <a href={`tel:${program.phone || "211"}`} className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 bg-primary-800 text-white text-xs font-semibold rounded-lg hover:bg-primary-700 transition-colors no-underline">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                        {program.phone || "2-1-1"}
+                      </a>
+                    </div>
+                  </div>
+                  {/* Right — map */}
+                  <div className="border-t lg:border-t-0 lg:border-l border-gray-200 bg-gray-50 flex flex-col">
+                    <ServiceAreasMap stateId={state.id} areas={program.serviceAreas} mapPins={program.mapPins} programName={program.name} noWrapper />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="grid grid-cols-1 lg:grid-cols-2">
+                  {/* Left — city cards */}
+                  <div className="p-6 md:p-8">
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+                      <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Where to Access {program.name.replace(new RegExp(`\\s*${state.name}\\s*`, 'gi'), ' ').trim()} in {state.name}
+                    </h2>
+                    <div className="grid gap-2.5 grid-cols-1 sm:grid-cols-2">
+                      {program.serviceAreas.map((area) => (
+                        <div key={area.name} className="bg-gray-50 border border-gray-100 rounded-lg px-4 py-3">
+                          <CityBadge name={area.name} />
+                          <p className="text-sm text-gray-600 mt-1.5">{area.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Don't see a location CTA */}
+                    <div className="mt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-primary-50 border border-primary-100 rounded-lg px-4 py-3.5">
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">Don&apos;t see a location close to you?</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Call the {program.shortName} Help Line to learn about service areas and enrollment options.</p>
+                      </div>
+                      <a href={`tel:${program.phone || "211"}`} className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 bg-primary-800 text-white text-xs font-semibold rounded-lg hover:bg-primary-700 transition-colors no-underline">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                        {program.phone || "2-1-1"}
+                      </a>
+                    </div>
+                  </div>
+                  {/* Right — map */}
+                  <div className="border-t lg:border-t-0 lg:border-l border-gray-200 flex flex-col">
+                    <ServiceAreasMap stateId={state.id} areas={program.serviceAreas} mapPins={program.mapPins} programName={program.name} noWrapper />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* FAQ */}
+      {program.faqs && program.faqs.length > 0 && (
+        <section className="py-3 md:py-4">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Frequently Asked Questions
+            </h2>
+            <FaqAccordion faqs={program.faqs} columns={1} />
+          </div>
+        </section>
+      )}
 
       {/* Bottom CTA banner */}
       <section className="pb-16 md:pb-20">

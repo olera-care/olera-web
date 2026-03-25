@@ -35,6 +35,7 @@ function evaluateEligibility(
 ): BenefitMatch | null {
   let score = program.priority_score;
   const reasons: string[] = [];
+  let spendDown = false;
 
   // Hard disqualify: age below minimum
   if (program.min_age != null && answers.age != null) {
@@ -49,6 +50,10 @@ function evaluateEligibility(
     if (income <= program.max_income_single) {
       score += 15;
       reasons.push("Within income guidelines");
+    } else {
+      // Income over limit — may qualify via spend-down
+      spendDown = true;
+      reasons.push("May qualify with spend-down");
     }
   }
 
@@ -87,6 +92,7 @@ function evaluateEligibility(
     matchScore: score,
     matchReasons: reasons.length > 0 ? reasons : ["May be eligible"],
     tierLabel: getTierLabel(score),
+    spendDown,
   };
 }
 

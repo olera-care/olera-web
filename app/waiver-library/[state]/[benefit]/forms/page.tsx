@@ -26,8 +26,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const state = getStateById(stateId);
   const program = getProgramById(stateId, benefitId);
   if (!state || !program) return {};
-  const title = `${program.name} Forms & Documents | ${state.name} | Benefits Hub | Olera`;
-  const description = `Download application forms and documents for ${program.name} in ${state.name}.`;
+  const title = `${program.name} Forms 2026 — Download Application & Referral Forms | Olera`;
+  const description = `Download the ${program.forms.map(f => f.name).join(" and ")} for ${program.name} in ${state.name}. Free PDF downloads with step-by-step submission instructions.`;
   return {
     title,
     description,
@@ -62,15 +62,18 @@ export default async function FormsPage({ params }: Props) {
               { label: "Benefits Hub", href: "/waiver-library" },
               { label: state.name, href: `/waiver-library/${state.id}` },
               { label: program.shortName, href: `/waiver-library/${state.id}/${program.id}` },
-              { label: "Forms & Documents" },
+              { label: "Document Checklist", href: `/waiver-library/${state.id}/${program.id}/checklist` },
+              { label: "Application Forms", current: true },
             ]}
           />
           <h1 className="mt-2 text-2xl md:text-3xl font-bold text-white">
-            {program.name} Forms &amp; Documents
+            {program.name} Forms 2026
           </h1>
-          <p className="mt-1 text-sm text-primary-200">
-            {program.forms.length} form{program.forms.length !== 1 ? "s" : ""} available
-          </p>
+          <div className="mt-3 inline-block bg-primary-700/50 rounded-xl px-4 py-3 max-w-3xl">
+            <p className="text-sm text-primary-100 leading-relaxed">
+              Download the {program.forms.length} form{program.forms.length !== 1 ? "s" : ""} required to apply for {program.name} in {state.name}. All forms are free and can be submitted online, by mail, or in person at your local Health and Human Services office.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -129,6 +132,18 @@ export default async function FormsPage({ params }: Props) {
                 </a>
               </div>
             ))}
+
+            {/* How to use these forms */}
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <h3 className="font-semibold text-gray-900 mb-2">How to use these forms</h3>
+              <div className="bg-gray-50 rounded-xl p-4">
+                <ol className="list-decimal list-inside space-y-2 text-sm text-gray-600">
+                  <li>Download and complete each form above, making sure to fill in all required fields and sign where indicated.</li>
+                  <li>Attach supporting documents from your <Link href={`/waiver-library/${state.id}/${program.id}/checklist`} className="text-primary-600 hover:text-primary-500 font-medium">document checklist</Link> — including proof of identity, income, and {state.name} residency.</li>
+                  <li>Submit your completed forms online at YourTexasBenefits.com, by mail to your local HHS office, or in person — processing typically takes 30 to 90 days.</li>
+                </ol>
+              </div>
+            </div>
 
             {/* Check eligibility CTA */}
             <div className="mt-4 pt-4 border-t border-gray-100">

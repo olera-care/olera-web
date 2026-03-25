@@ -72,14 +72,13 @@ function MilestoneRow({
   }
 
   return (
-    <div className="flex gap-3.5 group">
-      {/* Timeline column */}
-      <div className="flex flex-col items-center pt-1">
-        {/* Dot / check */}
+    <div className="flex gap-3 group">
+      {/* Timeline column — thin teal line + light outline checks */}
+      <div className="flex flex-col items-center pt-0.5">
         {isCompleted ? (
-          <div className="w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center shrink-0">
+          <div className="w-4 h-4 rounded-full border-[1.5px] border-primary-400 flex items-center justify-center shrink-0 bg-primary-50">
             <svg
-              className="w-3 h-3 text-white"
+              className="w-2.5 h-2.5 text-primary-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -91,17 +90,17 @@ function MilestoneRow({
             </svg>
           </div>
         ) : isCurrent ? (
-          <div className="w-5 h-5 rounded-full bg-gray-900 shrink-0" />
+          <div className="w-4 h-4 rounded-full border-[1.5px] border-primary-500 bg-primary-500 shrink-0" />
         ) : (
-          <div className="w-5 h-5 rounded-full border-[1.5px] border-gray-300 shrink-0" />
+          <div className="w-4 h-4 rounded-full border-[1.5px] border-gray-200 shrink-0" />
         )}
 
-        {/* Connector */}
+        {/* Connector — thin teal/gray line */}
         {!isLast && (
           <div
             className={[
-              "w-px flex-1 min-h-[8px]",
-              isCompleted ? "bg-gray-300" : "bg-gray-200",
+              "w-[1.5px] flex-1 min-h-[6px]",
+              isCompleted ? "bg-primary-200" : "bg-gray-100",
             ].join(" ")}
           />
         )}
@@ -110,7 +109,7 @@ function MilestoneRow({
       {/* Content column */}
       <div
         className={[
-          "flex-1 min-w-0 pb-5",
+          "flex-1 min-w-0 pb-4",
           isClickable ? "cursor-pointer" : "",
         ].join(" ")}
         onClick={handleClick}
@@ -138,7 +137,6 @@ function MilestoneRow({
           {stepInfo.title}
         </span>
 
-        {/* Answer summary for completed steps */}
         {isCompleted && summary && (
           <p className="text-xs text-gray-400 leading-tight truncate mt-0.5">
             {summary}
@@ -146,6 +144,43 @@ function MilestoneRow({
         )}
       </div>
     </div>
+  );
+}
+
+// ─── Compact summary (for results state) ────────────────────────────────────
+
+function CompactSummary() {
+  const { answers, locationDisplay, goToStep } = useCareProfile();
+
+  const parts: string[] = [];
+  if (locationDisplay || answers.stateCode) parts.push(locationDisplay || answers.stateCode || "");
+  if (answers.age) parts.push(`${answers.age}yo`);
+  if (answers.carePreference && answers.carePreference !== "unsure")
+    parts.push(CARE_PREFERENCES[answers.carePreference].displayTitle);
+  if (answers.primaryNeeds.length > 0) {
+    if (answers.primaryNeeds.length === 1) {
+      parts.push(PRIMARY_NEEDS[answers.primaryNeeds[0]].displayTitle);
+    } else {
+      parts.push(`${answers.primaryNeeds.length} care needs`);
+    }
+  }
+  if (answers.incomeRange) parts.push(INCOME_RANGES[answers.incomeRange].displayTitle);
+  if (answers.medicaidStatus) parts.push(MEDICAID_STATUSES[answers.medicaidStatus].shortTitle);
+
+  if (parts.length === 0) return null;
+
+  return (
+    <button
+      onClick={() => goToStep(0)}
+      className="w-full text-left bg-transparent border-none p-0 cursor-pointer group"
+    >
+      <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">
+        {parts.join(" · ")}
+      </p>
+      <p className="text-[10px] text-gray-300 group-hover:text-primary-500 mt-0.5 transition-colors">
+        Edit profile
+      </p>
+    </button>
   );
 }
 

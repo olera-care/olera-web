@@ -495,6 +495,17 @@ export default function BenefitsIntakeForm() {
     setGuidedConfirmation(null);
   }, [step]);
 
+  // ─── Enter key to advance ────────────────────────────────────────────
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && canProceed()) {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" && step === 0 && showLocationDropdown) return;
+      e.preventDefault();
+      handleNext();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, canProceed, showLocationDropdown]);
+
   // ─── Mode selection screen ──────────────────────────────────────────────
 
   if (!modeChosen && step === 0) {
@@ -505,7 +516,7 @@ export default function BenefitsIntakeForm() {
 
   if (voiceMode === "guided") {
     return (
-      <div className="w-full">
+      <div className="w-full" onKeyDown={handleKeyDown}>
         {/* Guided prompt */}
         <GuidedVoicePrompt step={step} confirmation={guidedConfirmation} isSpeaking={isSpeaking} />
 
@@ -554,6 +565,12 @@ export default function BenefitsIntakeForm() {
                   onFocus={() => {
                     setShowLocationDropdown(true);
                     preloadCities();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !showLocationDropdown && canProceed()) {
+                      e.preventDefault();
+                      handleNext();
+                    }
                   }}
                   placeholder="City or ZIP code"
                   className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 text-base"
@@ -741,8 +758,8 @@ export default function BenefitsIntakeForm() {
             disabled={!canProceed()}
             className={`px-10 py-3 border-none rounded-full text-sm font-medium cursor-pointer transition-all duration-200 min-h-[44px] ${
               canProceed()
-                ? "bg-gray-900 text-white hover:bg-gray-800"
-                : "bg-gray-100 text-gray-300 cursor-default"
+                ? "bg-primary-700 text-white hover:bg-primary-800"
+                : "bg-primary-200 text-white/60 cursor-default"
             }`}
           >
             {step === 5 ? "Find my benefits" : "Continue"}
@@ -755,12 +772,21 @@ export default function BenefitsIntakeForm() {
   // ─── Manual form layout (original) ─────────────────────────────────────
 
   return (
-    <div className="w-full">
+    <div className="w-full" onKeyDown={handleKeyDown}>
       {/* Step content — keyed to animate on step change */}
       <div key={step} className="animate-step-in">
-      <p className="text-xs text-gray-400 mb-3 tabular-nums">
-        {step + 1} / {TOTAL_INTAKE_STEPS}
-      </p>
+      <div className="mb-5">
+        <div className="flex items-center justify-between mb-1.5">
+          <p className="text-xs text-gray-400 tabular-nums">Step {step + 1} of {TOTAL_INTAKE_STEPS}</p>
+          <p className="text-xs text-primary-600 font-medium tabular-nums">{Math.round(((step + 1) / TOTAL_INTAKE_STEPS) * 100)}%</p>
+        </div>
+        <div className="w-full bg-gray-100 rounded-full h-2">
+          <div
+            className="h-2 rounded-full bg-primary-500 transition-all duration-500 ease-out"
+            style={{ width: `${((step + 1) / TOTAL_INTAKE_STEPS) * 100}%` }}
+          />
+        </div>
+      </div>
       <h2 className="font-display text-display-sm font-medium text-gray-900 mb-8 leading-snug tracking-tight">
         {step === 0 ? "Where are you located?" : stepInfo.question}
       </h2>
@@ -811,6 +837,12 @@ export default function BenefitsIntakeForm() {
                 onFocus={() => {
                   setShowLocationDropdown(true);
                   preloadCities();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !showLocationDropdown && canProceed()) {
+                    e.preventDefault();
+                    handleNext();
+                  }
                 }}
                 placeholder="City or ZIP code"
                 className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 text-base"
@@ -1035,8 +1067,8 @@ export default function BenefitsIntakeForm() {
           disabled={!canProceed()}
           className={`px-10 py-3 border-none rounded-full text-sm font-medium cursor-pointer transition-all duration-200 min-h-[44px] ${
             canProceed()
-              ? "bg-gray-900 text-white hover:bg-gray-800"
-              : "bg-gray-100 text-gray-300 cursor-default"
+              ? "bg-primary-700 text-white hover:bg-primary-800"
+              : "bg-primary-200 text-white/60 cursor-default"
           }`}
         >
           {step === 5 ? "Find my benefits" : "Continue"}

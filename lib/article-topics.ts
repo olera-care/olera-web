@@ -9,7 +9,8 @@ export type ArticleTopic =
   | "dementia-care"
   | "comparing-care"
   | "legal-and-planning"
-  | "wellness-and-support";
+  | "wellness-and-support"
+  | "end-of-life";
 
 export interface TopicConfig {
   label: string;
@@ -41,6 +42,10 @@ export const TOPIC_CONFIG: Record<ArticleTopic, TopicConfig> = {
     label: "Wellness & Support",
     description: "Caregiver stress, support groups, counseling, and self-care",
   },
+  "end-of-life": {
+    label: "End of Life",
+    description: "Hospice, grief, loss, and planning for end-of-life care",
+  },
 };
 
 export const ALL_TOPICS: ArticleTopic[] = [
@@ -50,4 +55,5 @@ export const ALL_TOPICS: ArticleTopic[] = [
   "comparing-care",
   "legal-and-planning",
   "wellness-and-support",
+  "end-of-life",
 ];

@@ -560,6 +560,7 @@ function RequestNowContent() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [editingClientId, setEditingClientId] = useState<string | null>(null);
   const [message, setMessage] = useState(
     "Hi, we'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care."
   );
@@ -569,6 +570,7 @@ function RequestNowContent() {
   const [formError, setFormError] = useState<string | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
+  const isEditing = editingClientId !== null;
   const canAddClient = name.trim() && (email.trim() || phone.trim());
   const canSend = clients.length > 0 && message.trim();
 
@@ -582,18 +584,50 @@ function RequestNowContent() {
       return;
     }
     setFormError(null);
-    const newClient: ReviewRequestClient = {
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-    };
-    setClients((prev) => [...prev, newClient]);
+
+    if (isEditing) {
+      // Update existing client
+      setClients((prev) =>
+        prev.map((c) =>
+          c.id === editingClientId
+            ? { ...c, name: name.trim(), email: email.trim(), phone: phone.trim() }
+            : c
+        )
+      );
+      setEditingClientId(null);
+    } else {
+      // Add new client
+      const newClient: ReviewRequestClient = {
+        id: crypto.randomUUID(),
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+      };
+      setClients((prev) => [...prev, newClient]);
+    }
+
     setName("");
     setEmail("");
     setPhone("");
     // Focus back to name input for quick multi-add
     nameInputRef.current?.focus();
+  };
+
+  const handleEditClient = (client: ReviewRequestClient) => {
+    setEditingClientId(client.id);
+    setName(client.name);
+    setEmail(client.email);
+    setPhone(client.phone);
+    setFormError(null);
+    nameInputRef.current?.focus();
+  };
+
+  const handleCancelEdit = () => {
+    setEditingClientId(null);
+    setName("");
+    setEmail("");
+    setPhone("");
+    setFormError(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -716,15 +750,31 @@ function RequestNowContent() {
               {clients.map((client) => (
                 <div
                   key={client.id}
-                  className="inline-flex items-center gap-2 px-3 py-2 bg-vanilla-50 border border-warm-100 rounded-xl text-sm group"
+                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm group transition-all ${
+                    editingClientId === client.id
+                      ? "bg-primary-50 border-2 border-primary-500 ring-2 ring-primary-500/20"
+                      : "bg-vanilla-50 border border-warm-100 hover:border-gray-300 hover:bg-vanilla-100"
+                  }`}
                   style={{ animation: "card-enter 0.2s ease-out both" }}
                 >
-                  {getClientContactIcon(client)}
-                  <span className="font-medium text-gray-700">{client.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleEditClient(client)}
+                    className="inline-flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 rounded-lg -ml-0.5 -my-0.5 py-0.5 pl-0.5 pr-1"
+                    aria-label={`Edit ${client.name}`}
+                  >
+                    {getClientContactIcon(client)}
+                    <span className="font-medium text-gray-700">{client.name}</span>
+                    {editingClientId !== client.id && (
+                      <svg className="w-3 h-3 text-gray-300 group-hover:text-gray-400 transition-colors" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+                      </svg>
+                    )}
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleRemoveClient(client.id)}
-                    className="text-gray-300 hover:text-gray-500 group-hover:text-gray-400 transition-colors p-0.5 -mr-1 rounded hover:bg-gray-100"
+                    className="text-gray-300 hover:text-red-500 group-hover:text-gray-400 transition-colors p-0.5 -mr-1 rounded hover:bg-red-50"
                     aria-label={`Remove ${client.name}`}
                   >
                     <CloseIcon className="w-3.5 h-3.5" />
@@ -787,17 +837,37 @@ function RequestNowContent() {
             {formError && (
               <p className="mt-2 text-xs text-red-600">{formError}</p>
             )}
-            <div className="mt-3 flex justify-end">
+            <div className="mt-3 flex justify-end gap-2">
+              {isEditing && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 focus-visible:ring-offset-2 min-h-[44px]"
+                >
+                  Cancel
+                </button>
+              )}
               <button
                 type="button"
                 onClick={handleAddClient}
                 disabled={!canAddClient}
                 className="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 min-h-[44px]"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Add to list
+                {isEditing ? (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                    Update
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Add to list
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -2093,8 +2163,8 @@ export default function ProviderReviewsPage() {
         />
 
         {/* ── Tabs (outside grid, full width) ── */}
-        <div className="mb-4 lg:mb-5">
-          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max">
+        <div className="mb-4 lg:mb-5 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max min-w-full sm:min-w-0 sm:w-max">
             {TABS.map((tab) => {
               const showCount = tab.id === "all" || tab.id === "replied";
               return (
@@ -2103,7 +2173,7 @@ export default function ProviderReviewsPage() {
                   type="button"
                   onClick={() => setActiveFilter(tab.id)}
                   className={[
-                    "px-3.5 lg:px-5 py-2 lg:py-2.5 rounded-[10px] text-[13px] lg:text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center gap-2",
+                    "px-3 sm:px-3.5 lg:px-5 py-2 lg:py-2.5 rounded-[10px] text-[13px] lg:text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-none justify-center sm:justify-start",
                     activeFilter === tab.id
                       ? "bg-white text-gray-900 shadow-sm"
                       : "text-gray-500 hover:text-gray-700",

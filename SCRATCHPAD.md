@@ -147,6 +147,15 @@
   - Backfill script: `scripts/backfill-highlights-data.js` (paginated queries, 10 concurrent workers, 429 retry)
   - To query the 1,317 deletions: `deleted=true AND deleted_at >= '2026-03-24T21:00:00Z' AND ai_trust_signals IS NULL AND provider_category IN ('Home Care (Non-medical)', 'Assisted Living', 'Memory Care', 'Independent Living')`
 
+- **Admin Photo Deletion** (branch: `gentle-newton`) — IN PROGRESS (pending QA)
+  - Plan: `plans/admin-delete-photos-plan.md`
+  - Notion: [Task](https://www.notion.so/Admin-dashboard-Add-the-ability-for-providers-to-delete-photos-3295903a0ffe805dbc3bec53b1eca849)
+  - API: `delete_image` action added to PATCH `/api/admin/images/[providerId]`
+  - UI: hover overlay with trash icon + confirm dialog on both classified and raw image grids
+  - Root cause fix: `hero_image_url` column doesn't exist in `olera-providers` — handler was selecting it explicitly, Supabase 500'd
+  - `provider_image_metadata` table may not exist — all references wrapped in try/catch
+  - Needs QA on next preview deploy to confirm deletion works end-to-end
+
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
 
@@ -192,6 +201,8 @@
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-03-25 | `hero_image_url` column doesn't exist in `olera-providers` | The set_hero action wrote to it but it was never added to the table schema. All references must use `select("*")` and guard with `"hero_image_url" in provider` |
+| 2026-03-25 | Hover overlay > exposed pill buttons for image actions | Colored pills (yellow/red/green) below each image were visual noise. Dark gradient overlay with icon buttons on hover — images are content, buttons are tools |
 | 2026-03-25 | Quick discovery mode (3 terms/category) is sufficient for batch | Standard mode (12 terms) costs 4x more but yields mostly duplicates. Quick mode found 1,914 providers across 10 cities for $12. After dedup/filter, same result quality |
 | 2026-03-25 | Run enrichment in 2 parallel batches of 5 cities | Single batch would serialize all Perplexity calls. Two batches halved enrichment time from ~50min to ~25min without hitting rate limits |
 |------|----------|-----------|
@@ -270,6 +281,35 @@
 ---
 
 ## Session Log
+
+### 2026-03-25 (Session 59) — Admin Photo Deletion + Image Grid Redesign
+
+**Branch:** `gentle-newton` | **PR:** pending
+
+**What:** Add ability to delete provider photos from admin dashboard. Redesigned the image grid UI from exposed colored pill buttons to a hover overlay pattern.
+
+**Commits (8):**
+- `9be7d5c` — Core: `delete_image` action in PATCH handler + delete buttons in UI
+- `c661824` — UI redesign: hover overlay with icon buttons, hero ring, broken image states, rounded-xl cards
+- `7342677` — Fix UI refresh: sync formData after image actions, add error feedback
+- `cd27967` — Add diagnostic logging to delete handler
+- `3f9c915` — Fix misleading 404: separate fetchError (500) from !provider (404)
+- `72db79c` — Log errors to browser console for debugging
+- `70818c6` — Wrap provider_image_metadata ops in try/catch (table may not exist)
+- `11d12d3` — **Root cause fix**: `hero_image_url` column doesn't exist — switch to `select("*")`
+
+**Files Modified (2):**
+- `app/api/admin/images/[providerId]/route.ts` — `delete_image` action, error handling, logging
+- `app/admin/directory/[providerId]/page.tsx` — Hover overlay UI, delete buttons, error feedback
+
+**Files Created (1):**
+- `plans/admin-delete-photos-plan.md` — Implementation plan
+
+**Root Cause (500 on delete):** The handler selected `hero_image_url` explicitly from `olera-providers`, but that column doesn't exist in the database. Supabase rejects queries for non-existent columns. The directory endpoint worked because it uses `select("*")`.
+
+**Build:** Clean, zero errors.
+
+---
 
 ### 2026-03-25 (Session 58) — 10-City Batch Expansion
 

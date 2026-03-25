@@ -137,12 +137,33 @@ export async function POST(request: NextRequest) {
 
     // Send email notification to provider (fire-and-forget)
     try {
-      // Look up provider profile and their account
-      const { data: provider } = await db
+      // Look up provider profile with fallback strategies
+      let provider = await db
         .from("business_profiles")
         .select("id, display_name, slug, account_id, email, source_provider_id")
         .eq("id", provider_id)
-        .single();
+        .maybeSingle()
+        .then(r => r.data);
+
+      // Fallback: by slug
+      if (!provider) {
+        provider = await db
+          .from("business_profiles")
+          .select("id, display_name, slug, account_id, email, source_provider_id")
+          .eq("slug", provider_id)
+          .maybeSingle()
+          .then(r => r.data);
+      }
+
+      // Fallback: by source_provider_id (iOS providers)
+      if (!provider) {
+        provider = await db
+          .from("business_profiles")
+          .select("id, display_name, slug, account_id, email, source_provider_id")
+          .eq("source_provider_id", provider_id)
+          .maybeSingle()
+          .then(r => r.data);
+      }
 
       if (provider) {
         let providerEmail: string | null = null;

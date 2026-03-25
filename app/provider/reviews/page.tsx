@@ -555,20 +555,39 @@ interface ReviewRequestClient {
 
 type DeliveryMethod = "email" | "sms" | "both";
 
-function RequestNowContent() {
-  const [clients, setClients] = useState<ReviewRequestClient[]>([]);
+interface RequestNowState {
+  clients: ReviewRequestClient[];
+  message: string;
+  deliveryMethod: DeliveryMethod;
+}
+
+interface RequestNowContentProps {
+  state: RequestNowState;
+  onStateChange: (state: RequestNowState) => void;
+}
+
+const DEFAULT_MESSAGE = "Hi, we'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care.";
+
+function RequestNowContent({ state, onStateChange }: RequestNowContentProps) {
+  const { clients, message, deliveryMethod } = state;
+
+  // Local form state (not persisted across tab switches)
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [editingClientId, setEditingClientId] = useState<string | null>(null);
-  const [message, setMessage] = useState(
-    "Hi, we'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care."
-  );
-  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("email");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+
+  // Helper to update parent state
+  const setClients = (updater: ReviewRequestClient[] | ((prev: ReviewRequestClient[]) => ReviewRequestClient[])) => {
+    const newClients = typeof updater === "function" ? updater(clients) : updater;
+    onStateChange({ ...state, clients: newClients });
+  };
+  const setMessage = (msg: string) => onStateChange({ ...state, message: msg });
+  const setDeliveryMethod = (method: DeliveryMethod) => onStateChange({ ...state, deliveryMethod: method });
 
   const isEditing = editingClientId !== null;
   const canAddClient = name.trim() && (email.trim() || phone.trim());
@@ -669,10 +688,7 @@ function RequestNowContent() {
       setSent(true);
       // Reset form after showing success briefly
       setTimeout(() => {
-        setClients([]);
-        setMessage(
-          "Hi, we'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care."
-        );
+        onStateChange({ clients: [], message: DEFAULT_MESSAGE, deliveryMethod: "email" });
         setSent(false);
       }, 2000);
     } catch (err) {
@@ -873,13 +889,10 @@ function RequestNowContent() {
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-gray-100 my-6" />
-
         {/* Message Section */}
         <div className="mb-6">
           <label htmlFor="review-message" className="block text-sm font-semibold text-gray-900 mb-3">
-            Your message
+            Message
           </label>
           <textarea
             id="review-message"
@@ -1993,6 +2006,13 @@ export default function ProviderReviewsPage() {
   // Mobile stats sheet
   const [showStatsSheet, setShowStatsSheet] = useState(false);
 
+  // Request Now state (persisted across tab switches)
+  const [requestNowState, setRequestNowState] = useState<RequestNowState>({
+    clients: [],
+    message: DEFAULT_MESSAGE,
+    deliveryMethod: "email",
+  });
+
   // Detect mobile
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
@@ -2201,7 +2221,7 @@ export default function ProviderReviewsPage() {
           <div>
             {activeFilter === "request_now" ? (
               <>
-                <RequestNowContent />
+                <RequestNowContent state={requestNowState} onStateChange={setRequestNowState} />
                 <MobileTipsAccordion activeTab={activeFilter} />
               </>
             ) : activeFilter === "request_onsite" ? (

@@ -183,6 +183,8 @@ export default function AdminDirectoryDetailPage() {
         const detailRes = await fetch(`/api/admin/directory/${providerId}`);
         if (detailRes.ok) {
           const data = await detailRes.json();
+          const prevCount = images.length + rawImages.length;
+          const newCount = (data.images?.length ?? 0) + (data.rawImages?.length ?? 0);
           setImages(data.images ?? []);
           setRawImages(data.rawImages ?? []);
           // Sync provider fields that image actions can change
@@ -198,6 +200,15 @@ export default function AdminDirectoryDetailPage() {
             provider_images: data.provider.provider_images,
             provider_logo: data.provider.provider_logo,
           }));
+          // Show feedback for delete actions
+          if (action === "delete_image") {
+            if (newCount < prevCount) {
+              setSaveMessage({ type: "success", text: "Image deleted." });
+            } else {
+              setSaveMessage({ type: "error", text: "Delete sent but image count unchanged — check server logs." });
+            }
+            setTimeout(() => setSaveMessage(null), 3000);
+          }
         }
       } else {
         const err = await res.json();

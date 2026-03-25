@@ -242,12 +242,18 @@ export async function PATCH(
         return NextResponse.json({ error: "delete_image requires image_url" }, { status: 400 });
       }
 
+      console.log(`[delete_image] Provider: ${providerId}, URL to delete: ${image_url}`);
+
       // 1. Delete from provider_image_metadata (if row exists)
-      await db
+      const { error: metaDeleteError } = await db
         .from("provider_image_metadata")
         .delete()
         .eq("provider_id", providerId)
         .eq("image_url", image_url);
+
+      if (metaDeleteError) {
+        console.warn("[delete_image] Metadata delete error (non-fatal):", metaDeleteError.message);
+      }
 
       // 2. Remove URL from provider_images pipe-separated string + related fields
       const { data: provider, error: fetchError } = await db
@@ -257,47 +263,59 @@ export async function PATCH(
         .single();
 
       if (fetchError || !provider) {
+        console.error("[delete_image] Provider not found:", fetchError?.message);
         return NextResponse.json({ error: "Provider not found" }, { status: 404 });
       }
 
-      // Normalize for comparison — trim whitespace from both sides
+      console.log("[delete_image] Current provider_images:", provider.provider_images);
+      console.log("[delete_image] Current provider_logo:", provider.provider_logo);
+
       const targetUrl = image_url.trim();
       const updates: Record<string, unknown> = {};
 
       // Remove from provider_images pipe-separated string
       if (provider.provider_images) {
-        const before = (provider.provider_images as string)
-          .split(" | ")
-          .map((u: string) => u.trim())
-          .filter(Boolean);
+        const raw = provider.provider_images as string;
+        const before = raw.split(" | ").map((u: string) => u.trim()).filter(Boolean);
         const after = before.filter((u: string) => u !== targetUrl);
-        // Always write back so the field reflects the deletion
+        console.log(`[delete_image] provider_images: ${before.length} → ${after.length} URLs`);
         updates.provider_images = after.length > 0 ? after.join(" | ") : null;
+      } else {
+        console.log("[delete_image] provider_images is null/empty — nothing to filter");
       }
 
       // Clear provider_logo if it matches the deleted image
       if (provider.provider_logo && provider.provider_logo.trim() === targetUrl) {
         updates.provider_logo = null;
+        console.log("[delete_image] Clearing matching provider_logo");
       }
 
       // Clear hero_image_url if deleting the hero
       if (provider.hero_image_url && provider.hero_image_url.trim() === targetUrl) {
         updates.hero_image_url = null;
+        console.log("[delete_image] Clearing matching hero_image_url");
         await db
           .from("provider_image_metadata")
           .update({ is_hero: false })
           .eq("provider_id", providerId);
       }
 
-      // Always update — even if provider_images didn't change, ensures consistency
-      const { error: updateError } = await db
-        .from("olera-providers")
-        .update(updates)
-        .eq("provider_id", providerId);
+      console.log("[delete_image] Updates to apply:", JSON.stringify(updates));
 
-      if (updateError) {
-        console.error("Delete image update error:", updateError);
-        return NextResponse.json({ error: "Failed to update provider" }, { status: 500 });
+      if (Object.keys(updates).length === 0) {
+        console.warn("[delete_image] No fields to update — URL may not exist in any field");
+        // Still return success — the image reference doesn't exist, which is the desired state
+      } else {
+        const { error: updateError } = await db
+          .from("olera-providers")
+          .update(updates)
+          .eq("provider_id", providerId);
+
+        if (updateError) {
+          console.error("[delete_image] Update error:", updateError);
+          return NextResponse.json({ error: "Failed to update provider" }, { status: 500 });
+        }
+        console.log("[delete_image] Update succeeded");
       }
 
       // 4. Delete from Supabase Storage if it's an uploaded file

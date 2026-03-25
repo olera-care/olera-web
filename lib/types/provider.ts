@@ -298,17 +298,23 @@ export function toCardFormat(provider: Provider): ProviderCardData {
   const images = parseProviderImages(provider.provider_images);
   const { image: cardImage, imageType } = resolveCardImage(provider);
 
-  // Pricing: provider-entered first, then regional estimate fallback
-  let priceRange = formatPriceRange(provider) || "";
+  // Pricing: Tier 3 categories (Home Health, Nursing Home, Hospice) suppress
+  // dollar amounts on cards — lead with coverage education instead.
+  const pricingConfig = getPricingConfig(provider.provider_category);
+  let priceRange = "";
   let isRegionalEstimate = false;
   let isMetroAdjusted = false;
 
-  if (!priceRange && provider.state) {
-    const regional = getRegionalEstimate(provider.provider_category, provider.state, provider.city);
-    if (regional) {
-      priceRange = regional.formatted;
-      isRegionalEstimate = true;
-      isMetroAdjusted = regional.isMetroAdjusted;
+  if (pricingConfig.tier !== 3) {
+    priceRange = formatPriceRange(provider) || "";
+
+    if (!priceRange && provider.state) {
+      const regional = getRegionalEstimate(provider.provider_category, provider.state, provider.city);
+      if (regional) {
+        priceRange = regional.formatted;
+        isRegionalEstimate = true;
+        isMetroAdjusted = regional.isMetroAdjusted;
+      }
     }
   }
 
@@ -431,13 +437,14 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
   const primaryImage = bp.image_url || metaImages[0] || null;
   const hasImage = !!primaryImage;
 
-  // Pricing: read from metadata fields, fall back to regional estimate, then "Contact for pricing"
+  // Pricing: Tier 3 categories suppress dollar amounts on cards — education badge instead.
+  const bpPricingConfig = bp.category ? getPricingConfig(bp.category) : null;
   const contactForPricing = meta?.contact_for_pricing === true;
   let priceRange = "Contact for pricing";
   let isRegionalEstimate = false;
   let isMetroAdjusted = false;
 
-  if (!contactForPricing) {
+  if (bpPricingConfig?.tier !== 3 && !contactForPricing) {
     const lowerPrice = meta?.lower_price as number | undefined;
     const upperPrice = meta?.upper_price as number | undefined;
     const frequency = (meta?.price_frequency as string | undefined) || "per month";

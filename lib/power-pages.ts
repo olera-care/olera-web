@@ -266,29 +266,35 @@ export async function fetchPowerPageData(opts: {
 
   const mergedCards = mergeProviderCards(seededCards, bpCards, dedupeSourceIds);
 
+  // Category-specific pricing config (needed for avg price suppression + cost note)
+  const pricingConfig = getPricingConfig(opts.category);
+
   // Compute average prices with minimum sample size requirement
+  // Tier 3 categories (Home Health, Nursing Home, Hospice) suppress dollar amounts —
+  // coverage education is more useful than misleading price averages.
   const MIN_SAMPLE_SIZE = 5;
-  const priced = (providers as Provider[]).filter((p) => p.lower_price && p.upper_price);
   let avgLowerPrice: number | null = null;
   let avgUpperPrice: number | null = null;
   let isStateAverage = false;
 
-  if (priced.length >= MIN_SAMPLE_SIZE) {
-    // Enough local data — use provider-based average
-    avgLowerPrice = Math.round(priced.reduce((s, p) => s + (p.lower_price ?? 0), 0) / priced.length);
-    avgUpperPrice = Math.round(priced.reduce((s, p) => s + (p.upper_price ?? 0), 0) / priced.length);
-  } else if (opts.stateAbbrev) {
-    // Not enough local data — fall back to state-level median
-    const stateMedian = getStateMedian(opts.category, opts.stateAbbrev);
-    if (stateMedian) {
-      avgLowerPrice = Math.round(stateMedian.value * 0.85);
-      avgUpperPrice = Math.round(stateMedian.value * 1.15);
-      isStateAverage = true;
+  if (pricingConfig.tier !== 3) {
+    const priced = (providers as Provider[]).filter((p) => p.lower_price && p.upper_price);
+
+    if (priced.length >= MIN_SAMPLE_SIZE) {
+      // Enough local data — use provider-based average
+      avgLowerPrice = Math.round(priced.reduce((s, p) => s + (p.lower_price ?? 0), 0) / priced.length);
+      avgUpperPrice = Math.round(priced.reduce((s, p) => s + (p.upper_price ?? 0), 0) / priced.length);
+    } else if (opts.stateAbbrev) {
+      // Not enough local data — fall back to state-level median
+      const stateMedian = getStateMedian(opts.category, opts.stateAbbrev);
+      if (stateMedian) {
+        avgLowerPrice = Math.round(stateMedian.value * 0.85);
+        avgUpperPrice = Math.round(stateMedian.value * 1.15);
+        isStateAverage = true;
+      }
     }
   }
 
-  // Category-specific cost context note
-  const pricingConfig = getPricingConfig(opts.category);
   const costNote = pricingConfig.cityPageNote;
 
   return {

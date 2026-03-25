@@ -132,7 +132,7 @@ export default function CompactProviderCard({ provider }: CompactProviderCardPro
         <div className="flex-1 min-h-1" />
 
         {/* Price */}
-        {provider.providerCategory && getPricingConfig(provider.providerCategory).tier === 3 && !provider.isRegionalEstimate && provider.priceRange === "Contact for pricing" ? (
+        {provider.providerCategory && getPricingConfig(provider.providerCategory).tier === 3 && (!provider.priceRange || provider.priceRange === "Contact for pricing" || provider.isRegionalEstimate) ? (
           <div className="mt-2"><PricingEducationBadge category={provider.providerCategory} compact /></div>
         ) : provider.priceRange && provider.priceRange !== "Contact for pricing" ? (
           <div className="mt-2">

@@ -124,7 +124,7 @@
   - **Footer hidden** on apply/submit-video/portal-medjobs pages
   - **Bugs fixed:** Duplicate email, generic welcome email to students, Loops drip, nudge cron inactive profiles, dropdown clipping
 
-- **Provider Highlights Dedup + Data-Driven Generation** (branch: `fair-morse`, PR #376) — CODE COMPLETE, BACKFILL RUNNING
+- **Provider Highlights Dedup + Data-Driven Generation** (branch: `fair-morse`, PR #376) — READY FOR QA
   - Plan: `plans/provider-highlights-dedup-plan.md`
   - Notion: [Task](https://www.notion.so/Logan-s-Audit-QA-de-duplicate-care-service-labels-on-all-provider-pages-32c5903a0ffe8166a12bf29c98319e7e)
   - 5-tier highlight waterfall: trust signals → social proof → CMS → staff screening → capability
@@ -288,9 +288,12 @@
 - `lib/provider-utils.ts` — Deleted `categoryHighlights` map + `getCategoryHighlights()`
 - `plans/provider-highlights-dedup-plan.md` — Full implementation plan
 
-**Backfill Results:**
-- Pass 1 (reviews hydration): 8,101 providers hydrated (free, instant)
-- Pass 2 (trust signals): 22,292 providers processing (~$22, ~3hrs, 10 workers). Early: 92% confirmed, 8% false positives soft-deleted
+**Backfill Results (FINAL):**
+- Pass 1 (reviews hydration): 8,101 providers hydrated with google_reviews_data JSONB (free)
+- Pass 2 (trust signals): 22,292 processed — 20,841 confirmed, 1,317 soft-deleted, 134 errors. ~$22, ~3hrs
+- 1,317 false positives removed: apartment complexes, golf courses, staffing agencies, rec centers, disability care, closed businesses
+- Query to find deletions: `deleted=true AND deleted_at >= '2026-03-24T21:00:00Z' AND ai_trust_signals IS NULL`
+- Follow-up: P2 Notion task for deletion audit trail ([link](https://www.notion.so/Provider-deletion-audit-trail-track-who-why-source-for-all-soft-deletes-32e5903a0ffe81ccb42ef387b5b4cda1))
 
 **Build:** Clean, zero errors.
 

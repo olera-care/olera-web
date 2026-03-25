@@ -7,18 +7,16 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { Provider } from "@/lib/types/provider";
 import SmartDashboardShell from "@/components/provider-onboarding/SmartDashboardShell";
-import type { ActionCardState } from "@/components/provider-onboarding/ActionCard";
+import type { ActionCardState, NotificationData, NotificationType } from "@/components/provider-onboarding/ActionCard";
 import {
   getOrCreateClaimSession,
   markSessionVerified,
-  markSessionTokenValidated,
   clearClaimSession,
   type ClaimSessionData,
 } from "@/lib/claim-session";
 
 type OnboardStep =
   | "loading"
-  | "validating-token"
   | "dashboard" // Shows SmartDashboardShell with appropriate ActionCard state
   | "finalizing"
   | "success"
@@ -28,8 +26,12 @@ export default function ProviderOnboardPage() {
   const { slug } = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
   const providerIdParam = searchParams.get("provider_id");
-  const tokenParam = searchParams.get("token");
   const stateParam = searchParams.get("state") as ActionCardState | null;
+  // Action params for email notifications (lead/review/question) or campaign
+  const actionParam = searchParams.get("action") as NotificationType | "campaign" | null;
+  const actionIdParam = searchParams.get("actionId");
+  // Token param for marketing campaign emails (pre-verified flow)
+  const tokenParam = searchParams.get("token");
   const router = useRouter();
   const { user, account, openAuth, refreshAccountData, switchProfile } = useAuth();
 
@@ -38,22 +40,14 @@ export default function ProviderOnboardPage() {
   const [provider, setProvider] = useState<Provider | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [session, setSession] = useState<ClaimSessionData | null>(null);
-  const [tokenEmailHint, setTokenEmailHint] = useState<string | null>(null);
   const [actionCardState, setActionCardState] = useState<ActionCardState>("verify-form");
-  const [tokenError, setTokenError] = useState<string | null>(null);
+  const [notificationData, setNotificationData] = useState<NotificationData | null>(null);
+  const [preVerifiedEmail, setPreVerifiedEmail] = useState<string | null>(null);
   const initRef = useRef(false);
   const finalizeRef = useRef(false);
-  const tokenValidatedRef = useRef(false);
 
   // Get claimSession ID for API calls
   const claimSession = session?.sessionId || "";
-
-  // Auto-dismiss token error after 4 seconds
-  useEffect(() => {
-    if (!tokenError) return;
-    const timer = setTimeout(() => setTokenError(null), 4000);
-    return () => clearTimeout(timer);
-  }, [tokenError]);
 
   // Fetch provider on mount
   useEffect(() => {
@@ -97,6 +91,59 @@ export default function ProviderOnboardPage() {
         if (data) foundProvider = data;
       }
 
+      // Strategy 4: Look up in business_profiles by slug (for native/claimed providers)
+      // These providers may not exist in olera-providers
+      // Include both "organization" and "caregiver" types (both are provider profiles)
+      if (!foundProvider) {
+        const { data: bp } = await supabase
+          .from("business_profiles")
+          .select("id, slug, display_name, claim_state, account_id, source_provider_id, email, phone, address, city, state, zip, description, image_url, care_types, metadata, type, category")
+          .eq("slug", slug)
+          .in("type", ["organization", "caregiver"])
+          .maybeSingle();
+
+        if (bp) {
+          // For claimed providers, check if user owns it and redirect appropriately
+          if (bp.claim_state === "claimed" && account && bp.account_id === account.id) {
+            // User owns this listing - redirect to appropriate section
+            if (actionParam === "lead" && actionIdParam) {
+              router.replace(`/provider/inbox?id=${actionIdParam}`);
+            } else if (actionParam === "question" && actionIdParam) {
+              router.replace(`/provider/qna?id=${actionIdParam}`);
+            } else if (actionParam === "review" && actionIdParam) {
+              router.replace(`/provider/reviews?id=${actionIdParam}`);
+            } else {
+              router.replace("/provider");
+            }
+            return;
+          }
+
+          // For other cases (not owned or unclaimed), create a Provider-like object
+          // to continue with the onboard flow
+          foundProvider = {
+            provider_id: bp.source_provider_id || bp.id,
+            provider_name: bp.display_name || "Provider",
+            slug: bp.slug,
+            email: bp.email,
+            phone: bp.phone,
+            address: bp.address,
+            city: bp.city,
+            state: bp.state,
+            zipcode: bp.zip ? parseInt(bp.zip, 10) : null,
+            provider_description: bp.description,
+            provider_images: bp.image_url ? JSON.stringify([bp.image_url]) : null,
+            provider_category: bp.category || "",
+            main_category: bp.care_types?.[0] || null,
+            lat: null,
+            lon: null,
+            website: null,
+            lower_price: null,
+            upper_price: null,
+            deleted: false,
+          } as Provider;
+        }
+      }
+
       if (!foundProvider) {
         setErrorMsg("Provider not found.");
         setStep("error");
@@ -104,6 +151,89 @@ export default function ProviderOnboardPage() {
       }
 
       setProvider(foundProvider);
+
+      // Fetch notification data if action params provided (lead/review/question from email)
+      if (actionParam && actionIdParam) {
+        try {
+          if (actionParam === "lead") {
+            // Fetch connection (lead) data
+            const { data: conn } = await supabase
+              .from("connections")
+              .select("id, created_at, message, metadata, from_profile:business_profiles!connections_from_profile_id_fkey(display_name, email, city, state, image_url)")
+              .eq("id", actionIdParam)
+              .single();
+            if (conn) {
+              // Parse the message field - it's stored as JSON string with seeker info
+              let parsedMessage: Record<string, unknown> = {};
+              try {
+                if (conn.message && typeof conn.message === "string") {
+                  parsedMessage = JSON.parse(conn.message);
+                }
+              } catch {
+                // If parsing fails, message might be plain text (legacy)
+                parsedMessage = { message: conn.message };
+              }
+
+              // Extract the actual custom message (additionalNotes) from parsed data
+              const customMessage = (parsedMessage.message as string) || (parsedMessage.additional_notes as string) || null;
+
+              // Extract care_type from parsed message or metadata
+              const careType = (parsedMessage.care_type as string) || null;
+
+              // Get auto_intro from metadata (generated intro message)
+              const connMetadata = conn.metadata as Record<string, unknown> | null;
+              const autoIntro = (connMetadata?.auto_intro as string) || null;
+
+              setNotificationData({
+                type: "lead",
+                id: conn.id,
+                created_at: conn.created_at,
+                message: customMessage,
+                metadata: {
+                  care_type: careType || undefined,
+                  auto_intro: autoIntro || undefined,
+                },
+                from_profile: conn.from_profile as NotificationData["from_profile"],
+              });
+            }
+          } else if (actionParam === "question") {
+            // Fetch question data
+            const { data: question } = await supabase
+              .from("questions")
+              .select("id, question, asker_name, created_at")
+              .eq("id", actionIdParam)
+              .single();
+            if (question) {
+              setNotificationData({
+                type: "question",
+                id: question.id,
+                created_at: question.created_at,
+                question: question.question,
+                asker_name: question.asker_name,
+              });
+            }
+          } else if (actionParam === "review") {
+            // Fetch review data
+            const { data: review } = await supabase
+              .from("reviews")
+              .select("id, rating, comment, reviewer_name, created_at")
+              .eq("id", actionIdParam)
+              .single();
+            if (review) {
+              setNotificationData({
+                type: "review",
+                id: review.id,
+                created_at: review.created_at,
+                rating: review.rating,
+                comment: review.comment,
+                reviewer_name: review.reviewer_name,
+              });
+            }
+          }
+        } catch (err) {
+          console.error("[ProviderOnboard] Failed to fetch notification data:", err);
+        }
+      }
 
       // Initialize or recover session
       const claimSessionData = getOrCreateClaimSession(
@@ -113,6 +243,40 @@ export default function ProviderOnboardPage() {
       );
       setSession(claimSessionData);
 
+      // Handle campaign token (marketing email pre-verification)
+      if (actionParam === "campaign" && tokenParam) {
+        try {
+          const tokenRes = await fetch("/api/claim/validate-token", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              token: tokenParam,
+              claimSession: claimSessionData.sessionId,
+            }),
+          });
+          const tokenResult = await tokenRes.json();
+
+          if (tokenResult.valid) {
+            // Token is valid - user is pre-verified
+            setPreVerifiedEmail(tokenResult.emailHint);
+            setActionCardState("pre-verified");
+            setStep("dashboard");
+            return;
+          } else if (tokenResult.alreadyClaimed) {
+            // Listing already claimed
+            setActionCardState("already-claimed");
+            setStep("dashboard");
+            return;
+          } else {
+            // Token invalid/expired - fall through to normal flow
+            console.warn("[ProviderOnboard] Campaign token invalid:", tokenResult.error);
+          }
+        } catch (err) {
+          console.error("[ProviderOnboard] Failed to validate campaign token:", err);
+          // Fall through to normal flow
+        }
+      }
+
       // Check if already claimed via business_profiles
       const { data: bp } = await supabase
         .from("business_profiles")
@@ -121,22 +285,23 @@ export default function ProviderOnboardPage() {
         .maybeSingle();
 
       if (bp?.claim_state === "claimed") {
-        // If the signed-in user owns this listing, send them to their dashboard
+        // If the signed-in user owns this listing, redirect to the appropriate section
         if (account && bp.account_id && account.id === bp.account_id) {
-          router.replace("/provider");
+          // Route to specific section based on notification type
+          if (actionParam === "lead" && actionIdParam) {
+            router.replace(`/provider/inbox?id=${actionIdParam}`);
+          } else if (actionParam === "question" && actionIdParam) {
+            router.replace(`/provider/qna?id=${actionIdParam}`);
+          } else if (actionParam === "review" && actionIdParam) {
+            router.replace(`/provider/reviews?id=${actionIdParam}`);
+          } else {
+            router.replace("/provider");
+          }
           return;
         }
         // Otherwise show dashboard with dispute form in ActionCard
         setActionCardState("already-claimed");
         setStep("dashboard");
-        return;
-      }
-
-      // Check for email campaign token
-      if (tokenParam && !tokenValidatedRef.current) {
-        tokenValidatedRef.current = true;
-        setStep("validating-token");
-        await validateToken(foundProvider, claimSessionData);
         return;
       }
 
@@ -154,65 +319,30 @@ export default function ProviderOnboardPage() {
       }
 
       // Start with dashboard (wizard will show first, then verification)
-      // If state param provided (e.g., from dispute link), use it
-      const validStates: ActionCardState[] = ["verify-form", "already-claimed", "no-access"];
-      if (stateParam && validStates.includes(stateParam)) {
-        setActionCardState(stateParam);
+      // Set initial state based on context:
+      // 1. Notification from email (lead/question/review) → show notification card
+      // 2. State param provided (e.g., from dispute link) → use that state
+      // 3. Default → verify-form
+      if (actionParam) {
+        // Map action param to notification state
+        const notificationStateMap: Record<string, ActionCardState> = {
+          lead: "notification-lead",
+          question: "notification-question",
+          review: "notification-review",
+        };
+        setActionCardState(notificationStateMap[actionParam] || "verify-form");
       } else {
-        setActionCardState("verify-form");
+        const validStates: ActionCardState[] = ["verify-form", "already-claimed", "no-access"];
+        if (stateParam && validStates.includes(stateParam)) {
+          setActionCardState(stateParam);
+        } else {
+          setActionCardState("verify-form");
+        }
       }
       setStep("dashboard");
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, providerIdParam, stateParam]);
-
-  // Validate email campaign token
-  const validateToken = async (foundProvider: Provider, claimSessionData: ClaimSessionData) => {
-    try {
-      const res = await fetch("/api/claim/validate-token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          token: tokenParam,
-          claimSession: claimSessionData.sessionId,
-        }),
-      });
-
-      const result = await res.json();
-
-      if (!res.ok || !result.valid) {
-        // Token invalid or expired - fall back to normal flow
-        if (result.alreadyClaimed) {
-          setActionCardState("already-claimed");
-        } else {
-          console.warn("Token validation failed:", result.error);
-          setTokenError("This verification link has expired. Please verify your email below.");
-          setActionCardState("verify-form");
-        }
-        setStep("dashboard");
-        return;
-      }
-
-      // Token valid - mark session as pre-verified
-      setTokenEmailHint(result.emailHint);
-      markSessionTokenValidated(result.emailHint);
-      setSession(prev => prev ? { ...prev, verified: true, tokenValidated: true, emailHint: result.emailHint } : null);
-
-      // If user is logged in, go straight to finalize
-      if (user) {
-        setStep("finalizing");
-      } else {
-        // Show pre-verified state in dashboard, then prompt to sign in
-        setActionCardState("pre-verified");
-        setStep("dashboard");
-      }
-    } catch (err) {
-      console.error("Token validation error:", err);
-      setTokenError("Couldn't validate link. Please verify your email below.");
-      setActionCardState("verify-form");
-      setStep("dashboard");
-    }
-  };
+  }, [slug, providerIdParam, stateParam, actionParam, actionIdParam, tokenParam]);
 
   // Auto-finalize after OAuth return
   useEffect(() => {
@@ -294,14 +424,12 @@ export default function ProviderOnboardPage() {
   }, [user, openAuth, provider?.provider_id]);
 
   // Loading state
-  if (step === "loading" || step === "validating-token") {
+  if (step === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-vanilla-50 via-white to-white">
         <div className="text-center px-4">
           <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
-          <p className="mt-4 text-gray-500">
-            {step === "validating-token" ? "Validating your link..." : "Loading..."}
-          </p>
+          <p className="mt-4 text-gray-500">Loading...</p>
         </div>
       </div>
     );
@@ -391,19 +519,14 @@ export default function ProviderOnboardPage() {
   if (!provider || !session) return null;
 
   return (
-    <>
-      {tokenError && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-rose-50/95 border border-rose-100/60 shadow-sm">
-          <p className="text-[13px] text-rose-600 font-medium">{tokenError}</p>
-        </div>
-      )}
-      <SmartDashboardShell
-        provider={provider}
-        claimSession={claimSession}
-        onVerificationComplete={handleVerificationComplete}
-        initialActionState={actionCardState}
-        preVerifiedEmail={tokenEmailHint || undefined}
-      />
-    </>
+    <SmartDashboardShell
+      provider={provider}
+      claimSession={claimSession}
+      onVerificationComplete={handleVerificationComplete}
+      initialActionState={actionCardState}
+      notificationData={notificationData}
+      isSignedIn={!!user}
+      preVerifiedEmail={preVerifiedEmail || undefined}
+    />
   );
 }

@@ -76,15 +76,33 @@ export async function updateSession(request: NextRequest) {
       try {
         const { data: account } = await supabase
           .from("accounts")
-          .select("onboarding_completed")
+          .select("id, onboarding_completed")
           .eq("user_id", user.id)
           .single();
 
         if (account && account.onboarding_completed === false) {
+          // Check if user has a provider profile to route them correctly
+          const { data: providerProfile } = await supabase
+            .from("business_profiles")
+            .select("id, slug, source_provider_id")
+            .eq("account_id", account.id)
+            .in("type", ["organization", "caregiver"])
+            .limit(1)
+            .maybeSingle();
+
           const url = request.nextUrl.clone();
           const originalPath = request.nextUrl.pathname + request.nextUrl.search;
-          url.pathname = "/welcome";
-          url.search = `?next=${encodeURIComponent(originalPath)}`;
+
+          if (providerProfile) {
+            // Route providers to their onboard page
+            const providerSlug = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
+            url.pathname = `/provider/${providerSlug}/onboard`;
+            url.search = `?next=${encodeURIComponent(originalPath)}`;
+          } else {
+            // Route families to family welcome page
+            url.pathname = "/welcome";
+            url.search = `?next=${encodeURIComponent(originalPath)}`;
+          }
           return NextResponse.redirect(url);
         }
       } catch {

@@ -133,8 +133,10 @@
   - Synonym normalization map (~25 entries) for care_types dedup
   - Deleted duplicate CATEGORY_HIGHLIGHTS maps from provider.ts + provider-utils.ts
   - **Backfill Pass 1 DONE**: 8,101 providers hydrated with google_reviews_data (free)
-  - **Backfill Pass 2 RUNNING**: 22,292 non-CMS providers getting trust signals via Perplexity (~$22, ~3hrs, 10 concurrent workers). Early stats: 92% confirmed, 8% false positives deleted
-  - Backfill script: `scripts/backfill-highlights-data.js` (paginated queries, concurrent workers, 429 retry)
+  - **Backfill Pass 2 DONE**: 22,292 non-CMS providers processed — 20,841 confirmed (trust signals saved), 1,317 soft-deleted (false positives), 134 errors (JSON parse). ~$22 cost, ~3hrs runtime
+  - **1,317 false positives cleaned up**: apartment complexes, golf courses, staffing agencies, rec centers, disability care, closed/unverifiable businesses. Soft-deleted (deleted=true, deleted_at set). No audit trail yet — tracked as P2 Notion task.
+  - Backfill script: `scripts/backfill-highlights-data.js` (paginated queries, 10 concurrent workers, 429 retry)
+  - To query the 1,317 deletions: `deleted=true AND deleted_at >= '2026-03-24T21:00:00Z' AND ai_trust_signals IS NULL AND provider_category IN ('Home Care (Non-medical)', 'Assisted Living', 'Memory Care', 'Independent Living')`
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`

@@ -34,8 +34,9 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { visible: navbarVisible } = useNavbar();
   const { savedCount, hasInitialized: savedInitialized } = useSavedProviders();
-  const profileIds = (profiles || []).map((p) => p.id);
-  const unreadInboxCount = useUnreadInboxCount(profileIds);
+  // For family inbox badge: only count unread for the ACTIVE profile, not all profiles
+  // This matches the inbox page behavior which only shows connections for the active profile
+  const unreadInboxCount = useUnreadInboxCount(activeProfile ? [activeProfile.id] : []);
   // For provider inbox badge: only count unread for the ACTIVE provider profile, not all providers
   // This ensures proper data isolation when users have multiple provider profiles
   const activeProviderProfileId = activeProfile && (activeProfile.type === "organization" || activeProfile.type === "caregiver")

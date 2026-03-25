@@ -194,7 +194,7 @@ export async function POST(request: NextRequest) {
       if (!providerForEmail) {
         providerForEmail = await db
           .from("business_profiles")
-          .select("id, display_name, email, slug")
+          .select("id, display_name, email, slug, source_provider_id")
           .eq("source_provider_id", provider_id)
           .maybeSingle()
           .then(r => r.data);
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
       if (!providerForEmail && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(provider_id)) {
         providerForEmail = await db
           .from("business_profiles")
-          .select("id, display_name, email, slug")
+          .select("id, display_name, email, slug, source_provider_id")
           .eq("id", provider_id)
           .maybeSingle()
           .then(r => r.data);

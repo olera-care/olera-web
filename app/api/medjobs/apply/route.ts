@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
     const supabaseCheck = getSupabaseAdmin();
     const { data: existingProfile } = await supabaseCheck
       .from("business_profiles")
-      .select("id, slug, metadata")
+      .select("id, slug, metadata, account_id")
       .eq("email", normalizedEmailEarly)
       .eq("type", "student")
       .limit(1)
@@ -190,10 +190,88 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
         }
 
+        // ── Ensure account exists (apply-partial may have failed silently) ──
+        const supabaseAdmin = getSupabaseAdmin();
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+        let autoSignInToken: string | undefined;
+
+        if (!existingProfile.account_id) {
+          console.log("[medjobs/apply] update path: account_id is null, creating account");
+          try {
+            let authUserId: string;
+
+            const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
+              email: normalizedEmailEarly,
+              email_confirm: true,
+              user_metadata: { display_name: trimmedName, source: "medjobs" },
+            });
+
+            if (createUserError) {
+              if (
+                createUserError.message?.includes("already been registered") ||
+                createUserError.message?.includes("already exists")
+              ) {
+                const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+                  type: "magiclink",
+                  email: normalizedEmailEarly,
+                });
+                if (!linkData?.user?.id) throw new Error("User exists but could not be resolved");
+                authUserId = linkData.user.id;
+                console.log("[medjobs/apply] update path: existing auth user found:", authUserId);
+              } else {
+                throw createUserError;
+              }
+            } else {
+              authUserId = newUser.user.id;
+              console.log("[medjobs/apply] update path: new auth user created:", authUserId);
+            }
+
+            const { data: existingAccount } = await supabaseAdmin
+              .from("accounts")
+              .select("id")
+              .eq("user_id", authUserId)
+              .maybeSingle();
+
+            let accountId: string;
+            if (existingAccount) {
+              accountId = existingAccount.id;
+            } else {
+              const { data: newAccount, error: accountError } = await supabaseAdmin
+                .from("accounts")
+                .insert({ user_id: authUserId, display_name: trimmedName, onboarding_completed: true })
+                .select("id")
+                .single();
+              if (accountError) throw accountError;
+              accountId = newAccount.id;
+              console.log("[medjobs/apply] update path: new account created:", accountId);
+            }
+
+            await supabaseAdmin
+              .from("business_profiles")
+              .update({ account_id: accountId, claim_state: "claimed" })
+              .eq("id", existingProfile.id);
+            console.log("[medjobs/apply] update path: profile linked to account:", accountId);
+          } catch (err) {
+            console.error("[medjobs/apply] update path: account creation error:", err);
+          }
+        }
+
+        // Generate auto-sign-in token for client session
+        try {
+          const { data: signInLink } = await supabaseAdmin.auth.admin.generateLink({
+            type: "magiclink",
+            email: normalizedEmailEarly,
+            options: { redirectTo: `${siteUrl}/portal/medjobs` },
+          });
+          if (signInLink?.properties?.hashed_token) {
+            autoSignInToken = signInLink.properties.hashed_token;
+          }
+        } catch (err) {
+          console.error("[medjobs/apply] update path: sign-in token error:", err);
+        }
+
         // Fire-and-forget: welcome email (first email student receives — partial creation didn't send one)
         try {
-          const supabaseAdmin = getSupabaseAdmin();
-          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
           let magicLinkForEmail: string | undefined;
           const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
             type: "magiclink",
@@ -237,6 +315,7 @@ export async function POST(req: NextRequest) {
           profileId: existingProfile.id,
           slug: resolvedSlug,
           updated: true,
+          tokenHash: autoSignInToken,
         });
       }
 
@@ -348,6 +427,7 @@ export async function POST(req: NextRequest) {
     // ── Create Supabase Auth user + accounts row + link to profile ──
     const normalizedEmail = email.trim().toLowerCase();
     let magicLink: string | undefined;
+    let insertPathSignInToken: string | undefined;
 
     try {
       // Try to create auth user — if email already exists, look up the existing one
@@ -415,7 +495,7 @@ export async function POST(req: NextRequest) {
         .update({ account_id: accountId, claim_state: "claimed" })
         .eq("id", profile.id);
 
-      // Generate magic link for welcome email
+      // Generate magic link for welcome email + auto-sign-in token
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
       const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
         type: "magiclink",
@@ -424,6 +504,9 @@ export async function POST(req: NextRequest) {
       });
       if (!linkError && linkData?.properties?.action_link) {
         magicLink = linkData.properties.action_link;
+      }
+      if (!linkError && linkData?.properties?.hashed_token) {
+        insertPathSignInToken = linkData.properties.hashed_token;
       }
     } catch (err) {
       // Non-blocking: profile was created, account linking failed
@@ -466,7 +549,7 @@ export async function POST(req: NextRequest) {
     // enrolls them in the care-seeker onboarding drip (Logan's intro email).
     // MedJobs students get their own email flow via Resend (welcome + nudge).
 
-    return NextResponse.json({ profileId: profile.id, slug });
+    return NextResponse.json({ profileId: profile.id, slug, tokenHash: insertPathSignInToken });
   } catch (err) {
     console.error("[medjobs/apply] unexpected error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

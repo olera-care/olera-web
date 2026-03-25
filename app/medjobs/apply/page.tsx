@@ -359,6 +359,28 @@ export default function MedJobsApplyPage() {
       setResultSlug(data.slug);
       setResultProfileId(data.profileId);
       setIsExisting(!!data.existing);
+
+      // Auto-sign-in: establish browser session so dashboard works immediately
+      if (data.tokenHash) {
+        try {
+          const supabase = createBrowserClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+          );
+          const { error: otpError } = await supabase.auth.verifyOtp({
+            token_hash: data.tokenHash,
+            type: "magiclink",
+          });
+          if (otpError) {
+            console.warn("[medjobs/apply] auto-sign-in failed:", otpError.message);
+          } else {
+            console.log("[medjobs/apply] auto-sign-in succeeded");
+          }
+        } catch (err) {
+          console.warn("[medjobs/apply] auto-sign-in error:", err);
+        }
+      }
+
       setStep(4 as Step);
     } catch { setError("Network error. Please try again."); }
     finally { setLoading(false); }
@@ -407,9 +429,9 @@ export default function MedJobsApplyPage() {
               </div>
             ))}
           </div>
-          <Link href={`/medjobs/submit-video?slug=${resultSlug}&profileId=${resultProfileId}`}
+          <Link href="/portal/medjobs"
             className="inline-flex items-center justify-center w-full px-6 py-3.5 bg-gray-900 hover:bg-gray-800 rounded-lg text-sm font-semibold text-white transition-colors">
-            Continue setup
+            Go to your dashboard
           </Link>
           <p className="mt-4 text-sm text-gray-400">Check your email for a sign-in link</p>
           <style>{`@keyframes scale-in { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }`}</style>

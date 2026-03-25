@@ -29,7 +29,7 @@ export async function GET(
     // Get provider info
     const { data: provider, error: providerError } = await db
       .from("olera-providers")
-      .select("provider_id, provider_name, provider_category, city, state, hero_image_url, provider_logo, provider_images")
+      .select("*")
       .eq("provider_id", providerId)
       .single();
 
@@ -263,7 +263,7 @@ export async function PATCH(
       // 2. Remove URL from provider_images pipe-separated string + related fields
       const { data: provider, error: fetchError } = await db
         .from("olera-providers")
-        .select("provider_images, hero_image_url, provider_logo")
+        .select("*")
         .eq("provider_id", providerId)
         .single();
 
@@ -302,17 +302,20 @@ export async function PATCH(
         console.log("[delete_image] Clearing matching provider_logo");
       }
 
-      // Clear hero_image_url if deleting the hero
-      if (provider.hero_image_url && provider.hero_image_url.trim() === targetUrl) {
-        updates.hero_image_url = null;
-        console.log("[delete_image] Clearing matching hero_image_url");
-        try {
-          await db
-            .from("provider_image_metadata")
-            .update({ is_hero: false })
-            .eq("provider_id", providerId);
-        } catch {
-          // Table may not exist — non-fatal
+      // Clear hero_image_url if deleting the hero (column may not exist in DB)
+      if ("hero_image_url" in provider) {
+        const heroUrl = provider.hero_image_url as string | null;
+        if (heroUrl && heroUrl.trim() === targetUrl) {
+          updates.hero_image_url = null;
+          console.log("[delete_image] Clearing matching hero_image_url");
+          try {
+            await db
+              .from("provider_image_metadata")
+              .update({ is_hero: false })
+              .eq("provider_id", providerId);
+          } catch {
+            // Table may not exist — non-fatal
+          }
         }
       }
 

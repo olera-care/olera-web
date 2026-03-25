@@ -124,7 +124,16 @@
   - **Footer hidden** on apply/submit-video/portal-medjobs pages
   - **Bugs fixed:** Duplicate email, generic welcome email to students, Loops drip, nudge cron inactive profiles, dropdown clipping
 
-- **Provider Highlights Dedup + Data-Driven Generation** (branch: `fair-morse`, PR #376) — READY FOR QA
+- **Provider Highlights Dedup + Data-Driven Generation** (branch: `fair-morse`, PR #376) — MERGED ✅
+
+- **10-City Batch Expansion** (branch: `magical-knuth`) — COMPLETE ✅
+  - 598 verified providers across 10 cities (from 1,914 discovered)
+  - Cities: Oyster Bay NY, Richardson TX, Highlands Ranch CO, Pasco WA, Chino Hills CA, Bristol TN, Brookline MA, Pico Rivera CA, Piscataway NJ, Euless TX
+  - New batch discovery script: `scripts/discovery-batch.py`
+  - 30+ state bounding boxes added to `scripts/process-city.js`
+  - 111 false positives caught by trust signal verification
+  - Total cost: ~$30 (vs $250 estimate)
+  - Notion: all 10 pages marked Complete with all checkboxes checked
   - Plan: `plans/provider-highlights-dedup-plan.md`
   - Notion: [Task](https://www.notion.so/Logan-s-Audit-QA-de-duplicate-care-service-labels-on-all-provider-pages-32c5903a0ffe8166a12bf29c98319e7e)
   - 5-tier highlight waterfall: trust signals → social proof → CMS → staff screening → capability
@@ -183,6 +192,8 @@
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-03-25 | Quick discovery mode (3 terms/category) is sufficient for batch | Standard mode (12 terms) costs 4x more but yields mostly duplicates. Quick mode found 1,914 providers across 10 cities for $12. After dedup/filter, same result quality |
+| 2026-03-25 | Run enrichment in 2 parallel batches of 5 cities | Single batch would serialize all Perplexity calls. Two batches halved enrichment time from ~50min to ~25min without hitting rate limits |
 |------|----------|-----------|
 | 2026-03-24 | Highlights are earned, not defaulted — fewer honest > 4 generic | Every Home Care agency showed identical "In-Home Care, Certified Caregivers, Companionship, Light Housekeeping". Users see through it. 1 verified fact ("State Licensed") builds more trust than 4 templated labels |
 | 2026-03-24 | Skip capability label on browse cards (skipCapability) | On a Home Care filtered page, showing "In-Home Care" as a highlight is tautological. Category already visible in card header line. Only show Tiers 1-4 (earned signals) on cards |
@@ -259,6 +270,38 @@
 ---
 
 ## Session Log
+
+### 2026-03-25 (Session 58) — 10-City Batch Expansion
+
+**Branch:** `magical-knuth` | **No PR** (data pipeline, no code changes to app)
+
+**What:** Batch expansion of 10 cities from the expansion map tool. Built a new non-interactive batch discovery script and ran the full pipeline (discovery → process → enrich → Notion) for all cities.
+
+**Cities & Results:**
+| City | Discovered | Final Active |
+|------|-----------|-------------|
+| Oyster Bay, NY | 114 | 61 |
+| Richardson, TX | 255 | 47 |
+| Highlands Ranch, CO | 222 | 78 |
+| Pasco, WA | 214 | 81 |
+| Chino Hills, CA | 232 | 60 |
+| Bristol, TN | 124 | 25 |
+| Brookline, MA | 169 | 77 |
+| Pico Rivera, CA | 144 | 25 |
+| Piscataway, NJ | 235 | 99 |
+| Euless, TX | 205 | 45 |
+| **Total** | **1,914** | **598** |
+
+**Infrastructure built:**
+- `scripts/discovery-batch.py` — non-interactive batch discovery (Google Places API, quick/standard modes, CSV/MD input)
+- Added 30+ state bounding boxes to `scripts/process-city.js` (was only NY)
+
+**Pipeline timing:** Discovery 6min → Processing 20min → Enrichment 25min (2 parallel batches) = ~51min total
+**Cost:** ~$30 total (vs $250 estimate). Quick mode discovery kept Google API costs to $12.
+
+**False positives caught (111 total):** Apartment complexes, DME suppliers, child daycares, wedding venues, general medical, homeless shelters, staffing agencies. All soft-deleted with reasons logged.
+
+---
 
 ### 2026-03-24 (Session 57) — Provider Highlights Dedup + Data-Driven Generation
 

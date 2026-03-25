@@ -47,6 +47,7 @@ interface ReviewModalProps {
   providerId: string;
   providerSlug: string;
   providerName: string;
+  googlePlaceId?: string | null;
   onReviewSubmitted: (review: Review) => void;
 }
 
@@ -60,6 +61,7 @@ export default function ReviewModal({
   providerId,
   providerSlug,
   providerName,
+  googlePlaceId,
   onReviewSubmitted,
 }: ReviewModalProps) {
   const { user, openAuth } = useAuth();
@@ -78,6 +80,9 @@ export default function ReviewModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  // Google share
+  const [copiedForGoogle, setCopiedForGoogle] = useState(false);
+
   // ── Reset ──
 
   const resetForm = useCallback(() => {
@@ -89,7 +94,51 @@ export default function ReviewModal({
     setComment("");
     setError("");
     setSubmitting(false);
+    setCopiedForGoogle(false);
   }, []);
+
+  // Share on Google: copy review text, show feedback, then open Google
+  const handleShareOnGoogle = useCallback(async () => {
+    if (!googlePlaceId) return;
+
+    // Build the review text to copy
+    const reviewText = title.trim()
+      ? `${title.trim()}\n\n${comment.trim()}`
+      : comment.trim();
+
+    try {
+      await navigator.clipboard.writeText(reviewText);
+      setCopiedForGoogle(true);
+
+      // Open Google after a brief delay so user sees the "copied" feedback
+      setTimeout(() => {
+        window.open(
+          `https://search.google.com/local/writereview?placeid=${googlePlaceId}`,
+          "_blank",
+          "noopener,noreferrer"
+        );
+      }, 600);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = reviewText;
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setCopiedForGoogle(true);
+
+      setTimeout(() => {
+        window.open(
+          `https://search.google.com/local/writereview?placeid=${googlePlaceId}`,
+          "_blank",
+          "noopener,noreferrer"
+        );
+      }, 600);
+    }
+  }, [googlePlaceId, title, comment]);
 
   function handleClose() {
     onClose();
@@ -211,7 +260,7 @@ export default function ReviewModal({
             <p className="text-base text-gray-500 mb-5">
               How would you rate your experience with <strong className="text-gray-700">{providerName}</strong>?
             </p>
-            <div className="flex justify-center gap-2">
+            <div className="flex justify-center gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
@@ -219,10 +268,11 @@ export default function ReviewModal({
                   onMouseEnter={() => setHoverRating(star)}
                   onMouseLeave={() => setHoverRating(0)}
                   onClick={() => setRating(star)}
-                  className="p-1 transition-transform hover:scale-110"
+                  className="p-2 transition-transform hover:scale-110 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg min-w-[48px] min-h-[48px] flex items-center justify-center"
+                  aria-label={`Rate ${star} stars`}
                 >
                   <StarIcon
-                    className={`w-10 h-10 transition-colors ${
+                    className={`w-9 h-9 transition-colors duration-150 ${
                       star <= (hoverRating || rating)
                         ? "text-primary-500"
                         : "text-gray-200"
@@ -258,7 +308,7 @@ export default function ReviewModal({
           <button
             type="button"
             onClick={() => setStep("rating")}
-            className="w-full flex items-center gap-3 bg-gray-50 rounded-xl p-3 mb-6 text-left hover:bg-gray-100 transition-colors group"
+            className="w-full flex items-center gap-3 bg-gray-50 rounded-xl p-3.5 mb-6 text-left hover:bg-gray-100 active:scale-[0.99] transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 min-h-[52px]"
           >
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -288,7 +338,7 @@ export default function ReviewModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Summarize your experience"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[48px] transition-shadow"
             />
           </div>
 
@@ -303,7 +353,7 @@ export default function ReviewModal({
               onChange={(e) => setComment(e.target.value)}
               placeholder="Share details about your experience with this provider..."
               rows={5}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-3.5 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none leading-relaxed transition-shadow"
             />
           </div>
         </div>
@@ -311,19 +361,74 @@ export default function ReviewModal({
 
       {/* ── Step 3: Success ── */}
       {step === "success" && (
-        <div className="py-12 text-center animate-wizard-in">
-          <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-6 shadow-sm">
-            <svg className="w-8 h-8 text-green-600 animate-success-pop" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
+        <div className="py-8 animate-wizard-in">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-5 shadow-sm">
+              <svg className="w-8 h-8 text-green-600 animate-success-pop" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-display font-bold text-gray-900 tracking-tight mb-2">
+              Thank you for your review!
+            </h2>
+            <p className="text-base text-gray-500 leading-relaxed max-w-xs mx-auto">
+              Your review of <strong className="text-gray-700">{providerName}</strong> has been published.
+            </p>
           </div>
-          <h2 className="text-2xl font-display font-bold text-gray-900 tracking-tight mb-3">
-            Thank you for your review!
-          </h2>
-          <p className="text-base text-gray-500 leading-relaxed max-w-xs mx-auto">
-            Your review of <strong className="text-gray-700">{providerName}</strong> has been published
-            and will help other families in their search.
-          </p>
+
+          {/* Google Share Card - only show if provider has place_id */}
+          {googlePlaceId && (
+            <div className="bg-gray-50 border border-gray-100 rounded-xl p-5 animate-step-in">
+              <div className="flex items-start gap-3 mb-4">
+                {/* Google "G" logo */}
+                <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900">
+                    Help them get discovered
+                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Share on Google so more families can find quality care
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleShareOnGoogle}
+                disabled={copiedForGoogle}
+                className={`w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm transition-all min-h-[48px] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                  copiedForGoogle
+                    ? "bg-primary-50 text-primary-700 border border-primary-200 focus-visible:ring-primary-500"
+                    : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.99] focus-visible:ring-gray-300 shadow-sm"
+                }`}
+              >
+                {copiedForGoogle ? (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                    <span>Review copied — opening Google...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                    </svg>
+                    <span>Share on Google</span>
+                  </>
+                )}
+              </button>
+              <p className="text-[11px] text-gray-400 text-center mt-2.5">
+                We&apos;ll copy your review so you can paste it on Google
+              </p>
+            </div>
+          )}
         </div>
       )}
     </Modal>

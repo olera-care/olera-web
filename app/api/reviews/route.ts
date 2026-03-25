@@ -137,52 +137,126 @@ export async function POST(request: NextRequest) {
 
     // Send email notification to provider (fire-and-forget)
     try {
-      // Look up provider profile and their account
-      const { data: provider } = await db
+      // Look up provider profile with fallback strategies
+      let provider = await db
         .from("business_profiles")
-        .select("id, display_name, slug, account_id")
+        .select("id, display_name, slug, account_id, email, source_provider_id")
         .eq("id", provider_id)
-        .single();
+        .maybeSingle()
+        .then(r => r.data);
 
-      if (provider?.account_id) {
-        const { data: providerAccount } = await db
-          .from("accounts")
-          .select("user_id")
-          .eq("id", provider.account_id)
-          .single();
+      // Fallback: by slug
+      if (!provider) {
+        provider = await db
+          .from("business_profiles")
+          .select("id, display_name, slug, account_id, email, source_provider_id")
+          .eq("slug", provider_id)
+          .maybeSingle()
+          .then(r => r.data);
+      }
 
-        if (providerAccount?.user_id) {
-          const { data: authUser } = await db.auth.admin.getUserById(providerAccount.user_id);
-          const providerEmail = authUser?.user?.email;
+      // Fallback: by source_provider_id (iOS providers)
+      if (!provider) {
+        provider = await db
+          .from("business_profiles")
+          .select("id, display_name, slug, account_id, email, source_provider_id")
+          .eq("source_provider_id", provider_id)
+          .maybeSingle()
+          .then(r => r.data);
+      }
 
-          if (providerEmail) {
-            const viewUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/reviews`;
-            await sendEmail({
-              to: providerEmail,
-              subject: `${reviewerName.split(" ")[0]} left a review for ${provider.display_name || "your listing"}`,
-              html: newReviewEmail({
-                providerName: provider.display_name || "Your organization",
-                reviewerName,
-                rating,
-                comment: comment.trim().slice(0, 200) + (comment.trim().length > 200 ? "..." : ""),
-                viewUrl,
-                providerSlug: provider.slug || undefined,
-              }),
-              emailType: "new_review",
-              recipientType: "provider",
-              providerId: provider.id,
-            });
-            await sendLoopsEvent({
+      if (provider) {
+        let providerEmail: string | null = null;
+
+        // Try to get email: first from auth user (claimed), then from profile (unclaimed)
+        if (provider.account_id) {
+          // Claimed provider - get email from auth user
+          const { data: providerAccount } = await db
+            .from("accounts")
+            .select("user_id")
+            .eq("id", provider.account_id)
+            .single();
+
+          if (providerAccount?.user_id) {
+            const { data: authUser } = await db.auth.admin.getUserById(providerAccount.user_id);
+            providerEmail = authUser?.user?.email || null;
+          }
+        }
+
+        // Fallback for unclaimed providers: check business_profiles.email
+        if (!providerEmail && provider.email) {
+          providerEmail = provider.email;
+        }
+
+// Fallback: check ios_provider_profiles
+        if (!providerEmail && provider.source_provider_id) {
+          const { data: ios } = await db
+            .from("ios_provider_profiles")
+            .select("email")
+            .eq("provider_id", provider.id)
+            .single();
+          providerEmail = ios?.email || null;
+        }
+
+        // Last fallback: check olera-providers table
+        if (!providerEmail && provider.source_provider_id) {
+          const { data: sourceProvider } = await db
+            .from("olera-providers")
+            .select("email")
+            .eq("provider_id", provider.source_provider_id)
+            .single();
+          providerEmail = sourceProvider?.email || null;
+        }
+
+        if (providerEmail) {
+          // Generate magic link for provider one-click sign-in
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+          const providerSlug = provider.slug || provider.source_provider_id || provider.id;
+          const redirectPath = `/provider/${providerSlug}/onboard?action=review&actionId=${newReview.id}`;
+          // Fallback: direct to onboard page (handles both claimed and unclaimed providers)
+          let viewUrl = `${siteUrl}${redirectPath}`;
+
+          try {
+            const { data: providerLinkData, error: providerLinkError } = await db.auth.admin.generateLink({
+              type: "magiclink",
               email: providerEmail,
-              eventName: "review_received",
-              audience: "provider",
-              eventProperties: {
-                providerName: provider.display_name || "",
-                rating,
-                reviewerName,
+              options: {
+                redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
               },
             });
+            if (!providerLinkError && providerLinkData?.properties?.action_link) {
+              viewUrl = providerLinkData.properties.action_link;
+            }
+          } catch (linkErr) {
+            console.error("Failed to generate provider magic link for review:", linkErr);
+            // Continue with fallback URL (welcome page)
           }
+
+          await sendEmail({
+            to: providerEmail,
+            subject: `${reviewerName.split(" ")[0]} left a review for ${provider.display_name || "your listing"}`,
+            html: newReviewEmail({
+              providerName: provider.display_name || "Your organization",
+              reviewerName,
+              rating,
+              comment: comment.trim().slice(0, 200) + (comment.trim().length > 200 ? "..." : ""),
+              viewUrl,
+              providerSlug: provider.slug || undefined,
+            }),
+            emailType: "new_review",
+            recipientType: "provider",
+            providerId: provider.id,
+          });
+          await sendLoopsEvent({
+            email: providerEmail,
+            eventName: "review_received",
+            audience: "provider",
+            eventProperties: {
+              providerName: provider.display_name || "",
+              rating,
+              reviewerName,
+            },
+          });
         }
       }
     } catch (notifyErr) {

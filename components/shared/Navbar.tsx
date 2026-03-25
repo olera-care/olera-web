@@ -34,10 +34,15 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { visible: navbarVisible } = useNavbar();
   const { savedCount, hasInitialized: savedInitialized } = useSavedProviders();
-  const profileIds = (profiles || []).map((p) => p.id);
-  const unreadInboxCount = useUnreadInboxCount(profileIds);
-  const providerProfileIds = (profiles || []).filter((p) => p.type !== "family").map((p) => p.id);
-  const providerInboxCount = useUnreadInboxCount(providerProfileIds);
+  // For family inbox badge: only count unread for the ACTIVE profile, not all profiles
+  // This matches the inbox page behavior which only shows connections for the active profile
+  const unreadInboxCount = useUnreadInboxCount(activeProfile ? [activeProfile.id] : []);
+  // For provider inbox badge: only count unread for the ACTIVE provider profile, not all providers
+  // This ensures proper data isolation when users have multiple provider profiles
+  const activeProviderProfileId = activeProfile && (activeProfile.type === "organization" || activeProfile.type === "caregiver")
+    ? activeProfile.id
+    : null;
+  const providerInboxCount = useUnreadInboxCount(activeProviderProfileId ? [activeProviderProfileId] : []);
   // Use activeProfile slug if it's a provider, otherwise fall back to first provider
   const activeProviderSlug =
     activeProfile && (activeProfile.type === "organization" || activeProfile.type === "caregiver")
@@ -140,7 +145,8 @@ export default function Navbar() {
     pathname.startsWith("/provider/account") ||
     // Claim/onboard flow shows provider portal nav
     (pathname.startsWith("/provider/") && pathname.endsWith("/onboard"));
-  const isMinimalNav = pathname.startsWith("/portal/inbox") || pathname.startsWith("/welcome");
+  const isMinimalNav = pathname.startsWith("/portal/inbox") || pathname.startsWith("/welcome") || pathname.startsWith("/provider/welcome");
+  const isProviderWelcome = pathname.startsWith("/provider/welcome");
 
   // Show auth pill as soon as we know a user session exists.
   const hasSession = !!user;
@@ -528,7 +534,7 @@ export default function Navbar() {
           role="menuitem"
           onClick={() => {
             setIsUserMenuOpen(false);
-            openAuth({ intent: "provider", providerType: "organization" });
+            router.push("/provider/onboarding");
           }}
           className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
         >
@@ -542,7 +548,7 @@ export default function Navbar() {
           role="menuitem"
           onClick={() => {
             setIsUserMenuOpen(false);
-            openAuth({ intent: "provider", providerType: "caregiver" });
+            router.push("/provider/onboarding");
           }}
           className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
         >
@@ -789,22 +795,24 @@ export default function Navbar() {
                       </button>
                     )}
 
-                    {/* Saved providers heart */}
-                    <Link
-                      href="/saved"
-                      className="relative flex items-center justify-center w-[44px] min-h-[44px] border border-gray-200 rounded-full text-gray-500 hover:text-red-500 hover:shadow-md transition-all"
-                      aria-label="Saved providers"
-                    >
-                      <svg
-                        className="w-[18px] h-[18px]"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                        viewBox="0 0 24 24"
+                    {/* Saved providers heart — hidden on provider welcome */}
+                    {!isProviderWelcome && (
+                      <Link
+                        href="/saved"
+                        className="relative flex items-center justify-center w-[44px] min-h-[44px] border border-gray-200 rounded-full text-gray-500 hover:text-red-500 hover:shadow-md transition-all"
+                        aria-label="Saved providers"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                    </Link>
+                        <svg
+                          className="w-[18px] h-[18px]"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                      </Link>
+                    )}
 
                     {/* User menu */}
                     {hasSession ? (
@@ -1317,11 +1325,11 @@ export default function Navbar() {
 
                   {/* Benefits Center */}
                   <Link
-                    href="/benefits"
-                    className={`flex items-center gap-3 py-3 font-medium ${pathname.startsWith("/benefits") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    href="/waiver-library"
+                    className={`flex items-center gap-3 py-3 font-medium ${pathname.startsWith("/waiver-library") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/benefits") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/waiver-library") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                     </svg>
                     Benefits Center
@@ -1412,7 +1420,7 @@ export default function Navbar() {
                   type="button"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    openAuth({ intent: "provider", providerType: "organization" });
+                    router.push("/provider/onboarding");
                   }}
                   className="w-full py-2.5 text-sm text-gray-500 hover:text-primary-600 transition-colors min-h-[44px]"
                 >

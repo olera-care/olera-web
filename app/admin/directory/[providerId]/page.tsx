@@ -622,6 +622,17 @@ export default function AdminDirectoryDetailPage() {
                           Set Hero
                         </button>
                       )}
+                      <button
+                        onClick={() => {
+                          if (window.confirm("Delete this image? This cannot be undone.")) {
+                            handleImageAction("delete_image", img.image_url);
+                          }
+                        }}
+                        disabled={actionLoading !== null}
+                        className="text-[10px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -672,6 +683,17 @@ export default function AdminDirectoryDetailPage() {
                         className="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 disabled:opacity-50"
                       >
                         Set as Hero
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (window.confirm("Delete this image? This cannot be undone.")) {
+                            handleImageAction("delete_image", url);
+                          }
+                        }}
+                        disabled={actionLoading !== null}
+                        className="text-[10px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50"
+                      >
+                        Delete
                       </button>
                     </div>
                   </div>

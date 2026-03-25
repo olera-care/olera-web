@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 
+const STORAGE_BUCKET = "provider-directory-images";
+
 /**
  * GET /api/admin/images/[providerId]
  *
@@ -104,9 +106,9 @@ export async function PATCH(
     const body = await request.json();
     const { action, image_url, new_type } = body;
 
-    if (!["override_type", "set_hero", "clear_hero", "mark_reviewed"].includes(action)) {
+    if (!["override_type", "set_hero", "clear_hero", "mark_reviewed", "delete_image"].includes(action)) {
       return NextResponse.json(
-        { error: "Invalid action. Must be 'override_type', 'set_hero', 'clear_hero', or 'mark_reviewed'." },
+        { error: "Invalid action. Must be 'override_type', 'set_hero', 'clear_hero', 'mark_reviewed', or 'delete_image'." },
         { status: 400 }
       );
     }
@@ -232,6 +234,87 @@ export async function PATCH(
         targetType: "provider_image",
         targetId: providerId,
         details: {},
+      });
+    }
+
+    if (action === "delete_image") {
+      if (!image_url) {
+        return NextResponse.json({ error: "delete_image requires image_url" }, { status: 400 });
+      }
+
+      // 1. Delete from provider_image_metadata (if row exists)
+      await db
+        .from("provider_image_metadata")
+        .delete()
+        .eq("provider_id", providerId)
+        .eq("image_url", image_url);
+
+      // 2. Remove URL from provider_images pipe-separated string
+      const { data: provider, error: fetchError } = await db
+        .from("olera-providers")
+        .select("provider_images, hero_image_url, provider_logo")
+        .eq("provider_id", providerId)
+        .single();
+
+      if (fetchError || !provider) {
+        return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+      }
+
+      const updates: Record<string, unknown> = {};
+
+      if (provider.provider_images) {
+        const urls = (provider.provider_images as string)
+          .split(" | ")
+          .map((u: string) => u.trim())
+          .filter((u: string) => u && u !== image_url);
+        updates.provider_images = urls.length > 0 ? urls.join(" | ") : null;
+      }
+
+      // Clear provider_logo if it matches the deleted image
+      if (provider.provider_logo === image_url) {
+        updates.provider_logo = null;
+      }
+
+      // 3. Clear hero_image_url if deleting the hero
+      if (provider.hero_image_url === image_url) {
+        updates.hero_image_url = null;
+        // Also clear hero flag in metadata (in case delete above didn't match)
+        await db
+          .from("provider_image_metadata")
+          .update({ is_hero: false })
+          .eq("provider_id", providerId);
+      }
+
+      if (Object.keys(updates).length > 0) {
+        const { error: updateError } = await db
+          .from("olera-providers")
+          .update(updates)
+          .eq("provider_id", providerId);
+
+        if (updateError) {
+          console.error("Delete image update error:", updateError);
+          return NextResponse.json({ error: "Failed to update provider" }, { status: 500 });
+        }
+      }
+
+      // 4. Delete from Supabase Storage if it's an uploaded file
+      try {
+        const bucketUrl = db.storage.from(STORAGE_BUCKET).getPublicUrl("").data.publicUrl;
+        if (image_url.startsWith(bucketUrl)) {
+          const storagePath = image_url.slice(bucketUrl.length);
+          await db.storage.from(STORAGE_BUCKET).remove([storagePath]);
+        }
+      } catch (storageErr) {
+        // Non-fatal — image may be external (CDN, Google, etc.)
+        console.warn("Storage delete skipped or failed:", storageErr);
+      }
+
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "delete_image",
+        targetType: "provider_image",
+        targetId: providerId,
+        details: { image_url },
       });
     }
 

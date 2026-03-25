@@ -126,14 +126,16 @@
 
 - **Provider Highlights Dedup + Data-Driven Generation** (branch: `fair-morse`, PR #376) — MERGED ✅
 
-- **10-City Batch Expansion** (branch: `magical-knuth`) — COMPLETE ✅
-  - 598 verified providers across 10 cities (from 1,914 discovered)
-  - Cities: Oyster Bay NY, Richardson TX, Highlands Ranch CO, Pasco WA, Chino Hills CA, Bristol TN, Brookline MA, Pico Rivera CA, Piscataway NJ, Euless TX
+- **88-City Batch Expansion** (branch: `magical-knuth`, PR #383 merged) — COMPLETE ✅
+  - **Batch 1 (10 cities):** 598 verified providers. Oyster Bay NY, Richardson TX, Highlands Ranch CO, Pasco WA, Chino Hills CA, Bristol TN, Brookline MA, Pico Rivera CA, Piscataway NJ, Euless TX. Cost: ~$30
+  - **Batch 2 (78 cities):** 6,542 verified providers (from 16,006 discovered). 78 cities across 25 states. Cost: ~$240. 4 parallel processing + enrichment batches
+  - **Combined: 88 cities, ~7,140 verified providers added in one session**
   - New batch discovery script: `scripts/discovery-batch.py`
   - 30+ state bounding boxes added to `scripts/process-city.js`
-  - 111 false positives caught by trust signal verification
-  - Total cost: ~$30 (vs $250 estimate)
-  - Notion: all 10 pages marked Complete with all checkboxes checked
+  - ~1,100 false positives caught by trust signal verification across both batches
+  - Total cost: ~$270 (vs $2,200 combined estimate — 88% under budget)
+  - Notion: all 88 pages marked Complete with all checkboxes checked
+  - 6 cities needed enrichment retry (Supabase statement timeouts from 4 concurrent batches) — all succeeded on sequential retry
   - Plan: `plans/provider-highlights-dedup-plan.md`
   - Notion: [Task](https://www.notion.so/Logan-s-Audit-QA-de-duplicate-care-service-labels-on-all-provider-pages-32c5903a0ffe8166a12bf29c98319e7e)
   - 5-tier highlight waterfall: trust signals → social proof → CMS → staff screening → capability
@@ -192,8 +194,11 @@
 ## Decisions Made
 
 | Date | Decision | Rationale |
-| 2026-03-25 | Quick discovery mode (3 terms/category) is sufficient for batch | Standard mode (12 terms) costs 4x more but yields mostly duplicates. Quick mode found 1,914 providers across 10 cities for $12. After dedup/filter, same result quality |
-| 2026-03-25 | Run enrichment in 2 parallel batches of 5 cities | Single batch would serialize all Perplexity calls. Two batches halved enrichment time from ~50min to ~25min without hitting rate limits |
+| 2026-03-25 | Quick discovery mode (3 terms/category) is sufficient for batch | Standard mode (12 terms) costs 4x more but yields mostly duplicates. Quick found 16K+ providers across 78 cities for $100. After dedup/filter, same quality |
+| 2026-03-25 | 4 parallel processing/enrichment batches for large batches | Single batch would take ~10hrs for 78 cities. 4 parallel batches cut to ~2.7hrs. Tradeoff: 6 Supabase timeouts from concurrent load (easy sequential retry) |
+| 2026-03-25 | Cap parallel enrichment batches at 4 to avoid Supabase timeouts | 4 concurrent `enrich-city.js` processes cause occasional statement timeouts. 3-4 batches is the sweet spot for speed vs stability |
+| 2026-03-25 | Place ID dedup before fuzzy dedup | Same place_id = same business (100% precision). Run this first to eliminate obvious dupes, then fuzzy catches the rest. Avoids fuzzy false positives on chains with similar names |
+| 2026-03-25 | Claimed accounts get +1000 score in dedup — never deleted | 152 providers linked via business_profiles. Even if a claimed provider is the "worse" record, it has real account data tied to it. Always keep it |
 |------|----------|-----------|
 | 2026-03-24 | Highlights are earned, not defaulted — fewer honest > 4 generic | Every Home Care agency showed identical "In-Home Care, Certified Caregivers, Companionship, Light Housekeeping". Users see through it. 1 verified fact ("State Licensed") builds more trust than 4 templated labels |
 | 2026-03-24 | Skip capability label on browse cards (skipCapability) | On a Home Care filtered page, showing "In-Home Care" as a highlight is tautological. Category already visible in card header line. Only show Tiers 1-4 (earned signals) on cards |
@@ -271,13 +276,13 @@
 
 ## Session Log
 
-### 2026-03-25 (Session 58) — 10-City Batch Expansion
+### 2026-03-25 (Session 58) — 88-City Batch Expansion
 
-**Branch:** `magical-knuth` | **No PR** (data pipeline, no code changes to app)
+**Branch:** `magical-knuth` | **PR:** #383 (merged to staging)
 
-**What:** Batch expansion of 10 cities from the expansion map tool. Built a new non-interactive batch discovery script and ran the full pipeline (discovery → process → enrich → Notion) for all cities.
+**What:** Largest-ever batch expansion — 88 cities in one session. Built batch discovery script, then ran full pipeline (discovery → process → enrich → Notion) for 10 cities first as proof-of-concept, then scaled to 78 more.
 
-**Cities & Results:**
+**Batch 1 (10 cities) — Proof of concept:**
 | City | Discovered | Final Active |
 |------|-----------|-------------|
 | Oyster Bay, NY | 114 | 61 |
@@ -296,10 +301,30 @@
 - `scripts/discovery-batch.py` — non-interactive batch discovery (Google Places API, quick/standard modes, CSV/MD input)
 - Added 30+ state bounding boxes to `scripts/process-city.js` (was only NY)
 
-**Pipeline timing:** Discovery 6min → Processing 20min → Enrichment 25min (2 parallel batches) = ~51min total
-**Cost:** ~$30 total (vs $250 estimate). Quick mode discovery kept Google API costs to $12.
+**Batch 1 timing:** Discovery 6min → Processing 20min → Enrichment 25min (2 parallel batches) = ~51min total
+**Batch 1 cost:** ~$30 total (vs $250 estimate). Quick mode discovery kept Google API costs to $12.
 
-**False positives caught (111 total):** Apartment complexes, DME suppliers, child daycares, wedding venues, general medical, homeless shelters, staffing agencies. All soft-deleted with reasons logged.
+**Batch 2 (78 cities) — Full scale:**
+- Discovery: 16,006 providers across 78 cities, 51 min, ~$100 (2,848 API calls)
+- Processing: 7,554 uploaded after filter/dedup/geocode, 25 min (4 parallel batches of ~20), ~$40
+- Enrichment: 6,542 final active providers, 70 min (4 parallel batches + 6 retries), ~$100
+- 6 cities hit Supabase statement timeouts during enrichment (4 concurrent batches overwhelmed it) — all succeeded on sequential retry
+- Notion: 78 pages updated to Complete via background agent (78/78, zero failures)
+- **Batch 2 cost:** ~$240 (vs $1,950 estimate)
+
+**Combined totals:** 88 cities, ~7,140 providers, ~$270, ~2.7 hours
+
+**False positives caught (~1,100 total across both batches):** Apartment complexes, DME suppliers, child daycares, wedding venues, general medical, homeless shelters, staffing agencies, general nonprofits, cross-state contamination. All soft-deleted with reasons logged.
+
+**Key optimization: 4 parallel processing + enrichment batches** cut what would be ~10 hrs sequential down to ~2.7 hrs. The bottleneck was Perplexity trust signals (~300ms/provider × ~5,000 non-CMS providers).
+
+**Database-wide dedup (post-expansion):**
+- Phase 1: Place ID dedup — 1,390 soft-deleted (same Google place_id across cities)
+- Phase 2: Fuzzy name+address — 1,503 soft-deleted (3-tier: exact addr, base addr, name+city)
+- Total: 2,893 duplicates cleaned, 0 claimed accounts touched
+- New script: `scripts/dedup-database.js` (report/export/delete modes)
+- New slash command: `/dedup`
+- Scoring system keeps richest record; claimed accounts (+1000 score) are never deleted
 
 ---
 

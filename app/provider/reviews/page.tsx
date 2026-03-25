@@ -887,34 +887,34 @@ function RequestNowContent({ state, onStateChange }: RequestNowContentProps) {
               </button>
             </div>
           </div>
-        </div>
 
-        {/* Message Section */}
-        <div className="mb-6">
-          <label htmlFor="review-message" className="block text-[15px] font-semibold text-gray-900 mb-3">
-            Message
-          </label>
-          <textarea
-            id="review-message"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            rows={4}
-            maxLength={500}
-            placeholder="Write a personalized message..."
-            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all resize-none leading-relaxed"
-          />
-          <div className="mt-1.5 flex items-center justify-between">
-            <span className="text-xs text-gray-400">
-              Personalize to increase responses
-            </span>
-            <span className={`text-xs ${message.length > 450 ? "text-amber-500" : "text-gray-400"}`}>
-              {message.length}/500
-            </span>
+          {/* Message - inside Recipients card */}
+          <div className="mt-5 pt-5 border-t border-gray-100">
+            <label htmlFor="review-message" className="block text-sm font-medium text-gray-700 mb-2">
+              Message
+            </label>
+            <textarea
+              id="review-message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={3}
+              maxLength={500}
+              placeholder="Write a personalized message..."
+              className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all resize-none leading-relaxed"
+            />
+            <div className="mt-1.5 flex items-center justify-between">
+              <span className="text-xs text-gray-400">
+                Personalize to increase responses
+              </span>
+              <span className={`text-xs ${message.length > 450 ? "text-amber-500" : "text-gray-400"}`}>
+                {message.length}/500
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Delivery Method */}
-        <div className="mb-8">
+        <div className="mb-6">
           <label className="block text-[15px] font-semibold text-gray-900 mb-3">
             Send via
           </label>

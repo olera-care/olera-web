@@ -85,6 +85,9 @@ export async function POST(request: Request) {
         message: conn?.message || null,
         matchesUrl: `${siteUrl}/portal/matches`,
       }),
+      emailType: "provider_reach_out",
+      recipientType: "family",
+      providerId: account.active_profile_id,
     });
 
     // Slack alert (fire-and-forget)

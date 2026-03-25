@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const providerId = searchParams.get("provider_id");
+    const needsEmail = searchParams.get("needs_email") === "true";
     const countOnly = searchParams.get("count_only") === "true";
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest) {
       let countQuery = db.from("provider_questions").select("*", { count: "exact", head: true });
       if (status) countQuery = countQuery.eq("status", status);
       if (providerId) countQuery = countQuery.eq("provider_id", providerId);
+      if (needsEmail) countQuery = countQuery.contains("metadata", { needs_provider_email: true });
       const { count, error } = await countQuery;
       if (error) {
         console.error("Admin questions count error:", error);
@@ -46,6 +48,7 @@ export async function GET(request: NextRequest) {
 
     if (status) query = query.eq("status", status);
     if (providerId) query = query.eq("provider_id", providerId);
+    if (needsEmail) query = query.contains("metadata", { needs_provider_email: true });
 
     const { data: questions, count, error } = await query;
 
@@ -54,7 +57,43 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
     }
 
-    return NextResponse.json({ questions: questions ?? [], count: count ?? 0 });
+    // Enrich with provider display names
+    const slugs = [...new Set((questions ?? []).map((q) => q.provider_id).filter(Boolean))];
+    let providerNames: Record<string, string> = {};
+    let providerEditorIds: Record<string, string> = {};
+    if (slugs.length > 0) {
+      const { data: providers } = await db
+        .from("business_profiles")
+        .select("slug, display_name, source_provider_id")
+        .in("slug", slugs);
+      providerNames = Object.fromEntries(
+        (providers ?? []).map((p) => [p.slug, p.display_name])
+      );
+      providerEditorIds = Object.fromEntries(
+        (providers ?? []).filter((p) => p.source_provider_id).map((p) => [p.slug, p.source_provider_id])
+      );
+    }
+
+    const enriched = (questions ?? []).map((q) => ({
+      ...q,
+      provider_name: providerNames[q.provider_id] || null,
+      provider_editor_id: providerEditorIds[q.provider_id] || null,
+    }));
+
+    // Fetch tab counts for pending and needs_email
+    const [pendingCount, needsEmailCount] = await Promise.all([
+      db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "pending"),
+      db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }),
+    ]);
+
+    return NextResponse.json({
+      questions: enriched,
+      count: count ?? 0,
+      tabCounts: {
+        pending: pendingCount.count ?? 0,
+        needs_email: needsEmailCount.count ?? 0,
+      },
+    });
   } catch (err) {
     console.error("Admin questions error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -126,6 +165,9 @@ export async function PATCH(request: NextRequest) {
             answer,
             providerUrl: `${siteUrl}/provider/${providerSlug}`,
           }),
+          emailType: "question_answered",
+          recipientType: "family",
+          providerId: providerSlug,
         });
       } catch (emailErr) {
         console.error("Answer notification email failed:", emailErr);

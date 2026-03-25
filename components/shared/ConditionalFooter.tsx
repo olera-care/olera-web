@@ -13,8 +13,9 @@ import SimpleFooter from "./SimpleFooter";
 export default function ConditionalFooter() {
   const pathname = usePathname();
 
-  // Inbox, onboarding, claim wizard, removal request, match detail, and MedJobs forms — no footer
+  // Admin, inbox, onboarding, claim wizard, removal request, match detail, and MedJobs forms — no footer
   if (
+    pathname.startsWith("/admin") ||
     pathname.startsWith("/portal/inbox") ||
     pathname.startsWith("/portal/medjobs") ||
     pathname.startsWith("/provider/inbox") ||

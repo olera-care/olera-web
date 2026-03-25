@@ -141,18 +141,18 @@ export async function POST(request: NextRequest) {
     try {
       const { data: provider } = await db
         .from("business_profiles")
-        .select("id, display_name, email")
+        .select("id, display_name, email, source_provider_id")
         .eq("slug", provider_id)
         .single();
 
       const providerName = provider?.display_name || provider_id;
 
       let providerEmail = provider?.email || null;
-      if (!providerEmail && provider?.id) {
+      if (!providerEmail && provider?.source_provider_id) {
         const { data: ios } = await db
-          .from("ios_provider_profiles")
+          .from("olera-providers")
           .select("email")
-          .eq("provider_id", provider.id)
+          .eq("provider_id", provider.source_provider_id)
           .single();
         providerEmail = ios?.email || null;
       }
@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
       // Look up provider for emails (reuse from Slack block or fetch fresh)
       const { data: providerForEmail } = await db
         .from("business_profiles")
-        .select("id, display_name, email, slug")
+        .select("id, display_name, email, slug, source_provider_id")
         .eq("slug", provider_id)
         .single();
 
@@ -195,11 +195,11 @@ export async function POST(request: NextRequest) {
 
       // 1. Email the provider about the new question (if they have an email)
       let pEmail = providerForEmail?.email || null;
-      if (!pEmail && providerForEmail?.id) {
+      if (!pEmail && providerForEmail?.source_provider_id) {
         const { data: ios } = await db
-          .from("ios_provider_profiles")
+          .from("olera-providers")
           .select("email")
-          .eq("provider_id", providerForEmail.id)
+          .eq("provider_id", providerForEmail.source_provider_id)
           .single();
         pEmail = ios?.email || null;
       }
@@ -215,7 +215,16 @@ export async function POST(request: NextRequest) {
             providerUrl: providerPortalUrl,
             providerSlug: provider_id,
           }),
+          emailType: 'question_received',
+          recipientType: 'provider',
+          providerId: providerForEmail?.id,
         });
+      } else if (newQuestion?.id) {
+        // No provider email — flag for admin "Needs Email" tab
+        await db
+          .from("provider_questions")
+          .update({ metadata: { needs_provider_email: true } })
+          .eq("id", newQuestion.id);
       }
 
       // 2. Confirmation email to the asker (if they have an email)
@@ -229,6 +238,8 @@ export async function POST(request: NextRequest) {
             question: question.trim(),
             providerUrl: providerPageUrl,
           }),
+          emailType: 'question_confirmation',
+          recipientType: 'family',
         });
       }
     } catch (emailErr) {
@@ -326,6 +337,8 @@ export async function PATCH(request: NextRequest) {
               question: updated.question,
               providerUrl: `${siteUrl}/provider/${providerSlug}`,
             }),
+            emailType: 'question_confirmation',
+            recipientType: 'family',
           });
         } catch (emailErr) {
           console.error("Question confirmation email failed:", emailErr);

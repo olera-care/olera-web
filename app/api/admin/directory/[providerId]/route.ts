@@ -370,6 +370,9 @@ export async function PATCH(
                     message: additionalNotes,
                     viewUrl: `${siteUrl}/provider/connections`,
                   }),
+                  emailType: "connection_request",
+                  recipientType: "provider",
+                  providerId,
                 });
 
                 // Clear the flag on this connection

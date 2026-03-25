@@ -168,6 +168,9 @@ export async function POST(request: NextRequest) {
                 viewUrl,
                 providerSlug: provider.slug || undefined,
               }),
+              emailType: "new_review",
+              recipientType: "provider",
+              providerId: provider.id,
             });
             await sendLoopsEvent({
               email: providerEmail,

@@ -82,6 +82,8 @@ export async function POST(request: Request) {
                 city: bp.city || "your area",
                 matchesUrl: `${siteUrl}/portal/matches`,
               }),
+              emailType: "matches_live",
+              recipientType: "family",
             });
           }
         } catch (emailErr) {

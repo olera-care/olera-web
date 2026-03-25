@@ -257,6 +257,8 @@ export async function POST(request: Request) {
             city: locationCity,
             matchesUrl,
           }),
+          emailType: "matches_live",
+          recipientType: "family",
         });
         console.log("[activate-matches] Confirmation email sent to:", userEmail);
       } catch (emailErr) {

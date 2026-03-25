@@ -754,9 +754,9 @@ function RequestNowContent({ state, onStateChange }: RequestNowContentProps) {
         {/* Recipients Section */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-900">Recipients</h3>
+            <h3 className="text-[15px] font-semibold text-gray-900">Recipients</h3>
             {clients.length > 0 && (
-              <span className="text-xs text-gray-400">{clients.length} added</span>
+              <span className="text-sm text-gray-400">{clients.length} added</span>
             )}
           </div>
 
@@ -766,7 +766,7 @@ function RequestNowContent({ state, onStateChange }: RequestNowContentProps) {
               {clients.map((client) => (
                 <div
                   key={client.id}
-                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm group transition-all ${
+                  className={`inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-[15px] group transition-all ${
                     editingClientId === client.id
                       ? "bg-primary-50 border-2 border-primary-500 ring-2 ring-primary-500/20"
                       : "bg-vanilla-50 border border-warm-100 hover:border-gray-300 hover:bg-vanilla-100"
@@ -804,7 +804,7 @@ function RequestNowContent({ state, onStateChange }: RequestNowContentProps) {
           <div className="bg-vanilla-50/50 border border-warm-100/60 rounded-xl p-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <div>
-                <label htmlFor="client-name" className="block text-xs font-medium text-gray-600 mb-1.5">
+                <label htmlFor="client-name" className="block text-sm font-medium text-gray-700 mb-1.5">
                   Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -815,11 +815,11 @@ function RequestNowContent({ state, onStateChange }: RequestNowContentProps) {
                   onChange={(e) => setName(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Client name"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all min-h-[44px]"
+                  className="w-full px-3.5 py-3 rounded-xl border border-gray-200 bg-white text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all min-h-[48px]"
                 />
               </div>
               <div>
-                <label htmlFor="client-email" className="block text-xs font-medium text-gray-600 mb-1.5">
+                <label htmlFor="client-email" className="block text-sm font-medium text-gray-700 mb-1.5">
                   Email
                 </label>
                 <input
@@ -829,11 +829,11 @@ function RequestNowContent({ state, onStateChange }: RequestNowContentProps) {
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="email@example.com"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all min-h-[44px]"
+                  className="w-full px-3.5 py-3 rounded-xl border border-gray-200 bg-white text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all min-h-[48px]"
                 />
               </div>
               <div>
-                <label htmlFor="client-phone" className="block text-xs font-medium text-gray-600 mb-1.5">
+                <label htmlFor="client-phone" className="block text-sm font-medium text-gray-700 mb-1.5">
                   Phone
                 </label>
                 <input
@@ -843,7 +843,7 @@ function RequestNowContent({ state, onStateChange }: RequestNowContentProps) {
                   onChange={(e) => setPhone(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="(555) 123-4567"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all min-h-[44px]"
+                  className="w-full px-3.5 py-3 rounded-xl border border-gray-200 bg-white text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all min-h-[48px]"
                 />
               </div>
             </div>
@@ -858,7 +858,7 @@ function RequestNowContent({ state, onStateChange }: RequestNowContentProps) {
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 focus-visible:ring-offset-2 min-h-[44px]"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 text-[15px] font-semibold text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 focus-visible:ring-offset-2 min-h-[48px]"
                 >
                   Cancel
                 </button>
@@ -867,7 +867,7 @@ function RequestNowContent({ state, onStateChange }: RequestNowContentProps) {
                 type="button"
                 onClick={handleAddClient}
                 disabled={!canAddClient}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 min-h-[44px]"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 text-[15px] font-semibold text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 min-h-[48px]"
               >
                 {isEditing ? (
                   <>
@@ -891,7 +891,7 @@ function RequestNowContent({ state, onStateChange }: RequestNowContentProps) {
 
         {/* Message Section */}
         <div className="mb-6">
-          <label htmlFor="review-message" className="block text-sm font-semibold text-gray-900 mb-3">
+          <label htmlFor="review-message" className="block text-[15px] font-semibold text-gray-900 mb-3">
             Message
           </label>
           <textarea
@@ -901,7 +901,7 @@ function RequestNowContent({ state, onStateChange }: RequestNowContentProps) {
             rows={4}
             maxLength={500}
             placeholder="Write a personalized message..."
-            className="w-full px-3.5 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all resize-none leading-relaxed"
+            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all resize-none leading-relaxed"
           />
           <div className="mt-1.5 flex items-center justify-between">
             <span className="text-xs text-gray-400">
@@ -915,7 +915,7 @@ function RequestNowContent({ state, onStateChange }: RequestNowContentProps) {
 
         {/* Delivery Method */}
         <div className="mb-8">
-          <label className="block text-sm font-semibold text-gray-900 mb-3">
+          <label className="block text-[15px] font-semibold text-gray-900 mb-3">
             Send via
           </label>
           <div className="flex flex-wrap gap-2 sm:gap-3">
@@ -938,7 +938,7 @@ function RequestNowContent({ state, onStateChange }: RequestNowContentProps) {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
               </svg>
-              <span className="text-sm font-medium">Email</span>
+              <span className="text-[15px] font-medium">Email</span>
             </label>
             <label
               className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border cursor-pointer transition-all min-h-[44px] focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 ${
@@ -959,7 +959,7 @@ function RequestNowContent({ state, onStateChange }: RequestNowContentProps) {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
               </svg>
-              <span className="text-sm font-medium">SMS</span>
+              <span className="text-[15px] font-medium">SMS</span>
             </label>
             <label
               className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border cursor-pointer transition-all min-h-[44px] focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2 ${
@@ -980,7 +980,7 @@ function RequestNowContent({ state, onStateChange }: RequestNowContentProps) {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
               </svg>
-              <span className="text-sm font-medium">Both</span>
+              <span className="text-[15px] font-medium">Both</span>
             </label>
           </div>
         </div>
@@ -1128,8 +1128,8 @@ function RequestOnsiteContent({ providerSlug }: { providerSlug: string | null })
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Your review link</h3>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <h3 className="text-[15px] font-semibold text-gray-900">Your review link</h3>
+            <p className="text-sm text-gray-500 mt-0.5">
               Share this link or QR code to collect reviews
             </p>
           </div>
@@ -1139,14 +1139,14 @@ function RequestOnsiteContent({ providerSlug }: { providerSlug: string | null })
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div className="flex-1 px-4 py-3.5 bg-vanilla-50 border border-warm-100 rounded-xl min-h-[48px] flex items-center">
-              <p className="text-sm font-mono text-gray-700 truncate">
+              <p className="text-[15px] font-mono text-gray-700 truncate">
                 {reviewUrl}
               </p>
             </div>
             <button
               type="button"
               onClick={handleCopy}
-              className={`inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm transition-all min-h-[48px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 shrink-0 ${
+              className={`inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-[15px] transition-all min-h-[48px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 shrink-0 ${
                 copied
                   ? "bg-primary-50 text-primary-700 border border-primary-200"
                   : "bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white shadow-sm"
@@ -1206,9 +1206,9 @@ function RequestOnsiteContent({ providerSlug }: { providerSlug: string | null })
             <button
               type="button"
               onClick={handleDownloadQR}
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 active:bg-gray-150 border border-gray-200 rounded-xl transition-all min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-2 px-5 py-3 text-[15px] font-medium text-gray-700 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 active:bg-gray-150 border border-gray-200 rounded-xl transition-all min-h-[48px] focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 focus-visible:ring-offset-2"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
               </svg>
               <span>Download</span>
@@ -1216,7 +1216,7 @@ function RequestOnsiteContent({ providerSlug }: { providerSlug: string | null })
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 active:bg-gray-150 border border-gray-200 rounded-xl transition-all min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 focus-visible:ring-offset-2"
+              className="inline-flex items-center gap-2 px-5 py-3 text-[15px] font-medium text-gray-700 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 active:bg-gray-150 border border-gray-200 rounded-xl transition-all min-h-[48px] focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 focus-visible:ring-offset-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />

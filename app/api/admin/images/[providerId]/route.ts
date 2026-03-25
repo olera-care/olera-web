@@ -262,9 +262,16 @@ export async function PATCH(
         .eq("provider_id", providerId)
         .single();
 
-      if (fetchError || !provider) {
-        console.error("[delete_image] Provider not found:", fetchError?.message);
-        return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+      if (fetchError) {
+        console.error("[delete_image] Supabase query error:", fetchError.message, fetchError.code);
+        return NextResponse.json(
+          { error: `Database error: ${fetchError.message}` },
+          { status: 500 }
+        );
+      }
+      if (!provider) {
+        console.error("[delete_image] Provider not found for ID:", providerId);
+        return NextResponse.json({ error: `Provider ${providerId} not found` }, { status: 404 });
       }
 
       console.log("[delete_image] Current provider_images:", provider.provider_images);

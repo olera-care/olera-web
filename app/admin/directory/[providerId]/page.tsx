@@ -185,15 +185,29 @@ export default function AdminDirectoryDetailPage() {
           const data = await detailRes.json();
           setImages(data.images ?? []);
           setRawImages(data.rawImages ?? []);
-          // Update hero_image_url in form if it changed
-          if (data.provider.hero_image_url !== formData.hero_image_url) {
-            setFormData((prev) => ({ ...prev, hero_image_url: data.provider.hero_image_url }));
-            setOriginalData((prev) => ({ ...prev, hero_image_url: data.provider.hero_image_url }));
-          }
+          // Sync provider fields that image actions can change
+          setFormData((prev) => ({
+            ...prev,
+            hero_image_url: data.provider.hero_image_url,
+            provider_images: data.provider.provider_images,
+            provider_logo: data.provider.provider_logo,
+          }));
+          setOriginalData((prev) => ({
+            ...prev,
+            hero_image_url: data.provider.hero_image_url,
+            provider_images: data.provider.provider_images,
+            provider_logo: data.provider.provider_logo,
+          }));
         }
+      } else {
+        const err = await res.json();
+        setSaveMessage({ type: "error", text: err.error || `Image action failed.` });
+        setTimeout(() => setSaveMessage(null), 4000);
       }
     } catch (err) {
       console.error("Image action failed:", err);
+      setSaveMessage({ type: "error", text: "Network error during image action." });
+      setTimeout(() => setSaveMessage(null), 4000);
     } finally {
       setActionLoading(null);
     }

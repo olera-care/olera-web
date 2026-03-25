@@ -249,7 +249,7 @@ export async function PATCH(
         .eq("provider_id", providerId)
         .eq("image_url", image_url);
 
-      // 2. Remove URL from provider_images pipe-separated string
+      // 2. Remove URL from provider_images pipe-separated string + related fields
       const { data: provider, error: fetchError } = await db
         .from("olera-providers")
         .select("provider_images, hero_image_url, provider_logo")
@@ -260,41 +260,44 @@ export async function PATCH(
         return NextResponse.json({ error: "Provider not found" }, { status: 404 });
       }
 
+      // Normalize for comparison — trim whitespace from both sides
+      const targetUrl = image_url.trim();
       const updates: Record<string, unknown> = {};
 
+      // Remove from provider_images pipe-separated string
       if (provider.provider_images) {
-        const urls = (provider.provider_images as string)
+        const before = (provider.provider_images as string)
           .split(" | ")
           .map((u: string) => u.trim())
-          .filter((u: string) => u && u !== image_url);
-        updates.provider_images = urls.length > 0 ? urls.join(" | ") : null;
+          .filter(Boolean);
+        const after = before.filter((u: string) => u !== targetUrl);
+        // Always write back so the field reflects the deletion
+        updates.provider_images = after.length > 0 ? after.join(" | ") : null;
       }
 
       // Clear provider_logo if it matches the deleted image
-      if (provider.provider_logo === image_url) {
+      if (provider.provider_logo && provider.provider_logo.trim() === targetUrl) {
         updates.provider_logo = null;
       }
 
-      // 3. Clear hero_image_url if deleting the hero
-      if (provider.hero_image_url === image_url) {
+      // Clear hero_image_url if deleting the hero
+      if (provider.hero_image_url && provider.hero_image_url.trim() === targetUrl) {
         updates.hero_image_url = null;
-        // Also clear hero flag in metadata (in case delete above didn't match)
         await db
           .from("provider_image_metadata")
           .update({ is_hero: false })
           .eq("provider_id", providerId);
       }
 
-      if (Object.keys(updates).length > 0) {
-        const { error: updateError } = await db
-          .from("olera-providers")
-          .update(updates)
-          .eq("provider_id", providerId);
+      // Always update — even if provider_images didn't change, ensures consistency
+      const { error: updateError } = await db
+        .from("olera-providers")
+        .update(updates)
+        .eq("provider_id", providerId);
 
-        if (updateError) {
-          console.error("Delete image update error:", updateError);
-          return NextResponse.json({ error: "Failed to update provider" }, { status: 500 });
-        }
+      if (updateError) {
+        console.error("Delete image update error:", updateError);
+        return NextResponse.json({ error: "Failed to update provider" }, { status: 500 });
       }
 
       // 4. Delete from Supabase Storage if it's an uploaded file

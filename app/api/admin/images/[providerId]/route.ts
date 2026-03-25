@@ -244,15 +244,20 @@ export async function PATCH(
 
       console.log(`[delete_image] Provider: ${providerId}, URL to delete: ${image_url}`);
 
-      // 1. Delete from provider_image_metadata (if row exists)
-      const { error: metaDeleteError } = await db
-        .from("provider_image_metadata")
-        .delete()
-        .eq("provider_id", providerId)
-        .eq("image_url", image_url);
+      // 1. Delete from provider_image_metadata (if row/table exists)
+      try {
+        const { error: metaDeleteError } = await db
+          .from("provider_image_metadata")
+          .delete()
+          .eq("provider_id", providerId)
+          .eq("image_url", image_url);
 
-      if (metaDeleteError) {
-        console.warn("[delete_image] Metadata delete error (non-fatal):", metaDeleteError.message);
+        if (metaDeleteError) {
+          console.warn("[delete_image] Metadata delete error (non-fatal):", metaDeleteError.message);
+        }
+      } catch (metaErr) {
+        // Table may not exist yet — that's fine, skip silently
+        console.warn("[delete_image] Metadata table error (skipped):", metaErr);
       }
 
       // 2. Remove URL from provider_images pipe-separated string + related fields
@@ -301,10 +306,14 @@ export async function PATCH(
       if (provider.hero_image_url && provider.hero_image_url.trim() === targetUrl) {
         updates.hero_image_url = null;
         console.log("[delete_image] Clearing matching hero_image_url");
-        await db
-          .from("provider_image_metadata")
-          .update({ is_hero: false })
-          .eq("provider_id", providerId);
+        try {
+          await db
+            .from("provider_image_metadata")
+            .update({ is_hero: false })
+            .eq("provider_id", providerId);
+        } catch {
+          // Table may not exist — non-fatal
+        }
       }
 
       console.log("[delete_image] Updates to apply:", JSON.stringify(updates));
@@ -348,7 +357,8 @@ export async function PATCH(
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("Admin images action error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Admin images action error:", message, err);
+    return NextResponse.json({ error: `Server error: ${message}` }, { status: 500 });
   }
 }

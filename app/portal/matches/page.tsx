@@ -2,7 +2,7 @@
 
 import { useState, useCallback, Suspense, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import type { FamilyMetadata } from "@/lib/types";
@@ -41,12 +41,40 @@ export default function MatchesPage() {
 
 function MatchesContent() {
   const { activeProfile, user, refreshAccountData } = useAuth();
+  const searchParams = useSearchParams();
   const { pending, declined } = useInterestedProviders(activeProfile?.id);
   const carePostStatus = ((activeProfile?.metadata as FamilyMetadata)?.care_post?.status) || null;
   const isActive = carePostStatus === "active";
   const isPaused = carePostStatus === "paused";
   const hasPost = isActive || isPaused;
   const totalInterested = pending.length + declined.length;
+
+  // Track email click-back if arriving from a family email link
+  const emailTrackingDone = useRef(false);
+  useEffect(() => {
+    if (emailTrackingDone.current) return;
+    const ref = searchParams.get("ref");
+    const eid = searchParams.get("eid");
+    if (ref === "email" && eid && activeProfile?.id) {
+      emailTrackingDone.current = true;
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "family",
+          profile_id: activeProfile.id,
+          event_type: "email_click",
+          email_log_id: eid,
+          metadata: { source: "direct_link", destination: "/portal/matches" },
+        }),
+      }).catch(() => {});
+      // Clean tracking params from URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete("ref");
+      url.searchParams.delete("eid");
+      window.history.replaceState(null, "", url.pathname + url.search);
+    }
+  }, [searchParams, activeProfile]);
 
   // Tab state - default to "interested" if there are interested providers
   const [activeTab, setActiveTab] = useState<"recommended" | "interested">(

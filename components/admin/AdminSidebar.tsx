@@ -40,7 +40,6 @@ const navSections: NavSection[] = [
       { label: "Questions", href: "/admin/questions" },
       { label: "Reviews", href: "/admin/reviews" },
       { label: "Emails", href: "/admin/emails" },
-      { label: "Matches", href: "/admin/matches" },
       { label: "Care Seekers", href: "/admin/care-seekers" },
     ],
   },

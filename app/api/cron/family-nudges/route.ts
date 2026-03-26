@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import {
   goLiveReminderEmail,
   familyProfileIncompleteEmail,
@@ -297,18 +297,20 @@ export async function GET(request: NextRequest) {
           : `Providers in ${family.city} are looking for families like yours`;
 
         if (!dryRun) {
+          const glrLogId = await reserveEmailLogId({ to: email, subject, emailType: "go_live_reminder", recipientType: "family" });
           await sendEmail({
             to: email,
             subject,
             html: goLiveReminderEmail({
               familyName: firstName,
-              matchesUrl: `${siteUrl}/portal/matches`,
+              matchesUrl: appendTrackingParams(`${siteUrl}/portal/matches`, glrLogId),
               city: family.city!,
               providerCount,
               topProviders,
             }),
             emailType: "go_live_reminder",
             recipientType: "family",
+            emailLogId: glrLogId ?? undefined,
           });
           await db.from("business_profiles")
             .update({ metadata: { ...meta, go_live_reminder_sent: true } })
@@ -341,12 +343,13 @@ export async function GET(request: NextRequest) {
         }
 
         if (!dryRun) {
+          const piLogId = await reserveEmailLogId({ to: email, subject, emailType: "family_profile_incomplete", recipientType: "family" });
           await sendEmail({
             to: email,
             subject,
             html: familyProfileIncompleteEmail({
               familyName: firstName,
-              welcomeUrl: `${siteUrl}/welcome`,
+              welcomeUrl: appendTrackingParams(`${siteUrl}/welcome`, piLogId),
               missingCareTypes,
               missingLocation,
               providerCount,
@@ -354,6 +357,7 @@ export async function GET(request: NextRequest) {
             }),
             emailType: "family_profile_incomplete",
             recipientType: "family",
+            emailLogId: piLogId ?? undefined,
           });
           await db.from("business_profiles")
             .update({ metadata: { ...meta, profile_incomplete_reminder_sent: true } })
@@ -373,17 +377,20 @@ export async function GET(request: NextRequest) {
         const providers = await getTopProviders(db, family.city!, family.state!, careTypes, 4);
         if (providers.length >= 2) {
           if (!dryRun) {
+            const prSubject = `Top-rated providers in ${family.city} for you`;
+            const prLogId = await reserveEmailLogId({ to: email, subject: prSubject, emailType: "provider_recommendation", recipientType: "family" });
             await sendEmail({
               to: email,
-              subject: `Top-rated providers in ${family.city} for you`,
+              subject: prSubject,
               html: providerRecommendationEmail({
                 familyName: firstName,
                 city: family.city!,
                 providers,
-                browseUrl: `${siteUrl}/browse?city=${encodeURIComponent(family.city!)}&state=${encodeURIComponent(family.state!)}`,
+                browseUrl: appendTrackingParams(`${siteUrl}/browse?city=${encodeURIComponent(family.city!)}&state=${encodeURIComponent(family.state!)}`, prLogId),
               }),
               emailType: "provider_recommendation",
               recipientType: "family",
+              emailLogId: prLogId ?? undefined,
             });
             await db.from("business_profiles")
               .update({ metadata: { ...meta, provider_recommendation_sent: true } })
@@ -405,17 +412,20 @@ export async function GET(request: NextRequest) {
         );
         if (providers.length >= 1) {
           if (!dryRun) {
+            const drSubject = `Families in ${family.state || "your area"} are finding care on Olera`;
+            const drLogId = await reserveEmailLogId({ to: email, subject: drSubject, emailType: "dormant_reengagement", recipientType: "family" });
             await sendEmail({
               to: email,
-              subject: `Families in ${family.state || "your area"} are finding care on Olera`,
+              subject: drSubject,
               html: dormantReengagementEmail({
                 familyName: firstName,
                 state: family.state || "your area",
                 providers,
-                browseUrl: `${siteUrl}/browse${family.state ? `?state=${encodeURIComponent(family.state)}` : ""}`,
+                browseUrl: appendTrackingParams(`${siteUrl}/browse${family.state ? `?state=${encodeURIComponent(family.state)}` : ""}`, drLogId),
               }),
               emailType: "dormant_reengagement",
               recipientType: "family",
+              emailLogId: drLogId ?? undefined,
             });
             await db.from("business_profiles")
               .update({ metadata: { ...meta, dormant_reengagement_sent: true } })
@@ -449,17 +459,20 @@ export async function GET(request: NextRequest) {
         }
 
         if (!dryRun) {
+          const pcfSubject = `How was your experience with ${providerName}?`;
+          const pcfLogId = await reserveEmailLogId({ to: email, subject: pcfSubject, emailType: "post_connection_followup", recipientType: "family" });
           await sendEmail({
             to: email,
-            subject: `How was your experience with ${providerName}?`,
+            subject: pcfSubject,
             html: postConnectionFollowupEmail({
               familyName: firstName,
               providerName,
               providerSlug,
-              reviewUrl: `${siteUrl}/provider/${providerSlug}#reviews`,
+              reviewUrl: appendTrackingParams(`${siteUrl}/provider/${providerSlug}#reviews`, pcfLogId),
             }),
             emailType: "post_connection_followup",
             recipientType: "family",
+            emailLogId: pcfLogId ?? undefined,
           });
           await db.from("business_profiles")
             .update({ metadata: { ...meta, post_connection_followup_sent: true } })

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { newMessageEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 
@@ -192,16 +192,30 @@ export async function POST(request: Request) {
               ? text.trim().slice(0, 200) + "..."
               : text.trim();
 
+          const isFamily = recipientProfile?.type === "family";
+          const msgSubject = `New message from ${senderProfile?.display_name || "someone"} on Olera`;
+
+          const msgEmailLogId = await reserveEmailLogId({
+            to: recipientEmail,
+            subject: msgSubject,
+            emailType: "new_message",
+            recipientType: isFamily ? "family" : "provider",
+            providerId: !isFamily ? recipientProfileId : undefined,
+          });
+
           // Route families to portal inbox, providers to provider welcome with magic link
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
           let viewUrl: string;
 
-          if (recipientProfile?.type === "family") {
-            viewUrl = `${siteUrl}/portal/inbox`;
+          if (isFamily) {
+            viewUrl = appendTrackingParams(`${siteUrl}/portal/inbox`, msgEmailLogId);
           } else {
             // Generate magic link for provider one-click sign-in
             const providerSlug = recipientProfile?.slug || recipientProfile?.source_provider_id || recipientProfileId;
-            const redirectPath = `/provider/${providerSlug}/onboard?action=message&actionId=${connectionId}`;
+            const redirectPath = appendTrackingParams(
+              `/provider/${providerSlug}/onboard?action=message&actionId=${connectionId}`,
+              msgEmailLogId
+            );
             // Fallback: direct to onboard page (handles both claimed and unclaimed providers)
             viewUrl = `${siteUrl}${redirectPath}`;
 
@@ -224,7 +238,7 @@ export async function POST(request: Request) {
 
           await sendEmail({
             to: recipientEmail,
-            subject: `New message from ${senderProfile?.display_name || "someone"} on Olera`,
+            subject: msgSubject,
             html: newMessageEmail({
               recipientName: recipientProfile?.display_name || "there",
               senderName: senderProfile?.display_name || "Someone",
@@ -232,8 +246,9 @@ export async function POST(request: Request) {
               viewUrl,
             }),
             emailType: 'new_message',
-            recipientType: recipientProfile?.type === "family" ? "family" : "provider",
-            providerId: recipientProfile?.type !== "family" ? recipientProfileId : undefined,
+            recipientType: isFamily ? "family" : "provider",
+            providerId: !isFamily ? recipientProfileId : undefined,
+            emailLogId: msgEmailLogId ?? undefined,
           });
         }
       }

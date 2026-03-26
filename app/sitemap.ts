@@ -239,14 +239,19 @@ export default async function sitemap({
     const entries: MetadataRoute.Sitemap = [];
 
     if (supabase) {
-      const offset = providerShard * PROVIDER_BATCH_SIZE;
-      const { data: providers } = await supabase
-        .from("olera-providers")
-        .select("provider_id, slug")
-        .or("deleted.is.null,deleted.eq.false")
-        .range(offset, offset + PROVIDER_BATCH_SIZE - 1);
-
-      if (providers) {
+      // Paginate in batches of 1000 (Supabase default row limit)
+      const PAGE_SIZE = 1_000;
+      const shardStart = providerShard * PROVIDER_BATCH_SIZE;
+      let fetched = 0;
+      while (fetched < PROVIDER_BATCH_SIZE) {
+        const from = shardStart + fetched;
+        const to = from + PAGE_SIZE - 1;
+        const { data: providers } = await supabase
+          .from("olera-providers")
+          .select("provider_id, slug")
+          .or("deleted.is.null,deleted.eq.false")
+          .range(from, to);
+        if (!providers || providers.length === 0) break;
         for (const provider of providers) {
           entries.push({
             url: `${SITE_URL}/provider/${provider.slug || provider.provider_id}`,
@@ -255,6 +260,8 @@ export default async function sitemap({
             priority: 0.7,
           });
         }
+        if (providers.length < PAGE_SIZE) break;
+        fetched += providers.length;
       }
 
       // Include claimed business_profiles in first provider shard only

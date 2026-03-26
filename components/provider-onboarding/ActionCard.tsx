@@ -782,62 +782,68 @@ export default function ActionCard({
   }
 
   if (state === "notification-question" && notificationData) {
-    const personName = notificationData.asker_name || "Someone";
-    const question = notificationData.question || "";
+    const rawName = notificationData.asker_name || "Someone";
+    const rawQuestion = notificationData.question || "";
     const timeAgo = formatTimeAgo(notificationData.created_at);
+
+    // Privacy masking — first name only, question truncated
+    const personName = rawName.split(" ")[0] || "Someone";
+    const question = rawQuestion.length > 80 ? rawQuestion.slice(0, 80) + "..." : rawQuestion;
 
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
         {/* Header */}
-        <div className="text-center mb-5">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
-            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="text-center mb-6">
+          <div className="w-11 h-11 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-3">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="text-xl font-display font-bold text-gray-900 inline-flex items-center gap-1.5">
-            New question
-            <InfoTooltip content={TOOLTIP_CONTENT["notification-question"].text} showTos={TOOLTIP_CONTENT["notification-question"].showTos} />
+          <h3 className="text-lg font-display font-bold text-gray-900">
+            Someone has a question about your services
           </h3>
-        </div>
-
-        {/* Consolidated question card */}
-        <div className="bg-primary-50/40 border border-primary-100 rounded-xl p-4 mb-5">
-          {/* Top row: Avatar + name + timestamp */}
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
-              {getInitials(personName)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-base font-semibold text-gray-900">{personName}</p>
-              <p className="text-sm text-gray-500">{timeAgo}</p>
-            </div>
-          </div>
-
-          {/* Question preview */}
-          <p className="text-[15px] text-gray-700 leading-relaxed">
-            &ldquo;{question.length > 150 ? question.slice(0, 150) + "..." : question}&rdquo;
+          <p className="text-sm text-gray-500 mt-1">
+            {timeAgo}
           </p>
         </div>
 
-        {/* CTA based on auth state */}
+        {/* Question card */}
+        <div className="bg-gray-50 rounded-xl p-4 mb-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
+              {getInitials(personName)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[15px] font-semibold text-gray-900">{personName}</p>
+            </div>
+          </div>
+          {question && (
+            <p className="text-[15px] text-gray-600 leading-relaxed italic">
+              &ldquo;{question}&rdquo;
+            </p>
+          )}
+        </div>
+
+        {/* CTA */}
         <div className="text-center">
           {isSignedIn ? (
             <Link
               href={`/provider/qna?id=${notificationData.id}`}
-              className="block w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] text-center shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+              className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
             >
-              Answer question
+              View and answer
             </Link>
           ) : (
             <>
-              <p className="text-[15px] text-gray-500 mb-4">Verify your email to answer this question</p>
               <button
                 onClick={() => setState("verify-form")}
-                className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+                className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
               >
-                Verify email to respond
+                Verify your email to answer
               </button>
+              <p className="text-xs text-gray-400 mt-3">
+                Confirm you manage this listing to view the full question
+              </p>
             </>
           )}
         </div>
@@ -846,43 +852,47 @@ export default function ActionCard({
   }
 
   if (state === "notification-review" && notificationData) {
-    const personName = notificationData.reviewer_name || "Someone";
+    const rawName = notificationData.reviewer_name || "Someone";
     const rating = notificationData.rating || 5;
-    const comment = notificationData.comment || "";
+    const rawComment = notificationData.comment || "";
     const timeAgo = formatTimeAgo(notificationData.created_at);
+
+    // Privacy masking — first name only, comment truncated
+    const personName = rawName.split(" ")[0] || "Someone";
+    const comment = rawComment.length > 80 ? rawComment.slice(0, 80) + "..." : rawComment;
 
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
         {/* Header */}
-        <div className="text-center mb-5">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
-            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+        <div className="text-center mb-6">
+          <div className="w-11 h-11 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-3">
+            <svg className="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
           </div>
-          <h3 className="text-xl font-display font-bold text-gray-900 inline-flex items-center gap-1.5">
-            New review
-            <InfoTooltip content={TOOLTIP_CONTENT["notification-review"].text} showTos={TOOLTIP_CONTENT["notification-review"].showTos} />
+          <h3 className="text-lg font-display font-bold text-gray-900">
+            Someone left a review on your listing
           </h3>
+          <p className="text-sm text-gray-500 mt-1">
+            {timeAgo}
+          </p>
         </div>
 
-        {/* Consolidated review card */}
-        <div className="bg-primary-50/40 border border-primary-100 rounded-xl p-4 mb-5">
-          {/* Top row: Avatar + name + timestamp + stars */}
-          <div className="flex items-start gap-3 mb-3">
-            <div className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
+        {/* Review card */}
+        <div className="bg-gray-50 rounded-xl p-4 mb-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
               {getInitials(personName)}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-base font-semibold text-gray-900">{personName}</p>
-              <p className="text-sm text-gray-500">{timeAgo}</p>
+              <p className="text-[15px] font-semibold text-gray-900">{personName}</p>
             </div>
             {/* Rating stars */}
             <div className="flex items-center gap-0.5 shrink-0">
               {[1, 2, 3, 4, 5].map((star) => (
                 <svg
                   key={star}
-                  className={`w-4 h-4 ${star <= rating ? "text-primary-500" : "text-gray-200"}`}
+                  className={`w-4 h-4 ${star <= rating ? "text-amber-400" : "text-gray-200"}`}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -891,33 +901,33 @@ export default function ActionCard({
               ))}
             </div>
           </div>
-
-          {/* Comment preview */}
           {comment && (
-            <p className="text-[15px] text-gray-700 leading-relaxed italic">
-              &ldquo;{comment.length > 150 ? comment.slice(0, 150) + "..." : comment}&rdquo;
+            <p className="text-[15px] text-gray-600 leading-relaxed italic">
+              &ldquo;{comment}&rdquo;
             </p>
           )}
         </div>
 
-        {/* CTA based on auth state */}
+        {/* CTA */}
         <div className="text-center">
           {isSignedIn ? (
             <Link
               href={`/provider/reviews?id=${notificationData.id}`}
-              className="block w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] text-center shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+              className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
             >
-              See review
+              View review
             </Link>
           ) : (
             <>
-              <p className="text-[15px] text-gray-500 mb-4">Verify your email to manage your reviews</p>
               <button
                 onClick={() => setState("verify-form")}
-                className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+                className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
               >
-                Verify email to respond
+                Verify your email to respond
               </button>
+              <p className="text-xs text-gray-400 mt-3">
+                Confirm you manage this listing to view and respond
+              </p>
             </>
           )}
         </div>

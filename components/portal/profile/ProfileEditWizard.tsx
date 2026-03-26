@@ -315,6 +315,32 @@ export default function ProfileEditWizard({
         })
         .eq("id", profile.id);
 
+      // Log profile enrichment event (fire-and-forget, debounced by saveChanges already)
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "family",
+          profile_id: profile.id,
+          event_type: "profile_enriched",
+          metadata: {
+            fields_set: [
+              displayName && "display_name",
+              city && "city",
+              state && "state",
+              email && "email",
+              phone && "phone",
+              careTypes.length > 0 && "care_types",
+              whoNeedsCare && "relationship",
+              timeline && "timeline",
+              payments.length > 0 && "payment_methods",
+              contactPref && "contact_preference",
+            ].filter(Boolean),
+            step: step,
+          },
+        }),
+      }).catch(() => {});
+
       await refreshAccountData();
     } catch (err) {
       console.error("[ProfileEditWizard] Auto-save failed:", err);

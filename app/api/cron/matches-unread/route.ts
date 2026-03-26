@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { newMessageEmail } from "@/lib/email-templates";
 
 interface ThreadMessage {
@@ -126,17 +126,24 @@ export async function GET(request: NextRequest) {
       const siteUrl =
         process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
 
-      // Route based on recipient type
-      const viewUrl =
-        recipient.type === "family"
-          ? `${siteUrl}/portal/inbox`
-          : `${siteUrl}/provider/connections`;
-
       const senderName = sender?.display_name || "Someone";
+      const isFamily = recipient.type === "family";
+      const urSubject = `New message from ${senderName}`;
+      const urLogId = await reserveEmailLogId({
+        to: recipient.email,
+        subject: urSubject,
+        emailType: "unread_reminder",
+        recipientType: isFamily ? "family" : "provider",
+      });
+
+      // Route based on recipient type
+      const viewUrl = isFamily
+        ? appendTrackingParams(`${siteUrl}/portal/inbox`, urLogId)
+        : appendTrackingParams(`${siteUrl}/provider/connections`, urLogId);
 
       await sendEmail({
         to: recipient.email,
-        subject: `New message from ${senderName}`,
+        subject: urSubject,
         html: newMessageEmail({
           recipientName: recipient.display_name || "there",
           senderName,
@@ -144,7 +151,8 @@ export async function GET(request: NextRequest) {
           viewUrl,
         }),
         emailType: "unread_reminder",
-        recipientType: recipient.type === "family" ? "family" : "provider",
+        recipientType: isFamily ? "family" : "provider",
+        emailLogId: urLogId ?? undefined,
       });
 
       // Mark as reminded

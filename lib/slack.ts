@@ -279,6 +279,42 @@ export function slackQuestionMissingEmail(opts: {
   };
 }
 
+// ── One-click access alerts ───────────────────────────────────
+
+export function slackOneClickAccess(opts: {
+  providerName: string;
+  providerEmail: string;
+  providerSlug: string;
+  action: string;
+  actionId?: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const actionLabels: Record<string, string> = {
+    lead: "Viewed lead",
+    question: "Viewed question",
+    review: "Viewed review",
+    campaign: "Campaign click",
+  };
+  return {
+    text: `One-click access: ${opts.providerName} (${opts.action})`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🔓 One-Click Provider Access", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Email:*\n${opts.providerEmail}` },
+          { type: "mrkdwn", text: `*Action:*\n${actionLabels[opts.action] || opts.action}` },
+          { type: "mrkdwn", text: `*Listing:*\n<${siteUrl}/provider/${opts.providerSlug}|View>` },
+        ],
+      },
+    ],
+  };
+}
+
 // ── MedJobs alerts ────────────────────────────────────────────
 
 export function slackMedJobsNewStudent(opts: {

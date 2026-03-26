@@ -201,7 +201,21 @@ export async function POST(request: NextRequest) {
               providerId: provider.id,
             });
 
-            const viewUrl = appendTrackingParams(`${siteUrl}/provider/reviews`, emailLogId);
+            // Generate one-click claim URL with signed token
+            let viewUrl: string;
+            try {
+              const { generateNotificationUrl } = await import("@/lib/claim-tokens");
+              viewUrl = generateNotificationUrl(
+                provider.slug || providerSlug,
+                providerEmail,
+                "review",
+                newReview.id,
+                siteUrl
+              );
+              viewUrl = appendTrackingParams(viewUrl, emailLogId);
+            } catch {
+              viewUrl = appendTrackingParams(`${siteUrl}/provider/reviews`, emailLogId);
+            }
             await sendEmail({
               to: providerEmail,
               subject: emailSubject,

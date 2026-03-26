@@ -112,3 +112,22 @@ export function generateClaimUrl(
   }
   return url.toString();
 }
+
+/**
+ * Generate a notification URL with embedded claim token.
+ * Used for lead/question/review email links — enables one-click access.
+ */
+export function generateNotificationUrl(
+  providerSlug: string,
+  email: string,
+  action: "lead" | "question" | "review",
+  actionId: string,
+  baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"
+): string {
+  const token = generateClaimToken(providerSlug, email);
+  const url = new URL(`${baseUrl}/provider/${providerSlug}/onboard`);
+  url.searchParams.set("action", action);
+  url.searchParams.set("actionId", actionId);
+  url.searchParams.set("token", token);
+  return url.toString();
+}

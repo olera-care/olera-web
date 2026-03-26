@@ -780,9 +780,9 @@ export default function ActionCard({
     const rawQuestion = notificationData.question || "";
     const timeAgo = formatTimeAgo(notificationData.created_at);
 
-    // Privacy masking — first name only, question truncated
-    const personName = rawName.split(" ")[0] || "Someone";
-    const question = rawQuestion.length > 80 ? rawQuestion.slice(0, 80) + "..." : rawQuestion;
+    // Q&A is public data — no masking needed
+    const personName = rawName;
+    const question = rawQuestion;
 
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
@@ -843,9 +843,9 @@ export default function ActionCard({
     const rawComment = notificationData.comment || "";
     const timeAgo = formatTimeAgo(notificationData.created_at);
 
-    // Privacy masking — first name only, comment truncated
-    const personName = rawName.split(" ")[0] || "Someone";
-    const comment = rawComment.length > 80 ? rawComment.slice(0, 80) + "..." : rawComment;
+    // Reviews are public data — no masking needed
+    const personName = rawName;
+    const comment = rawComment;
 
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>

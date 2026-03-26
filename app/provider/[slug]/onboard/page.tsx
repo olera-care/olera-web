@@ -283,8 +283,9 @@ export default function ProviderOnboardPage() {
       );
       setSession(claimSessionData);
 
-      // Handle campaign token (marketing email pre-verification)
-      if (actionParam === "campaign" && tokenParam) {
+      // Handle signed claim token (from any email: lead, question, review, campaign)
+      // One-click flow: validate token → auto-sign-in → auto-claim → redirect
+      if (tokenParam) {
         try {
           const tokenRes = await fetch("/api/claim/validate-token", {
             method: "POST",
@@ -297,22 +298,103 @@ export default function ProviderOnboardPage() {
           const tokenResult = await tokenRes.json();
 
           if (tokenResult.valid) {
-            // Token is valid - user is pre-verified
-            setPreVerifiedEmail(tokenResult.emailHint);
-            setActionCardState("pre-verified");
+            const verifiedEmail = tokenResult.emailHint;
+
+            // For notification actions (lead/question/review), attempt one-click:
+            // auto-sign-in → auto-claim → redirect to destination
+            if (actionParam && actionParam !== "campaign") {
+              setStep("finalizing");
+              try {
+                // Auto-sign-in with the verified email
+                const signInRes = await fetch("/api/auth/auto-sign-in", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    email: verifiedEmail,
+                    claimSession: claimSessionData.sessionId,
+                  }),
+                });
+                const signInData = await signInRes.json();
+
+                if (signInRes.ok && signInData.tokenHash) {
+                  // Establish browser session
+                  const supabase = createClient();
+                  const { error: otpError } = await supabase.auth.verifyOtp({
+                    token_hash: signInData.tokenHash,
+                    type: "magiclink",
+                  });
+
+                  if (!otpError) {
+                    // Session established — now finalize the claim
+                    await refreshAccountData();
+
+                    // Attempt claim finalization
+                    try {
+                      await fetch("/api/claim/finalize", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          providerId: foundProvider.provider_id,
+                          claimSession: claimSessionData.sessionId,
+                        }),
+                      });
+                    } catch {
+                      // Claim may already exist — that's fine
+                    }
+
+                    // Log one-click access for observability (fire-and-forget)
+                    fetch("/api/activity/track", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        provider_id: slug,
+                        event_type: "one_click_access",
+                        metadata: {
+                          action: actionParam,
+                          action_id: actionIdParam,
+                          email: verifiedEmail,
+                          provider_name: foundProvider.provider_name,
+                          source: "email_token",
+                        },
+                      }),
+                    }).catch(() => {});
+
+                    // Redirect to the action destination
+                    clearClaimSession();
+                    router.replace(getActionRedirectUrl(actionParam, actionIdParam));
+                    return;
+                  }
+                }
+              } catch (err) {
+                console.error("[ProviderOnboard] One-click flow failed:", err);
+              }
+              // One-click failed — fall through to show notification card with pre-verified state
+              setStep("dashboard");
+            }
+
+            // For campaign or fallback: show pre-verified state
+            setPreVerifiedEmail(verifiedEmail);
+            setActionCardState(actionParam && actionParam !== "campaign"
+              ? (({ lead: "notification-lead", message: "notification-lead", question: "notification-question", review: "notification-review" } as Record<string, ActionCardState>)[actionParam] || "pre-verified")
+              : "pre-verified"
+            );
             setStep("dashboard");
             return;
           } else if (tokenResult.alreadyClaimed) {
-            // Listing already claimed
+            // Already claimed — for notification actions, try redirect if we have a session
+            if (actionParam && actionParam !== "campaign" && user && account) {
+              router.replace(getActionRedirectUrl(actionParam, actionIdParam));
+              return;
+            }
             setActionCardState("already-claimed");
             setStep("dashboard");
             return;
           } else {
             // Token invalid/expired - fall through to normal flow
-            console.warn("[ProviderOnboard] Campaign token invalid:", tokenResult.error);
+            console.warn("[ProviderOnboard] Token invalid:", tokenResult.error);
           }
         } catch (err) {
-          console.error("[ProviderOnboard] Failed to validate campaign token:", err);
+          console.error("[ProviderOnboard] Failed to validate token:", err);
           // Fall through to normal flow
         }
       }

@@ -4,96 +4,128 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 /**
- * Migrate old unscoped localStorage key to new profile-scoped key.
- * Only runs once per provider slug.
- */
-function migrateQnAReadData(providerSlug: string): void {
-  const OLD_KEY = "olera_qna_read";
-  const newKey = `olera_qna_read_${providerSlug}`;
-  const migrationFlag = `olera_qna_migrated_${providerSlug}`;
-
-  try {
-    // Skip if already migrated
-    if (localStorage.getItem(migrationFlag)) return;
-
-    const oldData = localStorage.getItem(OLD_KEY);
-    if (oldData) {
-      const existingNew = localStorage.getItem(newKey);
-      if (!existingNew) {
-        // Migrate old data to new key
-        localStorage.setItem(newKey, oldData);
-      } else {
-        // Merge old and new data
-        const oldIds: string[] = JSON.parse(oldData);
-        const newIds: string[] = JSON.parse(existingNew);
-        const merged = [...new Set([...oldIds, ...newIds])];
-        localStorage.setItem(newKey, JSON.stringify(merged));
-      }
-    }
-    // Mark as migrated
-    localStorage.setItem(migrationFlag, "1");
-  } catch {
-    // localStorage unavailable
-  }
-}
-
-/**
  * Lightweight hook that counts unread pending Q&A questions for a provider.
- * Fetches pending questions for the given provider slug,
- * checks against profile-scoped localStorage, and returns the count.
+ * Fetches pending questions from the database and checks metadata.read_by
+ * for read tracking, with localStorage fallback for backwards compatibility.
  *
- * Listens for "olera:qna-read" custom events so the count updates
- * immediately when a question is viewed in the Q&A page.
+ * Features:
+ * - Database-backed read tracking via metadata.read_by[profileId]
+ * - Fetches from database on mount
+ * - Listens for "olera:qna-read" custom events for immediate updates
+ * - Listens for "olera:qna-sync" for page-level syncs
+ * - Cross-tab synchronization via storage events
+ * - localStorage fallback for backwards compatibility
  */
-export function useUnreadQnACount(providerSlug: string | null): number {
+export function useUnreadQnACount(providerSlug: string | null, profileId?: string | null): number {
   const [count, setCount] = useState(0);
-  const migratedRef = useRef(false);
+  const fetchingRef = useRef(false);
 
-  // Migrate old data on first run
-  useEffect(() => {
-    if (providerSlug && !migratedRef.current) {
-      migrateQnAReadData(providerSlug);
-      migratedRef.current = true;
-    }
-  }, [providerSlug]);
+  // Create stable key for dependencies
+  const paramKey = `${providerSlug || ""}:${profileId || ""}`;
 
-  // Read cached count from localStorage (set by Q&A page)
-  useEffect(() => {
-    if (!providerSlug) {
+  const recount = useCallback(() => {
+    if (!providerSlug || fetchingRef.current) return;
+
+    if (!isSupabaseConfigured()) {
       setCount(0);
       return;
     }
 
-    try {
-      const cacheKey = `olera_qna_count_${providerSlug}`;
-      const cached = localStorage.getItem(cacheKey);
-      if (cached !== null) {
-        setCount(parseInt(cached, 10) || 0);
-      }
-    } catch {
-      // localStorage unavailable
-    }
-  }, [providerSlug]);
+    fetchingRef.current = true;
 
-  // Listen for sync events from Q&A page (authoritative source)
+    (async () => {
+      try {
+        const supabase = createClient();
+
+        // Fetch pending (unanswered) questions for this provider with metadata for read tracking
+        const { data: questions } = await supabase
+          .from("provider_questions")
+          .select("id, metadata")
+          .eq("provider_id", providerSlug)
+          .eq("status", "pending");
+
+        if (!questions || questions.length === 0) {
+          setCount(0);
+          try {
+            localStorage.setItem(`olera_qna_count_${profileId || providerSlug}`, "0");
+          } catch { /* localStorage unavailable */ }
+          return;
+        }
+
+        // Get localStorage read IDs as fallback for backwards compatibility
+        let localStorageReadIds = new Set<string>();
+        try {
+          // Check both profileId-based and slug-based keys for migration compatibility
+          const keys = [profileId, providerSlug].filter(Boolean);
+          for (const key of keys) {
+            const stored = localStorage.getItem(`olera_qna_read_${key}`);
+            if (stored) {
+              const parsed: string[] = JSON.parse(stored);
+              parsed.forEach((id) => localStorageReadIds.add(id));
+            }
+          }
+        } catch { /* localStorage unavailable */ }
+
+        // Count unread: question is unread if neither database nor localStorage shows it as read
+        let unreadCount = 0;
+        for (const q of questions) {
+          const meta = (q.metadata as Record<string, unknown>) || {};
+          const readBy = (meta.read_by as Record<string, string>) || {};
+
+          // Check database read_by (primary - use profileId if available)
+          const isReadInDb = profileId ? !!readBy[profileId] : false;
+
+          // Check localStorage (fallback)
+          const isReadInLocalStorage = localStorageReadIds.has(q.id);
+
+          if (!isReadInDb && !isReadInLocalStorage) {
+            unreadCount++;
+          }
+        }
+
+        setCount(unreadCount);
+
+        // Cache the count
+        try {
+          localStorage.setItem(`olera_qna_count_${profileId || providerSlug}`, String(unreadCount));
+        } catch { /* localStorage unavailable */ }
+      } catch (err) {
+        console.error("[useUnreadQnACount] Error:", err);
+        setCount(0);
+      } finally {
+        fetchingRef.current = false;
+      }
+    })();
+  }, [paramKey, providerSlug, profileId]);
+
+  // Initial count from database
+  useEffect(() => {
+    recount();
+  }, [recount]);
+
+  // Re-count when a question is marked as read
+  useEffect(() => {
+    const handler = () => {
+      setTimeout(recount, 100);
+    };
+    window.addEventListener("olera:qna-read", handler);
+    return () => window.removeEventListener("olera:qna-read", handler);
+  }, [recount]);
+
+  // Listen for sync events from Q&A page
   useEffect(() => {
     const syncHandler = (e: Event) => {
       const { count: syncedCount, providerSlug: syncSlug } = (e as CustomEvent).detail;
-      if (typeof syncedCount === "number") {
+      if (syncSlug === providerSlug && typeof syncedCount === "number") {
         setCount(syncedCount);
-        // Cache the count for future page loads
-        if (syncSlug) {
-          try {
-            localStorage.setItem(`olera_qna_count_${syncSlug}`, String(syncedCount));
-          } catch {
-            // localStorage unavailable
-          }
-        }
+        try {
+          localStorage.setItem(`olera_qna_count_${providerSlug}`, String(syncedCount));
+        } catch { /* localStorage unavailable */ }
       }
     };
     window.addEventListener("olera:qna-sync", syncHandler);
     return () => window.removeEventListener("olera:qna-sync", syncHandler);
-  }, []);
+  }, [providerSlug]);
 
   // Listen for new questions (increment count)
   useEffect(() => {
@@ -102,18 +134,66 @@ export function useUnreadQnACount(providerSlug: string | null): number {
     return () => window.removeEventListener("olera:qna-new", newHandler);
   }, []);
 
-  // Cross-tab synchronization: update count when localStorage changes in another tab
+  // Cross-tab synchronization
   useEffect(() => {
     if (!providerSlug) return;
-    const cacheKey = `olera_qna_count_${providerSlug}`;
+    const readKey = `olera_qna_read_${providerSlug}`;
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === cacheKey && e.newValue !== null) {
-        setCount(parseInt(e.newValue, 10) || 0);
+      if (e.key === readKey) {
+        recount();
       }
     };
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
-  }, [providerSlug]);
+  }, [providerSlug, recount]);
 
   return count;
+}
+
+/**
+ * Mark a question as read in the database (metadata.read_by) and localStorage fallback.
+ * Dispatches olera:qna-read event for immediate UI updates.
+ */
+export async function markQuestionAsRead(questionId: string, profileId: string): Promise<void> {
+  // Optimistically update localStorage for immediate feedback
+  const readKey = `olera_qna_read_${profileId}`;
+  try {
+    const stored = localStorage.getItem(readKey);
+    const readIds: string[] = stored ? JSON.parse(stored) : [];
+    if (!readIds.includes(questionId)) {
+      readIds.push(questionId);
+      localStorage.setItem(readKey, JSON.stringify(readIds));
+    }
+  } catch { /* localStorage unavailable */ }
+
+  // Dispatch event for immediate UI updates
+  window.dispatchEvent(new CustomEvent("olera:qna-read"));
+
+  // Persist to database
+  try {
+    await fetch("/api/provider/questions/mark-read", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ questionId }),
+    });
+  } catch (err) {
+    console.error("[markQuestionAsRead] Failed to persist to database:", err);
+    // localStorage fallback already in place
+  }
+}
+
+/**
+ * Migrate localStorage read data from slug-based key to profileId-based key.
+ * This is a one-time migration for backwards compatibility.
+ */
+export function migrateQnaReadData(providerSlug: string, profileId: string): void {
+  if (!providerSlug || !profileId || providerSlug === profileId) return;
+  try {
+    const oldKey = `olera_qna_read_${providerSlug}`;
+    const newKey = `olera_qna_read_${profileId}`;
+    const oldData = localStorage.getItem(oldKey);
+    if (oldData && !localStorage.getItem(newKey)) {
+      localStorage.setItem(newKey, oldData);
+    }
+  } catch { /* localStorage unavailable */ }
 }

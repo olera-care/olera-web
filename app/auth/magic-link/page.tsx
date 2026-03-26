@@ -32,7 +32,7 @@ function MagicLinkHandler() {
         // Check for hash fragment with tokens
         const hash = window.location.hash;
         if (!hash || !hash.includes("access_token")) {
-          // No tokens in hash - might be a direct visit or error
+          // No tokens in hash - might be expired link or direct visit
           // Check if already authenticated
           const supabase = createClient();
           const { data: { session } } = await supabase.auth.getSession();
@@ -43,7 +43,15 @@ function MagicLinkHandler() {
             return;
           }
 
-          // No session and no tokens - redirect to home
+          // No session and no tokens - link is expired or invalid
+          // Still redirect to intended destination so user sees context
+          // They'll just need to sign in manually via the onboard page
+          if (next && next !== "/") {
+            router.replace(next);
+            return;
+          }
+
+          // No destination - redirect to home
           setError("Invalid or expired link. Please request a new one.");
           setStatus("error");
           setTimeout(() => router.replace("/"), 3000);
@@ -101,6 +109,68 @@ function MagicLinkHandler() {
         window.history.replaceState(null, "", window.location.pathname + window.location.search);
 
         setStatus("success");
+
+        // Track email click if this visit came from an email link
+        try {
+          const nextUrl = new URL(next, window.location.origin);
+          const ref = nextUrl.searchParams.get("ref");
+          const eid = nextUrl.searchParams.get("eid");
+          if (ref === "email" && eid) {
+            // Determine if this is a family or provider destination
+            const dest = nextUrl.pathname;
+            const isFamilyDest = dest.startsWith("/portal/") ||
+              dest.startsWith("/browse") ||
+              dest.startsWith("/welcome") ||
+              dest.startsWith("/review/");
+
+            if (isFamilyDest) {
+              // Family click — need profile_id from session
+              // Fetch active profile from account (fire-and-forget)
+              fetch("/api/portal/profile")
+                .then(r => r.ok ? r.json() : null)
+                .then(data => {
+                  const profileId = data?.profile?.id;
+                  if (profileId) {
+                    fetch("/api/activity/track", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        actor_type: "family",
+                        profile_id: profileId,
+                        event_type: "email_click",
+                        email_log_id: eid,
+                        metadata: { source: "magic_link", destination: next },
+                      }),
+                    }).catch(() => {});
+                  }
+                })
+                .catch(() => {});
+            } else {
+              // Provider click (existing behavior)
+              const pathParts = dest.split("/");
+              const providerIdx = pathParts.indexOf("provider");
+              const providerSlug = providerIdx >= 0 ? pathParts[providerIdx + 1] : null;
+              const action = nextUrl.searchParams.get("action");
+              const emailTypeMap: Record<string, string> = {
+                lead: "connection_request",
+                review: "new_review",
+              };
+              fetch("/api/activity/track", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  provider_id: providerSlug || "unknown",
+                  event_type: "email_click",
+                  email_log_id: eid,
+                  email_type: action ? emailTypeMap[action] || action : null,
+                  metadata: { source: "magic_link", destination: next },
+                }),
+              }).catch(() => {}); // Fire-and-forget
+            }
+          }
+        } catch {
+          // Non-blocking — tracking failure should never affect auth flow
+        }
 
         // Check for pending connection info from guest connection flow
         let pendingConnection: { connectionId: string; providerSlug: string } | null = null;

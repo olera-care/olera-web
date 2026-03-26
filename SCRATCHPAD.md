@@ -111,7 +111,7 @@
   - `.claude/commands/city-pipeline.md` updated with new batch mode instructions
   - Next: full E2E test with fresh cities, then 80-city batch
 
-- **MedJobs: Full Onboarding Overhaul** (branch: `fresh-ramanujan`, PR #368) — IN QA
+- **MedJobs: Full Onboarding Overhaul** (branch: `fresh-ramanujan`, PR #368) — MERGED ✅ + ACCOUNT FIX MERGED ✅
   - Plan: `plans/medjobs-account-creation-plan.md`
   - Notion: [Task](https://www.notion.so/32c5903a0ffe811e80eadeb088f96bd3)
   - **Account creation:** Auth user + account created after step 1 (name+email), not step 4. Auto-sign-in via verifyOtp token.
@@ -149,13 +149,73 @@
   - Backfill script: `scripts/backfill-highlights-data.js` (paginated queries, 10 concurrent workers, 429 retry)
   - To query the 1,317 deletions: `deleted=true AND deleted_at >= '2026-03-24T21:00:00Z' AND ai_trust_signals IS NULL AND provider_category IN ('Home Care (Non-medical)', 'Assisted Living', 'Memory Care', 'Independent Living')`
 
-- **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
+- **Admin Photo Deletion** (branch: `gentle-newton`, PR #395) — MERGED ✅
+  - Plan: `plans/admin-delete-photos-plan.md`
+  - Notion: [Task](https://www.notion.so/Admin-dashboard-Add-the-ability-for-providers-to-delete-photos-3295903a0ffe805dbc3bec53b1eca849)
+  - API: `delete_image` action added to PATCH `/api/admin/images/[providerId]`
+  - UI: hover overlay with trash icon + confirm dialog on both classified and raw image grids
+  - Root cause fix: `hero_image_url` column doesn't exist in `olera-providers` — handler was selecting it explicitly, Supabase 500'd
+
+- **MedJobs Account Fix + Admin Documents** (PRs #397, #398) — MERGED ✅
+  - PR #397: Fix account creation failing on full form submit (root cause: UPDATE path had no account creation logic)
+  - PR #398: Add Documents section to admin student detail page (driver's license + car insurance upload status)
+  - Type fix: Added document fields to `StudentMetadata` in `lib/types.ts`
+
+- **Provider Activity Center** (branch: `fond-keller`, PR #404) — MERGED ✅
+  - Plan: `plans/provider-activity-center-plan.md`
+  - Notion: [Track provider activity in "Activity Center"](https://www.notion.so/Track-provider-activity-in-Activity-Center-32f5903a0ffe80c8ad21ebd8b3176a6f)
+  - Track email click-throughs from provider notifications, surface in admin dashboard
+  - 5 phases: DB table → instrument emails → capture clicks → API → admin UI
+  - PRs #404 merged to staging, #405 promoted to main
+
+- **Family Activity Center** (branch: `logical-mahavira`) — IN PROGRESS
+  - Plan: `plans/family-activity-center-plan.md`
+  - Expand Activity Center into unified engagement hub: Providers | Families | Feed
+  - Track family signals: connection_sent, profile_enriched, email_click, question_asked, matches_activated
+  - New seeker_activity table, instrument 16 family email types with tracking, family engagement heat
+  - Replaces Matches admin page (funnel metrics → per-person engagement view)
+  - 5 phases: DB schema → instrument events → email tracking → admin API → admin UI
+
+- **80-City Batch Expansion** (branch: `vigilant-yalow`) — COMPLETE ✅
+  - 80 cities from map.olera.care priority list (44 missing + 36 thin coverage)
+  - Discovery: 14,917 providers found across 80 cities (~43 min, $86)
+  - Clean: AI classification + keyword filter + dedup against 33,589 existing
+  - Load: ~4,200 providers uploaded + geocoded ($91)
+  - Enrich: descriptions, reviews, trust signals, images ($447)
+  - Trust signals: 1,384 confirmed, 1,443 false positives soft-deleted (47% rejection rate)
+  - Post-expansion dedup: 960 cross-city duplicates soft-deleted
+  - Total cost: ~$535 (vs $2,000 estimate — 73% under budget)
+  - Fix: Added `fetchWithRetry` to `pipeline-batch.js` for ETIMEDOUT errors
+  - Supabase scaled to Small during load, can scale back to Micro now
+
+- **Pipeline Batch Optimization** (branch: `vigilant-yalow`) — DONE ✅
+  - Backup: `scripts/pipeline-batch.js.bak`
+  - 4 optimizations to `scripts/pipeline-batch.js`:
+    1. Within-batch place_id dedup: tracks place_id + name|state across cities during clean phase
+    2. Live Supabase dedup: queries live DB instead of stale 61MB CSV export
+    3. Merged reviews+photos: single Google Places call instead of two separate ones
+    4. Smart geocoding: skips re-geocode when discovery coords pass state bounds + city proximity
+  - Estimated savings: ~$62/batch + significant time reduction
+  - Also added `/dedup` slash command to worktree (was missing from `.claude/commands/`)
+  - Tested on 3-city batch (Arden-Arcade, Florence-Graham, Medford): all 4 optimizations verified
+
+- **Standalone `/enrich-city` Command** (branch: `dedup-cleanup` in main repo) — DONE ✅
+  - Script: `scripts/enrich-city.js` (rewritten from 423→340 lines)
+  - Slash command: `.claude/commands/enrich-city.md`
+  - Queries by `city`+`state` columns (case-insensitive), not provider_id prefix
+  - Catches ALL providers regardless of import source (CMS, manual, old pipeline)
+  - Dry-run by default: shows gap analysis + cost estimate
+  - 5 enrichment streams: desc, reviews, trust, snippets, images
+  - Supports `--stream` flag for single-stream execution
+  - Tested on Medford MA (23 providers) and West Jordan UT (13 providers)
+
+- **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — DONE ✅
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
 
-- **Provider Home Page (Marketing Landing)** (branch: `shiny-maxwell`) — IN PROGRESS
+- **Provider Home Page (Marketing Landing)** (branch: `shiny-maxwell`) — DONE ✅
   - Plan: `plans/provider-home-page-plan.md`
 
-- **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — PLANNED
+- **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — DONE ✅
   - Plan: `plans/provider-deletion-request-plan.md`
 
 - **Backend Integration Roadmap** — PHASES 1-5 COMPLETE ✅ + Notification Testing IN PROGRESS
@@ -178,22 +238,26 @@
 
 ## Next Up
 
-1. **Merge PR #219** (waiver library redesign) — waiting on Chantel to remove `package.json.tmp` + `.mcp.json`
-2. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
-3. **Test Google OAuth on olera.care** — verify sign-in flow end-to-end
-4. **Monitor GSC for 404 spikes** — check over next few days post-cutover
-5. **Re-submit sitemap in GSC** — now returns sitemap index with all shards, should discover 40K+ pages
-6. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
-7. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
-8. **Gated provider portal page** — Esther building; sanity check item #1
-9. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
-10. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
+1. **Scale Supabase back to Micro** — batch load is done, Small no longer needed
+2. **Spot-check new cities on live site** — verify provider cards, trust signals, map pins after ISR refresh
+3. **Test optimized pipeline on next batch** — verify all 4 optimizations work end-to-end
 
 ---
 
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-03-26 | Add fetchWithRetry to pipeline-batch.js Google API calls | ETIMEDOUT crashes killed the pipeline twice during geocoding. 3 retries with exponential backoff (2s/4s/6s) handles transient network failures without manual restart |
+| 2026-03-26 | Scale Supabase to Small during batch load, back to Micro after | Disk IO Budget warning at Micro tier. Small ($0.02/hr) provides headroom for 4K+ concurrent inserts + geocoding. Temporary — scale down after batch |
+| 2026-03-26 | enrich-city queries by city+state columns, not provider_id prefix | provider_id prefix (`{city}-{state}-NNNN`) misses providers from CMS imports, manual adds, and older pipelines. `ilike('city', x).ilike('state', y)` catches everything regardless of how it was imported |
+| 2026-03-26 | Modify existing enrich-city.js rather than create new script | Avoids code divergence — two scripts doing the same enrichment with slightly different logic. Existing script had 5 of 6 streams already, only needed query pattern + CLI flags + dry-run |
+| 2026-03-26 | Live Supabase dedup replaces stale CSV export | The 61MB CSV was 5 days stale — missed 88-city expansion and any recent changes. Querying Supabase directly adds ~10s but gives 100% accurate dedup |
+| 2026-03-26 | Smart geocoding: skip when discovery coords pass bounds check | 88% of discovery coordinates were correct. Re-geocoding all of them cost $91 this run. Smart skip only geocodes missing/suspicious coords (~30%), saving ~$64/batch |
+| 2026-03-26 | Merge reviews+photos into single Google Places call | Two separate calls (reviews, photos) for the same place_id is wasteful. Single call with `fields=reviews,photos` halves API calls. Photo URI resolution still needs a second call |
+| 2026-03-26 | Keep clean-phase AI classification despite trust signals also classifying | Clean-phase batch-50 AI is 17x cheaper per provider ($0.0001 vs $0.0017). Catches 30% of false positives before they hit geocoding/enrichment. The two-pass approach costs slightly more in Perplexity but saves far more in wasted Google API calls on false positives |
+| 2026-03-25 | Full apply must retry account creation if apply-partial failed | Two-phase form (partial on step 1, full on step 4) means the full submit UPDATE path must check `account_id` and create auth+account if null. Silent try/catch in apply-partial hid the failure |
+| 2026-03-25 | `hero_image_url` column doesn't exist in `olera-providers` | The set_hero action wrote to it but it was never added to the table schema. All references must use `select("*")` and guard with `"hero_image_url" in provider` |
+| 2026-03-25 | Hover overlay > exposed pill buttons for image actions | Colored pills (yellow/red/green) below each image were visual noise. Dark gradient overlay with icon buttons on hover — images are content, buttons are tools |
 | 2026-03-25 | Quick discovery mode (3 terms/category) is sufficient for batch | Standard mode (12 terms) costs 4x more but yields mostly duplicates. Quick found 16K+ providers across 78 cities for $100. After dedup/filter, same quality |
 | 2026-03-25 | 4 parallel processing/enrichment batches for large batches | Single batch would take ~10hrs for 78 cities. 4 parallel batches cut to ~2.7hrs. Tradeoff: 6 Supabase timeouts from concurrent load (easy sequential retry) |
 | 2026-03-25 | Cap parallel enrichment batches at 4 to avoid Supabase timeouts | 4 concurrent `enrich-city.js` processes cause occasional statement timeouts. 3-4 batches is the sweet spot for speed vs stability |
@@ -275,6 +339,131 @@
 ---
 
 ## Session Log
+
+### 2026-03-26 (Session 61) — 80-City Batch + Pipeline Optimization + /enrich-city
+
+**Branch:** `vigilant-yalow` (no code changes in worktree) | **No PR** (data-only pipeline run)
+
+**What:** Largest batch expansion since the 88-city run. Processed 80 priority cities from map.olera.care gap analysis — 44 missing cities + 36 thin-coverage cities.
+
+**Pipeline Results:**
+- Discovery: 14,917 raw providers (80 cities, 43 min, $86)
+- Clean: AI classification + keyword filter + dedup against 33,589 existing providers
+- Load: ~4,941 uploaded → ~4,217 active after geocoding ($91)
+- Enrich: 4,772 descriptions, 3,956 review snippets, 3,605 images, 1,384 trust signals confirmed ($447)
+- **1,443 false positives soft-deleted** by trust signal verification (47% rejection rate for non-CMS)
+- Total: **~$535** (73% under $2,000 estimate)
+
+**Issues & Fixes:**
+- Pipeline crashed twice on `ETIMEDOUT` during geocoding (Huber Heights OH, Linton Hall VA)
+- Root cause: `googleGeocode()` had no retry logic for transient network errors
+- Fix: Added `fetchWithRetry()` wrapper (3 retries, exponential backoff) to all Google API calls in `scripts/pipeline-batch.js`
+- Supabase Disk IO Budget warning → scaled Micro → Small during load phase
+
+**Note:** Pipeline processed all 174 expansion directories (not just the 80 new ones) because `--resume` couldn't check Notion (no NOTION_TOKEN in env). Dedup correctly skipped existing providers. No harm, just slower clean phase.
+
+**Post-expansion:** Ran `dedup-database.js --delete` — 960 cross-city duplicates soft-deleted (1/3 of new providers were dupes from overlapping nearby cities).
+
+**Pipeline Optimization (applied to main repo `scripts/pipeline-batch.js`):**
+- Backup: `scripts/pipeline-batch.js.bak`
+- Within-batch place_id dedup: tracks place_ids across cities, eliminates dupes before any API call
+- Live Supabase dedup: replaces stale 61MB CSV with live DB query
+- Merged reviews+photos: single `googlePlacesField(id, 'reviews,photos')` instead of 2 calls
+- Smart geocoding: skips re-geocode when discovery coords pass state bounds + city proximity check
+- Estimated savings: ~$62/batch (~12%) + faster execution
+
+**`/enrich-city` Standalone Command:**
+- Rewrote `scripts/enrich-city.js`: queries by city+state columns (not provider_id prefix)
+- Dry-run by default with gap analysis table + cost estimate
+- 5 streams: desc, reviews, trust, snippets, images — supports `--stream` for single-stream
+- Slash command: `.claude/commands/enrich-city.md` (city-pipeline-level rigor)
+- Tested on Medford MA (23 providers, 4 image gaps) and West Jordan UT (13 providers, 5 gaps)
+
+**Build:** N/A (no app code changes; pipeline scripts + slash commands applied to main repo)
+
+---
+
+### 2026-03-25 (Session 60b) — MedJobs Account Creation Fix + Admin Documents
+
+**Branch:** `medjobs-account-fix`, `medjobs-admin-documents` | **PRs:** #397, #398
+
+**What:** Fixed critical bug where MedJobs onboarding completed successfully but dashboard showed "No profile yet." Also added Documents section to admin student detail page.
+
+**Root Cause (PR #397):** The full `/api/medjobs/apply` endpoint's UPDATE path (triggered when `apply-partial` already created the profile) had zero account creation logic. If `apply-partial`'s account creation failed silently, `account_id` stayed null. The full submit updated name/phone/metadata but never checked or set `account_id`. Dashboard queries profiles by `account_id` → found nothing → "No profile yet."
+
+**Fix:** Added account creation + linking as fallback in the UPDATE path. Also return `tokenHash` from both API response paths so client can auto-sign-in after submission. Success screen now links to `/portal/medjobs` (dashboard) instead of `/medjobs/submit-video`.
+
+**PR #398:** Added Documents section to admin MedJobs student detail page. Shows driver's license and car insurance upload status (green "Uploaded" with timestamp, or amber "Not uploaded" warning). Added `drivers_license_url`, `drivers_license_uploaded_at`, `car_insurance_url`, `car_insurance_uploaded_at` to `StudentMetadata` type.
+
+**Files Modified (4):**
+- `app/api/medjobs/apply/route.ts` — Account creation in UPDATE path, tokenHash in responses
+- `app/medjobs/apply/page.tsx` — Auto-sign-in after submit, dashboard link on success
+- `app/admin/medjobs/[studentId]/page.tsx` — Documents section with upload status
+- `lib/types.ts` — Document fields in StudentMetadata
+
+---
+
+### 2026-03-25 (Session 60) — Board Triage + Quick Wins (WEB-11, WEB-06, DKIM)
+
+**Branch:** `jolly-goodall` | **PR:** #400
+
+**What:** Triaged the Notion roadmap board, closed completed tasks, knocked out two P3 quick wins, and completed DKIM setup for joinolera.care.
+
+**Completed:**
+- **HP-07** (Browse by Care Type Power Pages) — already built at `app/[category]/`, marked Done
+- **Email notifications on account creation** — already built in `ensure-account` endpoint, marked Done
+- **DKIM setup for joinolera.care** — generated 2048-bit key in Google Admin, added TXT record to Cloudflare, authentication active
+- **WEB-11** (External link icons) — added arrow-out-of-box SVG to 7 components: AiTrustSignalsSection, ReviewsSection, GoogleReviewSnippets, ProgramCard, RecommendedFirstStep, AAACard, ProviderDetailPanel
+- **WEB-06** (Restart button on benefits results) — added "Start over" button below document checklist, uses existing `reset()` from `useCareProfile`
+- **Deleted** "Rename business_profiles table" task — pure churn, no user value
+
+**Triaged (left as-is):**
+- Unified Care Profile schema (P5) — big architecture task, do after MedJobs + Benefits Finder ship
+- Unify olera-providers + business_profiles (P3) — dangerous while iOS app shares Supabase, needs dedicated week
+- Benefits Admin CMS (P5) — move data to Supabase table first, full CMS is over-engineering for now
+
+**Files Modified (8):**
+- `components/providers/AiTrustSignalsSection.tsx` — external link icon on "Source"
+- `components/providers/ReviewsSection.tsx` — external link icon on "See all on Google"
+- `components/providers/GoogleReviewSnippets.tsx` — external link icon, renamed to "See all on Google"
+- `components/benefits/ProgramCard.tsx` — external link icon on Website/Apply/inline URLs
+- `components/benefits/RecommendedFirstStep.tsx` — external link icon on "Visit website"
+- `components/benefits/AAACard.tsx` — external link icon on "Visit website"
+- `components/messaging/ProviderDetailPanel.tsx` — external link icon on provider website
+- `components/benefits/BenefitsResults.tsx` — "Start over" button
+
+**Build:** Clean, zero errors.
+
+---
+
+### 2026-03-25 (Session 59) — Admin Photo Deletion + Image Grid Redesign
+
+**Branch:** `gentle-newton` | **PR:** #395
+
+**What:** Add ability to delete provider photos from admin dashboard. Redesigned the image grid UI from exposed colored pill buttons to a hover overlay pattern.
+
+**Commits (8):**
+- `9be7d5c` — Core: `delete_image` action in PATCH handler + delete buttons in UI
+- `c661824` — UI redesign: hover overlay with icon buttons, hero ring, broken image states, rounded-xl cards
+- `7342677` — Fix UI refresh: sync formData after image actions, add error feedback
+- `cd27967` — Add diagnostic logging to delete handler
+- `3f9c915` — Fix misleading 404: separate fetchError (500) from !provider (404)
+- `72db79c` — Log errors to browser console for debugging
+- `70818c6` — Wrap provider_image_metadata ops in try/catch (table may not exist)
+- `11d12d3` — **Root cause fix**: `hero_image_url` column doesn't exist — switch to `select("*")`
+
+**Files Modified (2):**
+- `app/api/admin/images/[providerId]/route.ts` — `delete_image` action, error handling, logging
+- `app/admin/directory/[providerId]/page.tsx` — Hover overlay UI, delete buttons, error feedback
+
+**Files Created (1):**
+- `plans/admin-delete-photos-plan.md` — Implementation plan
+
+**Root Cause (500 on delete):** The handler selected `hero_image_url` explicitly from `olera-providers`, but that column doesn't exist in the database. Supabase rejects queries for non-existent columns. The directory endpoint worked because it uses `select("*")`.
+
+**Build:** Clean, zero errors.
+
+---
 
 ### 2026-03-25 (Session 58) — 88-City Batch Expansion
 

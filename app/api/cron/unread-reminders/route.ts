@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { newMessageEmail } from "@/lib/email-templates";
 
 interface ThreadMessage {
@@ -93,15 +93,23 @@ export async function GET(request: NextRequest) {
         lastMsg.text.length > 200 ? lastMsg.text.slice(0, 200) + "..." : lastMsg.text;
 
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+      const isFamily = recipient.type === "family";
+      const urSubject2 = `Reminder: You have an unread message from ${sender?.display_name || "someone"} on Olera`;
+      const urLogId2 = await reserveEmailLogId({
+        to: recipient.email,
+        subject: urSubject2,
+        emailType: "unread_reminder",
+        recipientType: isFamily ? "family" : "provider",
+      });
 
       // Route families to portal inbox, providers to provider connections
-      const viewUrl = recipient.type === "family"
-        ? `${siteUrl}/portal/inbox`
-        : `${siteUrl}/provider/connections`;
+      const viewUrl = isFamily
+        ? appendTrackingParams(`${siteUrl}/portal/inbox`, urLogId2)
+        : appendTrackingParams(`${siteUrl}/provider/connections`, urLogId2);
 
       await sendEmail({
         to: recipient.email,
-        subject: `Reminder: You have an unread message from ${sender?.display_name || "someone"} on Olera`,
+        subject: urSubject2,
         html: newMessageEmail({
           recipientName: recipient.display_name || "there",
           senderName: sender?.display_name || "Someone",
@@ -109,7 +117,8 @@ export async function GET(request: NextRequest) {
           viewUrl,
         }),
         emailType: "unread_reminder",
-        recipientType: recipient.type === "family" ? "family" : "provider",
+        recipientType: isFamily ? "family" : "provider",
+        emailLogId: urLogId2 ?? undefined,
       });
 
       // Mark as reminded so we don't send again for the same message

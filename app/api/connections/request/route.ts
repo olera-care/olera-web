@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail, verifyEmailEmail } from "@/lib/email-templates";
 import { sendSlackAlert, slackNewLead, slackMissingEmail } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
@@ -629,14 +629,38 @@ async function handleGuestConnection({
     return NextResponse.json({ error: "Failed to send request." }, { status: 500 });
   }
 
+  // Log family engagement event (fire-and-forget)
+  db.from("seeker_activity").insert({
+    profile_id: fromProfileId,
+    event_type: "connection_sent",
+    related_provider_id: providerId,
+    metadata: {
+      connection_id: newConnection.id,
+      care_type: intentData.careType || null,
+      timeline: intentData.urgency || null,
+      guest: true,
+    },
+  }).then(({ error: actErr }: { error: { message: string } | null }) => {
+    if (actErr) console.error("[seeker_activity] connection_sent insert failed:", actErr);
+  });
+
   // Send "Verify your email" email (user already has instant session via tokenHash)
   try {
+    const verifyEmailLogId = await reserveEmailLogId({
+      to: normalizedEmail,
+      subject: `Verify your email — Olera`,
+      emailType: "verify_email",
+      recipientType: "family",
+    });
+
+    const verifyDest = appendTrackingParams("/portal/inbox", verifyEmailLogId);
+
     // Generate a verification link for the email
     const { data: verifyLinkData, error: verifyLinkError } = await authClient.auth.admin.generateLink({
       type: "magiclink",
       email: normalizedEmail,
       options: {
-        redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent("/portal/inbox")}&verify=true`,
+        redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(verifyDest)}&verify=true`,
       },
     });
 
@@ -651,6 +675,7 @@ async function handleGuestConnection({
         }),
         emailType: 'verify_email',
         recipientType: 'family',
+        emailLogId: verifyEmailLogId ?? undefined,
       });
     }
   } catch (emailErr) {
@@ -668,9 +693,22 @@ async function handleGuestConnection({
         memory_care: "Memory Care",
       };
 
+      // Reserve email log ID for tracking before generating links
+      const emailSubject = `A family is looking for care from ${providerDisplayName || providerName}`;
+      const emailLogId = await reserveEmailLogId({
+        to: providerEmail,
+        subject: emailSubject,
+        emailType: "connection_request",
+        recipientType: "provider",
+        providerId: toProfileId,
+      });
+
       // Generate magic link for provider one-click sign-in
       const siteUrl = getSiteUrl();
-      const redirectPath = `/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`;
+      const redirectPath = appendTrackingParams(
+        `/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`,
+        emailLogId
+      );
       // Fallback: direct to onboard page (handles both claimed and unclaimed providers)
       let viewUrl = `${siteUrl}${redirectPath}`;
 
@@ -692,7 +730,7 @@ async function handleGuestConnection({
 
       await sendEmail({
         to: providerEmail,
-        subject: `A family is looking for care from ${providerDisplayName || providerName}`,
+        subject: emailSubject,
         html: connectionRequestEmail({
           providerName: providerDisplayName || providerName,
           familyName: firstName || "A family",
@@ -704,6 +742,7 @@ async function handleGuestConnection({
         emailType: 'connection_request',
         recipientType: 'provider',
         providerId: toProfileId,
+        emailLogId: emailLogId ?? undefined,
       });
     }
   } catch (emailErr) {
@@ -1286,15 +1325,43 @@ export async function POST(request: Request) {
       );
     }
 
+    // Log family engagement event (fire-and-forget)
+    db.from("seeker_activity").insert({
+      profile_id: fromProfileId,
+      event_type: "connection_sent",
+      related_provider_id: providerId,
+      metadata: {
+        connection_id: newConnection.id,
+        care_type: intentData?.careType || null,
+        timeline: intentData?.urgency || null,
+        guest: false,
+      },
+    }).then(({ error: actErr }: { error: { message: string } | null }) => {
+      if (actErr) console.error("[seeker_activity] connection_sent insert failed:", actErr);
+    });
+
     // 9. Confirmation email to the family (fire-and-forget)
     try {
       if (user.email) {
+        const connSentEmailLogId = await reserveEmailLogId({
+          to: user.email,
+          subject: `Your inquiry to ${providerName} was sent`,
+          emailType: "connection_sent",
+          recipientType: "family",
+          providerId: toProfileId,
+        });
+
         const careTypeMap0: Record<string, string> = {
           home_care: "Home Care",
           home_health: "Home Health Care",
           assisted_living: "Assisted Living",
           memory_care: "Memory Care",
         };
+
+        const inboxUrl = appendTrackingParams(
+          `${getSiteUrl()}/portal/inbox?id=${newConnection.id}`,
+          connSentEmailLogId
+        );
 
         await sendEmail({
           to: user.email,
@@ -1303,11 +1370,12 @@ export async function POST(request: Request) {
             familyName: firstName || "there",
             providerName,
             careType: intentData?.careType ? (careTypeMap0[intentData.careType] || intentData.careType) : null,
-            viewUrl: `${getSiteUrl()}/portal/inbox?id=${newConnection.id}`,
+            viewUrl: inboxUrl,
           }),
           emailType: 'connection_sent',
           recipientType: 'family',
           providerId: toProfileId,
+          emailLogId: connSentEmailLogId ?? undefined,
         });
       }
     } catch (emailErr) {
@@ -1324,9 +1392,22 @@ export async function POST(request: Request) {
           memory_care: "Memory Care",
         };
 
+        // Reserve email log ID for tracking before generating links
+        const emailSubject = `A family is looking for care from ${providerDisplayName || providerName}`;
+        const emailLogId = await reserveEmailLogId({
+          to: providerEmail,
+          subject: emailSubject,
+          emailType: "connection_request",
+          recipientType: "provider",
+          providerId: toProfileId,
+        });
+
         // Generate magic link for provider one-click sign-in
         const siteUrl = getSiteUrl();
-        const redirectPath = `/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`;
+        const redirectPath = appendTrackingParams(
+          `/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`,
+          emailLogId
+        );
         // Fallback: direct to onboard page (handles both claimed and unclaimed providers)
         let viewUrl = `${siteUrl}${redirectPath}`;
 
@@ -1348,7 +1429,7 @@ export async function POST(request: Request) {
 
         await sendEmail({
           to: providerEmail,
-          subject: `A family is looking for care from ${providerDisplayName || providerName}`,
+          subject: emailSubject,
           html: connectionRequestEmail({
             providerName: providerDisplayName || providerName,
             familyName: account.display_name || "A family",
@@ -1360,6 +1441,7 @@ export async function POST(request: Request) {
           emailType: 'connection_request',
           recipientType: 'provider',
           providerId: toProfileId,
+          emailLogId: emailLogId ?? undefined,
         });
       }
     } catch (emailErr) {

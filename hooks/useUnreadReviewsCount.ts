@@ -15,54 +15,75 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
  */
 export function useUnreadReviewsCount(providerId: string | null): number {
   const [count, setCount] = useState(0);
-  const fetchedRef = useRef(false);
+  const fetchingRef = useRef(false);
 
   const recount = useCallback(() => {
-    if (!providerId || !isSupabaseConfigured()) {
+    if (!providerId || fetchingRef.current) return;
+
+    if (!isSupabaseConfigured()) {
       setCount(0);
       return;
     }
 
-    const readKey = `olera_reviews_read_${providerId}`;
-
-    // Get read review IDs from localStorage
-    let readIds = new Set<string>();
-    try {
-      const stored = localStorage.getItem(readKey);
-      if (stored) {
-        const parsed: string[] = JSON.parse(stored);
-        parsed.forEach((id) => readIds.add(id));
-      }
-    } catch {
-      // localStorage unavailable
-    }
+    fetchingRef.current = true;
 
     (async () => {
-      const supabase = createClient();
+      try {
+        const supabase = createClient();
 
-      const { data: reviews } = await supabase
-        .from("reviews")
-        .select("id")
-        .eq("provider_id", providerId)
-        .eq("status", "published");
+        // Fetch reviews with metadata for read tracking
+        const { data: reviews } = await supabase
+          .from("reviews")
+          .select("id, metadata")
+          .eq("provider_id", providerId)
+          .eq("status", "published");
 
-      if (!reviews || reviews.length === 0) {
+        if (!reviews || reviews.length === 0) {
+          setCount(0);
+          return;
+        }
+
+        // Get localStorage read IDs as fallback for backwards compatibility
+        let localStorageReadIds = new Set<string>();
+        try {
+          const stored = localStorage.getItem(`olera_reviews_read_${providerId}`);
+          if (stored) {
+            const parsed: string[] = JSON.parse(stored);
+            parsed.forEach((id) => localStorageReadIds.add(id));
+          }
+        } catch { /* localStorage unavailable */ }
+
+        // Count unread: review is unread if neither database nor localStorage shows it as read
+        let unreadCount = 0;
+        for (const r of reviews) {
+          const meta = (r.metadata as Record<string, unknown>) || {};
+          const readBy = (meta.read_by as Record<string, string>) || {};
+
+          // Check database read_by (primary)
+          const isReadInDb = !!readBy[providerId];
+
+          // Check localStorage (fallback)
+          const isReadInLocalStorage = localStorageReadIds.has(r.id);
+
+          if (!isReadInDb && !isReadInLocalStorage) {
+            unreadCount++;
+          }
+        }
+
+        setCount(unreadCount);
+      } catch (err) {
+        console.error("[useUnreadReviewsCount] Error:", err);
         setCount(0);
-        return;
+      } finally {
+        fetchingRef.current = false;
       }
-
-      const unreadCount = reviews.filter((r) => !readIds.has(r.id)).length;
-      setCount(unreadCount);
     })();
   }, [providerId]);
 
-  // Initial count
+  // Initial count - always recount when providerId changes
   useEffect(() => {
-    if (!fetchedRef.current && providerId) {
-      recount();
-      fetchedRef.current = true;
-    }
-  }, [recount, providerId]);
+    recount();
+  }, [recount]);
 
   // Re-count when a review is marked as read
   useEffect(() => {
@@ -106,30 +127,60 @@ export function useUnreadReviewsCount(providerId: string | null): number {
 }
 
 /**
- * Mark a review as read in localStorage and dispatch event.
- * Call this when a provider views a review.
+ * Mark a review as read in the database (metadata.read_by) and localStorage fallback.
+ * Dispatches olera:reviews-read event for immediate UI updates.
  */
-export function markReviewAsRead(reviewId: string, providerId: string): void {
-  const readKey = `olera_reviews_read_${providerId}`;
+export async function markReviewAsRead(reviewId: string, profileId: string): Promise<void> {
+  // Optimistically update localStorage for immediate feedback
+  const readKey = `olera_reviews_read_${profileId}`;
   try {
     const stored = localStorage.getItem(readKey);
     const readIds: string[] = stored ? JSON.parse(stored) : [];
     if (!readIds.includes(reviewId)) {
       readIds.push(reviewId);
       localStorage.setItem(readKey, JSON.stringify(readIds));
-      window.dispatchEvent(new CustomEvent("olera:reviews-read"));
     }
-  } catch {
-    // localStorage unavailable
+  } catch { /* localStorage unavailable */ }
+
+  // Dispatch event for immediate UI updates
+  window.dispatchEvent(new CustomEvent("olera:reviews-read"));
+
+  // Persist to database
+  try {
+    await fetch("/api/provider/reviews/mark-read", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reviewId }),
+    });
+  } catch (err) {
+    console.error("[markReviewAsRead] Failed to persist to database:", err);
+    // localStorage fallback already in place
   }
 }
 
 /**
- * Mark all reviews as read for a provider.
- * Call this when a provider visits the Reviews page.
+ * Migrate localStorage read data from old key format to new profileId-based key.
+ * This is a one-time migration for backwards compatibility.
  */
-export function markAllReviewsAsRead(reviewIds: string[], providerId: string): void {
-  const readKey = `olera_reviews_read_${providerId}`;
+export function migrateReviewsReadData(oldKey: string, profileId: string): void {
+  if (!oldKey || !profileId || oldKey === profileId) return;
+  try {
+    const oldKeyFull = `olera_reviews_read_${oldKey}`;
+    const newKey = `olera_reviews_read_${profileId}`;
+    const oldData = localStorage.getItem(oldKeyFull);
+    if (oldData && !localStorage.getItem(newKey)) {
+      localStorage.setItem(newKey, oldData);
+    }
+  } catch { /* localStorage unavailable */ }
+}
+
+/**
+ * Mark all reviews as read for a provider (legacy function for compatibility).
+ * Updates localStorage and dispatches sync event.
+ * @deprecated Use markReviewAsRead for individual reviews instead
+ */
+export function markAllReviewsAsRead(reviewIds: string[], profileId: string): void {
+  const readKey = `olera_reviews_read_${profileId}`;
   try {
     const stored = localStorage.getItem(readKey);
     const existingIds: string[] = stored ? JSON.parse(stored) : [];
@@ -137,7 +188,7 @@ export function markAllReviewsAsRead(reviewIds: string[], providerId: string): v
     localStorage.setItem(readKey, JSON.stringify(merged));
     // Dispatch sync event with count 0
     window.dispatchEvent(new CustomEvent("olera:reviews-sync", {
-      detail: { count: 0, providerId }
+      detail: { count: 0, providerId: profileId }
     }));
   } catch {
     // localStorage unavailable

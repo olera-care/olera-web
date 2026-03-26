@@ -143,6 +143,10 @@ export default function AdminMedJobsDetailPage() {
         resume_url: meta.resume_url,
         video_intro_url: meta.video_intro_url,
         linkedin_url: meta.linkedin_url,
+        drivers_license_url: meta.drivers_license_url,
+        drivers_license_uploaded_at: meta.drivers_license_uploaded_at,
+        car_insurance_url: meta.car_insurance_url,
+        car_insurance_uploaded_at: meta.car_insurance_uploaded_at,
         total_verified_hours: meta.total_verified_hours,
         profile_completeness: meta.profile_completeness,
         seeking_status: meta.seeking_status,
@@ -732,6 +736,62 @@ export default function AdminMedJobsDetailPage() {
             <FieldInput label="Resume URL" value={formData.resume_url as string} onChange={(v) => updateField("resume_url", v || undefined)} />
             <FieldInput label="Video Intro URL" value={formData.video_intro_url as string} onChange={(v) => updateField("video_intro_url", v || undefined)} />
             <FieldInput label="LinkedIn URL" value={formData.linkedin_url as string} onChange={(v) => updateField("linkedin_url", v || undefined)} />
+          </div>
+        </Section>
+
+        {/* Documents */}
+        <Section title="Documents">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Driver&apos;s License</label>
+              {formData.drivers_license_url ? (
+                <div className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                  <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-emerald-800">Uploaded</p>
+                    {formData.drivers_license_uploaded_at ? (
+                      <p className="text-xs text-emerald-600 truncate">
+                        {new Date(formData.drivers_license_uploaded_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <svg className="w-5 h-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm font-medium text-amber-700">Not uploaded</p>
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Car Insurance</label>
+              {formData.car_insurance_url ? (
+                <div className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                  <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-emerald-800">Uploaded</p>
+                    {formData.car_insurance_uploaded_at ? (
+                      <p className="text-xs text-emerald-600 truncate">
+                        {new Date(formData.car_insurance_uploaded_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <svg className="w-5 h-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm font-medium text-amber-700">Not uploaded</p>
+                </div>
+              )}
+            </div>
           </div>
         </Section>
 

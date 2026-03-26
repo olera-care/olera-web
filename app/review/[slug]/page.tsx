@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import Select from "@/components/ui/Select";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 // ── Types ──
 
@@ -125,9 +127,149 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
   );
 }
 
+// ── Minimal Header Component ──
+
+function MinimalHeader() {
+  const { user, openAuth, signOut } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
+
+  const handleSignIn = () => {
+    setMenuOpen(false);
+    openAuth({ defaultMode: "sign-in" });
+  };
+
+  const handleSignUp = () => {
+    setMenuOpen(false);
+    openAuth({ defaultMode: "sign-up" });
+  };
+
+  const handleSignOut = async () => {
+    setMenuOpen(false);
+    await signOut();
+  };
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+      <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <Link href="/" className="flex items-center space-x-2">
+          <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
+          <span className="text-xl font-bold text-gray-900">Olera</span>
+        </Link>
+
+        {/* Pill-shaped menu button (matches main Navbar) */}
+        <div className="relative" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 min-h-[44px]"
+            aria-label="Menu"
+            aria-expanded={menuOpen}
+            aria-haspopup="true"
+          >
+            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <div className="w-8 h-8 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              </svg>
+            </div>
+          </button>
+
+          {/* Dropdown menu */}
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-56 rounded-xl bg-white border border-gray-200 shadow-xl z-50 overflow-hidden">
+              <nav className="py-2">
+                <Link
+                  href="/browse"
+                  className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Find Care
+                </Link>
+                <Link
+                  href="/caregiver-support"
+                  className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Caregiver Support
+                </Link>
+                <Link
+                  href="/benefits-center"
+                  className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Benefits Center
+                </Link>
+                <div className="border-t border-gray-100 my-1" />
+                <Link
+                  href="/for-providers"
+                  className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  For Providers
+                </Link>
+                <div className="border-t border-gray-100 my-1" />
+                {user ? (
+                  <>
+                    <Link
+                      href="/portal"
+                      className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      My Account
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Sign out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleSignIn}
+                      className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Sign in
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSignUp}
+                      className="w-full text-left px-4 py-3 text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+                    >
+                      Sign up
+                    </button>
+                  </>
+                )}
+              </nav>
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}
+
 // ── Main Page Component ──
 
-export default function ReviewPage() {
+function ReviewPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const slug = params.slug as string;
@@ -143,14 +285,48 @@ export default function ReviewPage() {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [relationship, setRelationship] = useState("");
-  const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");
   const [reviewerName, setReviewerName] = useState(prefillName);
+  const [postAnonymously, setPostAnonymously] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Google share state
   const [copiedForGoogle, setCopiedForGoogle] = useState(false);
+
+  // Dynamic content based on rating (family's perspective)
+  const getStepTwoHeader = () => {
+    if (rating >= 5) return "Share what made it great";
+    if (rating >= 4) return "Tell us more about your experience";
+    if (rating >= 3) return "Share your honest thoughts";
+    if (rating >= 2) return "Help others know what to expect";
+    return "Share your concerns";
+  };
+
+  const getStepTwoSubtext = () => {
+    if (rating >= 4) return "Your story helps other families find quality care";
+    if (rating >= 3) return "Your feedback helps families make informed decisions";
+    return "Your experience matters — help others avoid similar issues";
+  };
+
+  // Pre-fill comment when moving to step 2
+  const getDefaultComment = () => {
+    if (!provider) return "";
+    const name = provider.display_name;
+    if (rating >= 5) return `I had an excellent experience with ${name}. The care and attention provided was exceptional. `;
+    if (rating >= 4) return `Overall, I had a positive experience with ${name}. `;
+    if (rating >= 3) return `My experience with ${name} was mixed. `;
+    if (rating >= 2) return `I was disappointed with my experience at ${name}. `;
+    return `I had significant concerns about my experience with ${name}. `;
+  };
+
+  // Handle moving to step 2 with pre-filled comment
+  const handleContinueToDetails = () => {
+    if (!comment) {
+      setComment(getDefaultComment());
+    }
+    setStep("details");
+  };
 
   // Fetch provider info
   useEffect(() => {
@@ -190,9 +366,8 @@ export default function ReviewPage() {
           provider_id: provider.id,
           rating,
           relationship,
-          title: title.trim() || null,
           comment: comment.trim(),
-          reviewer_name: reviewerName.trim() || "Anonymous",
+          reviewer_name: postAnonymously ? "Anonymous" : (reviewerName.trim() || "Anonymous"),
           ref_source: refSource,
         }),
       });
@@ -215,9 +390,7 @@ export default function ReviewPage() {
     if (!provider?.google_place_id) return;
 
     // Build the review text to copy
-    const reviewText = title.trim()
-      ? `${title.trim()}\n\n${comment.trim()}`
-      : comment.trim();
+    const reviewText = comment.trim();
 
     try {
       await navigator.clipboard.writeText(reviewText);
@@ -256,8 +429,11 @@ export default function ReviewPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white flex flex-col">
+        <MinimalHeader />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+        </div>
       </div>
     );
   }
@@ -265,8 +441,10 @@ export default function ReviewPage() {
   // Error state
   if (error || !provider) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white flex flex-col">
+        <MinimalHeader />
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="text-center max-w-md">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
             <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
@@ -284,6 +462,7 @@ export default function ReviewPage() {
           >
             Go to homepage
           </Link>
+          </div>
         </div>
       </div>
     );
@@ -292,8 +471,10 @@ export default function ReviewPage() {
   // Success state
   if (step === "success") {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white flex flex-col">
+        <MinimalHeader />
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="w-full max-w-md">
           {/* Main success card */}
           <div
             className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-8 text-center"
@@ -379,6 +560,7 @@ export default function ReviewPage() {
               View provider profile
             </Link>
           </div>
+          </div>
         </div>
         <style jsx global>{`
           @keyframes card-enter {
@@ -391,14 +573,16 @@ export default function ReviewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white flex flex-col">
+      <MinimalHeader />
       <style jsx global>{`
         @keyframes card-enter {
           from { opacity: 0; transform: translateY(8px); }
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
-      <div className="max-w-lg mx-auto px-4 py-8 sm:py-12">
+      <div className="flex-1">
+        <div className="max-w-lg mx-auto px-4 py-8 sm:py-12">
         {/* Provider Header */}
         <div className="text-center mb-8" style={{ animation: "card-enter 0.25s ease-out both" }}>
           <div className="w-20 h-20 mx-auto mb-4 rounded-2xl overflow-hidden bg-gray-100 ring-4 ring-white shadow-sm">
@@ -418,11 +602,11 @@ export default function ReviewPage() {
               </div>
             )}
           </div>
-          <h1 className="text-lg font-display font-bold text-gray-900">
+          <h1 className="text-xl font-display font-bold text-gray-900">
             Review {provider.display_name}
           </h1>
           {provider.city && provider.state && (
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-base text-gray-500 mt-1">
               {provider.city}, {provider.state}
             </p>
           )}
@@ -435,17 +619,17 @@ export default function ReviewPage() {
 
         {/* Form Card */}
         <div
-          className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden"
+          className="bg-white rounded-2xl border border-gray-200/80 shadow-sm"
           style={{ animation: "card-enter 0.3s ease-out both", animationDelay: "100ms" }}
         >
           {/* Step 1: Rating */}
           {step === "rating" && (
             <div className="p-6">
               <div className="text-center mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">
                   How was your experience?
                 </h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-base text-gray-500">
                   Select a rating below
                 </p>
               </div>
@@ -459,7 +643,7 @@ export default function ReviewPage() {
                   onHover={setHoverRating}
                 />
                 {(hoverRating || rating) > 0 && (
-                  <p className="mt-3 text-sm font-medium text-primary-600">
+                  <p className="mt-3 text-base font-medium text-primary-600">
                     {RATING_LABELS[hoverRating || rating]}
                   </p>
                 )}
@@ -467,34 +651,21 @@ export default function ReviewPage() {
 
               {/* Relationship */}
               <div className="mb-6">
-                <label htmlFor="relationship" className="block text-sm font-medium text-gray-700 mb-2">
-                  Your relationship <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="relationship"
+                <Select
+                  label="Your relationship"
+                  required
+                  options={RELATIONSHIPS}
                   value={relationship}
-                  onChange={(e) => setRelationship(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all appearance-none cursor-pointer min-h-[48px]"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "right 12px center",
-                    backgroundSize: "20px",
-                  }}
-                >
-                  <option value="">Select your relationship</option>
-                  {RELATIONSHIPS.map((rel) => (
-                    <option key={rel} value={rel}>
-                      {rel}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setRelationship}
+                  placeholder="Select your relationship"
+                  dropdownDirection="down"
+                />
               </div>
 
               {/* Next Button */}
               <button
                 type="button"
-                onClick={() => setStep("details")}
+                onClick={handleContinueToDetails}
                 disabled={rating === 0 || !relationship}
                 className="w-full py-3.5 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 active:scale-[0.99] text-white font-semibold rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed min-h-[52px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 shadow-sm hover:shadow"
               >
@@ -506,6 +677,16 @@ export default function ReviewPage() {
           {/* Step 2: Details */}
           {step === "details" && (
             <div className="p-6">
+              {/* Dynamic header based on rating */}
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-1">
+                  {getStepTwoHeader()}
+                </h2>
+                <p className="text-base text-gray-500">
+                  {getStepTwoSubtext()}
+                </p>
+              </div>
+
               {/* Summary bar */}
               <button
                 type="button"
@@ -517,7 +698,7 @@ export default function ReviewPage() {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <svg
                         key={star}
-                        className={`w-4 h-4 ${star <= rating ? "text-primary-500" : "text-gray-200"}`}
+                        className={`w-5 h-5 ${star <= rating ? "text-primary-500" : "text-gray-200"}`}
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -525,47 +706,59 @@ export default function ReviewPage() {
                       </svg>
                     ))}
                   </div>
-                  <span className="text-sm text-gray-600">{relationship}</span>
+                  <span className="text-base text-gray-600">{relationship}</span>
                 </div>
-                <span className="text-xs text-primary-600 font-medium">Edit</span>
+                <span className="text-sm text-primary-600 font-medium">Edit</span>
               </button>
 
               {/* Your Name */}
               <div className="mb-5">
-                <label htmlFor="reviewer-name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Your name <span className="text-gray-400">(optional)</span>
+                <label htmlFor="reviewer-name" className="block text-base font-medium text-gray-700 mb-2">
+                  Your name
                 </label>
                 <input
                   id="reviewer-name"
                   type="text"
                   value={reviewerName}
-                  onChange={(e) => setReviewerName(e.target.value)}
+                  onChange={(e) => {
+                    setReviewerName(e.target.value);
+                    if (e.target.value) setPostAnonymously(false);
+                  }}
+                  disabled={postAnonymously}
                   placeholder="How should we display your name?"
-                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all min-h-[48px]"
+                  className={`w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all min-h-[52px] ${postAnonymously ? "opacity-50 cursor-not-allowed bg-gray-50" : ""}`}
                 />
-                <p className="mt-1.5 text-xs text-gray-400">
-                  Leave blank to post anonymously
-                </p>
-              </div>
-
-              {/* Title */}
-              <div className="mb-5">
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                  Title <span className="text-gray-400">(optional)</span>
+                {/* Post anonymously checkbox - styled green */}
+                <label className="flex items-center gap-2.5 mt-3 cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={postAnonymously}
+                      onChange={(e) => {
+                        setPostAnonymously(e.target.checked);
+                        if (e.target.checked) setReviewerName("");
+                      }}
+                      className="sr-only peer"
+                    />
+                    <div className={`w-5 h-5 rounded border-2 transition-all flex items-center justify-center ${
+                      postAnonymously
+                        ? "bg-primary-600 border-primary-600"
+                        : "border-gray-300 bg-white group-hover:border-gray-400"
+                    }`}>
+                      {postAnonymously && (
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-base text-gray-600">Post anonymously</span>
                 </label>
-                <input
-                  id="title"
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Summarize your experience"
-                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all min-h-[48px]"
-                />
               </div>
 
               {/* Comment */}
               <div className="mb-6">
-                <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="comment" className="block text-base font-medium text-gray-700 mb-2">
                   Your review <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -574,14 +767,14 @@ export default function ReviewPage() {
                   onChange={(e) => setComment(e.target.value)}
                   rows={5}
                   placeholder="Share details about your experience with this provider..."
-                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all resize-none leading-relaxed"
+                  className="w-full px-4 py-4 rounded-xl border border-gray-200 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all resize-none leading-relaxed"
                 />
               </div>
 
               {/* Error message */}
               {submitError && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl">
-                  <p className="text-sm text-red-600">{submitError}</p>
+                <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-xl">
+                  <p className="text-base text-red-600">{submitError}</p>
                 </div>
               )}
 
@@ -612,7 +805,24 @@ export default function ReviewPage() {
         <p className="text-center text-xs text-gray-400 mt-8">
           Powered by <Link href="/" className="text-primary-600 hover:text-primary-700 hover:underline transition-colors">Olera</Link>
         </p>
+        </div>
       </div>
     </div>
+  );
+}
+
+// ── Default Export with Suspense ──
+
+export default function ReviewPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <ReviewPageContent />
+    </Suspense>
   );
 }

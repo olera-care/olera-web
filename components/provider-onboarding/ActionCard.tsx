@@ -686,11 +686,11 @@ export default function ActionCard({
   // ────────────────────────────────────────────────────────────
 
   const baseCardClass =
-    "relative z-10 bg-white rounded-2xl border-2 shadow-sm p-6 md:p-8 transition-all duration-300";
-  // Default: blue border to draw attention. Highlighted: orange/coral ring for urgent attention
+    "relative z-10 bg-white rounded-2xl shadow-sm p-8 md:p-10 transition-all duration-300";
+  // Default: quiet border. Highlighted: warm ring for urgent attention
   const cardClass = highlighted
-    ? `${baseCardClass} border-orange-400 ring-4 ring-orange-200 shadow-lg shadow-orange-100/50 animate-pulse-subtle`
-    : `${baseCardClass} border-primary-300 shadow-md shadow-primary-50`;
+    ? `${baseCardClass} border-2 border-orange-400 ring-4 ring-orange-200 shadow-lg shadow-orange-100/50 animate-pulse-subtle`
+    : `${baseCardClass} border border-gray-200 shadow-md shadow-gray-100/50`;
 
   // ════════════════════════════════════════════════════════════
   // RENDER: Notification States (Lead, Question, Review)
@@ -713,23 +713,19 @@ export default function ActionCard({
 
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        {/* Header — warm, specific */}
-        <div className="text-center mb-6">
-          <div className="w-11 h-11 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-3">
-            <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
+        {/* Mascot + Header */}
+        <div className="flex items-start gap-4 mb-6">
+          <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+          <div>
+            <h3 className="text-lg font-display font-bold text-gray-900">
+              A family is interested in your services
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
           </div>
-          <h3 className="text-lg font-display font-bold text-gray-900">
-            A family is interested in your services
-          </h3>
-          <p className="text-sm text-gray-500 mt-1">
-            {timeAgo}
-          </p>
         </div>
 
-        {/* Seeker card — clean, privacy-respecting */}
-        <div className="bg-gray-50 rounded-xl p-4 mb-6">
+        {/* Seeker info — flat, no nested card */}
+        <div className="border-t border-gray-100 pt-5 mb-6">
           <div className="flex items-center gap-3">
             {personImage ? (
               <Image src={personImage} alt={personName} width={40} height={40} className="w-10 h-10 rounded-full object-cover shrink-0" />
@@ -748,35 +744,33 @@ export default function ActionCard({
             </div>
           </div>
           {message && (
-            <p className="text-[15px] text-gray-600 mt-3 leading-relaxed italic">
+            <p className="text-[15px] text-gray-500 mt-3 leading-relaxed italic">
               &ldquo;{message}&rdquo;
             </p>
           )}
         </div>
 
         {/* CTA */}
-        <div className="text-center">
-          {isSignedIn ? (
-            <Link
-              href={`/provider/connections?id=${notificationData.id}`}
-              className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+        {isSignedIn ? (
+          <Link
+            href={`/provider/connections?id=${notificationData.id}`}
+            className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+          >
+            View full inquiry
+          </Link>
+        ) : (
+          <>
+            <button
+              onClick={() => setState("verify-form")}
+              className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
             >
-              View full inquiry
-            </Link>
-          ) : (
-            <>
-              <button
-                onClick={() => setState("verify-form")}
-                className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
-              >
-                Verify your email to respond
-              </button>
-              <p className="text-xs text-gray-400 mt-3">
-                Confirm you manage this listing to view the full inquiry
-              </p>
-            </>
-          )}
-        </div>
+              Verify your email to respond
+            </button>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              Olera is an NIH-backed platform connecting families with quality senior care providers.
+            </p>
+          </>
+        )}
       </div>
     );
   }
@@ -792,61 +786,53 @@ export default function ActionCard({
 
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="w-11 h-11 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-3">
-            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+        {/* Mascot + Header */}
+        <div className="flex items-start gap-4 mb-6">
+          <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+          <div>
+            <h3 className="text-lg font-display font-bold text-gray-900">
+              Someone has a question about your services
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
           </div>
-          <h3 className="text-lg font-display font-bold text-gray-900">
-            Someone has a question about your services
-          </h3>
-          <p className="text-sm text-gray-500 mt-1">
-            {timeAgo}
-          </p>
         </div>
 
-        {/* Question card */}
-        <div className="bg-gray-50 rounded-xl p-4 mb-6">
-          <div className="flex items-center gap-3 mb-3">
+        {/* Question info — flat */}
+        <div className="border-t border-gray-100 pt-5 mb-6">
+          <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
               {getInitials(personName)}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[15px] font-semibold text-gray-900">{personName}</p>
-            </div>
+            <p className="text-[15px] font-semibold text-gray-900">{personName}</p>
           </div>
           {question && (
-            <p className="text-[15px] text-gray-600 leading-relaxed italic">
+            <p className="text-[15px] text-gray-500 mt-3 leading-relaxed italic">
               &ldquo;{question}&rdquo;
             </p>
           )}
         </div>
 
         {/* CTA */}
-        <div className="text-center">
-          {isSignedIn ? (
-            <Link
-              href={`/provider/qna?id=${notificationData.id}`}
-              className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+        {isSignedIn ? (
+          <Link
+            href={`/provider/qna?id=${notificationData.id}`}
+            className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+          >
+            View and answer
+          </Link>
+        ) : (
+          <>
+            <button
+              onClick={() => setState("verify-form")}
+              className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
             >
-              View and answer
-            </Link>
-          ) : (
-            <>
-              <button
-                onClick={() => setState("verify-form")}
-                className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
-              >
-                Verify your email to answer
-              </button>
-              <p className="text-xs text-gray-400 mt-3">
-                Confirm you manage this listing to view the full question
-              </p>
-            </>
-          )}
-        </div>
+              Verify your email to answer
+            </button>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              Olera is an NIH-backed platform connecting families with quality senior care providers.
+            </p>
+          </>
+        )}
       </div>
     );
   }
@@ -863,30 +849,24 @@ export default function ActionCard({
 
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="w-11 h-11 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-3">
-            <svg className="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
+        {/* Mascot + Header */}
+        <div className="flex items-start gap-4 mb-6">
+          <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+          <div>
+            <h3 className="text-lg font-display font-bold text-gray-900">
+              Someone left a review on your listing
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
           </div>
-          <h3 className="text-lg font-display font-bold text-gray-900">
-            Someone left a review on your listing
-          </h3>
-          <p className="text-sm text-gray-500 mt-1">
-            {timeAgo}
-          </p>
         </div>
 
-        {/* Review card */}
-        <div className="bg-gray-50 rounded-xl p-4 mb-6">
-          <div className="flex items-center gap-3 mb-3">
+        {/* Review info — flat */}
+        <div className="border-t border-gray-100 pt-5 mb-6">
+          <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
               {getInitials(personName)}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[15px] font-semibold text-gray-900">{personName}</p>
-            </div>
+            <p className="text-[15px] font-semibold text-gray-900 flex-1">{personName}</p>
             {/* Rating stars */}
             <div className="flex items-center gap-0.5 shrink-0">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -902,35 +882,33 @@ export default function ActionCard({
             </div>
           </div>
           {comment && (
-            <p className="text-[15px] text-gray-600 leading-relaxed italic">
+            <p className="text-[15px] text-gray-500 mt-3 leading-relaxed italic">
               &ldquo;{comment}&rdquo;
             </p>
           )}
         </div>
 
         {/* CTA */}
-        <div className="text-center">
-          {isSignedIn ? (
-            <Link
-              href={`/provider/reviews?id=${notificationData.id}`}
-              className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+        {isSignedIn ? (
+          <Link
+            href={`/provider/reviews?id=${notificationData.id}`}
+            className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+          >
+            View review
+          </Link>
+        ) : (
+          <>
+            <button
+              onClick={() => setState("verify-form")}
+              className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
             >
-              View review
-            </Link>
-          ) : (
-            <>
-              <button
-                onClick={() => setState("verify-form")}
-                className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
-              >
-                Verify your email to respond
-              </button>
-              <p className="text-xs text-gray-400 mt-3">
-                Confirm you manage this listing to view and respond
-              </p>
-            </>
-          )}
-        </div>
+              Verify your email to respond
+            </button>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              Olera is an NIH-backed platform connecting families with quality senior care providers.
+            </p>
+          </>
+        )}
       </div>
     );
   }

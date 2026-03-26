@@ -320,10 +320,7 @@ export default function SmartDashboardShell({
               isSignedIn={isSignedIn}
             />
 
-            {/* Trust line */}
-            <p className="text-center text-sm text-gray-400 mt-4">
-              Olera is an NIH-backed platform connecting families with quality senior care providers.
-            </p>
+            {/* Trust line moved inside the card */}
           </div>
         )}
 

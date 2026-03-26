@@ -30,6 +30,7 @@ function getActionRedirectUrl(
   if (action && actionId) {
     switch (action) {
       case "lead":
+        return `/provider/connections?id=${actionId}`;
       case "message":
         return `/provider/inbox?id=${actionId}`;
       case "question":

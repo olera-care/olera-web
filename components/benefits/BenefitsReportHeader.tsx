@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { BENEFIT_CATEGORIES, CARE_PREFERENCES, INCOME_RANGES, MEDICAID_STATUSES, PRIMARY_NEEDS } from "@/lib/types/benefits";
 import type { BenefitsIntakeAnswers, BenefitMatch, BenefitCategory, AreaAgency } from "@/lib/types/benefits";
 import { getEstimatedSavings, getSavingsRange, getProgramEffort, EFFORT_CONFIG } from "@/lib/types/benefits";
@@ -39,15 +40,24 @@ export default function BenefitsReportHeader({
   onEditAnswers,
   localAAA,
 }: BenefitsReportHeaderProps) {
+  const { user, openAuth } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [selectedProgram, setSelectedProgram] = useState<BenefitMatch | null>(null);
-  const [programFilter, setProgramFilter] = useState<BenefitCategory | "all">("all");
+  const [programFilter, setProgramFilter] = useState<BenefitCategory | "all">("income");
   const [email, setEmail] = useState("");
   const [emailSending, setEmailSending] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [programsVisible, setProgramsVisible] = useState(5);
   const [showSpendDown, setShowSpendDown] = useState(false);
+  const [showSavePrompt, setShowSavePrompt] = useState(false);
+
+  // Show save prompt after 7 seconds for logged-out users
+  useEffect(() => {
+    if (sessionStorage.getItem("benefits-save-dismissed")) return;
+    const timer = setTimeout(() => setShowSavePrompt(true), 7000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Listen for sidebar tab switch events
   const handleTabSwitch = useCallback((e: Event) => {
@@ -191,11 +201,26 @@ export default function BenefitsReportHeader({
             style={{ zIndex: 2, background: "linear-gradient(170deg, #ffffff 0%, #fdfcfb 40%, #faf9f7 100%)", boxShadow: "0 4px 16px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)" }}
           >
             {/* Top bar */}
-            <div className="flex items-center justify-between px-6 py-3 bg-primary-800 text-white">
-              <span className="text-xs font-semibold tracking-wider uppercase text-primary-200">Olera Benefits Package</span>
-              <div className="flex items-center gap-3 text-xs text-primary-300">
+            <div className="flex items-center justify-between px-6 py-4 bg-primary-800 text-white">
+              <span className="text-sm font-semibold tracking-wider uppercase text-primary-200">Olera Benefits Package</span>
+              <div className="flex items-center gap-3 text-sm text-primary-300">
                 <span>{new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                 <div className="flex items-center gap-1.5 print:hidden">
+                  <button
+                    onClick={() => {
+                      if (user) {
+                        // Already logged in — could save/bookmark here
+                      } else {
+                        openAuth();
+                      }
+                    }}
+                    className="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-primary-200 p-1"
+                    aria-label="Save"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                    </svg>
+                  </button>
                   <button onClick={() => window.print()} className="hover:text-white transition-colors bg-transparent border-none cursor-pointer text-primary-200 p-1" aria-label="Print">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18.75 3.75H5.25" />
@@ -553,7 +578,7 @@ export default function BenefitsReportHeader({
                     return (
                       <button
                         key={cat}
-                        onClick={() => setProgramFilter(isActive ? "all" : cat as BenefitCategory | "all")}
+                        onClick={() => { setProgramFilter(isActive ? "all" : cat as BenefitCategory | "all"); setProgramsVisible(5); }}
                         className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border cursor-pointer transition-all ${
                           isActive
                             ? "bg-primary-800 text-white border-primary-800 shadow-sm"
@@ -582,63 +607,81 @@ export default function BenefitsReportHeader({
                     return bSavings - aSavings;
                   });
 
+                  const displayed = sorted.slice(0, programsVisible);
+                  const hasMore = sorted.length > programsVisible;
+
                   const groups: { level: EffortLevel; programs: typeof sorted }[] = [];
                   for (const level of ["quick", "plan"] as EffortLevel[]) {
-                    const progs = sorted.filter((m) => getProgramEffort(m.program.name) === level);
+                    const progs = displayed.filter((m) => getProgramEffort(m.program.name) === level);
                     if (progs.length > 0) groups.push({ level, programs: progs });
                   }
 
-                  return groups.map(({ level, programs: progs }) => {
-                    return (
-                      <div key={level} className="mb-6">
-                        <div className="flex flex-col gap-3">
-                          {progs.map((m) => {
-                            const savings = getSavingsRange(m.program.name);
-                            const isState = !!m.program.state_code;
-                            const effort = EFFORT_CONFIG[getProgramEffort(m.program.name)];
-                            return (
-                              <div
-                                key={m.id}
-                                className="flex items-center gap-4 bg-white rounded-xl border border-gray-200 hover:border-primary-200 hover:shadow-md transition-all px-5 py-4"
-                              >
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-0.5">
-                                    <h3 className="font-display text-sm font-bold text-gray-900 truncate">
-                                      {m.program.name}
-                                    </h3>
-                                    <span className={`shrink-0 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${isState ? "bg-purple-50 text-purple-600 border border-purple-200" : "bg-primary-50 text-primary-700 border border-primary-100"}`}>
-                                      {isState ? "State" : "Federal"}
-                                    </span>
-                                  </div>
-                                  <p className="text-xs text-gray-500 truncate mb-1">{m.program.description}</p>
-                                  <div className="flex items-center gap-2">
-                                    {savings && (
-                                      <span className="text-xs font-semibold text-success-700">
-                                        Save ${savings.low.toLocaleString()} – ${savings.high.toLocaleString()}/yr
-                                      </span>
-                                    )}
-                                    <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-semibold rounded-full ${effort.bg} ${effort.color} ${effort.border} border`}>
-                                      {effort.label}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                <div className="shrink-0">
-                                  <button
-                                    onClick={() => setSelectedProgram(m)}
-                                    className="flex items-center gap-1.5 px-4 py-2 bg-gray-50 hover:bg-primary-50 text-gray-600 hover:text-primary-700 text-xs font-medium rounded-lg border border-gray-200 hover:border-primary-200 cursor-pointer transition-all"
+                  return (
+                    <>
+                      {groups.map(({ level, programs: progs }) => {
+                        return (
+                          <div key={level} className="mb-6">
+                            <div className="flex flex-col gap-3">
+                              {progs.map((m) => {
+                                const savings = getSavingsRange(m.program.name);
+                                const isState = !!m.program.state_code;
+                                const effort = EFFORT_CONFIG[getProgramEffort(m.program.name)];
+                                return (
+                                  <div
+                                    key={m.id}
+                                    className="flex items-center gap-4 bg-white rounded-xl border border-gray-200 hover:border-primary-200 hover:shadow-md transition-all px-5 py-4"
                                   >
-                                    Learn more
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2 mb-0.5">
+                                        <h3 className="font-display text-sm font-bold text-gray-900 truncate">
+                                          {m.program.name}
+                                        </h3>
+                                        <span className={`shrink-0 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${isState ? "bg-purple-50 text-purple-600 border border-purple-200" : "bg-primary-50 text-primary-700 border border-primary-100"}`}>
+                                          {isState ? "State" : "Federal"}
+                                        </span>
+                                      </div>
+                                      <p className="text-xs text-gray-500 truncate mb-1">{m.program.description}</p>
+                                      <div className="flex items-center gap-2">
+                                        {savings && (
+                                          <span className="text-xs font-semibold text-success-700">
+                                            Save ${savings.low.toLocaleString()} – ${savings.high.toLocaleString()}/yr
+                                          </span>
+                                        )}
+                                        <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-semibold rounded-full ${effort.bg} ${effort.color} ${effort.border} border`}>
+                                          {effort.label}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    <div className="shrink-0">
+                                      <button
+                                        onClick={() => setSelectedProgram(m)}
+                                        className="flex items-center gap-1.5 px-4 py-2 bg-gray-50 hover:bg-primary-50 text-gray-600 hover:text-primary-700 text-xs font-medium rounded-lg border border-gray-200 hover:border-primary-200 cursor-pointer transition-all"
+                                      >
+                                        Learn more
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {hasMore && (
+                        <div className="text-center">
+                          <button
+                            onClick={() => setProgramsVisible(sorted.length)}
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm cursor-pointer"
+                          >
+                            View {sorted.length - programsVisible} more programs
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                          </button>
                         </div>
-                      </div>
-                    );
-                  });
+                      )}
+                    </>
+                  );
                 })()}
 
                 {/* Next page */}
@@ -1209,6 +1252,49 @@ export default function BenefitsReportHeader({
           </div>
         </div>
       </div>
+
+      {/* Save prompt popup */}
+      {showSavePrompt && !user && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm print:hidden">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-8 text-center">
+            <div className="flex justify-center mb-4">
+              <span className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-100 text-primary-700">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                </svg>
+              </span>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Save your benefits package</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Create a free Olera account to save your full results, track your applications, and come back anytime.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  setShowSavePrompt(false);
+                  sessionStorage.setItem("benefits-save-dismissed", "1");
+                  openAuth({
+                    headline: "Save your benefits package",
+                    subline: "Create a free Olera account to save your full results, track your applications, and come back anytime.",
+                  });
+                }}
+                className="w-full px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl shadow-lg shadow-primary-600/25 transition-all cursor-pointer border-none text-base"
+              >
+                Create free account
+              </button>
+              <button
+                onClick={() => {
+                  setShowSavePrompt(false);
+                  sessionStorage.setItem("benefits-save-dismissed", "1");
+                }}
+                className="w-full px-6 py-3 bg-transparent hover:bg-gray-50 text-gray-500 font-medium rounded-xl transition-all cursor-pointer border-none text-sm"
+              >
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

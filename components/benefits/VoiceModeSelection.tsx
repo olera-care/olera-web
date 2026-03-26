@@ -31,7 +31,7 @@ export default function VoiceModeSelection({ onSelect }: VoiceModeSelectionProps
         <h2 className="font-serif text-2xl sm:text-3xl font-bold text-gray-900 leading-snug mb-3">
           Find Your Benefits<br />and Start Saving
         </h2>
-        <p className="text-sm text-gray-500 max-w-md mx-auto mb-5">
+        <p className="text-sm text-gray-500 max-w-xl mx-auto mb-5">
           Most families miss out on thousands in benefits they never knew existed. Answer a few questions and we&apos;ll show you exactly what you qualify for.
         </p>
         <div className="flex items-center justify-center gap-2 text-xs font-medium">

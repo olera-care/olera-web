@@ -23,12 +23,14 @@ function renderAnswer(text: string) {
   });
 }
 
-export function FaqAccordion({ faqs, columns = 2, multiOpen = false }: { faqs: FaqItem[]; columns?: 1 | 2; multiOpen?: boolean }) {
+export function FaqAccordion({ faqs, columns = 2, multiOpen }: { faqs: FaqItem[]; columns?: 1 | 2; multiOpen?: boolean }) {
+  // Default: multiOpen is true for 2-column layout to avoid blank space issues
+  const isMultiOpen = multiOpen ?? columns === 2;
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [openSet, setOpenSet] = useState<Set<number>>(new Set());
 
   function toggle(i: number) {
-    if (multiOpen) {
+    if (isMultiOpen) {
       setOpenSet((prev) => {
         const next = new Set(prev);
         if (next.has(i)) next.delete(i);
@@ -43,7 +45,7 @@ export function FaqAccordion({ faqs, columns = 2, multiOpen = false }: { faqs: F
   return (
     <div className={columns === 2 ? "md:columns-2 gap-2 space-y-2" : "space-y-2"}>
       {faqs.map((faq, i) => {
-        const isOpen = multiOpen ? openSet.has(i) : openIndex === i;
+        const isOpen = isMultiOpen ? openSet.has(i) : openIndex === i;
         return (
           <div key={i} className="bg-primary-50 rounded-xl border border-primary-100 shadow-[0_2px_8px_rgba(77,155,150,0.1),0_1px_3px_rgba(77,155,150,0.08)] overflow-hidden break-inside-avoid">
             <button

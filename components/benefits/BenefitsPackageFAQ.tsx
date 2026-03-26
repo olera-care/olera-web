@@ -607,20 +607,12 @@ export default function BenefitsPackageFAQ({ stateCode }: BenefitsPackageFAQProp
 
   const faqs = [
     {
-      question: `How do I start claiming my benefits in ${stateName}?`,
-      answer: `Call the ${data.medicaidAgency} at ${data.agencyPhone} to start applications for Medicaid, SNAP, and other programs. You can also visit your local Area Agency on Aging for free in-person help.`,
+      question: `Can I get paid to care for a family member in ${stateName}?`,
+      answer: `Yes. ${stateName} offers the ${data.caregiverPayProgram}. ${data.caregiverPayDetails} Call ${data.agencyPhone} to ask about caregiver payment options.`,
     },
     {
       question: `What is the income limit for Medicaid in ${stateName} in 2026?`,
       answer: `The 2026 Medicaid income limit for seniors (65+) in ${stateName} is ${data.medicaidIncomeLimit}. The asset limit is ${data.medicaidAssetLimit}. ${data.spendDownAvailable ? `${stateName} has a spend-down program, so you may still qualify by deducting medical expenses.` : `${stateName} does not have a spend-down program, but asset limits have been relaxed significantly.`}`,
-    },
-    {
-      question: `How long does it take to get approved for benefits in ${stateName}?`,
-      answer: `Medicaid applications in ${stateName} are typically processed within ${data.avgProcessingWeeks}. SNAP is faster, often 7 to 30 days. VA benefits like Aid & Attendance can take 3 to 6 months.`,
-    },
-    {
-      question: `Can I get paid to care for a family member in ${stateName}?`,
-      answer: `Yes. ${stateName} offers the ${data.caregiverPayProgram}. ${data.caregiverPayDetails} Call ${data.agencyPhone} to ask about caregiver payment options.`,
     },
     {
       question: `What if my income is too high to qualify in ${stateName}?`,
@@ -636,7 +628,7 @@ export default function BenefitsPackageFAQ({ stateCode }: BenefitsPackageFAQProp
         </h2>
       </div>
 
-      <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
+      <div className="space-y-2">
         {faqs.map((faq, i) => {
           const isOpen = openIndex === i;
           return (

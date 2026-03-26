@@ -163,7 +163,7 @@ export default function Modal({
           // Mobile: bottom sheet
           "rounded-t-2xl max-h-[92vh] animate-sheet-up",
           // Desktop: centered modal
-          "sm:rounded-2xl sm:min-h-[50vh] sm:max-h-[85vh] sm:animate-modal-pop",
+          "sm:rounded-2xl sm:max-h-[85vh] sm:animate-modal-pop",
           sizeClasses[size],
         ].join(" ")}
         // Extend the white sheet into the iPhone safe-area zone so the

@@ -85,6 +85,7 @@ interface ProgramListProps {
 export function ProgramList({ programs, stateId, slugMap, basePath }: ProgramListProps) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<Category>("financial");
+  const [showAll, setShowAll] = useState(false);
 
   // Read ?tab= param on mount to restore the correct category
   useEffect(() => {
@@ -123,6 +124,10 @@ export function ProgramList({ programs, stateId, slugMap, basePath }: ProgramLis
     getMaxSavings(b.savingsRange) - getMaxSavings(a.savingsRange)
   );
 
+  const INITIAL_COUNT = 5;
+  const displayed = showAll || hasSearch ? sorted : sorted.slice(0, INITIAL_COUNT);
+  const hasMore = !hasSearch && sorted.length > INITIAL_COUNT && !showAll;
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -149,7 +154,7 @@ export function ProgramList({ programs, stateId, slugMap, basePath }: ProgramLis
           return (
             <button
               key={tab.value}
-              onClick={() => setCategory(tab.value)}
+              onClick={() => { setCategory(tab.value); setShowAll(false); }}
               className={`inline-flex items-center px-4 py-2.5 rounded-xl text-base font-medium transition-all duration-150 ${
                 isActive
                   ? "bg-primary-600 text-white"
@@ -176,7 +181,7 @@ export function ProgramList({ programs, stateId, slugMap, basePath }: ProgramLis
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sorted.map((program) => {
+          {displayed.map((program) => {
             const federal = isFederalProgram(program);
             const applyType = getApplyType(program, stateId);
             return (
@@ -264,6 +269,19 @@ export function ProgramList({ programs, stateId, slugMap, basePath }: ProgramLis
               </div>
             );
           })}
+        </div>
+      )}
+      {hasMore && (
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => setShowAll(true)}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+          >
+            Show {sorted.length - INITIAL_COUNT} more programs
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
         </div>
       )}
     </div>

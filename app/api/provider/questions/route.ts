@@ -56,9 +56,10 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
 
     // Build query - match any of the possible provider_id formats
+    // Include metadata for read tracking
     let query = db
       .from("provider_questions")
-      .select("id, question, answer, asker_name, asker_email, status, is_public, answered_at, created_at, updated_at")
+      .select("id, question, answer, asker_name, asker_email, status, is_public, answered_at, created_at, updated_at, metadata")
       .in("provider_id", providerIdVariants)
       .order("created_at", { ascending: false });
 
@@ -80,6 +81,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       questions: questions ?? [],
       providerSlug: profile.slug,
+      profileId: profile.id,
     });
   } catch (err) {
     console.error("Provider questions GET error:", err);

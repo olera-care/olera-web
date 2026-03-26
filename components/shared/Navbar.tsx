@@ -44,21 +44,21 @@ export default function Navbar() {
     ? activeProfile.id
     : null;
   const providerInboxCount = useUnreadInboxCount(activeProviderProfileId ? [activeProviderProfileId] : []);
-  // Use activeProfile slug if it's a provider, otherwise fall back to first provider
-  const activeProviderSlug =
-    activeProfile && (activeProfile.type === "organization" || activeProfile.type === "caregiver")
-      ? activeProfile.slug
-      : (profiles || []).find((p) => p.type === "organization" || p.type === "caregiver")?.slug ?? null;
-  const qnaCount = useUnreadQnACount(activeProviderSlug);
-  const familyProfileForMatches = (profiles || []).find((p) => p.type === "family");
-  const { pendingCount: matchesPendingCount } = useInterestedProviders(
-    familyProfileForMatches?.id
-  );
   // Provider profile ID for badge counts
   const activeProviderId =
     activeProfile && (activeProfile.type === "organization" || activeProfile.type === "caregiver")
       ? activeProfile.id
       : (profiles || []).find((p) => p.type === "organization" || p.type === "caregiver")?.id ?? null;
+  // Use activeProfile slug if it's a provider, otherwise fall back to first provider
+  const activeProviderSlug =
+    activeProfile && (activeProfile.type === "organization" || activeProfile.type === "caregiver")
+      ? activeProfile.slug
+      : (profiles || []).find((p) => p.type === "organization" || p.type === "caregiver")?.slug ?? null;
+  const qnaCount = useUnreadQnACount(activeProviderSlug, activeProviderId);
+  const familyProfileForMatches = (profiles || []).find((p) => p.type === "family");
+  const { pendingCount: matchesPendingCount } = useInterestedProviders(
+    familyProfileForMatches?.id
+  );
   // Leads count: database-backed with localStorage fallback
   const newLeadsCount = useUnreadLeadsCount(activeProviderId);
   // Reviews count

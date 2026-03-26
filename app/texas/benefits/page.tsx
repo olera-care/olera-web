@@ -51,7 +51,7 @@ export default function TexasBenefitsPage() {
           <h1 className="text-3xl md:text-4xl font-bold text-white">
             Texas Benefits
           </h1>
-          <p className="mt-1.5 text-base md:text-lg text-white/80">
+          <p className="mt-1.5 text-base md:text-lg text-white/80 max-w-xl">
             A complete guide to Medicaid, senior assistance programs, and financial help available to Texas families in 2026.
           </p>
           <p className="mt-1.5 text-xl md:text-2xl font-semibold text-white">

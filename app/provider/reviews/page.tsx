@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
-import { markAllReviewsAsRead } from "@/hooks/useUnreadReviewsCount";
+import { markReviewAsRead, migrateReviewsReadData } from "@/hooks/useUnreadReviewsCount";
 import type { Review } from "@/lib/types";
 
 // Calculate stats from reviews
@@ -28,7 +28,7 @@ function calculateStats(reviews: Review[]): ReviewStats {
 
 // ── Types ──
 
-type TabFilter = "all" | "replied";
+type TabFilter = "request_now" | "request_onsite" | "all" | "replied";
 
 interface ReviewStats {
   totalReviews: number;
@@ -237,22 +237,42 @@ function ReviewCard({
   onReply,
   onEdit,
   isMobile,
+  isNew,
+  onMarkAsRead,
 }: {
   review: Review;
   onReply: (review: Review) => void;
   onEdit: (review: Review) => void;
   isMobile: boolean;
+  isNew?: boolean;
+  onMarkAsRead?: () => void;
 }) {
   const hasReply = !!review.provider_reply;
+  const [hasBeenViewed, setHasBeenViewed] = useState(false);
+
+  // Mark as read when card is clicked/interacted with
+  const handleInteraction = useCallback(() => {
+    if (isNew && !hasBeenViewed && onMarkAsRead) {
+      setHasBeenViewed(true);
+      onMarkAsRead();
+    }
+  }, [isNew, hasBeenViewed, onMarkAsRead]);
 
   // Mobile: card is tappable for unreplied reviews
   if (isMobile && !hasReply) {
     return (
       <button
         type="button"
-        onClick={() => onReply(review)}
-        className="w-full text-left bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden active:bg-vanilla-50/60 transition-colors"
+        onClick={() => {
+          handleInteraction();
+          onReply(review);
+        }}
+        className="w-full text-left bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden active:bg-vanilla-50/60 transition-colors relative"
       >
+        {/* New indicator dot */}
+        {isNew && !hasBeenViewed && (
+          <div className="absolute top-4 right-4 w-2.5 h-2.5 rounded-full bg-primary-500 ring-2 ring-white shadow-sm" />
+        )}
         <div className="p-4">
           {/* Reviewer info + rating */}
           <div className="flex items-start justify-between gap-3">
@@ -267,7 +287,7 @@ function ReviewCard({
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0 pr-4">
               <StarRating rating={review.rating} />
             </div>
           </div>
@@ -294,7 +314,14 @@ function ReviewCard({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden hover:border-gray-300/80 transition-colors">
+    <div
+      className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden hover:border-gray-300/80 transition-colors relative"
+      onClick={handleInteraction}
+    >
+      {/* New indicator dot */}
+      {isNew && !hasBeenViewed && (
+        <div className={`absolute ${isMobile ? "top-4 right-4" : "top-6 right-6"} w-2.5 h-2.5 rounded-full bg-primary-500 ring-2 ring-white shadow-sm`} />
+      )}
       <div className={isMobile ? "p-4" : "p-6"}>
         {/* Reviewer info + rating */}
         <div className="flex items-start justify-between gap-3">
@@ -316,7 +343,7 @@ function ReviewCard({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0 pr-4">
             <StarRating rating={review.rating} />
             <span className="text-sm font-semibold text-gray-700">{review.rating}/5</span>
           </div>
@@ -441,10 +468,10 @@ function BottomSheet({
         aria-modal="true"
         aria-labelledby="sheet-title"
         className={`fixed z-50 bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-300 ease-out
-          /* Mobile: bottom sheet */
-          inset-x-0 bottom-0 max-h-[90vh] rounded-t-3xl
+          /* Mobile: bottom sheet - use dvh for proper mobile Safari support */
+          inset-x-0 bottom-0 max-h-[90dvh] rounded-t-3xl pb-[env(safe-area-inset-bottom)]
           /* Desktop: side drawer */
-          lg:inset-y-0 lg:top-16 lg:right-0 lg:left-auto lg:bottom-auto lg:w-[520px] lg:max-w-[calc(100vw-24px)] lg:h-[calc(100dvh-64px)] lg:max-h-none lg:rounded-none
+          lg:inset-y-0 lg:top-16 lg:right-0 lg:left-auto lg:bottom-auto lg:w-[520px] lg:max-w-[calc(100vw-24px)] lg:h-[calc(100dvh-64px)] lg:max-h-none lg:rounded-none lg:pb-0
           ${isOpen
             ? "translate-y-0 lg:translate-x-0"
             : "translate-y-full lg:translate-y-0 lg:translate-x-full"
@@ -544,6 +571,781 @@ function BottomSheet({
   );
 }
 
+// ── Request Now Content ──
+
+interface ReviewRequestClient {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+type DeliveryMethod = "email" | "sms" | "both";
+
+interface RequestNowState {
+  clients: ReviewRequestClient[];
+  message: string;
+  deliveryMethod: DeliveryMethod;
+}
+
+interface RequestNowContentProps {
+  state: RequestNowState;
+  onStateChange: (state: RequestNowState) => void;
+  /** If provided, shows the review link section (for "Request on-site" tab) */
+  providerSlug?: string | null;
+}
+
+const DEFAULT_MESSAGE = "Hi, we'd love to hear about your experience with us. Would you take a moment to leave a review? It helps other families find quality care.";
+
+function RequestNowContent({ state, onStateChange, providerSlug }: RequestNowContentProps) {
+  const { clients, message, deliveryMethod } = state;
+
+  // Local form state (not persisted across tab switches)
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [editingClientId, setEditingClientId] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  // Review link for on-site sharing
+  const siteOrigin = typeof window !== "undefined" ? window.location.origin : "https://olera.care";
+  const reviewUrl = providerSlug
+    ? `${siteOrigin}/review/${providerSlug}?ref=qr`
+    : null;
+
+  const handleCopyLink = async () => {
+    if (!reviewUrl) return;
+    try {
+      await navigator.clipboard.writeText(reviewUrl);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      const textArea = document.createElement("textarea");
+      textArea.value = reviewUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    }
+  };
+
+  // Helper to update parent state
+  const setClients = (updater: ReviewRequestClient[] | ((prev: ReviewRequestClient[]) => ReviewRequestClient[])) => {
+    const newClients = typeof updater === "function" ? updater(clients) : updater;
+    onStateChange({ ...state, clients: newClients });
+  };
+  const setMessage = (msg: string) => onStateChange({ ...state, message: msg });
+  const setDeliveryMethod = (method: DeliveryMethod) => onStateChange({ ...state, deliveryMethod: method });
+
+  const isEditing = editingClientId !== null;
+  const canAddClient = name.trim() && (email.trim() || phone.trim());
+  const canSend = clients.length > 0 && message.trim();
+
+  // Check which delivery methods are available based on client contact info
+  const hasAnyEmail = clients.some((c) => c.email);
+  const hasAnyPhone = clients.some((c) => c.phone);
+
+  const handleAddClient = () => {
+    if (!canAddClient) {
+      setFormError("Please enter a name and at least one contact method.");
+      return;
+    }
+    setFormError(null);
+
+    if (isEditing) {
+      // Update existing client
+      setClients((prev) =>
+        prev.map((c) =>
+          c.id === editingClientId
+            ? { ...c, name: name.trim(), email: email.trim(), phone: phone.trim() }
+            : c
+        )
+      );
+      setEditingClientId(null);
+    } else {
+      // Add new client
+      const newClient: ReviewRequestClient = {
+        id: crypto.randomUUID(),
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+      };
+      setClients((prev) => [...prev, newClient]);
+    }
+
+    setName("");
+    setEmail("");
+    setPhone("");
+    // Focus back to name input for quick multi-add
+    nameInputRef.current?.focus();
+  };
+
+  const handleEditClient = (client: ReviewRequestClient) => {
+    setEditingClientId(client.id);
+    setName(client.name);
+    setEmail(client.email);
+    setPhone(client.phone);
+    setFormError(null);
+    nameInputRef.current?.focus();
+  };
+
+  const handleCancelEdit = () => {
+    setEditingClientId(null);
+    setName("");
+    setEmail("");
+    setPhone("");
+    setFormError(null);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && canAddClient) {
+      e.preventDefault();
+      handleAddClient();
+    }
+  };
+
+  const handleRemoveClient = (id: string) => {
+    setClients((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const handleSend = async () => {
+    if (!canSend) return;
+    setSending(true);
+    setFormError(null);
+
+    try {
+      const res = await fetch("/api/review-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clients: clients.map((c) => ({
+            name: c.name,
+            email: c.email || undefined,
+            phone: c.phone || undefined,
+          })),
+          message: message.trim(),
+          delivery_method: deliveryMethod,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to send review requests");
+      }
+
+      setSent(true);
+      // Reset form after showing success briefly
+      setTimeout(() => {
+        onStateChange({ clients: [], message: DEFAULT_MESSAGE, deliveryMethod: "email" });
+        setSent(false);
+      }, 2000);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Failed to send requests");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const getClientContactIcon = (client: ReviewRequestClient) => {
+    if (client.email && client.phone) {
+      return (
+        <span className="text-gray-400" title="Email & SMS">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+          </svg>
+        </span>
+      );
+    }
+    if (client.email) {
+      return (
+        <span className="text-gray-400" title="Email">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+          </svg>
+        </span>
+      );
+    }
+    return (
+      <span className="text-gray-400" title="SMS">
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+        </svg>
+      </span>
+    );
+  };
+
+  // Success state
+  if (sent) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm">
+        <div
+          className="p-8 lg:p-12 flex flex-col items-center text-center"
+          style={{ animation: "card-enter 0.3s ease-out both" }}
+        >
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mb-5 ring-4 ring-primary-50">
+            <CheckIcon className="w-8 h-8 text-primary-600" />
+          </div>
+          <h3 className="text-xl font-display font-bold text-gray-900">
+            Requests sent!
+          </h3>
+          <p className="text-[15px] text-gray-500 mt-2.5 max-w-sm leading-relaxed">
+            Your review requests have been sent successfully. We&apos;ll notify you when clients respond.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+      <div className="p-5 lg:p-6">
+        {/* Review Link Section (only for on-site tab) */}
+        {reviewUrl && (
+          <div>
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-50 to-primary-100/50 flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                </svg>
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-[15px] font-semibold text-gray-900">Share with visitors</h3>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  Text to families or share with your staff
+                </p>
+              </div>
+            </div>
+            {/* Link container with button inside */}
+            <div className="flex items-center gap-3 px-4 py-2 bg-vanilla-50 border border-warm-100 rounded-xl min-h-[56px]">
+              <p className="flex-1 min-w-0 text-[15px] font-mono text-gray-700 truncate">
+                {reviewUrl}
+              </p>
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[15px] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 flex-shrink-0 ${
+                  linkCopied
+                    ? "bg-primary-100 text-primary-700"
+                    : "bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white shadow-sm"
+                }`}
+              >
+                {linkCopied ? (
+                  <>
+                    <CheckIcon className="w-4 h-4" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9.75a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
+                    </svg>
+                    <span>Copy link</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Illustration */}
+            <div className="mt-6 flex justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/onsite-review.png"
+                alt="Caregiver helping elderly person with review"
+                className="max-w-full h-auto max-h-[280px] object-contain"
+              />
+            </div>
+
+            {/* Note */}
+            <p className="mt-4 text-sm text-gray-500">
+              <span className="font-semibold text-gray-700">Note:</span> Works best during care visits
+            </p>
+          </div>
+        )}
+
+        {/* Request Now form (only shown when not on-site tab) */}
+        {!reviewUrl && (
+        <>
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-[15px] font-semibold text-gray-900">Invite families to review</h3>
+              <p className="text-sm text-gray-500">Add recipients, customize your message, and send</p>
+            </div>
+          </div>
+
+          {/* Recipients chips - shown at top when there are clients */}
+          {clients.length > 0 && (
+            <div className="mb-5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-600">Recipients</span>
+                <span className="text-xs text-primary-600 font-semibold bg-primary-50 px-2 py-0.5 rounded-full">
+                  {clients.length} added
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {clients.map((client) => (
+                  <div
+                    key={client.id}
+                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm group transition-all ${
+                      editingClientId === client.id
+                        ? "bg-primary-100 border-2 border-primary-500"
+                        : "bg-white border border-gray-200 hover:border-gray-300"
+                    }`}
+                    style={{ animation: "card-enter 0.2s ease-out both" }}
+                  >
+                    {getClientContactIcon(client)}
+                    <span className="font-medium text-gray-700">{client.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleEditClient(client)}
+                      className="text-gray-300 hover:text-primary-500 transition-colors p-0.5 rounded hover:bg-primary-50"
+                      aria-label={`Edit ${client.name}`}
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveClient(client.id)}
+                      className="text-gray-300 hover:text-red-500 transition-colors p-0.5 rounded hover:bg-red-50"
+                      aria-label={`Remove ${client.name}`}
+                    >
+                      <CloseIcon className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add recipient form */}
+          <div className="mb-5">
+            <div className="flex items-center gap-2 mb-3">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+              </svg>
+              <span className="text-sm font-medium text-gray-700">
+                {isEditing ? "Edit recipient" : "Add a recipient"}
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <input
+                ref={nameInputRef}
+                id="client-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Name *"
+                className="w-full px-3.5 py-3 rounded-xl border border-gray-200 bg-white text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+              />
+              <input
+                id="client-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Email"
+                className="w-full px-3.5 py-3 rounded-xl border border-gray-200 bg-white text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+              />
+              <input
+                id="client-phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Phone"
+                className="w-full px-3.5 py-3 rounded-xl border border-gray-200 bg-white text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+              />
+            </div>
+            {formError && (
+              <p className="mt-2 text-xs text-red-600">{formError}</p>
+            )}
+            <div className="mt-3 flex items-center justify-between">
+              <span className="text-xs text-gray-400">Email or phone required</span>
+              <div className="flex gap-2">
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all"
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleAddClient}
+                  disabled={!canAddClient}
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                  {isEditing ? "Update" : "Add"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Message - only show when recipients added */}
+          {clients.length > 0 && (
+          <div className="mb-5">
+            <label htmlFor="review-message" className="block text-sm font-medium text-gray-700 mb-2">
+              Message
+            </label>
+            <textarea
+              id="review-message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={3}
+              maxLength={500}
+              placeholder="Write a personalized message..."
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all resize-none leading-relaxed"
+            />
+            <div className="mt-1.5 flex items-center justify-between">
+              <span className="text-xs text-gray-400">Personalize to increase responses</span>
+              <span className={`text-xs ${message.length > 450 ? "text-amber-500" : "text-gray-400"}`}>
+                {message.length}/500
+              </span>
+            </div>
+          </div>
+          )}
+
+          {/* Delivery Method - only show when recipients added */}
+          {clients.length > 0 && (
+          <div className="mb-5">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Send via</label>
+            <div className="flex flex-wrap gap-2">
+              <label
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border cursor-pointer transition-all ${
+                  deliveryMethod === "email"
+                    ? "border-primary-500 bg-primary-50 text-primary-700"
+                    : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                } ${!hasAnyEmail ? "opacity-40 cursor-not-allowed" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="delivery-method"
+                  value="email"
+                  checked={deliveryMethod === "email"}
+                  onChange={() => setDeliveryMethod("email")}
+                  disabled={!hasAnyEmail}
+                  className="sr-only"
+                />
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                </svg>
+                <span className="text-sm font-medium">Email</span>
+              </label>
+              <label
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border cursor-pointer transition-all ${
+                  deliveryMethod === "sms"
+                    ? "border-primary-500 bg-primary-50 text-primary-700"
+                    : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                } ${!hasAnyPhone ? "opacity-40 cursor-not-allowed" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="delivery-method"
+                  value="sms"
+                  checked={deliveryMethod === "sms"}
+                  onChange={() => setDeliveryMethod("sms")}
+                  disabled={!hasAnyPhone}
+                  className="sr-only"
+                />
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                </svg>
+                <span className="text-sm font-medium">SMS</span>
+              </label>
+              <label
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border cursor-pointer transition-all ${
+                  deliveryMethod === "both"
+                    ? "border-primary-500 bg-primary-50 text-primary-700"
+                    : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                } ${(!hasAnyEmail || !hasAnyPhone) ? "opacity-40 cursor-not-allowed" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="delivery-method"
+                  value="both"
+                  checked={deliveryMethod === "both"}
+                  onChange={() => setDeliveryMethod("both")}
+                  disabled={!hasAnyEmail || !hasAnyPhone}
+                  className="sr-only"
+                />
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                </svg>
+                <span className="text-sm font-medium">Both</span>
+              </label>
+            </div>
+          </div>
+          )}
+
+          {/* Send Button - Full width, prominent */}
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={!canSend || sending}
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white font-semibold rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+          >
+            {sending ? (
+              <>
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <span>Sending...</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                </svg>
+                <span>
+                  {clients.length > 0
+                    ? `Send to ${clients.length} client${clients.length > 1 ? "s" : ""}`
+                    : "Add clients to send"}
+                </span>
+              </>
+            )}
+          </button>
+        </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Request On-site Content ──
+
+function RequestOnsiteContent({ providerSlug }: { providerSlug: string | null }) {
+  const [copied, setCopied] = useState(false);
+
+  // Use current site origin for dynamic deployment support (preview URLs, staging, production)
+  const siteOrigin = typeof window !== "undefined" ? window.location.origin : "https://olera.care";
+  const reviewUrl = providerSlug
+    ? `${siteOrigin}/review/${providerSlug}?ref=qr`
+    : `${siteOrigin}/review/your-profile`;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(reviewUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = reviewUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+      <div className="p-5 lg:p-6">
+        {/* Header */}
+        <div className="flex items-start gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-50 to-primary-100/50 flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+            </svg>
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-[15px] font-semibold text-gray-900">Share with visitors</h3>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Text to families or share with your staff
+            </p>
+          </div>
+        </div>
+
+        {/* Link display - with proper overflow handling */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex-1 min-w-0 px-4 py-3.5 bg-vanilla-50 border border-warm-100 rounded-xl min-h-[48px] flex items-center overflow-hidden">
+            <p className="text-[15px] font-mono text-gray-700 truncate">
+              {reviewUrl}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleCopy}
+            className={`inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-[15px] transition-all min-h-[48px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 flex-shrink-0 ${
+              copied
+                ? "bg-primary-50 text-primary-700 border border-primary-200"
+                : "bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white shadow-sm"
+            }`}
+          >
+            {copied ? (
+              <>
+                <CheckIcon className="w-4 h-4" />
+                <span>Copied!</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9.75a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
+                </svg>
+                <span>Copy link</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Education Sidebar (for all tabs) ──
+
+const YOUTUBE_VIDEO_ID = "cb3TMkMNe3I";
+
+function EducationSidebar() {
+  const [videoPlaying, setVideoPlaying] = useState(false);
+
+  // Universal tips that apply to all tabs - focused on motivating action
+  const tips = [
+    "Families check reviews before calling",
+    "Your best clients are waiting to be asked",
+    "Send one request now, see results this week",
+  ];
+
+  return (
+    <div className="hidden lg:block">
+      <div className="sticky top-24">
+        {/* Unified Video + Tips Card */}
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+          {/* Video Section */}
+          <div className="relative aspect-video bg-gray-900">
+            {videoPlaying ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&rel=0`}
+                title="How to collect reviews"
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+                className="absolute inset-0 w-full h-full"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setVideoPlaying(true)}
+                className="absolute inset-0 w-full h-full group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              >
+                {/* Thumbnail */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`}
+                  alt="Video thumbnail"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                {/* Play button overlay */}
+                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full bg-white/95 shadow-lg flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <svg className="w-7 h-7 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </div>
+              </button>
+            )}
+          </div>
+
+          {/* Video Title */}
+          <div className="px-5 pt-4 pb-3 border-b border-gray-100">
+            <p className="text-sm font-semibold text-gray-900">How to collect reviews</p>
+            <p className="text-xs text-gray-400 mt-0.5">2:30 min</p>
+          </div>
+
+          {/* Tips Section */}
+          <div className="px-5 py-4">
+            <div className="space-y-3">
+              {tips.map((tip, idx) => (
+                <div key={idx} className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center">
+                    {idx + 1}
+                  </span>
+                  <p className="text-[13px] text-gray-600 leading-5">{tip}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Mobile Tips Accordion (for Request tabs) ──
+
+function MobileTipsAccordion() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Universal tips - same as desktop sidebar
+  const tips = [
+    "Families check reviews before calling",
+    "Your best clients are waiting to be asked",
+    "Send one request now, see results this week",
+  ];
+
+  return (
+    <div className="lg:hidden mt-4 bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-4 active:bg-gray-50"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
+            <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+            </svg>
+          </div>
+          <span className="text-sm font-semibold text-gray-900">Tips</span>
+        </div>
+        <svg
+          className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+      {isOpen && (
+        <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
+          {tips.map((tip, idx) => (
+            <div key={idx} className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center">
+                {idx + 1}
+              </span>
+              <p className="text-[13px] text-gray-600 leading-5">{tip}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Empty States ──
 
 function EmptyState({ filter }: { filter: TabFilter }) {
@@ -602,264 +1404,6 @@ function EmptyState({ filter }: { filter: TabFilter }) {
       <p className="text-[15px] text-gray-500 mt-2.5 leading-relaxed max-w-sm">
         When families leave reviews on your profile, they&apos;ll appear here for you to respond.
       </p>
-    </div>
-  );
-}
-
-// ── Sidebar Component (Desktop Only) ──
-
-function ReviewsSidebar({ stats, providerSlug }: { stats: ReviewStats; providerSlug: string | null }) {
-  const [copied, setCopied] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
-  const tooltipRef = useRef<HTMLDivElement>(null);
-
-  const handleCopyLink = async () => {
-    if (!providerSlug) return;
-    try {
-      const profileUrl = `https://olera.care/provider/${providerSlug}`;
-      await navigator.clipboard.writeText(profileUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback for older browsers
-    }
-  };
-
-  // Close tooltip on outside click
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (tooltipRef.current && !tooltipRef.current.contains(e.target as Node)) {
-        setShowTooltip(false);
-      }
-    }
-    if (showTooltip) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showTooltip]);
-
-  const categoryLabels: Record<string, string> = {
-    care_quality: "Care Quality",
-    communication: "Communication",
-    value: "Value",
-    cleanliness: "Cleanliness",
-  };
-
-  // Score label based on rating
-  const getScoreLabel = (rating: number): { label: string; color: string } => {
-    if (rating >= 4.5) return { label: "Excellent", color: "text-primary-700" };
-    if (rating >= 4.0) return { label: "Great", color: "text-primary-600" };
-    if (rating >= 3.5) return { label: "Good", color: "text-amber-600" };
-    if (rating >= 3.0) return { label: "Fair", color: "text-amber-500" };
-    return { label: "Building", color: "text-gray-500" };
-  };
-
-  const scoreInfo = getScoreLabel(stats.avgRating);
-  const progressPercent = (stats.avgRating / 5) * 100;
-
-  return (
-    <div className="hidden lg:block">
-      <div className="sticky top-24">
-        {/* ── Unified Sidebar Card ── */}
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm">
-
-          {/* ── Section 1: Olera Score ── */}
-          <div className="p-6">
-            {/* Header with tooltip */}
-            <div className="flex items-center gap-2 mb-5">
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                Olera Score
-              </span>
-              <div className="relative" ref={tooltipRef}>
-                <button
-                  type="button"
-                  onClick={() => setShowTooltip(!showTooltip)}
-                  className="w-[18px] h-[18px] rounded-full flex items-center justify-center text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-colors"
-                  aria-label="What is Olera Score?"
-                >
-                  <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-                  </svg>
-                </button>
-                {/* Tooltip */}
-                {showTooltip && (
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-64 p-4 bg-gray-900 text-white text-[13px] rounded-xl shadow-xl z-20">
-                    <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-900 rotate-45" />
-                    <p className="relative leading-relaxed">
-                      Your Olera Score is the average of all family reviews. Higher scores help you stand out in search results and build trust with families.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Score display */}
-            {stats.totalReviews > 0 ? (
-              <>
-                {/* Score + label badge */}
-                <div className="flex items-end justify-between mb-5">
-                  <div className="flex items-baseline gap-0.5">
-                    <span className="text-[44px] font-display font-bold text-gray-900 leading-none tracking-tight">
-                      {stats.avgRating.toFixed(1)}
-                    </span>
-                    <span className="text-lg text-gray-300 font-medium">/5</span>
-                  </div>
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100/60">
-                    <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                    </svg>
-                    <span className={`text-xs font-bold ${scoreInfo.color}`}>{scoreInfo.label}</span>
-                  </div>
-                </div>
-
-                {/* Progress bar with markers */}
-                <div className="mb-2.5">
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-primary-400 to-primary-500 rounded-full transition-all duration-500"
-                      style={{ width: `${progressPercent}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-between text-xs text-gray-400 mb-5">
-                  <span>Needs work</span>
-                  <span>Strong</span>
-                  <span>Top rated</span>
-                </div>
-
-                {/* Star rating + review count */}
-                <div className="flex items-center justify-center gap-3 pb-5 border-b border-gray-100">
-                  <StarRating rating={Math.round(stats.avgRating)} size="md" />
-                  <span className="text-sm text-gray-500">
-                    {stats.totalReviews} review{stats.totalReviews !== 1 ? "s" : ""} · {stats.repliedCount} replied
-                  </span>
-                </div>
-
-                {/* Category breakdown */}
-                <div className="pt-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1 h-4 bg-gray-300 rounded-full" />
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      Rating Breakdown
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    {Object.entries(stats.categoryStats).map(([key, value]) => (
-                      <div key={key} className="flex items-center gap-3">
-                        <span className="text-sm text-gray-600 w-28 shrink-0">
-                          {categoryLabels[key] || key}
-                        </span>
-                        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-primary-400 to-primary-500 rounded-full transition-all duration-500"
-                            style={{ width: `${(value / 5) * 100}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-medium text-gray-700 w-8 text-right">
-                          {value.toFixed(1)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-4">
-                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                  <StarIcon className="w-6 h-6 text-gray-300" filled={false} />
-                </div>
-                <p className="text-sm text-gray-500 font-medium">No ratings yet</p>
-                <p className="text-xs text-gray-400 mt-1">Reviews will appear here when families rate your services.</p>
-              </div>
-            )}
-          </div>
-
-          {/* ── Section 2: Share Profile ── */}
-          <div className="px-6 py-5 border-t border-gray-100">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
-                <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-                </svg>
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-[15px] font-semibold text-gray-900 leading-snug">
-                  Share your profile
-                </h3>
-                <p className="text-[13px] text-gray-500 mt-1 leading-relaxed">
-                  Encourage families to leave reviews after their experience.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className="inline-flex items-center gap-1.5 mt-2 text-[13px] font-semibold text-primary-600 hover:text-primary-700 focus:outline-none focus:underline transition-colors group"
-                >
-                  {copied ? (
-                    <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                      </svg>
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      Copy profile link
-                      <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                      </svg>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Section 3: Tips for More Reviews (Collapsible) ── */}
-          <TipsAccordion title="Tips for More Reviews">
-            <div className="space-y-4">
-              {/* Tip 1 */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
-                  <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Ask after great interactions</p>
-                  <p className="text-sm text-gray-500 mt-0.5">Families love to share positive experiences</p>
-                </div>
-              </div>
-
-              {/* Tip 2 */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
-                  <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Respond to every review</p>
-                  <p className="text-sm text-gray-500 mt-0.5">Shows you value feedback</p>
-                </div>
-              </div>
-
-              {/* Tip 3 */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
-                  <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Share your profile link</p>
-                  <p className="text-sm text-gray-500 mt-0.5">Include it in follow-up messages</p>
-                </div>
-              </div>
-            </div>
-          </TipsAccordion>
-
-        </div>
-      </div>
     </div>
   );
 }
@@ -964,7 +1508,7 @@ function MobileStatsSheet({
 
       {/* Sheet */}
       <div
-        className="fixed inset-x-0 bottom-0 z-50 lg:hidden bg-white rounded-t-3xl shadow-xl max-h-[85vh] overflow-y-auto"
+        className="fixed inset-x-0 bottom-0 z-50 lg:hidden bg-white rounded-t-3xl shadow-xl max-h-[85dvh] overflow-y-auto pb-[env(safe-area-inset-bottom)]"
         style={{ animation: "slide-up 0.3s ease-out both" }}
       >
         {/* Handle */}
@@ -1137,7 +1681,7 @@ function ReviewsSkeleton() {
 
 export default function ProviderReviewsPage() {
   const providerProfile = useProviderProfile();
-  const [activeFilter, setActiveFilter] = useState<TabFilter>("all");
+  const [activeFilter, setActiveFilter] = useState<TabFilter>("request_onsite");
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats>({
     totalReviews: 0,
@@ -1147,6 +1691,7 @@ export default function ProviderReviewsPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [profileId, setProfileId] = useState<string | null>(null);
 
   // Sheet state
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
@@ -1155,6 +1700,13 @@ export default function ProviderReviewsPage() {
 
   // Mobile stats sheet
   const [showStatsSheet, setShowStatsSheet] = useState(false);
+
+  // Request Now state (persisted across tab switches)
+  const [requestNowState, setRequestNowState] = useState<RequestNowState>({
+    clients: [],
+    message: DEFAULT_MESSAGE,
+    deliveryMethod: "email",
+  });
 
   // Detect mobile
   useEffect(() => {
@@ -1182,15 +1734,46 @@ export default function ProviderReviewsPage() {
         }
         const data = await res.json();
         const fetchedReviews = data.reviews || [];
+        const fetchedProfileId = data.profileId as string | undefined;
 
-        setReviews(fetchedReviews);
-        setStats(data.stats || calculateStats(fetchedReviews));
-
-        // Mark all reviews as read to clear the badge
-        if (fetchedReviews.length > 0 && providerProfile?.id) {
-          const reviewIds = fetchedReviews.map((r: Review) => r.id);
-          markAllReviewsAsRead(reviewIds, providerProfile.id);
+        if (fetchedProfileId) {
+          setProfileId(fetchedProfileId);
+          // Migrate localStorage data from old key format
+          if (providerProfile?.id && providerProfile.id !== fetchedProfileId) {
+            migrateReviewsReadData(providerProfile.id, fetchedProfileId);
+          }
         }
+
+        // Determine isNew for each review based on database read_by with localStorage fallback
+        const reviewsWithReadState = fetchedReviews.map((r: Review) => {
+          // Check database read_by first
+          const meta = r.metadata || {};
+          const readBy = (meta.read_by as Record<string, string>) || {};
+          const isReadInDb = fetchedProfileId ? !!readBy[fetchedProfileId] : false;
+
+          if (isReadInDb) {
+            return { ...r, isNew: false };
+          }
+
+          // Fallback to localStorage
+          try {
+            const readKey = fetchedProfileId ? `olera_reviews_read_${fetchedProfileId}` : `olera_reviews_read_${providerProfile?.id}`;
+            const stored = localStorage.getItem(readKey);
+            const readIds: string[] = stored ? JSON.parse(stored) : [];
+            return { ...r, isNew: !readIds.includes(r.id) };
+          } catch {
+            return { ...r, isNew: true };
+          }
+        });
+
+        setReviews(reviewsWithReadState);
+        setStats(data.stats || calculateStats(reviewsWithReadState));
+
+        // Count unread reviews and sync navbar badge
+        const unreadCount = reviewsWithReadState.filter((r: Review) => r.isNew).length;
+        window.dispatchEvent(new CustomEvent("olera:reviews-sync", {
+          detail: { count: unreadCount, providerId: fetchedProfileId || providerProfile?.id }
+        }));
       } catch (err) {
         console.error("Failed to fetch reviews:", err);
         // Show empty state on error
@@ -1200,9 +1783,12 @@ export default function ProviderReviewsPage() {
         setIsLoading(false);
       }
     })();
-  }, [providerProfile?.slug]);
+  }, [providerProfile?.slug, providerProfile?.id]);
 
   const filteredReviews = useMemo(() => {
+    if (activeFilter === "request_now" || activeFilter === "request_onsite") {
+      return []; // Empty states for now
+    }
     if (activeFilter === "replied") {
       return reviews.filter((r) => r.provider_reply);
     }
@@ -1210,9 +1796,30 @@ export default function ProviderReviewsPage() {
   }, [activeFilter, reviews]);
 
   const counts = useMemo(() => ({
+    request_now: 0,
+    request_onsite: 0,
     all: reviews.length,
     replied: reviews.filter((r) => r.provider_reply).length,
   }), [reviews]);
+
+  // Handle marking a review as read
+  const handleMarkAsRead = useCallback((reviewId: string) => {
+    if (!profileId) return;
+
+    // Update local state
+    setReviews((prev) =>
+      prev.map((r) => (r.id === reviewId ? { ...r, isNew: false } : r))
+    );
+
+    // Persist to database
+    markReviewAsRead(reviewId, profileId);
+
+    // Sync navbar badge (decrement count)
+    const currentUnreadCount = reviews.filter((r) => r.isNew && r.id !== reviewId).length;
+    window.dispatchEvent(new CustomEvent("olera:reviews-sync", {
+      detail: { count: currentUnreadCount, providerId: profileId }
+    }));
+  }, [profileId, reviews]);
 
   // Handle reply
   const handleReply = useCallback((review: Review) => {
@@ -1274,7 +1881,9 @@ export default function ProviderReviewsPage() {
   }
 
   const TABS: { id: TabFilter; label: string }[] = [
-    { id: "all", label: "All" },
+    { id: "request_onsite", label: "In Person" },
+    { id: "request_now", label: "Send Invites" },
+    { id: "all", label: "All Reviews" },
     { id: "replied", label: "Replied" },
   ];
 
@@ -1319,38 +1928,52 @@ export default function ProviderReviewsPage() {
         />
 
         {/* ── Tabs (outside grid, full width) ── */}
-        <div className="mb-4 lg:mb-5">
-          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveFilter(tab.id)}
-                className={[
-                  "px-3.5 lg:px-5 py-2 lg:py-2.5 rounded-[10px] text-[13px] lg:text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center gap-2",
-                  activeFilter === tab.id
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700",
-                ].join(" ")}
-              >
-                {tab.label}
-                <span className={`text-xs px-1.5 py-0.5 rounded-md ${
-                  activeFilter === tab.id
-                    ? "bg-gray-100 text-gray-600"
-                    : "bg-warm-100/60 text-gray-400"
-                }`}>
-                  {counts[tab.id]}
-                </span>
-              </button>
-            ))}
+        <div className="mb-4 lg:mb-5 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max min-w-full sm:min-w-0 sm:w-max">
+            {TABS.map((tab) => {
+              const showCount = tab.id === "all" || tab.id === "replied";
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveFilter(tab.id)}
+                  className={[
+                    "px-3 sm:px-3.5 lg:px-5 py-2 lg:py-2.5 rounded-[10px] text-[13px] lg:text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-none justify-center sm:justify-start",
+                    activeFilter === tab.id
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700",
+                  ].join(" ")}
+                >
+                  {tab.label}
+                  {showCount && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded-md ${
+                      activeFilter === tab.id
+                        ? "bg-gray-100 text-gray-600"
+                        : "bg-warm-100/60 text-gray-400"
+                    }`}>
+                      {counts[tab.id]}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* ── Two column layout on desktop (cards + sidebar aligned) ── */}
         <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8 lg:items-start">
-          {/* Left column - review cards */}
-          <div>
-            {filteredReviews.length > 0 ? (
+          {/* Left column - review cards or request forms */}
+          <div className="min-w-0">
+            {(activeFilter === "request_now" || activeFilter === "request_onsite") ? (
+              <>
+                <RequestNowContent
+                  state={requestNowState}
+                  onStateChange={setRequestNowState}
+                  providerSlug={activeFilter === "request_onsite" ? providerProfile?.slug : undefined}
+                />
+                <MobileTipsAccordion />
+              </>
+            ) : filteredReviews.length > 0 ? (
               <div className="space-y-4">
                 {filteredReviews.map((review, idx) => (
                   <div
@@ -1365,6 +1988,8 @@ export default function ProviderReviewsPage() {
                       onReply={handleReply}
                       onEdit={handleEdit}
                       isMobile={isMobile}
+                      isNew={review.isNew}
+                      onMarkAsRead={() => handleMarkAsRead(review.id)}
                     />
                   </div>
                 ))}
@@ -1376,14 +2001,15 @@ export default function ProviderReviewsPage() {
             )}
           </div>
 
-          {/* Right column - sidebar (desktop only, aligns with first card) */}
+          {/* Right column - education sidebar (desktop only) */}
           <div
+            className="hidden lg:block"
             style={{
               animation: "card-enter 0.25s ease-out both",
               animationDelay: "200ms",
             }}
           >
-            <ReviewsSidebar stats={stats} providerSlug={providerProfile?.slug ?? null} />
+            <EducationSidebar />
           </div>
         </div>
       </div>

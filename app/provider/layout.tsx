@@ -14,10 +14,19 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
     useAuth();
   const providerProfile = useProviderProfile();
 
-  // Public provider detail pages (/provider/[slug]) and onboarding manage
-  // their own state — skip all layout gates. Only known hub routes are gated.
+  // Public provider pages that manage their own auth state — skip layout gates
+  // Includes: /provider/[slug] (detail), /provider/[slug]/onboard, /provider/welcome
+  const PUBLIC_ROUTES = ["/provider/welcome"];
+  const isPublicRoute = PUBLIC_ROUTES.includes(pathname) ||
+    (pathname.startsWith("/provider/") && !pathname.startsWith("/provider/connections") &&
+     !pathname.startsWith("/provider/inbox") && !pathname.startsWith("/provider/reviews") &&
+     !pathname.startsWith("/provider/matches") && !pathname.startsWith("/provider/pro") &&
+     !pathname.startsWith("/provider/qna") && !pathname.startsWith("/provider/verification"));
+
+  // Known hub routes that require authentication
   const HUB_ROUTES = ["/provider", "/provider/connections", "/provider/inbox", "/provider/reviews", "/provider/matches", "/provider/pro", "/provider/qna", "/provider/verification"];
-  if (!HUB_ROUTES.includes(pathname)) {
+
+  if (isPublicRoute || !HUB_ROUTES.includes(pathname)) {
     return <>{children}</>;
   }
 
@@ -85,9 +94,10 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // Authenticated but no provider profile — redirect straight to onboarding
+  // Authenticated but no provider profile — redirect to family portal (not onboarding)
+  // Users should only reach provider onboarding via explicit "Add profile" action
   if (!providerProfile) {
-    router.replace("/provider/onboarding");
+    router.replace("/portal");
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full" />

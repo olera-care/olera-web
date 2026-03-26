@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import Modal from "@/components/ui/Modal";
-import ModalFooter from "@/components/provider-dashboard/edit-modals/ModalFooter";
 import { saveProfile } from "@/components/provider-dashboard/edit-modals/save-profile";
-import { useProfileCompleteness } from "@/components/portal/profile/completeness";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
@@ -68,7 +66,14 @@ interface EditCarePostModalProps {
   onSaved: () => void;
 }
 
-const TOTAL_STEPS = 4;
+const STEPS = [
+  { id: 1, title: "Care Details", subtitle: "Who needs care and what type?" },
+  { id: 2, title: "Location & Schedule", subtitle: "Where and when do you need care?" },
+  { id: 3, title: "Timeline & Payment", subtitle: "When and how will you pay?" },
+  { id: 4, title: "Additional Info", subtitle: "Any other details?" },
+] as const;
+
+const TOTAL_STEPS = STEPS.length;
 
 export default function EditCarePostModal({
   profile,
@@ -77,14 +82,11 @@ export default function EditCarePostModal({
   onSaved,
 }: EditCarePostModalProps) {
   const meta = (profile.metadata || {}) as FamilyMetadata;
-  const { percentage } = useProfileCompleteness(profile, userEmail);
-  const profileComplete = percentage >= 100;
 
   // Step state
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [saveToProfile, setSaveToProfile] = useState(!profileComplete);
 
   // Step 1: Care details
   const [relationship, setRelationship] = useState(meta.relationship_to_recipient || "");
@@ -135,16 +137,14 @@ export default function EditCarePostModal({
     try {
       await saveProfile({
         profileId: profile.id,
-        // Only update top-level profile fields when the checkbox is checked
-        topLevelFields: saveToProfile
-          ? {
-              care_types: careTypes,
-              city: city || undefined,
-              state: state || undefined,
-              phone: phone || undefined,
-              description: aboutSituation || undefined,
-            }
-          : {},
+        // Always update all fields shown in this modal
+        topLevelFields: {
+          care_types: careTypes,
+          city: city || undefined,
+          state: state || undefined,
+          phone: phone || undefined,
+          description: aboutSituation || undefined,
+        },
         metadataFields: {
           relationship_to_recipient: relationship || undefined,
           age: age ? parseInt(age, 10) : undefined,
@@ -166,26 +166,65 @@ export default function EditCarePostModal({
     if (step > 1) setStep(step - 1);
   }
 
+  // Get current step metadata
+  const currentStepData = STEPS.find(s => s.id === step) || STEPS[0];
+
+  // Step header for Modal title — aligns with close button
+  const stepHeader = (
+    <div>
+      <p className="text-sm text-gray-400 mb-1">
+        Step <span className="font-semibold text-gray-600">{step}</span> of {TOTAL_STEPS}
+      </p>
+      <h2 className="text-xl font-semibold text-gray-900">{currentStepData.title}</h2>
+      <p className="text-sm text-gray-500 mt-0.5">{currentStepData.subtitle}</p>
+    </div>
+  );
+
   return (
     <Modal
       isOpen
       onClose={onClose}
-      title="Edit care profile"
+      title={stepHeader}
       size="2xl"
       footer={
-        <ModalFooter
-          saving={saving}
-          hasChanges={hasChanges}
-          onClose={onClose}
-          onSave={handleSave}
-          guidedMode
-          guidedStep={step}
-          guidedTotal={TOTAL_STEPS}
-          onGuidedBack={step > 1 ? handleBack : undefined}
-        />
+        <div className="flex items-center justify-between">
+          <div>
+            {step > 1 ? (
+              <button
+                type="button"
+                onClick={handleBack}
+                disabled={saving}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Back
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={saving}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Skip
+              </button>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors"
+          >
+            {saving
+              ? "Saving..."
+              : step === TOTAL_STEPS
+                ? "Finish"
+                : "Next"}
+          </button>
+        </div>
       }
     >
-      <div className="space-y-5 pt-2">
+      <div className="space-y-6 pt-3">
         {error && (
           <p className="text-sm text-red-600" role="alert">
             {error}
@@ -194,7 +233,7 @@ export default function EditCarePostModal({
 
         {/* ── Step 1: Care details ── */}
         {step === 1 && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             {/* Who needs care */}
             <Select
               label="Who needs care"
@@ -217,7 +256,7 @@ export default function EditCarePostModal({
 
             {/* Types of care needed */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-base font-semibold text-gray-900 mb-3">
                 Types of care needed
               </label>
               <div className="flex flex-wrap gap-2">
@@ -234,7 +273,7 @@ export default function EditCarePostModal({
                         "px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200",
                         isSelected
                           ? "bg-primary-50 border-primary-300 text-primary-700"
-                          : "bg-white border-warm-100 text-gray-900 hover:border-warm-200",
+                          : "bg-white border-gray-200 text-gray-700 hover:border-gray-300",
                       ].join(" ")}
                     >
                       {ct}
@@ -248,7 +287,7 @@ export default function EditCarePostModal({
 
         {/* ── Step 2: Location & schedule ── */}
         {step === 2 && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <Input
                 label="City"
@@ -266,7 +305,7 @@ export default function EditCarePostModal({
 
             {/* Schedule preference */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-base font-semibold text-gray-900 mb-3">
                 Schedule preference
               </label>
               <div className="flex flex-wrap gap-2">
@@ -281,7 +320,7 @@ export default function EditCarePostModal({
                         "px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200",
                         isSelected
                           ? "bg-primary-50 border-primary-300 text-primary-700"
-                          : "bg-white border-warm-100 text-gray-900 hover:border-warm-200",
+                          : "bg-white border-gray-200 text-gray-700 hover:border-gray-300",
                       ].join(" ")}
                     >
                       {opt}
@@ -295,10 +334,10 @@ export default function EditCarePostModal({
 
         {/* ── Step 3: Timeline & payment ── */}
         {step === 3 && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             {/* Timeline */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-base font-semibold text-gray-900 mb-3">
                 When do you need care?
               </label>
               <div className="flex flex-wrap gap-2">
@@ -313,7 +352,7 @@ export default function EditCarePostModal({
                         "px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200",
                         isSelected
                           ? "bg-primary-50 border-primary-300 text-primary-700"
-                          : "bg-white border-warm-100 text-gray-900 hover:border-warm-200",
+                          : "bg-white border-gray-200 text-gray-700 hover:border-gray-300",
                       ].join(" ")}
                     >
                       {opt.label}
@@ -325,7 +364,7 @@ export default function EditCarePostModal({
 
             {/* Payment methods */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-base font-semibold text-gray-900 mb-3">
                 Payment method
               </label>
               <div className="flex flex-wrap gap-2">
@@ -342,7 +381,7 @@ export default function EditCarePostModal({
                         "px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200",
                         isSelected
                           ? "bg-primary-50 border-primary-300 text-primary-700"
-                          : "bg-white border-warm-100 text-gray-900 hover:border-warm-200",
+                          : "bg-white border-gray-200 text-gray-700 hover:border-gray-300",
                       ].join(" ")}
                     >
                       {pm}
@@ -356,7 +395,7 @@ export default function EditCarePostModal({
 
         {/* ── Step 4: Additional info ── */}
         {step === 4 && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             <Input
               as="textarea"
               label="About your situation"
@@ -374,27 +413,6 @@ export default function EditCarePostModal({
               placeholder="(555) 123-4567"
               helpText="Only shared with providers you connect with."
             />
-
-            {/* Save to profile checkbox */}
-            <label className="flex items-start gap-3 px-4 py-3.5 rounded-xl border border-gray-200/80 bg-warm-50/30 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={saveToProfile}
-                onChange={(e) => setSaveToProfile(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 shrink-0"
-              />
-              <div className="min-w-0">
-                <span className="text-[14px] font-medium text-gray-800 leading-tight block">
-                  Also update my profile
-                </span>
-                <span className="text-[12px] text-gray-500 leading-relaxed block mt-0.5">
-                  {profileComplete
-                    ? "Save these changes to your full profile as well."
-                    : `Your profile is ${percentage}% complete — saving here will help fill it in.`
-                  }
-                </span>
-              </div>
-            </label>
           </div>
         )}
       </div>

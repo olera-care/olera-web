@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
@@ -76,6 +77,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     onConnectionCreated,
   } = props;
 
+  const router = useRouter();
   const { user, account, activeProfile, profiles, isLoading: authLoading, openAuth, refreshAccountData } =
     useAuth();
   const savedProviders = useSavedProviders();
@@ -101,6 +103,36 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // ── Derived ──
   const availableCareTypes = mapProviderCareTypes();
   const notificationEmail = user?.email || "your email";
+
+  // ── Profile pre-fill data (must be before callbacks that use it) ──
+  const profileMeta = (activeProfile?.metadata || {}) as Record<string, unknown>;
+  const hasProfileCareDetails = Boolean(
+    profileMeta.relationship_to_recipient && profileMeta.timeline
+  );
+  const profileRecipient = profileMeta.relationship_to_recipient as string | undefined;
+  const profileTimeline = profileMeta.timeline as string | undefined;
+  const initialRecipient = profileRecipient
+    ? RECIPIENT_FROM_PROFILE[profileRecipient] || null
+    : null;
+  const initialUrgency = profileTimeline
+    ? URGENCY_FROM_TIMELINE[profileTimeline] || null
+    : null;
+
+  // ── Smart routing: check if user is fully onboarded ──
+  // Profile complete = has name, location, care types, and care details
+  const isProfileComplete = Boolean(
+    activeProfile?.display_name &&
+    activeProfile?.city &&
+    activeProfile?.state &&
+    activeProfile?.care_types?.length &&
+    profileMeta.relationship_to_recipient &&
+    profileMeta.timeline
+  );
+  // Matches live = care_post.status === "active"
+  const carePost = profileMeta.care_post as { status?: string } | undefined;
+  const isMatchesLive = carePost?.status === "active";
+  // Fully onboarded = profile complete AND matches live
+  const isFullyOnboarded = isProfileComplete && isMatchesLive;
 
   // ── Resolve initial state — show form immediately for everyone ──
   useEffect(() => {
@@ -339,7 +371,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     setIntentData((prev) => ({ ...prev, urgency: val }));
   }, []);
 
-  // ── Submit guest connection request via API ──
+  // ── Submit guest connection request via API (instant account creation) ──
   const submitGuestRequest = useCallback(async (email: string) => {
     setError("");
     setSubmitting(true);
@@ -364,39 +396,28 @@ export function useConnectionCard(props: ConnectionCardProps) {
         throw new Error(data.error || "Failed to send request.");
       }
 
-      // Store claim token in localStorage for inbox access
-      if (data.claimToken) {
+      window.dispatchEvent(new CustomEvent("olera:connection-created"));
+
+      // Establish session instantly using tokenHash
+      if (data.tokenHash) {
         try {
-          localStorage.setItem(CLAIM_TOKEN_KEY, data.claimToken);
-        } catch {
-          // localStorage may fail in private browsing
+          const supabase = createClient();
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: data.tokenHash,
+            type: "magiclink",
+          });
+
+          if (verifyError) {
+            console.error("Failed to establish session:", verifyError);
+          }
+        } catch (sessionErr) {
+          console.error("Session error:", sessionErr);
         }
       }
 
-      // Store redirect destination for magic link handler
-      // When user clicks magic link, they'll be redirected here after auth
-      if (data.connectionId && data.claimToken) {
-        const redirectUrl = `/portal/inbox?id=${data.connectionId}&token=${data.claimToken}`;
-        storeGuestRedirect(redirectUrl, data.claimToken);
-      }
-
-      // Redirect to post-connection success page if callback provided
-      if (data.connectionId && onConnectionCreated) {
-        onConnectionCreated(data.connectionId);
-        return;
-      }
-
-      // No redirect callback — update local state
-      if (data.created_at) {
-        setPendingRequestDate(data.created_at);
-      }
-      if (data.connectionId) {
-        setConnectionId(data.connectionId);
-      }
-
-      setCardState("connected");
-      setPendingRequestDate((prev) => prev || new Date().toISOString());
-      setPhoneRevealed(true);
+      // Navigate to /welcome with connection info
+      const welcomeUrl = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
+      router.push(welcomeUrl);
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "message" in err
@@ -407,7 +428,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     } finally {
       setSubmitting(false);
     }
-  }, [providerId, providerName, providerSlug, intentData, onConnectionCreated]);
+  }, [providerId, providerName, providerSlug, intentData, router]);
 
   // ── Connect (submit from intent or returning) ──
   const connect = useCallback(() => {
@@ -510,11 +531,20 @@ export function useConnectionCard(props: ConnectionCardProps) {
         if (data.created_at) setPendingRequestDate(data.created_at);
         if (data.connectionId) setConnectionId(data.connectionId);
 
-        // Show enrichment first — redirect happens after save/skip
-        setCardState("enrichment");
-        setPhoneRevealed(true);
+        // Smart routing based on onboarding state
+        // Skip enrichment entirely for logged-in users — welcome page wizard handles this
+        if (onConnectionCreated) {
+          onConnectionCreated(data.connectionId);
+        } else if (isFullyOnboarded) {
+          // Fully onboarded (profile complete + matches live) → go to inbox
+          router.push(`/portal/inbox?id=${data.connectionId}`);
+        } else {
+          // Not fully onboarded → welcome page (profile wizard collects care details)
+          router.push(`/welcome?connection=${data.connectionId}&provider=${providerSlug}`);
+        }
+        return;
       } else {
-        // Guest flow — use email for connection
+        // Guest flow — instant account creation + session
         const res = await fetch("/api/connections/request", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -536,25 +566,55 @@ export function useConnectionCard(props: ConnectionCardProps) {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to send request.");
 
-        // Store claim token
-        if (data.claimToken) {
-          try { localStorage.setItem(CLAIM_TOKEN_KEY, data.claimToken); } catch {}
-        }
-        if (data.connectionId && data.claimToken) {
-          storeGuestRedirect(
-            `/portal/inbox?id=${data.connectionId}&token=${data.claimToken}`,
-            data.claimToken
-          );
-        }
-
         window.dispatchEvent(new CustomEvent("olera:connection-created"));
 
-        if (data.created_at) setPendingRequestDate(data.created_at);
-        if (data.connectionId) setConnectionId(data.connectionId);
+        // Store connection info in localStorage FIRST for instant navigation
+        // This ensures the connection card shows even if session isn't ready yet
+        try {
+          localStorage.setItem("olera_pending_connection", JSON.stringify({
+            connectionId: data.connectionId,
+            providerId,
+            providerSlug,
+            providerName,
+          }));
+        } catch {
+          // localStorage not available
+        }
 
-        // Show enrichment first — redirect happens after save/skip
-        setCardState("enrichment");
-        setPhoneRevealed(true);
+        // Navigate immediately - don't wait for session establishment
+        const welcomeUrl = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
+        router.replace(welcomeUrl);
+
+        // Establish session in background (non-blocking)
+        // This will be ready by the time user interacts with the welcome page
+        if (data.accessToken && data.refreshToken) {
+          const supabase = createClient();
+          supabase.auth.setSession({
+            access_token: data.accessToken,
+            refresh_token: data.refreshToken,
+          }).then(({ data: sessionData, error: sessionError }) => {
+            if (sessionError) {
+              console.error("[guest-connection] Background session error:", sessionError);
+            } else {
+              console.log("[guest-connection] Background session established:", sessionData?.session?.user?.email);
+              // Refresh account data in background
+              const userId = sessionData?.session?.user?.id;
+              if (userId && refreshAccountData) {
+                refreshAccountData(userId).catch(err => {
+                  console.error("[guest-connection] Background refresh error:", err);
+                });
+              }
+            }
+          }).catch(err => {
+            console.error("[guest-connection] Background session error:", err);
+          });
+        } else if (data.actionLink) {
+          // No session tokens - user will need to use magic link from email
+          console.log("[guest-connection] No session tokens, user will need magic link from email");
+        }
+
+        return; // Already navigated
+        return;
       }
     } catch (err: unknown) {
       const msg =
@@ -566,46 +626,40 @@ export function useConnectionCard(props: ConnectionCardProps) {
     } finally {
       setSubmitting(false);
     }
-  }, [user, providerId, providerName, providerSlug, refreshAccountData, onConnectionCreated]);
+  }, [user, providerId, providerName, providerSlug, refreshAccountData, onConnectionCreated, isFullyOnboarded, router]);
 
   // ── Save enrichment data (post-submit) ──
-  const saveEnrichment = useCallback(async (data: {
-    careRecipient: string;
-    urgency: string;
+  // Note: Intent data is now captured in the initial connection request
+  // and profile updates are handled by the /welcome page
+  const saveEnrichment = useCallback(async (_data?: {
+    careRecipient?: string;
+    urgency?: string;
   }) => {
     setSubmitting(true);
     try {
-      if (connectionId) {
-        await fetch("/api/connections/update-intent", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            connectionId,
-            careRecipient: data.careRecipient,
-            urgency: data.urgency,
-          }),
-        });
-      }
-    } catch {
-      // Non-blocking
-    } finally {
-      setSubmitting(false);
-      // Redirect to connected page if callback available, else show connected state
+      // Unified experience: redirect to /welcome (profile updates happen there)
       if (connectionId && onConnectionCreated) {
         onConnectionCreated(connectionId);
+      } else if (connectionId) {
+        router.push(`/welcome?connection=${connectionId}&provider=${providerSlug}`);
       } else {
         setCardState("connected");
       }
+    } finally {
+      setSubmitting(false);
     }
-  }, [connectionId, onConnectionCreated]);
+  }, [connectionId, onConnectionCreated, router, providerSlug]);
 
   const skipEnrichment = useCallback(() => {
+    // Unified experience: redirect to /welcome
     if (connectionId && onConnectionCreated) {
       onConnectionCreated(connectionId);
+    } else if (connectionId) {
+      router.push(`/welcome?connection=${connectionId}&provider=${providerSlug}`);
     } else {
       setCardState("connected");
     }
-  }, [connectionId, onConnectionCreated]);
+  }, [connectionId, onConnectionCreated, router, providerSlug]);
 
   // Total steps: 2 for logged-in, 3 for guest (includes email capture)
   const totalSteps = user ? 2 : 3;
@@ -613,6 +667,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // Pre-fill data for signed-in users
   const userEmail = user?.email || "";
   const userName = account?.display_name || "";
+  const userPhone = activeProfile?.phone || "";
 
   return {
     // State
@@ -654,5 +709,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
     // Pre-fill for signed-in users
     userEmail,
     userName,
+    userPhone,
+    hasProfileCareDetails,
+    initialRecipient,
+    initialUrgency,
   };
 }

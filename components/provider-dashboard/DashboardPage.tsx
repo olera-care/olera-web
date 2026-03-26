@@ -18,6 +18,7 @@ import StaffScreeningCard from "./StaffScreeningCard";
 import AboutCard from "./AboutCard";
 import PricingCard from "./PricingCard";
 import PaymentInsuranceCard from "./PaymentInsuranceCard";
+import OwnerCard from "./OwnerCard";
 import ProfileCompletenessSidebar from "./ProfileCompletenessSidebar";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
 import EditGalleryModal from "./edit-modals/EditGalleryModal";
@@ -26,6 +27,7 @@ import EditStaffScreeningModal from "./edit-modals/EditStaffScreeningModal";
 import EditAboutModal from "./edit-modals/EditAboutModal";
 import EditPricingModal from "./edit-modals/EditPricingModal";
 import EditPaymentModal from "./edit-modals/EditPaymentModal";
+import EditOwnerModal from "./edit-modals/EditOwnerModal";
 
 export default function DashboardPage() {
   const profile = useProviderProfile();
@@ -271,6 +273,11 @@ function DashboardContent({
               completionPercent={sectionPercent("payment")}
               onEdit={() => handleEdit("payment")}
             />,
+            <OwnerCard
+              key="owner"
+              metadata={meta}
+              onEdit={() => handleEdit("owner")}
+            />,
           ].map((card, i) => (
             <div
               key={i}
@@ -309,6 +316,7 @@ function DashboardContent({
       {editingSection === "about" && <EditAboutModal {...modalProps} />}
       {editingSection === "pricing" && <EditPricingModal {...modalProps} />}
       {editingSection === "payment" && <EditPaymentModal {...modalProps} />}
+      {editingSection === "owner" && <EditOwnerModal {...modalProps} />}
     </div>
     </div>
   );
@@ -469,7 +477,7 @@ function MobileCompletenessSheet({
 
       {/* Sheet */}
       <div
-        className="fixed inset-x-0 bottom-0 z-50 lg:hidden bg-white rounded-t-3xl shadow-xl max-h-[85vh] overflow-y-auto"
+        className="fixed inset-x-0 bottom-0 z-50 lg:hidden bg-white rounded-t-3xl shadow-xl max-h-[85dvh] overflow-y-auto pb-[env(safe-area-inset-bottom)]"
         style={{ animation: "slide-up 0.3s ease-out both" }}
       >
         {/* Handle */}

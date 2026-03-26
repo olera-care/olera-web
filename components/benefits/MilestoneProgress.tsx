@@ -7,6 +7,7 @@ import {
   PRIMARY_NEEDS,
   INCOME_RANGES,
   MEDICAID_STATUSES,
+  VETERAN_STATUSES,
 } from "@/lib/types/benefits";
 import type { IntakeStep } from "@/lib/types/benefits";
 
@@ -41,6 +42,10 @@ function getStepSummary(
     case 5:
       return answers.medicaidStatus
         ? MEDICAID_STATUSES[answers.medicaidStatus].shortTitle
+        : null;
+    case 6:
+      return answers.veteranStatus
+        ? VETERAN_STATUSES[answers.veteranStatus].shortTitle
         : null;
     default:
       return null;
@@ -186,13 +191,13 @@ function CompactSummary() {
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 
-const STEPS: IntakeStep[] = [0, 1, 2, 3, 4, 5];
+const STEPS: IntakeStep[] = [0, 1, 2, 3, 4, 5, 6];
 
 export default function MilestoneProgress() {
   return (
     <nav aria-label="Care profile steps">
       {STEPS.map((s) => (
-        <MilestoneRow key={s} stepIndex={s} isLast={s === 5} />
+        <MilestoneRow key={s} stepIndex={s} isLast={s === 6} />
       ))}
     </nav>
   );

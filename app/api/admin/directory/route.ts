@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
+import { generateProviderSlug } from "@/lib/slugify";
+import { PROVIDER_CATEGORIES } from "@/lib/types";
 import type { DirectoryListItem } from "@/lib/types";
 
 /**
@@ -24,10 +26,32 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get("category") || "";
     const stateFilter = searchParams.get("state") || "";
     const tab = searchParams.get("tab") || "all";
+    const countOnly = searchParams.get("count_only") === "true";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const perPage = Math.min(100, Math.max(1, parseInt(searchParams.get("per_page") || "50", 10)));
 
     const db = getServiceClient();
+
+    // Fast path: count-only for dashboard overview
+    if (countOnly) {
+      let countQuery = db
+        .from("olera-providers")
+        .select("provider_id", { count: "exact", head: true });
+
+      if (tab === "published") countQuery = countQuery.or("deleted.is.null,deleted.eq.false");
+      else if (tab === "deleted") countQuery = countQuery.eq("deleted", true);
+      else if (tab === "no_city") countQuery = countQuery.is("city", null);
+      if (search) countQuery = countQuery.ilike("provider_name", `%${search}%`);
+      if (category) countQuery = countQuery.eq("provider_category", category);
+      if (stateFilter) countQuery = countQuery.eq("state", stateFilter);
+
+      const { count, error } = await countQuery;
+      if (error) {
+        console.error("Directory count error:", error);
+        return NextResponse.json({ error: "Failed to count providers" }, { status: 500 });
+      }
+      return NextResponse.json({ total: count ?? 0 });
+    }
 
     let query = db
       .from("olera-providers")
@@ -103,6 +127,91 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ providers, total, page, per_page: perPage, total_pages: totalPages });
   } catch (err) {
     console.error("Directory list error:", err);
+    return NextResponse.json(
+      { error: `Internal server error: ${err instanceof Error ? err.message : String(err)}` },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/admin/directory
+ *
+ * Create a new provider with minimal required fields.
+ * Redirects to detail page for full editing.
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    const adminUser = await getAdminUser(user.id);
+    if (!adminUser) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const providerName = (body.provider_name || "").trim();
+    const providerCategory = (body.provider_category || "").trim();
+
+    if (!providerName) {
+      return NextResponse.json({ error: "Provider name is required" }, { status: 400 });
+    }
+    if (!providerCategory || !PROVIDER_CATEGORIES.includes(providerCategory)) {
+      return NextResponse.json({ error: "Valid provider category is required" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+    const providerId = crypto.randomUUID();
+    const baseSlug = generateProviderSlug(providerName, null);
+
+    // Ensure slug uniqueness — append random suffix if base slug exists
+    let slug = baseSlug;
+    const { data: existing } = await db
+      .from("olera-providers")
+      .select("provider_id")
+      .eq("slug", baseSlug)
+      .limit(1);
+    if (existing && existing.length > 0) {
+      slug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`;
+    }
+
+    const { error: insertError } = await db
+      .from("olera-providers")
+      .insert({
+        provider_id: providerId,
+        provider_name: providerName,
+        provider_category: providerCategory,
+        slug,
+        deleted: false,
+        deleted_at: null,
+      });
+
+    if (insertError) {
+      console.error("Directory create error:", insertError);
+      return NextResponse.json(
+        { error: `Failed to create provider: ${insertError.message}` },
+        { status: 500 }
+      );
+    }
+
+    await logAuditAction({
+      adminUserId: adminUser.id,
+      action: "create_directory_provider",
+      targetType: "directory_provider",
+      targetId: providerId,
+      details: {
+        provider_name: providerName,
+        provider_category: providerCategory,
+        slug,
+      },
+    });
+
+    return NextResponse.json({ provider: { provider_id: providerId } }, { status: 201 });
+  } catch (err) {
+    console.error("Directory create error:", err);
     return NextResponse.json(
       { error: `Internal server error: ${err instanceof Error ? err.message : String(err)}` },
       { status: 500 }

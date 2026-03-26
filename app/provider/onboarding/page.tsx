@@ -14,6 +14,7 @@ import Select from "@/components/ui/Select";
 import WizardNav from "@/components/ui/WizardNav";
 import Pagination from "@/components/ui/Pagination";
 import OtpInput from "@/components/auth/OtpInput";
+import GooglePlaceSearch from "@/components/providers/GooglePlaceSearch";
 import type { Provider } from "@/lib/types/provider";
 
 type ProviderType = "organization" | "caregiver";
@@ -63,6 +64,9 @@ interface WizardData {
   email: string;
   website: string;
   careTypes: string[];
+  googlePlaceId: string;
+  googlePlaceName: string;
+  googleRating: string;
 }
 
 const EMPTY: WizardData = {
@@ -76,6 +80,9 @@ const EMPTY: WizardData = {
   email: "",
   website: "",
   careTypes: [],
+  googlePlaceId: "",
+  googlePlaceName: "",
+  googleRating: "",
 };
 
 function getProviderImage(provider: Provider): string | null {
@@ -120,7 +127,7 @@ function ProviderOnboardingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isAdding = searchParams.get("adding") === "true";
-  const { user, account, profiles, isLoading, refreshAccountData, switchProfile } = useAuth();
+  const { user, account, profiles, isLoading, refreshAccountData, switchProfile, openAuth } = useAuth();
   const [step, setStep] = useState<Step>(1);
   const [providerType, setProviderType] = useState<ProviderType | null>(null);
   const [data, setData] = useState<WizardData>(EMPTY);
@@ -195,27 +202,24 @@ function ProviderOnboardingContent() {
   const [noAccessSubmitting, setNoAccessSubmitting] = useState(false);
   const [noAccessSuccess, setNoAccessSuccess] = useState(false);
 
-  // Auth guard + resume detection
+  // Resume detection (auth check moved to handleSubmit)
   useEffect(() => {
     if (isLoading) return;
 
-    if (!user) {
-      router.replace("/");
-      return;
-    }
-
-    // If they already have a provider profile, redirect to hub
+    // If logged in and they already have a provider profile, redirect to hub
     // (unless they're explicitly adding another profile, or claiming via ?claim=)
-    const hasProviderProfile = (profiles || []).some(
-      (p) => p.type === "organization" || p.type === "caregiver"
-    );
-    if (hasProviderProfile && !isAdding) {
-      router.replace("/provider");
-      return;
+    if (user) {
+      const hasProviderProfile = (profiles || []).some(
+        (p) => p.type === "organization" || p.type === "caregiver"
+      );
+      if (hasProviderProfile && !isAdding) {
+        router.replace("/provider");
+        return;
+      }
     }
 
     // When adding a new profile, clear stale wizard data so we start fresh
-    if (isAdding) {
+    if (user && isAdding) {
       try {
         localStorage.removeItem(TYPE_KEY);
         localStorage.removeItem(DATA_KEY);
@@ -271,7 +275,7 @@ function ProviderOnboardingContent() {
   const prefillApplied = useRef(false);
   useEffect(() => {
     if (prefillApplied.current) return;
-    if (isLoading || !user) return; // Wait for auth to settle
+    if (isLoading) return; // Wait for auth to settle (but don't require user)
 
     try {
       const raw = sessionStorage.getItem("olera_provider_search_prefill");
@@ -651,6 +655,20 @@ function ProviderOnboardingContent() {
 
   const handleSubmit = async () => {
     if (!data.displayName.trim()) return;
+
+    // Auth check: if not logged in, prompt to create account first
+    if (!user) {
+      openAuth({
+        headline: "Almost done! Create an account to publish your listing",
+        intent: "provider",
+        deferred: {
+          action: "claim",
+          returnUrl: window.location.pathname + window.location.search,
+        },
+      });
+      return;
+    }
+
     setSubmitting(true);
     setSubmitError("");
 
@@ -688,6 +706,9 @@ function ProviderOnboardingContent() {
           zip: data.zip || undefined,
           careTypes: data.careTypes,
           isAddingProfile: isAdding,
+          googlePlaceId: data.googlePlaceId || undefined,
+          googlePlaceName: data.googlePlaceName || undefined,
+          googleRating: data.googleRating ? Number(data.googleRating) : undefined,
         }),
       });
 
@@ -726,14 +747,14 @@ function ProviderOnboardingContent() {
   };
 
   const displayName =
-    account?.display_name || user?.email?.split("@")[0] || "back";
+    account?.display_name || user?.email?.split("@")[0] || "there";
 
   // WizardNav step mapping — org flow: 6 steps
   const isOrg = providerType === "organization";
   const wizardTotal = 6;
   const wizardCurrentMap: Record<string, number> = { "1": 1, search: 2, verify: 2, "2": 3, "3": 4, "4": 5, "5": 6 };
   const wizardCurrentStep = wizardCurrentMap[String(step)] ?? 1;
-  const showWizardNav = step !== "resume" && step !== "caregiver-coming-soon";
+  const showWizardNav = step !== "resume" && step !== "caregiver-coming-soon" && step !== "search";
 
   // Show loading while auth is loading or while checking for landing page prefill
   if (isLoading || checkingPrefill) {
@@ -744,13 +765,15 @@ function ProviderOnboardingContent() {
     );
   }
 
-  // Prevent flash: if user already has a provider profile and isn't adding another,
+  // Prevent flash: if logged-in user already has a provider profile and isn't adding another,
   // render nothing while the useEffect redirect fires.
-  const hasProviderProfile = (profiles || []).some(
-    (p) => p.type === "organization" || p.type === "caregiver"
-  );
-  if (hasProviderProfile && !isAdding) {
-    return null;
+  if (user) {
+    const hasProviderProfile = (profiles || []).some(
+      (p) => p.type === "organization" || p.type === "caregiver"
+    );
+    if (hasProviderProfile && !isAdding) {
+      return null;
+    }
   }
 
   const showResultsBg = step === "search" && hasSearched;
@@ -1108,6 +1131,19 @@ function ProviderOnboardingContent() {
                   </button>
                 </p>
 
+                {/* Back button */}
+                <div className="flex justify-center mt-8">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                    Back
+                  </button>
+                </div>
               </div>
             )}
 
@@ -1374,6 +1410,20 @@ function ProviderOnboardingContent() {
                     showItemCount={false}
                     className="justify-center"
                   />
+
+                  {/* Back link */}
+                  <div className="flex justify-center mt-8">
+                    <button
+                      type="button"
+                      onClick={() => setStep(1)}
+                      className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                      </svg>
+                      Back
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -1410,6 +1460,18 @@ function ProviderOnboardingContent() {
                     Create new listing
                   </button>
                 </div>
+
+                {/* Back link */}
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors mt-8"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                  </svg>
+                  Back
+                </button>
               </div>
             )}
           </>
@@ -1814,6 +1876,21 @@ function ProviderOnboardingContent() {
                 }
                 placeholder="https://example.com"
               />
+
+              <GooglePlaceSearch
+                value={data.googlePlaceId || null}
+                selectedName={data.googlePlaceName || null}
+                onSelect={(placeId, name, rating) => {
+                  update("googlePlaceId", placeId);
+                  update("googlePlaceName", name);
+                  update("googleRating", rating != null ? String(rating) : "");
+                }}
+                onClear={() => {
+                  update("googlePlaceId", "");
+                  update("googlePlaceName", "");
+                  update("googleRating", "");
+                }}
+              />
             </div>
           </div>
         )}
@@ -1965,8 +2042,6 @@ function ProviderOnboardingContent() {
           onBack={
             step === 1
               ? undefined
-              : step === "search"
-              ? () => setStep(1)
               : step === "verify"
               ? () => {
                   setStep("search");
@@ -1990,8 +2065,6 @@ function ProviderOnboardingContent() {
           onNext={
             step === 1
               ? handleStep1Next
-              : step === "search"
-              ? () => setStep(2)
               : step === "verify"
               ? handleVerifyCode
               : step === 5
@@ -2005,8 +2078,6 @@ function ProviderOnboardingContent() {
           nextLabel={
             step === 1
               ? "Next"
-              : step === "search"
-              ? "Create new listing"
               : step === "verify"
               ? "Verify"
               : step === 5

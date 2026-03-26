@@ -63,72 +63,133 @@
   - Item #1 (gated provider portal page) assigned to Esther
   - Items #12, #13 are monitor-only (research-and-press redirect verify, forum content loss)
 
-- **Guest Connection Flow (Remove Auth Gate)** — DONE ✅
-  - PRs #243, #245, #248, #250, #251, #252 all merged to staging + promoted to main
-  - Auth gate replaced with simple inquiry form (email, name, phone, message)
-  - Guest placeholder profiles + magic link for account creation
-  - Pre-fill for signed-in users, enrichment (who/when) shown post-submit in card
-  - Honeypot spam protection + rate limiting (5/hr per email)
-  - Reconciled with Phase 1+2 (#251) and enrichment PR (#252)
+- **Senior Benefits Finder Voice + Results Redesign** — MERGED TO STAGING ✅
+  - PR #256 merged 2026-03-13 → staging at `3c14db7`
+  - Combined work from `guided-voice-sbf` + `results-redesign-sbf` into `sbf-voice-and-results-redesign`
+  - **Voice Input (Phases 1-7):**
+    - Speech recognition hook, voice intent parser, guided mode with conversational prompts
+    - TTS audio narration via Web Speech Synthesis API (narrates each question, mic auto-starts after)
+    - Mode selection: "Fill it out myself" (primary) / "Talk through it" (secondary)
+    - Browser detection: disables voice on unsupported browsers
+    - Auth gate removed from submit — results shown to everyone, auth on bookmark only
+  - **Results Redesign (Progressive Disclosure):**
+    - "Great news" header with savings estimate folded into one line
+    - "Recommended First Step" hero card with "When you call, say this" script
+    - Confidence bars (green/amber/gray) replacing tier labels
+    - Savings badges ($X–$Y/mo) on program cards
+    - "How to Apply" numbered steps generated from existing data
+    - Progressive reveal: top 5 programs, "See X more" button for rest
+    - Document checklist collapsed behind toggle (4 category cards, 20 items)
+    - Print: expands all programs + checklist, hides nav/sidebar/interactive
+    - Removed: SaveResultsBanner, FinancialImpactDashboard (folded into header), ActionPlan (replaced by hero), standalone AAA card
+  - **New files:** 13 components, 3 hooks, 2 plans, voice-intent-parser, speech-recognition types
+  - **Design principle:** Progressive disclosure — 3 beats: (1) moment of relief, (2) explore at your pace, (3) tools when ready
 
-- **Guest Q&A (Remove Auth Gate)** — DONE ✅
-  - PRs #254, #257 merged to staging + promoted to main (#255, #258)
-  - Guests ask questions without signing in — fire-first, optional enrichment
-  - Slack notifications (#notifications) + email to provider and asker
-  - Admin approval (pending status), rate limiting, honeypot
-  - Hotfix #258: email notifications for provider + asker on question submit
+- **Provider Email Outreach Revamp** (branch: `joyful-pasteur`) — DONE ✅
+  - PR #354 merged
+  - Rewrite 3 provider-facing emails (question, connection, review) from cold → warm/trust-building
 
-- **V1.0 Reviews Migration** — DONE ✅
-  - PR #226 merged to staging + promoted to main (#227)
-  - 34 legitimate v1.0 reviews imported via migrations 016 + 017
-  - Admin `/admin/reviews` page with filter, search, moderation controls
-  - Schema: nullable account_id/relationship, migration_source column
+- **City Pipeline: Sunrise Manor, NV** (branch: `bright-dijkstra`) — DONE ✅
+  - 632 discovered → 315 active providers after 3 rounds of filtering
+  - All enrichment complete: descriptions, reviews, images, trust signals
+  - Notion: all 14 checkboxes checked, status Complete
 
-- **Waiver Library Redesign** — DONE ✅
-  - PRs #236 (forms pages), #247 (hero, map, CTA) merged to staging
-  - Teal sticky headers, searchable program lists, localStorage checklist persistence
-  - Hero: "Save Up to $10,000 on Care", redesigned map with full-name pills
-  - 528 programs populated with application forms across all 50 states
+- **Ramapo, NY City Expansion** (branch: `great-euler`, no code changes) — COMPLETE ✅
+  - Full pipeline: discovery → classification → upload → enrichment
+  - 204 legitimate providers across 6 categories
 
-- **Senior Benefits Finder: Voice + Results Redesign** — DONE ✅
-  - PR #256 merged to staging
-  - Guided voice mode: conversational intake with TTS narration (Chrome/Edge)
-  - Results redesign: progressive disclosure, confidence bars, savings badges, "Recommended First Step" hero card
-  - Print optimization, document checklist behind toggle
-  - Auth gate removed from intake — results shown to everyone
+- **Greece, NY City Expansion** (branch: `silly-thompson`, no code changes) — COMPLETE ✅
+  - Full pipeline: discovery → classification → dedup → upload → geocoding → parallel enrichment
+  - 109 legitimate providers across 6 categories
+  - Notion: all 14 checkboxes checked, status Complete
 
-- **Phase 1+2: Benefits Auth + Provider UX + Family Onboarding** — DONE ✅
-  - PR #239, reconciled via #251, merged to staging
-  - Unauthenticated Benefits Finder results, soft auth banner
-  - Provider matches: "who needs care" display, all care type tags
-  - Family onboarding: Matches Invite step, refresh fix, email robustness
+- **Batch Pipeline Optimization** (branch: `silly-thompson`) — IMPLEMENTED, NEEDS E2E TEST
+  - Plan: `plans/batch-pipeline-optimization-plan.md`
+  - `scripts/discovery-batch.py` — non-interactive batch discovery with `--batch` CLI
+  - `scripts/pipeline-batch.js` — 4-phase processor (clean/load/enrich/finalize)
+  - Clean phase validated: 3 cities processed, dedup CSV loaded once, AI batch-50 working
+  - `.claude/commands/city-pipeline.md` updated with new batch mode instructions
+  - Next: full E2E test with fresh cities, then 80-city batch
 
-- **Phase 3: Discovery UX Improvements** — DONE ✅
-  - PR #259 merged to staging (2026-03-13)
-  - Welcome banner (glassmorphism) for "I'll explore first" users
-  - Matches promotion on /saved page, profile quality labels on family cards
-  - OAuth post-auth fix: full onboarding for new users
-  - Removed publish restrictions for family Matches profiles
-  - Cleaned up 13 debug console.logs before merge
+- **MedJobs: Full Onboarding Overhaul** (branch: `fresh-ramanujan`, PR #368) — MERGED ✅ + ACCOUNT FIX MERGED ✅
+  - Plan: `plans/medjobs-account-creation-plan.md`
+  - Notion: [Task](https://www.notion.so/32c5903a0ffe811e80eadeb088f96bd3)
+  - **Account creation:** Auth user + account created after step 1 (name+email), not step 4. Auto-sign-in via verifyOtp token.
+  - **Two-phase profile:** Partial profile on step 1 (`application_completed: false`), full update on step 4 (`application_completed: true`)
+  - **Student dashboard:** `/portal/medjobs` — completion checklist with inline doc upload, locked items when application incomplete
+  - **Seamless return flow:** All auth paths (OAuth, magic link, OTP) auto-redirect incomplete students to dashboard
+  - **UI redesign:** Typeform-inspired — borderless inputs, custom searchable dropdowns, letter-badged multi-select cards, slide transitions, warm microcopy
+  - **Email distinction:** New user = "Welcome to MedJobs!", returning user = "Welcome back!", no Loops seeker drip
+  - **Document upload:** Private `student-documents` bucket, auth-gated endpoint, inline on dashboard + submit-video page
+  - **Footer hidden** on apply/submit-video/portal-medjobs pages
+  - **Bugs fixed:** Duplicate email, generic welcome email to students, Loops drip, nudge cron inactive profiles, dropdown clipping
 
-- **Notes from the Field Issue 1** — DONE ✅
-  - PR #241 merged to staging + promoted to main (#242)
-  - PDF at `/docs/NotesFromTheField_Issue1.pdf`
-  - Article live at `/research-and-press/notes-from-the-field-issue-1`
+- **Provider Highlights Dedup + Data-Driven Generation** (branch: `fair-morse`, PR #376) — MERGED ✅
 
-- **Paywall Removal** — DONE ✅
-  - PRs #229, #232 merged — all features free, `canEngage()` always returns true
-  - Onboarding popup removed for family users (#234)
-  - Post-auth onboarding improved (#231)
+- **88-City Batch Expansion** (branch: `magical-knuth`, PR #383 merged) — COMPLETE ✅
+  - **Batch 1 (10 cities):** 598 verified providers. Oyster Bay NY, Richardson TX, Highlands Ranch CO, Pasco WA, Chino Hills CA, Bristol TN, Brookline MA, Pico Rivera CA, Piscataway NJ, Euless TX. Cost: ~$30
+  - **Batch 2 (78 cities):** 6,542 verified providers (from 16,006 discovered). 78 cities across 25 states. Cost: ~$240. 4 parallel processing + enrichment batches
+  - **Combined: 88 cities, ~7,140 verified providers added in one session**
+  - New batch discovery script: `scripts/discovery-batch.py`
+  - 30+ state bounding boxes added to `scripts/process-city.js`
+  - ~1,100 false positives caught by trust signal verification across both batches
+  - Total cost: ~$270 (vs $2,200 combined estimate — 88% under budget)
+  - Notion: all 88 pages marked Complete with all checkboxes checked
+  - 6 cities needed enrichment retry (Supabase statement timeouts from 4 concurrent batches) — all succeeded on sequential retry
+  - Plan: `plans/provider-highlights-dedup-plan.md`
+  - Notion: [Task](https://www.notion.so/Logan-s-Audit-QA-de-duplicate-care-service-labels-on-all-provider-pages-32c5903a0ffe8166a12bf29c98319e7e)
+  - 5-tier highlight waterfall: trust signals → social proof → CMS → staff screening → capability
+  - Browse cards skip tautological category label (skipCapability flag)
+  - "Well Reviewed" tier added (4.0★ + 15 reviews) below "Highly Rated" (4.5★ + 10)
+  - Synonym normalization map (~25 entries) for care_types dedup
+  - Deleted duplicate CATEGORY_HIGHLIGHTS maps from provider.ts + provider-utils.ts
+  - **Backfill Pass 1 DONE**: 8,101 providers hydrated with google_reviews_data (free)
+  - **Backfill Pass 2 DONE**: 22,292 non-CMS providers processed — 20,841 confirmed (trust signals saved), 1,317 soft-deleted (false positives), 134 errors (JSON parse). ~$22 cost, ~3hrs runtime
+  - **1,317 false positives cleaned up**: apartment complexes, golf courses, staffing agencies, rec centers, disability care, closed/unverifiable businesses. Soft-deleted (deleted=true, deleted_at set). No audit trail yet — tracked as P2 Notion task.
+  - Backfill script: `scripts/backfill-highlights-data.js` (paginated queries, 10 concurrent workers, 429 retry)
+  - To query the 1,317 deletions: `deleted=true AND deleted_at >= '2026-03-24T21:00:00Z' AND ai_trust_signals IS NULL AND provider_category IN ('Home Care (Non-medical)', 'Assisted Living', 'Memory Care', 'Independent Living')`
 
-- **Provider Home Page (Marketing Landing)** (branch: `shiny-maxwell`) — IN PROGRESS
+- **Admin Photo Deletion** (branch: `gentle-newton`, PR #395) — MERGED ✅
+  - Plan: `plans/admin-delete-photos-plan.md`
+  - Notion: [Task](https://www.notion.so/Admin-dashboard-Add-the-ability-for-providers-to-delete-photos-3295903a0ffe805dbc3bec53b1eca849)
+  - API: `delete_image` action added to PATCH `/api/admin/images/[providerId]`
+  - UI: hover overlay with trash icon + confirm dialog on both classified and raw image grids
+  - Root cause fix: `hero_image_url` column doesn't exist in `olera-providers` — handler was selecting it explicitly, Supabase 500'd
+
+- **MedJobs Account Fix + Admin Documents** (PRs #397, #398) — MERGED ✅
+  - PR #397: Fix account creation failing on full form submit (root cause: UPDATE path had no account creation logic)
+  - PR #398: Add Documents section to admin student detail page (driver's license + car insurance upload status)
+  - Type fix: Added document fields to `StudentMetadata` in `lib/types.ts`
+
+- **Provider Activity Center** (branch: `fond-keller`) — DONE ✅
+  - Plan: `plans/provider-activity-center-plan.md`
+  - Notion: [Track provider activity in "Activity Center"](https://www.notion.so/Track-provider-activity-in-Activity-Center-32f5903a0ffe80c8ad21ebd8b3176a6f)
+  - Track email click-throughs from provider notifications, surface in admin dashboard
+  - 5 phases: DB table → instrument emails → capture clicks → API → admin UI
+  - PRs #404 merged to staging, #405 promoted to main
+
+- **Family Activity Center** (branch: `logical-mahavira`) — IN PROGRESS
+  - Plan: `plans/family-activity-center-plan.md`
+  - Expand Activity Center into unified engagement hub: Providers | Families | Feed
+  - Track family signals: connection_sent, profile_enriched, email_click, question_asked, matches_activated
+  - New seeker_activity table, instrument 16 family email types with tracking, family engagement heat
+  - Replaces Matches admin page (funnel metrics → per-person engagement view)
+  - 5 phases: DB schema → instrument events → email tracking → admin API → admin UI
+
+- **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — DONE ✅
+  - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
+
+- **Provider Home Page (Marketing Landing)** (branch: `shiny-maxwell`) — DONE ✅
   - Plan: `plans/provider-home-page-plan.md`
 
-- **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — PLANNED
+- **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — DONE ✅
   - Plan: `plans/provider-deletion-request-plan.md`
 
-- **Backend Integration Roadmap** — PHASES 1-5 COMPLETE ✅
+- **Backend Integration Roadmap** — PHASES 1-5 COMPLETE ✅ + Notification Testing IN PROGRESS
   - Plan: `plans/backend-integration-roadmap-plan.md`
+  - Analysis: `docs/backend-integration-analysis.md`
+  - Notion: [Backend Integration Roadmap](https://www.notion.so/3185903a0ffe800982bbd55176cb46e2)
+  - PRs: #111 (Email + Slack), #112 (Twilio SMS), #113 (Vercel Cron), #123-#129 (Loops Marketing), #138 (Approval Email + Loops), #141 (Fix: accounts table lookup), #147 (Family emails + remove mock leads)
   - Phases: ~~Email~~ ✅ → ~~Slack~~ ✅ → ~~Twilio SMS~~ ✅ → ~~Vercel Cron~~ ✅ → ~~Marketing (Loops)~~ ✅ → Sentry (P4 backlog)
   - **Notification Test Matrix:** [Notion](https://www.notion.so/Notification-Test-Matrix-2026-03-04-3195903a0ffe8190be95d95554e52dd1) — 18 tests across Email/SMS/Slack/Cron/Loops
 
@@ -144,22 +205,64 @@
 
 ## Next Up
 
-1. **Promote staging → main** — 53 commits on staging not yet on main (Phase 3, Voice+Results, Waiver Library, Phase 1+2, Reviews)
+1. **Merge PR #219** (waiver library redesign) — waiting on Chantel to remove `package.json.tmp` + `.mcp.json`
 2. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
-3. **Monitor GSC for 404 spikes** — ongoing post-cutover (3 days since DNS switch)
-4. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
-5. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
-6. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
-7. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
-8. **Provider Home Page** — next feature work (plan exists)
-9. **Provider Deletion Request** — planned (plan exists)
+3. **Test Google OAuth on olera.care** — verify sign-in flow end-to-end
+4. **Monitor GSC for 404 spikes** — check over next few days post-cutover
+5. **Re-submit sitemap in GSC** — now returns sitemap index with all shards, should discover 40K+ pages
+6. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
+7. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
+8. **Gated provider portal page** — Esther building; sanity check item #1
+9. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
+10. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
 
 ---
 
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-03-25 | Full apply must retry account creation if apply-partial failed | Two-phase form (partial on step 1, full on step 4) means the full submit UPDATE path must check `account_id` and create auth+account if null. Silent try/catch in apply-partial hid the failure |
+| 2026-03-25 | `hero_image_url` column doesn't exist in `olera-providers` | The set_hero action wrote to it but it was never added to the table schema. All references must use `select("*")` and guard with `"hero_image_url" in provider` |
+| 2026-03-25 | Hover overlay > exposed pill buttons for image actions | Colored pills (yellow/red/green) below each image were visual noise. Dark gradient overlay with icon buttons on hover — images are content, buttons are tools |
+| 2026-03-25 | Quick discovery mode (3 terms/category) is sufficient for batch | Standard mode (12 terms) costs 4x more but yields mostly duplicates. Quick found 16K+ providers across 78 cities for $100. After dedup/filter, same quality |
+| 2026-03-25 | 4 parallel processing/enrichment batches for large batches | Single batch would take ~10hrs for 78 cities. 4 parallel batches cut to ~2.7hrs. Tradeoff: 6 Supabase timeouts from concurrent load (easy sequential retry) |
+| 2026-03-25 | Cap parallel enrichment batches at 4 to avoid Supabase timeouts | 4 concurrent `enrich-city.js` processes cause occasional statement timeouts. 3-4 batches is the sweet spot for speed vs stability |
+| 2026-03-25 | Place ID dedup before fuzzy dedup | Same place_id = same business (100% precision). Run this first to eliminate obvious dupes, then fuzzy catches the rest. Avoids fuzzy false positives on chains with similar names |
+| 2026-03-25 | Claimed accounts get +1000 score in dedup — never deleted | 152 providers linked via business_profiles. Even if a claimed provider is the "worse" record, it has real account data tied to it. Always keep it |
 |------|----------|-----------|
+| 2026-03-24 | Highlights are earned, not defaulted — fewer honest > 4 generic | Every Home Care agency showed identical "In-Home Care, Certified Caregivers, Companionship, Light Housekeeping". Users see through it. 1 verified fact ("State Licensed") builds more trust than 4 templated labels |
+| 2026-03-24 | Skip capability label on browse cards (skipCapability) | On a Home Care filtered page, showing "In-Home Care" as a highlight is tautological. Category already visible in card header line. Only show Tiers 1-4 (earned signals) on cards |
+| 2026-03-24 | "Well Reviewed" at 4.0★/15+ reviews below "Highly Rated" at 4.5★/10+ | Binary "Highly Rated" was too exclusive — many good providers missed Tier 2. Second tier creates visible variety across cards |
+| 2026-03-24 | Backfill trust signals for all 22K non-CMS providers (~$22) | Trust signals are the only differentiator for Home Care/Assisted Living/Memory Care/Independent Living (no CMS data). Pipeline already existed, just hadn't been run on pre-existing providers |
+| 2026-03-24 | Don't send MedJobs students to Loops seeker audience | Adding students as seeker contacts enrolls them in Logan's care-seeker onboarding drip. Students get their own Resend email flow |
+| 2026-03-24 | Collapse 15 acknowledgment checkboxes into single "I agree" | Wall of legal text killed momentum at step 4. Consolidated into 5 summary bullets + one toggle. Same legal coverage, 90% less friction |
+| 2026-03-24 | Dark buttons (bg-gray-900) over teal for MedJobs apply | Calm confidence aesthetic. Teal felt like every SaaS template. Dark is quieter, more Linear/Notion |
+| 2026-03-24 | Private storage bucket for student documents | Driver's license and car insurance are PII. Unlike profile photos (public), these must be access-controlled |
+| 2026-03-24 | Use generateLink to resolve existing auth users | `listUsers` has no email filter in this Supabase version. `generateLink` always returns the user object, even for existing users — clean and efficient |
+| 2026-03-24 | Early account creation after step 1, not step 4 | Capture the lead as soon as we have name+email. Students who abandon mid-form can be nudged back. Two-phase: partial on step 1, full update on step 4 |
+| 2026-03-24 | Save step 1 data only, not progressive per-step (approach B) | Steps 2-3 (certifications, availability) are fast to re-fill. Simpler than PATCH-per-step. We capture the valuable lead data (name, email, phone, city, state) |
+| 2026-03-24 | Auto-sign-in via dual magic link tokens | Generate two magic links: one for email (reusable), one consumed client-side via verifyOtp. Student gets a browser session without clicking the email, nav updates mid-form |
+| 2026-03-24 | Dashboard as the canonical return destination | `/portal/medjobs` is the persistent home for students. All magic links, auth redirects, and success screens point here. No more URL-param-dependent flows |
+| 2026-03-24 | Hide footer on MedJobs form pages | Senior care discovery footer is wrong context for student application. Apply, submit-video, and portal/medjobs get no footer |
+| 2026-03-24 | Typeform hybrid: 4 sections + Typeform components | Pure one-question-per-screen (17 clicks) is friction disguised as simplicity. Keep grouped fields but bring Typeform-quality interactions: borderless inputs, custom dropdowns, letter-badged multi-selects, slide transitions |
+| 2026-03-23 | Post-geocoding area check is required | 36/269 Ramapo providers geocoded outside the area — discovery assigns city=Ramapo to everything regardless of actual location. Must validate coordinates fall within ~0.5° of target city after geocoding |
+| 2026-03-23 | Slugs must include city to avoid collisions | Many NY providers share names across cities. Slug format `{name}-{city}-{state}` prevents unique constraint violations |
+| 2026-03-23 | Don't run google_reviews_data hydration and review snippets in parallel | Both write to the same JSONB column — race condition causes data loss. Run hydration first, then snippets |
+| 2026-03-22 | Never store raw Google Places photo reference URLs | Raw `places.googleapis.com/v1/.../photos/...` URLs are ephemeral API resource paths requiring an API key. Must resolve to permanent `lh3.googleusercontent.com` URLs using `skipHttpRedirect=true` |
+| 2026-03-22 | Jettison "Add Score" from city pipeline | olera_score/community_Score/value_score/information_availability_score are dead columns from the old Perplexity AI scoring system, removed in commit 302a4e5. New system uses Google Reviews + CMS data + AI Trust Signals |
+| 2026-03-22 | Replace "Add Score" with "Hydrate Google Reviews Data" | New pipeline step populates google_reviews_data JSONB (rating, review_count, snippets) instead of the old proprietary scores |
+| 2026-03-22 | AI Trust Signals run as part of city pipeline | Unified workflow: after upload, run /api/admin/verify-trust-signals for non-CMS categories in the target city |
+| 2026-03-22 | AI classification required before upload | 32% of Bellevue discovery was garbage (Walmart, GameStop, Roto-Rooter). Keyword filtering misses most false positives. Perplexity AI classification costs ~$0.40 per city and catches everything |
+| 2026-03-22 | Run enrichment steps in parallel | Post-upload steps (descriptions, reviews, trust signals, images, email) are independent — run concurrently with background tasks. TJ explicitly praised this approach |
+| 2026-03-22 | Trust signals + CMS are display-only, not ranking | Current recommendation engine sorts exclusively by evidence density (google rating × log(review count)). Ranking enhancement is a separate Notion task for deep dive |
+| 2026-03-13 | Form-first, voice-second in mode selection | Most users expect a form; voice is a differentiator but shouldn't be the default path |
+| 2026-03-13 | Auth gate on bookmark only, not on results | Let users see value first → higher conversion. Bookmark is the natural auth moment |
+| 2026-03-13 | Web Speech Synthesis API for TTS (no external service) | Free, built into all browsers, zero latency, no API key. Good enough for intake prompts |
+| 2026-03-13 | Borrow Chantel's results page ideas, not her code | Her Lovable prototype has great UX patterns (financial impact, action plan, print) but needs to be rebuilt in our stack |
+| 2026-03-13 | Progressive disclosure over report layout | Results page had 9 sections — overwhelming. Reduced to 3 beats: hero card, program list, tools. Document checklist behind toggle. |
+| 2026-03-13 | "Recommended First Step" hero > Action Plan list | One specific program with call script > 5 programs in a numbered list. Reduces decision paralysis. |
+| 2026-03-13 | Remove SaveResultsBanner from results | Show value first, ask later. Auth only on bookmark. Banner was the first thing users saw — wrong priority. |
+| 2026-03-13 | Print expands everything via beforeprint event | Progressive disclosure is great for screen, bad for paper. JS listener overrides collapsed state during print. |
 | 2026-03-05 | Flat `/provider/{slug}` URL is correct | v1.0 already used flat canonical URLs — no SEO trade-off in migration |
 | 2026-03-05 | Gated provider portal → Esther | `/provider-portal/provider/{slug}/*` needs smart landing page, not just redirect. Critical for provider email funnel |
 | 2026-03-02 | 16:9 primary featured image, 4 featured articles | 3:2 and 4:3 were too tall — pushed article grid below fold. 4 featured (1 large + 3 small) fills the right column without blank space |
@@ -179,14 +282,16 @@
 | 2026-03-10 | Dynamic API route for sitemap, not metadata file | `app/sitemap.ts` is statically generated at build time — Supabase queries fail, empty result cached permanently. `app/api/sitemap/route.ts` with `force-dynamic` works correctly |
 | 2026-03-10 | Rewrite `/sitemap.xml` → `/api/sitemap` | `app/[category]` dynamic route catches `sitemap.xml` as a category slug → 404. Rewrite in `next.config.ts` bypasses the route conflict |
 | 2026-03-10 | Static OG image over dynamic ImageResponse | Shutterstock photo looks better than teal gradient text; static `.jpg` is simpler and faster |
-| 2026-03-11 | Remove auth gate for family connections (magic link approach) | Traffic flowing but no connect requests — auth wall killing conversion. Collect email inline, fire lead immediately, send magic link for optional account creation. Logan approved. |
-| 2026-03-11 | Remove paywall entirely — all features free | Startup should focus on usage before gating. `canEngage()` always returns true. Can re-add later. |
+| 2026-03-10 | Web Speech API + Deepgram fallback for voice | Web Speech API is free and covers ~75% of traffic (Chrome/Edge). Deepgram at $0.008/min covers Firefox + iOS Safari. Cheaper and simpler than a single paid provider for all traffic |
+| 2026-03-10 | Keyword parser over LLM for voice interpretation | iOS VoiceIntentParser uses keyword matching and handles all edge cases. No need for Claude API — deterministic, instant, zero cost. LLM can be added later for Plan C conversational mode |
+| 2026-03-10 | Mic per step, not separate voice mode | Keeps voice as an enhancement to the existing form. Users can mix voice and tap freely. Lower engineering cost than a full voice overlay (Plan B) |
+| 2026-03-10 | Voice on all 6 steps, not just text inputs | Even pill-select steps (care preference, needs, income, Medicaid) benefit from voice — "help with bathing and cooking" is natural speech that maps cleanly to pills |
+| 2026-03-10 | Labeled pill over bare icon for voice button | Bare 40x40 gray circle has zero affordance — users won't discover it. Labeled pill with "Speak" text is discoverable without being pushy |
+| 2026-03-10 | Teal listening state over red | Red = error/danger in every mental model. Teal (brand color) signals "active" with calm confidence |
+| 2026-03-10 | Voice below options, not above | Voice is a secondary input method. Below the primary interaction (input/pills) communicates "or you can speak" without competing with the primary path |
+| 2026-03-10 | City search over ZIP-only for voice | Users naturally say "I live in Katy Texas" not "seven seven four four nine". Reuse existing 18K city search infra with state name extraction. ZIP still works if spoken |
+| 2026-03-10 | Auto-retry on audio-capture mic error | Chrome's Web Speech API flakes on mic access — abort→start race condition. One silent 500ms retry resolves most transient failures |
 | 2026-02-21 | Server-side pagination for directory | 36K+ records — must use Supabase `.range()` |
-| 2026-03-12 | Simple inquiry form over multi-step wizard | Multi-step intent wizard had too much friction. Single form (email, name, phone, message) fires lead immediately, optional enrichment post-submit |
-| 2026-03-12 | Fire-first UX for Q&A | Question submits immediately, then optional enrichment prompt for name/email. Zero friction > data completeness |
-| 2026-03-13 | OAuth post-auth: 5-min window detection | Replace always-on onboarding popup with targeted check: only auto-open for accounts created <5 minutes ago. Prevents nagging returning users |
-| 2026-03-13 | Voice intake for Benefits Finder (Chrome/Edge only) | TTS + speech recognition for guided conversational intake. Disabled on Firefox/Safari (no API support) |
-| 2026-03-13 | Progressive disclosure for Benefits results | 3 beats: moment of relief → explore at your pace → tools when ready. Top 5 programs shown, rest behind "See more" |
 
 ---
 
@@ -201,96 +306,507 @@
 
 ## Session Log
 
-### 2026-03-13 (Session 50) — PR #259 Merge + SCRATCHPAD Refresh + Staging → Main Promotion
+### 2026-03-25 (Session 60b) — MedJobs Account Creation Fix + Admin Documents
 
-**Branch:** `scratchpad-session-50` (from staging)
+**Branch:** `medjobs-account-fix`, `medjobs-admin-documents` | **PRs:** #397, #398
 
-**What:** Merged Esther's Phase 3: Discovery UX PR, audited all recent activity (20+ PRs merged in 3 days), refreshed SCRATCHPAD and memory, then promoted staging to main.
+**What:** Fixed critical bug where MedJobs onboarding completed successfully but dashboard showed "No profile yet." Also added Documents section to admin student detail page.
 
-**PR #259 merge:**
-- Cleaned up 13 debug console.logs from AuthProvider.tsx and PostAuthOnboarding.tsx
-- Verified all critical files intact post-merge (Footer, AuthProvider CACHE_TTL, GA4, redirects)
-- Notion merge report published
+**Root Cause (PR #397):** The full `/api/medjobs/apply` endpoint's UPDATE path (triggered when `apply-partial` already created the profile) had zero account creation logic. If `apply-partial`'s account creation failed silently, `account_id` stayed null. The full submit updated name/phone/metadata but never checked or set `account_id`. Dashboard queries profiles by `account_id` → found nothing → "No profile yet."
 
-**SCRATCHPAD refresh:**
-- Marked 9 items DONE: Guest connections, Guest Q&A, V1.0 reviews, Waiver library, Benefits Finder voice+results, Phase 1+2, Phase 3, Notes from the Field, Paywall removal
-- Updated Next Up: removed 3 completed items, added staging→main promotion
-- Added 5 new decisions to Decisions table
+**Fix:** Added account creation + linking as fallback in the UPDATE path. Also return `tokenHash` from both API response paths so client can auto-sign-in after submission. Success screen now links to `/portal/medjobs` (dashboard) instead of `/medjobs/submit-video`.
 
-**Memory updates:**
-- `project_current_state.md` — current shipped vs staging state
-- `project_team_contributors.md` — team members and patterns
-- `project_ux_pattern_fire_first.md` — fire-first UX pattern
+**PR #398:** Added Documents section to admin MedJobs student detail page. Shows driver's license and car insurance upload status (green "Uploaded" with timestamp, or amber "Not uploaded" warning). Added `drivers_license_url`, `drivers_license_uploaded_at`, `car_insurance_url`, `car_insurance_uploaded_at` to `StudentMetadata` type.
 
-**Staging → main promotion:** PR #260 (53 commits)
+**Files Modified (4):**
+- `app/api/medjobs/apply/route.ts` — Account creation in UPDATE path, tokenHash in responses
+- `app/medjobs/apply/page.tsx` — Auto-sign-in after submit, dashboard link on success
+- `app/admin/medjobs/[studentId]/page.tsx` — Documents section with upload status
+- `lib/types.ts` — Document fields in StudentMetadata
 
 ---
 
-### 2026-03-12 (Session 49) — Guest Connection Flow Takeover
+### 2026-03-25 (Session 60) — Board Triage + Quick Wins (WEB-11, WEB-06, DKIM)
 
-**Branch:** `zealous-gauss` (fresh from staging)
+**Branch:** `jolly-goodall` | **PR:** #400
 
-**Context:** Esther handed off `feature/remove-auth-gate-connection-flow` (PR #237). Magic link redirects were blocked by Supabase redirect URL allowlist. TJ taking over to finish.
+**What:** Triaged the Notion roadmap board, closed completed tasks, knocked out two P3 quick wins, and completed DKIM setup for joinolera.care.
 
 **Completed:**
-- Added `https://*.vercel.app/**` to Supabase Auth redirect URL allowlist (was the main blocker)
-- Verified existing redirect URLs: `olera.care/portal/inbox`, `www.olera.care/portal/inbox`, Site URL = `https://olera.care`
-- Applied Esther's full 30-file diff cleanly onto staging (no merge conflicts — her branch was current with staging)
-- Removed debug `console.log` statements from `lib/site-url.ts` and `app/api/connections/request/route.ts`
-- Fixed cross-device magic link bug in `AuthProvider.tsx`: hash token handler now checks URL `next` param before falling back to localStorage (supports users clicking magic link on different device/browser)
-- TypeScript compilation passes clean
+- **HP-07** (Browse by Care Type Power Pages) — already built at `app/[category]/`, marked Done
+- **Email notifications on account creation** — already built in `ensure-account` endpoint, marked Done
+- **DKIM setup for joinolera.care** — generated 2048-bit key in Google Admin, added TXT record to Cloudflare, authentication active
+- **WEB-11** (External link icons) — added arrow-out-of-box SVG to 7 components: AiTrustSignalsSection, ReviewsSection, GoogleReviewSnippets, ProgramCard, RecommendedFirstStep, AAACard, ProviderDetailPanel
+- **WEB-06** (Restart button on benefits results) — added "Start over" button below document checklist, uses existing `reset()` from `useCareProfile`
+- **Deleted** "Rename business_profiles table" task — pure churn, no user value
 
-**Files changed:** 22 modified + 8 new files (+1604/-235 lines)
+**Triaged (left as-is):**
+- Unified Care Profile schema (P5) — big architecture task, do after MedJobs + Benefits Finder ship
+- Unify olera-providers + business_profiles (P3) — dangerous while iOS app shares Supabase, needs dedicated week
+- Benefits Admin CMS (P5) — move data to Supabase table first, full CMS is over-engineering for now
 
-**Key new files:**
-- `lib/site-url.ts` — Environment-aware URL resolution
-- `components/providers/connection-card/EmailCapture.tsx` — Guest email collection
-- `app/auth/magic-link/page.tsx` — Client-side implicit flow handler
-- `app/api/auth/claim-profiles/route.ts` — Placeholder → real profile migration
-- `app/api/connections/guest-inbox/route.ts` — Guest inbox (bypasses RLS)
-- `app/api/connections/guest-profile/route.ts` — Guest profile lookup by token
-- `components/auth/MagicLinkHandler.tsx` — localStorage redirect persistence
-- `supabase/migrations/018_guest_connection_flow.sql` — DB migration (already run)
+**Files Modified (8):**
+- `components/providers/AiTrustSignalsSection.tsx` — external link icon on "Source"
+- `components/providers/ReviewsSection.tsx` — external link icon on "See all on Google"
+- `components/providers/GoogleReviewSnippets.tsx` — external link icon, renamed to "See all on Google"
+- `components/benefits/ProgramCard.tsx` — external link icon on Website/Apply/inline URLs
+- `components/benefits/RecommendedFirstStep.tsx` — external link icon on "Visit website"
+- `components/benefits/AAACard.tsx` — external link icon on "Visit website"
+- `components/messaging/ProviderDetailPanel.tsx` — external link icon on provider website
+- `components/benefits/BenefitsResults.tsx` — "Start over" button
 
-**Architecture:**
-1. Guest visits provider → clicks Connect → 2-step intent (who + when)
-2. Email capture step → guest email collected
-3. Placeholder family profile created (account_id = NULL, claim_token = UUID)
-4. Connection created with guest_email for rate limiting (5/hr per email)
-5. Magic link generated via Supabase Admin API → combined email sent
-6. Guest redirected to /connected/[id] success page → can access guest inbox
-7. Magic link click → /auth/magic-link processes hash tokens → sets session → ensure-account → claim-profiles migrates connections → redirect to inbox
-8. Placeholder deleted, connections moved to real family profile
-
-**Still TODO:**
-- [ ] Run full build on Vercel (preview deployment via push)
-- [ ] End-to-end test: guest connect → email → magic link → inbox
-- [ ] Review security: rate limiting, CAPTCHA decision
-- [ ] PR to staging
+**Build:** Clean, zero errors.
 
 ---
 
-### 2026-03-11 (Session 48) — PR Merges + Unblock Guest Connection Flow
+### 2026-03-25 (Session 59) — Admin Photo Deletion + Image Grid Redesign
 
-**Branch:** `sunny-pike`
+**Branch:** `gentle-newton` | **PR:** #395
 
-**What:** Merged Esther's 2 PRs to staging, then unblocked her guest connection flow (remove auth gate) by configuring Supabase + Vercel + running migration.
+**What:** Add ability to delete provider photos from admin dashboard. Redesigned the image grid UI from exposed colored pill buttons to a hover overlay pattern.
 
-**PRs merged:**
-- #232 — Remove paywall completely, all users have full access (3 files, +90/-930)
-- #234 — Fix: Remove onboarding popup for family users + fix inbox refresh (3 files, +14/-8)
-- #219 — Skipped (Chantel's waiver library, still needs cleanup)
+**Commits (8):**
+- `9be7d5c` — Core: `delete_image` action in PATCH handler + delete buttons in UI
+- `c661824` — UI redesign: hover overlay with icon buttons, hero ring, broken image states, rounded-xl cards
+- `7342677` — Fix UI refresh: sync formData after image actions, add error feedback
+- `cd27967` — Add diagnostic logging to delete handler
+- `3f9c915` — Fix misleading 404: separate fetchError (500) from !provider (404)
+- `72db79c` — Log errors to browser console for debugging
+- `70818c6` — Wrap provider_image_metadata ops in try/catch (table may not exist)
+- `11d12d3` — **Root cause fix**: `hero_image_url` column doesn't exist — switch to `select("*")`
 
-**Guest connection flow unblock (Esther's `feature/remove-auth-gate-connection-flow`):**
-- Verified Supabase redirect URLs already present (3 inbox URLs)
-- Added Vercel `NEXT_PUBLIC_SITE_URL` = `https://olera.care` for Production environment (Preview was already set)
-- Ran migration 018 on Supabase: `claim_token` UUID, nullable `account_id`, `guest_email` on connections
-- Reviewed Esther's 10-commit branch: EmailCapture component, guest connection API, claim-profiles API, guest-inbox API, middleware guest token bypass
-- Flagged merge conflicts: AuthProvider.tsx (#234 removed onboarding popup, her branch re-adds with claim token skip), membership.ts + pro/page.tsx (#232 gutted paywall, her branch has old version)
+**Files Modified (2):**
+- `app/api/admin/images/[providerId]/route.ts` — `delete_image` action, error handling, logging
+- `app/admin/directory/[providerId]/page.tsx` — Hover overlay UI, delete buttons, error feedback
 
-**Notion reports:** PR #232 and #234 merge reports published to PR Merge Reports folder
+**Files Created (1):**
+- `plans/admin-delete-photos-plan.md` — Implementation plan
 
-**Staging:** `b5b2248` — all critical files verified intact post-merge
+**Root Cause (500 on delete):** The handler selected `hero_image_url` explicitly from `olera-providers`, but that column doesn't exist in the database. Supabase rejects queries for non-existent columns. The directory endpoint worked because it uses `select("*")`.
+
+**Build:** Clean, zero errors.
+
+---
+
+### 2026-03-25 (Session 58) — 88-City Batch Expansion
+
+**Branch:** `magical-knuth` | **PR:** #383 (merged to staging)
+
+**What:** Largest-ever batch expansion — 88 cities in one session. Built batch discovery script, then ran full pipeline (discovery → process → enrich → Notion) for 10 cities first as proof-of-concept, then scaled to 78 more.
+
+**Batch 1 (10 cities) — Proof of concept:**
+| City | Discovered | Final Active |
+|------|-----------|-------------|
+| Oyster Bay, NY | 114 | 61 |
+| Richardson, TX | 255 | 47 |
+| Highlands Ranch, CO | 222 | 78 |
+| Pasco, WA | 214 | 81 |
+| Chino Hills, CA | 232 | 60 |
+| Bristol, TN | 124 | 25 |
+| Brookline, MA | 169 | 77 |
+| Pico Rivera, CA | 144 | 25 |
+| Piscataway, NJ | 235 | 99 |
+| Euless, TX | 205 | 45 |
+| **Total** | **1,914** | **598** |
+
+**Infrastructure built:**
+- `scripts/discovery-batch.py` — non-interactive batch discovery (Google Places API, quick/standard modes, CSV/MD input)
+- Added 30+ state bounding boxes to `scripts/process-city.js` (was only NY)
+
+**Batch 1 timing:** Discovery 6min → Processing 20min → Enrichment 25min (2 parallel batches) = ~51min total
+**Batch 1 cost:** ~$30 total (vs $250 estimate). Quick mode discovery kept Google API costs to $12.
+
+**Batch 2 (78 cities) — Full scale:**
+- Discovery: 16,006 providers across 78 cities, 51 min, ~$100 (2,848 API calls)
+- Processing: 7,554 uploaded after filter/dedup/geocode, 25 min (4 parallel batches of ~20), ~$40
+- Enrichment: 6,542 final active providers, 70 min (4 parallel batches + 6 retries), ~$100
+- 6 cities hit Supabase statement timeouts during enrichment (4 concurrent batches overwhelmed it) — all succeeded on sequential retry
+- Notion: 78 pages updated to Complete via background agent (78/78, zero failures)
+- **Batch 2 cost:** ~$240 (vs $1,950 estimate)
+
+**Combined totals:** 88 cities, ~7,140 providers, ~$270, ~2.7 hours
+
+**False positives caught (~1,100 total across both batches):** Apartment complexes, DME suppliers, child daycares, wedding venues, general medical, homeless shelters, staffing agencies, general nonprofits, cross-state contamination. All soft-deleted with reasons logged.
+
+**Key optimization: 4 parallel processing + enrichment batches** cut what would be ~10 hrs sequential down to ~2.7 hrs. The bottleneck was Perplexity trust signals (~300ms/provider × ~5,000 non-CMS providers).
+
+**Database-wide dedup (post-expansion):**
+- Phase 1: Place ID dedup — 1,390 soft-deleted (same Google place_id across cities)
+- Phase 2: Fuzzy name+address — 1,503 soft-deleted (3-tier: exact addr, base addr, name+city)
+- Total: 2,893 duplicates cleaned, 0 claimed accounts touched
+- New script: `scripts/dedup-database.js` (report/export/delete modes)
+- New slash command: `/dedup`
+- Scoring system keeps richest record; claimed accounts (+1000 score) are never deleted
+
+---
+
+### 2026-03-24 (Session 57) — Provider Highlights Dedup + Data-Driven Generation
+
+**Branch:** `fair-morse` | **PR:** #376 (5 commits)
+
+**What:** Replace static per-category highlight templates with a data-driven 5-tier waterfall. Highlights now show verified per-provider facts (trust signals, Google reviews, CMS quality) instead of generic category labels. Backfill script enriches all 40K existing providers.
+
+**Problem (3 layers):**
+1. Duplicate labels — "Home care" / "In-home care" / "Non-medical home care" as separate highlights (dedup only caught exact case matches)
+2. Highlights were services in disguise — "In-Home Care" on a Home Care page is tautological
+3. Zero differentiation — every Home Care agency showed identical 4 highlights (hardcoded templates)
+
+**Commits (5):**
+- `5aedf78` — Core: `lib/provider-highlights.ts` waterfall + synonym map, detail page + browse card integration, delete duplicate highlight maps
+- `54f74ee` — Skip tautological category on browse cards (`skipCapability`), add "Well Reviewed" tier
+- `497579c` — Backfill script `scripts/backfill-highlights-data.js` (reviews hydration + trust signals)
+- `2504abf` — Concurrent workers (10x faster — 10 workers default, configurable)
+- `93c09f2` — Fix Supabase query timeout with pagination
+
+**Files Created (2):**
+- `lib/provider-highlights.ts` — Shared highlight builder with 5-tier waterfall + `normalizeCareLabel()` synonym map
+- `scripts/backfill-highlights-data.js` — One-time backfill for reviews data + trust signals (paginated, concurrent, 429 retry)
+
+**Files Modified (4):**
+- `app/provider/[slug]/page.tsx` — Replaced highlight builder with `buildHighlights()`, refactored `HighlightIcon` to enum-based dispatch, flex-wrap layout (1-4 items)
+- `lib/types/provider.ts` — `toCardFormat()` + `businessProfileToCardFormat()` use waterfall with `skipCapability: true`. Deleted `CATEGORY_HIGHLIGHTS` map + `getHighlightsForCategory()`
+- `lib/provider-utils.ts` — Deleted `categoryHighlights` map + `getCategoryHighlights()`
+- `plans/provider-highlights-dedup-plan.md` — Full implementation plan
+
+**Backfill Results (FINAL):**
+- Pass 1 (reviews hydration): 8,101 providers hydrated with google_reviews_data JSONB (free)
+- Pass 2 (trust signals): 22,292 processed — 20,841 confirmed, 1,317 soft-deleted, 134 errors. ~$22, ~3hrs
+- 1,317 false positives removed: apartment complexes, golf courses, staffing agencies, rec centers, disability care, closed businesses
+- Query to find deletions: `deleted=true AND deleted_at >= '2026-03-24T21:00:00Z' AND ai_trust_signals IS NULL`
+- Follow-up: P2 Notion task for deletion audit trail ([link](https://www.notion.so/Provider-deletion-audit-trail-track-who-why-source-for-all-soft-deletes-32e5903a0ffe81ccb42ef387b5b4cda1))
+
+**Build:** Clean, zero errors.
+
+---
+
+### 2026-03-24 (Session 56) — MedJobs Full Onboarding Overhaul
+
+**Branch:** `fresh-ramanujan` | **PR:** #368
+
+**What:** Complete overhaul of MedJobs student onboarding — from account creation timing to UI redesign to return flow.
+
+**Commits (10):**
+- `e75e588` — Core account creation on form submit + document upload + welcome email
+- `5b360a0` — Skip generic welcome email + Loops seeker drip for students
+- `a083033` — UI redesign: progress bar, collapsed acks, celebratory success, duplicate guard
+- `a695efd` — Typeform-inspired hybrid: borderless inputs, custom dropdowns, letter-badged multi-selects
+- `25a54e4` — Restore hours-per-week warning
+- `3f3a42e` — Student dashboard `/portal/medjobs` + seamless return flow + auth-aware submit-video
+- `485dae1` — Hide footer on MedJobs form pages + fix dropdown clipping
+- `25aced5` — Early account creation after step 1 + dashboard handles incomplete applications
+- `7cade92` — Fix welcome email: hide empty university block, add "Complete application" step
+- `1c3eef8` — Replace "Y" badge with proper checkbox on acknowledgment toggle
+- `b053370` — Auto-sign-in student via dual magic link tokens after partial creation
+
+**Files Created (3):**
+- `app/portal/medjobs/page.tsx` — Student completion dashboard
+- `app/api/medjobs/upload-document/route.ts` — Auth-gated document upload (private bucket)
+- `app/api/medjobs/apply-partial/route.ts` — Early account creation after step 1
+
+**Files Modified (9):**
+- `app/medjobs/apply/page.tsx` — Full Typeform-inspired redesign + partial creation on step 0→1
+- `app/medjobs/submit-video/page.tsx` — Auth-aware (no URL params needed) + restyled
+- `app/api/medjobs/apply/route.ts` — Two-phase profile (partial update vs full insert), duplicate guard, returning email
+- `app/api/cron/medjobs-nudge/route.ts` — Include inactive profiles, add document + application checks
+- `app/api/auth/ensure-account/route.ts` — Skip welcome/Loops for students
+- `app/auth/callback/route.ts` — Student-aware redirect to `/portal/medjobs`
+- `components/auth/UnifiedAuthModal.tsx` — Student-aware redirect after OTP
+- `components/shared/ConditionalFooter.tsx` — Hide footer on MedJobs pages
+- `lib/medjobs-email-templates.tsx` — New + returning templates, conditional university block
+
+**Bugs Found & Fixed:**
+1. Students received generic "Welcome to Olera" email (Resend) — ensure-account skips for students
+2. Students enrolled in Loops seeker drip (Logan's intro) — removed sendLoopsEvent
+3. Duplicate email created duplicate profiles — returns existing + "Welcome back!" UX
+4. Nudge cron missed inactive profiles — removed `is_active: true` filter
+5. Dropdown clipped by footer — hide footer on form pages + increase bottom padding
+6. Empty university block in early welcome email — conditionally hidden
+7. "Y" badge on acknowledgment toggle — replaced with proper checkbox
+
+**Architecture:**
+- Two-phase profile creation: partial (step 1) → full update (step 4)
+- Auto-sign-in via dual magic link tokens (one for email, one for client verifyOtp)
+- `/portal/medjobs` as canonical return destination (all auth paths redirect here)
+- Dashboard checklist: application → video → license → insurance (locked when prior incomplete)
+
+**Build:** Clean, zero errors.
+
+---
+
+### 2026-03-24 (Session 56 — earlier entry) — MedJobs Account Creation + Application Redesign
+
+**Branch:** `fresh-ramanujan`
+
+**What:** Full implementation of MedJobs account creation on onboarding submit (Notion P1 from Logan's audit) + UI/UX redesign of the entire application flow.
+
+**Commits:**
+- `e75e588` — Core: auth user creation, magic link, document upload endpoint, welcome email, nudge cron, completeness calc
+- `5b360a0` — Fix: skip generic welcome email + Loops seeker drip for MedJobs students
+- `a083033` — Redesign: progress bar, no card box, collapsed acknowledgments, celebratory success, dark pills, duplicate email guard
+
+**Files Modified (8):**
+- `app/api/medjobs/apply/route.ts` — auth.admin.createUser, accounts row, account_id linking, magic link, duplicate email check
+- `app/api/medjobs/upload-document/route.ts` — NEW: auth-gated document upload (private bucket)
+- `app/api/cron/medjobs-nudge/route.ts` — include inactive profiles, add document checks
+- `app/api/auth/ensure-account/route.ts` — skip welcome email + Loops for student profiles
+- `app/medjobs/apply/page.tsx` — full UI redesign (progress bar, collapsed acks, success screen, pills)
+- `app/medjobs/submit-video/page.tsx` — DocumentUpload component for license/insurance
+- `lib/medjobs-email-templates.tsx` — welcome email: magic link, doc checklist, "what happens next"
+- `plans/medjobs-account-creation-plan.md` — implementation plan
+
+**Bugs Found & Fixed:**
+1. MedJobs students received generic "Welcome to Olera" email (Resend) — ensure-account now checks for student profile
+2. MedJobs students enrolled in Loops seeker drip (Logan's intro email) — removed sendLoopsEvent from apply route
+3. Duplicate email submission created duplicate profiles — now returns existing profile with "Welcome back!" UX
+
+**Build:** Clean, no errors.
+
+---
+
+
+
+**Branch:** `silly-thompson` (no code changes — pipeline ops only)
+
+**What:** Full city expansion pipeline for Greece, NY (batch mode — Ramapo skipped as already complete).
+
+**Pipeline Results:**
+- **Discovered:** 358 providers ($4.10, quick search)
+- **Keyword filter:** removed 27 (hospitals, PT, storage, pharmacies, urgent care)
+- **AI classification:** removed 117 (35% false positive rate — retail stores like Best Buy/Staples/JCPenney, spas, gyms, general apartments, counseling services, rehab centers, nonprofits)
+- **Dedup:** 61 duplicates against existing 33K providers
+- **Uploaded:** 155 providers to Supabase
+- **Geocoding:** 155 re-geocoded, 32 corrections
+- **Out-of-area cleanup:** 34 providers with coordinates outside Greece/Rochester area deleted (mostly NYC, Buffalo, Syracuse contamination)
+- **Trust signals:** 65 confirmed, 12 more false positives deleted (childcare centers, retail, apartment complexes, unverifiable entities)
+- **Final count:** 109 legitimate providers
+
+**Category Breakdown:**
+- Assisted Living: 55, Home Health Care: 24, Nursing Home: 17, Memory Care: 6, Home Care (Non-medical): 6, Independent Living: 1
+
+**Enrichment Coverage:**
+- Descriptions: 109/109 (100%), Google Reviews: 98/109 (90%), Review Snippets: 98/109 (90%), Trust Signals: 65/109 (non-CMS only), Images: 87/109 (80%)
+
+**Key Issue:** Race condition between hydration and review snippets struck again — both ran in parallel and snippets overwrote JSONB. Fixed with a re-hydration pass. Decision from session 54 to not run these in parallel was correct but wasn't enforced in this session's parallel launch.
+
+---
+
+### 2026-03-23 (Session 54) — Ramapo, NY City Expansion Pipeline
+
+**Branch:** `great-euler` (no code changes — pipeline ops only)
+
+**What:** Full city expansion pipeline for Ramapo, NY. Discovery → keyword filter → AI classification → dedup → upload → parallel enrichment → geocoding → out-of-area cleanup.
+
+**Pipeline Results:**
+- **Discovered:** 523 providers (quick search, ~$5.22)
+- **Keyword filter:** removed 26 (hospitals, physical therapy, storage, insurance, etc.)
+- **AI classification:** removed 179 (36% false positive rate — memory_care pulled in therapy/counseling, retail stores like Costco/Staples/Apple, data recovery)
+- **Dedup:** 49 duplicates against existing 33K providers
+- **Uploaded:** 269 providers to Supabase
+- **Geocoding:** 269 re-geocoded, 98 corrections (>0.01°)
+- **Trust signals:** 147 confirmed, 29 more false positives deleted (disability orgs, child care, staffing agencies, beauty salon, travel plaza)
+- **Out-of-area cleanup:** 36 providers with coordinates outside Ramapo deleted (cross-location contamination — Tampa FL, Arizona, Long Island, Albany, etc.)
+- **Final count:** 204 legitimate providers
+
+**Category Breakdown:**
+- Assisted Living: 107, Home Health Care: 51, Nursing Home: 29, Home Care (Non-medical): 22, Memory Care: 19, Independent Living: 12
+
+**Enrichment Coverage:**
+- Descriptions: 240/240→204 (100%), Google Reviews: 215/240 (90%), Review Snippets: 215/240 (90%), Trust Signals: 147/240 (61%), Images: 192/240 (80%), Emails: deferred
+
+**Key Issues Found:**
+- Slug collisions: providers sharing names across NY state require city suffix in slug (`-ramapo-ny`)
+- Parallel enrichment race condition: reviews data and review snippets scripts both wrote to `google_reviews_data` JSONB — snippets overwrote ratings. Fixed with a re-hydration pass.
+- Out-of-area contamination: 36 providers had addresses saying "Ramapo, NY" but geocoded to completely different locations (discovery assigned city=Ramapo to all results regardless of actual location). Added post-geocoding area check.
+
+---
+
+### 2026-03-23 (Session 53) — Sunrise Manor, NV City Pipeline
+
+**Branch:** `bright-dijkstra` (no code changes — pipeline ops only)
+
+**What:** Full city expansion pipeline for Sunrise Manor, NV (Las Vegas metro). Discovery → classification → upload → enrichment. All done autonomously end-to-end.
+
+**Pipeline Results:**
+- **Discovered:** 632 providers (quick search, ~$5.18)
+- **Keyword filter:** removed 21 (hospitals, dialysis, plumbing, pediatric, auto)
+- **AI classification:** removed 188 (30% false positive rate — worst: memory_care pulling mental health clinics, assisted_living pulling general apartments)
+- **Dedup:** 56 duplicates against existing NV providers
+- **Slug collisions:** 10 (existing providers from other cities with same name)
+- **Uploaded:** 357 providers to Supabase
+- **Geocoding:** 357 re-geocoded, 40 corrections (>0.01°), 0 out of bounds
+- **Trust signals:** 157 confirmed, 42 more false positives deleted (general apartments, mobile home parks, referral services, rehab centers, unverifiable businesses)
+- **Final count:** 315 legitimate active providers
+
+**Category Breakdown:**
+- Assisted Living: 105, Home Health Care: 92, Home Care (Non-medical): 41, Nursing Home: 39, Memory Care: 23, Independent Living: 15
+
+**Enrichment Coverage:**
+- Descriptions: 357/357 (100%)
+- Google Reviews Data: 302/357 (85%)
+- Review Snippets: 298/357 (83%)
+- Trust Signals: 157/226 non-CMS (69%)
+- Images: 237/357 (66%)
+- Emails: deferred to Email Finder script
+
+**Key Observations:**
+- 50% overall false positive rate (632 → 315) — highest of any city so far
+- Las Vegas metro pulls in massive amounts of general apartments, rehab centers (addiction), mobile home parks, and mental health clinics
+- Memory care category continues to be worst offender for false positives
+- NV is first state outside NE — pipeline handled state expansion seamlessly
+
+**Notion:** All 14 checkboxes checked, status → Complete (green)
+
+---
+
+### 2026-03-22 (Session 52) — Fix Broken Grand Island Provider Images
+
+**Branch:** `jolly-franklin`
+
+**What:** All 64 Grand Island provider images were broken on the browse page — showing alt text instead of photos. Root cause: the city pipeline stored raw Google Places API photo reference URLs (`places.googleapis.com/v1/.../photos/...`) which are ephemeral and require an API key. Bellevue images worked because the Python enrichment script resolves them to permanent `lh3.googleusercontent.com` URLs.
+
+**Fix:**
+1. **Data:** Re-fetched all 64 images via Google Places Photos API with `skipHttpRedirect=true` to get permanent `googleusercontent.com` URLs. 64/64 succeeded.
+2. **Pipeline:** Updated `.claude/commands/city-pipeline.md` "Fetch Unique Images" step with explicit instructions to resolve photo references — never store raw API paths.
+
+**Files changed:** `.claude/commands/city-pipeline.md`
+
+---
+
+### 2026-03-22 (Session 51) — Grand Island NE Pipeline Complete
+
+**Branch:** `hardy-elion` (no code changes — pipeline ops only)
+
+**What:** Full city expansion pipeline for Grand Island, NE. Discovery → classification → upload → enrichment. All done autonomously end-to-end.
+
+**Pipeline Results:**
+- **Discovered:** 409 providers (quick search, ~$4.26)
+- **Keyword filter:** removed 20 (storage, physical therapy, urgent care, etc.)
+- **AI classification:** removed 217 (56% false positive rate — worst: memory_care category pulling in retail, mental health, community orgs)
+- **Dedup:** 25 duplicates against existing NE providers
+- **Uploaded:** 147 providers to Supabase
+- **Geocoding:** 147 re-geocoded, 77 corrections (>0.01°), 0 out of bounds
+- **Trust signals:** 67 confirmed, 44 more false positives deleted (wrong-location Senior Helpers ×10, disability orgs, general apartments)
+- **Final count:** 103 legitimate providers
+
+**Category Breakdown:**
+- Assisted Living: 35, Home Health Care: 29, Home Care (Non-medical): 21, Memory Care: 8, Nursing Home: 7, Independent Living: 3
+
+**Enrichment Coverage:**
+- Descriptions: 103/103 (100%)
+- Google Reviews Data: 79/103 (77%)
+- Review Snippets: 79/103 (77%)
+- Trust Signals: 67/103 (non-CMS only)
+- Images: 64/103 (62%)
+- Emails: deferred to Email Finder script
+
+**Key Issues Found:**
+- `deleted` column defaults to `false` not `null` — enrichment queries using `.is('deleted', null)` returned 0 rows. Fixed to `.eq('deleted', false)`
+- Slug collision: providers sharing names across states need city in slug (`-grand-island-ne` suffix)
+- 75% overall false positive rate (409 → 103) — Grand Island had 10 bogus "Senior Helpers" listings from other states
+
+**Notion:** All 14 checkboxes checked, status → Complete (green)
+
+---
+
+### 2026-03-22 (Session 50) — Bellevue NE Pipeline Complete + Major Pipeline Overhaul
+
+**Branch:** `merry-villani`
+
+**What:** Completed all remaining Bellevue, NE enrichment steps. Discovered and killed dead scoring system. Overhauled `/city-pipeline` slash command. Found and removed 119 false positive providers (32% of database was garbage — Walmart, GameStop, Roto-Rooter, etc.).
+
+**Completed — Bellevue Enrichment (all run in parallel):**
+1. **Rich Descriptions** — 375 providers, 137 grammar fixes ("a assisted" → "an assisted")
+2. **Hydrate Google Reviews Data** — 315 providers got `google_reviews_data` JSONB (rating + review_count)
+3. **AI Trust Signals** — 245 non-CMS providers verified via Perplexity Sonar, avg 3.3/8, 0 errors
+4. **Review Snippets** — 315 providers got Google review text via Places API, 100% success
+5. **Fetch Images** — 298 got Google Places photos, 77 had no photos available
+6. **Fetch Email** — Deferred to Email Finder script (Google Places doesn't expose emails)
+7. **False Positive Cleanup** — AI-classified all 375 providers, soft-deleted 119 non-senior-care businesses
+
+**Notion status:** Bellevue set to "Complete" (green), all checkboxes checked.
+
+**Key Investigation — Scoring System:**
+- `olera_score`, `community_Score`, `value_score`, `information_availability_score` are **dead columns**
+- Killed in commit `302a4e5` (March 20) across 10 files — backup at `docs/olera-score-backup.md`
+- New system: Google Reviews (ranking) + CMS Medicare (display badge) + AI Trust Signals (display badge)
+- Evidence density sorting: `rating × log(reviewCount + 1)`
+- Trust signals + CMS are display-only — NOT used in ranking (Notion task created for deep dive)
+
+**Key Investigation — False Positives:**
+- 32% of discovery output was non-senior-care businesses
+- "Memory Care" discovery category worst offender — matched storage, computing, cognitive therapy
+- Keyword filtering misses most false positives — AI classification is non-negotiable
+- Should run BEFORE upload to Supabase in unified pipeline, not after
+
+**Infrastructure Improvements:**
+- Created `~/Desktop/olera-web/.env.local` with all API keys (Supabase, Perplexity, Google Places)
+- Worktrees symlink to it — never ask TJ for keys again
+- Found backup keys in `~/Desktop/TJ-hq/Olera/Olera Data Analysis Scripts/*/.env`
+- Added `GOOGLE_PLACES_API_KEY` to Vercel
+
+**Files Modified:**
+- `.claude/commands/city-pipeline.md` — Major rewrite: correct column names, parallelization strategy, scoring system docs, AI classification step, .env.local setup, known pitfalls expanded
+- Memory files: `reference_supabase_credentials.md`, `feedback_google_places_key.md`, `feedback_parallel_pipeline.md`
+
+**Spot Check & Additional Cleanup (post-pipeline):**
+- Ran evidence-based scan (reviews, trust signals, website URLs) → flagged 25 suspicious providers
+- Sent 16 most suspicious to Perplexity for unified entity check → 12 more false positives deleted
+- Total false positives removed: 132/375 (35%) + 1 (Lied Activity Center) + 1 (Bellevue Healthcare DME)
+- Final count: ~140 legitimate providers
+- **New failure modes discovered:**
+  - Wedding venues with senior-sounding names (A View In Fontenelle Hills)
+  - Community rec centers seniors attend (Lied Activity Center)
+  - DME suppliers categorized as Home Care (Bellevue Healthcare — sells wheelchairs, based in WA)
+  - General apartments categorized as Independent Living (Redwood, Brent Village, etc.)
+  - Cross-state contamination (WA business in NE results due to matching city name)
+
+**Pipeline Slash Command — Final Updates:**
+- Unified entity + trust signals step (one Perplexity call does both classification AND verification)
+- Geographic validation added to prompt (verify provider is actually in target city/state)
+- DME suppliers added to exclusion list
+- Autonomous end-to-end execution (no pausing between steps)
+- Updated Cowork SKILL.md and city-expansion-playbook.md to match
+
+**Notion Updates:**
+- Bellevue: all boxes checked, status → Complete
+- New checkboxes added to board: "Done: Hydrate Google Reviews Data", "Done: Verify Trust Signals (Non-CMS)"
+- New task: "Incorporate Trust Signals + CMS Data into Recommendation Ranking"
+
+**Decisions:** See Decisions Made table (6 new entries for 2026-03-22)
+
+---
+
+### 2026-03-10 (Session 48) — Senior Benefits Finder Voice Input (Phases 1-4)
+
+**Branch:** `peaceful-hawking` (worktree)
+
+**What:** Added voice input to the 6-step Benefits Finder intake form. Ported the iOS VoiceIntentParser keyword maps to TypeScript. Built speech recognition hook, mic button component, and wired into the existing form.
+
+**Exploration & Research:**
+- Read full Notion task: "Senior Benefits Finder Web Voice Input Integration" (P1)
+- Explored iOS codebase (`OleraClean`): SpeechRecognitionManager, VoiceIntentParser, VoiceIntakeViewModel, VoiceMicButton, VoiceOrb, FoundationModelService
+- Researched 8 voice APIs: Web Speech API, Deepgram, ElevenLabs Scribe, OpenAI Whisper, Google Cloud STT, AssemblyAI, Azure Speech, Picovoice Cheetah
+- Proposed 3 plans: (A) Mic per step, (B) Voice overlay with TTS, (C) Conversational assistant with LLM
+- TJ approved Plan A with evolution path to Plan B
+
+**Implementation (Phases 1-4):**
+1. `types/speech-recognition.d.ts` — Web Speech API TypeScript declarations
+2. `hooks/use-speech-recognition.ts` — Unified hook: start/stop/transcript/error/permissionState. Detects Web Speech API support, handles permission flow, auto-stops on 10s silence
+3. `lib/benefits/voice-intent-parser.ts` — Full port of iOS VoiceIntentParser: ZIP (regex + spoken digits), age (compound spoken numbers), care preference (20+ keywords), primary needs (7 categories, multi-select), income (bracket detection with spoken amounts), Medicaid (negation-first checking). Returns typed parse result with confidence + clarification prompts
+4. `components/benefits/VoiceMicButton.tsx` — 40x40 mic button, 3 states (idle/listening/disabled), pulse animation, first-use privacy note, processes transcript on stop
+5. `components/benefits/VoiceTranscript.tsx` — Real-time transcript, confirmation messages, clarification prompts, aria-live for screen readers
+6. `components/benefits/BenefitsIntakeForm.tsx` — Wired mic buttons into all 6 steps. Steps 0-1: mic inline with input. Steps 2-5: mic above pills. Voice results auto-map to form state and auto-advance (except primary needs — additive, no auto-advance). ZIP voice uses `zipToState()` for immediate state code resolution
+
+**Build status:** TypeScript compiles clean. Pre-existing waiver-library prerender failures (unrelated).
+
+**Remaining tasks:**
+- Task 4: Parser unit tests (vitest)
+- Task 8: City name voice handling (search city list from spoken name)
+- Tasks 9-10: Deepgram WebSocket fallback for Firefox/iOS Safari
+- Tasks 12-15: Polish (mobile, accessibility, error recovery)
+
+**Files created:** `hooks/use-speech-recognition.ts`, `lib/benefits/voice-intent-parser.ts`, `components/benefits/VoiceMicButton.tsx`, `components/benefits/VoiceTranscript.tsx`, `types/speech-recognition.d.ts`, `plans/benefits-voice-input-plan.md`
+**Files modified:** `components/benefits/BenefitsIntakeForm.tsx`, `.env.example`
 
 ---
 

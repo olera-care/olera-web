@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
@@ -8,7 +8,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { canEngage, getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT, isProfileShareable } from "@/lib/membership";
 import type { Profile, FamilyMetadata } from "@/lib/types";
 import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
-import { calculateProfileCompleteness, type ExtendedMetadata } from "@/lib/profile-completeness";
+import { type ExtendedMetadata } from "@/lib/profile-completeness";
 import MatchesFilterBar, {
   type MatchesFilters,
   type SortOption,
@@ -17,56 +17,10 @@ import MatchesFilterBar, {
   PAYMENT_OPTIONS,
 } from "@/components/provider/matches/MatchesFilterBar";
 import MatchesFilterSheet, { type FilterSheetType } from "@/components/provider/matches/MatchesFilterSheet";
+import FamilyMatchCard from "@/components/provider/matches/FamilyMatchCard";
+import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
+import Pagination from "@/components/ui/Pagination";
 
-// ── Reach-out profile threshold check ──
-// 7 requirements: name, location, phone/email, logo, care service, payment method, default message
-
-interface ReachOutThreshold {
-  meetsThreshold: boolean;
-  completionPercent: number;
-  completedCount: number;
-  totalCount: number;
-}
-
-function checkReachOutThreshold(
-  profile: Profile | null,
-  metadata: ExtendedMetadata | null,
-  hasDefaultMessage: boolean,
-): ReachOutThreshold {
-  const totalCount = 7;
-  let completedCount = 0;
-
-  // 1. Name
-  if (profile?.display_name?.trim()) completedCount++;
-
-  // 2. Location (city + state or address)
-  if (
-    profile?.address?.trim() ||
-    (profile?.city?.trim() && profile?.state?.trim())
-  )
-    completedCount++;
-
-  // 3. Phone or email
-  if (profile?.phone?.trim() || profile?.email?.trim()) completedCount++;
-
-  // 4. Logo/photo
-  if (profile?.image_url?.trim()) completedCount++;
-
-  // 5. At least one care service
-  if (profile?.care_types && profile.care_types.length > 0) completedCount++;
-
-  // 6. At least one payment method
-  if (metadata?.accepted_payments && metadata.accepted_payments.length > 0)
-    completedCount++;
-
-  // 7. Default message saved
-  if (hasDefaultMessage) completedCount++;
-
-  const completionPercent = Math.round((completedCount / totalCount) * 100);
-  const meetsThreshold = completedCount >= totalCount;
-
-  return { meetsThreshold, completionPercent, completedCount, totalCount };
-}
 
 // ── Timeline config ──
 
@@ -77,18 +31,6 @@ const TIMELINE_CONFIG: Record<string, { label: string; dot: string; glow: string
   exploring: { label: "Exploring", dot: "bg-warm-300", glow: "glowWarm", border: "border-warm-200", text: "text-gray-500", bg: "bg-warm-50/50" },
 };
 
-// ── Profile quality check ──
-// Detailed = location + care type + age + payment method + description + phone
-function isDetailedProfile(profile: Profile, meta: FamilyMetadata | null): boolean {
-  const hasLocation = !!(profile.city || profile.state);
-  const hasCareType = (profile.care_types?.length ?? 0) > 0;
-  const hasAge = !!(meta?.age);
-  const hasPayment = (meta?.payment_methods?.length ?? 0) > 0;
-  const hasDescription = !!(meta?.about_situation || profile.description)?.trim();
-  const hasPhone = !!profile.phone?.trim();
-
-  return hasLocation && hasCareType && hasAge && hasPayment && hasDescription && hasPhone;
-}
 
 // ── Helpers ──
 
@@ -157,7 +99,7 @@ const URGENCY_ORDER: Record<string, number> = {
 };
 
 const DEFAULT_NOTE_KEY = "olera_default_reachout_note";
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 12;
 
 // ── Inline keyframes ──
 
@@ -209,61 +151,6 @@ function PeopleIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-    </svg>
-  );
-}
-
-function SendIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-    </svg>
-  );
-}
-
-function SuccessIllustration({ className = "w-16 h-16" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 80 80" fill="none">
-      {/* Outer circle with gradient */}
-      <circle cx="40" cy="40" r="36" fill="url(#successGradient)" />
-      {/* Inner white circle */}
-      <circle cx="40" cy="40" r="28" fill="white" />
-      {/* Checkmark */}
-      <path
-        d="M28 40L36 48L52 32"
-        stroke="#199087"
-        strokeWidth="4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {/* Sparkles */}
-      <circle cx="16" cy="24" r="2" fill="#199087" opacity="0.6" />
-      <circle cx="64" cy="20" r="2.5" fill="#199087" opacity="0.5" />
-      <circle cx="68" cy="52" r="1.5" fill="#199087" opacity="0.4" />
-      <circle cx="12" cy="56" r="2" fill="#199087" opacity="0.5" />
-      <defs>
-        <linearGradient id="successGradient" x1="4" y1="4" x2="76" y2="76" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#199087" stopOpacity="0.15" />
-          <stop offset="1" stopColor="#199087" stopOpacity="0.25" />
-        </linearGradient>
-      </defs>
-    </svg>
-  );
-}
-
-function InfoIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-    </svg>
-  );
-}
-
-function EyeIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
     </svg>
   );
 }
@@ -689,608 +576,6 @@ function MatchesSidebar({
 }
 
 // ---------------------------------------------------------------------------
-// Profile Quality Label with Tooltip
-// ---------------------------------------------------------------------------
-
-function ProfileQualityLabel({ isDetailed }: { isDetailed: boolean }) {
-  const [showTooltip, setShowTooltip] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const tooltipRef = useRef<HTMLDivElement>(null);
-
-  // Detect mobile for tap vs hover behavior
-  useEffect(() => {
-    setIsMobile(window.matchMedia("(max-width: 1023px)").matches);
-  }, []);
-
-  // Close tooltip on outside click (for mobile tap)
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (tooltipRef.current && !tooltipRef.current.contains(e.target as Node)) {
-        setShowTooltip(false);
-      }
-    }
-    if (showTooltip) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showTooltip]);
-
-  const label = isDetailed ? "Detailed profile" : "Basic profile";
-  const tooltip = isDetailed
-    ? "This family has shared a lot about their care situation. A great starting point for a personalized reach-out."
-    : "This family is early in sharing their care needs. You can still reach out — profiles grow over time.";
-
-  return (
-    <div className="relative inline-flex items-center gap-1" ref={tooltipRef}>
-      <span
-        className={[
-          "text-[11px] font-medium px-1.5 py-0.5 rounded",
-          isDetailed
-            ? "text-primary-600 bg-primary-50/80"
-            : "text-gray-500 bg-gray-100/80",
-        ].join(" ")}
-      >
-        {label}
-      </span>
-      {/* Info icon - clickable on mobile, hover on desktop */}
-      <button
-        type="button"
-        onClick={() => isMobile && setShowTooltip(!showTooltip)}
-        onMouseEnter={() => !isMobile && setShowTooltip(true)}
-        onMouseLeave={() => !isMobile && setShowTooltip(false)}
-        className="w-3.5 h-3.5 text-gray-400 hover:text-gray-500 transition-colors"
-        aria-label="More info"
-      >
-        <svg viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
-        </svg>
-      </button>
-      {/* Tooltip */}
-      {showTooltip && (
-        <div className="absolute left-0 top-full mt-2 w-52 sm:w-56 p-3 bg-gray-900 text-white text-[12px] leading-relaxed rounded-xl shadow-xl z-30 max-w-[calc(100vw-3rem)]">
-          <div className="absolute -top-1.5 left-4 w-2.5 h-2.5 bg-gray-900 rotate-45 rounded-sm" />
-          <p className="relative">{tooltip}</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Family Care Card
-// ---------------------------------------------------------------------------
-
-function FamilyCareCard({
-  family,
-  hasFullAccess,
-  fromProfileId,
-  providerCareTypes,
-  freeRemaining,
-  contacted,
-  isExpanded,
-  onExpand,
-  onCollapse,
-  providerProfile,
-  reachOutNote,
-  onNoteChange,
-  saveAsDefault,
-  onSaveAsDefaultChange,
-  sending,
-  onSend,
-  sendError,
-  reachOutCount,
-  isConfirmation,
-  onConfirmationDone,
-  reachOutThreshold,
-}: {
-  family: Profile;
-  hasFullAccess: boolean;
-  fromProfileId: string;
-  providerCareTypes: string[];
-  freeRemaining: number | null;
-  contacted?: boolean;
-  isExpanded?: boolean;
-  onExpand?: (family: Profile) => void;
-  onCollapse?: () => void;
-  providerProfile?: Profile | null;
-  reachOutNote?: string;
-  onNoteChange?: (v: string) => void;
-  saveAsDefault?: boolean;
-  onSaveAsDefaultChange?: (v: boolean) => void;
-  sending?: boolean;
-  onSend?: () => void;
-  sendError?: string | null;
-  reachOutCount?: number;
-  isConfirmation?: boolean;
-  onConfirmationDone?: () => void;
-  reachOutThreshold?: ReachOutThreshold | null;
-}) {
-  const meta = family.metadata as FamilyMetadata;
-  const locationStr = [family.city, family.state].filter(Boolean).join(", ");
-  const timeline = meta?.timeline ? TIMELINE_CONFIG[meta.timeline] : null;
-  const careNeeds = meta?.care_needs || family.care_types || [];
-  const aboutSituation = meta?.about_situation || family.description;
-  const publishedAt = meta?.care_post?.published_at;
-  const paymentMethods = meta?.payment_methods || [];
-  const savedBenefits = meta?.saved_benefits || [];
-  const primaryPayment = paymentMethods[0] || null;
-  const allBenefits = [...paymentMethods.slice(1), ...savedBenefits];
-  const [paymentExpanded, setPaymentExpanded] = useState(false);
-  const displayName = family.display_name || "Family";
-  const initials = getInitials(displayName);
-  const familyFirstName = displayName.split(/\s+/)[0];
-  const reachOuts = reachOutCount ?? 0;
-
-  // Profile quality for label
-  const isDetailed = isDetailedProfile(family, meta);
-
-  // Who needs care display — exact mapping, no dynamic prefix
-  const careRecipientRaw = meta?.relationship_to_recipient?.toLowerCase().trim();
-  const careRecipientMap: Record<string, string> = {
-    "myself": "For themselves",
-    "my parent": "For their parent",
-    "my spouse": "For their spouse",
-    "my mother": "For their mother",
-    "my father": "For their father",
-    "someone else": "For someone else",
-  };
-  const careRecipientDisplay = careRecipientRaw && careRecipientMap[careRecipientRaw]
-    ? careRecipientMap[careRecipientRaw]
-    : "For a loved one";
-
-  // Distance computation
-  const providerLat = providerProfile?.lat;
-  const providerLng = providerProfile?.lng;
-  const familyLat = family.lat;
-  const familyLng = family.lng;
-  const driveTime =
-    providerLat != null && providerLng != null && familyLat != null && familyLng != null
-      ? estimateDriveTime(haversineDistance(providerLat, providerLng, familyLat, familyLng))
-      : null;
-
-  // Provider preview data
-  const providerName = providerProfile?.display_name || "Your profile";
-  const providerLocation = providerProfile
-    ? [providerProfile.city, providerProfile.state].filter(Boolean).join(", ")
-    : "";
-  const providerInitials = providerProfile ? getInitials(providerName) : "";
-  const providerCompleteness = providerProfile
-    ? calculateProfileCompleteness(
-        providerProfile,
-        (providerProfile.metadata || {}) as ExtendedMetadata,
-      )
-    : null;
-
-  return (
-    <div
-      className={[
-        "bg-white rounded-2xl border overflow-hidden transition-[border-color,box-shadow] duration-500 ease-[cubic-bezier(0.33,1,0.68,1)]",
-        isExpanded
-          ? "border-gray-300 shadow-lg shadow-gray-900/[0.06] ring-1 ring-gray-200/60"
-          : "border-gray-200/80 shadow-sm hover:shadow-lg hover:border-gray-300",
-        contacted ? "opacity-55" : "",
-      ].join(" ")}
-    >
-      {/* ── Card body ── */}
-      <div className={`p-4 lg:p-7 transition-opacity duration-300 ${isConfirmation ? "opacity-40" : ""}`}>
-        {/* Mobile header layout */}
-        <div className="lg:hidden mb-4">
-          <div className="flex items-start gap-3 mb-3">
-            <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold text-white shadow-sm"
-              style={{ background: hasFullAccess ? avatarGradient(displayName) : "#9ca3af" }}
-            >
-              {hasFullAccess ? initials : "?"}
-            </div>
-            <div className="min-w-0 flex-1">
-              <h3 className="text-[15px] font-display font-bold text-gray-900 leading-tight">
-                {hasFullAccess ? displayName : blurName(displayName)}
-              </h3>
-              {locationStr && (
-                <div className="flex items-center gap-1 mt-0.5">
-                  <LocationIcon className="w-3 h-3 text-gray-400" />
-                  <span className="text-xs text-gray-500">
-                    {hasFullAccess ? locationStr : "***"}
-                  </span>
-                </div>
-              )}
-              <div className="mt-1">
-                <ProfileQualityLabel isDetailed={isDetailed} />
-              </div>
-            </div>
-          </div>
-          {/* Badges row */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {timeline && (
-              <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${timeline.border} ${timeline.text} ${timeline.bg}`}>
-                <span
-                  className={`w-1.5 h-1.5 rounded-full ${timeline.dot}`}
-                  style={{ animation: `${timeline.glow} 2s ease-in-out infinite` }}
-                />
-                {timeline.label}
-              </span>
-            )}
-            {publishedAt && (
-              <span className="text-xs text-gray-400 tabular-nums">
-                {timeAgo(publishedAt)}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Desktop header layout */}
-        <div className="hidden lg:flex items-start gap-4 mb-5">
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 text-[15px] font-bold text-white shadow-sm"
-            style={{ background: hasFullAccess ? avatarGradient(displayName) : "#9ca3af" }}
-          >
-            {hasFullAccess ? initials : "?"}
-          </div>
-          <div className="min-w-0 flex-1 pt-0.5">
-            <h3 className="text-lg font-display font-bold text-gray-900 truncate leading-tight">
-              {hasFullAccess ? displayName : blurName(displayName)}
-            </h3>
-            {locationStr && (
-              <div className="flex items-center gap-1 mt-1">
-                <LocationIcon className="w-3.5 h-3.5 text-gray-400" />
-                <span className="text-[13px] text-gray-500">
-                  {hasFullAccess ? locationStr : "***"}
-                </span>
-              </div>
-            )}
-            <div className="mt-1.5">
-              <ProfileQualityLabel isDetailed={isDetailed} />
-            </div>
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            {timeline && (
-              <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border ${timeline.border} ${timeline.text} ${timeline.bg}`}>
-                <span
-                  className={`w-1.5 h-1.5 rounded-full ${timeline.dot}`}
-                  style={{ animation: `${timeline.glow} 2s ease-in-out infinite` }}
-                />
-                {timeline.label}
-              </span>
-            )}
-            {publishedAt && (
-              <span className="text-[13px] text-gray-400 tabular-nums">
-                {timeAgo(publishedAt)}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* ── Stats bar — mobile: 2 columns, desktop: 3 columns ── */}
-        {/* Mobile stats */}
-        <div className="lg:hidden grid grid-cols-2 gap-2 mb-4">
-          <div className="flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg">
-            <PeopleIcon className="w-4 h-4 text-primary-500 shrink-0" />
-            <p className="text-xs text-gray-600 font-medium truncate">
-              {careRecipientDisplay}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg">
-            <LocationIcon className="w-4 h-4 text-primary-500 shrink-0" />
-            <p className="text-xs text-gray-600">
-              {driveTime ? (
-                <><span className="font-bold">{driveTime}</span> away</>
-              ) : (
-                <span className="font-bold">{locationStr || "—"}</span>
-              )}
-            </p>
-          </div>
-          {reachOuts === 0 && (
-            <div className="col-span-2 flex items-center justify-center gap-2 py-2 px-3 bg-primary-50/60 rounded-lg border border-primary-100/50">
-              <PeopleIcon className="w-4 h-4 text-primary-600 shrink-0" />
-              <p className="text-xs font-semibold text-primary-700">Be first to connect!</p>
-            </div>
-          )}
-        </div>
-
-        {/* Desktop stats */}
-        <div className="hidden lg:grid grid-cols-3 rounded-xl border border-warm-100/80 overflow-hidden mb-5">
-          <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30">
-            <PeopleIcon className="w-4 h-4 text-primary-500" />
-            <p className="text-[13px] text-gray-700 font-medium truncate">
-              {careRecipientDisplay}
-            </p>
-          </div>
-          <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30 border-x border-warm-100/80">
-            <LocationIcon className="w-4 h-4 text-primary-500" />
-            <p className="text-[13px] text-gray-500">
-              {driveTime ? (
-                <><span className="font-bold text-gray-700">{driveTime}</span> from you</>
-              ) : (
-                <span className="font-bold text-gray-700">{locationStr || "—"}</span>
-              )}
-            </p>
-          </div>
-          <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30">
-            <PeopleIcon className="w-4 h-4 text-primary-500" />
-            <p className="text-[13px] text-gray-500">
-              {reachOuts === 0 ? (
-                <><span className="font-bold text-gray-700">Be first</span> to connect!</>
-              ) : (
-                <><span className="font-bold text-gray-900">{reachOuts >= 4 ? "4+" : reachOuts} provider{reachOuts !== 1 ? "s" : ""}</span> reached out</>
-              )}
-            </p>
-          </div>
-        </div>
-
-        {/* ── About situation — full text when expanded ── */}
-        {aboutSituation && hasFullAccess && (
-          <div className="border-l-2 border-warm-200 pl-3 lg:pl-4 mb-4 lg:mb-5">
-            <p className={`text-sm lg:text-[15px] text-gray-600 leading-relaxed ${isExpanded ? "" : "line-clamp-2"}`}>
-              {aboutSituation}
-            </p>
-          </div>
-        )}
-
-        {/* ── Care type tags — horizontal scroll on mobile ── */}
-        {careNeeds.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 lg:flex-wrap scrollbar-hide pb-1">
-            {careNeeds.map((need) => (
-              <span
-                key={need}
-                className="inline-flex items-center text-xs lg:text-[13px] font-medium px-2.5 lg:px-3 py-1.5 rounded-full border border-warm-100 text-gray-600 bg-white whitespace-nowrap shrink-0"
-              >
-                {need}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* ── Payment & benefits ── */}
-        <div className="flex items-center gap-2 mt-4 overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 lg:flex-wrap scrollbar-hide pb-1">
-          <span className="text-[10px] lg:text-[11px] font-semibold text-gray-400 uppercase tracking-wider mr-0.5 shrink-0">
-            Payment
-          </span>
-          {primaryPayment ? (
-            <>
-              <span className="inline-flex items-center gap-1.5 text-xs lg:text-[13px] font-medium px-2.5 lg:px-3 py-1.5 rounded-full border border-primary-100 text-primary-700 bg-primary-50/40 whitespace-nowrap shrink-0">
-                <svg className="w-3 h-3 lg:w-3.5 lg:h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
-                </svg>
-                {primaryPayment}
-              </span>
-              {paymentExpanded ? (
-                allBenefits.map((b) => (
-                  <span key={b} className="inline-flex items-center text-xs lg:text-[13px] font-medium px-2.5 lg:px-3 py-1.5 rounded-full border border-warm-100 text-gray-500 bg-white whitespace-nowrap shrink-0">
-                    {b}
-                  </span>
-                ))
-              ) : (
-                allBenefits.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setPaymentExpanded(true)}
-                    className="inline-flex items-center text-xs lg:text-[13px] font-medium px-2.5 lg:px-3 py-1.5 rounded-full border border-warm-100 text-gray-400 bg-white hover:border-gray-300 hover:text-gray-500 transition-colors whitespace-nowrap shrink-0"
-                  >
-                    +{allBenefits.length} more
-                  </button>
-                )
-              )}
-            </>
-          ) : (
-            <span className="inline-flex items-center text-xs lg:text-[13px] font-medium px-2.5 lg:px-3 py-1.5 rounded-full bg-gray-50 text-gray-400 whitespace-nowrap shrink-0">
-              Not specified
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* ── Inline reach-out expansion OR confirmation card ── */}
-      <div
-        className="grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.33,1,0.68,1)]"
-        style={{ gridTemplateRows: isExpanded || isConfirmation ? "1fr" : "0fr" }}
-      >
-        <div className="overflow-hidden">
-          {isConfirmation ? (
-            /* ── Confirmation card state ── */
-            <div className="border-t border-warm-100/60 bg-white">
-              <div className="px-7 py-8 flex flex-col items-center text-center">
-                {/* Success illustration */}
-                <SuccessIllustration className="w-20 h-20 mb-5" />
-
-                {/* Headline */}
-                <h4 className="text-[18px] font-display font-bold text-gray-900 mb-2">
-                  Your reach-out was sent to {displayName}
-                </h4>
-
-                {/* Subline */}
-                <p className="text-[15px] text-gray-500 leading-relaxed max-w-sm mb-5">
-                  We&apos;ll notify you when they respond. Most families respond within 3–5 days.
-                </p>
-
-                {/* Conditional nudge line based on threshold */}
-                {reachOutThreshold && !reachOutThreshold.meetsThreshold ? (
-                  /* Version A — Below threshold */
-                  <div className="mb-6">
-                    <p className="text-[13px] text-gray-400 mb-1">
-                      Providers with complete profiles get 3&times; more responses. You&apos;re at {reachOutThreshold.completionPercent}%.
-                    </p>
-                    <Link
-                      href="/provider/profile"
-                      className="text-[13px] font-semibold text-primary-600 hover:text-primary-700 transition-colors"
-                    >
-                      Complete my profile
-                    </Link>
-                  </div>
-                ) : (
-                  /* Version B — Meets threshold */
-                  <p className="text-[13px] text-gray-500 mb-6">
-                    You&apos;re all set. Your complete profile makes a great first impression.
-                  </p>
-                )}
-
-                {/* Done button — secondary style for dismissal */}
-                <button
-                  type="button"
-                  onClick={onConfirmationDone}
-                  className="inline-flex items-center px-6 py-2.5 rounded-xl text-[14px] font-semibold text-primary-600 bg-white border border-primary-300 hover:bg-primary-50 hover:border-primary-400 active:scale-[0.97] transition-all duration-200"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          ) : (
-            /* ── Reach-out composer ── */
-            <div className={`border-t border-warm-100/60 bg-gradient-to-b from-vanilla-50/40 to-warm-50/20 transition-[opacity,transform] ${isExpanded ? "duration-400 delay-150 opacity-100 translate-y-0" : "duration-200 opacity-0 translate-y-1"}`}>
-            <div className="px-7 py-6">
-              {/* Message heading */}
-              <h4 className="text-[18px] font-display font-bold text-gray-900 mb-3">
-                Tell the {familyFirstName} family why you&apos;re a good fit
-              </h4>
-
-              {/* Textarea */}
-              <textarea
-                value={reachOutNote}
-                onChange={(e) => onNoteChange?.(e.target.value)}
-                placeholder={`Share what makes your care approach a great match for the ${familyFirstName} family...`}
-                rows={4}
-                className="w-full px-4 py-3.5 text-[15px] leading-relaxed text-gray-700 bg-white border border-warm-200/80 rounded-xl shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all resize-none placeholder:text-gray-400"
-              />
-
-              {/* Hint + save as default */}
-              <div className="flex items-center justify-between mt-2.5 mb-6">
-                <p className="text-[13px] text-gray-400">
-                  Personal notes get <span className="font-medium">3&times; more responses</span>
-                </p>
-                <label className="inline-flex items-center gap-2 cursor-pointer select-none shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={saveAsDefault}
-                    onChange={(e) => onSaveAsDefaultChange?.(e.target.checked)}
-                    className="w-4 h-4 rounded border-warm-300 text-primary-600 focus:ring-primary-500/20 focus:ring-offset-0 cursor-pointer"
-                  />
-                  <span className="text-[13px] text-gray-500">
-                    Save as default
-                  </span>
-                </label>
-              </div>
-
-              {/* ── Profile sharing notice ── */}
-              {providerProfile && (
-                <div className="flex items-center gap-2.5 text-[13px] text-gray-400">
-                  <EyeIcon className="w-4 h-4 shrink-0" />
-                  {providerCompleteness && providerCompleteness.overall < 100 ? (
-                    <p>
-                      Your profile ({providerCompleteness.overall}% complete) will be shared.{" "}
-                      <a href="/provider" className="font-medium text-gray-500 underline underline-offset-2 decoration-gray-300 hover:text-gray-700 transition-colors">
-                        Complete it
-                      </a>{" "}
-                      to get more responses.
-                    </p>
-                  ) : (
-                    <p>Your full profile will be shared with {familyFirstName}.</p>
-                  )}
-                </div>
-              )}
-
-              {/* Error */}
-              {sendError && (
-                <div className="mt-4 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-[13px] text-red-600">
-                  {sendError}
-                </div>
-              )}
-            </div>
-
-            {/* ── Expanded footer: usage left / cancel + send ── */}
-            <div className="border-t border-warm-100/60 px-7 py-4 flex items-center justify-between gap-4">
-              {freeRemaining !== null ? (
-                <p className="text-[13px] text-gray-400 min-w-0 truncate">
-                  This will use 1 of your {freeRemaining} monthly reach-out{freeRemaining !== 1 ? "s" : ""}
-                </p>
-              ) : <div />}
-              <div className="flex items-center gap-3 shrink-0">
-                <button
-                  type="button"
-                  onClick={onCollapse}
-                  disabled={sending}
-                  className="inline-flex items-center px-4 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200 disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={onSend}
-                  disabled={sending}
-                  className="group inline-flex items-center gap-2 pl-5 pr-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] disabled:opacity-70 disabled:hover:shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] transition-all duration-200 shrink-0"
-                >
-                  {sending ? (
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <SendIcon className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                  )}
-                  {sending ? "Sending\u2026" : "Send reach-out"}
-                </button>
-              </div>
-            </div>
-          </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Card footer (collapsed states) ── */}
-      {!isExpanded && !isConfirmation && (
-        <>
-          {contacted ? (
-            /* Already reached out */
-            <div className="bg-warm-50/40 border-t border-warm-100/60 px-4 lg:px-7 py-3 lg:py-4 flex items-center justify-center">
-              <div className="flex items-center gap-2">
-                <CheckCircleIcon className="w-4 h-4 text-gray-400" />
-                <p className="text-xs lg:text-[13px] text-gray-500 font-medium">Reached out</p>
-              </div>
-            </div>
-          ) : freeRemaining !== null && freeRemaining <= 0 ? (
-            /* Exhausted state — upgrade CTA */
-            <div className="border-t border-warm-100/60 px-4 lg:px-7 py-3 lg:py-4 flex flex-col lg:flex-row items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-                </svg>
-                <p className="text-xs lg:text-[13px] text-gray-400">
-                  {FREE_CONNECTION_LIMIT} free reach-outs used
-                </p>
-              </div>
-              <Link
-                href="/provider/pro"
-                className="w-full lg:w-auto inline-flex items-center justify-center gap-2 px-4 lg:pl-4 lg:pr-5 py-2.5 rounded-xl bg-primary-600 text-white text-xs lg:text-[13px] font-semibold hover:bg-primary-500 transition-colors min-h-[44px]"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                </svg>
-                Upgrade to reach out
-              </Link>
-            </div>
-          ) : (
-            /* Normal — reach out button */
-            <div className="bg-warm-50/40 border-t border-warm-100/60 px-4 lg:px-7 py-3 lg:py-4 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-              <div className="hidden lg:flex items-center gap-1.5">
-                <InfoIcon className="w-4 h-4 text-gray-400" />
-                <p className="text-[13px] text-gray-400">
-                  Your profile will be visible to this family
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => onExpand?.(family)}
-                className="w-full lg:w-auto group inline-flex items-center justify-center gap-2 px-5 lg:pl-5 lg:pr-6 py-3 lg:py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-sm lg:text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.98] transition-all duration-200 min-h-[48px] lg:min-h-0"
-              >
-                <svg className="w-4 h-4 transition-transform duration-200 group-hover:rotate-12" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.05 4.575a1.575 1.575 0 1 0-3.15 0v3m3.15-3v-1.5a1.575 1.575 0 0 1 3.15 0v1.5m-3.15 0 .075 5.925m3.075-5.925v2.1a1.575 1.575 0 0 1 3.15 0v1.425M13.2 8.1v-1.5a1.575 1.575 0 0 1 3.15 0v3.075M13.2 8.1l.075 3.525M6.9 7.575a1.575 1.575 0 0 1 3.15 0v1.5m-3.15-1.5v4.65c0 2.733 1.566 5.1 3.853 6.25.484.243 1.01.427 1.553.546a7.462 7.462 0 0 0 5.956-1.553A7.466 7.466 0 0 0 21 12.376V9.75a1.575 1.575 0 0 0-3.15 0v1.875" />
-                </svg>
-                Reach out
-              </button>
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -1302,8 +587,6 @@ export default function ProviderMatchesPage() {
   const [respondedIds, setRespondedIds] = useState<Set<string>>(new Set());
   const [reachOutCounts, setReachOutCounts] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [filters, setFilters] = useState<MatchesFilters>(DEFAULT_FILTERS);
   const [sortBy, setSortBy] = useState<SortOption>("best_match");
@@ -1311,21 +594,19 @@ export default function ProviderMatchesPage() {
   // Mobile filter sheet state
   const [filterSheetType, setFilterSheetType] = useState<FilterSheetType | null>(null);
 
-  // Reach-out expansion state
-  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
+  // Reach-out drawer state
+  const [drawerFamily, setDrawerFamily] = useState<Profile | null>(null);
   const [reachOutNote, setReachOutNote] = useState("");
   const [saveAsDefault, setSaveAsDefault] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
 
-  // Confirmation card state (shown after successful send)
-  const [confirmationCardId, setConfirmationCardId] = useState<string | null>(null);
-
-  // Mobile bottom sheet state
-  const [reachOutSheetFamily, setReachOutSheetFamily] = useState<Profile | null>(null);
-
   // Contacted section accordion (collapsed by default)
   const [contactedExpanded, setContactedExpanded] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   const hasFullAccess = canEngage(
     providerProfile?.type,
@@ -1336,30 +617,17 @@ export default function ProviderMatchesPage() {
   const freeRemaining = getFreeConnectionsRemaining(membership);
   const isFreeTier = freeRemaining !== null;
   const providerCareTypes = providerProfile?.care_types || [];
+  const providerPaymentMethods = useMemo(() => {
+    const meta = providerProfile?.metadata as ExtendedMetadata | undefined;
+    return meta?.accepted_payments || [];
+  }, [providerProfile]);
 
   const profileId = providerProfile?.id;
 
-  // Compute reach-out threshold for confirmation card
-  const reachOutThreshold = useMemo(() => {
-    if (!providerProfile) return null;
-    let hasDefaultMessage = false;
-    try {
-      hasDefaultMessage = !!localStorage.getItem(DEFAULT_NOTE_KEY);
-    } catch {
-      // Ignore localStorage errors
-    }
-    return checkReachOutThreshold(
-      providerProfile,
-      (providerProfile.metadata || {}) as ExtendedMetadata,
-      hasDefaultMessage,
-    );
-  }, [providerProfile]);
+  // ── Drawer handlers ──
 
-  // ── Expansion handlers ──
-
-  // Mobile: open bottom sheet; Desktop: expand inline
-  const handleExpand = useCallback(
-    (familyId: string, family?: Profile) => {
+  const handleReachOut = useCallback(
+    (family: Profile) => {
       if (!isProfileShareable(providerProfile)) return;
       setSendError(null);
       try {
@@ -1375,38 +643,20 @@ export default function ProviderMatchesPage() {
         setReachOutNote("");
         setSaveAsDefault(false);
       }
-      // Mobile: use bottom sheet
-      if (window.innerWidth < 1024 && family) {
-        setReachOutSheetFamily(family);
-      } else {
-        setExpandedCardId(familyId);
-      }
+      setDrawerFamily(family);
     },
     [providerProfile],
   );
 
-  const handleCloseReachOutSheet = useCallback(() => {
+  const handleCloseDrawer = useCallback(() => {
     if (!sending) {
-      setReachOutSheetFamily(null);
+      setDrawerFamily(null);
       setSendError(null);
     }
   }, [sending]);
 
-  const handleCollapse = useCallback(() => {
-    if (!sending) {
-      setExpandedCardId(null);
-      setSendError(null);
-    }
-  }, [sending]);
-
-  // Handler for when Done is clicked on confirmation card
-  const handleConfirmationDone = useCallback((familyId: string) => {
-    setContactedIds((prev) => new Set([...prev, familyId]));
-    setConfirmationCardId(null);
-  }, []);
-
-  const handleSend = useCallback(
-    async (toProfileId: string) => {
+  const handleSendFromDrawer = useCallback(
+    async (toProfileId: string, message: string, shouldSaveAsDefault: boolean) => {
       if (!profileId || !isSupabaseConfigured()) return;
 
       setSending(true);
@@ -1422,7 +672,7 @@ export default function ProviderMatchesPage() {
             to_profile_id: toProfileId,
             type: "request",
             status: "pending",
-            message: reachOutNote.trim() || null,
+            message: message.trim() || null,
             metadata: { provider_initiated: true },
           });
 
@@ -1433,11 +683,18 @@ export default function ProviderMatchesPage() {
             insertError.message.includes("unique")
           ) {
             setContactedIds((prev) => new Set([...prev, toProfileId]));
-            setExpandedCardId(null);
+            setDrawerFamily(null);
             return;
           }
           throw new Error(insertError.message);
         }
+
+        // Notify family of reach-out (fire-and-forget)
+        fetch("/api/matches/notify-reach-out", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ toProfileId }),
+        }).catch(() => {});
 
         // Increment free_responses_used only for free tier (not trial)
         if (membership && membership.status === "free") {
@@ -1451,13 +708,13 @@ export default function ProviderMatchesPage() {
         }
 
         // Persist default note
-        if (saveAsDefault && reachOutNote.trim()) {
+        if (shouldSaveAsDefault && message.trim()) {
           try {
-            localStorage.setItem(DEFAULT_NOTE_KEY, reachOutNote.trim());
+            localStorage.setItem(DEFAULT_NOTE_KEY, message.trim());
           } catch {
             /* ignore */
           }
-        } else if (!saveAsDefault) {
+        } else if (!shouldSaveAsDefault) {
           try {
             localStorage.removeItem(DEFAULT_NOTE_KEY);
           } catch {
@@ -1465,9 +722,9 @@ export default function ProviderMatchesPage() {
           }
         }
 
-        // Show confirmation card instead of immediately collapsing
-        setExpandedCardId(null);
-        setConfirmationCardId(toProfileId);
+        // Mark as contacted and close drawer
+        setContactedIds((prev) => new Set([...prev, toProfileId]));
+        setDrawerFamily(null);
         setReachOutNote("");
       } catch (err: unknown) {
         const msg =
@@ -1479,49 +736,43 @@ export default function ProviderMatchesPage() {
         setSending(false);
       }
     },
-    [profileId, reachOutNote, saveAsDefault, membership, refreshAccountData],
+    [profileId, membership, refreshAccountData],
   );
 
   const fetchFamilies = useCallback(
-    async (offset: number) => {
+    async () => {
       if (!profileId || !isSupabaseConfigured()) {
         setLoading(false);
         return;
       }
 
-      if (offset === 0) setLoading(true);
-      else setLoadingMore(true);
+      setLoading(true);
       setFetchError(null);
 
       try {
         const supabase = createClient();
 
-        // Round 1: families + provider's own connections (+ responded)
+        // Fetch all families + provider's own connections (+ responded)
         const [familiesRes, connectionsRes, respondedRes] = await Promise.all([
           supabase
             .from("business_profiles")
-            .select("id, display_name, city, state, lat, lng, type, care_types, metadata, image_url, slug, created_at")
+            .select("id, display_name, city, state, lat, lng, type, care_types, metadata, image_url, slug, created_at", { count: "exact" })
             .eq("type", "family")
             .eq("is_active", true)
             .filter("metadata->care_post->>status", "eq", "active")
-            .order("created_at", { ascending: false })
-            .range(offset, offset + PAGE_SIZE),
-          ...(offset === 0
-            ? [
-                supabase
-                  .from("connections")
-                  .select("to_profile_id")
-                  .eq("from_profile_id", profileId)
-                  .eq("type", "request")
-                  .in("status", ["pending", "accepted"]),
-                supabase
-                  .from("connections")
-                  .select("to_profile_id")
-                  .eq("from_profile_id", profileId)
-                  .eq("type", "request")
-                  .eq("status", "accepted"),
-              ]
-            : [Promise.resolve({ data: null, error: null }), Promise.resolve({ data: null, error: null })]),
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("connections")
+            .select("to_profile_id")
+            .eq("from_profile_id", profileId)
+            .eq("type", "request")
+            .in("status", ["pending", "accepted"]),
+          supabase
+            .from("connections")
+            .select("to_profile_id")
+            .eq("from_profile_id", profileId)
+            .eq("type", "request")
+            .eq("status", "accepted"),
         ]);
 
         if (familiesRes.error) {
@@ -1529,23 +780,17 @@ export default function ProviderMatchesPage() {
         }
 
         const fetchedFamilies = (familiesRes.data as Profile[]) || [];
-        setHasMore(fetchedFamilies.length > PAGE_SIZE);
-        const trimmed = fetchedFamilies.slice(0, PAGE_SIZE);
-
-        if (offset === 0) {
-          setFamilies(trimmed);
-          setContactedIds(
-            new Set(connectionsRes.data?.map((c: { to_profile_id: string }) => c.to_profile_id) || [])
-          );
-          setRespondedIds(
-            new Set(respondedRes.data?.map((c: { to_profile_id: string }) => c.to_profile_id) || [])
-          );
-        } else {
-          setFamilies((prev) => [...prev, ...trimmed]);
-        }
+        setFamilies(fetchedFamilies);
+        setTotalCount(familiesRes.count || fetchedFamilies.length);
+        setContactedIds(
+          new Set(connectionsRes.data?.map((c: { to_profile_id: string }) => c.to_profile_id) || [])
+        );
+        setRespondedIds(
+          new Set(respondedRes.data?.map((c: { to_profile_id: string }) => c.to_profile_id) || [])
+        );
 
         // Reach-out counts per family
-        const familyIds = trimmed.map((f) => f.id);
+        const familyIds = fetchedFamilies.map((f) => f.id);
         if (familyIds.length > 0) {
           const { data: reachOuts } = await supabase
             .from("connections")
@@ -1558,15 +803,7 @@ export default function ProviderMatchesPage() {
           (reachOuts || []).forEach((r: { to_profile_id: string }) => {
             counts.set(r.to_profile_id, (counts.get(r.to_profile_id) || 0) + 1);
           });
-          if (offset === 0) {
-            setReachOutCounts(counts);
-          } else {
-            setReachOutCounts((prev) => {
-              const merged = new Map(prev);
-              counts.forEach((v, k) => merged.set(k, v));
-              return merged;
-            });
-          }
+          setReachOutCounts(counts);
         }
       } catch (err) {
         console.error("[olera] matches fetch failed:", err);
@@ -1577,15 +814,28 @@ export default function ProviderMatchesPage() {
         );
       } finally {
         setLoading(false);
-        setLoadingMore(false);
       }
     },
     [profileId],
   );
 
   useEffect(() => {
-    fetchFamilies(0);
+    fetchFamilies();
   }, [fetchFamilies]);
+
+  // Poll for updates every 45 seconds (family profile changes, new listings)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchFamilies();
+    }, 45000);
+
+    return () => clearInterval(interval);
+  }, [fetchFamilies]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, sortBy]);
 
   // Filter + sort
   const filteredFamilies = useMemo(() => {
@@ -1674,6 +924,13 @@ export default function ProviderMatchesPage() {
     return sorted;
   }, [families, contactedIds, filters, sortBy, providerCareTypes]);
 
+  // Paginate filtered families
+  const totalPages = Math.ceil(filteredFamilies.length / PAGE_SIZE);
+  const paginatedFamilies = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    return filteredFamilies.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [filteredFamilies, currentPage]);
+
   const contactedFamilies = useMemo(
     () => families.filter((f) => contactedIds.has(f.id)),
     [families, contactedIds],
@@ -1702,7 +959,7 @@ export default function ProviderMatchesPage() {
           </p>
           <button
             type="button"
-            onClick={() => fetchFamilies(0)}
+            onClick={() => fetchFamilies()}
             className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
           >
             Try again
@@ -1783,32 +1040,22 @@ export default function ProviderMatchesPage() {
                 </p>
               </div>
             ) : (
-              filteredFamilies.map((family, idx) => (
-                <div key={family.id}>
-                  <FamilyCareCard
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {paginatedFamilies.map((family) => (
+                  <FamilyMatchCard
+                    key={family.id}
                     family={family}
                     hasFullAccess={hasFullAccess}
-                    fromProfileId={profileId!}
                     providerCareTypes={providerCareTypes}
-                    freeRemaining={freeRemaining}
-                    isExpanded={expandedCardId === family.id}
-                    onExpand={(f) => handleExpand(f.id, f)}
-                    onCollapse={handleCollapse}
-                    providerProfile={providerProfile}
-                    reachOutNote={reachOutNote}
-                    onNoteChange={setReachOutNote}
-                    saveAsDefault={saveAsDefault}
-                    onSaveAsDefaultChange={setSaveAsDefault}
-                    sending={sending}
-                    onSend={() => handleSend(family.id)}
-                    sendError={sendError}
+                    providerPaymentMethods={providerPaymentMethods}
+                    providerLat={providerProfile?.lat}
+                    providerLng={providerProfile?.lng}
+                    contacted={contactedIds.has(family.id)}
                     reachOutCount={reachOutCounts.get(family.id) || 0}
-                    isConfirmation={confirmationCardId === family.id}
-                    onConfirmationDone={() => handleConfirmationDone(family.id)}
-                    reachOutThreshold={reachOutThreshold}
+                    onReachOut={handleReachOut}
                   />
-                </div>
-              ))
+                ))}
+              </div>
             )}
 
             {/* Already contacted - collapsible accordion */}
@@ -1861,44 +1108,24 @@ export default function ProviderMatchesPage() {
               </div>
             )}
 
-            {/* Load more */}
-            {hasMore && (
-              <div className="flex justify-center pt-4">
-                <button
-                  type="button"
-                  onClick={() => fetchFamilies(families.length)}
-                  disabled={loadingMore}
-                  className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loadingMore ? (
-                    <span className="flex items-center gap-2">
-                      <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                      Loading...
-                    </span>
-                  ) : (
-                    "Load more matches"
-                  )}
-                </button>
-              </div>
-            )}
-
-            {/* Inline error for load-more failures */}
-            {fetchError && families.length > 0 && (
-              <div className="flex items-center justify-center gap-3 py-4">
-                <p className="text-sm text-red-500">Couldn&apos;t load more matches.</p>
-                <button
-                  type="button"
-                  onClick={() => fetchFamilies(families.length)}
-                  className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
-                >
-                  Retry
-                </button>
+            {/* Pagination */}
+            {filteredFamilies.length > PAGE_SIZE && (
+              <div className="pt-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={filteredFamilies.length}
+                  itemsPerPage={PAGE_SIZE}
+                  onPageChange={setCurrentPage}
+                  itemLabel="families"
+                  showItemCount={true}
+                />
               </div>
             )}
           </div>
 
           {/* Sidebar — hidden on mobile */}
-          <div className="hidden lg:block lg:col-span-1">
+          <div className="hidden lg:block lg:col-span-1 self-start">
             <MatchesSidebar
               remaining={freeRemaining}
               totalFamilies={families.length}
@@ -1916,116 +1143,19 @@ export default function ProviderMatchesPage() {
         </div>
       )}
 
-      {/* ── Mobile Reach Out Bottom Sheet ── */}
-      {reachOutSheetFamily && (
-        <>
-          <div
-            className="lg:hidden fixed inset-0 bg-black/40 z-40"
-            onClick={handleCloseReachOutSheet}
-          />
-          <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto pb-[env(safe-area-inset-bottom)]">
-            {/* Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white"
-                  style={{ background: hasFullAccess ? avatarGradient(reachOutSheetFamily.display_name || "Family") : "#9ca3af" }}
-                >
-                  {hasFullAccess ? getInitials(reachOutSheetFamily.display_name || "Family") : "?"}
-                </div>
-                <div>
-                  <h3 className="text-base font-display font-bold text-gray-900">
-                    Reach out to {hasFullAccess ? (reachOutSheetFamily.display_name?.split(/\s+/)[0] || "this family") : "this family"}
-                  </h3>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleCloseReachOutSheet}
-                disabled={sending}
-                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 active:bg-gray-200 transition-colors disabled:opacity-50"
-              >
-                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="px-5 py-5">
-              <p className="text-[15px] text-gray-600 mb-4">
-                Tell them why you&apos;re a great fit for their care needs.
-              </p>
-
-              <textarea
-                value={reachOutNote}
-                onChange={(e) => setReachOutNote(e.target.value)}
-                placeholder={`Share what makes your care approach a great match...`}
-                rows={4}
-                className="w-full px-4 py-3.5 text-[15px] leading-relaxed text-gray-700 bg-white border border-warm-200/80 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all resize-none placeholder:text-gray-400"
-              />
-
-              <div className="flex items-center justify-between mt-3 mb-4">
-                <p className="text-xs text-gray-400">
-                  Personal notes get <span className="font-medium">3× more responses</span>
-                </p>
-                <label className="inline-flex items-center gap-2 cursor-pointer select-none shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={saveAsDefault}
-                    onChange={(e) => setSaveAsDefault(e.target.checked)}
-                    className="w-4 h-4 rounded border-warm-300 text-primary-600 focus:ring-primary-500/20 focus:ring-offset-0 cursor-pointer"
-                  />
-                  <span className="text-xs text-gray-500">Save as default</span>
-                </label>
-              </div>
-
-              {/* Profile sharing notice */}
-              <div className="flex items-center gap-2.5 text-xs text-gray-400 mb-4">
-                <EyeIcon className="w-4 h-4 shrink-0" />
-                <p>Your full profile will be shared with this family.</p>
-              </div>
-
-              {/* Error */}
-              {sendError && (
-                <div className="mb-4 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-[13px] text-red-600">
-                  {sendError}
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-4 flex items-center gap-3">
-              {freeRemaining !== null && (
-                <p className="text-xs text-gray-400 flex-1">
-                  Uses 1 of {freeRemaining} reach-outs
-                </p>
-              )}
-              <button
-                type="button"
-                onClick={handleCloseReachOutSheet}
-                disabled={sending}
-                className="px-5 py-3 rounded-xl text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 active:bg-gray-100 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSend(reachOutSheetFamily.id)}
-                disabled={sending}
-                className="flex-1 max-w-[160px] group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-sm font-semibold shadow-lg shadow-primary-500/20 hover:from-primary-600 hover:to-primary-700 active:scale-[0.98] disabled:opacity-70 transition-all"
-              >
-                {sending ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <SendIcon className="w-4 h-4" />
-                )}
-                {sending ? "Sending…" : "Send"}
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+      {/* ── Reach Out Drawer ── */}
+      <ReachOutDrawer
+        family={drawerFamily}
+        isOpen={!!drawerFamily}
+        onClose={handleCloseDrawer}
+        onSend={handleSendFromDrawer}
+        defaultMessage={reachOutNote}
+        providerProfile={providerProfile}
+        providerCareTypes={providerCareTypes}
+        providerPaymentMethods={providerPaymentMethods}
+        sending={sending}
+        sendError={sendError}
+      />
     </div>
     </div>
   );

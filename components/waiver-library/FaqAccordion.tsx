@@ -43,7 +43,7 @@ export function FaqAccordion({ faqs, columns = 2, multiOpen }: { faqs: FaqItem[]
   }
 
   return (
-    <div className={columns === 2 ? "md:columns-2 gap-2 space-y-2" : "space-y-2"}>
+    <div className={columns === 2 ? "md:columns-2 gap-2 space-y-2" : "grid gap-2 grid-cols-1"}>
       {faqs.map((faq, i) => {
         const isOpen = isMultiOpen ? openSet.has(i) : openIndex === i;
         return (

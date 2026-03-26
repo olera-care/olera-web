@@ -1,12 +1,17 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import InterestedCard from "@/components/portal/matches/InterestedCard";
+import { useRouter } from "next/navigation";
+import MatchProviderCard from "@/components/portal/matches/MatchProviderCard";
 import InterestedCardCompact from "@/components/portal/matches/InterestedCardCompact";
 import {
   useInterestedProviders,
   type InterestedProvider,
 } from "@/hooks/useInterestedProviders";
+import type {
+  OrganizationMetadata,
+  CaregiverMetadata,
+} from "@/lib/types";
 
 interface InterestedTabContentProps {
   profileId: string;
@@ -16,6 +21,22 @@ interface InterestedTabContentProps {
   variant?: "desktop" | "mobile";
 }
 
+function getPriceRange(profile: InterestedProvider["providerProfile"]): string | null {
+  if (!profile) return null;
+  const meta = profile.metadata as (OrganizationMetadata & CaregiverMetadata & Record<string, unknown>) | null;
+  if (!meta) return null;
+  if (meta.hourly_rate_min && meta.hourly_rate_max) {
+    return `$${meta.hourly_rate_min}–$${meta.hourly_rate_max}/hr`;
+  }
+  if (meta.hourly_rate_min) return `From $${meta.hourly_rate_min}/hr`;
+  if (meta.price_range) return meta.price_range;
+  const lower = meta.lower_price as number | undefined;
+  const upper = meta.upper_price as number | undefined;
+  if (lower && upper) return `$${lower}–$${upper}/hr`;
+  if (lower) return `From $${lower}/hr`;
+  return null;
+}
+
 export default function InterestedTabContent({
   profileId,
   hasCarePost,
@@ -23,14 +44,10 @@ export default function InterestedTabContent({
   familyLng,
   variant = "desktop",
 }: InterestedTabContentProps) {
+  const router = useRouter();
   const { pending, declined, loading, updateLocal } =
     useInterestedProviders(profileId);
   const [declinedExpanded, setDeclinedExpanded] = useState(false);
-  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
-  const [acceptingId, setAcceptingId] = useState<string | null>(null);
-  const [decliningId, setDecliningId] = useState<string | null>(null);
-  const [acceptedId, setAcceptedId] = useState<string | null>(null);
-  const [declinedConfirmId, setDeclinedConfirmId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   // Auto-dismiss error after 4 seconds
@@ -40,153 +57,67 @@ export default function InterestedTabContent({
     return () => clearTimeout(timer);
   }, [actionError]);
 
-  // ── Expand card (also marks as viewed) ──
-  const handleExpand = useCallback(
-    async (id: string) => {
-      setExpandedCardId(id);
+  // ── Handle message sent (accept + send message) ──
+  const handleMessage = useCallback(
+    async (providerId: string, message: string) => {
+      // Find the connection for this provider
+      const item = pending.find((c) => c.providerProfile?.id === providerId);
+      if (!item) return;
 
-      // Mark as viewed optimistically
-      const item = pending.find((c) => c.id === id);
-      if (item && !(item.metadata as Record<string, unknown>)?.viewed) {
-        const prevMeta = item.metadata as Record<string, unknown>;
-
-        updateLocal(id, {
-          metadata: { ...prevMeta, viewed: true },
-        });
-
-        window.dispatchEvent(
-          new CustomEvent("olera:interested-viewed", { detail: { connectionId: id } })
-        );
-
-        try {
-          const res = await fetch("/api/connections/respond-interest", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ connectionId: id, action: "view" }),
-          });
-          if (!res.ok) {
-            console.error("[InterestedTab] view API failed, reverting");
-            updateLocal(id, { metadata: { ...prevMeta, viewed: false } });
-          }
-        } catch {
-          console.error("[InterestedTab] view API error, reverting");
-          updateLocal(id, { metadata: { ...prevMeta, viewed: false } });
-        }
-      }
-    },
-    [pending, updateLocal]
-  );
-
-  const handleCollapse = useCallback(() => {
-    setExpandedCardId(null);
-  }, []);
-
-  // ── Accept (Start conversation) ──
-  const handleAccept = useCallback(
-    async (id: string) => {
-      setAcceptingId(id);
       setActionError(null);
       try {
+        // Accept the connection and send the message
         const res = await fetch("/api/connections/respond-interest", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ connectionId: id, action: "accept" }),
+          body: JSON.stringify({
+            connectionId: item.id,
+            action: "accept",
+            message,
+          }),
         });
         if (!res.ok) {
-          setActionError("Couldn't start conversation. Please try again.");
+          setActionError("Couldn't send message. Please try again.");
           return;
         }
 
-        // Show success state instead of removing
-        setAcceptedId(id);
-        setExpandedCardId(null);
+        // Remove from pending and redirect to inbox
+        updateLocal(item.id, "remove");
+        router.push(`/portal/inbox?id=${item.id}`);
       } catch {
-        setActionError("Couldn't start conversation. Please try again.");
-      } finally {
-        setAcceptingId(null);
+        setActionError("Couldn't send message. Please try again.");
       }
     },
-    []
-  );
-
-  // ── Dismiss accepted card ──
-  const handleDismiss = useCallback(
-    (id: string) => {
-      setAcceptedId(null);
-      updateLocal(id, "remove");
-    },
-    [updateLocal]
+    [pending, updateLocal, router]
   );
 
   // ── Decline ──
   const handleDecline = useCallback(
-    async (id: string) => {
-      setDecliningId(id);
+    async (connectionId: string) => {
       setActionError(null);
       try {
         const res = await fetch("/api/connections/respond-interest", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ connectionId: id, action: "decline" }),
+          body: JSON.stringify({ connectionId, action: "decline" }),
         });
         if (!res.ok) {
           setActionError("Couldn't decline. Please try again.");
           return;
         }
 
-        // Show feedback view instead of moving to declined immediately
-        setDeclinedConfirmId(id);
-        setExpandedCardId(null);
+        // Move to declined
+        const item = pending.find((c) => c.id === connectionId);
+        if (item) {
+          const meta = (item.metadata || {}) as Record<string, unknown>;
+          updateLocal(connectionId, {
+            status: "declined",
+            metadata: { ...meta, declined_at: new Date().toISOString() },
+          } as Partial<InterestedProvider>);
+        }
       } catch {
         setActionError("Couldn't decline. Please try again.");
-      } finally {
-        setDecliningId(null);
       }
-    },
-    []
-  );
-
-  // ── Undo decline (reconsider) ──
-  const handleUndoDecline = useCallback(
-    async (id: string) => {
-      const res = await fetch("/api/connections/respond-interest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ connectionId: id, action: "reconsider" }),
-      });
-      if (!res.ok) return;
-
-      setDeclinedConfirmId(null);
-    },
-    []
-  );
-
-  // ── Done with decline feedback ──
-  const handleDoneDecline = useCallback(
-    async (id: string, reasons: string[]) => {
-      // Send feedback reasons if any were selected
-      if (reasons.length > 0) {
-        try {
-          await fetch("/api/connections/respond-interest", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ connectionId: id, action: "decline_feedback", reasons }),
-          });
-        } catch {
-          // Non-critical — don't block the flow
-        }
-      }
-
-      // Move to declined and clear feedback view
-      const item = pending.find((c) => c.id === id);
-      if (item) {
-        const meta = (item.metadata || {}) as Record<string, unknown>;
-        updateLocal(id, {
-          status: "declined",
-          metadata: { ...meta, declined_at: new Date().toISOString(), decline_reasons: reasons },
-        } as Partial<InterestedProvider>);
-      }
-      setDeclinedConfirmId(null);
     },
     [pending, updateLocal]
   );
@@ -277,7 +208,7 @@ export default function InterestedTabContent({
   if (pending.length === 0 && declined.length === 0) {
     if (!hasCarePost) {
       return (
-        <div className="py-16 text-center">
+        <div className="py-12 text-center">
           <div
             className="w-14 h-14 rounded-full bg-warm-100/60 flex items-center justify-center text-2xl mx-auto mb-5"
             style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
@@ -307,29 +238,102 @@ export default function InterestedTabContent({
     }
 
     return (
-      <div className="py-16 text-center">
-        <div
-          className="w-14 h-14 rounded-full bg-warm-100/60 flex items-center justify-center text-2xl mx-auto mb-5"
-          style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
-        >
-          👀
+      <div className="py-8">
+        {/* Animated illustration */}
+        <div className="relative w-full max-w-[320px] h-[180px] mx-auto mb-6">
+          {/* Decorative background blobs */}
+          <div
+            className="absolute top-4 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full bg-gradient-to-br from-primary-100/40 to-primary-50/20 blur-xl"
+            style={{ animation: "pulse 4s ease-in-out infinite" }}
+          />
+
+          {/* Central phone/notification illustration */}
+          <div
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-28 rounded-2xl bg-white border-2 border-gray-200 shadow-lg"
+            style={{ animation: "float 3s ease-in-out infinite" }}
+          >
+            {/* Screen content */}
+            <div className="absolute inset-2 rounded-xl bg-gradient-to-b from-primary-50 to-white overflow-hidden">
+              {/* Notification bars */}
+              <div className="mt-3 mx-2 space-y-2">
+                <div className="h-2 w-full rounded bg-gray-200/80" />
+                <div className="h-2 w-3/4 rounded bg-gray-200/60" />
+              </div>
+            </div>
+            {/* Notification dot */}
+            <div
+              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-primary-500 border-2 border-white shadow-sm"
+              style={{ animation: "ping 2s cubic-bezier(0, 0, 0.2, 1) infinite" }}
+            />
+          </div>
+
+          {/* Floating provider avatars */}
+          <div
+            className="absolute left-[15%] top-[20%] w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 shadow-md flex items-center justify-center text-white text-xs font-bold"
+            style={{ animation: "floatLeft 4s ease-in-out infinite" }}
+          >
+            JM
+          </div>
+          <div
+            className="absolute right-[15%] top-[30%] w-9 h-9 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 shadow-md flex items-center justify-center text-white text-xs font-bold"
+            style={{ animation: "floatRight 3.5s ease-in-out infinite 0.5s" }}
+          >
+            SK
+          </div>
+          <div
+            className="absolute left-[25%] bottom-[15%] w-8 h-8 rounded-full bg-gradient-to-br from-warm-400 to-warm-500 shadow-md flex items-center justify-center text-white text-[10px] font-bold"
+            style={{ animation: "floatLeft 3s ease-in-out infinite 1s" }}
+          >
+            AL
+          </div>
+          <div
+            className="absolute right-[22%] bottom-[20%] w-9 h-9 rounded-full bg-gradient-to-br from-primary-300 to-primary-500 shadow-md flex items-center justify-center text-white text-xs font-bold"
+            style={{ animation: "floatRight 4.5s ease-in-out infinite 0.3s" }}
+          >
+            TC
+          </div>
+
+          {/* Connection lines (dashed) */}
+          <svg className="absolute inset-0 w-full h-full opacity-30" style={{ animation: "fadeInOut 3s ease-in-out infinite" }}>
+            <line x1="25%" y1="35%" x2="45%" y2="45%" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" className="text-primary-400" />
+            <line x1="75%" y1="40%" x2="55%" y2="45%" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" className="text-primary-400" />
+          </svg>
         </div>
-        <h3 className="text-base font-display font-bold text-gray-900">
-          No providers have reached out yet
-        </h3>
-        <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[320px] mx-auto">
-          Providers in your area are reviewing care profiles daily. You&apos;ll be
-          notified when someone expresses interest.
-        </p>
+
+        {/* Text content */}
+        <div className="text-center">
+          <h3 className="text-xl font-display font-bold text-gray-900 mb-2">
+            Providers are looking at your profile
+          </h3>
+          <p className="text-sm text-gray-500 leading-relaxed max-w-[340px] mx-auto">
+            Care providers in your area are reviewing profiles like yours.
+          </p>
+        </div>
+
         <style jsx>{`
-          @keyframes emptyFloat {
-            0%,
-            100% {
-              transform: translateY(0);
-            }
-            50% {
-              transform: translateY(-6px);
-            }
+          @keyframes float {
+            0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+            50% { transform: translate(-50%, -50%) translateY(-8px); }
+          }
+          @keyframes floatLeft {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(-5px) translateY(-10px); }
+          }
+          @keyframes floatRight {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(5px) translateY(-8px); }
+          }
+          @keyframes pulse {
+            0%, 100% { opacity: 0.4; transform: translateX(-50%) scale(1); }
+            50% { opacity: 0.6; transform: translateX(-50%) scale(1.1); }
+          }
+          @keyframes ping {
+            0% { transform: scale(1); opacity: 1; }
+            75%, 100% { transform: scale(1.5); opacity: 0; }
+          }
+          @keyframes fadeInOut {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.4; }
           }
         `}</style>
       </div>
@@ -432,27 +436,34 @@ export default function InterestedTabContent({
 
       {/* Pending cards */}
       {pending.length > 0 && (
-        <div className="space-y-5 mb-6">
-          {pending.map((item) => (
-            <InterestedCard
-              key={item.id}
-              item={item}
-              isExpanded={expandedCardId === item.id}
-              onExpand={handleExpand}
-              onCollapse={handleCollapse}
-              onAccept={handleAccept}
-              onDecline={handleDecline}
-              isAccepting={acceptingId === item.id}
-              isDeclining={decliningId === item.id}
-              isAccepted={acceptedId === item.id}
-              onDismiss={handleDismiss}
-              isDeclinedConfirm={declinedConfirmId === item.id}
-              onUndoDecline={handleUndoDecline}
-              onDoneDecline={handleDoneDecline}
-              familyLat={familyLat}
-              familyLng={familyLng}
-            />
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
+          {pending.map((item) => {
+            const profile = item.providerProfile;
+            const meta = profile?.metadata as (OrganizationMetadata & CaregiverMetadata & Record<string, unknown>) | null;
+            const matchReasons = ((item.metadata as Record<string, unknown>)?.match_reasons as string[]) || [];
+            return (
+              <MatchProviderCard
+                key={item.id}
+                provider={{
+                  id: profile?.id || item.from_profile_id,
+                  name: profile?.display_name || "Provider",
+                  slug: profile?.slug || undefined,
+                  image: profile?.image_url,
+                  category: profile?.category || profile?.care_types?.[0] || "Care Provider",
+                  city: profile?.city,
+                  state: profile?.state,
+                  rating: (meta?.google_rating as number) || null,
+                  priceRange: getPriceRange(profile),
+                }}
+                interestedMessage={item.message || (item.metadata as Record<string, unknown>)?.reach_out_note as string}
+                interestedAt={item.created_at}
+                connectionId={item.id}
+                matchReasons={matchReasons}
+                onMessage={handleMessage}
+                onDecline={handleDecline}
+              />
+            );
+          })}
         </div>
       )}
 
@@ -494,21 +505,72 @@ export default function InterestedTabContent({
           </button>
 
           {declinedExpanded && (
-            <div className="space-y-5">
-              {declined.map((item) => (
-                <InterestedCard
-                  key={item.id}
-                  item={item}
-                  onReconsider={handleReconsider}
-                  isDeclined
-                  familyLat={familyLat}
-                  familyLng={familyLng}
-                />
-              ))}
+            <div className="space-y-3">
+              {declined.map((item) => {
+                const profile = item.providerProfile;
+                return (
+                  <DeclinedProviderRow
+                    key={item.id}
+                    name={profile?.display_name || "Provider"}
+                    image={profile?.image_url}
+                    location={[profile?.city, profile?.state].filter(Boolean).join(", ")}
+                    onReconsider={() => handleReconsider(item.id)}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Declined provider row ──
+function DeclinedProviderRow({
+  name,
+  image,
+  location,
+  onReconsider,
+}: {
+  name: string;
+  image?: string | null;
+  location?: string;
+  onReconsider: () => void;
+}) {
+  const initials = name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  return (
+    <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-200/80 opacity-60 hover:opacity-80 transition-opacity">
+      {image ? (
+        <img
+          src={image}
+          alt={name}
+          className="w-10 h-10 rounded-xl object-cover shrink-0"
+        />
+      ) : (
+        <div className="w-10 h-10 rounded-xl bg-warm-100 flex items-center justify-center shrink-0 text-xs font-bold text-warm-500">
+          {initials}
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-gray-600 truncate">{name}</p>
+        {location && (
+          <p className="text-xs text-gray-400 truncate">{location}</p>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={onReconsider}
+        className="text-xs font-medium text-primary-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-50 transition-colors"
+      >
+        Reconsider
+      </button>
     </div>
   );
 }

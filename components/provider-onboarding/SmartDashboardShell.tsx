@@ -24,7 +24,7 @@ import ProfileCompletenessSidebar from "@/components/provider-dashboard/ProfileC
 
 // Onboarding components
 import OnboardingWizard from "./OnboardingWizard";
-import ActionCard, { type ActionCardState } from "./ActionCard";
+import ActionCard, { type ActionCardState, type NotificationData } from "./ActionCard";
 
 // ============================================================
 // Onboarding Header (replaces main navbar during claim flow)
@@ -163,9 +163,6 @@ function providerToProfile(provider: Provider): Profile {
   const metadata: OrganizationMetadata & ExtendedMetadata = {
     price_range: priceRange,
     images: images.length > 0 ? images : primaryImage ? [primaryImage] : [],
-    community_score: provider.community_Score || undefined,
-    value_score: provider.value_score || undefined,
-    info_score: provider.information_availability_score || undefined,
   };
 
   const careTypes: string[] = [provider.provider_category];
@@ -216,6 +213,10 @@ interface SmartDashboardShellProps {
   initialActionState?: ActionCardState;
   /** If provided, user came from email campaign link and is pre-verified */
   preVerifiedEmail?: string;
+  /** Notification data (lead/review/question) that brought the user here */
+  notificationData?: NotificationData | null;
+  /** Whether the user is currently signed in */
+  isSignedIn?: boolean;
 }
 
 // ============================================================
@@ -228,6 +229,8 @@ export default function SmartDashboardShell({
   onVerificationComplete,
   initialActionState = "verify-form",
   preVerifiedEmail,
+  notificationData,
+  isSignedIn = false,
 }: SmartDashboardShellProps) {
   const { setForceHidden } = useNavbar();
 
@@ -303,7 +306,7 @@ export default function SmartDashboardShell({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Main Content - Cards */}
           <div className={`lg:col-span-2 space-y-6 ${isWizardActive ? "opacity-40 blur-[2px]" : ""}`}>
-            {/* Action Card - TOP OF LEFT COLUMN */}
+            {/* Action Card - verification/claim flow + notification display */}
             <ActionCard
               provider={provider}
               claimSession={claimSession}
@@ -311,6 +314,8 @@ export default function SmartDashboardShell({
               onVerificationComplete={onVerificationComplete}
               preVerifiedEmail={preVerifiedEmail}
               highlighted={highlightAction}
+              notificationData={notificationData}
+              isSignedIn={isSignedIn}
             />
 
             {/* Dashboard Cards - clickable to trigger verification prompt */}

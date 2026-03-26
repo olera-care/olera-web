@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { sendLoopsEvent } from "@/lib/loops";
+import { sendEmail } from "@/lib/email";
+import { welcomeEmail } from "@/lib/email-templates";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { sanitizeDisplayName, validateReturnUrl } from "@/lib/validation";
 
@@ -161,6 +163,55 @@ export async function GET(request: NextRequest) {
         } catch {
           // Non-blocking
         }
+
+        // Welcome email (fire-and-forget)
+        try {
+          if (data.user.email) {
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+            await sendEmail({
+              to: data.user.email,
+              subject: "Welcome to Olera",
+              html: welcomeEmail({
+                familyName: displayName.split(/\s+/)[0] || "there",
+                browseUrl: `${siteUrl}/browse`,
+              }),
+              emailType: "welcome",
+              recipientType: "family",
+            });
+            // Mark as sent on family profile
+            if (newFamilyId) {
+              await admin.from("business_profiles")
+                .update({ metadata: { welcome_email_sent: true } })
+                .eq("id", newFamilyId);
+            }
+          }
+        } catch {
+          // Non-blocking
+        }
+
+        // New user (onboarding_completed=false) → redirect to /welcome
+        // EXCEPTION: If user is completing a task (review, Q&A, message via deferred action),
+        // skip welcome and let them complete their task first.
+        // Check both the callback URL params and the destination URL.
+        const actionParam = searchParams.get("action"); // From OAuth redirect (e.g., "review", "question")
+        const hasTaskAction = actionParam && ["review", "question", "inquiry", "save", "connection_request", "phone_reveal"].includes(actionParam);
+        const isTaskUrl = next.includes("/reviews") ||
+          next.includes("/qna") ||
+          next.includes("/inbox") ||
+          next.includes("/leads") ||
+          next.includes("/provider/") || // User was on a provider page (likely doing an action)
+          next.includes("id=");
+
+        if (hasTaskAction || isTaskUrl) {
+          // Let user complete their task, skip welcome redirect
+          return response;
+        }
+
+        // Pass original destination as ?next= so they return there after welcome
+        const welcomeUrl = `/welcome?next=${encodeURIComponent(next)}`;
+        return NextResponse.redirect(`${origin}${welcomeUrl}`, {
+          headers: response.headers,
+        });
       } else {
         // Account exists — ensure family profile exists (handles edge cases)
         const { data: existingFamily } = await admin
@@ -245,6 +296,20 @@ export async function GET(request: NextRequest) {
                   .from("business_profiles")
                   .delete()
                   .eq("id", placeholder.id);
+
+                // Ensure active_profile_id is set so welcome page can find connections
+                const { data: accountData } = await admin
+                  .from("accounts")
+                  .select("active_profile_id")
+                  .eq("id", existing.id)
+                  .single();
+
+                if (!accountData?.active_profile_id) {
+                  await admin
+                    .from("accounts")
+                    .update({ active_profile_id: mainFamilyId })
+                    .eq("id", existing.id);
+                }
               }
             }
           }
@@ -252,6 +317,41 @@ export async function GET(request: NextRequest) {
           console.error("[callback] placeholder claim error:", err);
           // Non-blocking
         }
+      }
+    }
+
+    // If user has an incomplete student profile and no explicit destination,
+    // redirect to the student dashboard instead of home
+    if (next === "/" || next === "") {
+      try {
+        const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const sbKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (sbUrl && sbKey) {
+          const db = createClient(sbUrl, sbKey);
+          const { data: acct } = await db
+            .from("accounts")
+            .select("id")
+            .eq("user_id", data.user.id)
+            .maybeSingle();
+
+          if (acct) {
+            const { data: studentProfile } = await db
+              .from("business_profiles")
+              .select("id, is_active")
+              .eq("account_id", acct.id)
+              .eq("type", "student")
+              .limit(1)
+              .maybeSingle();
+
+            if (studentProfile && !studentProfile.is_active) {
+              return NextResponse.redirect(`${origin}/portal/medjobs`, {
+                headers: response.headers,
+              });
+            }
+          }
+        }
+      } catch {
+        // Non-blocking — fall through to default redirect
       }
     }
 

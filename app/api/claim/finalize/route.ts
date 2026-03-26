@@ -260,6 +260,9 @@ export async function POST(request: Request) {
             providerSlug: profileSlug,
             claimedByEmail: user.email || "unknown",
           }),
+          emailType: "claim_notification",
+          recipientType: "admin",
+          providerId,
         });
       }
     } catch (emailErr) {

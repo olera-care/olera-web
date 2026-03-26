@@ -93,3 +93,22 @@ The core error: **treating the plan as authoritative when the code told a differ
 **Lesson**: MCP tool schemas don't always match the underlying API's expectations. When a tool's schema says `string` for a field that semantically holds objects, test with a minimal call first. And when a proxy-based tool gets rate-limited, fall back to the direct integration immediately — don't retry the same blocked path.
 
 ---
+
+### 2026-03-25: Admin image delete returned 500 — `hero_image_url` column doesn't exist
+
+**Symptom**: Clicking "Delete" on a provider photo in the admin dashboard did nothing. The image stayed in the grid and could be "deleted" infinitely. No error was shown to the user.
+
+**Root Cause**: The delete handler queried `olera-providers` with an explicit column list: `.select("provider_images, hero_image_url, provider_logo")`. The `hero_image_url` column does not exist in the table. Supabase rejects queries referencing non-existent columns with a 500. This was masked by two layers of silent failure: (1) the catch block returned generic "Internal server error" with no detail, and (2) the UI checked `if (res.ok)` and did nothing on failure — no error feedback. The directory endpoint worked because it uses `select("*")`.
+
+**Fix**: Switched to `select("*")` in both GET and PATCH handlers. Guarded `hero_image_url` references with `"hero_image_url" in provider`. Added error feedback in UI. Made outer catch return the real error message. Wrapped `provider_image_metadata` ops in try/catch.
+
+**Time to Resolution**: ~75 minutes across 7 commits. First commit had correct delete logic but hit hidden 500. Took 6 iterations of error surfacing before the Network tab Response body revealed the actual cause.
+
+**Prevention**:
+- Always use `select("*")` for admin API queries unless there's a performance reason for specific columns
+- New admin endpoints must include error feedback — never swallow errors silently
+- First debugging step for "button doesn't work" = ask user to open DevTools Network tab and check the response body immediately
+
+**Lesson**: When a new feature silently fails, the first priority is making the failure loud — surface the actual error before attempting to fix the logic. Would have saved 60 minutes if the first commit had included error banners and console logging.
+
+---

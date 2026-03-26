@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
-import { connectionResponseEmail } from "@/lib/email-templates";
+import { reachOutAcceptedEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 
 /**
@@ -27,9 +27,10 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { connectionId, action } = body as {
+    const { connectionId, action, message } = body as {
       connectionId: string;
       action: "view" | "accept" | "decline" | "reconsider";
+      message?: string;
     };
 
     if (!connectionId || !action) {
@@ -111,25 +112,25 @@ export async function POST(request: Request) {
     if (action === "accept") {
       // Build auto-intro from care seeker's profile
       let autoIntro: string | null = null;
-      try {
-        const [{ data: seekerProfile }, { data: providerProfile }] =
-          await Promise.all([
-            admin
-              .from("business_profiles")
-              .select("care_types, metadata, display_name")
-              .eq("id", connection.to_profile_id)
-              .single(),
-            admin
-              .from("business_profiles")
-              .select("care_types, display_name")
-              .eq("id", connection.from_profile_id)
-              .single(),
-          ]);
+      let seekerProfile: { care_types: string[] | null; metadata: Record<string, unknown> | null; display_name: string | null; email: string | null; phone: string | null; city: string | null; state: string | null } | null = null;
+      let providerProfile: { care_types: string[] | null; display_name: string | null; city: string | null; state: string | null } | null = null;
 
-        const seekerMeta = (seekerProfile?.metadata || {}) as Record<
-          string,
-          string | undefined
-        >;
+      try {
+        const [seekerRes, providerRes] = await Promise.all([
+          admin
+            .from("business_profiles")
+            .select("care_types, metadata, display_name, email, phone, city, state")
+            .eq("id", connection.to_profile_id)
+            .single(),
+          admin
+            .from("business_profiles")
+            .select("care_types, display_name, city, state")
+            .eq("id", connection.from_profile_id)
+            .single(),
+        ]);
+        seekerProfile = seekerRes.data;
+        providerProfile = providerRes.data;
+
         const seekerCareTypes: string[] = seekerProfile?.care_types || [];
         const providerCareTypes: string[] = providerProfile?.care_types || [];
         const providerName = providerProfile?.display_name || "the provider";
@@ -148,11 +149,47 @@ export async function POST(request: Request) {
         // Non-blocking
       }
 
-      // Update status to accepted
+      // Build thread with family's reply message
+      const existingThread = (currentMeta.thread as Array<Record<string, unknown>>) || [];
+      const updatedThread = [...existingThread];
+
+      // Add family's reply message to thread if provided
+      if (message?.trim()) {
+        updatedThread.push({
+          from_profile_id: connection.to_profile_id,
+          text: message.trim(),
+          created_at: new Date().toISOString(),
+        });
+      }
+
+      // Build summary card data for provider to see family info
+      const seekerName = seekerProfile?.display_name || user.email?.split("@")[0] || "";
+      const nameParts = seekerName.trim().split(/\\s+/);
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+
+      // Build message payload with seeker info for summary card (similar to create-inquiry)
+      const messagePayload = JSON.stringify({
+        seeker_name: seekerName,
+        seeker_first_name: firstName,
+        seeker_last_name: lastName,
+        seeker_email: seekerProfile?.email || user.email || "",
+        seeker_phone: seekerProfile?.phone || null,
+        looking_in_city: providerProfile?.city || seekerProfile?.city,
+        looking_in_state: providerProfile?.state || seekerProfile?.state,
+        message: message?.trim() || "",
+        care_recipient: null,
+        care_type: null,
+        urgency: null,
+        additional_notes: message?.trim() || "",
+      });
+
+      // Update status to accepted with thread and message data
       const { error: acceptError } = await admin
         .from("connections")
         .update({
           status: "accepted",
+          message: messagePayload,
           metadata: {
             ...currentMeta,
             viewed: true,
@@ -160,6 +197,7 @@ export async function POST(request: Request) {
             ...(autoIntro ? { auto_intro: autoIntro } : {}),
             // Mark as provider-initiated for display in Connected tab
             provider_initiated: true,
+            thread: updatedThread,
           },
         })
         .eq("id", connectionId);
@@ -184,15 +222,18 @@ export async function POST(request: Request) {
           .single();
 
         if (providerBp?.email) {
+          const familyName = seekerBp?.display_name || "A family";
           await sendEmail({
             to: providerBp.email,
-            subject: `${seekerBp?.display_name || "A family"} accepted your connection on Olera`,
-            html: connectionResponseEmail({
-              familyName: seekerBp?.display_name || "A family",
+            subject: `${familyName} accepted your reach-out — you're connected`,
+            html: reachOutAcceptedEmail({
               providerName: providerBp.display_name || "Provider",
-              accepted: true,
+              familyName,
               viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/connections`,
             }),
+            emailType: 'reach_out_accepted',
+            recipientType: 'provider',
+            providerId: connection.from_profile_id,
           });
         }
       } catch (emailErr) {

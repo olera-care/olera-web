@@ -26,6 +26,8 @@ export interface DisplayReview {
   providerReply?: string | null;
   repliedAt?: string | null;
   accountId?: string;
+  source?: "olera" | "google";
+  profilePhotoUrl?: string | null;
 }
 
 type SortOption = "helpful" | "recent" | "highest" | "lowest";
@@ -235,8 +237,8 @@ export default function AllReviewsModal({
         ref={contentRef}
         className={[
           "relative bg-white shadow-2xl w-full flex flex-col",
-          "rounded-t-2xl max-h-[92vh] animate-sheet-up",
-          "sm:rounded-2xl sm:max-h-[85vh] sm:animate-modal-pop",
+          "rounded-t-2xl max-h-[92dvh] animate-sheet-up",
+          "sm:rounded-2xl sm:max-h-[85dvh] sm:animate-modal-pop",
           "max-w-2xl",
         ].join(" ")}
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
@@ -455,9 +457,19 @@ export default function AllReviewsModal({
 
 // ── Export helper to normalize reviews ──
 
+interface GoogleReviewSnippet {
+  author_name: string;
+  rating: number;
+  text: string;
+  relative_time: string;
+  profile_photo_url: string | null;
+  time: number;
+}
+
 export function normalizeReviews(
   realReviews: Review[],
-  mockReviews: MockReview[]
+  mockReviews: MockReview[],
+  googleReviews?: GoogleReviewSnippet[],
 ): { reviews: DisplayReview[]; averageRating: number } {
   const normalizedReal: DisplayReview[] = realReviews.map((r) => ({
     id: r.id,
@@ -471,6 +483,19 @@ export function normalizeReviews(
     providerReply: r.provider_reply,
     repliedAt: r.replied_at,
     accountId: r.account_id ?? undefined,
+    source: "olera" as const,
+  }));
+
+  const normalizedGoogle: DisplayReview[] = (googleReviews ?? []).map((r, i) => ({
+    id: `google-${i}`,
+    name: r.author_name,
+    rating: r.rating,
+    date: r.relative_time,
+    comment: r.text,
+    title: null,
+    isMock: false,
+    source: "google" as const,
+    profilePhotoUrl: r.profile_photo_url,
   }));
 
   const normalizedMock: DisplayReview[] = mockReviews.map((r, i) => ({
@@ -484,12 +509,14 @@ export function normalizeReviews(
     isMock: true,
   }));
 
-  // Real reviews take priority
-  const reviews = normalizedReal.length > 0 ? normalizedReal : normalizedMock;
+  // Merge real Olera reviews + Google reviews, then fall back to mock
+  const oleraAndGoogle = [...normalizedReal, ...normalizedGoogle];
+  const reviews = oleraAndGoogle.length > 0 ? oleraAndGoogle : normalizedMock;
 
-  // Calculate average
+  // Calculate average from Olera reviews only (Google has its own rating)
+  const oleraForAvg = normalizedReal.length > 0 ? normalizedReal : normalizedMock;
   const averageRating =
-    reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
+    oleraForAvg.length > 0 ? oleraForAvg.reduce((sum, r) => sum + r.rating, 0) / oleraForAvg.length : 0;
 
   return { reviews, averageRating };
 }

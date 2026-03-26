@@ -2,7 +2,7 @@
 // Database Types — mirrors the Supabase schema
 // ============================================================
 
-export type ProfileType = "organization" | "caregiver" | "family";
+export type ProfileType = "organization" | "caregiver" | "family" | "student";
 
 export type ProfileCategory =
   // Home-based organizations
@@ -80,7 +80,7 @@ export interface BusinessProfile {
   lng: number | null;
   service_area: string | null;
   care_types: string[];
-  metadata: OrganizationMetadata | CaregiverMetadata | FamilyMetadata;
+  metadata: OrganizationMetadata | CaregiverMetadata | FamilyMetadata | StudentMetadata;
   claim_state: ClaimState;
   verification_state: VerificationState;
   source: ProfileSource;
@@ -144,6 +144,9 @@ export interface Review {
   replied_by: string | null;
   // Migration tracking
   migration_source?: string | null;
+  // Read tracking
+  metadata?: Record<string, unknown>;
+  isNew?: boolean;
 }
 
 // ============================================================
@@ -167,7 +170,72 @@ export interface GoogleMetadata {
   last_synced?: string;
 }
 
+/** Cached Google review snippet — stored as JSONB on olera-providers */
+export interface GoogleReviewSnippet {
+  author_name: string;
+  rating: number;
+  text: string;
+  relative_time: string;
+  profile_photo_url: string | null;
+  time: number; // Unix timestamp (seconds)
+}
+
+/** Full cached Google review data for a provider */
+export interface GoogleReviewsData {
+  rating: number;
+  review_count: number;
+  reviews: GoogleReviewSnippet[];
+  last_synced: string; // ISO 8601
+}
+
+/** CMS (Medicare) quality data — stored as JSONB on olera-providers */
+export interface CMSData {
+  ccn: string; // CMS Certification Number
+  source: "home_health" | "nursing_home" | "hospice";
+  overall_rating: number | null; // 1-5 stars
+  health_inspection_rating?: number | null;
+  staffing_rating?: number | null;
+  quality_rating?: number | null;
+  provider_name: string; // CMS name (may differ from ours)
+  certification_date?: string | null;
+  deficiency_count?: number;
+  penalty_count?: number;
+  total_fines?: number;
+  abuse_icon?: string;
+  last_synced: string; // ISO 8601
+}
+
+/** AI-verified trust signal — individual verification result */
+export interface AiTrustSignal {
+  signal: string; // e.g., "state_licensed", "accredited"
+  status: "confirmed" | "not_found" | "unclear";
+  detail: string | null;
+  source_url: string | null;
+}
+
+/** AI-verified trust signals for a provider */
+export interface AiTrustSignals {
+  provider_name: string;
+  state: string;
+  category: string;
+  signals: AiTrustSignal[];
+  summary_score: number; // count of confirmed signals (0-8)
+  last_verified: string; // ISO 8601
+  model: string; // e.g., "sonar"
+  confidence: "high" | "medium" | "low";
+}
+
+/** Staff/owner info displayed on provider detail pages */
+export interface StaffInfo {
+  name: string;
+  position: string;
+  bio: string;
+  image: string;
+  care_motivation?: string;
+}
+
 export interface OrganizationMetadata {
+  staff?: StaffInfo;
   license_number?: string;
   year_founded?: number;
   bed_count?: number;
@@ -247,6 +315,9 @@ export interface FamilyMetadata {
   care_location?: string;
   language_preference?: string | string[];
   about_situation?: string;
+  // Benefits intake fields
+  income_range?: string;
+  medicaid_status?: string;
   notification_prefs?: {
     connection_updates?: { email?: boolean; sms?: boolean };
     saved_provider_alerts?: { email?: boolean; sms?: boolean };
@@ -258,11 +329,134 @@ export interface FamilyMetadata {
     published_at?: string;
   };
   benefits_results?: {
-    answers: Record<string, unknown>;
-    results: Record<string, unknown>;
-    location_display: string;
-    completed_at: string;
+    answers?: Record<string, unknown>;
+    results?: Record<string, unknown>;
+    location_display?: string;
+    completed_at?: string;
+    matchCount?: number;
   };
+}
+
+// ============================================================
+// MedJobs Types
+// ============================================================
+
+export type IntendedProfessionalSchool =
+  | "medicine" | "nursing" | "pa" | "pt" | "public_health" | "undecided";
+
+export type StudentProgramTrack =
+  | "pre_nursing"
+  | "nursing"
+  | "pre_med"
+  | "pre_pa"
+  | "pre_health"
+  | "other";
+
+export interface StudentMetadata {
+  // Education
+  university?: string;
+  university_id?: string;         // FK to medjobs_universities
+  campus?: string;
+  major?: string;
+  graduation_year?: number;
+  gpa?: number;
+  program_track?: StudentProgramTrack;
+
+  // Experience
+  certifications?: string[];       // CNA, BLS, First Aid, etc.
+  years_caregiving?: number;
+  care_experience_types?: string[];  // "dementia", "post_surgical", "mobility", etc.
+  languages?: string[];
+
+  // Availability
+  availability_type?: "part_time" | "full_time" | "flexible" | "summer_only" | "weekends";
+  hours_per_week?: number;
+  available_start?: string;        // ISO date
+  transportation?: boolean;
+  willing_to_relocate?: boolean;
+  max_commute_miles?: number;
+
+  // Media
+  resume_url?: string;
+  video_intro_url?: string;
+  linkedin_url?: string;
+
+  // Documents (private, PII)
+  drivers_license_url?: string;
+  drivers_license_uploaded_at?: string;
+  car_insurance_url?: string;
+  car_insurance_uploaded_at?: string;
+
+  // Credential engine (data model ready, UI Phase 2)
+  total_verified_hours?: number;
+  verified_care_types?: string[];
+
+  // New structured fields (Phase 1)
+  intended_professional_school?: IntendedProfessionalSchool;
+  availability_types?: string[];        // multi-select: "in_between_classes", "evenings", "weekends", "overnights"
+  seasonal_availability?: string[];     // "summer", "winter_break", "fall_semester", "spring_semester"
+  duration_commitment?: string;         // "1_semester", "multiple_semesters", "1_plus_year"
+  hours_per_week_range?: string;        // "5-10", "10-15", "15-20", "20+"
+  acknowledgments_completed?: boolean;
+  acknowledgment_date?: string;
+
+  // Status
+  profile_completeness?: number;   // 0-100
+  seeking_status?: "actively_looking" | "open" | "not_looking";
+}
+
+export type ExperienceLogStatus = "pending" | "confirmed" | "disputed";
+
+export interface ExperienceLog {
+  id: string;
+  student_profile_id: string;
+  provider_profile_id: string;
+  hours: number;
+  care_type: string;
+  start_date: string;
+  end_date: string | null;
+  supervisor_name: string | null;
+  supervisor_title: string | null;
+  notes: string | null;
+  status: ExperienceLogStatus;
+  confirmed_at: string | null;
+  confirmed_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MedJobsUniversity {
+  id: string;
+  name: string;
+  slug: string;
+  city: string;
+  state: string;
+  lat: number | null;
+  lng: number | null;
+  logo_url: string | null;
+  is_active: boolean;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export type JobPostStatus = "draft" | "active" | "paused" | "closed";
+export type JobLocationType = "on_site" | "hybrid" | "flexible";
+
+export interface MedJobsJobPost {
+  id: string;
+  provider_profile_id: string;
+  title: string;
+  description: string | null;
+  care_types: string[];
+  hours_per_week_min: number | null;
+  hours_per_week_max: number | null;
+  pay_rate_min: number | null;
+  pay_rate_max: number | null;
+  location_type: JobLocationType;
+  status: JobPostStatus;
+  created_at: string;
+  updated_at: string;
 }
 
 // ============================================================
@@ -281,6 +475,7 @@ export interface DeferredAction {
     comment: string;
     title?: string;
     relationship?: string;
+    reviewer_name?: string;
   };
   returnUrl: string;
   createdAt: string;

@@ -687,9 +687,6 @@ export function iosProviderToProfile(provider: IOSProvider): Profile {
     images?: string[];
     badge?: string;
     accepted_payments?: string[];
-    community_score?: number;
-    value_score?: number;
-    info_score?: number;
     price_min?: number;
     price_max?: number;
     price_unit?: "HOUR" | "MONTH";
@@ -702,13 +699,10 @@ export function iosProviderToProfile(provider: IOSProvider): Profile {
     ...((provider.lower_price != null || provider.upper_price != null) && {
       price_unit: isHourly ? "HOUR" as const : "MONTH" as const,
     }),
-    // iOS scores
-    rating: provider.google_rating || undefined,
-    review_count: undefined,
+    // Prefer fresh Google API rating over legacy google_rating
+    rating: provider.google_reviews_data?.rating ?? provider.google_rating ?? undefined,
+    review_count: provider.google_reviews_data?.review_count ?? undefined,
     images: allImages,
-    community_score: provider.community_Score || undefined,
-    value_score: provider.value_score || undefined,
-    info_score: provider.information_availability_score || undefined,
   };
 
   // Build care_types array from category and main_category

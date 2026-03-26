@@ -297,6 +297,189 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
       {/* FAQ */}
       <BenefitsPackageFAQ stateCode={answers.stateCode} />
 
+      {/* Recommended first step — single program, with call script */}
+      {matchedPrograms.length > 0 && (
+        <RecommendedFirstStep
+          topMatch={matchedPrograms[0]}
+          localAAA={localAAA}
+        />
+      )}
+
+      {/* ── Beat 2: Explore at your pace ─────────────────────────────── */}
+
+      {remainingPrograms.length > 0 && (
+        <>
+          <div className="flex items-baseline justify-between gap-4 mb-4">
+            <p className="text-xs font-medium text-gray-400 tracking-widest uppercase">
+              {matchedPrograms.length - 1} more program{matchedPrograms.length - 1 !== 1 ? "s" : ""}
+            </p>
+
+            {/* Filter tabs — only if multiple categories */}
+            {presentCategories.length > 1 && (
+              <div className="flex items-center gap-1 print:hidden" role="toolbar" aria-label="Filter by category">
+                {["all" as const, ...presentCategories].map((cat) => {
+                  const isActive = activeFilter === cat;
+                  const label = cat === "all" ? "All" : BENEFIT_CATEGORIES[cat]?.displayTitle;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setActiveFilter(cat)}
+                      aria-pressed={isActive}
+                      className={`px-2.5 py-1 text-xs font-medium border-none cursor-pointer transition-colors bg-transparent rounded-full ${
+                        isActive
+                          ? "text-gray-900 bg-gray-100"
+                          : "text-gray-400 hover:text-gray-600"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Program cards */}
+          <div>
+            {visiblePrograms.map((m, i) => (
+              <div
+                key={m.id}
+                className="animate-card-enter"
+                style={{ animationDelay: `${i * 60}ms` }}
+              >
+                <ProgramCard
+                  match={m}
+                  isSaved={isSaved(m.program.name)}
+                  onToggleSave={() => toggleSave(m.program.name)}
+                  defaultExpanded={i === 0}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Show more */}
+          {hiddenCount > 0 && (
+            <button
+              onClick={() => setShowAll(true)}
+              className="w-full py-3 mt-2 mb-8 text-sm font-medium text-gray-500 hover:text-gray-900 bg-transparent border border-gray-200 hover:border-gray-300 rounded-xl cursor-pointer transition-colors"
+            >
+              See {hiddenCount} more program{hiddenCount !== 1 ? "s" : ""}
+            </button>
+          )}
+        </>
+      )}
+
+      {/* ── Beat 3: Tools when you're ready ──────────────────────────── */}
+
+      <div className="mt-12 pt-8 border-t border-gray-100">
+        {/* Document checklist — collapsed by default */}
+        <button
+          onClick={() => setShowChecklist(!showChecklist)}
+          className="flex items-center gap-2 w-full text-left bg-transparent border-none cursor-pointer group mb-2"
+        >
+          <svg
+            className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showChecklist ? "rotate-90" : ""}`}
+            fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+          <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
+            Prepare your documents
+          </span>
+          <span className="text-xs text-gray-300">
+            Checklist for applications
+          </span>
+        </button>
+
+        {(showChecklist || isPrinting) && (
+          <div className="mt-4 animate-fade-in">
+            <DocumentChecklist />
+          </div>
+        )}
+      </div>
+
+      {/* Start over — quiet secondary action */}
+      <div className="mt-8 flex justify-center print:hidden">
+        <button
+          onClick={reset}
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+          </svg>
+          Start over
+        </button>
+      </div>
+
+      {/* Matches invitation card — after value is shown */}
+      {showMatchesCard && (
+        <div className="mt-10">
+          <div className="border border-vanilla-300 border-l-4 border-l-primary-500 bg-vanilla-100 rounded-2xl p-5 lg:p-6">
+            {matchesCardConfirmed ? (
+              <div className="flex flex-col items-center text-center py-2">
+                <MatchesSuccessIllustration className="w-12 h-12 mb-3" />
+                <h3 className="font-display text-display-xs font-medium text-gray-900 mb-1">
+                  Your profile is live in {cityDisplay}
+                </h3>
+                <p className="text-sm text-gray-500 leading-relaxed max-w-md mb-4">
+                  Providers in your area can now find you. We&apos;ll email you the moment someone reaches out.
+                </p>
+                <Link
+                  href="/portal/matches"
+                  className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors mb-2"
+                >
+                  View your Matches profile &rarr;
+                </Link>
+                <button
+                  onClick={() => { setMatchesCardDismissed(true); setMatchesCardConfirmed(false); }}
+                  className="text-sm font-medium text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer transition-colors"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <>
+                <h3 className="font-display text-display-xs font-medium text-gray-900">
+                  Let care providers find you
+                </h3>
+                <p className="text-sm text-gray-600 mt-2 leading-relaxed max-w-xl">
+                  Qualified providers in {cityDisplay} will reach out. You choose who to talk to.
+                </p>
+                {matchesError && (
+                  <div className="mt-3">
+                    <p className="text-sm text-gray-600">We couldn&apos;t set up your profile right now.</p>
+                    <Link href="/portal/matches" className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors">
+                      Visit your Matches tab to complete setup.
+                    </Link>
+                  </div>
+                )}
+                <div className="flex flex-wrap items-center gap-3 mt-4">
+                  <button
+                    onClick={handleActivateMatches}
+                    disabled={matchesActivating || syncInProgress}
+                    className="inline-flex items-center gap-2 px-6 py-2.5 min-h-[44px] bg-primary-600 text-white rounded-full text-sm font-medium border-none cursor-pointer hover:bg-primary-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {syncInProgress ? (
+                      <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Saving results...</>
+                    ) : matchesActivating ? (
+                      <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Activating...</>
+                    ) : (
+                      "Yes, let providers find me"
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setMatchesCardDismissed(true)}
+                    className="inline-flex items-center min-h-[44px] px-2 text-sm font-medium text-gray-500 hover:text-gray-700 bg-transparent border-none cursor-pointer transition-colors"
+                  >
+                    No thanks
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Print footer */}
       <p className="hidden print:block text-xs text-gray-400 mt-8 pt-4 border-t border-gray-200">
         Generated by Olera Benefits Finder &mdash; olera.care/benefits/finder &mdash; {new Date().toLocaleDateString()}

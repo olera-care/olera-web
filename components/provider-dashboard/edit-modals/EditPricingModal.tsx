@@ -6,6 +6,7 @@ import Select from "@/components/ui/Select";
 import ModalFooter from "./ModalFooter";
 import { saveProfile } from "./save-profile";
 import type { BaseEditModalProps } from "./types";
+import { getPricingConfig } from "@/lib/pricing-config";
 
 const COMMON_SERVICES = [
   "Private Room",
@@ -336,6 +337,31 @@ export default function EditPricingModal({
               ? "Families will see 'Contact for pricing' instead of rates."
               : "Families will see your starting rates on your profile."}
           </p>
+
+          {/* Category-specific pricing guidance */}
+          {profile.category && (() => {
+            const config = getPricingConfig(profile.category);
+            if (config.tier === 3 && config.coverageNote) {
+              return (
+                <div className="mt-3 px-3.5 py-2.5 bg-teal-50 rounded-lg border border-teal-100">
+                  <p className="text-xs text-teal-800 leading-relaxed">
+                    <span className="font-semibold">Note:</span> {config.coverageNote}{" "}
+                    Consider listing both private-pay rates and accepted coverage options.
+                  </p>
+                </div>
+              );
+            }
+            if (config.tier === 2 && config.coverageNote) {
+              return (
+                <div className="mt-3 px-3.5 py-2.5 bg-blue-50 rounded-lg border border-blue-100">
+                  <p className="text-xs text-blue-800 leading-relaxed">
+                    <span className="font-semibold">Tip:</span> {config.coverageNote}
+                  </p>
+                </div>
+              );
+            }
+            return null;
+          })()}
         </div>
 
         {/* Section 2 — Price range (hidden when "Contact for pricing") */}

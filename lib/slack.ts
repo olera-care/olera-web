@@ -125,6 +125,47 @@ export function slackDispute(opts: {
   };
 }
 
+export function slackRemovalRequest(opts: {
+  providerName: string;
+  providerSlug: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  action: string;
+  reason: string;
+  details?: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const detailLine = opts.details ? `\n*Details:*\n${opts.details}` : "";
+  return {
+    text: `🚨 Page removal request: ${opts.providerName}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🚨 Page Removal Request", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Action:*\n${opts.action}` },
+          { type: "mrkdwn", text: `*Reason:*\n${opts.reason}` },
+          { type: "mrkdwn", text: `*Submitted by:*\n${opts.fullName}` },
+          { type: "mrkdwn", text: `*Email:*\n${opts.email}` },
+          { type: "mrkdwn", text: `*Phone:*\n${opts.phone}` },
+        ],
+      },
+      ...(detailLine
+        ? [
+            {
+              type: "section" as const,
+              text: { type: "mrkdwn" as const, text: detailLine },
+            },
+          ]
+        : []),
+    ],
+  };
+}
+
 export function slackMissingEmail(opts: {
   familyName: string;
   providerName: string;
@@ -232,6 +273,58 @@ export function slackQuestionMissingEmail(opts: {
         type: "context",
         elements: [
           { type: "mrkdwn", text: `<${siteUrl}/admin/directory/${opts.providerId}|Add email in admin>` },
+        ],
+      },
+    ],
+  };
+}
+
+// ── MedJobs alerts ────────────────────────────────────────────
+
+export function slackMedJobsNewStudent(opts: {
+  studentName: string;
+  university: string;
+  programTrack: string;
+  location: string;
+}): { text: string; blocks: SlackBlock[] } {
+  return {
+    text: `MedJobs: New student ${opts.studentName} (${opts.university})`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🎓 New MedJobs Student", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Student:*\n${opts.studentName}` },
+          { type: "mrkdwn", text: `*University:*\n${opts.university}` },
+          { type: "mrkdwn", text: `*Track:*\n${opts.programTrack}` },
+          { type: "mrkdwn", text: `*Location:*\n${opts.location}` },
+        ],
+      },
+    ],
+  };
+}
+
+export function slackMedJobsApplication(opts: {
+  studentName: string;
+  providerName: string;
+  university: string;
+}): { text: string; blocks: SlackBlock[] } {
+  return {
+    text: `MedJobs Application: ${opts.studentName} → ${opts.providerName}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "📋 MedJobs Application", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Student:*\n${opts.studentName}` },
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*University:*\n${opts.university}` },
         ],
       },
     ],

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendSlackAlert, slackQuestionAsked, slackQuestionMissingEmail } from "@/lib/slack";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { questionConfirmationEmail, questionReceivedEmail } from "@/lib/email-templates";
 
 /**
@@ -78,14 +78,17 @@ export async function POST(request: NextRequest) {
     let askerEmail: string | null;
     let askerUserId: string | null;
 
+    let askerProfileId: string | null = null;
+
     if (user) {
       // Authenticated user — get display name from profile
       const { data: profile } = await db
         .from("business_profiles")
-        .select("display_name")
+        .select("id, display_name")
         .eq("user_id", user.id)
         .single();
 
+      askerProfileId = profile?.id || null;
       askerName = profile?.display_name || user.email?.split("@")[0] || "Anonymous";
       askerEmail = user.email || null;
       askerUserId = user.id;
@@ -137,22 +140,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to submit question" }, { status: 500 });
     }
 
+    // Log family engagement event (fire-and-forget, authenticated users only)
+    if (askerProfileId) {
+      db.from("seeker_activity").insert({
+        profile_id: askerProfileId,
+        event_type: "question_asked",
+        related_provider_id: provider_id,
+        metadata: {
+          question_id: newQuestion.id,
+          question_preview: question.trim().substring(0, 100),
+        },
+      }).then(({ error: actErr }: { error: { message: string } | null }) => {
+        if (actErr) console.error("[seeker_activity] question_asked insert failed:", actErr);
+      });
+    }
+
     // Slack notifications — must await in serverless to prevent early termination
     try {
       const { data: provider } = await db
         .from("business_profiles")
-        .select("id, display_name, email")
+        .select("id, display_name, email, source_provider_id")
         .eq("slug", provider_id)
         .single();
 
       const providerName = provider?.display_name || provider_id;
 
       let providerEmail = provider?.email || null;
-      if (!providerEmail && provider?.id) {
+      if (!providerEmail && provider?.source_provider_id) {
         const { data: ios } = await db
-          .from("ios_provider_profiles")
+          .from("olera-providers")
           .select("email")
-          .eq("provider_id", provider.id)
+          .eq("provider_id", provider.source_provider_id)
           .single();
         providerEmail = ios?.email || null;
       }
@@ -181,43 +199,119 @@ export async function POST(request: NextRequest) {
 
     // Email notifications — must await in serverless
     try {
-      // Look up provider for emails (reuse from Slack block or fetch fresh)
-      const { data: providerForEmail } = await db
+      // Look up provider for emails with fallback strategies
+      // Strategy 1: by slug
+      let providerForEmail = await db
         .from("business_profiles")
-        .select("id, display_name, email, slug")
+        .select("id, display_name, email, slug, source_provider_id")
         .eq("slug", provider_id)
-        .single();
+        .maybeSingle()
+        .then(r => r.data);
+
+      // Strategy 2: by source_provider_id (iOS providers)
+      if (!providerForEmail) {
+        providerForEmail = await db
+          .from("business_profiles")
+          .select("id, display_name, email, slug, source_provider_id")
+          .eq("source_provider_id", provider_id)
+          .maybeSingle()
+          .then(r => r.data);
+      }
+
+      // Strategy 3: by id (UUID)
+      if (!providerForEmail && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(provider_id)) {
+        providerForEmail = await db
+          .from("business_profiles")
+          .select("id, display_name, email, slug, source_provider_id")
+          .eq("id", provider_id)
+          .maybeSingle()
+          .then(r => r.data);
+      }
 
       const providerDisplayName = providerForEmail?.display_name || provider_id;
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-      const providerUrl = `${siteUrl}/provider/${provider_id}`;
+      const providerPageUrl = `${siteUrl}/provider/${provider_id}`;
+      const providerPortalUrl = `${siteUrl}/provider/${provider_id}/onboard`;
 
       // 1. Email the provider about the new question (if they have an email)
       let pEmail = providerForEmail?.email || null;
-      if (!pEmail && providerForEmail?.id) {
+      // Fallback: check olera-providers for email
+      if (!pEmail && providerForEmail?.source_provider_id) {
         const { data: ios } = await db
-          .from("ios_provider_profiles")
+          .from("olera-providers")
           .select("email")
-          .eq("provider_id", providerForEmail.id)
-          .single();
+          .eq("provider_id", providerForEmail.source_provider_id)
+          .maybeSingle();
         pEmail = ios?.email || null;
       }
 
       if (pEmail) {
+        // Generate magic link for provider one-click sign-in
+        const providerSlug = providerForEmail?.slug || provider_id;
+        const redirectPath = `/provider/${providerSlug}/onboard?action=question&actionId=${newQuestion.id}`;
+        // Fallback: direct to onboard page (handles both claimed and unclaimed providers)
+        let providerUrl = `${siteUrl}${redirectPath}`;
+
+        try {
+          const { data: providerLinkData, error: providerLinkError } = await db.auth.admin.generateLink({
+            type: "magiclink",
+            email: pEmail,
+            options: {
+              redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
+            },
+          });
+          if (providerLinkError) {
+            console.error("Magic link generation error for question:", {
+              error: providerLinkError,
+              email: pEmail,
+              redirectPath
+            });
+          }
+          if (!providerLinkError && providerLinkData?.properties?.action_link) {
+            providerUrl = providerLinkData.properties.action_link;
+            console.log("Magic link generated successfully for question notification");
+          } else {
+            console.log("Using fallback URL for question notification (no magic link)", {
+              hasError: !!providerLinkError,
+              hasActionLink: !!providerLinkData?.properties?.action_link
+            });
+          }
+        } catch (linkErr) {
+          console.error("Failed to generate provider magic link for question:", linkErr);
+          // Continue with fallback URL (welcome page)
+        }
+
         await sendEmail({
           to: pEmail,
-          subject: `New question on your Olera page`,
+          subject: `A family has a question about ${providerDisplayName}`,
           html: questionReceivedEmail({
             providerName: providerDisplayName,
             askerName,
             question: question.trim(),
             providerUrl,
+            providerSlug: provider_id,
           }),
+          emailType: 'question_received',
+          recipientType: 'provider',
+          providerId: providerForEmail?.id,
         });
+      } else if (newQuestion?.id) {
+        // No provider email — flag for admin "Needs Email" tab
+        await db
+          .from("provider_questions")
+          .update({ metadata: { needs_provider_email: true } })
+          .eq("id", newQuestion.id);
       }
 
       // 2. Confirmation email to the asker (if they have an email)
       if (askerEmail) {
+        const qConfirmEmailLogId = await reserveEmailLogId({
+          to: askerEmail,
+          subject: `Your question to ${providerDisplayName} on Olera`,
+          emailType: "question_confirmation",
+          recipientType: "family",
+        });
+
         await sendEmail({
           to: askerEmail,
           subject: `Your question to ${providerDisplayName} on Olera`,
@@ -225,8 +319,11 @@ export async function POST(request: NextRequest) {
             askerName,
             providerName: providerDisplayName,
             question: question.trim(),
-            providerUrl,
+            providerUrl: appendTrackingParams(providerPageUrl, qConfirmEmailLogId),
           }),
+          emailType: 'question_confirmation',
+          recipientType: 'family',
+          emailLogId: qConfirmEmailLogId ?? undefined,
         });
       }
     } catch (emailErr) {
@@ -315,6 +412,13 @@ export async function PATCH(request: NextRequest) {
             .single();
 
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+          const enrichEmailLogId = await reserveEmailLogId({
+            to: updates.asker_email,
+            subject: `Your question to ${provider?.display_name || "a provider"} on Olera`,
+            emailType: "question_confirmation",
+            recipientType: "family",
+          });
+
           await sendEmail({
             to: updates.asker_email,
             subject: `Your question to ${provider?.display_name || "a provider"} on Olera`,
@@ -322,8 +426,11 @@ export async function PATCH(request: NextRequest) {
               askerName: updates.asker_name || "there",
               providerName: provider?.display_name || "the provider",
               question: updated.question,
-              providerUrl: `${siteUrl}/provider/${providerSlug}`,
+              providerUrl: appendTrackingParams(`${siteUrl}/provider/${providerSlug}`, enrichEmailLogId),
             }),
+            emailType: 'question_confirmation',
+            recipientType: 'family',
+            emailLogId: enrichEmailLogId ?? undefined,
           });
         } catch (emailErr) {
           console.error("Question confirmation email failed:", emailErr);

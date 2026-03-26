@@ -64,6 +64,44 @@ export function zipToState(zip: string): string | null {
   return null;
 }
 
+/**
+ * Derives a US county name from the first 3 digits of a ZIP code.
+ * Uses a pre-built mapping of ZIP prefixes to their most common county.
+ * Returns null if no match found.
+ */
+let countyCache: Record<string, { county: string; state: string }> | null = null;
+
+export async function zipToCounty(zip: string): Promise<string | null> {
+  const trimmed = zip.trim();
+  if (!/^\d{5}$/.test(trimmed)) return null;
+
+  if (!countyCache) {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SITE_URL || ""}/data/zip-county.json`
+      );
+      if (res.ok) {
+        countyCache = await res.json();
+      }
+    } catch {
+      // If fetch fails (e.g., during SSR), try dynamic import
+      try {
+        const fs = await import("fs");
+        const path = await import("path");
+        const filePath = path.join(process.cwd(), "public/data/zip-county.json");
+        const raw = fs.readFileSync(filePath, "utf-8");
+        countyCache = JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    }
+  }
+
+  if (!countyCache) return null;
+  const prefix = trimmed.substring(0, 3);
+  return countyCache[prefix]?.county ?? null;
+}
+
 /** Validates a 5-digit US ZIP code format. */
 export function isValidZip(zip: string): boolean {
   return /^\d{5}$/.test(zip.trim());

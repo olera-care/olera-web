@@ -9159,13 +9159,12 @@ const texasPrograms: WaiverProgram[] = [
     eligibilityHighlights: [
       "Age 21 or older",
       "Income below $2,982/month",
-      "Must live in Texas",
     ],
     applicationSteps: [
       { step: 1, title: "Check your eligibility", description: "Check you meet the age 21+ and $2,982/month income limit for Texas in 2026." },
       { step: 2, title: "Gather required documents", description: "Gather Social Security statements, bank records, and a Texas utility bill or lease." },
       { step: 3, title: "Download forms", description: "Download the Texas Medicaid Application and HCBS Waiver Referral Form." },
-      { step: 4, title: "Submit your application", description: "Submit to Texas HHS. Processing takes 30 to 90 days. Call 211 to join the interest list now." },
+      { step: 4, title: "Submit your application", description: "Submit to Texas HHS — processing takes 30–90 days. Call 211 to join the interest list now." },
     ],
     forms: [
       { id: "texas-medicaid-application", name: "Texas Medicaid Application Form", description: "Official Texas Medicaid application, required for waiver enrollment.", url: "https://www.yourtexasbenefits.com" },
@@ -9202,11 +9201,9 @@ const texasPrograms: WaiverProgram[] = [
     tagline: "State-administered programs that pay Medicare premiums and costs for low-income beneficiaries.",
     savingsRange: "$2,000 – $8,000/year in 2026",
     description: "State-administered programs that pay Medicare premiums and costs for low-income beneficiaries.",
-    intro: "Texas Medicare Savings Programs help low-income Medicare beneficiaries cover the cost of premiums, deductibles, and copays that Medicare alone doesn't pay. Administered by the state of Texas, these programs, including QMB, SLMB, and QI, can save eligible seniors thousands of dollars each year on healthcare costs. If you're on Medicare in Texas and struggling with out-of-pocket expenses, this program may be able to help.",
+    intro: "Texas Medicare Savings Programs help low-income Medicare beneficiaries cover the cost of premiums, deductibles, and copays that Medicare alone doesn't pay. Administered by the state of Texas, these programs — including QMB, SLMB, and QI — can save eligible seniors thousands of dollars each year on healthcare costs. If you're on Medicare in Texas and struggling with out-of-pocket expenses, this program may be able to help.",
     eligibilityHighlights: [
       "Income below $1,796/month",
-      "Must be enrolled in Medicare",
-      "Must live in Texas",
     ],
     applicationSteps: [
       { step: 1, title: "Check your eligibility", description: "Confirm your income is below $1,796/month and you are currently enrolled in Medicare Part A or Part B." },
@@ -9252,8 +9249,6 @@ const texasPrograms: WaiverProgram[] = [
     intro: "Texas SNAP Food Benefits provide monthly grocery assistance loaded directly onto a Lone Star Card, helping seniors and families across Texas put nutritious food on the table. Older adults aged 60 and above can apply through simplified rules that make the process easier. For many Texas seniors living on a fixed income, SNAP benefits are a vital lifeline that helps stretch every dollar.",
     eligibilityHighlights: [
       "Income below $1,729/month",
-      "Must live in Texas",
-      "Simplified rules for seniors 60+",
     ],
     applicationSteps: [
       { step: 1, title: "Check your eligibility", description: "Verify your household income is below $1,729/month. Seniors 60+ qualify under simplified rules." },
@@ -9647,7 +9642,7 @@ const texasPrograms: WaiverProgram[] = [
     tagline: "Free home improvements to reduce energy costs including insulation, weather stripping, and furnace repair.",
     savingsRange: "$500 – $2,000/year in 2026",
     description: "Free home improvements to reduce energy costs including insulation, weather stripping, and furnace repair.",
-    intro: "The Texas Weatherization Assistance Program provides free home improvements such as insulation, weather stripping, and furnace repairs designed to lower energy costs for low-income households. By making homes more energy efficient, the program helps Texas families save money on utility bills year-round while also improving comfort and safety. Priority is given to seniors, people with disabilities, and families with young children.",
+    intro: "The Texas Weatherization Assistance Program provides free home improvements — such as insulation, weather stripping, and furnace repairs — designed to lower energy costs for low-income households. By making homes more energy efficient, the program helps Texas families save money on utility bills year-round while also improving comfort and safety. Priority is given to seniors, people with disabilities, and families with young children.",
     eligibilityHighlights: [
       "Income below $2,660/month",
     ],
@@ -9772,7 +9767,7 @@ const texasPrograms: WaiverProgram[] = [
     tagline: "Paid job training for low-income seniors 55+. Work at community organizations while learning skills.",
     savingsRange: "$3,000 – $8,000/year in 2026",
     description: "Paid job training for low-income seniors 55+. Work at community organizations while learning skills.",
-    intro: "The Senior Community Service Employment Program (SCSEP) in Texas offers paid, part-time job training for low-income adults aged 55 and older who want to re-enter the workforce. Participants work at local community organizations such as schools, hospitals, and nonprofits while building new skills and earning income. SCSEP gives older Texans a path back to employment with the training and support they need to succeed.",
+    intro: "The Senior Community Service Employment Program (SCSEP) in Texas offers paid, part-time job training for low-income adults aged 55 and older who want to re-enter the workforce. Participants work at local community organizations — such as schools, hospitals, and nonprofits — while building new skills and earning income. SCSEP gives older Texans a path back to employment with the training and support they need to succeed.",
     eligibilityHighlights: [
       "Age 55 or older",
       "Income below $1,663/month",

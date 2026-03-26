@@ -17,6 +17,8 @@ import {
   SUPABASE_CAT_TO_PROFILE_CATEGORY,
 } from "@/lib/types/provider";
 import type { BusinessProfile } from "@/lib/types";
+import { expandCityAliases } from "@/lib/city-aliases";
+import { getStateMedian, getPricingConfig, PRICING_DATA_SOURCE } from "@/lib/pricing-config";
 
 // ============================================================
 // Category slug ↔ Supabase mapping
@@ -171,6 +173,10 @@ export interface PowerPageData {
   totalCount: number;
   avgLowerPrice: number | null;
   avgUpperPrice: number | null;
+  /** True when avgLowerPrice/avgUpperPrice are state-level medians (not from local providers) */
+  isStateAverage: boolean;
+  /** Category-specific cost context note for SEO content */
+  costNote: string | null;
   topCities?: { city: string; count: number }[];
 }
 
@@ -197,7 +203,15 @@ export async function fetchPowerPageData(opts: {
     .or("deleted.is.null,deleted.eq.false");
 
   if (stateAbbrev) query = query.eq("state", stateAbbrev);
-  if (city) query = query.ilike("city", city);
+  // Expand city aliases (e.g. "New York" → boroughs, "Butte" → "Butte-Silver Bow")
+  const cityNames = city ? expandCityAliases(city) : null;
+  if (cityNames) {
+    if (cityNames.length === 1) {
+      query = query.ilike("city", cityNames[0]);
+    } else {
+      query = query.in("city", cityNames);
+    }
+  }
 
   query = query
     .order("community_Score", { ascending: false, nullsFirst: false })
@@ -218,7 +232,13 @@ export async function fetchPowerPageData(opts: {
 
   if (bpQuery) {
     if (stateAbbrev) bpQuery = bpQuery.eq("state", stateAbbrev);
-    if (city) bpQuery = bpQuery.ilike("city", city);
+    if (cityNames) {
+      if (cityNames.length === 1) {
+        bpQuery = bpQuery.ilike("city", cityNames[0]);
+      } else {
+        bpQuery = bpQuery.in("city", cityNames);
+      }
+    }
     bpQuery = bpQuery.order("created_at", { ascending: false }).limit(limit);
   }
 
@@ -246,20 +266,44 @@ export async function fetchPowerPageData(opts: {
 
   const mergedCards = mergeProviderCards(seededCards, bpCards, dedupeSourceIds);
 
-  // Compute average prices (from seeded providers only — BPs don't have pricing yet)
-  const priced = (providers as Provider[]).filter((p) => p.lower_price && p.upper_price);
-  const avgLowerPrice = priced.length > 0
-    ? Math.round(priced.reduce((s, p) => s + (p.lower_price ?? 0), 0) / priced.length)
-    : null;
-  const avgUpperPrice = priced.length > 0
-    ? Math.round(priced.reduce((s, p) => s + (p.upper_price ?? 0), 0) / priced.length)
-    : null;
+  // Category-specific pricing config (needed for avg price suppression + cost note)
+  const pricingConfig = getPricingConfig(opts.category);
+
+  // Compute average prices with minimum sample size requirement
+  // Tier 3 categories (Home Health, Nursing Home, Hospice) suppress dollar amounts —
+  // coverage education is more useful than misleading price averages.
+  const MIN_SAMPLE_SIZE = 5;
+  let avgLowerPrice: number | null = null;
+  let avgUpperPrice: number | null = null;
+  let isStateAverage = false;
+
+  if (pricingConfig.tier !== 3) {
+    const priced = (providers as Provider[]).filter((p) => p.lower_price && p.upper_price);
+
+    if (priced.length >= MIN_SAMPLE_SIZE) {
+      // Enough local data — use provider-based average
+      avgLowerPrice = Math.round(priced.reduce((s, p) => s + (p.lower_price ?? 0), 0) / priced.length);
+      avgUpperPrice = Math.round(priced.reduce((s, p) => s + (p.upper_price ?? 0), 0) / priced.length);
+    } else if (opts.stateAbbrev) {
+      // Not enough local data — fall back to state-level median
+      const stateMedian = getStateMedian(opts.category, opts.stateAbbrev);
+      if (stateMedian) {
+        avgLowerPrice = Math.round(stateMedian.value * 0.85);
+        avgUpperPrice = Math.round(stateMedian.value * 1.15);
+        isStateAverage = true;
+      }
+    }
+  }
+
+  const costNote = pricingConfig.cityPageNote;
 
   return {
     providers: mergedCards,
     totalCount: (count ?? providers.length) + (bpResult.count ?? 0),
     avgLowerPrice,
     avgUpperPrice,
+    isStateAverage,
+    costNote,
   };
 }
 

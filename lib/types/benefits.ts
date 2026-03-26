@@ -149,7 +149,18 @@ export const MEDICAID_STATUSES: Record<
   doesNotHave: { displayTitle: "Don't have it", shortTitle: "No Medicaid" },
 };
 
-export type IntakeStep = 0 | 1 | 2 | 3 | 4 | 5;
+export type VeteranStatus = "yes" | "no" | "preferNotToSay";
+
+export const VETERAN_STATUSES: Record<
+  VeteranStatus,
+  { displayTitle: string; shortTitle: string }
+> = {
+  yes: { displayTitle: "Yes, a veteran", shortTitle: "Veteran" },
+  no: { displayTitle: "No", shortTitle: "Not a veteran" },
+  preferNotToSay: { displayTitle: "Prefer not to say", shortTitle: "Undisclosed" },
+};
+
+export type IntakeStep = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export const INTAKE_STEPS: Record<
   IntakeStep,
@@ -159,11 +170,12 @@ export const INTAKE_STEPS: Record<
   1: { title: "Age", question: "How old is the person who needs care?" },
   2: { title: "Care Setting", question: "Hoping to stay at home, or exploring facilities?" },
   3: { title: "Needs", question: "What kind of help is most needed?" },
-  4: { title: "Income", question: "About how much is the monthly income?" },
+  4: { title: "Budget", question: "What is your monthly budget for care expenses?" },
   5: { title: "Medicaid", question: "Do you currently have Medicaid?" },
+  6: { title: "Veteran", question: "Is the person who needs care a veteran?" },
 };
 
-export const TOTAL_INTAKE_STEPS = 6;
+export const TOTAL_INTAKE_STEPS = 7;
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
@@ -174,6 +186,7 @@ export interface BenefitsIntakeAnswers {
   primaryNeeds: PrimaryNeed[];
   incomeRange: IncomeRange | null;
   medicaidStatus: MedicaidStatus | null;
+  veteranStatus: VeteranStatus | null;
   // Derived from ZIP
   stateCode: string | null;
   county: string | null;
@@ -187,6 +200,7 @@ export function createEmptyIntakeAnswers(): BenefitsIntakeAnswers {
     primaryNeeds: [],
     incomeRange: null,
     medicaidStatus: null,
+    veteranStatus: null,
     stateCode: null,
     county: null,
   };
@@ -213,6 +227,8 @@ export interface BenefitProgram {
   priority_score: number;
   is_active: boolean;
   state_code: string | null;
+  savings_range: string | null;
+  waiver_library_url: string | null;
 }
 
 /** Matches the Supabase `sbf_area_agencies` schema */
@@ -238,7 +254,7 @@ export interface BenefitMatch {
   program: BenefitProgram;
   matchScore: number; // 0-100
   matchReasons: string[];
-  tierLabel: "Top Match" | "Good Fit" | "Worth Exploring";
+  tierLabel: "Strong Match" | "Likely Match" | "May Qualify";
   /** True when user's income exceeds the program limit but may qualify via spend-down */
   spendDown?: boolean;
 }
@@ -352,9 +368,9 @@ export const EFFORT_CONFIG: Record<EffortLevel, { label: string; color: string; 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 export function getTierLabel(score: number): BenefitMatch["tierLabel"] {
-  if (score >= 80) return "Top Match";
-  if (score >= 60) return "Good Fit";
-  return "Worth Exploring";
+  if (score >= 75) return "Strong Match";
+  if (score >= 50) return "Likely Match";
+  return "May Qualify";
 }
 
 export function getEstimatedMonthlyIncome(
@@ -368,10 +384,10 @@ export function getEstimatedMonthlyIncome(
 export function needsToCategories(needs: PrimaryNeed[]): BenefitCategory[] {
   const mapping: Record<PrimaryNeed, BenefitCategory[]> = {
     personalCare: ["healthcare"],
-    householdTasks: ["caregiver"],
+    householdTasks: ["caregiver", "housing"],
     healthManagement: ["healthcare"],
     companionship: ["caregiver"],
-    financialHelp: ["income"],
+    financialHelp: ["income", "food", "housing", "utilities"],
     memoryCare: ["healthcare"],
     mobilityHelp: ["healthcare"],
   };

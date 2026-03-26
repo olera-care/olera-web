@@ -32,6 +32,22 @@ export default function AdminDirectoryPage() {
   const [tab, setTab] = useState<TabFilter>("all");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  // Add Provider modal state
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newCategory, setNewCategory] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  // Toast state
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const toastRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  function showToast(message: string, type: "success" | "error" = "success") {
+    clearTimeout(toastRef.current);
+    setToast({ message, type });
+    toastRef.current = setTimeout(() => setToast(null), 3000);
+  }
+
   // Debounce search input
   useEffect(() => {
     debounceRef.current = setTimeout(() => {
@@ -92,6 +108,76 @@ export default function AdminDirectoryPage() {
     setPage(1);
   }
 
+  // Create new provider
+  async function handleCreate() {
+    if (!newName.trim() || !newCategory) return;
+    setCreating(true);
+    try {
+      const res = await fetch("/api/admin/directory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_name: newName.trim(),
+          provider_category: newCategory,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        router.push(`/admin/directory/${data.provider.provider_id}`);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        showToast(errData.error || "Failed to create provider", "error");
+      }
+    } catch {
+      showToast("Network error. Please try again.", "error");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  // Soft-delete or restore a provider
+  async function handleToggleDelete(providerId: string, providerName: string, currentlyDeleted: boolean) {
+    const action = currentlyDeleted ? "restore" : "delete";
+    if (!confirm(`Are you sure you want to ${action} "${providerName}"?`)) return;
+
+    // Optimistic update
+    setProviders((prev) =>
+      prev.map((p) =>
+        p.provider_id === providerId ? { ...p, deleted: !currentlyDeleted } : p
+      )
+    );
+
+    try {
+      const res = await fetch(`/api/admin/directory/${providerId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deleted: !currentlyDeleted }),
+      });
+      if (res.ok) {
+        showToast(currentlyDeleted ? "Provider restored" : "Provider deleted");
+        // Refresh to get accurate counts
+        fetchProviders();
+      } else {
+        // Revert optimistic update
+        setProviders((prev) =>
+          prev.map((p) =>
+            p.provider_id === providerId ? { ...p, deleted: currentlyDeleted } : p
+          )
+        );
+        const errData = await res.json().catch(() => ({}));
+        showToast(errData.error || `Failed to ${action} provider`, "error");
+      }
+    } catch {
+      // Revert optimistic update
+      setProviders((prev) =>
+        prev.map((p) =>
+          p.provider_id === providerId ? { ...p, deleted: currentlyDeleted } : p
+        )
+      );
+      showToast("Network error. Please try again.", "error");
+    }
+  }
+
   const tabs: { label: string; value: TabFilter }[] = [
     { label: "All", value: "all" },
     { label: "Published", value: "published" },
@@ -101,12 +187,95 @@ export default function AdminDirectoryPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Provider Directory</h1>
-        <p className="text-lg text-gray-600 mt-1">
-          {total.toLocaleString()} providers in directory
-        </p>
+      {/* Toast notification */}
+      {toast && (
+        <div
+          className={[
+            "fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium transition-all",
+            toast.type === "success"
+              ? "bg-green-600 text-white"
+              : "bg-red-600 text-white",
+          ].join(" ")}
+        >
+          {toast.message}
+        </div>
+      )}
+
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Provider Directory</h1>
+          <p className="text-lg text-gray-600 mt-1">
+            {total.toLocaleString()} providers in directory
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            setNewName("");
+            setNewCategory("");
+            setShowAddModal(true);
+          }}
+          className="px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+        >
+          + Add Provider
+        </button>
       </div>
+
+      {/* Add Provider Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Add New Provider</h2>
+
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Provider Name
+            </label>
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="e.g. Sunrise Senior Living"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none mb-4"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && newName.trim() && newCategory) handleCreate();
+              }}
+            />
+
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Category
+            </label>
+            <select
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none mb-6"
+            >
+              <option value="">Select a category...</option>
+              {PROVIDER_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowAddModal(false)}
+                disabled={creating}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreate}
+                disabled={creating || !newName.trim() || !newCategory}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+              >
+                {creating ? "Creating..." : "Create Provider"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search */}
       <div className="mb-4">
@@ -185,6 +354,7 @@ export default function AdminDirectoryPage() {
                     <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Rating</th>
                     <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Images</th>
                     <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
+                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -203,10 +373,10 @@ export default function AdminDirectoryPage() {
                         {provider.provider_category}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
-                        {[provider.city, provider.state].filter(Boolean).join(", ") || "—"}
+                        {[provider.city, provider.state].filter(Boolean).join(", ") || "\u2014"}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
-                        {provider.google_rating != null ? provider.google_rating.toFixed(1) : "—"}
+                        {provider.google_rating != null ? provider.google_rating.toFixed(1) : "\u2014"}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {provider.image_count > 0 ? (
@@ -219,6 +389,22 @@ export default function AdminDirectoryPage() {
                         <Badge variant={provider.deleted ? "rejected" : "verified"}>
                           {provider.deleted ? "Deleted" : "Published"}
                         </Badge>
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleDelete(provider.provider_id, provider.provider_name, provider.deleted);
+                          }}
+                          className={[
+                            "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
+                            provider.deleted
+                              ? "text-green-700 bg-green-50 hover:bg-green-100"
+                              : "text-red-700 bg-red-50 hover:bg-red-100",
+                          ].join(" ")}
+                        >
+                          {provider.deleted ? "Restore" : "Delete"}
+                        </button>
                       </td>
                     </tr>
                   ))}

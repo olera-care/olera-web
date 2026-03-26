@@ -11,6 +11,34 @@
     {
       "path": "/api/cron/cleanup",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/medjobs-digest",
+      "schedule": "0 13 * * 1"
+    },
+    {
+      "path": "/api/cron/medjobs-nudge",
+      "schedule": "0 15 * * *"
+    },
+    {
+      "path": "/api/cron/matches-nudge",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/matches-unread",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/google-reviews",
+      "schedule": "0 3 1 * *"
+    },
+    {
+      "path": "/api/cron/cms-refresh",
+      "schedule": "0 6 15 1,4,7,10 *"
+    },
+    {
+      "path": "/api/cron/family-nudges",
+      "schedule": "0 15 * * *"
     }
   ]
 }

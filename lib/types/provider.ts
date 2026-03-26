@@ -8,7 +8,9 @@
  */
 
 import { generateProviderSlug } from "@/lib/slugify";
-import type { BusinessProfile, ProfileCategory } from "@/lib/types";
+import type { BusinessProfile, ProfileCategory, GoogleReviewsData, CMSData, AiTrustSignals } from "@/lib/types";
+import { getRegionalEstimate, getPricingConfig } from "@/lib/pricing-config";
+import { buildHighlights } from "@/lib/provider-highlights";
 
 export interface Provider {
   provider_id: string;
@@ -39,6 +41,10 @@ export interface Provider {
   deleted_at: string | null;
   hero_image_url: string | null;
   slug: string | null; // Human-readable URL slug (populated via migration)
+  google_reviews_data: GoogleReviewsData | null; // Cached Google review snippets (JSONB)
+  cms_data: CMSData | null; // CMS Medicare quality data (JSONB)
+  ai_trust_signals: AiTrustSignals | null; // AI-verified trust signals (JSONB)
+  last_viewed_at: string | null; // Tracks page views for tiered refresh
 }
 
 /**
@@ -121,24 +127,6 @@ export function getCategoryDisplayName(category: string | null): string {
 export const PROVIDERS_TABLE = "olera-providers";
 
 /**
- * Map Supabase provider_category → inferred highlights (4 per category).
- * These are sensible defaults superseded when a provider claims their page.
- */
-const CATEGORY_HIGHLIGHTS: Record<string, string[]> = {
-  "Home Care (Non-medical)": ["In-Home Care", "Certified Caregivers", "Companionship", "Light Housekeeping"],
-  "Home Health Care":        ["Skilled Nursing", "Health Monitoring", "In-Home Care", "Licensed Providers"],
-  "Hospice":                 ["Nursing Care", "Wellness Support", "Community Resources", "Medication Management"],
-  "Assisted Living":         ["Licensed Community", "Social Activities", "Health Services", "Light Housekeeping"],
-  "Memory Care":             ["Licensed Community", "Certified Staff", "Health Monitoring", "Social Activities"],
-  "Independent Living":      ["Community Living", "Social Activities", "Light Housekeeping", "Wellness Programs"],
-  "Nursing Home":            ["Skilled Nursing", "Licensed Facility", "Medical Care", "Rehabilitation"],
-};
-
-function getHighlightsForCategory(category: string): string[] {
-  return CATEGORY_HIGHLIGHTS[category] ?? ["Senior Care", "Professional Staff", "Quality Services", "Community Support"];
-}
-
-/**
  * Type for provider card display data
  */
 export type CardImageType = "photo" | "logo" | "placeholder";
@@ -163,6 +151,15 @@ export interface ProviderCardData {
   description?: string;
   lat?: number | null;
   lon?: number | null;
+  cmsRating?: number | null;
+  cmsSource?: string | null;
+  trustSignalCount?: number; // count of AI-confirmed trust signals
+  /** True when priceRange is a regional estimate, not provider-entered */
+  isRegionalEstimate?: boolean;
+  /** True when regional estimate uses metro-level adjustment (vs flat state average) */
+  isMetroAdjusted?: boolean;
+  /** Raw provider_category for pricing tier logic (e.g., "Nursing Home", "nursing_home") */
+  providerCategory?: string;
 }
 
 /** URL patterns that strongly suggest a logo rather than a facility photo */
@@ -301,6 +298,30 @@ export function toCardFormat(provider: Provider): ProviderCardData {
   const images = parseProviderImages(provider.provider_images);
   const { image: cardImage, imageType } = resolveCardImage(provider);
 
+  // Pricing: Tier 3 categories (Home Health, Nursing Home, Hospice) suppress
+  // dollar amounts on cards — lead with coverage education instead.
+  const pricingConfig = getPricingConfig(provider.provider_category);
+  let priceRange = "";
+  let isRegionalEstimate = false;
+  let isMetroAdjusted = false;
+
+  if (pricingConfig.tier !== 3) {
+    priceRange = formatPriceRange(provider) || "";
+
+    if (!priceRange && provider.state) {
+      const regional = getRegionalEstimate(provider.provider_category, provider.state, provider.city);
+      if (regional) {
+        priceRange = regional.formatted;
+        isRegionalEstimate = true;
+        isMetroAdjusted = regional.isMetroAdjusted;
+      }
+    }
+  }
+
+  if (!priceRange) {
+    priceRange = "Contact for pricing";
+  }
+
   return {
     id: provider.provider_id,
     slug: provider.slug || generateProviderSlug(provider.provider_name, provider.state),
@@ -309,17 +330,30 @@ export function toCardFormat(provider: Provider): ProviderCardData {
     imageType,
     images: images.length > 0 ? images : [],
     address: formatLocation(provider),
-    rating: provider.google_rating || 0,
-    reviewCount: undefined,
-    priceRange: formatPriceRange(provider) || "Contact for pricing",
+    rating: provider.google_reviews_data?.rating ?? provider.google_rating ?? 0,
+    reviewCount: provider.google_reviews_data?.review_count ?? undefined,
+    priceRange,
+    isRegionalEstimate,
+    isMetroAdjusted,
+    providerCategory: provider.provider_category,
     primaryCategory: getCategoryDisplayName(provider.provider_category),
     careTypes: [provider.provider_category],
-    highlights: getHighlightsForCategory(provider.provider_category),
+    highlights: buildHighlights({
+      trustSignals: provider.ai_trust_signals,
+      googleReviews: provider.google_reviews_data,
+      cmsData: provider.cms_data,
+      category: provider.provider_category,
+      maxItems: 3,
+      skipCapability: true,
+    }).map((h) => h.label),
     acceptedPayments: [],
     verified: false,
     description: provider.provider_description?.slice(0, 200) || undefined,
     lat: provider.lat,
     lon: provider.lon,
+    cmsRating: provider.cms_data?.overall_rating ?? null,
+    cmsSource: provider.cms_data?.source ?? null,
+    trustSignalCount: provider.ai_trust_signals?.summary_score ?? undefined,
   };
 }
 
@@ -403,11 +437,14 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
   const primaryImage = bp.image_url || metaImages[0] || null;
   const hasImage = !!primaryImage;
 
-  // Pricing: read from metadata fields, fall back to "Contact for pricing"
+  // Pricing: Tier 3 categories suppress dollar amounts on cards — education badge instead.
+  const bpPricingConfig = bp.category ? getPricingConfig(bp.category) : null;
   const contactForPricing = meta?.contact_for_pricing === true;
   let priceRange = "Contact for pricing";
+  let isRegionalEstimate = false;
+  let isMetroAdjusted = false;
 
-  if (!contactForPricing) {
+  if (bpPricingConfig?.tier !== 3 && !contactForPricing) {
     const lowerPrice = meta?.lower_price as number | undefined;
     const upperPrice = meta?.upper_price as number | undefined;
     const frequency = (meta?.price_frequency as string | undefined) || "per month";
@@ -420,6 +457,14 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
     } else if (meta?.price_range) {
       // Fallback to legacy price_range string
       priceRange = meta.price_range as string;
+    } else if (bp.state && bp.category) {
+      // Regional estimate fallback
+      const regional = getRegionalEstimate(bp.category, bp.state, bp.city);
+      if (regional) {
+        priceRange = regional.formatted;
+        isRegionalEstimate = true;
+        isMetroAdjusted = regional.isMetroAdjusted;
+      }
     }
   }
 
@@ -434,9 +479,17 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
     rating: 0,
     reviewCount: undefined,
     priceRange,
+    isRegionalEstimate,
+    isMetroAdjusted,
+    providerCategory: bp.category ?? undefined,
     primaryCategory: displayCategory,
     careTypes: bp.care_types.length > 0 ? bp.care_types : (supabaseCat ? [supabaseCat] : []),
-    highlights: getHighlightsForCategory(supabaseCat),
+    highlights: buildHighlights({
+      careTypes: bp.care_types.length > 0 ? bp.care_types : undefined,
+      category: bp.category || supabaseCat,
+      maxItems: 3,
+      skipCapability: true,
+    }).map((h) => h.label),
     acceptedPayments: [],
     verified: bp.claim_state === "claimed",
     description: bp.description?.slice(0, 200) || undefined,

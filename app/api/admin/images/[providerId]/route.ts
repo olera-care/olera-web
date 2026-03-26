@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 
+const STORAGE_BUCKET = "provider-directory-images";
+
 /**
  * GET /api/admin/images/[providerId]
  *
@@ -27,7 +29,7 @@ export async function GET(
     // Get provider info
     const { data: provider, error: providerError } = await db
       .from("olera-providers")
-      .select("provider_id, provider_name, provider_category, city, state, hero_image_url, provider_logo, provider_images")
+      .select("*")
       .eq("provider_id", providerId)
       .single();
 
@@ -104,9 +106,9 @@ export async function PATCH(
     const body = await request.json();
     const { action, image_url, new_type } = body;
 
-    if (!["override_type", "set_hero", "clear_hero", "mark_reviewed"].includes(action)) {
+    if (!["override_type", "set_hero", "clear_hero", "mark_reviewed", "delete_image"].includes(action)) {
       return NextResponse.json(
-        { error: "Invalid action. Must be 'override_type', 'set_hero', 'clear_hero', or 'mark_reviewed'." },
+        { error: "Invalid action. Must be 'override_type', 'set_hero', 'clear_hero', 'mark_reviewed', or 'delete_image'." },
         { status: 400 }
       );
     }
@@ -235,9 +237,131 @@ export async function PATCH(
       });
     }
 
+    if (action === "delete_image") {
+      if (!image_url) {
+        return NextResponse.json({ error: "delete_image requires image_url" }, { status: 400 });
+      }
+
+      console.log(`[delete_image] Provider: ${providerId}, URL to delete: ${image_url}`);
+
+      // 1. Delete from provider_image_metadata (if row/table exists)
+      try {
+        const { error: metaDeleteError } = await db
+          .from("provider_image_metadata")
+          .delete()
+          .eq("provider_id", providerId)
+          .eq("image_url", image_url);
+
+        if (metaDeleteError) {
+          console.warn("[delete_image] Metadata delete error (non-fatal):", metaDeleteError.message);
+        }
+      } catch (metaErr) {
+        // Table may not exist yet — that's fine, skip silently
+        console.warn("[delete_image] Metadata table error (skipped):", metaErr);
+      }
+
+      // 2. Remove URL from provider_images pipe-separated string + related fields
+      const { data: provider, error: fetchError } = await db
+        .from("olera-providers")
+        .select("*")
+        .eq("provider_id", providerId)
+        .single();
+
+      if (fetchError) {
+        console.error("[delete_image] Supabase query error:", fetchError.message, fetchError.code);
+        return NextResponse.json(
+          { error: `Database error: ${fetchError.message}` },
+          { status: 500 }
+        );
+      }
+      if (!provider) {
+        console.error("[delete_image] Provider not found for ID:", providerId);
+        return NextResponse.json({ error: `Provider ${providerId} not found` }, { status: 404 });
+      }
+
+      console.log("[delete_image] Current provider_images:", provider.provider_images);
+      console.log("[delete_image] Current provider_logo:", provider.provider_logo);
+
+      const targetUrl = image_url.trim();
+      const updates: Record<string, unknown> = {};
+
+      // Remove from provider_images pipe-separated string
+      if (provider.provider_images) {
+        const raw = provider.provider_images as string;
+        const before = raw.split(" | ").map((u: string) => u.trim()).filter(Boolean);
+        const after = before.filter((u: string) => u !== targetUrl);
+        console.log(`[delete_image] provider_images: ${before.length} → ${after.length} URLs`);
+        updates.provider_images = after.length > 0 ? after.join(" | ") : null;
+      } else {
+        console.log("[delete_image] provider_images is null/empty — nothing to filter");
+      }
+
+      // Clear provider_logo if it matches the deleted image
+      if (provider.provider_logo && provider.provider_logo.trim() === targetUrl) {
+        updates.provider_logo = null;
+        console.log("[delete_image] Clearing matching provider_logo");
+      }
+
+      // Clear hero_image_url if deleting the hero (column may not exist in DB)
+      if ("hero_image_url" in provider) {
+        const heroUrl = provider.hero_image_url as string | null;
+        if (heroUrl && heroUrl.trim() === targetUrl) {
+          updates.hero_image_url = null;
+          console.log("[delete_image] Clearing matching hero_image_url");
+          try {
+            await db
+              .from("provider_image_metadata")
+              .update({ is_hero: false })
+              .eq("provider_id", providerId);
+          } catch {
+            // Table may not exist — non-fatal
+          }
+        }
+      }
+
+      console.log("[delete_image] Updates to apply:", JSON.stringify(updates));
+
+      if (Object.keys(updates).length === 0) {
+        console.warn("[delete_image] No fields to update — URL may not exist in any field");
+        // Still return success — the image reference doesn't exist, which is the desired state
+      } else {
+        const { error: updateError } = await db
+          .from("olera-providers")
+          .update(updates)
+          .eq("provider_id", providerId);
+
+        if (updateError) {
+          console.error("[delete_image] Update error:", updateError);
+          return NextResponse.json({ error: "Failed to update provider" }, { status: 500 });
+        }
+        console.log("[delete_image] Update succeeded");
+      }
+
+      // 4. Delete from Supabase Storage if it's an uploaded file
+      try {
+        const bucketUrl = db.storage.from(STORAGE_BUCKET).getPublicUrl("").data.publicUrl;
+        if (image_url.startsWith(bucketUrl)) {
+          const storagePath = image_url.slice(bucketUrl.length);
+          await db.storage.from(STORAGE_BUCKET).remove([storagePath]);
+        }
+      } catch (storageErr) {
+        // Non-fatal — image may be external (CDN, Google, etc.)
+        console.warn("Storage delete skipped or failed:", storageErr);
+      }
+
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "delete_image",
+        targetType: "provider_image",
+        targetId: providerId,
+        details: { image_url },
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("Admin images action error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Admin images action error:", message, err);
+    return NextResponse.json({ error: `Server error: ${message}` }, { status: 500 });
   }
 }

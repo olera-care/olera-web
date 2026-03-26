@@ -78,6 +78,10 @@ export async function POST(request: Request) {
       claimedProfileId,
       careNeeds,
       isAddingProfile = false,
+      whoNeedsCare,
+      googlePlaceId,
+      googlePlaceName,
+      googleRating,
     } = body;
 
     // Validate required fields
@@ -223,6 +227,14 @@ export async function POST(request: Request) {
             metadata: {
               visible_to_families: visibleToFamilies ?? true,
               visible_to_providers: visibleToProviders ?? true,
+              ...(googlePlaceId && {
+                google_metadata: {
+                  place_id: googlePlaceId,
+                  place_name: googlePlaceName || null,
+                  rating: googleRating ?? null,
+                  last_synced: new Date().toISOString(),
+                },
+              }),
             },
           })
           .select("id")
@@ -296,7 +308,7 @@ export async function POST(request: Request) {
       // Family profile — check if a baseline one already exists (created by ensure-account)
       const { data: existingFamilyProfile } = await db
         .from("business_profiles")
-        .select("id")
+        .select("id, metadata")
         .eq("account_id", accountId)
         .eq("type", "family")
         .limit(1)
@@ -304,6 +316,33 @@ export async function POST(request: Request) {
 
       if (existingFamilyProfile) {
         // Update the existing baseline family profile with the user's info
+        // Merge metadata to preserve enrichment data from connections
+        const { data: currentProfile } = await db
+          .from("business_profiles")
+          .select("metadata")
+          .eq("id", existingFamilyProfile.id)
+          .single();
+
+        const currentMeta = (currentProfile?.metadata || {}) as Record<string, unknown>;
+        const mergedMeta: Record<string, unknown> = {
+          ...currentMeta,
+          visible_to_families: visibleToFamilies ?? currentMeta.visible_to_families ?? true,
+          visible_to_providers: visibleToProviders ?? currentMeta.visible_to_providers ?? true,
+        };
+
+        // Map whoNeedsCare to relationship_to_recipient (only if provided)
+        if (whoNeedsCare) {
+          const recipientMap: Record<string, string> = {
+            myself: "Myself",
+            parent: "My parent",
+            spouse: "My spouse",
+            other: "Someone else",
+          };
+          if (recipientMap[whoNeedsCare]) {
+            mergedMeta.relationship_to_recipient = recipientMap[whoNeedsCare];
+          }
+        }
+
         const { error: updateErr } = await db
           .from("business_profiles")
           .update({
@@ -312,10 +351,7 @@ export async function POST(request: Request) {
             state: state || null,
             zip: zip || null,
             care_types: sanitizedCareNeeds.length > 0 ? sanitizedCareNeeds : sanitizedCareTypes,
-            metadata: {
-              visible_to_families: visibleToFamilies ?? true,
-              visible_to_providers: visibleToProviders ?? true,
-            },
+            metadata: mergedMeta,
           })
           .eq("id", existingFamilyProfile.id);
 
@@ -332,6 +368,23 @@ export async function POST(request: Request) {
         // No existing family profile — create one
         const slug = await generateUniqueSlug(db, sanitizedDisplayName, city || "", state || "");
 
+        // Build metadata with whoNeedsCare mapping
+        const newFamilyMeta: Record<string, unknown> = {
+          visible_to_families: visibleToFamilies ?? true,
+          visible_to_providers: visibleToProviders ?? true,
+        };
+        if (whoNeedsCare) {
+          const recipientMap: Record<string, string> = {
+            myself: "Myself",
+            parent: "My parent",
+            spouse: "My spouse",
+            other: "Someone else",
+          };
+          if (recipientMap[whoNeedsCare]) {
+            newFamilyMeta.relationship_to_recipient = recipientMap[whoNeedsCare];
+          }
+        }
+
         const { data: newProfile, error: insertErr } = await db
           .from("business_profiles")
           .insert({
@@ -347,10 +400,7 @@ export async function POST(request: Request) {
             verification_state: "unverified",
             source: "user_created",
             is_active: true,
-            metadata: {
-              visible_to_families: visibleToFamilies ?? true,
-              visible_to_providers: visibleToProviders ?? true,
-            },
+            metadata: newFamilyMeta,
           })
           .select("id")
           .single();

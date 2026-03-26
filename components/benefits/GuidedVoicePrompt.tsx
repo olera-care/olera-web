@@ -9,8 +9,9 @@ const GUIDED_PROMPTS: Record<IntakeStep, string> = {
   1: "How old is the person who needs care?",
   2: "Would they prefer to stay at home, or are you exploring facilities?",
   3: "What kind of help do they need most? You can mention a few things.",
-  4: "To match the right programs, roughly what\u2019s their monthly income? You can also say \u201Cprefer not to say.\u201D",
-  5: "Last one \u2014 do they currently have Medicaid?",
+  4: "To match the right programs, roughly what\u2019s the monthly budget for care? You can also say \u201Cprefer not to say.\u201D",
+  5: "Do they currently have Medicaid?",
+  6: "Last one \u2014 is the person who needs care a veteran?",
 };
 
 const GUIDED_CONFIRMATIONS: Record<IntakeStep, (detail?: string) => string> = {
@@ -19,7 +20,8 @@ const GUIDED_CONFIRMATIONS: Record<IntakeStep, (detail?: string) => string> = {
   2: (detail) => `${detail} \u2014 understood.`,
   3: (detail) => `${detail} \u2014 anything else? Say \u201Cdone\u201D or tap Continue.`,
   4: () => "Got it.",
-  5: () => "Thanks, that\u2019s everything. Let me find what\u2019s available.",
+  5: () => "Got it.",
+  6: () => "Thanks, that\u2019s everything. Let me find what\u2019s available.",
 };
 
 export { GUIDED_PROMPTS, GUIDED_CONFIRMATIONS };
@@ -36,7 +38,7 @@ export default function GuidedVoicePrompt({ step, confirmation, isSpeaking }: Gu
     <div className="mb-6">
       <div className="flex items-center gap-2 mb-3">
         <p className="text-xs text-gray-400 tabular-nums">
-          {step + 1} / 6
+          {step + 1} / 7
         </p>
         {isSpeaking && (
           <span className="flex items-center gap-1 text-xs text-primary-600 animate-fade-in">

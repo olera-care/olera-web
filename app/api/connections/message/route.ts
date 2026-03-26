@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { newMessageEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 
@@ -167,7 +167,7 @@ export async function POST(request: Request) {
               .single(),
             admin
               .from("business_profiles")
-              .select("display_name, email, account_id, type")
+              .select("display_name, email, account_id, type, slug, source_provider_id")
               .eq("id", recipientProfileId)
               .single(),
           ]);
@@ -192,21 +192,63 @@ export async function POST(request: Request) {
               ? text.trim().slice(0, 200) + "..."
               : text.trim();
 
-          // Route families to portal inbox, providers to provider connections
+          const isFamily = recipientProfile?.type === "family";
+          const msgSubject = `New message from ${senderProfile?.display_name || "someone"} on Olera`;
+
+          const msgEmailLogId = await reserveEmailLogId({
+            to: recipientEmail,
+            subject: msgSubject,
+            emailType: "new_message",
+            recipientType: isFamily ? "family" : "provider",
+            providerId: !isFamily ? recipientProfileId : undefined,
+          });
+
+          // Route families to portal inbox, providers to provider welcome with magic link
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-          const viewUrl = recipientProfile?.type === "family"
-            ? `${siteUrl}/portal/inbox`
-            : `${siteUrl}/provider/connections`;
+          let viewUrl: string;
+
+          if (isFamily) {
+            viewUrl = appendTrackingParams(`${siteUrl}/portal/inbox`, msgEmailLogId);
+          } else {
+            // Generate magic link for provider one-click sign-in
+            const providerSlug = recipientProfile?.slug || recipientProfile?.source_provider_id || recipientProfileId;
+            const redirectPath = appendTrackingParams(
+              `/provider/${providerSlug}/onboard?action=message&actionId=${connectionId}`,
+              msgEmailLogId
+            );
+            // Fallback: direct to onboard page (handles both claimed and unclaimed providers)
+            viewUrl = `${siteUrl}${redirectPath}`;
+
+            try {
+              const { data: providerLinkData, error: providerLinkError } = await admin.auth.admin.generateLink({
+                type: "magiclink",
+                email: recipientEmail,
+                options: {
+                  redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
+                },
+              });
+              if (!providerLinkError && providerLinkData?.properties?.action_link) {
+                viewUrl = providerLinkData.properties.action_link;
+              }
+            } catch (linkErr) {
+              console.error("Failed to generate provider magic link for message:", linkErr);
+              // Continue with fallback URL (welcome page)
+            }
+          }
 
           await sendEmail({
             to: recipientEmail,
-            subject: `New message from ${senderProfile?.display_name || "someone"} on Olera`,
+            subject: msgSubject,
             html: newMessageEmail({
               recipientName: recipientProfile?.display_name || "there",
               senderName: senderProfile?.display_name || "Someone",
               messagePreview: preview,
               viewUrl,
             }),
+            emailType: 'new_message',
+            recipientType: isFamily ? "family" : "provider",
+            providerId: !isFamily ? recipientProfileId : undefined,
+            emailLogId: msgEmailLogId ?? undefined,
           });
         }
       }

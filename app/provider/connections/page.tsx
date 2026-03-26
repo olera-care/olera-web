@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Select from "@/components/ui/Select";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
+import { markLeadAsRead } from "@/hooks/useUnreadLeadsCount";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Connection, Profile } from "@/lib/types";
 
@@ -48,7 +49,7 @@ interface LeadDetail {
 
 // ── Types ──
 
-type TimelineFilter = "all" | "immediate" | "within_1_month" | "exploring" | "archived";
+type StatusFilter = "all" | "new" | "replied" | "archived";
 type SortOption = "best_match" | "most_recent" | "most_urgent";
 type LeadStatus = "new" | "replied" | "no_reply" | "archived";
 type Urgency = "immediate" | "within_1_month" | "exploring";
@@ -56,11 +57,10 @@ type ContactMethod = "phone" | "email" | "either";
 
 // ── Config ──
 
-const FILTER_TABS: { id: TimelineFilter; label: string }[] = [
+const FILTER_TABS: { id: StatusFilter; label: string }[] = [
   { id: "all", label: "All leads" },
-  { id: "immediate", label: "Immediate" },
-  { id: "within_1_month", label: "Within 1 month" },
-  { id: "exploring", label: "Exploring" },
+  { id: "new", label: "New" },
+  { id: "replied", label: "Replied" },
   { id: "archived", label: "Archived" },
 ];
 
@@ -344,10 +344,10 @@ function LeadDetailDrawer({
       {/* Bottom sheet on mobile, side drawer on desktop */}
       <div
         className={`fixed z-40 bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-300 ease-out
-          /* Mobile: bottom sheet */
-          inset-x-0 bottom-0 max-h-[90vh] rounded-t-3xl
+          /* Mobile: bottom sheet - use dvh for proper mobile Safari support */
+          inset-x-0 bottom-0 max-h-[90dvh] rounded-t-3xl pb-[env(safe-area-inset-bottom)]
           /* Desktop: side drawer */
-          lg:inset-y-0 lg:top-16 lg:right-0 lg:left-auto lg:bottom-auto lg:w-[640px] lg:max-w-[calc(100vw-24px)] lg:h-[calc(100dvh-64px)] lg:max-h-none lg:rounded-none
+          lg:inset-y-0 lg:top-16 lg:right-0 lg:left-auto lg:bottom-auto lg:w-[640px] lg:max-w-[calc(100vw-24px)] lg:h-[calc(100dvh-64px)] lg:max-h-none lg:rounded-none lg:pb-0
           ${isOpen
             ? "translate-y-0 lg:translate-x-0"
             : "translate-y-full lg:translate-y-0 lg:translate-x-full"
@@ -1128,16 +1128,44 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
   const careRecipient = careRecipientMap[rawCareRecipient] || "Family member";
 
   // Check if this is a "new" lead (not viewed yet) - scoped by provider profile
+  // Primary: check database metadata.read_by
+  // Fallback: check localStorage for backwards compatibility
   let isNew = false;
-  try {
-    // Migrate old data on first access
-    migrateLeadsViewedData(providerProfileId);
-    const leadsKey = `olera_leads_viewed_${providerProfileId}`;
-    const viewedIds = JSON.parse(localStorage.getItem(leadsKey) || "[]");
-    isNew = !viewedIds.includes(conn.id) && status !== "archived" && status !== "replied";
-  } catch {
-    isNew = status === "new";
+  if (status !== "archived" && status !== "replied") {
+    const readBy = (meta?.read_by as Record<string, string>) || {};
+    const isReadInDb = !!readBy[providerProfileId];
+
+    if (!isReadInDb) {
+      // Check localStorage as fallback
+      try {
+        migrateLeadsViewedData(providerProfileId);
+        const leadsKey = `olera_leads_viewed_${providerProfileId}`;
+        const viewedIds = JSON.parse(localStorage.getItem(leadsKey) || "[]");
+        isNew = !viewedIds.includes(conn.id);
+      } catch {
+        isNew = true;
+      }
+    }
   }
+
+  // Location: prefer looking_in from message (provider's location), fall back to family profile
+  const lookingInCity = careDetails.looking_in_city as string | undefined;
+  const lookingInState = careDetails.looking_in_state as string | undefined;
+  let location: string;
+  if (lookingInCity && lookingInState) {
+    location = `${lookingInCity}, ${lookingInState}`;
+  } else if (lookingInCity || lookingInState) {
+    location = lookingInCity || lookingInState || "";
+  } else if (familyProfile?.city && familyProfile?.state) {
+    location = `${familyProfile.city}, ${familyProfile.state}`;
+  } else {
+    location = "—";
+  }
+
+  // Email: prefer fresh profile, fall back to message
+  const email = familyProfile?.email || (careDetails.seeker_email as string) || undefined;
+  // Phone: prefer fresh profile, fall back to message
+  const phone = familyProfile?.phone || (careDetails.seeker_phone as string) || undefined;
 
   return {
     id: conn.id,
@@ -1145,15 +1173,13 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
     name: fullName,
     initials: getInitials(fullName),
     subtitle: `For ${careRecipient.toLowerCase()}`,
-    location: familyProfile?.city && familyProfile?.state
-      ? `${familyProfile.city}, ${familyProfile.state}`
-      : "Location not specified",
+    location,
     urgency,
     status,
     date: timeAgo(conn.created_at),
     isNew,
-    email: familyProfile?.email || undefined,
-    phone: familyProfile?.phone || undefined,
+    email,
+    phone,
     careRecipient,
     // Fresh profile data for enriched lead details
     careType: profileCareTypes.length > 0 ? profileCareTypes : (messageCareType ? [messageCareType] : undefined),
@@ -1172,7 +1198,7 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
 
 export default function ProviderLeadsPage() {
   const providerProfile = useProviderProfile();
-  const [activeFilter, setActiveFilter] = useState<TimelineFilter>("all");
+  const [activeFilter, setActiveFilter] = useState<StatusFilter>("all");
   const [sortBy, setSortBy] = useState<SortOption>("best_match");
   const [leads, setLeads] = useState<LeadDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -1181,89 +1207,103 @@ export default function ProviderLeadsPage() {
   const fetchedRef = useRef(false);
 
   // Fetch leads (connections) from Supabase
-  useEffect(() => {
-    if (!providerProfile || fetchedRef.current) return;
+  const fetchLeads = useCallback(async (isInitialLoad = false) => {
+    if (!providerProfile) return;
     if (!isSupabaseConfigured()) {
-      setIsLoading(false);
+      if (isInitialLoad) setIsLoading(false);
       return;
     }
 
-    fetchedRef.current = true;
+    try {
+      const supabase = createClient();
+      const profileId = providerProfile.id;
 
-    (async () => {
-      try {
-        const supabase = createClient();
-        const profileId = providerProfile.id;
+      // Fetch TWO types of connections that should appear as leads:
+      // 1. Family-initiated inquiries (type="inquiry") where provider is recipient
+      // 2. Provider-initiated requests (type="request") that were accepted by family
+      const [inquiriesResult, acceptedRequestsResult] = await Promise.all([
+        // Query 1: Family-initiated inquiries (existing behavior)
+        supabase
+          .from("connections")
+          .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type, care_types, metadata)")
+          .eq("to_profile_id", profileId)
+          .eq("type", "inquiry")
+          .in("status", ["pending", "accepted"])
+          .order("created_at", { ascending: false }),
 
-        // Fetch TWO types of connections that should appear as leads:
-        // 1. Family-initiated inquiries (type="inquiry") where provider is recipient
-        // 2. Provider-initiated requests (type="request") that were accepted by family
-        const [inquiriesResult, acceptedRequestsResult] = await Promise.all([
-          // Query 1: Family-initiated inquiries (existing behavior)
-          supabase
-            .from("connections")
-            .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type, care_types, metadata)")
-            .eq("to_profile_id", profileId)
-            .eq("type", "inquiry")
-            .in("status", ["pending", "accepted"])
-            .order("created_at", { ascending: false }),
+        // Query 2: Accepted provider-initiated requests (NEW - these should also be leads)
+        supabase
+          .from("connections")
+          .select("*, toProfile:to_profile_id(id, display_name, email, phone, city, state, type, care_types, metadata)")
+          .eq("from_profile_id", profileId)
+          .eq("type", "request")
+          .eq("status", "accepted")
+          .order("created_at", { ascending: false }),
+      ]);
 
-          // Query 2: Accepted provider-initiated requests (NEW - these should also be leads)
-          supabase
-            .from("connections")
-            .select("*, toProfile:to_profile_id(id, display_name, email, phone, city, state, type, care_types, metadata)")
-            .eq("from_profile_id", profileId)
-            .eq("type", "request")
-            .eq("status", "accepted")
-            .order("created_at", { ascending: false }),
-        ]);
-
-        if (inquiriesResult.error) {
-          console.error("Failed to fetch inquiry leads:", inquiriesResult.error);
-          setIsLoading(false);
-          return;
-        }
-
-        if (acceptedRequestsResult.error) {
-          console.error("Failed to fetch accepted request leads:", acceptedRequestsResult.error);
-          // Continue with just inquiries if this fails
-        }
-
-        // Combine and deduplicate connections
-        const inquiries = (inquiriesResult.data || []) as ConnectionWithProfile[];
-        const acceptedRequests = ((acceptedRequestsResult.data || []) as ConnectionWithProfile[]).map((conn) => ({
-          ...conn,
-          _familyProfile: conn.toProfile, // Mark family profile for mapping
-        }));
-
-        const allConnections = [...inquiries, ...acceptedRequests];
-        const uniqueConnections = allConnections.filter(
-          (conn, index, self) => self.findIndex((c) => c.id === conn.id) === index
-        );
-
-        // Map connections to leads, filtering out hidden ones
-        const mappedLeads = uniqueConnections
-          .filter((conn) => {
-            const meta = conn.metadata as Record<string, unknown> | undefined;
-            return !meta?.hidden;
-          })
-          .map((conn) => mapConnectionToLead(conn, profileId));
-
-        // Sort by created_at descending
-        mappedLeads.sort((a, b) => {
-          const connA = uniqueConnections.find((c) => c.id === a.id);
-          const connB = uniqueConnections.find((c) => c.id === b.id);
-          return new Date(connB?.created_at || 0).getTime() - new Date(connA?.created_at || 0).getTime();
-        });
-
-        setLeads(mappedLeads);
-      } catch (err) {
-        console.error("Failed to fetch leads:", err);
-      } finally {
-        setIsLoading(false);
+      if (inquiriesResult.error) {
+        console.error("Failed to fetch inquiry leads:", inquiriesResult.error);
+        if (isInitialLoad) setIsLoading(false);
+        return;
       }
-    })();
+
+      if (acceptedRequestsResult.error) {
+        console.error("Failed to fetch accepted request leads:", acceptedRequestsResult.error);
+        // Continue with just inquiries if this fails
+      }
+
+      // Combine and deduplicate connections
+      const inquiries = (inquiriesResult.data || []) as ConnectionWithProfile[];
+      const acceptedRequests = ((acceptedRequestsResult.data || []) as ConnectionWithProfile[]).map((conn) => ({
+        ...conn,
+        _familyProfile: conn.toProfile, // Mark family profile for mapping
+      }));
+
+      const allConnections = [...inquiries, ...acceptedRequests];
+      const uniqueConnections = allConnections.filter(
+        (conn, index, self) => self.findIndex((c) => c.id === conn.id) === index
+      );
+
+      // Map connections to leads, filtering out hidden ones
+      const mappedLeads = uniqueConnections
+        .filter((conn) => {
+          const meta = conn.metadata as Record<string, unknown> | undefined;
+          return !meta?.hidden;
+        })
+        .map((conn) => mapConnectionToLead(conn, profileId));
+
+      // Sort by created_at descending
+      mappedLeads.sort((a, b) => {
+        const connA = uniqueConnections.find((c) => c.id === a.id);
+        const connB = uniqueConnections.find((c) => c.id === b.id);
+        return new Date(connB?.created_at || 0).getTime() - new Date(connA?.created_at || 0).getTime();
+      });
+
+      setLeads(mappedLeads);
+    } catch (err) {
+      console.error("Failed to fetch leads:", err);
+    } finally {
+      if (isInitialLoad) setIsLoading(false);
+    }
   }, [providerProfile]);
+
+  // Initial fetch
+  useEffect(() => {
+    if (!providerProfile || fetchedRef.current) return;
+    fetchedRef.current = true;
+    fetchLeads(true);
+  }, [providerProfile, fetchLeads]);
+
+  // Poll for updates every 45 seconds (family profile changes, new leads)
+  useEffect(() => {
+    if (!providerProfile) return;
+
+    const interval = setInterval(() => {
+      fetchLeads(false);
+    }, 45000);
+
+    return () => clearInterval(interval);
+  }, [providerProfile, fetchLeads]);
 
   // Broadcast new-leads count to Navbar badge and persist to localStorage (profile-scoped)
   const newLeadsCount = useMemo(() => leads.filter((l) => l.isNew).length, [leads]);
@@ -1271,7 +1311,7 @@ export default function ProviderLeadsPage() {
     if (!providerProfile) return;
     const countKey = `olera_leads_new_count_${providerProfile.id}`;
     try { localStorage.setItem(countKey, String(newLeadsCount)); } catch { /* */ }
-    window.dispatchEvent(new CustomEvent("olera:leads-count", { detail: { count: newLeadsCount, profileId: providerProfile.id } }));
+    window.dispatchEvent(new CustomEvent("olera:leads-sync", { detail: { count: newLeadsCount, profileId: providerProfile.id } }));
   }, [newLeadsCount, providerProfile]);
 
   // Derive selectedLead from current leads so it stays in sync after archive/restore
@@ -1283,22 +1323,13 @@ export default function ProviderLeadsPage() {
   const openDrawer = useCallback((lead: LeadDetail) => {
     setSelectedLeadId(lead.id);
     setIsDrawerOpen(true);
-    // Clear "New" badge once viewed and persist to localStorage
+    // Clear "New" badge once viewed and persist to database
     if (lead.isNew && providerProfile) {
       setLeads((prev) =>
         prev.map((l) => (l.id === lead.id ? { ...l, isNew: false } : l))
       );
-      // Persist viewed status to localStorage (scoped by provider profile)
-      try {
-        const leadsKey = `olera_leads_viewed_${providerProfile.id}`;
-        const viewedIds: string[] = JSON.parse(localStorage.getItem(leadsKey) || "[]");
-        if (!viewedIds.includes(lead.id)) {
-          viewedIds.push(lead.id);
-          localStorage.setItem(leadsKey, JSON.stringify(viewedIds));
-        }
-      } catch {
-        // localStorage unavailable
-      }
+      // Persist to database via API (also updates localStorage for fallback)
+      markLeadAsRead(lead.id, providerProfile.id);
     }
   }, [providerProfile]);
 
@@ -1352,9 +1383,12 @@ export default function ProviderLeadsPage() {
   const filteredLeads = useMemo(() => {
     if (activeFilter === "archived") {
       return leads.filter((l) => l.status === "archived");
-    } else if (activeFilter !== "all") {
-      return leads.filter((l) => l.urgency === activeFilter && l.status !== "archived");
+    } else if (activeFilter === "new") {
+      return leads.filter((l) => l.isNew && l.status !== "archived");
+    } else if (activeFilter === "replied") {
+      return leads.filter((l) => l.status === "replied");
     } else {
+      // "all" - show everything except archived
       return leads.filter((l) => l.status !== "archived");
     }
   }, [activeFilter, leads]);
@@ -1440,10 +1474,11 @@ export default function ProviderLeadsPage() {
       {filteredLeads.length > 0 ? (
         <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
           {/* Table header - desktop only */}
-          <div className="hidden lg:grid grid-cols-[2.5fr_1fr_1.1fr_1fr_0.8fr] gap-8 px-8 py-3.5 border-b border-gray-200/80 bg-gray-50/40">
+          <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1fr_1fr_0.8fr_0.8fr] gap-6 px-8 py-3.5 border-b border-gray-200/80 bg-gray-50/40">
             <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Name</span>
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Email</span>
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Phone</span>
             <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Location</span>
-            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Urgency</span>
             <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Status</span>
             <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Date</span>
           </div>
@@ -1470,7 +1505,7 @@ export default function ProviderLeadsPage() {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     {/* Name row */}
-                    <div className="flex items-center gap-2 mb-0.5">
+                    <div className="flex items-center gap-2 mb-1">
                       <h3 className="text-[15px] font-semibold text-gray-900 truncate">{lead.name}</h3>
                       {lead.isNew && (
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50 shrink-0">
@@ -1479,20 +1514,14 @@ export default function ProviderLeadsPage() {
                       )}
                     </div>
 
-                    {/* Subtitle */}
-                    <p className="text-sm text-gray-500 mb-2">{lead.subtitle}</p>
+                    {/* Contact info */}
+                    <div className="space-y-0.5 mb-2">
+                      <p className="text-sm text-gray-600 truncate">{lead.email || "—"}</p>
+                      <p className="text-sm text-gray-500 truncate">{lead.phone || "—"}</p>
+                    </div>
 
-                    {/* Meta row - pills */}
+                    {/* Meta row - location + date */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
-                        lead.urgency === "immediate"
-                          ? "bg-red-50 text-red-700"
-                          : lead.urgency === "within_1_month"
-                          ? "bg-amber-50 text-amber-700"
-                          : "bg-blue-50 text-blue-700"
-                      }`}>
-                        {URGENCY_LABELS[lead.urgency]}
-                      </span>
                       <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 text-xs font-medium text-gray-600">
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -1512,7 +1541,7 @@ export default function ProviderLeadsPage() {
               </div>
 
               {/* Desktop table layout */}
-              <div className="hidden lg:grid grid-cols-[2.5fr_1fr_1.1fr_1fr_0.8fr] gap-8 items-center px-8 py-5">
+              <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1fr_1fr_0.8fr_0.8fr] gap-6 items-center px-8 py-5">
                 {/* Name */}
                 <div className="flex items-center gap-4 min-w-0">
                   <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
@@ -1527,15 +1556,17 @@ export default function ProviderLeadsPage() {
                         </span>
                       )}
                     </div>
-                    <p className="text-[13px] text-gray-500 truncate mt-0.5">{lead.subtitle}</p>
                   </div>
                 </div>
 
-                {/* Location */}
-                <span className="text-[14px] text-gray-500">{lead.location}</span>
+                {/* Email */}
+                <span className="text-[14px] text-gray-600 truncate">{lead.email || "—"}</span>
 
-                {/* Urgency */}
-                <span className="text-[14px] font-medium text-gray-700">{URGENCY_LABELS[lead.urgency]}</span>
+                {/* Phone */}
+                <span className="text-[14px] text-gray-600 truncate">{lead.phone || "—"}</span>
+
+                {/* Location */}
+                <span className="text-[14px] text-gray-500 truncate">{lead.location}</span>
 
                 {/* Status */}
                 <span className="text-[14px] text-gray-600">{STATUS_LABELS[lead.status]}</span>

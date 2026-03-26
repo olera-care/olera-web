@@ -45,7 +45,6 @@ export interface ConnectionCardProps {
   providerName: string;
   providerSlug: string;
   priceRange: string | null;
-  oleraScore: number | null;
   reviewCount: number | undefined;
   phone: string | null;
   acceptedPayments: string[];

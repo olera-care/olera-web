@@ -704,12 +704,12 @@ export default function ActionCard({
     const rawMessage = notificationData.metadata?.auto_intro;
     const timeAgo = formatTimeAgo(notificationData.created_at);
 
-    // Protect seeker info until provider is verified — mask name, hide photo + location + message
-    const isVerified = isSignedIn;
-    const personName = isVerified ? rawName : (rawName.split(" ")[0] || "A family");
-    const personImage = isVerified ? rawImage : null;
-    const location = isVerified ? rawLocation : (rawLocation ? rawLocation.split(",")[0] : "");
-    const message = isVerified ? rawMessage : null;
+    // Always mask seeker info on the onboard page — full details revealed in /provider/connections
+    // after the provider verifies ownership. This protects seekers if email goes to wrong recipient.
+    const personName = rawName.split(" ")[0] || "A family";
+    const personImage: string | null = null;
+    const location = rawLocation ? rawLocation.split(",")[0]?.trim() : "";
+    const message = rawMessage ? rawMessage.slice(0, 40) + "..." : null;
 
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>

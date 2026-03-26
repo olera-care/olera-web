@@ -318,11 +318,25 @@ export default function ProviderOnboardPage() {
       }
 
       // Check if already claimed via business_profiles
-      const { data: bp } = await supabase
+      // Query by source_provider_id first (olera-providers path), then by slug (BP-only path)
+      let bp: { claim_state: string | null; account_id: string | null } | null = null;
+      const { data: bpBySource } = await supabase
         .from("business_profiles")
         .select("claim_state, account_id")
         .eq("source_provider_id", foundProvider.provider_id)
         .maybeSingle();
+      bp = bpBySource;
+
+      if (!bp && foundProvider.slug) {
+        // BP-only provider: look up by slug directly
+        const { data: bpBySlug } = await supabase
+          .from("business_profiles")
+          .select("claim_state, account_id")
+          .eq("slug", foundProvider.slug)
+          .in("type", ["organization", "caregiver"])
+          .maybeSingle();
+        bp = bpBySlug;
+      }
 
       if (bp?.claim_state === "claimed") {
         // If the signed-in user owns this listing, redirect to the appropriate section

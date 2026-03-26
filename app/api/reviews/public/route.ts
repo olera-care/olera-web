@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { newReviewEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 
@@ -164,10 +164,20 @@ export async function POST(request: NextRequest) {
           const providerEmail = authUser?.user?.email;
 
           if (providerEmail) {
-            const viewUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/reviews`;
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+            const emailSubject = `${formattedName.split(" ")[0]} left a review for ${provider.display_name || "your listing"}`;
+            const emailLogId = await reserveEmailLogId({
+              to: providerEmail,
+              subject: emailSubject,
+              emailType: "new_review",
+              recipientType: "provider",
+              providerId: provider.id,
+            });
+
+            const viewUrl = appendTrackingParams(`${siteUrl}/provider/reviews`, emailLogId);
             await sendEmail({
               to: providerEmail,
-              subject: `${formattedName.split(" ")[0]} left a review for ${provider.display_name || "your listing"}`,
+              subject: emailSubject,
               html: newReviewEmail({
                 providerName: provider.display_name || "Your organization",
                 reviewerName: formattedName,
@@ -179,6 +189,7 @@ export async function POST(request: NextRequest) {
               emailType: "new_review",
               recipientType: "provider",
               providerId: provider.id,
+              emailLogId: emailLogId ?? undefined,
             });
             await sendLoopsEvent({
               email: providerEmail,

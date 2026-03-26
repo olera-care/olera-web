@@ -110,6 +110,37 @@ function MagicLinkHandler() {
 
         setStatus("success");
 
+        // Track email click if this visit came from an email link
+        try {
+          const nextUrl = new URL(next, window.location.origin);
+          const ref = nextUrl.searchParams.get("ref");
+          const eid = nextUrl.searchParams.get("eid");
+          if (ref === "email" && eid) {
+            // Extract provider context from the destination URL
+            const pathParts = nextUrl.pathname.split("/");
+            const providerIdx = pathParts.indexOf("provider");
+            const providerSlug = providerIdx >= 0 ? pathParts[providerIdx + 1] : null;
+            const action = nextUrl.searchParams.get("action");
+            const emailTypeMap: Record<string, string> = {
+              lead: "connection_request",
+              review: "new_review",
+            };
+            fetch("/api/activity/track", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                provider_id: providerSlug || "unknown",
+                event_type: "email_click",
+                email_log_id: eid,
+                email_type: action ? emailTypeMap[action] || action : null,
+                metadata: { source: "magic_link", destination: next },
+              }),
+            }).catch(() => {}); // Fire-and-forget
+          }
+        } catch {
+          // Non-blocking — tracking failure should never affect auth flow
+        }
+
         // Check for pending connection info from guest connection flow
         let pendingConnection: { connectionId: string; providerSlug: string } | null = null;
         try {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { questionReceivedEmail } from "@/lib/email-templates";
 
 /**
@@ -77,19 +77,29 @@ export async function POST(request: NextRequest) {
     if (flaggedQuestions && flaggedQuestions.length > 0) {
       for (const q of flaggedQuestions) {
         try {
+          const emailSubject = `A family has a question about ${provider.display_name || "your organization"}`;
+          const emailLogId = await reserveEmailLogId({
+            to: email,
+            subject: emailSubject,
+            emailType: "question_received",
+            recipientType: "provider",
+            providerId: provider.id,
+          });
+
           await sendEmail({
             to: email,
-            subject: `A family has a question about ${provider.display_name || "your organization"}`,
+            subject: emailSubject,
             html: questionReceivedEmail({
               providerName: provider.display_name || "Provider",
               askerName: q.asker_name || "A family",
               question: q.question,
-              providerUrl: `${siteUrl}/provider/${providerSlug}/onboard`,
+              providerUrl: appendTrackingParams(`${siteUrl}/provider/${providerSlug}/onboard`, emailLogId),
               providerSlug,
             }),
             emailType: "question_received",
             recipientType: "provider",
             providerId: provider.id,
+            emailLogId: emailLogId ?? undefined,
           });
 
           // Clear the flag

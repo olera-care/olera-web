@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import Link from "next/link";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -189,18 +188,14 @@ function FeedView({
           >
             {/* Provider name */}
             <div className="min-w-0 flex-1">
-              {event.provider ? (
-                <Link
-                  href={`/admin/directory/${event.provider_id}`}
-                  className="text-sm font-medium text-gray-900 hover:text-teal-700 transition-colors truncate block"
-                >
-                  {event.provider.name}
-                </Link>
-              ) : (
-                <span className="text-sm font-medium text-gray-500 truncate block">
-                  {event.provider_id}
-                </span>
-              )}
+              <a
+                href={`/provider/${event.provider?.slug || event.provider_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-gray-900 hover:text-teal-700 transition-colors truncate block"
+              >
+                {event.provider?.name || event.provider_id}
+              </a>
               {event.provider && (
                 <span className="text-xs text-gray-400">
                   {categoryLabel(event.provider.category)}
@@ -306,18 +301,14 @@ function ProvidersView({
               {/* Provider info */}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  {p.provider ? (
-                    <Link
-                      href={`/admin/directory/${p.provider_id}`}
-                      className="text-sm font-medium text-gray-900 hover:text-teal-700 transition-colors truncate"
-                    >
-                      {p.provider.name}
-                    </Link>
-                  ) : (
-                    <span className="text-sm font-medium text-gray-500 truncate">
-                      {p.provider_id}
-                    </span>
-                  )}
+                  <a
+                    href={`/provider/${p.provider?.slug || p.provider_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-gray-900 hover:text-teal-700 transition-colors truncate"
+                  >
+                    {p.provider?.name || p.provider_id}
+                  </a>
                   {p.provider && !p.provider.claimed && (
                     <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-orange-50 text-orange-600 shrink-0">
                       Unclaimed

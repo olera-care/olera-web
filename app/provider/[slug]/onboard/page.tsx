@@ -188,6 +188,8 @@ export default function ProviderOnboardPage() {
       setProvider(foundProvider);
 
       // Fetch notification data if action params provided (lead/review/question from email)
+      // Track locally so we can use it later in this same function (state isn't readable until re-render)
+      let fetchedNotificationData: NotificationData | null = null;
       if (actionParam && actionIdParam) {
         try {
           if (actionParam === "lead") {
@@ -219,7 +221,7 @@ export default function ProviderOnboardPage() {
               const connMetadata = conn.metadata as Record<string, unknown> | null;
               const autoIntro = (connMetadata?.auto_intro as string) || null;
 
-              setNotificationData({
+              fetchedNotificationData = {
                 type: "lead",
                 id: conn.id,
                 created_at: conn.created_at,
@@ -229,7 +231,7 @@ export default function ProviderOnboardPage() {
                   auto_intro: autoIntro || undefined,
                 },
                 from_profile: conn.from_profile as NotificationData["from_profile"],
-              });
+              };
             }
           } else if (actionParam === "question") {
             // Fetch question data
@@ -239,13 +241,13 @@ export default function ProviderOnboardPage() {
               .eq("id", actionIdParam)
               .single();
             if (question) {
-              setNotificationData({
+              fetchedNotificationData = {
                 type: "question",
                 id: question.id,
                 created_at: question.created_at,
                 question: question.question,
                 asker_name: question.asker_name,
-              });
+              };
             }
           } else if (actionParam === "review") {
             // Fetch review data
@@ -255,18 +257,21 @@ export default function ProviderOnboardPage() {
               .eq("id", actionIdParam)
               .single();
             if (review) {
-              setNotificationData({
+              fetchedNotificationData = {
                 type: "review",
                 id: review.id,
                 created_at: review.created_at,
                 rating: review.rating,
                 comment: review.comment,
                 reviewer_name: review.reviewer_name,
-              });
+              };
             }
           }
         } catch (err) {
           console.error("[ProviderOnboard] Failed to fetch notification data:", err);
+        }
+        if (fetchedNotificationData) {
+          setNotificationData(fetchedNotificationData);
         }
       }
 
@@ -325,7 +330,21 @@ export default function ProviderOnboardPage() {
           router.replace(getActionRedirectUrl(actionParam, actionIdParam));
           return;
         }
-        // Otherwise show dashboard with dispute form in ActionCard
+        // If they arrived from a notification email, show the contextual card
+        // (lead/question/review preview) instead of the generic "already claimed" dispute card.
+        // This lets the actual owner verify + sign in to respond.
+        if (actionParam && fetchedNotificationData) {
+          const notificationStateMap: Record<string, ActionCardState> = {
+            lead: "notification-lead",
+            message: "notification-lead",
+            question: "notification-question",
+            review: "notification-review",
+          };
+          setActionCardState(notificationStateMap[actionParam] || "verify-form");
+          setStep("dashboard");
+          return;
+        }
+        // No notification context — show dispute form
         setActionCardState("already-claimed");
         setStep("dashboard");
         return;

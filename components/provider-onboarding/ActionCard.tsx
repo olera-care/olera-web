@@ -697,12 +697,19 @@ export default function ActionCard({
   // ════════════════════════════════════════════════════════════
 
   if (state === "notification-lead" && notificationData) {
-    const personName = notificationData.from_profile?.display_name || "A family";
-    const personImage = notificationData.from_profile?.image_url || null;
-    const location = [notificationData.from_profile?.city, notificationData.from_profile?.state].filter(Boolean).join(", ");
+    const rawName = notificationData.from_profile?.display_name || "A family";
+    const rawImage = notificationData.from_profile?.image_url || null;
+    const rawLocation = [notificationData.from_profile?.city, notificationData.from_profile?.state].filter(Boolean).join(", ");
     const careType = notificationData.metadata?.care_type;
-    const message = notificationData.metadata?.auto_intro;
+    const rawMessage = notificationData.metadata?.auto_intro;
     const timeAgo = formatTimeAgo(notificationData.created_at);
+
+    // Protect seeker info until provider is verified — mask name, hide photo + location + message
+    const isVerified = isSignedIn;
+    const personName = isVerified ? rawName : (rawName.split(" ")[0] || "A family");
+    const personImage = isVerified ? rawImage : null;
+    const location = isVerified ? rawLocation : (rawLocation ? rawLocation.split(",")[0] : "");
+    const message = isVerified ? rawMessage : null;
 
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
@@ -760,7 +767,7 @@ export default function ActionCard({
         <div className="text-center">
           {isSignedIn ? (
             <Link
-              href={`/provider/inbox?id=${notificationData.id}`}
+              href={`/provider/connections?id=${notificationData.id}`}
               className="block w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] text-center shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
             >
               View and respond

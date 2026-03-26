@@ -55,7 +55,7 @@ interface ActionCardProps {
   provider: Provider;
   claimSession: string;
   initialState?: ActionCardState;
-  onVerificationComplete: () => void;
+  onVerificationComplete: (verifiedEmail?: string) => void;
   /** Pre-verified email hint from token validation */
   preVerifiedEmail?: string;
   /** Whether to highlight the card (attention state) */
@@ -519,14 +519,14 @@ export default function ActionCard({
         return;
       }
 
-      // Code verified!
-      onVerificationComplete();
+      // Code verified — pass the verified email for auto-sign-in
+      onVerificationComplete(emailHint || undefined);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setVerifying(false);
     }
-  }, [code, provider.provider_id, claimSession, onVerificationComplete]);
+  }, [code, provider.provider_id, claimSession, onVerificationComplete, emailHint]);
 
   // Auto-submit code when 6 digits entered
   useEffect(() => {
@@ -948,10 +948,10 @@ export default function ActionCard({
         </div>
 
         <button
-          onClick={onVerificationComplete}
+          onClick={() => onVerificationComplete(emailHint || preVerifiedEmail || undefined)}
           className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
         >
-          Continue to sign in
+          Claim this listing
         </button>
       </div>
     );

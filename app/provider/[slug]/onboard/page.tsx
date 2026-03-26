@@ -22,6 +22,25 @@ type OnboardStep =
   | "success"
   | "error";
 
+/** Shared action→destination mapping for email notification routing */
+function getActionRedirectUrl(
+  action: string | null,
+  actionId: string | null
+): string {
+  if (action && actionId) {
+    switch (action) {
+      case "lead":
+      case "message":
+        return `/provider/inbox?id=${actionId}`;
+      case "question":
+        return `/provider/qna?id=${actionId}`;
+      case "review":
+        return `/provider/reviews?id=${actionId}`;
+    }
+  }
+  return "/provider";
+}
+
 export default function ProviderOnboardPage() {
   const { slug } = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
@@ -129,18 +148,7 @@ export default function ProviderOnboardPage() {
         if (bp) {
           // For claimed providers, check if user owns it and redirect appropriately
           if (bp.claim_state === "claimed" && account && bp.account_id === account.id) {
-            // User owns this listing - redirect to appropriate section
-            if (actionParam === "lead" && actionIdParam) {
-              router.replace(`/provider/inbox?id=${actionIdParam}`);
-            } else if (actionParam === "message" && actionIdParam) {
-              router.replace(`/provider/inbox?id=${actionIdParam}`);
-            } else if (actionParam === "question" && actionIdParam) {
-              router.replace(`/provider/qna?id=${actionIdParam}`);
-            } else if (actionParam === "review" && actionIdParam) {
-              router.replace(`/provider/reviews?id=${actionIdParam}`);
-            } else {
-              router.replace("/provider");
-            }
+            router.replace(getActionRedirectUrl(actionParam, actionIdParam));
             return;
           }
 
@@ -313,18 +321,7 @@ export default function ProviderOnboardPage() {
       if (bp?.claim_state === "claimed") {
         // If the signed-in user owns this listing, redirect to the appropriate section
         if (account && bp.account_id && account.id === bp.account_id) {
-          // Route to specific section based on notification type
-          if (actionParam === "lead" && actionIdParam) {
-            router.replace(`/provider/inbox?id=${actionIdParam}`);
-          } else if (actionParam === "message" && actionIdParam) {
-            router.replace(`/provider/inbox?id=${actionIdParam}`);
-          } else if (actionParam === "question" && actionIdParam) {
-            router.replace(`/provider/qna?id=${actionIdParam}`);
-          } else if (actionParam === "review" && actionIdParam) {
-            router.replace(`/provider/reviews?id=${actionIdParam}`);
-          } else {
-            router.replace("/provider");
-          }
+          router.replace(getActionRedirectUrl(actionParam, actionIdParam));
           return;
         }
         // Otherwise show dashboard with dispute form in ActionCard
@@ -453,14 +450,75 @@ export default function ProviderOnboardPage() {
   };
 
   // Handle verification complete (called from ActionCard via SmartDashboardShell)
-  const handleVerificationComplete = useCallback(() => {
-    markSessionVerified();
-    setSession(prev => prev ? { ...prev, verified: true } : null);
+  const handleVerificationComplete = useCallback(async (verifiedEmail?: string) => {
+    markSessionVerified(verifiedEmail);
+    setSession(prev => prev ? { ...prev, verified: true, emailHint: verifiedEmail } : null);
 
     if (user) {
       setStep("finalizing");
       handleFinalize();
-    } else {
+      return;
+    }
+
+    // Auto-sign-in with the verified email — no auth modal needed
+    const email = verifiedEmail || session?.emailHint || preVerifiedEmail;
+    if (!email) {
+      // Fallback to auth modal if we somehow don't have the email
+      openAuth({
+        deferred: {
+          action: "claim",
+          returnUrl: `${window.location.pathname}?provider_id=${provider?.provider_id}`,
+        },
+      });
+      return;
+    }
+
+    setStep("finalizing");
+    try {
+      const res = await fetch("/api/auth/auto-sign-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          claimSession: session?.sessionId || "verified",
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.tokenHash) {
+        // Auto-sign-in failed — fall back to auth modal
+        openAuth({
+          deferred: {
+            action: "claim",
+            returnUrl: `${window.location.pathname}?provider_id=${provider?.provider_id}`,
+          },
+        });
+        return;
+      }
+
+      // Establish browser session with the magic link token
+      const supabase = createClient();
+      const { error: otpError } = await supabase.auth.verifyOtp({
+        token_hash: data.tokenHash,
+        type: "magiclink",
+      });
+
+      if (otpError) {
+        console.error("Auto-sign-in OTP error:", otpError.message);
+        openAuth({
+          deferred: {
+            action: "claim",
+            returnUrl: `${window.location.pathname}?provider_id=${provider?.provider_id}`,
+          },
+        });
+        return;
+      }
+
+      // Session established — refresh auth state and finalize
+      await refreshAccountData();
+      handleFinalize();
+    } catch (err) {
+      console.error("Auto-sign-in failed:", err);
       openAuth({
         deferred: {
           action: "claim",
@@ -469,7 +527,7 @@ export default function ProviderOnboardPage() {
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, openAuth, provider?.provider_id]);
+  }, [user, openAuth, provider?.provider_id, session?.emailHint, session?.sessionId, preVerifiedEmail]);
 
   // Loading state
   if (step === "loading") {
@@ -518,18 +576,8 @@ export default function ProviderOnboardPage() {
   }
 
   // Determine success redirect URL based on action type
-  const getSuccessRedirectUrl = () => {
-    if (actionParam === "lead" && actionIdParam) {
-      return `/provider/inbox?id=${actionIdParam}`;
-    } else if (actionParam === "message" && actionIdParam) {
-      return `/provider/inbox?id=${actionIdParam}`;
-    } else if (actionParam === "question" && actionIdParam) {
-      return `/provider/qna?id=${actionIdParam}`;
-    } else if (actionParam === "review" && actionIdParam) {
-      return `/provider/reviews?id=${actionIdParam}`;
-    }
-    return "/provider";
-  };
+  const getSuccessRedirectUrl = () =>
+    getActionRedirectUrl(actionParam, actionIdParam);
 
   // Get button text based on action type
   const getSuccessButtonText = () => {

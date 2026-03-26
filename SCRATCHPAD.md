@@ -168,6 +168,12 @@
   - 5 phases: DB table → instrument emails → capture clicks → API → admin UI
   - PRs #404 merged to staging, #405 promoted to main
 
+- **Provider Onboarding Routing Fix** (branch: `loving-swartz`) — IN PROGRESS
+  - Plan: `plans/provider-onboarding-routing-plan.md`
+  - Notion: [Task](https://www.notion.so/089aad975c5d4ba0930c8da33b8a6597)
+  - 5 bugs: double auth after OTP, routing logic in 3 locations, claimed provider flash, source_provider_id NULL, review emails not sending
+  - 6 phases: extract routing helper → auto-sign-in → middleware fix → source_provider_id fix + backfill → review email fallback → E2E verify
+
 - **Family Activity Center** (branch: `logical-mahavira`) — IN PROGRESS
   - Plan: `plans/family-activity-center-plan.md`
   - Expand Activity Center into unified engagement hub: Providers | Families | Feed

@@ -146,11 +146,38 @@ export async function POST(request: NextRequest) {
 
     // Send notification email to provider (fire-and-forget)
     try {
-      const { data: provider } = await db
+      // Try business_profiles by slug first
+      let provider: { id: string; display_name: string | null; slug: string | null; account_id: string | null } | null = null;
+
+      const { data: bpBySlug } = await db
         .from("business_profiles")
         .select("id, display_name, slug, account_id")
         .eq("slug", providerSlug)
         .single();
+
+      if (bpBySlug) {
+        provider = bpBySlug;
+      } else {
+        // Fallback: check olera-providers → business_profiles via source_provider_id
+        const { data: oleraProvider } = await db
+          .from("olera-providers")
+          .select("provider_id, provider_name")
+          .eq("slug", providerSlug)
+          .is("deleted", null)
+          .maybeSingle();
+
+        if (oleraProvider) {
+          const { data: bpBySourceId } = await db
+            .from("business_profiles")
+            .select("id, display_name, slug, account_id")
+            .eq("source_provider_id", oleraProvider.provider_id)
+            .maybeSingle();
+
+          if (bpBySourceId) {
+            provider = bpBySourceId;
+          }
+        }
+      }
 
       if (provider?.account_id) {
         const { data: providerAccount } = await db

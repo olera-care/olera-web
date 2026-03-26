@@ -208,7 +208,7 @@ function providerToProfile(provider: Provider): Profile {
 interface SmartDashboardShellProps {
   provider: Provider;
   claimSession: string;
-  onVerificationComplete: () => void;
+  onVerificationComplete: (verifiedEmail?: string) => void;
   /** Initial state for the action card */
   initialActionState?: ActionCardState;
   /** If provided, user came from email campaign link and is pre-verified */

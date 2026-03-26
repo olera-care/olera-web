@@ -392,7 +392,7 @@ export default async function ProviderPage({
           db
             .from("provider_questions")
             .select("id, question, answer, asker_name, created_at")
-            .eq("provider_id", profile.slug)
+            .in("provider_id", [profile.slug, profile.source_provider_id].filter(Boolean) as string[])
             .eq("is_public", true)
             .in("status", ["approved", "answered"])
             .not("answer", "is", null)
@@ -401,7 +401,7 @@ export default async function ProviderPage({
           db
             .from("reviews")
             .select("id", { count: "exact", head: true })
-            .eq("provider_id", profile.id)
+            .eq("provider_id", profile.slug)
             .eq("status", "published"),
         ]);
         return {

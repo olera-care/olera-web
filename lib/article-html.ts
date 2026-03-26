@@ -16,9 +16,23 @@ interface ProcessedArticle {
   headings: ArticleHeading[];
 }
 
-/** Strip HTML tags from a string to get plain text for TOC labels. */
+/** Strip HTML tags and decode common entities for plain text TOC labels. */
 function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, "").trim();
+  return html
+    .replace(/<[^>]*>/g, "")
+    .replace(/&mdash;/g, "\u2014")
+    .replace(/&ndash;/g, "\u2013")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&rsquo;/g, "\u2019")
+    .replace(/&lsquo;/g, "\u2018")
+    .replace(/&rdquo;/g, "\u201D")
+    .replace(/&ldquo;/g, "\u201C")
+    .replace(/&nbsp;/g, " ")
+    .trim();
 }
 
 /** Convert text to a URL-friendly slug. */

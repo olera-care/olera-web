@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { ContentArticle } from "@/types/content";
 
 /**
@@ -55,6 +56,29 @@ export async function getArticleBySlug(slug: string): Promise<ContentArticle | n
     .select("*")
     .eq("slug", slug)
     .eq("status", "published")
+    .single();
+
+  if (error || !data) return null;
+
+  return data as ContentArticle;
+}
+
+/**
+ * Fetch a single article by slug regardless of status.
+ * Uses the service role client to bypass RLS (drafts are hidden from anon).
+ * Used for draft previews — do NOT expose to public listing pages.
+ */
+export async function getArticleBySlugAnyStatus(slug: string): Promise<ContentArticle | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) return null;
+
+  const supabase = createSupabaseClient(url, serviceKey);
+
+  const { data, error } = await supabase
+    .from("content_articles")
+    .select("*")
+    .eq("slug", slug)
     .single();
 
   if (error || !data) return null;

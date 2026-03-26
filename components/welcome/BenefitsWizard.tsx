@@ -600,9 +600,9 @@ function ProgramCard({
   const { program, matchScore, tierLabel } = match;
 
   const tierColors = {
-    "Top Match": "bg-primary-100 text-primary-700",
-    "Good Fit": "bg-blue-100 text-blue-700",
-    "Worth Exploring": "bg-gray-100 text-gray-700",
+    "Strong Match": "bg-primary-100 text-primary-700",
+    "Likely Match": "bg-blue-100 text-blue-700",
+    "May Qualify": "bg-gray-100 text-gray-700",
   };
 
   return (

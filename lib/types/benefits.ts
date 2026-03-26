@@ -254,7 +254,7 @@ export interface BenefitMatch {
   program: BenefitProgram;
   matchScore: number; // 0-100
   matchReasons: string[];
-  tierLabel: "Top Match" | "Good Fit" | "Worth Exploring";
+  tierLabel: "Strong Match" | "Likely Match" | "May Qualify";
 }
 
 export interface BenefitsSearchResult {
@@ -337,9 +337,9 @@ export function getSavingsRange(
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 export function getTierLabel(score: number): BenefitMatch["tierLabel"] {
-  if (score >= 80) return "Top Match";
-  if (score >= 60) return "Good Fit";
-  return "Worth Exploring";
+  if (score >= 75) return "Strong Match";
+  if (score >= 50) return "Likely Match";
+  return "May Qualify";
 }
 
 export function getEstimatedMonthlyIncome(

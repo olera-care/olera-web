@@ -137,20 +137,45 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Update profile metadata with document reference
+    // Update profile metadata with document reference + recalculate completeness
     const metadataKey = `${documentType}_url` as const;
     const uploadedAtKey = `${documentType}_uploaded_at` as const;
     const existingMeta = (profile.metadata as Record<string, unknown>) || {};
 
+    const updatedMeta = {
+      ...existingMeta,
+      [metadataKey]: filePath,
+      [uploadedAtKey]: new Date().toISOString(),
+    };
+
+    // Recalculate profile completeness with new document
+    const { data: fullProfile } = await admin
+      .from("business_profiles")
+      .select("display_name, city, state")
+      .eq("id", profileId)
+      .single();
+
+    if (fullProfile) {
+      const fields = [
+        { filled: !!fullProfile.display_name, weight: 10 },
+        { filled: !!(updatedMeta.university as string), weight: 10 },
+        { filled: !!(updatedMeta.major as string), weight: 5 },
+        { filled: !!(updatedMeta.intended_professional_school as string), weight: 5 },
+        { filled: !!fullProfile.city && !!fullProfile.state, weight: 10 },
+        { filled: (Array.isArray(updatedMeta.availability_types) ? updatedMeta.availability_types.length : 0) > 0, weight: 10 },
+        { filled: (Array.isArray(updatedMeta.certifications) ? updatedMeta.certifications.length : 0) > 0, weight: 5 },
+        { filled: (Array.isArray(updatedMeta.care_experience_types) ? updatedMeta.care_experience_types.length : 0) > 0, weight: 5 },
+        { filled: !!(updatedMeta.video_intro_url as string), weight: 15 },
+        { filled: !!(updatedMeta.drivers_license_url as string), weight: 10 },
+        { filled: !!(updatedMeta.car_insurance_url as string), weight: 10 },
+        { filled: !!(updatedMeta.acknowledgments_completed), weight: 5 },
+      ];
+      updatedMeta.profile_completeness = fields.reduce((sum, f) => sum + (f.filled ? f.weight : 0), 0);
+    }
+
     const { error: updateError } = await admin
       .from("business_profiles")
-      .update({
-        metadata: {
-          ...existingMeta,
-          [metadataKey]: filePath,
-          [uploadedAtKey]: new Date().toISOString(),
-        },
-      })
+      .update({ metadata: updatedMeta })
       .eq("id", profileId);
 
     if (updateError) {

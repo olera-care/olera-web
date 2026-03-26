@@ -111,7 +111,7 @@
   - `.claude/commands/city-pipeline.md` updated with new batch mode instructions
   - Next: full E2E test with fresh cities, then 80-city batch
 
-- **MedJobs: Full Onboarding Overhaul** (branch: `fresh-ramanujan`, PR #368) — IN QA
+- **MedJobs: Full Onboarding Overhaul** (branch: `fresh-ramanujan`, PR #368) — MERGED ✅ + ACCOUNT FIX MERGED ✅
   - Plan: `plans/medjobs-account-creation-plan.md`
   - Notion: [Task](https://www.notion.so/32c5903a0ffe811e80eadeb088f96bd3)
   - **Account creation:** Auth user + account created after step 1 (name+email), not step 4. Auto-sign-in via verifyOtp token.
@@ -149,14 +149,17 @@
   - Backfill script: `scripts/backfill-highlights-data.js` (paginated queries, 10 concurrent workers, 429 retry)
   - To query the 1,317 deletions: `deleted=true AND deleted_at >= '2026-03-24T21:00:00Z' AND ai_trust_signals IS NULL AND provider_category IN ('Home Care (Non-medical)', 'Assisted Living', 'Memory Care', 'Independent Living')`
 
-- **Admin Photo Deletion** (branch: `gentle-newton`) — IN PROGRESS (pending QA)
+- **Admin Photo Deletion** (branch: `gentle-newton`, PR #395) — MERGED ✅
   - Plan: `plans/admin-delete-photos-plan.md`
   - Notion: [Task](https://www.notion.so/Admin-dashboard-Add-the-ability-for-providers-to-delete-photos-3295903a0ffe805dbc3bec53b1eca849)
   - API: `delete_image` action added to PATCH `/api/admin/images/[providerId]`
   - UI: hover overlay with trash icon + confirm dialog on both classified and raw image grids
   - Root cause fix: `hero_image_url` column doesn't exist in `olera-providers` — handler was selecting it explicitly, Supabase 500'd
-  - `provider_image_metadata` table may not exist — all references wrapped in try/catch
-  - Needs QA on next preview deploy to confirm deletion works end-to-end
+
+- **MedJobs Account Fix + Admin Documents** (PRs #397, #398) — MERGED ✅
+  - PR #397: Fix account creation failing on full form submit (root cause: UPDATE path had no account creation logic)
+  - PR #398: Add Documents section to admin student detail page (driver's license + car insurance upload status)
+  - Type fix: Added document fields to `StudentMetadata` in `lib/types.ts`
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
@@ -203,6 +206,7 @@
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-03-25 | Full apply must retry account creation if apply-partial failed | Two-phase form (partial on step 1, full on step 4) means the full submit UPDATE path must check `account_id` and create auth+account if null. Silent try/catch in apply-partial hid the failure |
 | 2026-03-25 | `hero_image_url` column doesn't exist in `olera-providers` | The set_hero action wrote to it but it was never added to the table schema. All references must use `select("*")` and guard with `"hero_image_url" in provider` |
 | 2026-03-25 | Hover overlay > exposed pill buttons for image actions | Colored pills (yellow/red/green) below each image were visual noise. Dark gradient overlay with icon buttons on hover — images are content, buttons are tools |
 | 2026-03-25 | Quick discovery mode (3 terms/category) is sufficient for batch | Standard mode (12 terms) costs 4x more but yields mostly duplicates. Quick found 16K+ providers across 78 cities for $100. After dedup/filter, same quality |
@@ -286,6 +290,59 @@
 ---
 
 ## Session Log
+
+### 2026-03-25 (Session 60b) — MedJobs Account Creation Fix + Admin Documents
+
+**Branch:** `medjobs-account-fix`, `medjobs-admin-documents` | **PRs:** #397, #398
+
+**What:** Fixed critical bug where MedJobs onboarding completed successfully but dashboard showed "No profile yet." Also added Documents section to admin student detail page.
+
+**Root Cause (PR #397):** The full `/api/medjobs/apply` endpoint's UPDATE path (triggered when `apply-partial` already created the profile) had zero account creation logic. If `apply-partial`'s account creation failed silently, `account_id` stayed null. The full submit updated name/phone/metadata but never checked or set `account_id`. Dashboard queries profiles by `account_id` → found nothing → "No profile yet."
+
+**Fix:** Added account creation + linking as fallback in the UPDATE path. Also return `tokenHash` from both API response paths so client can auto-sign-in after submission. Success screen now links to `/portal/medjobs` (dashboard) instead of `/medjobs/submit-video`.
+
+**PR #398:** Added Documents section to admin MedJobs student detail page. Shows driver's license and car insurance upload status (green "Uploaded" with timestamp, or amber "Not uploaded" warning). Added `drivers_license_url`, `drivers_license_uploaded_at`, `car_insurance_url`, `car_insurance_uploaded_at` to `StudentMetadata` type.
+
+**Files Modified (4):**
+- `app/api/medjobs/apply/route.ts` — Account creation in UPDATE path, tokenHash in responses
+- `app/medjobs/apply/page.tsx` — Auto-sign-in after submit, dashboard link on success
+- `app/admin/medjobs/[studentId]/page.tsx` — Documents section with upload status
+- `lib/types.ts` — Document fields in StudentMetadata
+
+---
+
+### 2026-03-25 (Session 60) — Board Triage + Quick Wins (WEB-11, WEB-06, DKIM)
+
+**Branch:** `jolly-goodall` | **PR:** #400
+
+**What:** Triaged the Notion roadmap board, closed completed tasks, knocked out two P3 quick wins, and completed DKIM setup for joinolera.care.
+
+**Completed:**
+- **HP-07** (Browse by Care Type Power Pages) — already built at `app/[category]/`, marked Done
+- **Email notifications on account creation** — already built in `ensure-account` endpoint, marked Done
+- **DKIM setup for joinolera.care** — generated 2048-bit key in Google Admin, added TXT record to Cloudflare, authentication active
+- **WEB-11** (External link icons) — added arrow-out-of-box SVG to 7 components: AiTrustSignalsSection, ReviewsSection, GoogleReviewSnippets, ProgramCard, RecommendedFirstStep, AAACard, ProviderDetailPanel
+- **WEB-06** (Restart button on benefits results) — added "Start over" button below document checklist, uses existing `reset()` from `useCareProfile`
+- **Deleted** "Rename business_profiles table" task — pure churn, no user value
+
+**Triaged (left as-is):**
+- Unified Care Profile schema (P5) — big architecture task, do after MedJobs + Benefits Finder ship
+- Unify olera-providers + business_profiles (P3) — dangerous while iOS app shares Supabase, needs dedicated week
+- Benefits Admin CMS (P5) — move data to Supabase table first, full CMS is over-engineering for now
+
+**Files Modified (8):**
+- `components/providers/AiTrustSignalsSection.tsx` — external link icon on "Source"
+- `components/providers/ReviewsSection.tsx` — external link icon on "See all on Google"
+- `components/providers/GoogleReviewSnippets.tsx` — external link icon, renamed to "See all on Google"
+- `components/benefits/ProgramCard.tsx` — external link icon on Website/Apply/inline URLs
+- `components/benefits/RecommendedFirstStep.tsx` — external link icon on "Visit website"
+- `components/benefits/AAACard.tsx` — external link icon on "Visit website"
+- `components/messaging/ProviderDetailPanel.tsx` — external link icon on provider website
+- `components/benefits/BenefitsResults.tsx` — "Start over" button
+
+**Build:** Clean, zero errors.
+
+---
 
 ### 2026-03-25 (Session 59) — Admin Photo Deletion + Image Grid Redesign
 

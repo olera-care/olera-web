@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail, verifyEmailEmail } from "@/lib/email-templates";
 import { sendSlackAlert, slackNewLead, slackMissingEmail } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
@@ -668,9 +668,22 @@ async function handleGuestConnection({
         memory_care: "Memory Care",
       };
 
+      // Reserve email log ID for tracking before generating links
+      const emailSubject = `A family is looking for care from ${providerDisplayName || providerName}`;
+      const emailLogId = await reserveEmailLogId({
+        to: providerEmail,
+        subject: emailSubject,
+        emailType: "connection_request",
+        recipientType: "provider",
+        providerId: toProfileId,
+      });
+
       // Generate magic link for provider one-click sign-in
       const siteUrl = getSiteUrl();
-      const redirectPath = `/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`;
+      const redirectPath = appendTrackingParams(
+        `/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`,
+        emailLogId
+      );
       // Fallback: direct to onboard page (handles both claimed and unclaimed providers)
       let viewUrl = `${siteUrl}${redirectPath}`;
 
@@ -692,7 +705,7 @@ async function handleGuestConnection({
 
       await sendEmail({
         to: providerEmail,
-        subject: `A family is looking for care from ${providerDisplayName || providerName}`,
+        subject: emailSubject,
         html: connectionRequestEmail({
           providerName: providerDisplayName || providerName,
           familyName: firstName || "A family",
@@ -704,6 +717,7 @@ async function handleGuestConnection({
         emailType: 'connection_request',
         recipientType: 'provider',
         providerId: toProfileId,
+        emailLogId: emailLogId ?? undefined,
       });
     }
   } catch (emailErr) {
@@ -1324,9 +1338,22 @@ export async function POST(request: Request) {
           memory_care: "Memory Care",
         };
 
+        // Reserve email log ID for tracking before generating links
+        const emailSubject = `A family is looking for care from ${providerDisplayName || providerName}`;
+        const emailLogId = await reserveEmailLogId({
+          to: providerEmail,
+          subject: emailSubject,
+          emailType: "connection_request",
+          recipientType: "provider",
+          providerId: toProfileId,
+        });
+
         // Generate magic link for provider one-click sign-in
         const siteUrl = getSiteUrl();
-        const redirectPath = `/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`;
+        const redirectPath = appendTrackingParams(
+          `/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`,
+          emailLogId
+        );
         // Fallback: direct to onboard page (handles both claimed and unclaimed providers)
         let viewUrl = `${siteUrl}${redirectPath}`;
 
@@ -1348,7 +1375,7 @@ export async function POST(request: Request) {
 
         await sendEmail({
           to: providerEmail,
-          subject: `A family is looking for care from ${providerDisplayName || providerName}`,
+          subject: emailSubject,
           html: connectionRequestEmail({
             providerName: providerDisplayName || providerName,
             familyName: account.display_name || "A family",
@@ -1360,6 +1387,7 @@ export async function POST(request: Request) {
           emailType: 'connection_request',
           recipientType: 'provider',
           providerId: toProfileId,
+          emailLogId: emailLogId ?? undefined,
         });
       }
     } catch (emailErr) {

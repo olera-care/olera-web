@@ -35,6 +35,30 @@ export default function ProviderOnboardPage() {
   const router = useRouter();
   const { user, account, openAuth, refreshAccountData, switchProfile } = useAuth();
 
+  // Track email click if this visit came from an email link (fire-and-forget)
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    const eid = searchParams.get("eid");
+    if (ref === "email" && eid) {
+      const emailTypeMap: Record<string, string> = {
+        lead: "connection_request",
+        review: "new_review",
+        question: "question_received",
+      };
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: slug,
+          event_type: "email_click",
+          email_log_id: eid,
+          email_type: actionParam ? emailTypeMap[actionParam] || actionParam : null,
+          metadata: { source: "direct_link", destination: window.location.pathname },
+        }),
+      }).catch(() => {});
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Core state
   const [step, setStep] = useState<OnboardStep>("loading");
   const [provider, setProvider] = useState<Provider | null>(null);

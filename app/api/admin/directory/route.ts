@@ -26,10 +26,32 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get("category") || "";
     const stateFilter = searchParams.get("state") || "";
     const tab = searchParams.get("tab") || "all";
+    const countOnly = searchParams.get("count_only") === "true";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const perPage = Math.min(100, Math.max(1, parseInt(searchParams.get("per_page") || "50", 10)));
 
     const db = getServiceClient();
+
+    // Fast path: count-only for dashboard overview
+    if (countOnly) {
+      let countQuery = db
+        .from("olera-providers")
+        .select("provider_id", { count: "exact", head: true });
+
+      if (tab === "published") countQuery = countQuery.or("deleted.is.null,deleted.eq.false");
+      else if (tab === "deleted") countQuery = countQuery.eq("deleted", true);
+      else if (tab === "no_city") countQuery = countQuery.is("city", null);
+      if (search) countQuery = countQuery.ilike("provider_name", `%${search}%`);
+      if (category) countQuery = countQuery.eq("provider_category", category);
+      if (stateFilter) countQuery = countQuery.eq("state", stateFilter);
+
+      const { count, error } = await countQuery;
+      if (error) {
+        console.error("Directory count error:", error);
+        return NextResponse.json({ error: "Failed to count providers" }, { status: 500 });
+      }
+      return NextResponse.json({ total: count ?? 0 });
+    }
 
     let query = db
       .from("olera-providers")

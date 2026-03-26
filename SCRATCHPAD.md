@@ -149,14 +149,15 @@
   - Backfill script: `scripts/backfill-highlights-data.js` (paginated queries, 10 concurrent workers, 429 retry)
   - To query the 1,317 deletions: `deleted=true AND deleted_at >= '2026-03-24T21:00:00Z' AND ai_trust_signals IS NULL AND provider_category IN ('Home Care (Non-medical)', 'Assisted Living', 'Memory Care', 'Independent Living')`
 
-- **Admin Photo Deletion** (branch: `gentle-newton`) — IN PROGRESS (pending QA)
-  - Plan: `plans/admin-delete-photos-plan.md`
-  - Notion: [Task](https://www.notion.so/Admin-dashboard-Add-the-ability-for-providers-to-delete-photos-3295903a0ffe805dbc3bec53b1eca849)
-  - API: `delete_image` action added to PATCH `/api/admin/images/[providerId]`
-  - UI: hover overlay with trash icon + confirm dialog on both classified and raw image grids
-  - Root cause fix: `hero_image_url` column doesn't exist in `olera-providers` — handler was selecting it explicitly, Supabase 500'd
-  - `provider_image_metadata` table may not exist — all references wrapped in try/catch
-  - Needs QA on next preview deploy to confirm deletion works end-to-end
+- **Admin Photo Deletion** (branch: `gentle-newton`, PR #395) — MERGED ✅
+
+- **Admin Sidebar Redesign + Overview Performance** (branch: `silent-euler`) — IN PROGRESS
+  - Plan: `plans/admin-sidebar-redesign-plan.md`
+  - Notion: [Task](https://www.notion.so/) — "Organize the left toolbar section of the admin panel into collapsable logical groupings"
+  - Sidebar: 15 flat items → 4 labeled sections (Providers, Activity, Operations), text-only, left-border active state, narrowed w-52
+  - Overview: progressive loading — each stat card fetches independently, skeleton placeholders, no more full-page "Loading..."
+  - Endpoint fixes: images/stats (count queries vs fetching all rows), directory (count_only fast path)
+  - Footer: initials avatar + "Exit Admin" → homepage (was "Back to Portal" → /portal inbox)
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
@@ -203,6 +204,9 @@
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-03-25 | Whitespace grouping > collapsible accordion for admin sidebar | Collapsible groups hide hierarchy instead of showing it, add interaction cost. Muted section labels + spacing create scannable chunks — Linear/Notion pattern |
+| 2026-03-25 | Remove sidebar icons at 15-item count | 15 unique stroke icons blur into a gray column of noise. Text-only with section labels provides better spatial memory. Keep icons only for 5-item mobile bottom nav |
+| 2026-03-25 | Progressive per-card loading > Promise.all blocking | 9 API calls via Promise.all = slowest wins. Independent fetches with skeleton placeholders show fast cards in ~200ms while slow ones catch up |
 | 2026-03-25 | `hero_image_url` column doesn't exist in `olera-providers` | The set_hero action wrote to it but it was never added to the table schema. All references must use `select("*")` and guard with `"hero_image_url" in provider` |
 | 2026-03-25 | Hover overlay > exposed pill buttons for image actions | Colored pills (yellow/red/green) below each image were visual noise. Dark gradient overlay with icon buttons on hover — images are content, buttons are tools |
 | 2026-03-25 | Quick discovery mode (3 terms/category) is sufficient for batch | Standard mode (12 terms) costs 4x more but yields mostly duplicates. Quick found 16K+ providers across 78 cities for $100. After dedup/filter, same quality |
@@ -286,6 +290,36 @@
 ---
 
 ## Session Log
+
+### 2026-03-25 (Session 60) — Admin Sidebar Redesign + Overview Performance
+
+**Branch:** `silent-euler`
+
+**What:** Redesign admin sidebar from flat 15-item icon list to grouped text-only sections. Fix admin overview loading performance — progressive per-card loading instead of all-or-nothing Promise.all.
+
+**Commits (3):**
+- `401adc0` — Sidebar redesign: 4 sections (Providers, Activity, Operations), text-only, left-border active state, narrowed w-52, initials footer, mobile nav limited to 5 items
+- `9ea566d` — Progressive loading: each stat card fetches independently with skeleton placeholders. Fixed images/stats endpoint (count queries vs fetching all rows) and directory endpoint (count_only fast path)
+- `7f187ff` — Fix exit link: "Back to Portal" → "Exit Admin" linking to homepage
+
+**Files Modified (4):**
+- `components/admin/AdminSidebar.tsx` — Complete rewrite: grouped sections, text-only, new footer
+- `app/admin/page.tsx` — Progressive loading, skeleton states, tighter typography
+- `app/api/admin/images/stats/route.ts` — Count queries instead of fetching all rows into memory
+- `app/api/admin/directory/route.ts` — Added count_only fast path with head: true
+
+**Files Created (1):**
+- `plans/admin-sidebar-redesign-plan.md` — Implementation plan with design specs
+
+**Design decisions:**
+- No collapse/accordion — whitespace + muted labels create hierarchy without interaction cost
+- Icons removed from desktop (noise at 15-item count), kept for 5-item mobile bottom nav
+- Active state: `border-l-2 border-gray-900` instead of `bg-primary-50` teal fill
+- Section labels: `text-[11px] uppercase tracking-widest text-gray-400`
+
+**Build:** Clean, zero errors.
+
+---
 
 ### 2026-03-25 (Session 59) — Admin Photo Deletion + Image Grid Redesign
 

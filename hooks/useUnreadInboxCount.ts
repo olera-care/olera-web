@@ -167,6 +167,21 @@ export function useUnreadInboxCount(profileIds: string[]): number {
     };
   }, [recount]);
 
+  // Listen for authoritative sync events from inbox page
+  // This is the source of truth — inbox page has loaded all connections and computed exact unread count
+  useEffect(() => {
+    const syncHandler = (e: Event) => {
+      const { count: syncedCount, profileIds: syncProfileIds } = (e as CustomEvent).detail || {};
+      // Verify the sync is for our profile(s)
+      const syncKey = Array.isArray(syncProfileIds) ? syncProfileIds.join(",") : syncProfileIds;
+      if (syncKey === profileKey && typeof syncedCount === "number") {
+        setCount(syncedCount);
+      }
+    };
+    window.addEventListener("olera:inbox-sync", syncHandler);
+    return () => window.removeEventListener("olera:inbox-sync", syncHandler);
+  }, [profileKey]);
+
   // Cross-tab synchronization: re-count when localStorage changes in another tab
   // This provides immediate updates for legacy localStorage tracking
   useEffect(() => {

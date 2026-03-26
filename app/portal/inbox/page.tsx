@@ -415,6 +415,37 @@ function InboxContent() {
         return [...merged, ...keptFromPrev];
       });
 
+      // Sync navbar badge with actual unread count from loaded connections
+      // This is the authoritative source — we have the connections and can check read state
+      if (activeProfile) {
+        const activeProfileId = activeProfile.id;
+        // Get localStorage read IDs for this profile
+        let localStorageReadIds = new Set<string>();
+        try {
+          const stored = localStorage.getItem(`olera_inbox_read_${activeProfileId}`);
+          if (stored) {
+            localStorageReadIds = new Set(JSON.parse(stored));
+          }
+        } catch { /* localStorage unavailable */ }
+
+        // Count unread connections
+        let unreadCount = 0;
+        for (const conn of enriched) {
+          const meta = conn.metadata as Record<string, unknown> | null;
+          const readBy = (meta?.read_by as Record<string, string>) || {};
+          const isReadInDb = !!readBy[activeProfileId];
+          const isReadInLocalStorage = localStorageReadIds.has(conn.id);
+          if (!isReadInDb && !isReadInLocalStorage) {
+            unreadCount++;
+          }
+        }
+
+        // Dispatch sync event to update navbar badge
+        window.dispatchEvent(new CustomEvent("olera:inbox-sync", {
+          detail: { count: unreadCount, profileIds: [activeProfileId] }
+        }));
+      }
+
       // Auto-select first conversation if none selected and on desktop
       if (!selectedIdRef.current && enriched.length > 0 && window.innerWidth >= 1024) {
         setSelectedId(enriched[0].id);

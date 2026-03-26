@@ -56,7 +56,10 @@ export default function ProgramCard({ match, isSaved, onToggleSave, defaultExpan
           {/* Program name + savings badge */}
           <div className="flex items-baseline gap-2 mb-1 flex-wrap">
             <h4 className="font-display text-lg font-medium text-gray-900 leading-snug">
-              {program.short_name || program.name}
+              {program.name}
+              {program.short_name && program.short_name !== program.name && (
+                <span className="text-sm font-normal text-gray-400 ml-1.5">({program.short_name})</span>
+              )}
             </h4>
             {(() => {
               // Prefer savings_range from waiver library data (e.g., "$5,000 – $20,000/year")

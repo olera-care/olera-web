@@ -378,6 +378,12 @@ export interface StudentMetadata {
   video_intro_url?: string;
   linkedin_url?: string;
 
+  // Documents (private, PII)
+  drivers_license_url?: string;
+  drivers_license_uploaded_at?: string;
+  car_insurance_url?: string;
+  car_insurance_uploaded_at?: string;
+
   // Credential engine (data model ready, UI Phase 2)
   total_verified_hours?: number;
   verified_care_types?: string[];

@@ -713,74 +713,67 @@ export default function ActionCard({
 
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        {/* Header */}
-        <div className="text-center mb-5">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
-            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+        {/* Header — warm, specific */}
+        <div className="text-center mb-6">
+          <div className="w-11 h-11 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-3">
+            <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
             </svg>
           </div>
-          <h3 className="text-xl font-display font-bold text-gray-900 inline-flex items-center gap-1.5">
-            New lead
-            <InfoTooltip content={TOOLTIP_CONTENT["notification-lead"].text} showTos={TOOLTIP_CONTENT["notification-lead"].showTos} />
+          <h3 className="text-lg font-display font-bold text-gray-900">
+            A family is interested in your services
           </h3>
+          <p className="text-sm text-gray-500 mt-1">
+            {timeAgo}
+          </p>
         </div>
 
-        {/* Consolidated lead card */}
-        <div className="bg-primary-50/40 border border-primary-100 rounded-xl p-4 mb-5">
-          {/* Top row: Avatar + info + care type badge */}
-          <div className="flex items-start gap-3 mb-3">
-            {/* Avatar */}
+        {/* Seeker card — clean, privacy-respecting */}
+        <div className="bg-gray-50 rounded-xl p-4 mb-6">
+          <div className="flex items-center gap-3">
             {personImage ? (
-              <Image src={personImage} alt={personName} width={44} height={44} className="w-11 h-11 rounded-full object-cover shrink-0" />
+              <Image src={personImage} alt={personName} width={40} height={40} className="w-10 h-10 rounded-full object-cover shrink-0" />
             ) : (
-              <div className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
                 {getInitials(personName)}
               </div>
             )}
-
-            {/* Name, timestamp, location */}
             <div className="flex-1 min-w-0">
-              <p className="text-base font-semibold text-gray-900">{personName}</p>
-              <p className="text-sm text-gray-500">
-                {timeAgo}{location && ` · ${location}`}
-              </p>
+              <p className="text-[15px] font-semibold text-gray-900">{personName}</p>
+              {(location || careType) && (
+                <p className="text-sm text-gray-500">
+                  {[location, careType ? (CARE_TYPE_LABELS[careType] || careType) : null].filter(Boolean).join(" · ")}
+                </p>
+              )}
             </div>
-
-            {/* Care type badge */}
-            {careType && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-700 shrink-0">
-                {CARE_TYPE_LABELS[careType] || careType}
-              </span>
-            )}
           </div>
-
-          {/* Message preview */}
           {message && (
-            <p className="text-[15px] text-gray-700 leading-relaxed">
-              &ldquo;{message.length > 140 ? message.slice(0, 140) + "..." : message}&rdquo;
+            <p className="text-[15px] text-gray-600 mt-3 leading-relaxed italic">
+              &ldquo;{message}&rdquo;
             </p>
           )}
         </div>
 
-        {/* CTA based on auth state */}
+        {/* CTA */}
         <div className="text-center">
           {isSignedIn ? (
             <Link
               href={`/provider/connections?id=${notificationData.id}`}
-              className="block w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] text-center shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+              className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
             >
-              View and respond
+              View full inquiry
             </Link>
           ) : (
             <>
-              <p className="text-[15px] text-gray-500 mb-4">Verify your email to respond to this lead</p>
               <button
                 onClick={() => setState("verify-form")}
-                className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+                className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
               >
-                Verify email to respond
+                Verify your email to respond
               </button>
+              <p className="text-xs text-gray-400 mt-3">
+                Confirm you manage this listing to view the full inquiry
+              </p>
             </>
           )}
         </div>

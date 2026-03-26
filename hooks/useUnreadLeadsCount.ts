@@ -119,8 +119,8 @@ export function useUnreadLeadsCount(profileId: string | null): number {
         setCount(detail.count);
       }
     };
-    window.addEventListener("olera:leads-count", handler);
-    return () => window.removeEventListener("olera:leads-count", handler);
+    window.addEventListener("olera:leads-sync", handler);
+    return () => window.removeEventListener("olera:leads-sync", handler);
   }, [profileId]);
 
   // Cross-tab synchronization

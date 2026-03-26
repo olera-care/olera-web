@@ -3,7 +3,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import type { Account } from "@/lib/types";
 import { sendLoopsEvent } from "@/lib/loops";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { welcomeEmail } from "@/lib/email-templates";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { sanitizeDisplayName } from "@/lib/validation";
@@ -166,6 +166,7 @@ export async function POST(request: Request) {
           try {
             if (user.email && !claimToken) {
               const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+              const wLogId = await reserveEmailLogId({ to: user.email, subject: "Welcome to Olera", emailType: "welcome", recipientType: "family" });
               const welcomeName = (existingAccount as Account).display_name
                 || user.user_metadata?.full_name
                 || user.user_metadata?.name
@@ -175,10 +176,11 @@ export async function POST(request: Request) {
                 subject: "Welcome to Olera",
                 html: welcomeEmail({
                   familyName: welcomeName.split(/\s+/)[0] || "there",
-                  browseUrl: `${siteUrl}/browse`,
+                  browseUrl: appendTrackingParams(`${siteUrl}/browse`, wLogId),
                 }),
                 emailType: "welcome",
                 recipientType: "family",
+                emailLogId: wLogId ?? undefined,
               });
             }
           } catch {
@@ -329,15 +331,17 @@ export async function POST(request: Request) {
       try {
         if (user.email && !claimToken) {
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+          const wLogId2 = await reserveEmailLogId({ to: user.email, subject: "Welcome to Olera", emailType: "welcome", recipientType: "family" });
           await sendEmail({
             to: user.email,
             subject: "Welcome to Olera",
             html: welcomeEmail({
               familyName: sanitizedName.split(/\s+/)[0] || "there",
-              browseUrl: `${siteUrl}/browse`,
+              browseUrl: appendTrackingParams(`${siteUrl}/browse`, wLogId2),
             }),
             emailType: "welcome",
             recipientType: "family",
+            emailLogId: wLogId2 ?? undefined,
           });
         }
       } catch {

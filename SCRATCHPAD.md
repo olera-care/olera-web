@@ -166,6 +166,15 @@
   - Notion: [Track provider activity in "Activity Center"](https://www.notion.so/Track-provider-activity-in-Activity-Center-32f5903a0ffe80c8ad21ebd8b3176a6f)
   - Track email click-throughs from provider notifications, surface in admin dashboard
   - 5 phases: DB table → instrument emails → capture clicks → API → admin UI
+  - PRs #404 merged to staging, #405 promoted to main
+
+- **Family Activity Center** (branch: `logical-mahavira`) — IN PROGRESS
+  - Plan: `plans/family-activity-center-plan.md`
+  - Expand Activity Center into unified engagement hub: Providers | Families | Feed
+  - Track family signals: connection_sent, profile_enriched, email_click, question_asked, matches_activated
+  - New seeker_activity table, instrument 16 family email types with tracking, family engagement heat
+  - Replaces Matches admin page (funnel metrics → per-person engagement view)
+  - 5 phases: DB schema → instrument events → email tracking → admin API → admin UI
 
 - **80-City Batch Expansion** (branch: `vigilant-yalow`) — COMPLETE ✅
   - 80 cities from map.olera.care priority list (44 missing + 36 thin coverage)

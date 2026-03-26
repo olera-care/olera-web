@@ -56,9 +56,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Build query - match any of the possible provider_id formats
+    // Include metadata for read tracking
     let query = db
       .from("reviews")
-      .select("id, provider_id, account_id, reviewer_name, rating, title, comment, relationship, status, created_at, updated_at, provider_reply, replied_at, replied_by")
+      .select("id, provider_id, account_id, reviewer_name, rating, title, comment, relationship, status, created_at, updated_at, provider_reply, replied_at, replied_by, metadata")
       .in("provider_id", providerIdVariants)
       .eq("status", "published")
       .order("created_at", { ascending: false });
@@ -94,6 +95,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       reviews: reviews ?? [],
       providerSlug: profile.slug,
+      profileId: profile.id,
       stats: {
         totalReviews,
         repliedCount,

@@ -472,6 +472,7 @@ export interface DeferredAction {
     comment: string;
     title?: string;
     relationship?: string;
+    reviewer_name?: string;
   };
   returnUrl: string;
   createdAt: string;

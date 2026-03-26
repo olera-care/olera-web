@@ -27,7 +27,7 @@ export default function ProviderOnboardPage() {
   const searchParams = useSearchParams();
   const providerIdParam = searchParams.get("provider_id");
   const stateParam = searchParams.get("state") as ActionCardState | null;
-  // Action params for email notifications (lead/review/question) or campaign
+  // Action params for email notifications (lead/message/review/question) or campaign
   const actionParam = searchParams.get("action") as NotificationType | "campaign" | null;
   const actionIdParam = searchParams.get("actionId");
   // Token param for marketing campaign emails (pre-verified flow)
@@ -107,6 +107,8 @@ export default function ProviderOnboardPage() {
           if (bp.claim_state === "claimed" && account && bp.account_id === account.id) {
             // User owns this listing - redirect to appropriate section
             if (actionParam === "lead" && actionIdParam) {
+              router.replace(`/provider/inbox?id=${actionIdParam}`);
+            } else if (actionParam === "message" && actionIdParam) {
               router.replace(`/provider/inbox?id=${actionIdParam}`);
             } else if (actionParam === "question" && actionIdParam) {
               router.replace(`/provider/qna?id=${actionIdParam}`);
@@ -199,7 +201,7 @@ export default function ProviderOnboardPage() {
           } else if (actionParam === "question") {
             // Fetch question data
             const { data: question } = await supabase
-              .from("questions")
+              .from("provider_questions")
               .select("id, question, asker_name, created_at")
               .eq("id", actionIdParam)
               .single();
@@ -290,6 +292,8 @@ export default function ProviderOnboardPage() {
           // Route to specific section based on notification type
           if (actionParam === "lead" && actionIdParam) {
             router.replace(`/provider/inbox?id=${actionIdParam}`);
+          } else if (actionParam === "message" && actionIdParam) {
+            router.replace(`/provider/inbox?id=${actionIdParam}`);
           } else if (actionParam === "question" && actionIdParam) {
             router.replace(`/provider/qna?id=${actionIdParam}`);
           } else if (actionParam === "review" && actionIdParam) {
@@ -318,6 +322,25 @@ export default function ProviderOnboardPage() {
         return;
       }
 
+      // Pre-verify if user is authenticated via magic link with provider's email
+      // If they clicked the magic link in the email, they've proven email ownership
+      if (user && actionParam && actionIdParam) {
+        const userEmail = user.email?.toLowerCase();
+        const providerEmail = foundProvider.email?.toLowerCase();
+
+        // If user's email matches provider's email, they came from the magic link
+        // and are already verified (no need for OTP)
+        if (userEmail && providerEmail && userEmail === providerEmail) {
+          console.log("[ProviderOnboard] User authenticated via magic link, pre-verifying");
+          // Mark session as verified
+          await markSessionVerified(claimSessionData.sessionId);
+          setPreVerifiedEmail(user.email || "");
+          setActionCardState("pre-verified");
+          setStep("dashboard");
+          return;
+        }
+      }
+
       // Start with dashboard (wizard will show first, then verification)
       // Set initial state based on context:
       // 1. Notification from email (lead/question/review) → show notification card
@@ -327,6 +350,7 @@ export default function ProviderOnboardPage() {
         // Map action param to notification state
         const notificationStateMap: Record<string, ActionCardState> = {
           lead: "notification-lead",
+          message: "notification-lead", // Messages show similar card to leads
           question: "notification-question",
           review: "notification-review",
         };
@@ -469,6 +493,32 @@ export default function ProviderOnboardPage() {
     );
   }
 
+  // Determine success redirect URL based on action type
+  const getSuccessRedirectUrl = () => {
+    if (actionParam === "lead" && actionIdParam) {
+      return `/provider/inbox?id=${actionIdParam}`;
+    } else if (actionParam === "message" && actionIdParam) {
+      return `/provider/inbox?id=${actionIdParam}`;
+    } else if (actionParam === "question" && actionIdParam) {
+      return `/provider/qna?id=${actionIdParam}`;
+    } else if (actionParam === "review" && actionIdParam) {
+      return `/provider/reviews?id=${actionIdParam}`;
+    }
+    return "/provider";
+  };
+
+  // Get button text based on action type
+  const getSuccessButtonText = () => {
+    if (actionParam === "lead" || actionParam === "message") {
+      return "View Message";
+    } else if (actionParam === "question") {
+      return "View Question";
+    } else if (actionParam === "review") {
+      return "View Review";
+    }
+    return "Go to Dashboard";
+  };
+
   // Success state
   if (step === "success") {
     return (
@@ -493,10 +543,10 @@ export default function ProviderOnboardPage() {
             <strong className="text-gray-700">{provider?.provider_name}</strong> is now linked to your account.
           </p>
           <button
-            onClick={() => router.push("/provider")}
+            onClick={() => router.push(getSuccessRedirectUrl())}
             className="px-8 py-4 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all shadow-sm min-h-[48px]"
           >
-            Go to Dashboard
+            {getSuccessButtonText()}
           </button>
         </div>
       </div>

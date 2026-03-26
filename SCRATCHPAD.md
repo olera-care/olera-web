@@ -161,13 +161,19 @@
   - PR #398: Add Documents section to admin student detail page (driver's license + car insurance upload status)
   - Type fix: Added document fields to `StudentMetadata` in `lib/types.ts`
 
-- **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
+- **Provider Activity Center** (branch: `fond-keller`) — IN PROGRESS
+  - Plan: `plans/provider-activity-center-plan.md`
+  - Notion: [Track provider activity in "Activity Center"](https://www.notion.so/Track-provider-activity-in-Activity-Center-32f5903a0ffe80c8ad21ebd8b3176a6f)
+  - Track email click-throughs from provider notifications, surface in admin dashboard
+  - 5 phases: DB table → instrument emails → capture clicks → API → admin UI
+
+- **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — DONE ✅
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
 
-- **Provider Home Page (Marketing Landing)** (branch: `shiny-maxwell`) — IN PROGRESS
+- **Provider Home Page (Marketing Landing)** (branch: `shiny-maxwell`) — DONE ✅
   - Plan: `plans/provider-home-page-plan.md`
 
-- **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — PLANNED
+- **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — DONE ✅
   - Plan: `plans/provider-deletion-request-plan.md`
 
 - **Backend Integration Roadmap** — PHASES 1-5 COMPLETE ✅ + Notification Testing IN PROGRESS

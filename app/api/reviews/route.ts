@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { newReviewEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 
@@ -212,7 +212,21 @@ export async function POST(request: NextRequest) {
           // Generate magic link for provider one-click sign-in
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
           const providerSlug = provider.slug || provider.source_provider_id || provider.id;
-          const redirectPath = `/provider/${providerSlug}/onboard?action=review&actionId=${newReview.id}`;
+
+          // Reserve email log ID for tracking before generating links
+          const emailSubject = `${reviewerName.split(" ")[0]} left a review for ${provider.display_name || "your listing"}`;
+          const emailLogId = await reserveEmailLogId({
+            to: providerEmail,
+            subject: emailSubject,
+            emailType: "new_review",
+            recipientType: "provider",
+            providerId: provider.id,
+          });
+
+          const redirectPath = appendTrackingParams(
+            `/provider/${providerSlug}/onboard?action=review&actionId=${newReview.id}`,
+            emailLogId
+          );
           // Fallback: direct to onboard page (handles both claimed and unclaimed providers)
           let viewUrl = `${siteUrl}${redirectPath}`;
 
@@ -234,7 +248,7 @@ export async function POST(request: NextRequest) {
 
           await sendEmail({
             to: providerEmail,
-            subject: `${reviewerName.split(" ")[0]} left a review for ${provider.display_name || "your listing"}`,
+            subject: emailSubject,
             html: newReviewEmail({
               providerName: provider.display_name || "Your organization",
               reviewerName,
@@ -246,6 +260,7 @@ export async function POST(request: NextRequest) {
             emailType: "new_review",
             recipientType: "provider",
             providerId: provider.id,
+            emailLogId: emailLogId ?? undefined,
           });
           await sendLoopsEvent({
             email: providerEmail,

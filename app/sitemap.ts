@@ -23,6 +23,9 @@ const SITE_URL = "https://olera.care";
 
 const PROVIDER_BATCH_SIZE = 10_000;
 
+// Cache sitemap for 1 hour — crawlers don't need real-time data
+export const revalidate = 3600;
+
 async function getSupabaseClient() {
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||

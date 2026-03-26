@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
-import { markAllReviewsAsRead } from "@/hooks/useUnreadReviewsCount";
+import { markReviewAsRead, migrateReviewsReadData } from "@/hooks/useUnreadReviewsCount";
 import type { Review } from "@/lib/types";
 
 // Calculate stats from reviews
@@ -237,22 +237,42 @@ function ReviewCard({
   onReply,
   onEdit,
   isMobile,
+  isNew,
+  onMarkAsRead,
 }: {
   review: Review;
   onReply: (review: Review) => void;
   onEdit: (review: Review) => void;
   isMobile: boolean;
+  isNew?: boolean;
+  onMarkAsRead?: () => void;
 }) {
   const hasReply = !!review.provider_reply;
+  const [hasBeenViewed, setHasBeenViewed] = useState(false);
+
+  // Mark as read when card is clicked/interacted with
+  const handleInteraction = useCallback(() => {
+    if (isNew && !hasBeenViewed && onMarkAsRead) {
+      setHasBeenViewed(true);
+      onMarkAsRead();
+    }
+  }, [isNew, hasBeenViewed, onMarkAsRead]);
 
   // Mobile: card is tappable for unreplied reviews
   if (isMobile && !hasReply) {
     return (
       <button
         type="button"
-        onClick={() => onReply(review)}
-        className="w-full text-left bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden active:bg-vanilla-50/60 transition-colors"
+        onClick={() => {
+          handleInteraction();
+          onReply(review);
+        }}
+        className="w-full text-left bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden active:bg-vanilla-50/60 transition-colors relative"
       >
+        {/* New indicator dot */}
+        {isNew && !hasBeenViewed && (
+          <div className="absolute top-4 right-4 w-2.5 h-2.5 rounded-full bg-primary-500 ring-2 ring-white shadow-sm" />
+        )}
         <div className="p-4">
           {/* Reviewer info + rating */}
           <div className="flex items-start justify-between gap-3">
@@ -267,7 +287,7 @@ function ReviewCard({
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0 pr-4">
               <StarRating rating={review.rating} />
             </div>
           </div>
@@ -294,7 +314,14 @@ function ReviewCard({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden hover:border-gray-300/80 transition-colors">
+    <div
+      className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden hover:border-gray-300/80 transition-colors relative"
+      onClick={handleInteraction}
+    >
+      {/* New indicator dot */}
+      {isNew && !hasBeenViewed && (
+        <div className={`absolute ${isMobile ? "top-4 right-4" : "top-6 right-6"} w-2.5 h-2.5 rounded-full bg-primary-500 ring-2 ring-white shadow-sm`} />
+      )}
       <div className={isMobile ? "p-4" : "p-6"}>
         {/* Reviewer info + rating */}
         <div className="flex items-start justify-between gap-3">
@@ -316,7 +343,7 @@ function ReviewCard({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0 pr-4">
             <StarRating rating={review.rating} />
             <span className="text-sm font-semibold text-gray-700">{review.rating}/5</span>
           </div>
@@ -1664,6 +1691,7 @@ export default function ProviderReviewsPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [profileId, setProfileId] = useState<string | null>(null);
 
   // Sheet state
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
@@ -1706,15 +1734,46 @@ export default function ProviderReviewsPage() {
         }
         const data = await res.json();
         const fetchedReviews = data.reviews || [];
+        const fetchedProfileId = data.profileId as string | undefined;
 
-        setReviews(fetchedReviews);
-        setStats(data.stats || calculateStats(fetchedReviews));
-
-        // Mark all reviews as read to clear the badge
-        if (fetchedReviews.length > 0 && providerProfile?.id) {
-          const reviewIds = fetchedReviews.map((r: Review) => r.id);
-          markAllReviewsAsRead(reviewIds, providerProfile.id);
+        if (fetchedProfileId) {
+          setProfileId(fetchedProfileId);
+          // Migrate localStorage data from old key format
+          if (providerProfile?.id && providerProfile.id !== fetchedProfileId) {
+            migrateReviewsReadData(providerProfile.id, fetchedProfileId);
+          }
         }
+
+        // Determine isNew for each review based on database read_by with localStorage fallback
+        const reviewsWithReadState = fetchedReviews.map((r: Review) => {
+          // Check database read_by first
+          const meta = r.metadata || {};
+          const readBy = (meta.read_by as Record<string, string>) || {};
+          const isReadInDb = fetchedProfileId ? !!readBy[fetchedProfileId] : false;
+
+          if (isReadInDb) {
+            return { ...r, isNew: false };
+          }
+
+          // Fallback to localStorage
+          try {
+            const readKey = fetchedProfileId ? `olera_reviews_read_${fetchedProfileId}` : `olera_reviews_read_${providerProfile?.id}`;
+            const stored = localStorage.getItem(readKey);
+            const readIds: string[] = stored ? JSON.parse(stored) : [];
+            return { ...r, isNew: !readIds.includes(r.id) };
+          } catch {
+            return { ...r, isNew: true };
+          }
+        });
+
+        setReviews(reviewsWithReadState);
+        setStats(data.stats || calculateStats(reviewsWithReadState));
+
+        // Count unread reviews and sync navbar badge
+        const unreadCount = reviewsWithReadState.filter((r: Review) => r.isNew).length;
+        window.dispatchEvent(new CustomEvent("olera:reviews-sync", {
+          detail: { count: unreadCount, providerId: fetchedProfileId || providerProfile?.id }
+        }));
       } catch (err) {
         console.error("Failed to fetch reviews:", err);
         // Show empty state on error
@@ -1724,7 +1783,7 @@ export default function ProviderReviewsPage() {
         setIsLoading(false);
       }
     })();
-  }, [providerProfile?.slug]);
+  }, [providerProfile?.slug, providerProfile?.id]);
 
   const filteredReviews = useMemo(() => {
     if (activeFilter === "request_now" || activeFilter === "request_onsite") {
@@ -1742,6 +1801,25 @@ export default function ProviderReviewsPage() {
     all: reviews.length,
     replied: reviews.filter((r) => r.provider_reply).length,
   }), [reviews]);
+
+  // Handle marking a review as read
+  const handleMarkAsRead = useCallback((reviewId: string) => {
+    if (!profileId) return;
+
+    // Update local state
+    setReviews((prev) =>
+      prev.map((r) => (r.id === reviewId ? { ...r, isNew: false } : r))
+    );
+
+    // Persist to database
+    markReviewAsRead(reviewId, profileId);
+
+    // Sync navbar badge (decrement count)
+    const currentUnreadCount = reviews.filter((r) => r.isNew && r.id !== reviewId).length;
+    window.dispatchEvent(new CustomEvent("olera:reviews-sync", {
+      detail: { count: currentUnreadCount, providerId: profileId }
+    }));
+  }, [profileId, reviews]);
 
   // Handle reply
   const handleReply = useCallback((review: Review) => {
@@ -1910,6 +1988,8 @@ export default function ProviderReviewsPage() {
                       onReply={handleReply}
                       onEdit={handleEdit}
                       isMobile={isMobile}
+                      isNew={review.isNew}
+                      onMarkAsRead={() => handleMarkAsRead(review.id)}
                     />
                   </div>
                 ))}

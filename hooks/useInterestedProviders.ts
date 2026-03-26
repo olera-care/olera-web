@@ -167,13 +167,13 @@ export function useInterestedProviders(
     fetchData();
   }, [fetchData]);
 
-  // Poll for updates every 45 seconds (new interested providers, profile updates)
+  // Poll for updates every 5 minutes (new interested providers, profile updates)
   useEffect(() => {
     if (!profileId) return;
 
     const interval = setInterval(() => {
       fetchData();
-    }, 45000);
+    }, 300000);
 
     return () => clearInterval(interval);
   }, [profileId, fetchData]);

@@ -35,6 +35,9 @@ import {
   getCategoryServices,
   getSimilarProviders,
 } from "@/lib/provider-utils";
+
+// Cache provider detail pages for 1 hour (ISR) — reduces Supabase query volume
+export const revalidate = 3600;
 import { buildHighlights, normalizeCareLabel, type HighlightItem, type HighlightIconType } from "@/lib/provider-highlights";
 import { getServiceClient } from "@/lib/admin";
 

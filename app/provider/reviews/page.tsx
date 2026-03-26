@@ -28,7 +28,7 @@ function calculateStats(reviews: Review[]): ReviewStats {
 
 // ── Types ──
 
-type TabFilter = "request_now" | "request_onsite" | "all" | "replied";
+type TabFilter = "all" | "replied";
 
 interface ReviewStats {
   totalReviews: number;
@@ -1681,7 +1681,7 @@ function ReviewsSkeleton() {
 
 export default function ProviderReviewsPage() {
   const providerProfile = useProviderProfile();
-  const [activeFilter, setActiveFilter] = useState<TabFilter>("request_onsite");
+  const [activeFilter, setActiveFilter] = useState<TabFilter>("all");
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats>({
     totalReviews: 0,
@@ -1701,12 +1701,6 @@ export default function ProviderReviewsPage() {
   // Mobile stats sheet
   const [showStatsSheet, setShowStatsSheet] = useState(false);
 
-  // Request Now state (persisted across tab switches)
-  const [requestNowState, setRequestNowState] = useState<RequestNowState>({
-    clients: [],
-    message: DEFAULT_MESSAGE,
-    deliveryMethod: "email",
-  });
 
   // Detect mobile
   useEffect(() => {
@@ -1786,9 +1780,6 @@ export default function ProviderReviewsPage() {
   }, [providerProfile?.slug, providerProfile?.id]);
 
   const filteredReviews = useMemo(() => {
-    if (activeFilter === "request_now" || activeFilter === "request_onsite") {
-      return []; // Empty states for now
-    }
     if (activeFilter === "replied") {
       return reviews.filter((r) => r.provider_reply);
     }
@@ -1796,8 +1787,6 @@ export default function ProviderReviewsPage() {
   }, [activeFilter, reviews]);
 
   const counts = useMemo(() => ({
-    request_now: 0,
-    request_onsite: 0,
     all: reviews.length,
     replied: reviews.filter((r) => r.provider_reply).length,
   }), [reviews]);
@@ -1881,8 +1870,6 @@ export default function ProviderReviewsPage() {
   }
 
   const TABS: { id: TabFilter; label: string }[] = [
-    { id: "request_onsite", label: "In Person" },
-    { id: "request_now", label: "Send Invites" },
     { id: "all", label: "All Reviews" },
     { id: "replied", label: "Replied" },
   ];
@@ -1930,50 +1917,36 @@ export default function ProviderReviewsPage() {
         {/* ── Tabs (outside grid, full width) ── */}
         <div className="mb-4 lg:mb-5 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto scrollbar-hide">
           <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max min-w-full sm:min-w-0 sm:w-max">
-            {TABS.map((tab) => {
-              const showCount = tab.id === "all" || tab.id === "replied";
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveFilter(tab.id)}
-                  className={[
-                    "px-3 sm:px-3.5 lg:px-5 py-2 lg:py-2.5 rounded-[10px] text-[13px] lg:text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-none justify-center sm:justify-start",
-                    activeFilter === tab.id
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-500 hover:text-gray-700",
-                  ].join(" ")}
-                >
-                  {tab.label}
-                  {showCount && (
-                    <span className={`text-xs px-1.5 py-0.5 rounded-md ${
-                      activeFilter === tab.id
-                        ? "bg-gray-100 text-gray-600"
-                        : "bg-warm-100/60 text-gray-400"
-                    }`}>
-                      {counts[tab.id]}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveFilter(tab.id)}
+                className={[
+                  "px-3 sm:px-3.5 lg:px-5 py-2 lg:py-2.5 rounded-[10px] text-[13px] lg:text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-none justify-center sm:justify-start",
+                  activeFilter === tab.id
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700",
+                ].join(" ")}
+              >
+                {tab.label}
+                <span className={`text-xs px-1.5 py-0.5 rounded-md ${
+                  activeFilter === tab.id
+                    ? "bg-gray-100 text-gray-600"
+                    : "bg-warm-100/60 text-gray-400"
+                }`}>
+                  {counts[tab.id]}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
 
         {/* ── Two column layout on desktop (cards + sidebar aligned) ── */}
         <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8 lg:items-start">
-          {/* Left column - review cards or request forms */}
+          {/* Left column - review cards */}
           <div className="min-w-0">
-            {(activeFilter === "request_now" || activeFilter === "request_onsite") ? (
-              <>
-                <RequestNowContent
-                  state={requestNowState}
-                  onStateChange={setRequestNowState}
-                  providerSlug={activeFilter === "request_onsite" ? providerProfile?.slug : undefined}
-                />
-                <MobileTipsAccordion />
-              </>
-            ) : filteredReviews.length > 0 ? (
+            {filteredReviews.length > 0 ? (
               <div className="space-y-4">
                 {filteredReviews.map((review, idx) => (
                   <div

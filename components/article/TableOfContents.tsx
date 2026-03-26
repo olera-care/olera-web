@@ -15,7 +15,7 @@ export function DesktopTableOfContents({ headings }: TableOfContentsProps) {
   return (
     <nav aria-label="Table of contents" className="hidden lg:block">
       <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">
-        On this page
+        Table of Contents
       </p>
       <ul className="space-y-1">
         {headings.map((h) => (
@@ -25,7 +25,7 @@ export function DesktopTableOfContents({ headings }: TableOfContentsProps) {
               onClick={(e) => smoothScroll(e, h.id)}
               className={`
                 block text-sm py-1 border-l-2 transition-colors duration-200
-                ${h.level === 3 ? "pl-5" : "pl-3"}
+                pl-3
                 ${
                   activeId === h.id
                     ? "border-primary-600 text-gray-900 font-medium"
@@ -53,7 +53,7 @@ export function MobileTableOfContents({ headings }: TableOfContentsProps) {
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700"
       >
-        <span>On this page</span>
+        <span>Table of Contents</span>
         <svg
           className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
           fill="none"
@@ -75,7 +75,6 @@ export function MobileTableOfContents({ headings }: TableOfContentsProps) {
                 }}
                 className={`
                   block text-sm py-1.5 text-gray-500 hover:text-gray-900 transition-colors
-                  ${h.level === 3 ? "pl-4" : ""}
                 `}
               >
                 {h.text}

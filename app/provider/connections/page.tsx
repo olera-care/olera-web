@@ -1311,7 +1311,7 @@ export default function ProviderLeadsPage() {
     if (!providerProfile) return;
     const countKey = `olera_leads_new_count_${providerProfile.id}`;
     try { localStorage.setItem(countKey, String(newLeadsCount)); } catch { /* */ }
-    window.dispatchEvent(new CustomEvent("olera:leads-count", { detail: { count: newLeadsCount, profileId: providerProfile.id } }));
+    window.dispatchEvent(new CustomEvent("olera:leads-sync", { detail: { count: newLeadsCount, profileId: providerProfile.id } }));
   }, [newLeadsCount, providerProfile]);
 
   // Derive selectedLead from current leads so it stays in sync after archive/restore

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendSlackAlert, slackQuestionAsked, slackQuestionMissingEmail } from "@/lib/slack";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { questionConfirmationEmail, questionReceivedEmail } from "@/lib/email-templates";
 
 /**
@@ -78,14 +78,17 @@ export async function POST(request: NextRequest) {
     let askerEmail: string | null;
     let askerUserId: string | null;
 
+    let askerProfileId: string | null = null;
+
     if (user) {
       // Authenticated user — get display name from profile
       const { data: profile } = await db
         .from("business_profiles")
-        .select("display_name")
+        .select("id, display_name")
         .eq("user_id", user.id)
         .single();
 
+      askerProfileId = profile?.id || null;
       askerName = profile?.display_name || user.email?.split("@")[0] || "Anonymous";
       askerEmail = user.email || null;
       askerUserId = user.id;
@@ -135,6 +138,21 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error("Failed to create question:", error);
       return NextResponse.json({ error: "Failed to submit question" }, { status: 500 });
+    }
+
+    // Log family engagement event (fire-and-forget, authenticated users only)
+    if (askerProfileId) {
+      db.from("seeker_activity").insert({
+        profile_id: askerProfileId,
+        event_type: "question_asked",
+        related_provider_id: provider_id,
+        metadata: {
+          question_id: newQuestion.id,
+          question_preview: question.trim().substring(0, 100),
+        },
+      }).then(({ error: actErr }: { error: { message: string } | null }) => {
+        if (actErr) console.error("[seeker_activity] question_asked insert failed:", actErr);
+      });
     }
 
     // Slack notifications — must await in serverless to prevent early termination
@@ -287,6 +305,13 @@ export async function POST(request: NextRequest) {
 
       // 2. Confirmation email to the asker (if they have an email)
       if (askerEmail) {
+        const qConfirmEmailLogId = await reserveEmailLogId({
+          to: askerEmail,
+          subject: `Your question to ${providerDisplayName} on Olera`,
+          emailType: "question_confirmation",
+          recipientType: "family",
+        });
+
         await sendEmail({
           to: askerEmail,
           subject: `Your question to ${providerDisplayName} on Olera`,
@@ -294,10 +319,11 @@ export async function POST(request: NextRequest) {
             askerName,
             providerName: providerDisplayName,
             question: question.trim(),
-            providerUrl: providerPageUrl,
+            providerUrl: appendTrackingParams(providerPageUrl, qConfirmEmailLogId),
           }),
           emailType: 'question_confirmation',
           recipientType: 'family',
+          emailLogId: qConfirmEmailLogId ?? undefined,
         });
       }
     } catch (emailErr) {
@@ -386,6 +412,13 @@ export async function PATCH(request: NextRequest) {
             .single();
 
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+          const enrichEmailLogId = await reserveEmailLogId({
+            to: updates.asker_email,
+            subject: `Your question to ${provider?.display_name || "a provider"} on Olera`,
+            emailType: "question_confirmation",
+            recipientType: "family",
+          });
+
           await sendEmail({
             to: updates.asker_email,
             subject: `Your question to ${provider?.display_name || "a provider"} on Olera`,
@@ -393,10 +426,11 @@ export async function PATCH(request: NextRequest) {
               askerName: updates.asker_name || "there",
               providerName: provider?.display_name || "the provider",
               question: updated.question,
-              providerUrl: `${siteUrl}/provider/${providerSlug}`,
+              providerUrl: appendTrackingParams(`${siteUrl}/provider/${providerSlug}`, enrichEmailLogId),
             }),
             emailType: 'question_confirmation',
             recipientType: 'family',
+            emailLogId: enrichEmailLogId ?? undefined,
           });
         } catch (emailErr) {
           console.error("Question confirmation email failed:", emailErr);

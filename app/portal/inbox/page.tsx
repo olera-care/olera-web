@@ -42,6 +42,33 @@ function InboxContent() {
   const urlToken = searchParams.get("token");
   const urlRole = searchParams.get("role") as RoleFilter | null;
 
+  // Track email click-back if arriving from a family email link
+  const emailTrackingDone = useRef(false);
+  useEffect(() => {
+    if (emailTrackingDone.current) return;
+    const ref = searchParams.get("ref");
+    const eid = searchParams.get("eid");
+    if (ref === "email" && eid && activeProfile?.id) {
+      emailTrackingDone.current = true;
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "family",
+          profile_id: activeProfile.id,
+          event_type: "email_click",
+          email_log_id: eid,
+          metadata: { source: "direct_link", destination: "/portal/inbox" },
+        }),
+      }).catch(() => {});
+      // Clean tracking params from URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete("ref");
+      url.searchParams.delete("eid");
+      window.history.replaceState(null, "", url.pathname + url.search);
+    }
+  }, [searchParams, activeProfile]);
+
   // Compute provider profile IDs and whether user has both account types
   const { providerProfileIds, hasProviderProfile, hasFamilyProfile } = useMemo(() => {
     const providerIds = new Set<string>();

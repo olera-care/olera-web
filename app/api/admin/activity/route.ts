@@ -4,15 +4,20 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 /**
  * GET /api/admin/activity
  *
- * Admin Activity Center data. Two views:
- * - view=feed (default): chronological events with provider info
- * - view=providers: aggregated engagement per provider
+ * Admin Activity Center data. Supports two actor types:
+ * - actor=providers (default): provider email click engagement
+ * - actor=families: care seeker engagement (connections, profile, email clicks)
+ *
+ * Each actor type has two views:
+ * - view=feed: chronological events
+ * - view=people (or view=providers for backward compat): aggregated per person
  *
  * Query params:
- * - view: "feed" | "providers"
- * - email_type: filter by email type (connection_request, question_received, new_review)
+ * - actor: "providers" | "families"
+ * - view: "feed" | "people" | "providers" (legacy alias for "people")
+ * - event_type: filter by event type
  * - days: time window (7, 30, 90). Default 30
- * - search: provider name search
+ * - search: name search
  * - limit: pagination limit. Default 50
  * - offset: pagination offset. Default 0
  * - count_only: return only total count
@@ -30,8 +35,9 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
+    const actor = searchParams.get("actor") || "providers";
     const view = searchParams.get("view") || "feed";
-    const emailType = searchParams.get("email_type");
+    const eventType = searchParams.get("event_type") || searchParams.get("email_type");
     const days = parseInt(searchParams.get("days") || "30", 10);
     const search = searchParams.get("search")?.trim() || "";
     const limit = parseInt(searchParams.get("limit") || "50", 10);
@@ -45,25 +51,21 @@ export async function GET(request: NextRequest) {
     since.setDate(since.getDate() - days);
     const sinceISO = since.toISOString();
 
-    if (view === "providers") {
-      return handleProvidersView(db, {
-        emailType,
-        sinceISO,
-        search,
-        limit,
-        offset,
-        countOnly,
-      });
+    const opts = { eventType, sinceISO, search, limit, offset, countOnly };
+
+    if (actor === "families") {
+      if (view === "people" || view === "families") {
+        return handleFamiliesPeopleView(db, opts);
+      }
+      return handleFamiliesFeedView(db, opts);
     }
 
-    return handleFeedView(db, {
-      emailType,
-      sinceISO,
-      search,
-      limit,
-      offset,
-      countOnly,
-    });
+    // Provider views (default + backward compat)
+    if (view === "providers" || view === "people") {
+      return handleProvidersView(db, { ...opts, emailType: eventType });
+    }
+
+    return handleFeedView(db, { ...opts, emailType: eventType });
   } catch (err) {
     console.error("Admin activity error:", err);
     return NextResponse.json(
@@ -83,6 +85,7 @@ async function handleFeedView(db: any, opts: {
   countOnly: boolean;
 }) {
   const { emailType, sinceISO, search, limit, offset, countOnly } = opts;
+  // Provider feed — existing behavior
 
   // If searching, find matching provider IDs first
   let searchProviderIds: string[] | null = null;
@@ -381,4 +384,243 @@ async function handleProvidersView(db: any, opts: {
     providers: enrichedProviders,
     total,
   });
+}
+
+// ---------------------------------------------------------------------------
+// Family handlers — seeker_activity table
+// ---------------------------------------------------------------------------
+
+interface FamilyOpts {
+  eventType: string | null;
+  sinceISO: string;
+  search: string;
+  limit: number;
+  offset: number;
+  countOnly: boolean;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleFamiliesFeedView(db: any, opts: FamilyOpts) {
+  const { eventType, sinceISO, search, limit, offset, countOnly } = opts;
+
+  // If searching, find matching family profile IDs first
+  let searchProfileIds: string[] | null = null;
+  if (search) {
+    const { data: matches } = await db
+      .from("business_profiles")
+      .select("id")
+      .eq("type", "family")
+      .or(`display_name.ilike.%${search}%,email.ilike.%${search}%`)
+      .limit(200);
+
+    searchProfileIds = (matches ?? []).map((p: { id: string }) => p.id);
+    if (searchProfileIds!.length === 0) {
+      return NextResponse.json({ events: [], total: 0 });
+    }
+  }
+
+  // Build query
+  let query = db
+    .from("seeker_activity")
+    .select("*", { count: "exact" })
+    .gte("created_at", sinceISO)
+    .order("created_at", { ascending: false });
+
+  if (eventType) {
+    query = query.eq("event_type", eventType);
+  }
+  if (searchProfileIds) {
+    query = query.in("profile_id", searchProfileIds);
+  }
+
+  if (countOnly) {
+    query = query.limit(0);
+    const { count } = await query;
+    return NextResponse.json({ count: count || 0 });
+  }
+
+  query = query.range(offset, offset + limit - 1);
+  const { data: events, count, error } = await query;
+
+  if (error) {
+    console.error("Family activity feed query error:", error);
+    return NextResponse.json({ error: "Failed to fetch activity" }, { status: 500 });
+  }
+
+  // Hydrate with family profile info
+  const profileIds = Array.from(
+    new Set((events || []).map((e: { profile_id: string }) => e.profile_id))
+  ) as string[];
+
+  const familyMap: Record<string, {
+    name: string; email: string | null; city: string | null;
+    state: string | null; care_types: string[]; timeline: string | null;
+  }> = {};
+
+  if (profileIds.length > 0) {
+    const { data: profiles } = await db
+      .from("business_profiles")
+      .select("id, display_name, email, city, state, care_types, metadata")
+      .in("id", profileIds);
+
+    if (profiles) {
+      for (const p of profiles) {
+        const meta = (p.metadata || {}) as Record<string, unknown>;
+        familyMap[p.id] = {
+          name: p.display_name || "Unknown",
+          email: p.email,
+          city: p.city,
+          state: p.state,
+          care_types: p.care_types || [],
+          timeline: (meta.timeline as string) || null,
+        };
+      }
+    }
+  }
+
+  const enrichedEvents = (events || []).map(
+    (e: { profile_id: string; [key: string]: unknown }) => ({
+      ...e,
+      family: familyMap[e.profile_id] || null,
+    })
+  );
+
+  return NextResponse.json({ events: enrichedEvents, total: count || 0 });
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleFamiliesPeopleView(db: any, opts: FamilyOpts) {
+  const { eventType, sinceISO, search, limit, offset, countOnly } = opts;
+
+  let query = db
+    .from("seeker_activity")
+    .select("profile_id, event_type, email_type, related_provider_id, created_at")
+    .gte("created_at", sinceISO)
+    .order("created_at", { ascending: false });
+
+  if (eventType) {
+    query = query.eq("event_type", eventType);
+  }
+
+  const { data: allEvents, error } = await query.limit(5000);
+
+  if (error) {
+    console.error("Family activity people query error:", error);
+    return NextResponse.json({ error: "Failed to fetch activity" }, { status: 500 });
+  }
+
+  // Aggregate per family
+  const familyStats: Record<string, {
+    profile_id: string;
+    total_events: number;
+    last_active: string;
+    event_types: Record<string, number>;
+    recent_events_7d: number;
+    connections_count: number;
+    providers_contacted: Set<string>;
+  }> = {};
+
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  for (const event of allEvents || []) {
+    const pid = event.profile_id;
+    if (!familyStats[pid]) {
+      familyStats[pid] = {
+        profile_id: pid,
+        total_events: 0,
+        last_active: event.created_at,
+        event_types: {},
+        recent_events_7d: 0,
+        connections_count: 0,
+        providers_contacted: new Set(),
+      };
+    }
+
+    familyStats[pid].total_events++;
+
+    if (event.event_type) {
+      familyStats[pid].event_types[event.event_type] =
+        (familyStats[pid].event_types[event.event_type] || 0) + 1;
+    }
+
+    if (event.event_type === "connection_sent") {
+      familyStats[pid].connections_count++;
+      if (event.related_provider_id) {
+        familyStats[pid].providers_contacted.add(event.related_provider_id);
+      }
+    }
+
+    if (new Date(event.created_at) > sevenDaysAgo) {
+      familyStats[pid].recent_events_7d++;
+    }
+
+    if (event.created_at > familyStats[pid].last_active) {
+      familyStats[pid].last_active = event.created_at;
+    }
+  }
+
+  // Sort by last_active descending
+  let sortedFamilies = Object.values(familyStats)
+    .map(f => ({
+      ...f,
+      providers_contacted: f.providers_contacted.size,
+    }))
+    .sort((a, b) => new Date(b.last_active).getTime() - new Date(a.last_active).getTime());
+
+  // Hydrate with family profile info
+  const profileIds = sortedFamilies.map((f) => f.profile_id);
+  const familyMap: Record<string, {
+    name: string; email: string | null; city: string | null;
+    state: string | null; care_types: string[]; timeline: string | null;
+    account_id: string | null;
+  }> = {};
+
+  if (profileIds.length > 0) {
+    const { data: profiles } = await db
+      .from("business_profiles")
+      .select("id, display_name, email, city, state, care_types, metadata, account_id")
+      .in("id", profileIds);
+
+    if (profiles) {
+      for (const p of profiles) {
+        const meta = (p.metadata || {}) as Record<string, unknown>;
+        familyMap[p.id] = {
+          name: p.display_name || "Unknown",
+          email: p.email,
+          city: p.city,
+          state: p.state,
+          care_types: p.care_types || [],
+          timeline: (meta.timeline as string) || null,
+          account_id: p.account_id,
+        };
+      }
+    }
+  }
+
+  // Apply search filter after hydration
+  if (search) {
+    const lowerSearch = search.toLowerCase();
+    sortedFamilies = sortedFamilies.filter((f) => {
+      const info = familyMap[f.profile_id];
+      return (
+        info?.name?.toLowerCase().includes(lowerSearch) ||
+        info?.email?.toLowerCase().includes(lowerSearch)
+      );
+    });
+  }
+
+  if (countOnly) {
+    return NextResponse.json({ count: sortedFamilies.length });
+  }
+
+  const total = sortedFamilies.length;
+  const paged = sortedFamilies.slice(offset, offset + limit);
+
+  const enrichedFamilies = paged.map((f) => ({
+    ...f,
+    family: familyMap[f.profile_id] || null,
+  }));
+
+  return NextResponse.json({ families: enrichedFamilies, total });
 }

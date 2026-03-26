@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { matchesLiveEmail } from "@/lib/email-templates";
 import { PRIMARY_NEEDS, type PrimaryNeed } from "@/lib/types/benefits";
 import { generateUniqueSlug } from "@/lib/slug";
@@ -215,6 +215,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Failed to activate" }, { status: 500 });
     }
 
+    // Log family engagement event (fire-and-forget)
+    db.from("seeker_activity").insert({
+      profile_id: profileId,
+      event_type: "matches_activated",
+      metadata: {
+        care_types: profile.care_types || [],
+        city: city || profile.city || null,
+        state: state || profile.state || null,
+      },
+    }).then(({ error: actErr }: { error: { message: string } | null }) => {
+      if (actErr) console.error("[seeker_activity] matches_activated insert failed:", actErr);
+    });
+
     // Send confirmation email with magic link (best-effort - don't fail the API if email fails)
     const userEmail = user.email;
     const familyName = profile.display_name || "there";
@@ -224,11 +237,15 @@ export async function POST(request: Request) {
 
     if (userEmail) {
       try {
+        const mlSubject = "Your Matches profile is live";
+        const mlLogId = await reserveEmailLogId({ to: userEmail, subject: mlSubject, emailType: "matches_live", recipientType: "family" });
+
         // Generate magic link so user can access matches without logging in again
         const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
         const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-        let matchesUrl = `${siteUrl}${finalDestination}`;
+        const trackedDest = appendTrackingParams(finalDestination, mlLogId);
+        let matchesUrl = `${siteUrl}${trackedDest}`;
 
         if (url && serviceKey) {
           const authClient = createClient(url, serviceKey);
@@ -237,7 +254,7 @@ export async function POST(request: Request) {
             email: userEmail,
             options: {
               // Use /auth/magic-link handler which processes implicit flow tokens
-              redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(finalDestination)}`,
+              redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(trackedDest)}`,
             },
           });
 
@@ -251,7 +268,7 @@ export async function POST(request: Request) {
 
         await sendEmail({
           to: userEmail,
-          subject: "Your Matches profile is live",
+          subject: mlSubject,
           html: matchesLiveEmail({
             familyName,
             city: locationCity,
@@ -259,6 +276,7 @@ export async function POST(request: Request) {
           }),
           emailType: "matches_live",
           recipientType: "family",
+          emailLogId: mlLogId ?? undefined,
         });
         console.log("[activate-matches] Confirmation email sent to:", userEmail);
       } catch (emailErr) {

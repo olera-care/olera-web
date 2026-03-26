@@ -291,7 +291,7 @@
 
 ## Session Log
 
-### 2026-03-25 (Session 60) — MedJobs Account Creation Fix + Admin Documents
+### 2026-03-25 (Session 60b) — MedJobs Account Creation Fix + Admin Documents
 
 **Branch:** `medjobs-account-fix`, `medjobs-admin-documents` | **PRs:** #397, #398
 
@@ -308,6 +308,37 @@
 - `app/medjobs/apply/page.tsx` — Auto-sign-in after submit, dashboard link on success
 - `app/admin/medjobs/[studentId]/page.tsx` — Documents section with upload status
 - `lib/types.ts` — Document fields in StudentMetadata
+
+---
+
+### 2026-03-25 (Session 60) — Board Triage + Quick Wins (WEB-11, WEB-06, DKIM)
+
+**Branch:** `jolly-goodall` | **PR:** #400
+
+**What:** Triaged the Notion roadmap board, closed completed tasks, knocked out two P3 quick wins, and completed DKIM setup for joinolera.care.
+
+**Completed:**
+- **HP-07** (Browse by Care Type Power Pages) — already built at `app/[category]/`, marked Done
+- **Email notifications on account creation** — already built in `ensure-account` endpoint, marked Done
+- **DKIM setup for joinolera.care** — generated 2048-bit key in Google Admin, added TXT record to Cloudflare, authentication active
+- **WEB-11** (External link icons) — added arrow-out-of-box SVG to 7 components: AiTrustSignalsSection, ReviewsSection, GoogleReviewSnippets, ProgramCard, RecommendedFirstStep, AAACard, ProviderDetailPanel
+- **WEB-06** (Restart button on benefits results) — added "Start over" button below document checklist, uses existing `reset()` from `useCareProfile`
+- **Deleted** "Rename business_profiles table" task — pure churn, no user value
+
+**Triaged (left as-is):**
+- Unified Care Profile schema (P5) — big architecture task, do after MedJobs + Benefits Finder ship
+- Unify olera-providers + business_profiles (P3) — dangerous while iOS app shares Supabase, needs dedicated week
+- Benefits Admin CMS (P5) — move data to Supabase table first, full CMS is over-engineering for now
+
+**Files Modified (8):**
+- `components/providers/AiTrustSignalsSection.tsx` — external link icon on "Source"
+- `components/providers/ReviewsSection.tsx` — external link icon on "See all on Google"
+- `components/providers/GoogleReviewSnippets.tsx` — external link icon, renamed to "See all on Google"
+- `components/benefits/ProgramCard.tsx` — external link icon on Website/Apply/inline URLs
+- `components/benefits/RecommendedFirstStep.tsx` — external link icon on "Visit website"
+- `components/benefits/AAACard.tsx` — external link icon on "Visit website"
+- `components/messaging/ProviderDetailPanel.tsx` — external link icon on provider website
+- `components/benefits/BenefitsResults.tsx` — "Start over" button
 
 **Build:** Clean, zero errors.
 

@@ -215,6 +215,7 @@ export default function AdminMedJobsPage() {
                 <th className="text-left px-4 py-3 font-medium text-gray-500">University</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">School</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Location</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">Docs</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Profile</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Joined</th>
                 <th className="text-right px-4 py-3 font-medium text-gray-500">Actions</th>
@@ -252,6 +253,19 @@ export default function AdminMedJobsPage() {
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {student.city && student.state ? `${student.city}, ${student.state}` : "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <span title="Driver's license" className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${meta.drivers_license_url ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-400"}`}>
+                          DL
+                        </span>
+                        <span title="Car insurance" className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${meta.car_insurance_url ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-400"}`}>
+                          CI
+                        </span>
+                        <span title="Video intro" className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${meta.video_intro_url ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-400"}`}>
+                          V
+                        </span>
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">

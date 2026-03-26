@@ -128,17 +128,49 @@ export function useUnreadQnACount(providerSlug: string | null): number {
 }
 
 /**
- * Mark a question as read in localStorage and dispatch event.
+ * Mark a question as read in the database (metadata.read_by) and localStorage fallback.
+ * Dispatches olera:qna-read event for immediate UI updates.
  */
-export function markQuestionAsRead(questionId: string, providerSlug: string): void {
-  const readKey = `olera_qna_read_${providerSlug}`;
+export async function markQuestionAsRead(questionId: string, profileId: string): Promise<void> {
+  // Optimistically update localStorage for immediate feedback
+  const readKey = `olera_qna_read_${profileId}`;
   try {
     const stored = localStorage.getItem(readKey);
     const readIds: string[] = stored ? JSON.parse(stored) : [];
     if (!readIds.includes(questionId)) {
       readIds.push(questionId);
       localStorage.setItem(readKey, JSON.stringify(readIds));
-      window.dispatchEvent(new CustomEvent("olera:qna-read"));
+    }
+  } catch { /* localStorage unavailable */ }
+
+  // Dispatch event for immediate UI updates
+  window.dispatchEvent(new CustomEvent("olera:qna-read"));
+
+  // Persist to database
+  try {
+    await fetch("/api/provider/questions/mark-read", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ questionId }),
+    });
+  } catch (err) {
+    console.error("[markQuestionAsRead] Failed to persist to database:", err);
+    // localStorage fallback already in place
+  }
+}
+
+/**
+ * Migrate localStorage read data from slug-based key to profileId-based key.
+ * This is a one-time migration for backwards compatibility.
+ */
+export function migrateQnaReadData(providerSlug: string, profileId: string): void {
+  if (!providerSlug || !profileId || providerSlug === profileId) return;
+  try {
+    const oldKey = `olera_qna_read_${providerSlug}`;
+    const newKey = `olera_qna_read_${profileId}`;
+    const oldData = localStorage.getItem(oldKey);
+    if (oldData && !localStorage.getItem(newKey)) {
+      localStorage.setItem(newKey, oldData);
     }
   } catch { /* localStorage unavailable */ }
 }

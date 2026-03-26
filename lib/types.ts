@@ -144,6 +144,9 @@ export interface Review {
   replied_by: string | null;
   // Migration tracking
   migration_source?: string | null;
+  // Read tracking
+  metadata?: Record<string, unknown>;
+  isNew?: boolean;
 }
 
 // ============================================================

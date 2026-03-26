@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Select from "@/components/ui/Select";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
+import { markLeadAsRead } from "@/hooks/useUnreadLeadsCount";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Connection, Profile } from "@/lib/types";
 
@@ -48,7 +49,7 @@ interface LeadDetail {
 
 // ── Types ──
 
-type TimelineFilter = "all" | "immediate" | "within_1_month" | "exploring" | "archived";
+type StatusFilter = "all" | "new" | "replied" | "archived";
 type SortOption = "best_match" | "most_recent" | "most_urgent";
 type LeadStatus = "new" | "replied" | "no_reply" | "archived";
 type Urgency = "immediate" | "within_1_month" | "exploring";
@@ -56,11 +57,10 @@ type ContactMethod = "phone" | "email" | "either";
 
 // ── Config ──
 
-const FILTER_TABS: { id: TimelineFilter; label: string }[] = [
+const FILTER_TABS: { id: StatusFilter; label: string }[] = [
   { id: "all", label: "All leads" },
-  { id: "immediate", label: "Immediate" },
-  { id: "within_1_month", label: "Within 1 month" },
-  { id: "exploring", label: "Exploring" },
+  { id: "new", label: "New" },
+  { id: "replied", label: "Replied" },
   { id: "archived", label: "Archived" },
 ];
 
@@ -1128,15 +1128,24 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
   const careRecipient = careRecipientMap[rawCareRecipient] || "Family member";
 
   // Check if this is a "new" lead (not viewed yet) - scoped by provider profile
+  // Primary: check database metadata.read_by
+  // Fallback: check localStorage for backwards compatibility
   let isNew = false;
-  try {
-    // Migrate old data on first access
-    migrateLeadsViewedData(providerProfileId);
-    const leadsKey = `olera_leads_viewed_${providerProfileId}`;
-    const viewedIds = JSON.parse(localStorage.getItem(leadsKey) || "[]");
-    isNew = !viewedIds.includes(conn.id) && status !== "archived" && status !== "replied";
-  } catch {
-    isNew = status === "new";
+  if (status !== "archived" && status !== "replied") {
+    const readBy = (meta?.read_by as Record<string, string>) || {};
+    const isReadInDb = !!readBy[providerProfileId];
+
+    if (!isReadInDb) {
+      // Check localStorage as fallback
+      try {
+        migrateLeadsViewedData(providerProfileId);
+        const leadsKey = `olera_leads_viewed_${providerProfileId}`;
+        const viewedIds = JSON.parse(localStorage.getItem(leadsKey) || "[]");
+        isNew = !viewedIds.includes(conn.id);
+      } catch {
+        isNew = true;
+      }
+    }
   }
 
   // Location: prefer looking_in from message (provider's location), fall back to family profile
@@ -1189,7 +1198,7 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
 
 export default function ProviderLeadsPage() {
   const providerProfile = useProviderProfile();
-  const [activeFilter, setActiveFilter] = useState<TimelineFilter>("all");
+  const [activeFilter, setActiveFilter] = useState<StatusFilter>("all");
   const [sortBy, setSortBy] = useState<SortOption>("best_match");
   const [leads, setLeads] = useState<LeadDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -1314,22 +1323,13 @@ export default function ProviderLeadsPage() {
   const openDrawer = useCallback((lead: LeadDetail) => {
     setSelectedLeadId(lead.id);
     setIsDrawerOpen(true);
-    // Clear "New" badge once viewed and persist to localStorage
+    // Clear "New" badge once viewed and persist to database
     if (lead.isNew && providerProfile) {
       setLeads((prev) =>
         prev.map((l) => (l.id === lead.id ? { ...l, isNew: false } : l))
       );
-      // Persist viewed status to localStorage (scoped by provider profile)
-      try {
-        const leadsKey = `olera_leads_viewed_${providerProfile.id}`;
-        const viewedIds: string[] = JSON.parse(localStorage.getItem(leadsKey) || "[]");
-        if (!viewedIds.includes(lead.id)) {
-          viewedIds.push(lead.id);
-          localStorage.setItem(leadsKey, JSON.stringify(viewedIds));
-        }
-      } catch {
-        // localStorage unavailable
-      }
+      // Persist to database via API (also updates localStorage for fallback)
+      markLeadAsRead(lead.id, providerProfile.id);
     }
   }, [providerProfile]);
 
@@ -1383,9 +1383,12 @@ export default function ProviderLeadsPage() {
   const filteredLeads = useMemo(() => {
     if (activeFilter === "archived") {
       return leads.filter((l) => l.status === "archived");
-    } else if (activeFilter !== "all") {
-      return leads.filter((l) => l.urgency === activeFilter && l.status !== "archived");
+    } else if (activeFilter === "new") {
+      return leads.filter((l) => l.isNew && l.status !== "archived");
+    } else if (activeFilter === "replied") {
+      return leads.filter((l) => l.status === "replied");
     } else {
+      // "all" - show everything except archived
       return leads.filter((l) => l.status !== "archived");
     }
   }, [activeFilter, leads]);

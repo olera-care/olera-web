@@ -64,26 +64,27 @@ function evaluateEligibility(
     reasons.push("Meets age requirement");
   }
 
-  // Income check (soft — no disqualification)
+  // Income check — hard disqualify if over threshold
   const income = getEstimatedMonthlyIncome(answers.incomeRange);
   if (income != null && program.max_income_single != null) {
     if (income <= program.max_income_single) {
       score += 12;
       reasons.push("Within income guidelines");
+    } else {
+      return null; // Hard disqualify — income exceeds program threshold
     }
   }
 
-  // Veteran — hard disqualify veteran-only programs for non-veterans
+  // Veteran — hard disqualify unless user explicitly says "yes"
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const requiresVeteran = (program as any).requires_veteran;
   if (requiresVeteran === true) {
     if (answers.veteranStatus === "yes") {
       score += 15;
       reasons.push("Veteran benefit");
-    } else if (answers.veteranStatus === "no") {
-      return null; // Hard disqualify
+    } else {
+      return null; // Hard disqualify — only show veteran programs to confirmed veterans
     }
-    // "preferNotToSay" or null → keep program but no bonus
   }
 
   // Disability (hard disqualify if required but not met)
@@ -102,7 +103,10 @@ function evaluateEligibility(
     score += 5;
   }
 
-  // Category match (largest bonus)
+  // Category match — hard disqualify if no overlap with user's needs
+  if (relevantCategories.length > 0 && !relevantCategories.includes(program.category)) {
+    return null; // Hard disqualify — program category doesn't match any selected needs
+  }
   if (relevantCategories.includes(program.category)) {
     score += 15;
     reasons.push("Matches your care needs");

@@ -156,10 +156,10 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
               {getInitials(adminUser.email)}
             </div>
             <Link
-              href="/portal"
+              href="/"
               className="text-[13px] text-gray-400 hover:text-gray-600 transition-colors duration-150"
             >
-              Back to Portal
+              Exit Admin
             </Link>
           </div>
         </div>

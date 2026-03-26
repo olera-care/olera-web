@@ -167,16 +167,27 @@
   - Track email click-throughs from provider notifications, surface in admin dashboard
   - 5 phases: DB table → instrument emails → capture clicks → API → admin UI
 
-- **80-City Batch Expansion** (branch: `vigilant-yalow`, no code changes) — COMPLETE ✅
+- **80-City Batch Expansion** (branch: `vigilant-yalow`) — COMPLETE ✅
   - 80 cities from map.olera.care priority list (44 missing + 36 thin coverage)
   - Discovery: 14,917 providers found across 80 cities (~43 min, $86)
   - Clean: AI classification + keyword filter + dedup against 33,589 existing
   - Load: ~4,200 providers uploaded + geocoded ($91)
   - Enrich: descriptions, reviews, trust signals, images ($447)
   - Trust signals: 1,384 confirmed, 1,443 false positives soft-deleted (47% rejection rate)
+  - Post-expansion dedup: 960 cross-city duplicates soft-deleted
   - Total cost: ~$535 (vs $2,000 estimate — 73% under budget)
   - Fix: Added `fetchWithRetry` to `pipeline-batch.js` for ETIMEDOUT errors
   - Supabase scaled to Small during load, can scale back to Micro now
+
+- **Pipeline Batch Optimization** (branch: `vigilant-yalow`) — DONE ✅
+  - Backup: `scripts/pipeline-batch.js.bak`
+  - 4 optimizations to `scripts/pipeline-batch.js`:
+    1. Within-batch place_id dedup: tracks place_id + name|state across cities during clean phase
+    2. Live Supabase dedup: queries live DB instead of stale 61MB CSV export
+    3. Merged reviews+photos: single Google Places call instead of two separate ones
+    4. Smart geocoding: skips re-geocode when discovery coords pass state bounds + city proximity
+  - Estimated savings: ~$62/batch + significant time reduction
+  - Also added `/dedup` slash command to worktree (was missing from `.claude/commands/`)
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — DONE ✅
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
@@ -209,6 +220,7 @@
 
 1. **Scale Supabase back to Micro** — batch load is done, Small no longer needed
 2. **Spot-check new cities on live site** — verify provider cards, trust signals, map pins after ISR refresh
+3. **Test optimized pipeline on next batch** — verify all 4 optimizations work end-to-end
 
 ---
 
@@ -217,6 +229,10 @@
 | Date | Decision | Rationale |
 | 2026-03-26 | Add fetchWithRetry to pipeline-batch.js Google API calls | ETIMEDOUT crashes killed the pipeline twice during geocoding. 3 retries with exponential backoff (2s/4s/6s) handles transient network failures without manual restart |
 | 2026-03-26 | Scale Supabase to Small during batch load, back to Micro after | Disk IO Budget warning at Micro tier. Small ($0.02/hr) provides headroom for 4K+ concurrent inserts + geocoding. Temporary — scale down after batch |
+| 2026-03-26 | Live Supabase dedup replaces stale CSV export | The 61MB CSV was 5 days stale — missed 88-city expansion and any recent changes. Querying Supabase directly adds ~10s but gives 100% accurate dedup |
+| 2026-03-26 | Smart geocoding: skip when discovery coords pass bounds check | 88% of discovery coordinates were correct. Re-geocoding all of them cost $91 this run. Smart skip only geocodes missing/suspicious coords (~30%), saving ~$64/batch |
+| 2026-03-26 | Merge reviews+photos into single Google Places call | Two separate calls (reviews, photos) for the same place_id is wasteful. Single call with `fields=reviews,photos` halves API calls. Photo URI resolution still needs a second call |
+| 2026-03-26 | Keep clean-phase AI classification despite trust signals also classifying | Clean-phase batch-50 AI is 17x cheaper per provider ($0.0001 vs $0.0017). Catches 30% of false positives before they hit geocoding/enrichment. The two-pass approach costs slightly more in Perplexity but saves far more in wasted Google API calls on false positives |
 | 2026-03-25 | Full apply must retry account creation if apply-partial failed | Two-phase form (partial on step 1, full on step 4) means the full submit UPDATE path must check `account_id` and create auth+account if null. Silent try/catch in apply-partial hid the failure |
 | 2026-03-25 | `hero_image_url` column doesn't exist in `olera-providers` | The set_hero action wrote to it but it was never added to the table schema. All references must use `select("*")` and guard with `"hero_image_url" in provider` |
 | 2026-03-25 | Hover overlay > exposed pill buttons for image actions | Colored pills (yellow/red/green) below each image were visual noise. Dark gradient overlay with icon buttons on hover — images are content, buttons are tools |
@@ -302,7 +318,7 @@
 
 ## Session Log
 
-### 2026-03-26 (Session 61) — 80-City Batch Expansion
+### 2026-03-26 (Session 61) — 80-City Batch Expansion + Pipeline Optimization
 
 **Branch:** `vigilant-yalow` (no code changes in worktree) | **No PR** (data-only pipeline run)
 
@@ -324,7 +340,17 @@
 
 **Note:** Pipeline processed all 174 expansion directories (not just the 80 new ones) because `--resume` couldn't check Notion (no NOTION_TOKEN in env). Dedup correctly skipped existing providers. No harm, just slower clean phase.
 
-**Build:** N/A (no code changes in this worktree; `fetchWithRetry` fix applied to main repo)
+**Post-expansion:** Ran `dedup-database.js --delete` — 960 cross-city duplicates soft-deleted (1/3 of new providers were dupes from overlapping nearby cities).
+
+**Pipeline Optimization (applied to main repo `scripts/pipeline-batch.js`):**
+- Backup: `scripts/pipeline-batch.js.bak`
+- Within-batch place_id dedup: tracks place_ids across cities, eliminates dupes before any API call
+- Live Supabase dedup: replaces stale 61MB CSV with live DB query
+- Merged reviews+photos: single `googlePlacesField(id, 'reviews,photos')` instead of 2 calls
+- Smart geocoding: skips re-geocode when discovery coords pass state bounds + city proximity check
+- Estimated savings: ~$62/batch (~12%) + faster execution
+
+**Build:** N/A (no app code changes; pipeline script optimizations applied to main repo)
 
 ---
 

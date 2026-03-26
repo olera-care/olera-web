@@ -55,7 +55,7 @@ export async function GET(
         .maybeSingle();
 
       if (legacyProvider) {
-        return NextResponse.json({
+        const legacyResponse = NextResponse.json({
           provider: {
             id: legacyProvider.provider_id,
             display_name: legacyProvider.name,
@@ -67,6 +67,8 @@ export async function GET(
             google_place_id: legacyProvider.place_id || null,
           },
         });
+        legacyResponse.headers.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+        return legacyResponse;
       }
 
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
@@ -75,7 +77,7 @@ export async function GET(
     // Extract Google Place ID from metadata
     const googlePlaceId = profile.metadata?.google_metadata?.place_id || null;
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       provider: {
         id: profile.id,
         display_name: profile.display_name,
@@ -87,6 +89,8 @@ export async function GET(
         google_place_id: googlePlaceId,
       },
     });
+    response.headers.set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+    return response;
   } catch (err) {
     console.error("Provider info GET error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -222,7 +222,10 @@
 9. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
 10. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
 11. **Run backfill script** for source_provider_id (dry-run first): `scripts/backfill-source-provider-id.js`
-12. **Merge loving-swartz PR** to staging after review
+12. **Merge loving-swartz PR #421** to staging after review
+13. **Phase 2: One-click provider onboarding** — signed JWT tokens in email links, token validation endpoint, zero-friction claim flow
+14. **Phase 2: Activity Center PII tracking** — log "viewed_lead_pii" events, Slack alerts for sensitive interactions
+15. **Unmask question/review content** on onboard notification cards (public data, no privacy concern)
 
 ---
 
@@ -234,6 +237,11 @@
 | 2026-03-26 | Notification card overrides "already claimed" for email entry | Provider clicking email link and seeing "This listing is claimed — Dispute" is hostile. Show the lead/question/review preview instead, let them verify to respond. |
 | 2026-03-26 | BP-only providers need slug-based fallback in claim check | Second claim check queries by source_provider_id, which is NULL for BP-only providers. Fallback query by slug catches them. |
 | 2026-03-26 | Dark CTA buttons (bg-gray-900) for provider onboarding | Matches MedJobs aesthetic — calm confidence over teal SaaS template. Consistent across provider-facing surfaces. |
+| 2026-03-26 | One-click email tokens for provider onboarding (Phase 2) | Email IS the verification — asking for OTP after they clicked the email is proving the same thing twice. Signed JWT in email link = one click from email to full portal access. Zero friction. |
+| 2026-03-26 | Two tiers, not three: Full Access + Trusted | Full access via one-click token (everything including seeker PII). Trusted tier (phone call from Olera) only for destructive actions (delete listing, transfer ownership). Middle "Verified" tier was mud that solved a problem we don't have at current scale. |
+| 2026-03-26 | Observability over gates for PII protection | At 5-10 leads/day with ~10% provider engagement, manual oversight is feasible. Activity Center + Slack alerts when provider views seeker PII. Human review, not software gates. Gates only when volume demands it. |
+| 2026-03-26 | Phone call (not SMS OTP) for Trusted tier | Senior care providers are 60-70yo facility operators. SMS OTP = friction and confusion. Human phone call to business number = highest trust, zero tech friction, builds relationship. Rare actions only (~2-3/week). |
+| 2026-03-26 | Questions and reviews don't need privacy masking | Q&A and reviews are already public on the provider page. Only leads contain private seeker PII. Showing full question/review text on onboard page is fine and more compelling. |
 | 2026-03-25 | Full apply must retry account creation if apply-partial failed | Two-phase form (partial on step 1, full on step 4) means the full submit UPDATE path must check `account_id` and create auth+account if null. Silent try/catch in apply-partial hid the failure |
 | 2026-03-25 | `hero_image_url` column doesn't exist in `olera-providers` | The set_hero action wrote to it but it was never added to the table schema. All references must use `select("*")` and guard with `"hero_image_url" in provider` |
 | 2026-03-25 | Hover overlay > exposed pill buttons for image actions | Colored pills (yellow/red/green) below each image were visual noise. Dark gradient overlay with icon buttons on hover — images are content, buttons are tools |
@@ -319,9 +327,9 @@
 
 ## Session Log
 
-### 2026-03-26 (Session 61) — Provider Onboarding Routing Fix + UX Redesign
+### 2026-03-26 (Session 61) — Provider Onboarding Routing Fix + UX Redesign + Architecture
 
-**Branch:** `loving-swartz` | **6 commits** | PR pending
+**Branch:** `loving-swartz` | **9 commits** | PR #421
 
 **What:** Fixed 5 provider onboarding routing bugs from Esther's audit + redesigned notification card UX for email-driven provider acquisition.
 
@@ -358,6 +366,15 @@
 - `plans/provider-onboarding-routing-plan.md`
 
 **Build:** Clean, zero errors.
+
+**Session Continuation — Taste Pass + Architecture Discussion:**
+- Redesigned all 3 notification cards (lead/question/review): Olera chat mascot, left-aligned, flat layout (no nested cards), quiet border, generous padding
+- Unmasked question + review content (public data) — only leads need privacy masking
+- Agreed on Phase 2 architecture: one-click signed email tokens for zero-friction provider onboarding
+- Progressive trust model: Full Access (one-click token) → Trusted (phone call from Olera for destructive actions)
+- Observability over gates: Activity Center + Slack alerts for PII access, not software gates
+- Phone call (not SMS OTP) for Trusted tier — senior care providers aren't tech-savvy
+- Phase 2 implementation pending (signed token generation, token validation endpoint, Activity Center PII tracking, Slack alerts)
 
 ---
 

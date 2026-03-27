@@ -103,7 +103,7 @@ export function generateClaimUrl(
   const token = generateClaimToken(providerId, email);
   const url = new URL(`${baseUrl}/provider/${providerSlug}/onboard`);
   url.searchParams.set("action", "campaign");
-  url.searchParams.set("token", token);
+  url.searchParams.set("otk", token);
   if (options?.headline) {
     url.searchParams.set("headline", options.headline);
   }
@@ -128,6 +128,6 @@ export function generateNotificationUrl(
   const url = new URL(`${baseUrl}/provider/${providerSlug}/onboard`);
   url.searchParams.set("action", action);
   url.searchParams.set("actionId", actionId);
-  url.searchParams.set("token", token);
+  url.searchParams.set("otk", token);
   return url.toString();
 }

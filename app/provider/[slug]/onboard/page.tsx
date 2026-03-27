@@ -52,7 +52,9 @@ export default function ProviderOnboardPage() {
   const actionParam = searchParams.get("action") as NotificationType | "campaign" | null;
   const actionIdParam = searchParams.get("actionId");
   // Token param for marketing campaign emails (pre-verified flow)
-  const tokenParam = searchParams.get("token");
+  // Named "otk" (one-time key) instead of "token" to avoid Apple Mail's
+  // Link Tracking Protection which strips params named "token" from URLs
+  const tokenParam = searchParams.get("otk");
   const router = useRouter();
   const { user, account, openAuth, refreshAccountData, switchProfile } = useAuth();
 

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { createAuthClient } from "@/lib/supabase/auth-client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { Provider } from "@/lib/types/provider";
 import SmartDashboardShell from "@/components/provider-onboarding/SmartDashboardShell";
@@ -303,6 +304,10 @@ export default function ProviderOnboardPage() {
             // For notification actions (lead/question/review), attempt one-click:
             // auto-sign-in → auto-claim (if needed) → redirect to destination
             if (actionParam && actionParam !== "campaign") {
+              // Prevent the useEffect auto-finalize from racing with this flow.
+              // Without this, setting step="finalizing" triggers the useEffect
+              // which calls handleFinalize() concurrently, causing an error flash.
+              finalizeRef.current = true;
               setStep("finalizing");
               try {
                 // Auto-sign-in with the verified email
@@ -317,14 +322,22 @@ export default function ProviderOnboardPage() {
                 const signInData = await signInRes.json();
 
                 if (signInRes.ok && signInData.tokenHash) {
-                  // Establish browser session
-                  const supabase = createClient();
-                  const { error: otpError } = await supabase.auth.verifyOtp({
+                  // Use implicit-flow client to avoid PKCE code_verifier mismatch
+                  // (SSR browser client forces PKCE, but server-generated tokens
+                  // don't have a corresponding code_challenge)
+                  const authClient = createAuthClient();
+                  const { data: otpData, error: otpError } = await authClient.auth.verifyOtp({
                     token_hash: signInData.tokenHash,
                     type: "magiclink",
                   });
 
-                  if (!otpError) {
+                  if (!otpError && otpData?.session) {
+                    // Transfer session to the SSR client (matches UnifiedAuthModal pattern)
+                    await createClient().auth.setSession({
+                      access_token: otpData.session.access_token,
+                      refresh_token: otpData.session.refresh_token,
+                    });
+
                     // Session established — refresh auth and ensure correct profile is active
                     await refreshAccountData();
 
@@ -633,15 +646,15 @@ export default function ProviderOnboardPage() {
         return;
       }
 
-      // Establish browser session with the magic link token
-      const supabase = createClient();
-      const { error: otpError } = await supabase.auth.verifyOtp({
+      // Use implicit-flow client to avoid PKCE code_verifier mismatch
+      const authClient = createAuthClient();
+      const { data: otpData, error: otpError } = await authClient.auth.verifyOtp({
         token_hash: data.tokenHash,
         type: "magiclink",
       });
 
-      if (otpError) {
-        console.error("Auto-sign-in OTP error:", otpError.message);
+      if (otpError || !otpData?.session) {
+        console.error("Auto-sign-in OTP error:", otpError?.message);
         openAuth({
           deferred: {
             action: "claim",
@@ -650,6 +663,12 @@ export default function ProviderOnboardPage() {
         });
         return;
       }
+
+      // Transfer session to SSR client
+      await createClient().auth.setSession({
+        access_token: otpData.session.access_token,
+        refresh_token: otpData.session.refresh_token,
+      });
 
       // Session established — refresh auth state and finalize
       await refreshAccountData();

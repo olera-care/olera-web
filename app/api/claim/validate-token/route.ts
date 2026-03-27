@@ -59,16 +59,21 @@ export async function POST(request: Request) {
     let providerName: string | null = null;
     let providerSlug: string | null = null;
     let providerEmail: string | null = null;
+    // Canonical ID used for claim_verification_codes — must match what finalize will use.
+    // For olera-providers records this is the UUID provider_id.
+    // For BP-only providers this is the BP id.
+    let canonicalProviderId: string = providerId;
     let isBusinessProfile = false;
 
     // Try olera-providers by provider_id
     const { data: oleraProvider } = await db
       .from("olera-providers")
-      .select("email, provider_name, slug")
+      .select("provider_id, email, provider_name, slug")
       .eq("provider_id", providerId)
       .maybeSingle();
 
     if (oleraProvider) {
+      canonicalProviderId = oleraProvider.provider_id;
       providerName = oleraProvider.provider_name;
       providerSlug = oleraProvider.slug || providerId;
       providerEmail = oleraProvider.email;
@@ -76,11 +81,12 @@ export async function POST(request: Request) {
       // Try olera-providers by slug
       const { data: oleraBySlug } = await db
         .from("olera-providers")
-        .select("email, provider_name, slug")
+        .select("provider_id, email, provider_name, slug")
         .eq("slug", providerId)
         .maybeSingle();
 
       if (oleraBySlug) {
+        canonicalProviderId = oleraBySlug.provider_id;
         providerName = oleraBySlug.provider_name;
         providerSlug = oleraBySlug.slug || providerId;
         providerEmail = oleraBySlug.email;
@@ -88,12 +94,13 @@ export async function POST(request: Request) {
         // Try business_profiles by slug (BP-only providers)
         const { data: bp } = await db
           .from("business_profiles")
-          .select("display_name, slug, email")
+          .select("id, display_name, slug, email")
           .eq("slug", providerId)
           .in("type", ["organization", "caregiver"])
           .maybeSingle();
 
         if (bp) {
+          canonicalProviderId = bp.id;
           providerName = bp.display_name;
           providerSlug = bp.slug || providerId;
           providerEmail = bp.email;
@@ -119,7 +126,7 @@ export async function POST(request: Request) {
     const { data: existingProfile } = await db
       .from("business_profiles")
       .select("claim_state, account_id")
-      .or(`source_provider_id.eq.${providerId},slug.eq.${providerId}`)
+      .or(`source_provider_id.eq.${canonicalProviderId},slug.eq.${providerId}`)
       .maybeSingle();
 
     // For already-claimed listings, still return valid — the owner clicking their
@@ -127,11 +134,11 @@ export async function POST(request: Request) {
     // will establish their session and redirect to the destination.
     const alreadyClaimed = existingProfile?.claim_state === "claimed" && !!existingProfile?.account_id;
 
-    // Create a pre-verified record in claim_verification_codes
-    // This allows the finalize endpoint to recognize this session as verified
+    // Create a pre-verified record in claim_verification_codes.
+    // Use canonicalProviderId (UUID/BP id) so it matches what finalize queries with.
     try {
       await db.from("claim_verification_codes").insert({
-        provider_id: providerId,
+        provider_id: canonicalProviderId,
         claim_session: claimSession,
         code: "TOKEN",
         expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
@@ -143,7 +150,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       valid: true,
-      providerId,
+      providerId: canonicalProviderId,
       email,  // Full email for auto-sign-in flow
       emailHint: maskEmail(email),  // Masked for display
       providerName: providerName,

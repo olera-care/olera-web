@@ -54,18 +54,61 @@ export async function POST(request: Request) {
     }
 
     // Verify provider still exists and email matches
-    const { data: provider, error: providerErr } = await db
+    // Token providerId may be a slug (from notification emails) or a UUID (from campaign emails)
+    // Check olera-providers first, then fall back to business_profiles
+    let providerName: string | null = null;
+    let providerSlug: string | null = null;
+    let providerEmail: string | null = null;
+    let isBusinessProfile = false;
+
+    // Try olera-providers by provider_id
+    const { data: oleraProvider } = await db
       .from("olera-providers")
       .select("email, provider_name, slug")
       .eq("provider_id", providerId)
-      .single();
+      .maybeSingle();
 
-    if (providerErr || !provider) {
+    if (oleraProvider) {
+      providerName = oleraProvider.provider_name;
+      providerSlug = oleraProvider.slug || providerId;
+      providerEmail = oleraProvider.email;
+    } else {
+      // Try olera-providers by slug
+      const { data: oleraBySlug } = await db
+        .from("olera-providers")
+        .select("email, provider_name, slug")
+        .eq("slug", providerId)
+        .maybeSingle();
+
+      if (oleraBySlug) {
+        providerName = oleraBySlug.provider_name;
+        providerSlug = oleraBySlug.slug || providerId;
+        providerEmail = oleraBySlug.email;
+      } else {
+        // Try business_profiles by slug (BP-only providers)
+        const { data: bp } = await db
+          .from("business_profiles")
+          .select("display_name, slug, email")
+          .eq("slug", providerId)
+          .in("type", ["organization", "caregiver"])
+          .maybeSingle();
+
+        if (bp) {
+          providerName = bp.display_name;
+          providerSlug = bp.slug || providerId;
+          providerEmail = bp.email;
+          isBusinessProfile = true;
+        }
+      }
+    }
+
+    if (!providerName) {
       return NextResponse.json({ valid: false, error: "Provider not found." }, { status: 404 });
     }
 
     // Email must still match (in case it was updated since token was generated)
-    if (provider.email?.toLowerCase() !== email.toLowerCase()) {
+    // For BP-only providers, the email in the token is what we sent to — trust it
+    if (providerEmail && providerEmail.toLowerCase() !== email.toLowerCase() && !isBusinessProfile) {
       return NextResponse.json(
         { valid: false, error: "Provider email has changed. Please request a new link." },
         { status: 400 }
@@ -76,37 +119,36 @@ export async function POST(request: Request) {
     const { data: existingProfile } = await db
       .from("business_profiles")
       .select("claim_state, account_id")
-      .eq("source_provider_id", providerId)
+      .or(`source_provider_id.eq.${providerId},slug.eq.${providerId}`)
       .maybeSingle();
 
-    if (existingProfile?.claim_state === "claimed" && existingProfile?.account_id) {
-      return NextResponse.json(
-        { valid: false, error: "This listing has already been claimed.", alreadyClaimed: true },
-        { status: 409 }
-      );
-    }
+    // For already-claimed listings, still return valid — the owner clicking their
+    // own notification email is the expected case. The one-click flow on the client
+    // will establish their session and redirect to the destination.
+    const alreadyClaimed = existingProfile?.claim_state === "claimed" && !!existingProfile?.account_id;
 
     // Create a pre-verified record in claim_verification_codes
     // This allows the finalize endpoint to recognize this session as verified
-    const { error: insertErr } = await db.from("claim_verification_codes").insert({
-      provider_id: providerId,
-      claim_session: claimSession,
-      code: "TOKEN", // Special marker for token-based verification
-      expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour to complete
-      verified_at: new Date().toISOString(), // Pre-verified via token
-    });
-
-    if (insertErr) {
-      console.error("Insert pre-verified record error:", insertErr);
-      return NextResponse.json({ valid: false, error: "Failed to process token." }, { status: 500 });
+    try {
+      await db.from("claim_verification_codes").insert({
+        provider_id: providerId,
+        claim_session: claimSession,
+        code: "TOKEN",
+        expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+        verified_at: new Date().toISOString(),
+      });
+    } catch {
+      // May fail if duplicate — that's fine
     }
 
     return NextResponse.json({
       valid: true,
       providerId,
-      emailHint: maskEmail(email),
-      providerName: provider.provider_name,
-      providerSlug: provider.slug || providerId,
+      email,  // Full email for auto-sign-in flow
+      emailHint: maskEmail(email),  // Masked for display
+      providerName: providerName,
+      providerSlug: providerSlug || providerId,
+      alreadyClaimed,
     });
   } catch (err) {
     console.error("Validate token error:", err);

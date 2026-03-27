@@ -142,6 +142,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // ── Resolve initial state — show form immediately for everyone ──
   useEffect(() => {
     if (authLoading) return;
+    // Don't reset to form if user is answering enrichment questions
+    if (enrichmentLock.current) return;
     // Both guests and signed-in users see the form ("default" state).
     // Signed-in users get pre-filled fields; the DB check below
     // may upgrade to "connected" if they already have an active connection.
@@ -492,25 +494,30 @@ export function useConnectionCard(props: ConnectionCardProps) {
     setCardState("intent");
   }, []);
 
-  // ── Submit inquiry form (v2.0 — simple form, no multi-step) ──
+  // ── Submit inquiry form (v2.0 — optimistic enrichment) ──
   const submitInquiryForm = useCallback(async (formData: {
     email: string;
     fullName: string;
     phone: string;
     message: string;
   }) => {
+    if (enrichmentLock.current) return; // Prevent double-submit
     setError("");
-    setSubmitting(true);
+
+    // ── OPTIMISTIC: Show enrichment instantly (before API) ──
+    enrichmentLock.current = true;
+    postEnrichmentRedirect.current = `/welcome?provider=${providerSlug}`;
+    setCardState("enrichment");
+
+    // ── BACKGROUND: Fire API without blocking the UI ──
+    const formIntentData = {
+      careRecipient: null,
+      careType: null,
+      urgency: null,
+      additionalNotes: formData.message,
+    };
 
     try {
-      // Build intent data from the message (minimal — enrichment comes after)
-      const formIntentData = {
-        careRecipient: null,
-        careType: null,
-        urgency: null,
-        additionalNotes: formData.message,
-      };
-
       if (user) {
         // Authenticated user flow
         const res = await fetch("/api/connections/request", {
@@ -533,24 +540,16 @@ export function useConnectionCard(props: ConnectionCardProps) {
         if (!res.ok) throw new Error(data.error || "Failed to send request.");
 
         window.dispatchEvent(new CustomEvent("olera:connection-created"));
-
         if (data.created_at) setPendingRequestDate(data.created_at);
         if (data.connectionId) setConnectionId(data.connectionId);
 
-        // Store post-enrichment redirect destination
-        if (isFullyOnboarded) {
-          postEnrichmentRedirect.current = `/portal/inbox?id=${data.connectionId}`;
-        } else {
-          postEnrichmentRedirect.current = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
-        }
+        // Update redirect with real connectionId
+        postEnrichmentRedirect.current = isFullyOnboarded
+          ? `/portal/inbox?id=${data.connectionId}`
+          : `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
 
-        // Lock enrichment state so checkExisting can't override it
-        enrichmentLock.current = true;
-        setCardState("enrichment");
-
-        // Refresh account data in background (non-blocking) — enrichment UI doesn't need it
+        // Refresh account data in background (non-blocking)
         refreshAccountData().catch(() => {});
-        return;
       } else {
         // Guest flow — instant account creation + session
         const res = await fetch("/api/connections/request", {
@@ -576,7 +575,6 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
         window.dispatchEvent(new CustomEvent("olera:connection-created"));
 
-        // Store connection info in localStorage for post-enrichment navigation
         try {
           localStorage.setItem("olera_pending_connection", JSON.stringify({
             connectionId: data.connectionId,
@@ -591,10 +589,10 @@ export function useConnectionCard(props: ConnectionCardProps) {
         if (data.connectionId) setConnectionId(data.connectionId);
         if (data.created_at) setPendingRequestDate(data.created_at);
 
-        // Store post-enrichment redirect
+        // Update redirect with real connectionId
         postEnrichmentRedirect.current = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
 
-        // Establish session in background — will be ready by the time user finishes enrichment
+        // Establish session in background
         if (data.accessToken && data.refreshToken) {
           const supabase = createClient();
           supabase.auth.setSession({
@@ -604,35 +602,29 @@ export function useConnectionCard(props: ConnectionCardProps) {
             if (sessionError) {
               console.error("[guest-connection] Background session error:", sessionError);
             } else {
-              console.log("[guest-connection] Background session established:", sessionData?.session?.user?.email);
               const userId = sessionData?.session?.user?.id;
               if (userId && refreshAccountData) {
-                refreshAccountData(userId).catch(err => {
-                  console.error("[guest-connection] Background refresh error:", err);
-                });
+                refreshAccountData(userId).catch(() => {});
               }
             }
           }).catch(err => {
             console.error("[guest-connection] Background session error:", err);
           });
         }
-
-        // Lock enrichment state so checkExisting can't override it
-        enrichmentLock.current = true;
-        setCardState("enrichment");
-        return;
       }
     } catch (err: unknown) {
+      // ── ROLLBACK: API failed — snap back to form ──
+      enrichmentLock.current = false;
+      postEnrichmentRedirect.current = null;
+      setCardState("default");
       const msg =
         err && typeof err === "object" && "message" in err
           ? (err as { message: string }).message
           : String(err);
       console.error("Inquiry form error:", msg);
       setError(msg || "Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
     }
-  }, [user, providerId, providerName, providerSlug, refreshAccountData, onConnectionCreated, isFullyOnboarded, router]);
+  }, [user, providerId, providerName, providerSlug, refreshAccountData, isFullyOnboarded]);
 
   // ── Navigate after enrichment (save or skip) ──
   const navigatePostEnrichment = useCallback(() => {

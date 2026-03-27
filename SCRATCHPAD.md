@@ -7,6 +7,14 @@
 
 ## Current Focus
 
+- **SEO: City/Browse Page Optimization** (branch: `zen-perlman`) — ANALYSIS COMPLETE, IMPLEMENTATION NEXT
+  - GSC 7-day report analyzed (Mar 19-25): 690K impressions, 2.7K clicks, 0.4% CTR, avg position 26.7
+  - City pages ranking position 35-60 for "[care type] [city]" queries — massive impressions, near-zero clicks
+  - Root cause: content thinness + domain authority gap (DA ~5 vs competitors DA 60-75)
+  - Caregiver articles are SEO engine (positions 4-6) but authority doesn't flow to city pages
+  - Full analysis + action plan in Notion: https://www.notion.so/3305903a0ffe818bbd86e106f8dbfb26
+  - **Next: Implement Action 1 (city-specific content sections) + Action 2 (internal linking) + Action 3 (structured data)**
+
 - **DNS Cutover v1.0 → v2.0** (branch: `peaceful-wiles`) — DONE ✅
   - olera.care now serving v2.0 Next.js app via Vercel
   - Provider slug migration done (008 + 009): 477/500 top GSC pages passing
@@ -211,27 +219,24 @@
 
 ## Next Up
 
-1. **Merge PR #219** (waiver library redesign) — waiting on Chantel to remove `package.json.tmp` + `.mcp.json`
-2. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
-3. **Test Google OAuth on olera.care** — verify sign-in flow end-to-end
-4. **Monitor GSC for 404 spikes** — check over next few days post-cutover
-5. **Re-submit sitemap in GSC** — now returns sitemap index with all shards, should discover 40K+ pages
-6. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
-7. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
-8. **Gated provider portal page** — Esther building; sanity check item #1
-9. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
-10. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
-11. **Run backfill script** for source_provider_id (dry-run first): `scripts/backfill-source-provider-id.js`
-12. **Merge loving-swartz PR #421** to staging after review
-13. **Phase 2: One-click provider onboarding** — signed JWT tokens in email links, token validation endpoint, zero-friction claim flow
-14. **Phase 2: Activity Center PII tracking** — log "viewed_lead_pii" events, Slack alerts for sensitive interactions
-15. **Unmask question/review content** on onboard notification cards (public data, no privacy concern)
+1. **SEO Action 1: City-specific content sections** — Add cost snapshot, "Paying for Care" module (waiver library links), city stats, FAQ section to browse pages
+2. **SEO Action 2: Internal linking** — Link caregiver articles → city pages, waiver library → city pages, nearby city cross-links
+3. **SEO Action 3: Structured data + meta** — FAQ schema, AggregateRating schema, cost/review-enriched meta descriptions
+4. **SEO Action 4: More caregiver content** — 10-15 articles targeting financial/benefits queries (Medicare, Medicaid, cost guides)
+5. **Merge PR #219** (waiver library redesign) — waiting on Chantel to remove `package.json.tmp` + `.mcp.json`
+6. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
+7. **Phase 2: Activity Center PII tracking** — log "viewed_lead_pii" events, Slack alerts for sensitive interactions
+8. **Unmask question/review content** on onboard notification cards (public data, no privacy concern)
+9. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
+10. **Run backfill script** for source_provider_id (dry-run first): `scripts/backfill-source-provider-id.js`
 
 ---
 
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-03-27 | City page SEO = content depth + authority, not technical fixes | Pages rank 35-60 because they're thin provider lists on a new domain (DA ~5). Competitors have DA 60-75 and editorial city guides. On-page fixes → position 20-25; page 1 requires 3-6mo authority building from article strategy |
+| 2026-03-27 | Waiver Library is the unique SEO weapon for city pages | Nobody else connects Medicaid waiver program data to city browse pages. "Paying for Care" module linking waiver library to city pages gives Google content it can't find elsewhere |
 | 2026-03-26 | Lead email is Trojan horse — dashboard is the product demo | Bare notification page would look like another lead-gen scam. Providers burned by APFM/Caring.com need to see the full platform (gallery, reviews, completeness) to believe Olera is real. Hero card hooks, dashboard below sells. |
 | 2026-03-26 | Always mask seeker info on onboard page | `isSignedIn` doesn't mean verified owner of this listing. Protect seekers in case email goes to wrong recipient. First name only, no photo, city only, message truncated. Full info after claiming. |
 | 2026-03-26 | Notification card overrides "already claimed" for email entry | Provider clicking email link and seeing "This listing is claimed — Dispute" is hostile. Show the lead/question/review preview instead, let them verify to respond. |

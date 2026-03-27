@@ -8,13 +8,17 @@ export default function WelcomeLoading() {
           <div className="mt-2 h-8 w-56 bg-gray-100 rounded-md animate-pulse" />
         </section>
 
-        {/* Hero card skeleton — matches photo-forward layout */}
+        {/* Hero card skeleton — side-by-side layout */}
         <section className="pb-8">
           <div className="rounded-2xl border border-gray-200/60 overflow-hidden animate-pulse">
-            <div className="w-full aspect-[16/9] sm:aspect-[2.4/1] bg-gray-100" />
-            <div className="p-5 space-y-3">
-              <div className="h-5 w-48 bg-gray-100 rounded-md" />
-              <div className="h-3 w-32 bg-gray-100 rounded-md" />
+            <div className="flex flex-col sm:flex-row">
+              <div className="w-full sm:w-[200px] aspect-square sm:aspect-auto sm:min-h-[220px] bg-gray-100" />
+              <div className="flex-1 p-5 space-y-3">
+                <div className="h-5 w-48 bg-gray-100 rounded-md" />
+                <div className="h-3 w-32 bg-gray-100 rounded-md" />
+                <div className="h-3 w-56 bg-gray-100 rounded-md mt-4" />
+                <div className="h-1.5 w-full bg-gray-100 rounded-full mt-3" />
+              </div>
             </div>
           </div>
         </section>

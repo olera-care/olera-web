@@ -359,7 +359,7 @@ function ProviderScrollCard({ provider }: { provider: MatchProvider }) {
 // Main Component
 // ============================================================
 
-export default function WelcomeClient({ destination, initialProviders = [], initialCity = null }: WelcomeClientProps) {
+export default function WelcomeClient({ destination }: WelcomeClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { account, activeProfile, refreshAccountData, user, isLoading: authLoading } = useAuth();
@@ -372,26 +372,66 @@ export default function WelcomeClient({ destination, initialProviders = [], init
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  const [loading, setLoading] = useState(true);
+  // NO loading gate — page renders immediately. Auth resolves in background.
   const [saving, setSaving] = useState(false);
   const [navigating, setNavigating] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [connection, setConnection] = useState<ConnectionWithProvider | null>(null);
-  // Track if URL-based connection fetch has completed (prevents hero flash)
-  const connectionFetchDone = useRef(!connectionIdParam); // true if no URL param (nothing to wait for)
 
-  // Safety: never hang on spinner for more than 3 seconds even if connection fetch is slow
-  useEffect(() => {
-    if (!loading) return;
-    const timer = setTimeout(() => setLoading(false), 3000);
-    return () => clearTimeout(timer);
-  }, [loading]);
-  // Use server-fetched providers — no loading state needed
-  const [matches, setMatches] = useState<MatchProvider[]>(initialProviders);
-  const [providersLoading, setProvidersLoading] = useState(false); // Already loaded from server
-  const [city, setCity] = useState<string | null>(initialCity);
-  const [hasInitialized, setHasInitialized] = useState(false);
+  // Client-side provider fetching (replaces server-side to avoid blocking page render)
+  const [matches, setMatches] = useState<MatchProvider[]>([]);
+  const [providersLoading, setProvidersLoading] = useState(true);
+  const [city, setCity] = useState<string | null>(null);
+  // hasInitialized removed — page renders immediately without auth gate
   const [preAuthPage, setPreAuthPage] = useState<string | null>(null);
+
+  // Fetch providers client-side (non-blocking, below the fold)
+  useEffect(() => {
+    async function fetchProviders() {
+      try {
+        const supabase = createClient();
+        const userCity = activeProfile?.city || null;
+        if (userCity) setCity(userCity);
+
+        const query = supabase
+          .from("olera-providers")
+          .select("provider_id, provider_name, provider_logo, provider_images, provider_category, city, state, google_rating")
+          .eq("deleted", false)
+          .not("google_rating", "is", null)
+          .gte("google_rating", 4.0)
+          .not("provider_images", "is", null)
+          .order("google_rating", { ascending: false })
+          .order("provider_name", { ascending: true })
+          .limit(6);
+
+        if (userCity) query.eq("city", userCity);
+        const { data } = await query;
+        if (data?.length) {
+          setMatches(data as MatchProvider[]);
+        } else if (userCity) {
+          // Fallback to national if city has no results
+          const { data: national } = await supabase
+            .from("olera-providers")
+            .select("provider_id, provider_name, provider_logo, provider_images, provider_category, city, state, google_rating")
+            .eq("deleted", false)
+            .not("google_rating", "is", null)
+            .gte("google_rating", 4.0)
+            .not("provider_images", "is", null)
+            .order("google_rating", { ascending: false })
+            .order("provider_name", { ascending: true })
+            .limit(6);
+          if (national?.length) setMatches(national as MatchProvider[]);
+        }
+      } catch (err) {
+        console.error("[welcome] Provider fetch failed:", err);
+      } finally {
+        setProvidersLoading(false);
+      }
+    }
+    fetchProviders();
+  // Re-fetch when profile loads (may have city now)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeProfile?.city]);
 
   // Profile wizard state
   const [profileWizardOpen, setProfileWizardOpen] = useState(false);
@@ -545,7 +585,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
           }
 
           setConnection(enrichedConn);
-          connectionFetchDone.current = true;
+
           // Clear localStorage now that we have the real data
           try {
             localStorage.removeItem("olera_pending_connection");
@@ -560,8 +600,6 @@ export default function WelcomeClient({ destination, initialProviders = [], init
       } catch (err) {
         console.error("[welcome] Failed to fetch connection from DB:", err);
       }
-      connectionFetchDone.current = true;
-
       // Fallback: Use localStorage data if DB fetch failed (e.g., RLS blocked due to no session yet)
       try {
         const stored = localStorage.getItem("olera_pending_connection");
@@ -635,95 +673,69 @@ export default function WelcomeClient({ destination, initialProviders = [], init
     fetchConnection();
   }, [connectionIdParam, connection, providerSlugParam]);
 
-  // Main initialization - handle auth state and other data
+  // Background: fetch most recent connection for returning users (non-blocking)
   useEffect(() => {
-    async function init() {
-      // If auth is still loading, wait (but connection fetch above runs in parallel)
-      if (authLoading) {
-        return;
-      }
+    if (authLoading || !activeProfile || connectionIdParam || connection) return;
 
-      // No active profile - show the page anyway
-      // But if URL has connection param, wait for connection to load first (prevents hero flash)
-      if (!activeProfile) {
-        if (!connectionIdParam || connection) {
-          setLoading(false);
-        }
-        return;
-      }
+    async function fetchRecentConnection() {
+      try {
+        const supabase = createClient();
+        const { data: connections } = await supabase
+          .from("connections")
+          .select(`
+            id,
+            to_profile:business_profiles!connections_to_profile_id_fkey(
+              id, slug, source_provider_id, display_name, image_url, city, state, category, metadata
+            )
+          `)
+          .eq("from_profile_id", activeProfile!.id)
+          .eq("type", "inquiry")
+          .order("created_at", { ascending: false })
+          .limit(1);
 
-      const supabase = createClient();
-      setHasInitialized(true);
+        if (connections?.[0]) {
+          let conn = connections[0] as ConnectionWithProvider;
 
-      // Update city from profile if not already set
-      if (!city && activeProfile.city) {
-        setCity(activeProfile.city);
-      }
+          // Enrich with iOS provider data
+          if (conn.to_profile) {
+            const iosKey = conn.to_profile.source_provider_id || conn.to_profile.slug;
+            if (iosKey) {
+              const { data: iosData } = await supabase
+                .from("olera-providers")
+                .select("provider_logo, provider_images, google_rating, review_count, lower_price, upper_price")
+                .eq("provider_id", iosKey)
+                .single();
 
-      // If no connection from URL, fetch the most recent one
-      if (!connectionIdParam && !connection) {
-        try {
-          const { data: connections } = await supabase
-            .from("connections")
-            .select(`
-              id,
-              to_profile:business_profiles!connections_to_profile_id_fkey(
-                id, slug, source_provider_id, display_name, image_url, city, state, category, metadata
-              )
-            `)
-            .eq("from_profile_id", activeProfile.id)
-            .eq("type", "inquiry")
-            .order("created_at", { ascending: false })
-            .limit(1);
-
-          if (connections && connections.length > 0) {
-            let conn = connections[0] as ConnectionWithProvider;
-
-            // Enrich with iOS data
-            if (conn.to_profile) {
-              const iosKey = conn.to_profile.source_provider_id || conn.to_profile.slug;
-              if (iosKey) {
-                const { data: iosData } = await supabase
-                  .from("olera-providers")
-                  .select("provider_logo, provider_images, google_rating, review_count, lower_price, upper_price")
-                  .eq("provider_id", iosKey)
-                  .single();
-
-                if (iosData) {
-                  const iosImage = iosData.provider_logo || iosData.provider_images?.split(" | ")[0] || null;
-                  conn = {
-                    ...conn,
-                    to_profile: {
-                      ...conn.to_profile,
-                      image_url: conn.to_profile.image_url || iosImage,
-                      metadata: {
-                        ...((conn.to_profile.metadata || {}) as Record<string, unknown>),
-                        ...(iosData.google_rating ? { google_rating: iosData.google_rating } : {}),
-                        ...(iosData.review_count ? { review_count: iosData.review_count } : {}),
-                        ...(iosData.lower_price ? { lower_price: iosData.lower_price } : {}),
-                        ...(iosData.upper_price ? { upper_price: iosData.upper_price } : {}),
-                      },
+              if (iosData) {
+                const iosImage = iosData.provider_logo || iosData.provider_images?.split(" | ")[0] || null;
+                conn = {
+                  ...conn,
+                  to_profile: {
+                    ...conn.to_profile,
+                    image_url: conn.to_profile.image_url || iosImage,
+                    metadata: {
+                      ...((conn.to_profile.metadata || {}) as Record<string, unknown>),
+                      ...(iosData.google_rating ? { google_rating: iosData.google_rating } : {}),
+                      ...(iosData.review_count ? { review_count: iosData.review_count } : {}),
+                      ...(iosData.lower_price ? { lower_price: iosData.lower_price } : {}),
+                      ...(iosData.upper_price ? { upper_price: iosData.upper_price } : {}),
                     },
-                  };
-                }
+                  },
+                };
               }
             }
-
-            setConnection(conn);
-            if (conn.to_profile?.city) {
-              setCity(conn.to_profile.city);
-            }
           }
-        } catch (err) {
-          console.error("[welcome] Failed to fetch connection:", err);
-        }
-      }
 
-      setLoading(false);
+          setConnection(conn);
+          if (conn.to_profile?.city) setCity(conn.to_profile.city);
+        }
+      } catch (err) {
+        console.error("[welcome] Failed to fetch connection:", err);
+      }
     }
 
-    init();
-  }, [activeProfile, account, destination, router, hasInitialized, connectionIdParam, authLoading, connection, city]);
+    fetchRecentConnection();
+  }, [activeProfile, authLoading, connectionIdParam, connection]);
 
   // Complete onboarding and redirect (or show confirmation)
   const completeOnboarding = useCallback(async (activateMatches: boolean, showConfirmationAfter: boolean = false, customRedirect?: string) => {
@@ -886,29 +898,6 @@ export default function WelcomeClient({ destination, initialProviders = [], init
     }
   }, [isProfileLive, celebrationShown, showCelebration]);
 
-  // Loading state — skeleton matches loading.tsx for seamless transition
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#FAFAF8]">
-        <div className="max-w-2xl mx-auto px-5 sm:px-6">
-          <section className="pt-10 sm:pt-14 pb-8">
-            <div className="h-4 w-32 bg-gray-100 rounded-md animate-pulse" />
-            <div className="mt-2 h-8 w-56 bg-gray-100 rounded-md animate-pulse" />
-          </section>
-          <section className="pb-8">
-            <div className="rounded-2xl border border-gray-200/60 overflow-hidden animate-pulse">
-              <div className="w-full aspect-[16/9] sm:aspect-[2.4/1] bg-gray-100" />
-              <div className="p-5 space-y-3">
-                <div className="h-5 w-48 bg-gray-100 rounded-md" />
-                <div className="h-3 w-32 bg-gray-100 rounded-md" />
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
-    );
-  }
-
   const cityDisplay = city || "your area";
   const userName = activeProfile?.display_name?.split(" ")[0] || account?.display_name?.split(" ")[0];
   const isConnected = !!connection?.to_profile?.display_name;
@@ -993,52 +982,53 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
             return (
               <section className="pb-10">
-                {/* Provider card — photo-forward like Airbnb Trips */}
+                {/* Provider card — side-by-side: square image left, content right */}
                 <div className="rounded-2xl border border-gray-200/60 overflow-hidden">
-                  {/* Provider image — hero size */}
-                  <div className="relative w-full aspect-[16/9] sm:aspect-[2.4/1] bg-gray-100">
-                    {provider.image_url ? (
-                      <Image
-                        src={provider.image_url}
-                        alt={provider.display_name}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div
-                        className="w-full h-full flex items-center justify-center"
-                        style={{ background: avatarGradient(provider.display_name) }}
-                      >
-                        <span className="text-5xl font-bold text-white/80">
-                          {getInitials(provider.display_name)}
-                        </span>
+                  <div className="flex flex-col sm:flex-row">
+                    {/* Provider image — square, no crop distortion */}
+                    <div className="relative w-full sm:w-[200px] aspect-square sm:aspect-auto sm:min-h-[220px] flex-shrink-0 bg-gray-100">
+                      {provider.image_url ? (
+                        <Image
+                          src={provider.image_url}
+                          alt={provider.display_name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div
+                          className="w-full h-full flex items-center justify-center"
+                          style={{ background: avatarGradient(provider.display_name) }}
+                        >
+                          <span className="text-4xl font-bold text-white/80">
+                            {getInitials(provider.display_name)}
+                          </span>
+                        </div>
+                      )}
+                      {/* Connected badge */}
+                      <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm">
+                        <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        </div>
+                        <span className="text-[12px] font-medium text-gray-900">Connected</span>
                       </div>
-                    )}
-                    {/* Connected badge — floating on image */}
-                    <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm">
-                      <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      </div>
-                      <span className="text-[12px] font-medium text-gray-900">Connected</span>
                     </div>
-                  </div>
 
-                  {/* Content */}
-                  <div className="p-5">
-                    <h2 className="text-text-lg font-semibold text-gray-900 leading-tight">
-                      {provider.display_name}
-                    </h2>
-                    {location && (
-                      <p className="text-text-sm text-gray-400 mt-0.5">{location}</p>
-                    )}
+                    {/* Content */}
+                    <div className="flex-1 p-5 flex flex-col min-w-0">
+                      <h2 className="text-text-lg font-semibold text-gray-900 leading-tight line-clamp-2">
+                        {provider.display_name}
+                      </h2>
+                      {location && (
+                        <p className="text-text-sm text-gray-400 mt-0.5">{location}</p>
+                      )}
 
-                    {/* Nudge + progress */}
-                    <div className="mt-5 pt-5 border-t border-gray-100">
-                      <p className="text-text-sm text-gray-600">
+                      <p className="text-text-sm text-gray-500 mt-4">
                         Help {providerFirstName} prepare for your conversation
                       </p>
+
+                      {/* Progress bar */}
                       <div className="mt-3 flex items-center gap-3">
                         <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                           <div
@@ -1048,6 +1038,9 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                         </div>
                         <span className="text-text-xs font-medium text-gray-400 tabular-nums">{clampedPercentage}%</span>
                       </div>
+
+                      {/* Spacer + CTA */}
+                      <div className="flex-1 min-h-3" />
                       <button
                         onClick={() => setProfileWizardOpen(true)}
                         className="mt-4 w-full h-11 rounded-xl text-text-sm font-semibold bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98] transition-all duration-150"
@@ -1110,29 +1103,32 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                ============================================================ */
             <section className="pb-10">
               <div className="rounded-2xl border border-gray-200/60 overflow-hidden">
-                {/* Hero image */}
-                <div className="relative w-full aspect-[16/9] sm:aspect-[2.4/1] bg-gray-100">
-                  <Image
-                    src="/images/for-providers/hero.jpg"
-                    alt="Caregiver helping a senior"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                {/* Content */}
-                <div className="p-5">
-                  <h2 className="text-text-lg font-semibold text-gray-900">
-                    Finding Care Made Simple
-                  </h2>
-                  <p className="mt-1 text-text-sm text-gray-400">
-                    One profile connects you with providers in your area
-                  </p>
-                  <button
-                    onClick={() => setProfileWizardOpen(true)}
-                    className="mt-5 w-full h-11 rounded-xl text-text-sm font-semibold bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98] transition-all duration-150"
-                  >
-                    Get started
-                  </button>
+                <div className="flex flex-col sm:flex-row">
+                  {/* Image — square on mobile, side panel on desktop */}
+                  <div className="relative w-full sm:w-[200px] aspect-[4/3] sm:aspect-auto sm:min-h-[200px] flex-shrink-0 bg-gray-100">
+                    <Image
+                      src="/images/for-providers/hero.jpg"
+                      alt="Caregiver helping a senior"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  {/* Content */}
+                  <div className="flex-1 p-5 flex flex-col min-w-0">
+                    <h2 className="text-text-lg font-semibold text-gray-900">
+                      Finding Care Made Simple
+                    </h2>
+                    <p className="mt-1.5 text-text-sm text-gray-400 leading-relaxed">
+                      One profile connects you with qualified providers in your area.
+                    </p>
+                    <div className="flex-1 min-h-3" />
+                    <button
+                      onClick={() => setProfileWizardOpen(true)}
+                      className="mt-4 w-full sm:w-auto sm:self-start px-6 h-11 rounded-xl text-text-sm font-semibold bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98] transition-all duration-150"
+                    >
+                      Get started
+                    </button>
+                  </div>
                 </div>
               </div>
             </section>

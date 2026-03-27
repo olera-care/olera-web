@@ -367,9 +367,29 @@
 - `lib/claim-tokens.ts` — `token` → `otk` rename in URL generators
 - `app/provider/connections/page.tsx` — eternal skeleton safety net
 
-**Build:** Clean, zero errors. E2E tested: Apple Mail copy → Dia paste → signed out → lands on onboard page with notification card + dashboard.
+**Build:** Clean. E2E WORKING: email link → Apple Mail copy → Dia paste → notification card hero + dashboard renders correctly.
 
-**Key Debugging Insight:** ~10 rounds of fixes failed because the root cause was upstream of all code paths being analyzed. The token was stripped by the email client before the page loaded. Lesson: always verify inputs arrive before debugging processing logic.
+**Three compounding root causes (each masked the next):**
+1. Apple Mail strips `token` param → renamed to `otk`
+2. Notification data blocked by RLS (anon client can't read connections) → fetched server-side in `validate-token`
+3. SmartDashboardShell line 257 overrode `initialActionState` to `"pre-verified"` when `preVerifiedEmail` was set → added priority for notification states
+
+**Failure Pattern:** 12+ rounds of fixes, each addressing a real bug but not the one visible to the user. Every fix was correct at its layer but DOA because a downstream layer silently overrode it. Lesson: trace the full render chain (data source → parent state → prop → child state init → render guard → pixel) before fixing.
+
+**Files Modified (6):**
+- `app/provider/[slug]/onboard/page.tsx` — background auth, notification data from validate-token
+- `app/api/claim/validate-token/route.ts` — canonical provider ID + server-side notification data fetch
+- `lib/claim-tokens.ts` — `token` → `otk` rename
+- `components/provider-onboarding/SmartDashboardShell.tsx` — notification state priority over pre-verified
+- `components/provider-onboarding/ActionCard.tsx` — token-verified CTA always shows "View full inquiry"
+- `app/provider/connections/page.tsx` — eternal skeleton safety net
+
+**Postmortem:** Logged to `docs/POSTMORTEMS.md`. Memories saved: `feedback_email_param_names.md`, `feedback_one_click_ux_principles.md`.
+
+**Still TODO:**
+- Debug auto-sign-in (background auth) — check console `[OneClick]` logs
+- Verify "View full inquiry" button navigates correctly when clicked
+- Merge PR #428 to staging
 
 ---
 

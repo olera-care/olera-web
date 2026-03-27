@@ -139,6 +139,11 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // Fully onboarded = profile complete AND matches live
   const isFullyOnboarded = isProfileComplete && isMatchesLive;
 
+  // ── Prefetch /welcome so post-enrichment navigation is instant ──
+  useEffect(() => {
+    router.prefetch("/welcome");
+  }, [router]);
+
   // ── Resolve initial state — show form immediately for everyone ──
   useEffect(() => {
     if (authLoading) return;

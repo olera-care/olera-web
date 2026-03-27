@@ -917,7 +917,8 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   // - Has messaged: Hide the connection card (they're engaged)
   // - Returning user + not fresh + profile incomplete: Show "Pick up where you left off"
   // - Returning user + profile done but not live: Hide card, focus on step cards
-  const showConnectionCard = isConnected && !hasUserMessaged && isFreshConnection;
+  // Fresh connections always show the card (the initial inquiry message shouldn't hide it)
+  const showConnectionCard = isConnected && isFreshConnection;
   const showPickUpWhereLeftOff = isConnected && !isFreshConnection && !hasUserMessaged && !allStepsComplete;
 
   const needsProfileAttention = !profileComplete;

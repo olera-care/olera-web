@@ -325,8 +325,27 @@ export default function ProviderOnboardPage() {
                   });
 
                   if (!otpError) {
-                    // Session established — now finalize the claim
+                    // Session established — refresh auth and ensure correct profile is active
                     await refreshAccountData();
+
+                    // Switch to the provider profile so the destination page shows the right data
+                    try {
+                      const supabaseCheck = createClient();
+                      const { data: { user: signedInUser } } = await supabaseCheck.auth.getUser();
+                      if (signedInUser) {
+                        const { data: providerProfile } = await supabaseCheck
+                          .from("business_profiles")
+                          .select("id")
+                          .eq("slug", slug)
+                          .in("type", ["organization", "caregiver"])
+                          .maybeSingle();
+                        if (providerProfile) {
+                          switchProfile(providerProfile.id);
+                        }
+                      }
+                    } catch {
+                      // Non-critical — connections page may still work with default profile
+                    }
 
                     // Finalize claim if not already claimed
                     if (!tokenResult.alreadyClaimed) {

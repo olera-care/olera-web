@@ -298,10 +298,10 @@ export default function ProviderOnboardPage() {
           const tokenResult = await tokenRes.json();
 
           if (tokenResult.valid) {
-            const verifiedEmail = tokenResult.emailHint;
+            const verifiedEmail = tokenResult.email || tokenResult.emailHint;
 
             // For notification actions (lead/question/review), attempt one-click:
-            // auto-sign-in → auto-claim → redirect to destination
+            // auto-sign-in → auto-claim (if needed) → redirect to destination
             if (actionParam && actionParam !== "campaign") {
               setStep("finalizing");
               try {
@@ -328,18 +328,20 @@ export default function ProviderOnboardPage() {
                     // Session established — now finalize the claim
                     await refreshAccountData();
 
-                    // Attempt claim finalization
-                    try {
-                      await fetch("/api/claim/finalize", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          providerId: foundProvider.provider_id,
-                          claimSession: claimSessionData.sessionId,
-                        }),
-                      });
-                    } catch {
-                      // Claim may already exist — that's fine
+                    // Finalize claim if not already claimed
+                    if (!tokenResult.alreadyClaimed) {
+                      try {
+                        await fetch("/api/claim/finalize", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            providerId: foundProvider.provider_id,
+                            claimSession: claimSessionData.sessionId,
+                          }),
+                        });
+                      } catch {
+                        // Claim may already exist — that's fine
+                      }
                     }
 
                     // Log one-click access for observability (fire-and-forget)

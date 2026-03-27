@@ -970,8 +970,23 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           {/* ============================================================
               TOP CARD — Context-aware based on user journey state
               ============================================================ */}
-          {/* Skeleton: connection param in URL but data still loading */}
-          {connectionIdParam && !connection ? (
+          {/* Debug: trace card state */}
+          {(() => {
+            if (typeof window !== "undefined") {
+              console.log("[welcome-card]", {
+                connectionIdParam,
+                connectionExists: !!connection,
+                toProfile: connection?.to_profile?.display_name || null,
+                isConnected,
+                showConnectionCard,
+                isFreshConnection,
+                allStepsComplete,
+              });
+            }
+            return null;
+          })()}
+          {/* Connection flow: skeleton while loading, card when ready */}
+          {isFreshConnection && !connection ? (
             <section className="pb-10">
               <div className="rounded-2xl border border-gray-200/60 overflow-hidden animate-pulse">
                 <div className="flex flex-col sm:flex-row">

@@ -304,6 +304,31 @@ export default function ProviderOnboardPage() {
             // For notification actions (lead/question/review), attempt one-click:
             // auto-sign-in → auto-claim (if needed) → redirect to destination
             if (actionParam && actionParam !== "campaign") {
+              // If already claimed AND current user owns this listing,
+              // skip auto-sign-in entirely — don't replace their session.
+              // Auto-sign-in uses the provider's email from the token, which
+              // creates a session for a different auth user. If the current
+              // user (e.g., admin/owner) already owns the claim, switching
+              // sessions breaks the downstream page (no provider profile).
+              if (tokenResult.alreadyClaimed && user && account) {
+                const supabaseOwnerCheck = createClient();
+                const { data: ownedProfile } = await supabaseOwnerCheck
+                  .from("business_profiles")
+                  .select("id")
+                  .eq("slug", slug)
+                  .in("type", ["organization", "caregiver"])
+                  .eq("account_id", account.id)
+                  .maybeSingle();
+
+                if (ownedProfile) {
+                  // Current user owns this listing — redirect without session swap
+                  switchProfile(ownedProfile.id);
+                  clearClaimSession();
+                  router.replace(getActionRedirectUrl(actionParam, actionIdParam));
+                  return;
+                }
+              }
+
               // Prevent the useEffect auto-finalize from racing with this flow.
               // Without this, setting step="finalizing" triggers the useEffect
               // which calls handleFinalize() concurrently, causing an error flash.

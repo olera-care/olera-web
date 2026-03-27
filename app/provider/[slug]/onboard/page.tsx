@@ -22,6 +22,26 @@ type OnboardStep =
   | "success"
   | "error";
 
+/** Shared action→destination mapping for email notification routing */
+function getActionRedirectUrl(
+  action: string | null,
+  actionId: string | null
+): string {
+  if (action && actionId) {
+    switch (action) {
+      case "lead":
+        return `/provider/connections?id=${actionId}`;
+      case "message":
+        return `/provider/inbox?id=${actionId}`;
+      case "question":
+        return `/provider/qna?id=${actionId}`;
+      case "review":
+        return `/provider/reviews?id=${actionId}`;
+    }
+  }
+  return "/provider";
+}
+
 export default function ProviderOnboardPage() {
   const { slug } = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
@@ -129,18 +149,7 @@ export default function ProviderOnboardPage() {
         if (bp) {
           // For claimed providers, check if user owns it and redirect appropriately
           if (bp.claim_state === "claimed" && account && bp.account_id === account.id) {
-            // User owns this listing - redirect to appropriate section
-            if (actionParam === "lead" && actionIdParam) {
-              router.replace(`/provider/inbox?id=${actionIdParam}`);
-            } else if (actionParam === "message" && actionIdParam) {
-              router.replace(`/provider/inbox?id=${actionIdParam}`);
-            } else if (actionParam === "question" && actionIdParam) {
-              router.replace(`/provider/qna?id=${actionIdParam}`);
-            } else if (actionParam === "review" && actionIdParam) {
-              router.replace(`/provider/reviews?id=${actionIdParam}`);
-            } else {
-              router.replace("/provider");
-            }
+            router.replace(getActionRedirectUrl(actionParam, actionIdParam));
             return;
           }
 
@@ -179,6 +188,8 @@ export default function ProviderOnboardPage() {
       setProvider(foundProvider);
 
       // Fetch notification data if action params provided (lead/review/question from email)
+      // Track locally so we can use it later in this same function (state isn't readable until re-render)
+      let fetchedNotificationData: NotificationData | null = null;
       if (actionParam && actionIdParam) {
         try {
           if (actionParam === "lead") {
@@ -210,7 +221,7 @@ export default function ProviderOnboardPage() {
               const connMetadata = conn.metadata as Record<string, unknown> | null;
               const autoIntro = (connMetadata?.auto_intro as string) || null;
 
-              setNotificationData({
+              fetchedNotificationData = {
                 type: "lead",
                 id: conn.id,
                 created_at: conn.created_at,
@@ -220,7 +231,7 @@ export default function ProviderOnboardPage() {
                   auto_intro: autoIntro || undefined,
                 },
                 from_profile: conn.from_profile as NotificationData["from_profile"],
-              });
+              };
             }
           } else if (actionParam === "question") {
             // Fetch question data
@@ -230,13 +241,13 @@ export default function ProviderOnboardPage() {
               .eq("id", actionIdParam)
               .single();
             if (question) {
-              setNotificationData({
+              fetchedNotificationData = {
                 type: "question",
                 id: question.id,
                 created_at: question.created_at,
                 question: question.question,
                 asker_name: question.asker_name,
-              });
+              };
             }
           } else if (actionParam === "review") {
             // Fetch review data
@@ -246,18 +257,21 @@ export default function ProviderOnboardPage() {
               .eq("id", actionIdParam)
               .single();
             if (review) {
-              setNotificationData({
+              fetchedNotificationData = {
                 type: "review",
                 id: review.id,
                 created_at: review.created_at,
                 rating: review.rating,
                 comment: review.comment,
                 reviewer_name: review.reviewer_name,
-              });
+              };
             }
           }
         } catch (err) {
           console.error("[ProviderOnboard] Failed to fetch notification data:", err);
+        }
+        if (fetchedNotificationData) {
+          setNotificationData(fetchedNotificationData);
         }
       }
 
@@ -269,8 +283,9 @@ export default function ProviderOnboardPage() {
       );
       setSession(claimSessionData);
 
-      // Handle campaign token (marketing email pre-verification)
-      if (actionParam === "campaign" && tokenParam) {
+      // Handle signed claim token (from any email: lead, question, review, campaign)
+      // One-click flow: validate token → auto-sign-in → auto-claim → redirect
+      if (tokenParam) {
         try {
           const tokenRes = await fetch("/api/claim/validate-token", {
             method: "POST",
@@ -283,51 +298,149 @@ export default function ProviderOnboardPage() {
           const tokenResult = await tokenRes.json();
 
           if (tokenResult.valid) {
-            // Token is valid - user is pre-verified
-            setPreVerifiedEmail(tokenResult.emailHint);
-            setActionCardState("pre-verified");
+            const verifiedEmail = tokenResult.emailHint;
+
+            // For notification actions (lead/question/review), attempt one-click:
+            // auto-sign-in → auto-claim → redirect to destination
+            if (actionParam && actionParam !== "campaign") {
+              setStep("finalizing");
+              try {
+                // Auto-sign-in with the verified email
+                const signInRes = await fetch("/api/auth/auto-sign-in", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    email: verifiedEmail,
+                    claimSession: claimSessionData.sessionId,
+                  }),
+                });
+                const signInData = await signInRes.json();
+
+                if (signInRes.ok && signInData.tokenHash) {
+                  // Establish browser session
+                  const supabase = createClient();
+                  const { error: otpError } = await supabase.auth.verifyOtp({
+                    token_hash: signInData.tokenHash,
+                    type: "magiclink",
+                  });
+
+                  if (!otpError) {
+                    // Session established — now finalize the claim
+                    await refreshAccountData();
+
+                    // Attempt claim finalization
+                    try {
+                      await fetch("/api/claim/finalize", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          providerId: foundProvider.provider_id,
+                          claimSession: claimSessionData.sessionId,
+                        }),
+                      });
+                    } catch {
+                      // Claim may already exist — that's fine
+                    }
+
+                    // Log one-click access for observability (fire-and-forget)
+                    fetch("/api/activity/track", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        provider_id: slug,
+                        event_type: "one_click_access",
+                        metadata: {
+                          action: actionParam,
+                          action_id: actionIdParam,
+                          email: verifiedEmail,
+                          provider_name: foundProvider.provider_name,
+                          source: "email_token",
+                        },
+                      }),
+                    }).catch(() => {});
+
+                    // Redirect to the action destination
+                    clearClaimSession();
+                    router.replace(getActionRedirectUrl(actionParam, actionIdParam));
+                    return;
+                  }
+                }
+              } catch (err) {
+                console.error("[ProviderOnboard] One-click flow failed:", err);
+              }
+              // One-click failed — fall through to show notification card with pre-verified state
+              setStep("dashboard");
+            }
+
+            // For campaign or fallback: show pre-verified state
+            setPreVerifiedEmail(verifiedEmail);
+            setActionCardState(actionParam && actionParam !== "campaign"
+              ? (({ lead: "notification-lead", message: "notification-lead", question: "notification-question", review: "notification-review" } as Record<string, ActionCardState>)[actionParam] || "pre-verified")
+              : "pre-verified"
+            );
             setStep("dashboard");
             return;
           } else if (tokenResult.alreadyClaimed) {
-            // Listing already claimed
+            // Already claimed — for notification actions, try redirect if we have a session
+            if (actionParam && actionParam !== "campaign" && user && account) {
+              router.replace(getActionRedirectUrl(actionParam, actionIdParam));
+              return;
+            }
             setActionCardState("already-claimed");
             setStep("dashboard");
             return;
           } else {
             // Token invalid/expired - fall through to normal flow
-            console.warn("[ProviderOnboard] Campaign token invalid:", tokenResult.error);
+            console.warn("[ProviderOnboard] Token invalid:", tokenResult.error);
           }
         } catch (err) {
-          console.error("[ProviderOnboard] Failed to validate campaign token:", err);
+          console.error("[ProviderOnboard] Failed to validate token:", err);
           // Fall through to normal flow
         }
       }
 
       // Check if already claimed via business_profiles
-      const { data: bp } = await supabase
+      // Query by source_provider_id first (olera-providers path), then by slug (BP-only path)
+      let bp: { claim_state: string | null; account_id: string | null } | null = null;
+      const { data: bpBySource } = await supabase
         .from("business_profiles")
         .select("claim_state, account_id")
         .eq("source_provider_id", foundProvider.provider_id)
         .maybeSingle();
+      bp = bpBySource;
+
+      if (!bp && foundProvider.slug) {
+        // BP-only provider: look up by slug directly
+        const { data: bpBySlug } = await supabase
+          .from("business_profiles")
+          .select("claim_state, account_id")
+          .eq("slug", foundProvider.slug)
+          .in("type", ["organization", "caregiver"])
+          .maybeSingle();
+        bp = bpBySlug;
+      }
 
       if (bp?.claim_state === "claimed") {
         // If the signed-in user owns this listing, redirect to the appropriate section
         if (account && bp.account_id && account.id === bp.account_id) {
-          // Route to specific section based on notification type
-          if (actionParam === "lead" && actionIdParam) {
-            router.replace(`/provider/inbox?id=${actionIdParam}`);
-          } else if (actionParam === "message" && actionIdParam) {
-            router.replace(`/provider/inbox?id=${actionIdParam}`);
-          } else if (actionParam === "question" && actionIdParam) {
-            router.replace(`/provider/qna?id=${actionIdParam}`);
-          } else if (actionParam === "review" && actionIdParam) {
-            router.replace(`/provider/reviews?id=${actionIdParam}`);
-          } else {
-            router.replace("/provider");
-          }
+          router.replace(getActionRedirectUrl(actionParam, actionIdParam));
           return;
         }
-        // Otherwise show dashboard with dispute form in ActionCard
+        // If they arrived from a notification email, show the contextual card
+        // (lead/question/review preview) instead of the generic "already claimed" dispute card.
+        // This lets the actual owner verify + sign in to respond.
+        if (actionParam && fetchedNotificationData) {
+          const notificationStateMap: Record<string, ActionCardState> = {
+            lead: "notification-lead",
+            message: "notification-lead",
+            question: "notification-question",
+            review: "notification-review",
+          };
+          setActionCardState(notificationStateMap[actionParam] || "verify-form");
+          setStep("dashboard");
+          return;
+        }
+        // No notification context — show dispute form
         setActionCardState("already-claimed");
         setStep("dashboard");
         return;
@@ -453,14 +566,75 @@ export default function ProviderOnboardPage() {
   };
 
   // Handle verification complete (called from ActionCard via SmartDashboardShell)
-  const handleVerificationComplete = useCallback(() => {
-    markSessionVerified();
-    setSession(prev => prev ? { ...prev, verified: true } : null);
+  const handleVerificationComplete = useCallback(async (verifiedEmail?: string) => {
+    markSessionVerified(verifiedEmail);
+    setSession(prev => prev ? { ...prev, verified: true, emailHint: verifiedEmail } : null);
 
     if (user) {
       setStep("finalizing");
       handleFinalize();
-    } else {
+      return;
+    }
+
+    // Auto-sign-in with the verified email — no auth modal needed
+    const email = verifiedEmail || session?.emailHint || preVerifiedEmail;
+    if (!email) {
+      // Fallback to auth modal if we somehow don't have the email
+      openAuth({
+        deferred: {
+          action: "claim",
+          returnUrl: `${window.location.pathname}?provider_id=${provider?.provider_id}`,
+        },
+      });
+      return;
+    }
+
+    setStep("finalizing");
+    try {
+      const res = await fetch("/api/auth/auto-sign-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          claimSession: session?.sessionId || "verified",
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.tokenHash) {
+        // Auto-sign-in failed — fall back to auth modal
+        openAuth({
+          deferred: {
+            action: "claim",
+            returnUrl: `${window.location.pathname}?provider_id=${provider?.provider_id}`,
+          },
+        });
+        return;
+      }
+
+      // Establish browser session with the magic link token
+      const supabase = createClient();
+      const { error: otpError } = await supabase.auth.verifyOtp({
+        token_hash: data.tokenHash,
+        type: "magiclink",
+      });
+
+      if (otpError) {
+        console.error("Auto-sign-in OTP error:", otpError.message);
+        openAuth({
+          deferred: {
+            action: "claim",
+            returnUrl: `${window.location.pathname}?provider_id=${provider?.provider_id}`,
+          },
+        });
+        return;
+      }
+
+      // Session established — refresh auth state and finalize
+      await refreshAccountData();
+      handleFinalize();
+    } catch (err) {
+      console.error("Auto-sign-in failed:", err);
       openAuth({
         deferred: {
           action: "claim",
@@ -469,7 +643,7 @@ export default function ProviderOnboardPage() {
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, openAuth, provider?.provider_id]);
+  }, [user, openAuth, provider?.provider_id, session?.emailHint, session?.sessionId, preVerifiedEmail]);
 
   // Loading state
   if (step === "loading") {
@@ -518,18 +692,8 @@ export default function ProviderOnboardPage() {
   }
 
   // Determine success redirect URL based on action type
-  const getSuccessRedirectUrl = () => {
-    if (actionParam === "lead" && actionIdParam) {
-      return `/provider/inbox?id=${actionIdParam}`;
-    } else if (actionParam === "message" && actionIdParam) {
-      return `/provider/inbox?id=${actionIdParam}`;
-    } else if (actionParam === "question" && actionIdParam) {
-      return `/provider/qna?id=${actionIdParam}`;
-    } else if (actionParam === "review" && actionIdParam) {
-      return `/provider/reviews?id=${actionIdParam}`;
-    }
-    return "/provider";
-  };
+  const getSuccessRedirectUrl = () =>
+    getActionRedirectUrl(actionParam, actionIdParam);
 
   // Get button text based on action type
   const getSuccessButtonText = () => {

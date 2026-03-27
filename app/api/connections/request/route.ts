@@ -703,29 +703,26 @@ async function handleGuestConnection({
         providerId: toProfileId,
       });
 
-      // Generate magic link for provider one-click sign-in
+      // Generate one-click claim URL with signed token
       const siteUrl = getSiteUrl();
-      const redirectPath = appendTrackingParams(
-        `/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`,
-        emailLogId
-      );
-      // Fallback: direct to onboard page (handles both claimed and unclaimed providers)
-      let viewUrl = `${siteUrl}${redirectPath}`;
-
+      let viewUrl: string;
       try {
-        const { data: providerLinkData, error: providerLinkError } = await authClient.auth.admin.generateLink({
-          type: "magiclink",
-          email: providerEmail,
-          options: {
-            redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
-          },
-        });
-        if (!providerLinkError && providerLinkData?.properties?.action_link) {
-          viewUrl = providerLinkData.properties.action_link;
-        }
-      } catch (linkErr) {
-        console.error("Failed to generate provider magic link:", linkErr);
-        // Continue with fallback URL (welcome page)
+        const { generateNotificationUrl } = await import("@/lib/claim-tokens");
+        viewUrl = generateNotificationUrl(
+          providerSlug || toProfileId,
+          providerEmail,
+          "lead",
+          newConnection.id,
+          siteUrl
+        );
+        // Append email tracking params
+        viewUrl = appendTrackingParams(viewUrl, emailLogId);
+      } catch {
+        // Fallback: direct URL without token
+        viewUrl = appendTrackingParams(
+          `${siteUrl}/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`,
+          emailLogId
+        );
       }
 
       await sendEmail({
@@ -1402,29 +1399,24 @@ export async function POST(request: Request) {
           providerId: toProfileId,
         });
 
-        // Generate magic link for provider one-click sign-in
+        // Generate one-click claim URL with signed token
         const siteUrl = getSiteUrl();
-        const redirectPath = appendTrackingParams(
-          `/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`,
-          emailLogId
-        );
-        // Fallback: direct to onboard page (handles both claimed and unclaimed providers)
-        let viewUrl = `${siteUrl}${redirectPath}`;
-
+        let viewUrl: string;
         try {
-          const { data: providerLinkData, error: providerLinkError } = await admin.auth.admin.generateLink({
-            type: "magiclink",
-            email: providerEmail,
-            options: {
-              redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
-            },
-          });
-          if (!providerLinkError && providerLinkData?.properties?.action_link) {
-            viewUrl = providerLinkData.properties.action_link;
-          }
-        } catch (linkErr) {
-          console.error("Failed to generate provider magic link:", linkErr);
-          // Continue with fallback URL (welcome page)
+          const { generateNotificationUrl } = await import("@/lib/claim-tokens");
+          viewUrl = generateNotificationUrl(
+            providerSlug || toProfileId,
+            providerEmail,
+            "lead",
+            newConnection.id,
+            siteUrl
+          );
+          viewUrl = appendTrackingParams(viewUrl, emailLogId);
+        } catch {
+          viewUrl = appendTrackingParams(
+            `${siteUrl}/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`,
+            emailLogId
+          );
         }
 
         await sendEmail({

@@ -161,12 +161,18 @@
   - PR #398: Add Documents section to admin student detail page (driver's license + car insurance upload status)
   - Type fix: Added document fields to `StudentMetadata` in `lib/types.ts`
 
-- **Provider Activity Center** (branch: `fond-keller`, PR #404) — MERGED ✅
+- **Provider Activity Center** (branch: `fond-keller`) — DONE ✅
   - Plan: `plans/provider-activity-center-plan.md`
   - Notion: [Track provider activity in "Activity Center"](https://www.notion.so/Track-provider-activity-in-Activity-Center-32f5903a0ffe80c8ad21ebd8b3176a6f)
   - Track email click-throughs from provider notifications, surface in admin dashboard
   - 5 phases: DB table → instrument emails → capture clicks → API → admin UI
   - PRs #404 merged to staging, #405 promoted to main
+
+- **Provider Onboarding Routing Fix + UX** (branch: `loving-swartz`) — READY FOR REVIEW
+  - Plan: `plans/provider-onboarding-routing-plan.md`
+  - Notion: [Task](https://www.notion.so/089aad975c5d4ba0930c8da33b8a6597)
+  - 5 routing bugs fixed + notification card UX redesign + privacy masking
+  - 6 commits, PR to staging pending
 
 - **Family Activity Center** (branch: `logical-mahavira`) — IN PROGRESS
   - Plan: `plans/family-activity-center-plan.md`
@@ -175,39 +181,6 @@
   - New seeker_activity table, instrument 16 family email types with tracking, family engagement heat
   - Replaces Matches admin page (funnel metrics → per-person engagement view)
   - 5 phases: DB schema → instrument events → email tracking → admin API → admin UI
-
-- **80-City Batch Expansion** (branch: `vigilant-yalow`) — COMPLETE ✅
-  - 80 cities from map.olera.care priority list (44 missing + 36 thin coverage)
-  - Discovery: 14,917 providers found across 80 cities (~43 min, $86)
-  - Clean: AI classification + keyword filter + dedup against 33,589 existing
-  - Load: ~4,200 providers uploaded + geocoded ($91)
-  - Enrich: descriptions, reviews, trust signals, images ($447)
-  - Trust signals: 1,384 confirmed, 1,443 false positives soft-deleted (47% rejection rate)
-  - Post-expansion dedup: 960 cross-city duplicates soft-deleted
-  - Total cost: ~$535 (vs $2,000 estimate — 73% under budget)
-  - Fix: Added `fetchWithRetry` to `pipeline-batch.js` for ETIMEDOUT errors
-  - Supabase scaled to Small during load, can scale back to Micro now
-
-- **Pipeline Batch Optimization** (branch: `vigilant-yalow`) — DONE ✅
-  - Backup: `scripts/pipeline-batch.js.bak`
-  - 4 optimizations to `scripts/pipeline-batch.js`:
-    1. Within-batch place_id dedup: tracks place_id + name|state across cities during clean phase
-    2. Live Supabase dedup: queries live DB instead of stale 61MB CSV export
-    3. Merged reviews+photos: single Google Places call instead of two separate ones
-    4. Smart geocoding: skips re-geocode when discovery coords pass state bounds + city proximity
-  - Estimated savings: ~$62/batch + significant time reduction
-  - Also added `/dedup` slash command to worktree (was missing from `.claude/commands/`)
-  - Tested on 3-city batch (Arden-Arcade, Florence-Graham, Medford): all 4 optimizations verified
-
-- **Standalone `/enrich-city` Command** (branch: `dedup-cleanup` in main repo) — DONE ✅
-  - Script: `scripts/enrich-city.js` (rewritten from 423→340 lines)
-  - Slash command: `.claude/commands/enrich-city.md`
-  - Queries by `city`+`state` columns (case-insensitive), not provider_id prefix
-  - Catches ALL providers regardless of import source (CMS, manual, old pipeline)
-  - Dry-run by default: shows gap analysis + cost estimate
-  - 5 enrichment streams: desc, reviews, trust, snippets, images
-  - Supports `--stream` flag for single-stream execution
-  - Tested on Medford MA (23 providers) and West Jordan UT (13 providers)
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — DONE ✅
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
@@ -238,23 +211,37 @@
 
 ## Next Up
 
-1. **Scale Supabase back to Micro** — batch load is done, Small no longer needed
-2. **Spot-check new cities on live site** — verify provider cards, trust signals, map pins after ISR refresh
-3. **Test optimized pipeline on next batch** — verify all 4 optimizations work end-to-end
+1. **Merge PR #219** (waiver library redesign) — waiting on Chantel to remove `package.json.tmp` + `.mcp.json`
+2. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
+3. **Test Google OAuth on olera.care** — verify sign-in flow end-to-end
+4. **Monitor GSC for 404 spikes** — check over next few days post-cutover
+5. **Re-submit sitemap in GSC** — now returns sitemap index with all shards, should discover 40K+ pages
+6. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
+7. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
+8. **Gated provider portal page** — Esther building; sanity check item #1
+9. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
+10. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
+11. **Run backfill script** for source_provider_id (dry-run first): `scripts/backfill-source-provider-id.js`
+12. **Merge loving-swartz PR #421** to staging after review
+13. **Phase 2: One-click provider onboarding** — signed JWT tokens in email links, token validation endpoint, zero-friction claim flow
+14. **Phase 2: Activity Center PII tracking** — log "viewed_lead_pii" events, Slack alerts for sensitive interactions
+15. **Unmask question/review content** on onboard notification cards (public data, no privacy concern)
 
 ---
 
 ## Decisions Made
 
 | Date | Decision | Rationale |
-| 2026-03-26 | Add fetchWithRetry to pipeline-batch.js Google API calls | ETIMEDOUT crashes killed the pipeline twice during geocoding. 3 retries with exponential backoff (2s/4s/6s) handles transient network failures without manual restart |
-| 2026-03-26 | Scale Supabase to Small during batch load, back to Micro after | Disk IO Budget warning at Micro tier. Small ($0.02/hr) provides headroom for 4K+ concurrent inserts + geocoding. Temporary — scale down after batch |
-| 2026-03-26 | enrich-city queries by city+state columns, not provider_id prefix | provider_id prefix (`{city}-{state}-NNNN`) misses providers from CMS imports, manual adds, and older pipelines. `ilike('city', x).ilike('state', y)` catches everything regardless of how it was imported |
-| 2026-03-26 | Modify existing enrich-city.js rather than create new script | Avoids code divergence — two scripts doing the same enrichment with slightly different logic. Existing script had 5 of 6 streams already, only needed query pattern + CLI flags + dry-run |
-| 2026-03-26 | Live Supabase dedup replaces stale CSV export | The 61MB CSV was 5 days stale — missed 88-city expansion and any recent changes. Querying Supabase directly adds ~10s but gives 100% accurate dedup |
-| 2026-03-26 | Smart geocoding: skip when discovery coords pass bounds check | 88% of discovery coordinates were correct. Re-geocoding all of them cost $91 this run. Smart skip only geocodes missing/suspicious coords (~30%), saving ~$64/batch |
-| 2026-03-26 | Merge reviews+photos into single Google Places call | Two separate calls (reviews, photos) for the same place_id is wasteful. Single call with `fields=reviews,photos` halves API calls. Photo URI resolution still needs a second call |
-| 2026-03-26 | Keep clean-phase AI classification despite trust signals also classifying | Clean-phase batch-50 AI is 17x cheaper per provider ($0.0001 vs $0.0017). Catches 30% of false positives before they hit geocoding/enrichment. The two-pass approach costs slightly more in Perplexity but saves far more in wasted Google API calls on false positives |
+| 2026-03-26 | Lead email is Trojan horse — dashboard is the product demo | Bare notification page would look like another lead-gen scam. Providers burned by APFM/Caring.com need to see the full platform (gallery, reviews, completeness) to believe Olera is real. Hero card hooks, dashboard below sells. |
+| 2026-03-26 | Always mask seeker info on onboard page | `isSignedIn` doesn't mean verified owner of this listing. Protect seekers in case email goes to wrong recipient. First name only, no photo, city only, message truncated. Full info after claiming. |
+| 2026-03-26 | Notification card overrides "already claimed" for email entry | Provider clicking email link and seeing "This listing is claimed — Dispute" is hostile. Show the lead/question/review preview instead, let them verify to respond. |
+| 2026-03-26 | BP-only providers need slug-based fallback in claim check | Second claim check queries by source_provider_id, which is NULL for BP-only providers. Fallback query by slug catches them. |
+| 2026-03-26 | Dark CTA buttons (bg-gray-900) for provider onboarding | Matches MedJobs aesthetic — calm confidence over teal SaaS template. Consistent across provider-facing surfaces. |
+| 2026-03-26 | One-click email tokens for provider onboarding (Phase 2) | Email IS the verification — asking for OTP after they clicked the email is proving the same thing twice. Signed JWT in email link = one click from email to full portal access. Zero friction. |
+| 2026-03-26 | Two tiers, not three: Full Access + Trusted | Full access via one-click token (everything including seeker PII). Trusted tier (phone call from Olera) only for destructive actions (delete listing, transfer ownership). Middle "Verified" tier was mud that solved a problem we don't have at current scale. |
+| 2026-03-26 | Observability over gates for PII protection | At 5-10 leads/day with ~10% provider engagement, manual oversight is feasible. Activity Center + Slack alerts when provider views seeker PII. Human review, not software gates. Gates only when volume demands it. |
+| 2026-03-26 | Phone call (not SMS OTP) for Trusted tier | Senior care providers are 60-70yo facility operators. SMS OTP = friction and confusion. Human phone call to business number = highest trust, zero tech friction, builds relationship. Rare actions only (~2-3/week). |
+| 2026-03-26 | Questions and reviews don't need privacy masking | Q&A and reviews are already public on the provider page. Only leads contain private seeker PII. Showing full question/review text on onboard page is fine and more compelling. |
 | 2026-03-25 | Full apply must retry account creation if apply-partial failed | Two-phase form (partial on step 1, full on step 4) means the full submit UPDATE path must check `account_id` and create auth+account if null. Silent try/catch in apply-partial hid the failure |
 | 2026-03-25 | `hero_image_url` column doesn't exist in `olera-providers` | The set_hero action wrote to it but it was never added to the table schema. All references must use `select("*")` and guard with `"hero_image_url" in provider` |
 | 2026-03-25 | Hover overlay > exposed pill buttons for image actions | Colored pills (yellow/red/green) below each image were visual noise. Dark gradient overlay with icon buttons on hover — images are content, buttons are tools |
@@ -340,46 +327,54 @@
 
 ## Session Log
 
-### 2026-03-26 (Session 61) — 80-City Batch + Pipeline Optimization + /enrich-city
+### 2026-03-26 (Session 61) — Provider Onboarding Routing Fix + UX Redesign + Architecture
 
-**Branch:** `vigilant-yalow` (no code changes in worktree) | **No PR** (data-only pipeline run)
+**Branch:** `loving-swartz` | **9 commits** | PR #421
 
-**What:** Largest batch expansion since the 88-city run. Processed 80 priority cities from map.olera.care gap analysis — 44 missing cities + 36 thin-coverage cities.
+**What:** Fixed 5 provider onboarding routing bugs from Esther's audit + redesigned notification card UX for email-driven provider acquisition.
 
-**Pipeline Results:**
-- Discovery: 14,917 raw providers (80 cities, 43 min, $86)
-- Clean: AI classification + keyword filter + dedup against 33,589 existing providers
-- Load: ~4,941 uploaded → ~4,217 active after geocoding ($91)
-- Enrich: 4,772 descriptions, 3,956 review snippets, 3,605 images, 1,384 trust signals confirmed ($447)
-- **1,443 false positives soft-deleted** by trust signal verification (47% rejection rate for non-CMS)
-- Total: **~$535** (73% under $2,000 estimate)
+**Bugs Fixed:**
+1. **Double auth after OTP** — replaced `openAuth()` with auto-sign-in via `generateLink` + `verifyOtp` (new `/api/auth/auto-sign-in` endpoint)
+2. **Routing logic in 3 locations** — extracted `getActionRedirectUrl()` helper, fixed lead→`/provider/connections` (was `/inbox`)
+3. **Claimed provider flash** — added `claim_state` check to middleware; claimed providers skip onboard redirect entirely
+4. **`source_provider_id` NULL** — auto-link during fresh provider creation (name+city+state match) + backfill script
+5. **Review emails not sending** — fallback provider lookup in `reviews/public` endpoint (BP→olera-providers→BP via source_provider_id)
 
-**Issues & Fixes:**
-- Pipeline crashed twice on `ETIMEDOUT` during geocoding (Huber Heights OH, Linton Hall VA)
-- Root cause: `googleGeocode()` had no retry logic for transient network errors
-- Fix: Added `fetchWithRetry()` wrapper (3 retries, exponential backoff) to all Google API calls in `scripts/pipeline-batch.js`
-- Supabase Disk IO Budget warning → scaled Micro → Small during load phase
+**Additional Fixes (discovered during testing):**
+- BP-only providers (no olera-providers record) hit wrong code path — second claim check queried by `source_provider_id` which was NULL. Added fallback query by slug.
+- "This listing is claimed" shown to providers arriving from email notifications — now shows contextual notification card (New lead/question/review) instead
 
-**Note:** Pipeline processed all 174 expansion directories (not just the 80 new ones) because `--resume` couldn't check Notion (no NOTION_TOKEN in env). Dedup correctly skipped existing providers. No harm, just slower clean phase.
+**UX Redesign:**
+- Notification card elevated as full-width hero above dashboard grid (Trojan horse strategy: lead hooks, dashboard below sells the platform)
+- Card redesign: "A family is interested in your services", emerald icon, gray-50 seeker card, dark CTA
+- Trust line: "Olera is an NIH-backed platform..." below hero
+- "Your listing on Olera" divider before dashboard sections
+- Privacy masking: always mask seeker info on onboard page (first name only, no photo, city only, message truncated)
+- Header drops "Claiming:" for notification entries
 
-**Post-expansion:** Ran `dedup-database.js --delete` — 960 cross-city duplicates soft-deleted (1/3 of new providers were dupes from overlapping nearby cities).
+**Files Modified (7):**
+- `app/provider/[slug]/onboard/page.tsx` — routing helper, auto-sign-in, BP-only claim check fix, notification override
+- `components/provider-onboarding/ActionCard.tsx` — notification card redesign, privacy masking, callback signature
+- `components/provider-onboarding/SmartDashboardShell.tsx` — hero layout for notifications, header update
+- `lib/supabase/middleware.ts` — claim_state check for claimed providers
+- `app/api/auth/create-profile/route.ts` — auto-link source_provider_id
+- `app/api/reviews/public/route.ts` — fallback provider lookup
 
-**Pipeline Optimization (applied to main repo `scripts/pipeline-batch.js`):**
-- Backup: `scripts/pipeline-batch.js.bak`
-- Within-batch place_id dedup: tracks place_ids across cities, eliminates dupes before any API call
-- Live Supabase dedup: replaces stale 61MB CSV with live DB query
-- Merged reviews+photos: single `googlePlacesField(id, 'reviews,photos')` instead of 2 calls
-- Smart geocoding: skips re-geocode when discovery coords pass state bounds + city proximity check
-- Estimated savings: ~$62/batch (~12%) + faster execution
+**Files Created (3):**
+- `app/api/auth/auto-sign-in/route.ts` — lightweight auto-sign-in endpoint
+- `scripts/backfill-source-provider-id.js` — one-time backfill (dry-run by default)
+- `plans/provider-onboarding-routing-plan.md`
 
-**`/enrich-city` Standalone Command:**
-- Rewrote `scripts/enrich-city.js`: queries by city+state columns (not provider_id prefix)
-- Dry-run by default with gap analysis table + cost estimate
-- 5 streams: desc, reviews, trust, snippets, images — supports `--stream` for single-stream
-- Slash command: `.claude/commands/enrich-city.md` (city-pipeline-level rigor)
-- Tested on Medford MA (23 providers, 4 image gaps) and West Jordan UT (13 providers, 5 gaps)
+**Build:** Clean, zero errors.
 
-**Build:** N/A (no app code changes; pipeline scripts + slash commands applied to main repo)
+**Session Continuation — Taste Pass + Architecture Discussion:**
+- Redesigned all 3 notification cards (lead/question/review): Olera chat mascot, left-aligned, flat layout (no nested cards), quiet border, generous padding
+- Unmasked question + review content (public data) — only leads need privacy masking
+- Agreed on Phase 2 architecture: one-click signed email tokens for zero-friction provider onboarding
+- Progressive trust model: Full Access (one-click token) → Trusted (phone call from Olera for destructive actions)
+- Observability over gates: Activity Center + Slack alerts for PII access, not software gates
+- Phone call (not SMS OTP) for Trusted tier — senior care providers aren't tech-savvy
+- Phase 2 implementation pending (signed token generation, token validation endpoint, Activity Center PII tracking, Slack alerts)
 
 ---
 

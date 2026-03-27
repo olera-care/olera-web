@@ -30,7 +30,7 @@ import ActionCard, { type ActionCardState, type NotificationData } from "./Actio
 // Onboarding Header (replaces main navbar during claim flow)
 // ============================================================
 
-function OnboardingHeader({ providerName }: { providerName: string }) {
+function OnboardingHeader({ providerName, isNotification }: { providerName: string; isNotification?: boolean }) {
   const handleBack = () => {
     // Go back to previous page
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -52,7 +52,7 @@ function OnboardingHeader({ providerName }: { providerName: string }) {
 
           {/* Center: Claiming context */}
           <div className="hidden sm:flex items-center gap-2 text-sm">
-            <span className="text-gray-400">Claiming:</span>
+            <span className="text-gray-400">{isNotification ? "" : "Claiming:"}</span>
             <span className="font-medium text-gray-700 truncate max-w-[200px] md:max-w-[300px]">
               {providerName}
             </span>
@@ -74,7 +74,7 @@ function OnboardingHeader({ providerName }: { providerName: string }) {
       {/* Mobile: Show provider name below */}
       <div className="sm:hidden border-t border-gray-50 px-4 py-2 bg-gray-50/50">
         <p className="text-xs text-gray-400">
-          Claiming: <span className="font-medium text-gray-600">{providerName}</span>
+          {isNotification ? "" : "Claiming: "}<span className="font-medium text-gray-600">{providerName}</span>
         </p>
       </div>
     </header>
@@ -208,7 +208,7 @@ function providerToProfile(provider: Provider): Profile {
 interface SmartDashboardShellProps {
   provider: Provider;
   claimSession: string;
-  onVerificationComplete: () => void;
+  onVerificationComplete: (verifiedEmail?: string) => void;
   /** Initial state for the action card */
   initialActionState?: ActionCardState;
   /** If provided, user came from email campaign link and is pre-verified */
@@ -292,21 +292,23 @@ export default function SmartDashboardShell({
   const isSidebarHighlighted = !wizardComplete && wizardStep === 0;
   const isWizardActive = !wizardComplete;
 
+  // Is this a notification-driven entry (lead/question/review from email)?
+  const isNotificationEntry = ["notification-lead", "notification-question", "notification-review"].includes(actionCardState);
+
   return (
     <div className={`min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white ${wizardComplete ? "pt-16" : ""}`}>
       {/* Custom Onboarding Header - only shown after wizard completes (fixed position) */}
-      {wizardComplete && <OnboardingHeader providerName={provider.provider_name} />}
+      {wizardComplete && <OnboardingHeader providerName={provider.provider_name} isNotification={isNotificationEntry} />}
 
-      {/* Main Content - py-8 matches provider dashboard spacing */}
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Mobile Progress Banner */}
-        <MobileProgressBanner completeness={completeness} />
 
-        {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          {/* Main Content - Cards */}
-          <div className={`lg:col-span-2 space-y-6 ${isWizardActive ? "opacity-40 blur-[2px]" : ""}`}>
-            {/* Action Card - verification/claim flow + notification display */}
+        {/* ── Notification Hero (full-width, above grid) ── */}
+        {isNotificationEntry && wizardComplete && (
+          <div
+            className="mb-8 max-w-2xl mx-auto"
+            style={{ animation: "card-enter 0.3s ease-out both" }}
+          >
             <ActionCard
               provider={provider}
               claimSession={claimSession}
@@ -317,6 +319,42 @@ export default function SmartDashboardShell({
               notificationData={notificationData}
               isSignedIn={isSignedIn}
             />
+
+            {/* Trust line moved inside the card */}
+          </div>
+        )}
+
+        {/* ── Discover your listing section ── */}
+        {isNotificationEntry && wizardComplete && (
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="h-px flex-1 bg-gray-100" />
+              <span className="text-xs font-medium tracking-wide text-gray-400 uppercase">Your listing on Olera</span>
+              <div className="h-px flex-1 bg-gray-100" />
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Progress Banner */}
+        <MobileProgressBanner completeness={completeness} />
+
+        {/* Dashboard Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          {/* Main Content - Cards */}
+          <div className={`lg:col-span-2 space-y-6 ${isWizardActive ? "opacity-40 blur-[2px]" : ""}`}>
+            {/* Action Card - inline for non-notification flows */}
+            {!isNotificationEntry && (
+              <ActionCard
+                provider={provider}
+                claimSession={claimSession}
+                initialState={actionCardState}
+                onVerificationComplete={onVerificationComplete}
+                preVerifiedEmail={preVerifiedEmail}
+                highlighted={highlightAction}
+                notificationData={notificationData}
+                isSignedIn={isSignedIn}
+              />
+            )}
 
             {/* Dashboard Cards - clickable to trigger verification prompt */}
             {[

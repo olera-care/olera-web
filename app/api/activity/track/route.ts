@@ -8,6 +8,7 @@ const PROVIDER_EVENT_TYPES = [
   "question_received",
   "question_responded",
   "review_viewed",
+  "one_click_access",
 ] as const;
 
 const FAMILY_EVENT_TYPES = [
@@ -125,6 +126,24 @@ export async function POST(request: NextRequest) {
         { error: "Failed to log activity" },
         { status: 500 }
       );
+    }
+
+    // Send Slack alert for one-click token access (observability for PII exposure)
+    if (event_type === "one_click_access") {
+      try {
+        const { sendSlackAlert, slackOneClickAccess } = await import("@/lib/slack");
+        const meta = metadata as Record<string, string> || {};
+        const alert = slackOneClickAccess({
+          providerName: meta.provider_name || provider_id,
+          providerEmail: meta.email || "unknown",
+          providerSlug: provider_id,
+          action: meta.action || "unknown",
+          actionId: meta.action_id,
+        });
+        sendSlackAlert(alert.text, alert.blocks).catch(() => {});
+      } catch {
+        // Non-critical — activity already logged
+      }
     }
 
     return NextResponse.json({ success: true });

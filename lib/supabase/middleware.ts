@@ -99,7 +99,7 @@ export async function updateSession(request: NextRequest) {
           // Check if user has a provider profile to route them correctly
           const { data: providerProfile } = await supabase
             .from("business_profiles")
-            .select("id, slug, source_provider_id")
+            .select("id, slug, source_provider_id, claim_state")
             .eq("account_id", account.id)
             .in("type", ["organization", "caregiver"])
             .limit(1)
@@ -109,7 +109,11 @@ export async function updateSession(request: NextRequest) {
           const originalPath = request.nextUrl.pathname + request.nextUrl.search;
 
           if (providerProfile) {
-            // Route providers to their onboard page
+            // Claimed providers skip onboarding — allow through to destination
+            if (providerProfile.claim_state === "claimed") {
+              return supabaseResponse;
+            }
+            // Unclaimed providers go to onboard page
             const providerSlug = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
             url.pathname = `/provider/${providerSlug}/onboard`;
             url.search = `?next=${encodeURIComponent(originalPath)}`;

@@ -185,6 +185,13 @@
   - Root cause of all prior failures: Apple Mail Link Tracking Protection strips params named `token`
   - Fix: renamed `token` to `otk` (one-time key) — Apple doesn't strip it
 
+- **Care Seeker Connection Flow De-Jank** (branch: `helpful-euler`) — IN PROGRESS
+  - Enrichment questions → /welcome page transition redesign
+  - Fixed 6-second blank white screen: removed force-dynamic from /welcome, moved to static page + client-side data fetching
+  - /welcome page taste pass: warm bg (#FAFAF8), side-by-side connection card, flat step cards, Airbnb Trips / Perena inspired
+  - `/dejank` slash command created for systematic jank removal methodology
+  - **Still TODO:** Test full enrichment → /welcome transition end-to-end, verify connection card skeleton works, continue design polish
+
 - **Family Activity Center** (branch: `logical-mahavira`) — IN PROGRESS
   - Plan: `plans/family-activity-center-plan.md`
   - Expand Activity Center into unified engagement hub: Providers | Families | Feed
@@ -240,6 +247,9 @@
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-03-27 | /welcome page must be static, not force-dynamic | Server component ran 3+ Supabase queries that always fail for guests (no session cookie). Blocked page render 2-3s + AuthProvider timeout 5s = 6-8s blank screen. Static page + client-side data fetching = instant render. |
+| 2026-03-27 | Never gate /welcome page render on auth state | Connection card, step cards, greeting all work without auth. Auth resolving in background upgrades the UI (profile %, live status) but shouldn't block first paint. Show skeleton for async data, not a loading spinner for the whole page. |
+| 2026-03-27 | Side-by-side card layout (square image) > landscape hero for provider cards | Landscape aspect ratio crops provider logos/photos badly — most provider images are logos or square portraits, not wide photos. Square image left + content right works for all image shapes. |
 | 2026-03-27 | City page SEO = content depth + authority, not technical fixes | Pages rank 35-60 because they're thin provider lists on a new domain (DA ~5). Competitors have DA 60-75 and editorial city guides. On-page fixes → position 20-25; page 1 requires 3-6mo authority building from article strategy |
 | 2026-03-27 | Waiver Library is the unique SEO weapon for city pages | Nobody else connects Medicaid waiver program data to city browse pages. "Paying for Care" module linking waiver library to city pages gives Google content it can't find elsewhere |
 | 2026-03-27 | Rename `token` query param to `otk` in email links | Apple Mail Link Tracking Protection strips params named "token" (both click and copy). `otk` (one-time key) is not on Apple's strip list. This was the root cause of ~10 failed debugging rounds. |
@@ -416,6 +426,51 @@
 - `app/provider/[slug]/onboard/page.tsx` — use full email for auto-sign-in, skip finalize if claimed
 
 **Build:** Clean, zero errors.
+
+---
+
+### 2026-03-27 (Session 63) — /welcome Page De-Jank: Instant Transition + Design Taste Pass
+
+**Branch:** `helpful-euler` | **4 commits** | Continuing from session where enrichment optimistic UI was fixed
+
+**Problem 1: 6-second blank white screen after enrichment → /welcome**
+
+Root cause traced from console logs:
+1. `force-dynamic` server component ran `getUserCity()` → `supabase.auth.getUser()` → no session cookie for guest → slow fail (2-3s)
+2. AuthProvider `fetchAccountData()` → accounts query → TIMES OUT at 5000ms (account row not created yet)
+3. `loading` state gated entire page render until both completed serially
+
+**Fix:** Eliminated both bottlenecks:
+- Removed `force-dynamic` → page is now static (1906 static pages, was 1905)
+- Moved provider fetching to client-side (non-blocking, below the fold)
+- Removed `loading` gate — page renders immediately, auth resolves in background
+- Added skeleton for connection card while async data loads
+
+**Problem 2: Landscape hero photo crops provider logos badly**
+- Reverted to side-by-side layout (square image left, content right) — works for all image shapes
+
+**Design taste pass (Airbnb Trips + Perena inspired):**
+- Warm background `#FAFAF8` (off-white, Perena energy)
+- Narrower container `max-w-2xl` (more intimate)
+- Bold heading (28-32px) with small gray greeting label above
+- Flat step cards with thin borders, numbered circles / green checks, no timeline chrome
+- Returning user card: compact horizontal row (photo + name + Message button)
+- Provider section: lighter header, outline nav arrows, text "Browse all" link
+- Net: significant reduction in visual complexity (-400+ lines across commits)
+
+**Files Modified (4):**
+- `app/welcome/page.tsx` — static shell, removed all server-side data fetching
+- `app/welcome/loading.tsx` — NEW: skeleton matching page layout
+- `components/welcome/WelcomeClient.tsx` — removed loading gate, client-side provider fetch, design overhaul
+- `components/providers/connection-card/use-connection-card.ts` — added `router.prefetch("/welcome")`
+
+**Build:** Clean. Static page generation confirmed (1906 pages).
+
+**Still TODO:**
+- Test full enrichment → /welcome transition end-to-end (is it actually instant now?)
+- Verify connection card skeleton → real card swap works smoothly
+- Debug auto-sign-in (background auth) — check `[OneClick]` console logs
+- Continue design polish based on TJ feedback
 
 ---
 

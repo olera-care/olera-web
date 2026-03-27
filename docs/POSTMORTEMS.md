@@ -164,3 +164,36 @@ Evidence that revealed it: comparing the URL in the email (`...&token=eyJ...&ref
 **Lesson**: When a new feature silently fails, the first priority is making the failure loud — surface the actual error before attempting to fix the logic. Would have saved 60 minutes if the first commit had included error banners and console logging.
 
 ---
+
+### 2026-03-27: /welcome page connection card disappears — 3 compounding root causes over 6 commits
+
+**Symptom**: After enrichment questions, the /welcome page either showed a blank white screen for 6 seconds, or the connection card with the provider photo flashed for one second and then disappeared, leaving an empty gap between the heading and step cards.
+
+**Root Causes (3, each masking the next)**:
+
+1. **Server-side blocking (6-second delay)**: `force-dynamic` server component ran `getUserCity()` which called `supabase.auth.getUser()` for guests with no session cookie — slow fail (2-3s). Then client-side AuthProvider's `fetchAccountData()` timed out at 5000ms waiting for an `accounts` row not yet created. Total: 5-8s before `loading=false`.
+
+2. **Missing Suspense boundary**: After converting to a static page (fixing #1), `useSearchParams()` in the client component needed a `<Suspense>` boundary to properly read URL params on a static page. Without it, `connectionIdParam` was empty on initial render.
+
+3. **Inquiry message counted as "user has messaged"**: `showConnectionCard` required `!hasUserMessaged`, but the initial inquiry form submission itself creates a thread message from the user's profile (not marked `is_auto_reply`). So `hasUserMessaged` was `true` immediately for EVERY fresh connection, causing `showConnectionCard = false`. The skeleton would flash (connection null -> shown), then the connection data would load (connection set, but `showConnectionCard` false -> card hidden, nothing replaces it).
+
+**Fix (3 commits)**:
+1. Removed `force-dynamic`, converted to static page, moved provider fetching to client-side, removed `loading` gate
+2. Wrapped `WelcomeClient` in `<Suspense fallback={<WelcomeLoading />}>`
+3. Changed `showConnectionCard` from `isConnected && !hasUserMessaged && isFreshConnection` to `isConnected && isFreshConnection` — fresh connections always show the card
+
+**Time to Resolution**: ~2 hours across 6 commits. First 2 issues were found via code analysis. Third issue required the user reporting "it flashed for a second" — that phrase was the critical clue that the skeleton rendered then disappeared, meaning `connection` was being set but `showConnectionCard` was evaluating to false.
+
+**Why I didn't catch this earlier**:
+- **Wrong assumption**: I assumed `hasUserMessaged` only captured deliberate follow-up messages. I didn't consider that the initial inquiry form message IS a thread message from the user's profile. The condition was logically correct for returning users but wrong for fresh connections.
+- **Surface-level fix pattern**: I shipped the server-blocking fix (correct), then the Suspense fix (correct), without verifying the FULL render chain end-to-end. Each fix addressed a real issue but didn't check whether the downstream logic would actually show the card.
+- **Debugged by hypothesis instead of tracing state**: I should have added the diagnostic `console.log` from the start — it would have immediately shown `hasUserMessaged: true` and pointed to the real issue.
+
+**Prevention**:
+- Added `[welcome-card]` diagnostic logging that traces all card state values on every render
+- `/troubleshoot` learning: when UI "flashes and disappears," the first question is "what state changed to HIDE it?" not "what state failed to SHOW it?"
+- The `showConnectionCard` condition now has a comment explaining why fresh connections skip the `hasUserMessaged` check
+
+**Lesson**: "Flashes then disappears" is a different bug class than "never shows." It means the data loaded successfully but a downstream condition rejected it. Always trace the full conditional chain (data fetch -> state set -> condition evaluation -> render) before shipping. The user describing the BEHAVIOR ("flashed for a second") was more diagnostic than any code analysis — listen to the symptom description precisely.
+
+---

@@ -229,6 +229,8 @@
 8. **Unmask question/review content** on onboard notification cards (public data, no privacy concern)
 9. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
 10. **Run backfill script** for source_provider_id (dry-run first): `scripts/backfill-source-provider-id.js`
+11. **Debug auto-sign-in** — check `[OneClick]` console logs, fix background auth
+12. **Add `CLAIM_TOKEN_SECRET` env var** to Vercel (currently falls back to SUPABASE_SERVICE_ROLE_KEY)
 
 ---
 
@@ -331,6 +333,32 @@
 ---
 
 ## Session Log
+
+### 2026-03-27 (Session 61b) — One-Click Token Validation Fix + E2E Testing
+
+**Branch:** `loving-swartz` | **PR:** #427 (open)
+
+**What:** PR #421 merged to staging. Tested one-click flow end-to-end. Token generation works (token IS in the email URL), but token validation failed for BP-only providers.
+
+**Root Cause:** `validate-token` endpoint only queried `olera-providers` by `provider_id`. The token contains the SLUG (not UUID), and BP-only providers don't exist in `olera-providers` at all. Query returned nothing → "Provider not found" → one-click flow failed silently → fell back to "This listing is claimed."
+
+**Fix (PR #427):**
+- Cascade lookup in validate-token: olera-providers by provider_id → by slug → business_profiles by slug
+- Already-claimed returns `valid: true` (owner clicking own email is expected)
+- Returns full email for auto-sign-in (was masked)
+- Skips claim finalization if already claimed
+
+**Known Edge Cases (flagged, not yet fixed):**
+1. Profile switching: one-click flow doesn't call `switchProfile()` — if provider has family + provider profiles, connections page might load with wrong active profile
+2. Account creation: first-time unclaimed providers hitting one-click need `ensure-account` before `claim/finalize`
+
+**Files Modified (2):**
+- `app/api/claim/validate-token/route.ts` — cascade provider lookup, handle already-claimed
+- `app/provider/[slug]/onboard/page.tsx` — use full email for auto-sign-in, skip finalize if claimed
+
+**Build:** Clean, zero errors.
+
+---
 
 ### 2026-03-26 (Session 61) — Provider Onboarding Routing Fix + UX Redesign + Architecture
 

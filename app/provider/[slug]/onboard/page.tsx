@@ -323,10 +323,13 @@ export default function ProviderOnboardPage() {
                   .maybeSingle();
 
                 if (ownedProfile) {
-                  // Current user owns this listing — redirect without session swap
+                  // Current user owns this listing — show onboard page with notification card
                   switchProfile(ownedProfile.id);
-                  clearClaimSession();
-                  router.replace(getActionRedirectUrl(actionParam, actionIdParam));
+                  setPreVerifiedEmail(user.email || "");
+                  setActionCardState(
+                    (({ lead: "notification-lead", message: "notification-lead", question: "notification-question", review: "notification-review" } as Record<string, ActionCardState>)[actionParam!] || "pre-verified")
+                  );
+                  setStep("dashboard");
                   return;
                 }
               }
@@ -427,9 +430,15 @@ export default function ProviderOnboardPage() {
                       }),
                     }).catch(() => {});
 
-                    // Redirect to the action destination
-                    clearClaimSession();
-                    router.replace(getActionRedirectUrl(actionParam, actionIdParam));
+                    // Stay on onboard page — show notification card hero + dashboard.
+                    // The "Trojan horse" strategy: lead hooks, dashboard below sells
+                    // the platform. Skipping to Leads gives providers nothing to trust.
+                    setPreVerifiedEmail(verifiedEmail);
+                    setNotificationData(fetchedNotificationData);
+                    setActionCardState(
+                      (({ lead: "notification-lead", message: "notification-lead", question: "notification-question", review: "notification-review" } as Record<string, ActionCardState>)[actionParam!] || "pre-verified")
+                    );
+                    setStep("dashboard");
                     return;
                   }
                 }
@@ -449,9 +458,13 @@ export default function ProviderOnboardPage() {
             setStep("dashboard");
             return;
           } else if (tokenResult.alreadyClaimed) {
-            // Already claimed — for notification actions, try redirect if we have a session
-            if (actionParam && actionParam !== "campaign" && user && account) {
-              router.replace(getActionRedirectUrl(actionParam, actionIdParam));
+            // Already claimed — show notification card (not redirect)
+            if (actionParam && actionParam !== "campaign") {
+              setPreVerifiedEmail(tokenResult.email || tokenResult.emailHint || "");
+              setActionCardState(
+                (({ lead: "notification-lead", message: "notification-lead", question: "notification-question", review: "notification-review" } as Record<string, ActionCardState>)[actionParam] || "pre-verified")
+              );
+              setStep("dashboard");
               return;
             }
             setActionCardState("already-claimed");

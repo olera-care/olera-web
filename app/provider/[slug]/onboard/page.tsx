@@ -296,6 +296,8 @@ export default function ProviderOnboardPage() {
             body: JSON.stringify({
               token: tokenParam,
               claimSession: claimSessionData.sessionId,
+              action: actionParam,
+              actionId: actionIdParam,
             }),
           });
           const tokenResult = await tokenRes.json();
@@ -312,6 +314,12 @@ export default function ProviderOnboardPage() {
                 lead: "notification-lead", message: "notification-lead",
                 question: "notification-question", review: "notification-review",
               };
+
+              // Use notification data from validate-token (fetched server-side
+              // with service role key — bypasses RLS that blocks the anon client)
+              if (tokenResult.notificationData) {
+                setNotificationData(tokenResult.notificationData as NotificationData);
+              }
 
               // 1. Show notification card + dashboard NOW (no auth needed)
               finalizeRef.current = true; // prevent useEffect auto-finalize race

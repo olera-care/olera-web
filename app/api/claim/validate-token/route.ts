@@ -23,13 +23,13 @@ function maskEmail(email: string): string {
  * Validates a claim token from an email campaign link.
  * If valid, marks the session as pre-verified (skips code entry).
  *
- * Request body: { token: string, claimSession: string }
- * Returns: { valid: true, providerId, emailHint, providerName } or { valid: false, error }
+ * Request body: { token: string, claimSession: string, action?: string, actionId?: string }
+ * Returns: { valid: true, providerId, emailHint, providerName, notificationData? } or { valid: false, error }
  */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { token, claimSession } = body;
+    const { token, claimSession, action, actionId } = body;
 
     if (!token) {
       return NextResponse.json({ valid: false, error: "Token is required." }, { status: 400 });
@@ -148,14 +148,84 @@ export async function POST(request: Request) {
       // May fail if duplicate — that's fine
     }
 
+    // Fetch notification data server-side (service role key bypasses RLS).
+    // The browser client can't read connections/questions/reviews for
+    // unauthenticated users, so the notification card would be empty.
+    let notificationData: Record<string, unknown> | null = null;
+    if (action && actionId) {
+      try {
+        if (action === "lead" || action === "message") {
+          const { data: conn } = await db
+            .from("connections")
+            .select("id, created_at, message, metadata, from_profile:business_profiles!connections_from_profile_id_fkey(display_name, city, state)")
+            .eq("id", actionId)
+            .single();
+          if (conn) {
+            let parsedMessage: Record<string, unknown> = {};
+            try {
+              if (conn.message && typeof conn.message === "string") {
+                parsedMessage = JSON.parse(conn.message);
+              }
+            } catch { parsedMessage = { message: conn.message }; }
+            const connMeta = conn.metadata as Record<string, unknown> | null;
+            notificationData = {
+              type: "lead",
+              id: conn.id,
+              created_at: conn.created_at,
+              message: (parsedMessage.message as string) || (parsedMessage.additional_notes as string) || null,
+              metadata: {
+                care_type: (parsedMessage.care_type as string) || null,
+                auto_intro: (connMeta?.auto_intro as string) || null,
+              },
+              from_profile: conn.from_profile,
+            };
+          }
+        } else if (action === "question") {
+          const { data: question } = await db
+            .from("provider_questions")
+            .select("id, question, asker_name, created_at")
+            .eq("id", actionId)
+            .single();
+          if (question) {
+            notificationData = {
+              type: "question",
+              id: question.id,
+              created_at: question.created_at,
+              question: question.question,
+              asker_name: question.asker_name,
+            };
+          }
+        } else if (action === "review") {
+          const { data: review } = await db
+            .from("reviews")
+            .select("id, rating, comment, reviewer_name, created_at")
+            .eq("id", actionId)
+            .single();
+          if (review) {
+            notificationData = {
+              type: "review",
+              id: review.id,
+              created_at: review.created_at,
+              rating: review.rating,
+              comment: review.comment,
+              reviewer_name: review.reviewer_name,
+            };
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch notification data:", err);
+      }
+    }
+
     return NextResponse.json({
       valid: true,
       providerId: canonicalProviderId,
-      email,  // Full email for auto-sign-in flow
-      emailHint: maskEmail(email),  // Masked for display
+      email,
+      emailHint: maskEmail(email),
       providerName: providerName,
       providerSlug: providerSlug || providerId,
       alreadyClaimed,
+      notificationData,
     });
   } catch (err) {
     console.error("Validate token error:", err);

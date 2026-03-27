@@ -64,6 +64,26 @@ Before writing ANY code, determine which layer is actually broken:
 - **Read child component `useState` initializers** — `useState(prop)` only uses the prop on FIRST render. If the child has derivation logic (ternaries, conditionals), the prop may be silently overridden.
 - **Add logging at the RENDER site, not the fix site** — a console.log inside the render guard tells you immediately if your fix is reaching the output
 
+### Phase 2b: Render Chain Tracing (For UI "not showing" or "disappears" bugs)
+
+Before attempting fixes, add a diagnostic console.log that prints ALL the boolean/state values that gate the UI on every render:
+
+```tsx
+console.log("[component-name]", {
+  key_param, data_loaded: !!data, condition_a, condition_b, final_show_flag
+});
+```
+
+**Why first:** This takes 2 minutes and immediately reveals which condition is wrong. Without it, you're guessing which of N conditions is false — and shipping fixes for the wrong one.
+
+**Bug class detection from symptoms:**
+| Symptom | Bug class | First question to ask |
+|---------|-----------|----------------------|
+| Never shows | Data didn't load OR condition never matched | "Is the data arriving?" |
+| Flashes then disappears | Data loaded but a downstream condition **rejected** it | "What condition HIDES this after data loads?" |
+| Shows wrong content | Data loaded but wrong branch matched | "Which conditional branch is actually executing?" |
+| Shows then breaks on re-render | Effect/state change clobbers the UI | "What useEffect or state change fires after initial render?" |
+
 ### Phase 3: Identify the Real Cause
 - The symptom location may not be the cause location
 - **When the same symptom persists across multiple fix attempts, move DOWNSTREAM** — you're probably fixing the right value at the wrong layer
@@ -79,6 +99,7 @@ Before writing ANY code, determine which layer is actually broken:
   - **Missing functionality** (feature not implemented, not just broken)
   - **Fallback paths not triggered** (condition prevents fallback from running)
   - **Silent failures** (no logging = no visibility into what's happening)
+  - **Compound conditionals where one boolean is unexpectedly true/false** (trace ALL conditions, not just the obvious ones)
 
 ### Phase 3b: Validate Your Fix BEFORE Asking User to Test (CRITICAL)
 
@@ -148,6 +169,23 @@ Only after verification, provide:
 | 8 ✅ | Added logging, found LLM wasn't extracting city, fixed LLM prompt AND added keyword fallback | Fixed the actual broken layer |
 
 **Lesson**: Always verify which layer is broken before fixing. Logging is your friend.
+
+---
+
+## Case Study: Connection Card "Flashes Then Disappears" (Mar 2026)
+
+**6 commits over 2 hours** because diagnostic logging wasn't added until commit #5.
+
+| Attempt | What was tried | Why it didn't solve it |
+|---------|----------------|----------------------|
+| 1 | Added `router.prefetch` + `loading.tsx` skeleton | Correct fix for server blocking, but card still didn't show |
+| 2 | Removed `force-dynamic`, made page static | Correct fix for 6s delay, but card still didn't show |
+| 3 | Wrapped in `<Suspense>` for `useSearchParams()` | Correct fix for static pages, but card still didn't show |
+| 4 | Added skeleton when `connectionIdParam && !connection` | Skeleton showed then disappeared — user said "flashed for a second" |
+| 5 | Added `console.log` tracing all card state booleans | **Revealed `hasUserMessaged: true`** — the initial inquiry counted as a message |
+| 6 ✅ | Removed `!hasUserMessaged` from fresh connection check | Card shows correctly |
+
+**Lesson**: The user saying "it flashed for a second" was the critical diagnostic — it meant data loaded but a condition rejected it. A single `console.log` on commit #1 would have shown `hasUserMessaged: true` and saved 4 rounds. **Always add render chain diagnostic logging BEFORE attempting fixes for UI visibility bugs.**
 
 ---
 

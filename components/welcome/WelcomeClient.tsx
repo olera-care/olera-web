@@ -969,12 +969,24 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
           {/* ============================================================
               TOP CARD — Context-aware based on user journey state
-              - Fresh connection: Show provider card with "Start conversation"
-              - Returning user (connected, not messaged): Show "Pick up where you left off"
-              - Has messaged: Hide card (they're engaged)
-              - New user (no connection): Show welcome card
               ============================================================ */}
-          {showConnectionCard && connection?.to_profile ? (() => {
+          {/* Skeleton: connection param in URL but data still loading */}
+          {connectionIdParam && !connection ? (
+            <section className="pb-10">
+              <div className="rounded-2xl border border-gray-200/60 overflow-hidden animate-pulse">
+                <div className="flex flex-col sm:flex-row">
+                  <div className="w-full sm:w-[200px] aspect-square sm:aspect-auto sm:min-h-[220px] bg-gray-100" />
+                  <div className="flex-1 p-5 space-y-3">
+                    <div className="h-5 w-48 bg-gray-100 rounded-md" />
+                    <div className="h-3 w-32 bg-gray-100 rounded-md" />
+                    <div className="h-3 w-56 bg-gray-100 rounded-md mt-4" />
+                    <div className="h-1.5 w-full bg-gray-100 rounded-full mt-3" />
+                    <div className="h-11 w-full bg-gray-100 rounded-xl mt-4" />
+                  </div>
+                </div>
+              </div>
+            </section>
+          ) : showConnectionCard && connection?.to_profile ? (() => {
             const provider = connection.to_profile;
             const providerFirstName = provider.display_name.split(" ")[0];
             const location = [provider.city, provider.state].filter(Boolean).join(", ");

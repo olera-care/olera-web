@@ -377,6 +377,15 @@ export default function WelcomeClient({ destination, initialProviders = [], init
   const [navigating, setNavigating] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [connection, setConnection] = useState<ConnectionWithProvider | null>(null);
+  // Track if URL-based connection fetch has completed (prevents hero flash)
+  const connectionFetchDone = useRef(!connectionIdParam); // true if no URL param (nothing to wait for)
+
+  // Safety: never hang on spinner for more than 3 seconds even if connection fetch is slow
+  useEffect(() => {
+    if (!loading) return;
+    const timer = setTimeout(() => setLoading(false), 3000);
+    return () => clearTimeout(timer);
+  }, [loading]);
   // Use server-fetched providers — no loading state needed
   const [matches, setMatches] = useState<MatchProvider[]>(initialProviders);
   const [providersLoading, setProvidersLoading] = useState(false); // Already loaded from server
@@ -536,6 +545,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
           }
 
           setConnection(enrichedConn);
+          connectionFetchDone.current = true;
           // Clear localStorage now that we have the real data
           try {
             localStorage.removeItem("olera_pending_connection");
@@ -550,6 +560,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
       } catch (err) {
         console.error("[welcome] Failed to fetch connection from DB:", err);
       }
+      connectionFetchDone.current = true;
 
       // Fallback: Use localStorage data if DB fetch failed (e.g., RLS blocked due to no session yet)
       try {
@@ -632,9 +643,12 @@ export default function WelcomeClient({ destination, initialProviders = [], init
         return;
       }
 
-      // No active profile - show the page anyway (connection card already fetched above)
+      // No active profile - show the page anyway
+      // But if URL has connection param, wait for connection to load first (prevents hero flash)
       if (!activeProfile) {
-        setLoading(false);
+        if (!connectionIdParam || connection) {
+          setLoading(false);
+        }
         return;
       }
 

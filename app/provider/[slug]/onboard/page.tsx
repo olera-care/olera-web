@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { createAuthClient } from "@/lib/supabase/auth-client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { Provider } from "@/lib/types/provider";
 import SmartDashboardShell from "@/components/provider-onboarding/SmartDashboardShell";
@@ -51,7 +52,9 @@ export default function ProviderOnboardPage() {
   const actionParam = searchParams.get("action") as NotificationType | "campaign" | null;
   const actionIdParam = searchParams.get("actionId");
   // Token param for marketing campaign emails (pre-verified flow)
-  const tokenParam = searchParams.get("token");
+  // Named "otk" (one-time key) instead of "token" to avoid Apple Mail's
+  // Link Tracking Protection which strips params named "token" from URLs
+  const tokenParam = searchParams.get("otk");
   const router = useRouter();
   const { user, account, openAuth, refreshAccountData, switchProfile } = useAuth();
 
@@ -293,6 +296,8 @@ export default function ProviderOnboardPage() {
             body: JSON.stringify({
               token: tokenParam,
               claimSession: claimSessionData.sessionId,
+              action: actionParam,
+              actionId: actionIdParam,
             }),
           });
           const tokenResult = await tokenRes.json();
@@ -300,97 +305,124 @@ export default function ProviderOnboardPage() {
           if (tokenResult.valid) {
             const verifiedEmail = tokenResult.email || tokenResult.emailHint;
 
-            // For notification actions (lead/question/review), attempt one-click:
-            // auto-sign-in → auto-claim (if needed) → redirect to destination
+            // For notification actions (lead/question/review):
+            // Show notification card + dashboard IMMEDIATELY, then
+            // run auto-sign-in in the background. The provider sees
+            // the lead while auth happens silently.
             if (actionParam && actionParam !== "campaign") {
-              setStep("finalizing");
-              try {
-                // Auto-sign-in with the verified email
-                const signInRes = await fetch("/api/auth/auto-sign-in", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    email: verifiedEmail,
-                    claimSession: claimSessionData.sessionId,
-                  }),
-                });
-                const signInData = await signInRes.json();
+              const notificationStateMap: Record<string, ActionCardState> = {
+                lead: "notification-lead", message: "notification-lead",
+                question: "notification-question", review: "notification-review",
+              };
 
-                if (signInRes.ok && signInData.tokenHash) {
-                  // Establish browser session
-                  const supabase = createClient();
-                  const { error: otpError } = await supabase.auth.verifyOtp({
+              // Use notification data from validate-token (fetched server-side
+              // with service role key — bypasses RLS that blocks the anon client)
+              if (tokenResult.notificationData) {
+                setNotificationData(tokenResult.notificationData as NotificationData);
+              }
+
+              // 1. Show notification card + dashboard NOW (no auth needed)
+              finalizeRef.current = true; // prevent useEffect auto-finalize race
+              setPreVerifiedEmail(verifiedEmail);
+              setActionCardState(notificationStateMap[actionParam] || "pre-verified");
+              setStep("dashboard");
+
+              // 2. Background auto-sign-in — invisible to the provider
+              (async () => {
+                try {
+                  // If already signed in and owns the listing, just switch profile
+                  if (user && account) {
+                    const { data: ownedProfile } = await createClient()
+                      .from("business_profiles")
+                      .select("id")
+                      .eq("slug", slug)
+                      .in("type", ["organization", "caregiver"])
+                      .eq("account_id", account.id)
+                      .maybeSingle();
+                    if (ownedProfile) {
+                      switchProfile(ownedProfile.id);
+                      console.log("[OneClick] Already signed in as owner");
+                      return;
+                    }
+                  }
+
+                  // Auto-sign-in with the verified email
+                  console.log("[OneClick] Starting auto-sign-in for", verifiedEmail);
+                  const signInRes = await fetch("/api/auth/auto-sign-in", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      email: verifiedEmail,
+                      claimSession: claimSessionData.sessionId,
+                    }),
+                  });
+                  const signInData = await signInRes.json();
+
+                  if (!signInRes.ok || !signInData.tokenHash) {
+                    console.warn("[OneClick] auto-sign-in failed:", signInData.error || signInRes.status);
+                    return;
+                  }
+
+                  // Establish session (implicit flow — no PKCE)
+                  const authClient = createAuthClient();
+                  const { data: otpData, error: otpError } = await authClient.auth.verifyOtp({
                     token_hash: signInData.tokenHash,
                     type: "magiclink",
                   });
 
-                  if (!otpError) {
-                    // Session established — refresh auth and ensure correct profile is active
-                    await refreshAccountData();
+                  if (otpError || !otpData?.session) {
+                    console.warn("[OneClick] verifyOtp failed:", otpError?.message);
+                    return;
+                  }
 
-                    // Switch to the provider profile so the destination page shows the right data
-                    try {
-                      const supabaseCheck = createClient();
-                      const { data: { user: signedInUser } } = await supabaseCheck.auth.getUser();
-                      if (signedInUser) {
-                        const { data: providerProfile } = await supabaseCheck
-                          .from("business_profiles")
-                          .select("id")
-                          .eq("slug", slug)
-                          .in("type", ["organization", "caregiver"])
-                          .maybeSingle();
-                        if (providerProfile) {
-                          switchProfile(providerProfile.id);
-                        }
-                      }
-                    } catch {
-                      // Non-critical — connections page may still work with default profile
-                    }
+                  // Transfer session to SSR client
+                  await createClient().auth.setSession({
+                    access_token: otpData.session.access_token,
+                    refresh_token: otpData.session.refresh_token,
+                  });
+                  console.log("[OneClick] Session established");
 
-                    // Finalize claim if not already claimed
-                    if (!tokenResult.alreadyClaimed) {
-                      try {
-                        await fetch("/api/claim/finalize", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            providerId: foundProvider.provider_id,
-                            claimSession: claimSessionData.sessionId,
-                          }),
-                        });
-                      } catch {
-                        // Claim may already exist — that's fine
-                      }
-                    }
-
-                    // Log one-click access for observability (fire-and-forget)
-                    fetch("/api/activity/track", {
+                  // Finalize claim (creates account + links profile for first-time providers)
+                  if (!tokenResult.alreadyClaimed) {
+                    const finalizeRes = await fetch("/api/claim/finalize", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
-                        provider_id: slug,
-                        event_type: "one_click_access",
-                        metadata: {
-                          action: actionParam,
-                          action_id: actionIdParam,
-                          email: verifiedEmail,
-                          provider_name: foundProvider.provider_name,
-                          source: "email_token",
-                        },
+                        providerId: foundProvider.provider_id,
+                        claimSession: claimSessionData.sessionId,
                       }),
-                    }).catch(() => {});
-
-                    // Redirect to the action destination
-                    clearClaimSession();
-                    router.replace(getActionRedirectUrl(actionParam, actionIdParam));
-                    return;
+                    });
+                    console.log("[OneClick] Finalize:", finalizeRes.ok ? "success" : finalizeRes.status);
                   }
+
+                  // Refresh auth state + switch to provider profile
+                  await refreshAccountData();
+                  const { data: bp } = await createClient()
+                    .from("business_profiles")
+                    .select("id")
+                    .eq("slug", slug)
+                    .in("type", ["organization", "caregiver"])
+                    .maybeSingle();
+                  if (bp) switchProfile(bp.id);
+
+                  console.log("[OneClick] Background sign-in complete");
+
+                  // Log for observability
+                  fetch("/api/activity/track", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      provider_id: slug,
+                      event_type: "one_click_access",
+                      metadata: { action: actionParam, action_id: actionIdParam, email: verifiedEmail, source: "email_token" },
+                    }),
+                  }).catch(() => {});
+                } catch (err) {
+                  console.warn("[OneClick] Background sign-in error:", err);
                 }
-              } catch (err) {
-                console.error("[ProviderOnboard] One-click flow failed:", err);
-              }
-              // One-click failed — fall through to show notification card with pre-verified state
-              setStep("dashboard");
+              })();
+
+              return; // notification card is already showing
             }
 
             // For campaign or fallback: show pre-verified state
@@ -402,11 +434,9 @@ export default function ProviderOnboardPage() {
             setStep("dashboard");
             return;
           } else if (tokenResult.alreadyClaimed) {
-            // Already claimed — for notification actions, try redirect if we have a session
-            if (actionParam && actionParam !== "campaign" && user && account) {
-              router.replace(getActionRedirectUrl(actionParam, actionIdParam));
-              return;
-            }
+            // Token valid but already claimed — for notification actions,
+            // this is handled by the notification card path above (which
+            // fires background sign-in). For campaigns, show already-claimed.
             setActionCardState("already-claimed");
             setStep("dashboard");
             return;
@@ -633,15 +663,15 @@ export default function ProviderOnboardPage() {
         return;
       }
 
-      // Establish browser session with the magic link token
-      const supabase = createClient();
-      const { error: otpError } = await supabase.auth.verifyOtp({
+      // Use implicit-flow client to avoid PKCE code_verifier mismatch
+      const authClient = createAuthClient();
+      const { data: otpData, error: otpError } = await authClient.auth.verifyOtp({
         token_hash: data.tokenHash,
         type: "magiclink",
       });
 
-      if (otpError) {
-        console.error("Auto-sign-in OTP error:", otpError.message);
+      if (otpError || !otpData?.session) {
+        console.error("Auto-sign-in OTP error:", otpError?.message);
         openAuth({
           deferred: {
             action: "claim",
@@ -650,6 +680,12 @@ export default function ProviderOnboardPage() {
         });
         return;
       }
+
+      // Transfer session to SSR client
+      await createClient().auth.setSession({
+        access_token: otpData.session.access_token,
+        refresh_token: otpData.session.refresh_token,
+      });
 
       // Session established — refresh auth state and finalize
       await refreshAccountData();

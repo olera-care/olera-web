@@ -252,9 +252,12 @@ export default function SmartDashboardShell({
   );
   const [highlightAction, setHighlightAction] = useState(false);
 
-  // Action card state - derived from initial + wizard completion
+  // Action card state - derived from initial + wizard completion.
+  // Notification states (from email links) take priority over pre-verified —
+  // the notification card IS the intended display, not the claim form.
+  const isNotificationState = initialActionState?.startsWith("notification-");
   const [actionCardState, setActionCardState] = useState<ActionCardState>(
-    preVerifiedEmail ? "pre-verified" : initialActionState
+    isNotificationState ? initialActionState : (preVerifiedEmail ? "pre-verified" : initialActionState)
   );
 
   // Handle wizard completion

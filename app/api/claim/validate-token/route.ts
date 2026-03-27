@@ -23,13 +23,13 @@ function maskEmail(email: string): string {
  * Validates a claim token from an email campaign link.
  * If valid, marks the session as pre-verified (skips code entry).
  *
- * Request body: { token: string, claimSession: string }
- * Returns: { valid: true, providerId, emailHint, providerName } or { valid: false, error }
+ * Request body: { token: string, claimSession: string, action?: string, actionId?: string }
+ * Returns: { valid: true, providerId, emailHint, providerName, notificationData? } or { valid: false, error }
  */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { token, claimSession } = body;
+    const { token, claimSession, action, actionId } = body;
 
     if (!token) {
       return NextResponse.json({ valid: false, error: "Token is required." }, { status: 400 });
@@ -59,16 +59,21 @@ export async function POST(request: Request) {
     let providerName: string | null = null;
     let providerSlug: string | null = null;
     let providerEmail: string | null = null;
+    // Canonical ID used for claim_verification_codes — must match what finalize will use.
+    // For olera-providers records this is the UUID provider_id.
+    // For BP-only providers this is the BP id.
+    let canonicalProviderId: string = providerId;
     let isBusinessProfile = false;
 
     // Try olera-providers by provider_id
     const { data: oleraProvider } = await db
       .from("olera-providers")
-      .select("email, provider_name, slug")
+      .select("provider_id, email, provider_name, slug")
       .eq("provider_id", providerId)
       .maybeSingle();
 
     if (oleraProvider) {
+      canonicalProviderId = oleraProvider.provider_id;
       providerName = oleraProvider.provider_name;
       providerSlug = oleraProvider.slug || providerId;
       providerEmail = oleraProvider.email;
@@ -76,11 +81,12 @@ export async function POST(request: Request) {
       // Try olera-providers by slug
       const { data: oleraBySlug } = await db
         .from("olera-providers")
-        .select("email, provider_name, slug")
+        .select("provider_id, email, provider_name, slug")
         .eq("slug", providerId)
         .maybeSingle();
 
       if (oleraBySlug) {
+        canonicalProviderId = oleraBySlug.provider_id;
         providerName = oleraBySlug.provider_name;
         providerSlug = oleraBySlug.slug || providerId;
         providerEmail = oleraBySlug.email;
@@ -88,12 +94,13 @@ export async function POST(request: Request) {
         // Try business_profiles by slug (BP-only providers)
         const { data: bp } = await db
           .from("business_profiles")
-          .select("display_name, slug, email")
+          .select("id, display_name, slug, email")
           .eq("slug", providerId)
           .in("type", ["organization", "caregiver"])
           .maybeSingle();
 
         if (bp) {
+          canonicalProviderId = bp.id;
           providerName = bp.display_name;
           providerSlug = bp.slug || providerId;
           providerEmail = bp.email;
@@ -119,7 +126,7 @@ export async function POST(request: Request) {
     const { data: existingProfile } = await db
       .from("business_profiles")
       .select("claim_state, account_id")
-      .or(`source_provider_id.eq.${providerId},slug.eq.${providerId}`)
+      .or(`source_provider_id.eq.${canonicalProviderId},slug.eq.${providerId}`)
       .maybeSingle();
 
     // For already-claimed listings, still return valid — the owner clicking their
@@ -127,11 +134,11 @@ export async function POST(request: Request) {
     // will establish their session and redirect to the destination.
     const alreadyClaimed = existingProfile?.claim_state === "claimed" && !!existingProfile?.account_id;
 
-    // Create a pre-verified record in claim_verification_codes
-    // This allows the finalize endpoint to recognize this session as verified
+    // Create a pre-verified record in claim_verification_codes.
+    // Use canonicalProviderId (UUID/BP id) so it matches what finalize queries with.
     try {
       await db.from("claim_verification_codes").insert({
-        provider_id: providerId,
+        provider_id: canonicalProviderId,
         claim_session: claimSession,
         code: "TOKEN",
         expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
@@ -141,14 +148,84 @@ export async function POST(request: Request) {
       // May fail if duplicate — that's fine
     }
 
+    // Fetch notification data server-side (service role key bypasses RLS).
+    // The browser client can't read connections/questions/reviews for
+    // unauthenticated users, so the notification card would be empty.
+    let notificationData: Record<string, unknown> | null = null;
+    if (action && actionId) {
+      try {
+        if (action === "lead" || action === "message") {
+          const { data: conn } = await db
+            .from("connections")
+            .select("id, created_at, message, metadata, from_profile:business_profiles!connections_from_profile_id_fkey(display_name, city, state)")
+            .eq("id", actionId)
+            .single();
+          if (conn) {
+            let parsedMessage: Record<string, unknown> = {};
+            try {
+              if (conn.message && typeof conn.message === "string") {
+                parsedMessage = JSON.parse(conn.message);
+              }
+            } catch { parsedMessage = { message: conn.message }; }
+            const connMeta = conn.metadata as Record<string, unknown> | null;
+            notificationData = {
+              type: "lead",
+              id: conn.id,
+              created_at: conn.created_at,
+              message: (parsedMessage.message as string) || (parsedMessage.additional_notes as string) || null,
+              metadata: {
+                care_type: (parsedMessage.care_type as string) || null,
+                auto_intro: (connMeta?.auto_intro as string) || null,
+              },
+              from_profile: conn.from_profile,
+            };
+          }
+        } else if (action === "question") {
+          const { data: question } = await db
+            .from("provider_questions")
+            .select("id, question, asker_name, created_at")
+            .eq("id", actionId)
+            .single();
+          if (question) {
+            notificationData = {
+              type: "question",
+              id: question.id,
+              created_at: question.created_at,
+              question: question.question,
+              asker_name: question.asker_name,
+            };
+          }
+        } else if (action === "review") {
+          const { data: review } = await db
+            .from("reviews")
+            .select("id, rating, comment, reviewer_name, created_at")
+            .eq("id", actionId)
+            .single();
+          if (review) {
+            notificationData = {
+              type: "review",
+              id: review.id,
+              created_at: review.created_at,
+              rating: review.rating,
+              comment: review.comment,
+              reviewer_name: review.reviewer_name,
+            };
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch notification data:", err);
+      }
+    }
+
     return NextResponse.json({
       valid: true,
-      providerId,
-      email,  // Full email for auto-sign-in flow
-      emailHint: maskEmail(email),  // Masked for display
+      providerId: canonicalProviderId,
+      email,
+      emailHint: maskEmail(email),
       providerName: providerName,
       providerSlug: providerSlug || providerId,
       alreadyClaimed,
+      notificationData,
     });
   } catch (err) {
     console.error("Validate token error:", err);

@@ -100,6 +100,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const [submitting, setSubmitting] = useState(false);
   const [connectionId, setConnectionId] = useState<string | null>(null);
 
+  // Track where to redirect after enrichment save/skip
+  const postEnrichmentRedirect = useRef<string | null>(null);
+
   // ── Derived ──
   const availableCareTypes = mapProviderCareTypes();
   const notificationEmail = user?.email || "your email";
@@ -531,17 +534,15 @@ export function useConnectionCard(props: ConnectionCardProps) {
         if (data.created_at) setPendingRequestDate(data.created_at);
         if (data.connectionId) setConnectionId(data.connectionId);
 
-        // Smart routing based on onboarding state
-        // Skip enrichment entirely for logged-in users — welcome page wizard handles this
-        if (onConnectionCreated) {
-          onConnectionCreated(data.connectionId);
-        } else if (isFullyOnboarded) {
-          // Fully onboarded (profile complete + matches live) → go to inbox
-          router.push(`/portal/inbox?id=${data.connectionId}`);
+        // Store post-enrichment redirect destination
+        if (isFullyOnboarded) {
+          postEnrichmentRedirect.current = `/portal/inbox?id=${data.connectionId}`;
         } else {
-          // Not fully onboarded → welcome page (profile wizard collects care details)
-          router.push(`/welcome?connection=${data.connectionId}&provider=${providerSlug}`);
+          postEnrichmentRedirect.current = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
         }
+
+        // Show enrichment questions before redirecting
+        setCardState("enrichment");
         return;
       } else {
         // Guest flow — instant account creation + session
@@ -568,8 +569,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
         window.dispatchEvent(new CustomEvent("olera:connection-created"));
 
-        // Store connection info in localStorage FIRST for instant navigation
-        // This ensures the connection card shows even if session isn't ready yet
+        // Store connection info in localStorage for post-enrichment navigation
         try {
           localStorage.setItem("olera_pending_connection", JSON.stringify({
             connectionId: data.connectionId,
@@ -581,12 +581,13 @@ export function useConnectionCard(props: ConnectionCardProps) {
           // localStorage not available
         }
 
-        // Navigate immediately - don't wait for session establishment
-        const welcomeUrl = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
-        router.replace(welcomeUrl);
+        if (data.connectionId) setConnectionId(data.connectionId);
+        if (data.created_at) setPendingRequestDate(data.created_at);
 
-        // Establish session in background (non-blocking)
-        // This will be ready by the time user interacts with the welcome page
+        // Store post-enrichment redirect
+        postEnrichmentRedirect.current = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
+
+        // Establish session in background — will be ready by the time user finishes enrichment
         if (data.accessToken && data.refreshToken) {
           const supabase = createClient();
           supabase.auth.setSession({
@@ -597,7 +598,6 @@ export function useConnectionCard(props: ConnectionCardProps) {
               console.error("[guest-connection] Background session error:", sessionError);
             } else {
               console.log("[guest-connection] Background session established:", sessionData?.session?.user?.email);
-              // Refresh account data in background
               const userId = sessionData?.session?.user?.id;
               if (userId && refreshAccountData) {
                 refreshAccountData(userId).catch(err => {
@@ -608,12 +608,10 @@ export function useConnectionCard(props: ConnectionCardProps) {
           }).catch(err => {
             console.error("[guest-connection] Background session error:", err);
           });
-        } else if (data.actionLink) {
-          // No session tokens - user will need to use magic link from email
-          console.log("[guest-connection] No session tokens, user will need magic link from email");
         }
 
-        return; // Already navigated
+        // Show enrichment questions before redirecting
+        setCardState("enrichment");
         return;
       }
     } catch (err: unknown) {
@@ -628,38 +626,54 @@ export function useConnectionCard(props: ConnectionCardProps) {
     }
   }, [user, providerId, providerName, providerSlug, refreshAccountData, onConnectionCreated, isFullyOnboarded, router]);
 
-  // ── Save enrichment data (post-submit) ──
-  // Note: Intent data is now captured in the initial connection request
-  // and profile updates are handled by the /welcome page
-  const saveEnrichment = useCallback(async (_data?: {
-    careRecipient?: string;
-    urgency?: string;
-  }) => {
-    setSubmitting(true);
-    try {
-      // Unified experience: redirect to /welcome (profile updates happen there)
-      if (connectionId && onConnectionCreated) {
-        onConnectionCreated(connectionId);
-      } else if (connectionId) {
-        router.push(`/welcome?connection=${connectionId}&provider=${providerSlug}`);
-      } else {
-        setCardState("connected");
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  }, [connectionId, onConnectionCreated, router, providerSlug]);
-
-  const skipEnrichment = useCallback(() => {
-    // Unified experience: redirect to /welcome
-    if (connectionId && onConnectionCreated) {
+  // ── Navigate after enrichment (save or skip) ──
+  const navigatePostEnrichment = useCallback(() => {
+    if (onConnectionCreated && connectionId) {
       onConnectionCreated(connectionId);
-    } else if (connectionId) {
-      router.push(`/welcome?connection=${connectionId}&provider=${providerSlug}`);
+    } else if (postEnrichmentRedirect.current) {
+      router.push(postEnrichmentRedirect.current);
     } else {
       setCardState("connected");
     }
-  }, [connectionId, onConnectionCreated, router, providerSlug]);
+  }, [connectionId, onConnectionCreated, router]);
+
+  // ── Save enrichment data (post-submit) → update connection + sync to profile ──
+  const saveEnrichment = useCallback(async (data?: {
+    careRecipient?: string;
+    urgency?: string;
+  }) => {
+    if (!connectionId || !data?.careRecipient || !data?.urgency) {
+      navigatePostEnrichment();
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/connections/update-intent", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId,
+          careRecipient: data.careRecipient,
+          urgency: data.urgency,
+        }),
+      });
+
+      if (!res.ok) {
+        console.error("[enrichment] update-intent failed:", await res.text());
+      }
+    } catch (err) {
+      console.error("[enrichment] update-intent error:", err);
+    } finally {
+      setSubmitting(false);
+    }
+
+    navigatePostEnrichment();
+  }, [connectionId, navigatePostEnrichment]);
+
+  const skipEnrichment = useCallback(() => {
+    navigatePostEnrichment();
+  }, [navigatePostEnrichment]);
 
   // Total steps: 2 for logged-in, 3 for guest (includes email capture)
   const totalSteps = user ? 2 : 3;

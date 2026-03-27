@@ -89,7 +89,7 @@ Before writing ANY code, determine which layer is actually broken:
 3. **Search for the ACTUAL string your fix depends on** (e.g., `"notification-lead"`) in the child component. Find every place it's checked, overridden, or gated. If there's a condition that prevents it from reaching the render, you've found the real bug.
 4. **Only after you've confirmed the fix reaches the render layer**, push and ask the user to test.
 
-**This is the single most important phase.** The notification card bug took 12 rounds because fixes were pushed and tested without verifying they survived the component chain. The fix that worked took 5 minutes — the 11 that didn't wasted 4 hours.
+**The anti-pattern to avoid:** Fix something in the parent → push → ask user to test → same screenshot → find another upstream issue → repeat. This is a trap. Each round wastes the user's time (they have to trigger a test, wait for deploy, copy URLs, sign out, paste, screenshot). **Break the loop by reading downstream BEFORE pushing.** The notification card bug took 12 rounds and 4 hours because I never once opened the child component (`SmartDashboardShell.tsx`) to check what it does with the prop. The moment I read it, I found the bug in 30 seconds — a one-line ternary that overrode every upstream fix.
 
 ### Phase 4: Implement the Fix
 - Fix ALL instances, not just the first one found
@@ -125,12 +125,15 @@ Only after verification, provide:
 | 7-9 | Set `actionCardState = "notification-lead"` in parent | Data fetch returned null (RLS blocks anon client) AND child component overrode the state |
 | 10 ✅ | Fetched notification data server-side in validate-token | Data arrives — but child STILL shows "pre-verified" |
 | 11 | Verified deployment, retested | Same result — something downstream is overriding |
-| 12 ✅ | Found `SmartDashboardShell` line 257: `preVerifiedEmail ? "pre-verified" : initialActionState` | **This one line overrode every upstream fix.** Notification card finally renders. |
+| 12 ✅ | **Stopped fixing. Read the child component.** Found `SmartDashboardShell` line 257: `preVerifiedEmail ? "pre-verified" : initialActionState` | **This one line overrode every upstream fix.** Found in 30 seconds once I actually looked. Notification card finally renders. |
 
-**Three lessons:**
+**What broke the loop:** The user said "are you sure that was the problem?" — which forced me to stop pushing fixes and actually read the child component that renders the output. Every prior round I fixed the parent and assumed the child would respect it. I never checked.
+
+**Four lessons:**
 1. **Verify inputs arrive before debugging processing.** "Show me the URL in your browser bar" should be the FIRST question.
-2. **Trace the full render chain (source → pixel) before fixing.** A console.log at the render guard would have caught the override on attempt 1.
-3. **When the same symptom persists, move downstream.** Stop fixing the parent when the child is silently overriding the prop.
+2. **Validate your fix reaches the render layer BEFORE pushing.** Read the child components. Don't enter a fix-push-test loop — each failed round wastes the user's time and erodes trust.
+3. **Trace the full render chain (source → pixel) before fixing.** A console.log at the render guard would have caught the override on attempt 1.
+4. **When the same symptom persists, move downstream.** Stop fixing the parent when the child is silently overriding the prop.
 
 ---
 

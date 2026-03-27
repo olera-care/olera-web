@@ -80,6 +80,17 @@ Before writing ANY code, determine which layer is actually broken:
   - **Fallback paths not triggered** (condition prevents fallback from running)
   - **Silent failures** (no logging = no visibility into what's happening)
 
+### Phase 3b: Validate Your Fix BEFORE Asking User to Test (CRITICAL)
+
+**Do NOT push a fix and immediately ask the user to test.** First:
+
+1. **Read the child components that consume your fix.** Does the child use the prop directly, or does it have its own `useState` initializer that transforms/overrides it? If you set `initialActionState = "notification-lead"` in the parent but the child does `useState(preVerifiedEmail ? "pre-verified" : initialActionState)`, your fix is dead on arrival.
+2. **Trace your fix value through every layer** — parent setState → prop name → child receives prop → child initializes state → render guard evaluates → JSX outputs. Confirm at EACH layer that your value survives.
+3. **Search for the ACTUAL string your fix depends on** (e.g., `"notification-lead"`) in the child component. Find every place it's checked, overridden, or gated. If there's a condition that prevents it from reaching the render, you've found the real bug.
+4. **Only after you've confirmed the fix reaches the render layer**, push and ask the user to test.
+
+**This is the single most important phase.** The notification card bug took 12 rounds because fixes were pushed and tested without verifying they survived the component chain. The fix that worked took 5 minutes — the 11 that didn't wasted 4 hours.
+
 ### Phase 4: Implement the Fix
 - Fix ALL instances, not just the first one found
 - Consider if similar issues exist elsewhere

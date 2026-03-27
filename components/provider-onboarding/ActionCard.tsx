@@ -750,8 +750,10 @@ export default function ActionCard({
           )}
         </div>
 
-        {/* CTA */}
-        {isSignedIn ? (
+        {/* CTA — always show "View full inquiry" when token-verified.
+            The provider proved identity via the email token. Browser session
+            is established in the background. No verify/claim UI. */}
+        {(isSignedIn || preVerifiedEmail) ? (
           <Link
             href={`/provider/connections?id=${notificationData.id}`}
             className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
@@ -813,7 +815,7 @@ export default function ActionCard({
         </div>
 
         {/* CTA */}
-        {isSignedIn ? (
+        {(isSignedIn || preVerifiedEmail) ? (
           <Link
             href={`/provider/qna?id=${notificationData.id}`}
             className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
@@ -889,7 +891,7 @@ export default function ActionCard({
         </div>
 
         {/* CTA */}
-        {isSignedIn ? (
+        {(isSignedIn || preVerifiedEmail) ? (
           <Link
             href={`/provider/reviews?id=${notificationData.id}`}
             className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"

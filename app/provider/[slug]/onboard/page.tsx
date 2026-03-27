@@ -303,150 +303,118 @@ export default function ProviderOnboardPage() {
           if (tokenResult.valid) {
             const verifiedEmail = tokenResult.email || tokenResult.emailHint;
 
-            // For notification actions (lead/question/review), attempt one-click:
-            // auto-sign-in → auto-claim (if needed) → redirect to destination
+            // For notification actions (lead/question/review):
+            // Show notification card + dashboard IMMEDIATELY, then
+            // run auto-sign-in in the background. The provider sees
+            // the lead while auth happens silently.
             if (actionParam && actionParam !== "campaign") {
-              // If already claimed AND current user owns this listing,
-              // skip auto-sign-in entirely — don't replace their session.
-              // Auto-sign-in uses the provider's email from the token, which
-              // creates a session for a different auth user. If the current
-              // user (e.g., admin/owner) already owns the claim, switching
-              // sessions breaks the downstream page (no provider profile).
-              if (tokenResult.alreadyClaimed && user && account) {
-                const supabaseOwnerCheck = createClient();
-                const { data: ownedProfile } = await supabaseOwnerCheck
-                  .from("business_profiles")
-                  .select("id")
-                  .eq("slug", slug)
-                  .in("type", ["organization", "caregiver"])
-                  .eq("account_id", account.id)
-                  .maybeSingle();
+              const notificationStateMap: Record<string, ActionCardState> = {
+                lead: "notification-lead", message: "notification-lead",
+                question: "notification-question", review: "notification-review",
+              };
 
-                if (ownedProfile) {
-                  // Current user owns this listing — show onboard page with notification card
-                  switchProfile(ownedProfile.id);
-                  setPreVerifiedEmail(user.email || "");
-                  setActionCardState(
-                    (({ lead: "notification-lead", message: "notification-lead", question: "notification-question", review: "notification-review" } as Record<string, ActionCardState>)[actionParam!] || "pre-verified")
-                  );
-                  setStep("dashboard");
-                  return;
-                }
-              }
+              // 1. Show notification card + dashboard NOW (no auth needed)
+              finalizeRef.current = true; // prevent useEffect auto-finalize race
+              setPreVerifiedEmail(verifiedEmail);
+              setActionCardState(notificationStateMap[actionParam] || "pre-verified");
+              setStep("dashboard");
 
-              // Prevent the useEffect auto-finalize from racing with this flow.
-              // Without this, setting step="finalizing" triggers the useEffect
-              // which calls handleFinalize() concurrently, causing an error flash.
-              finalizeRef.current = true;
-              setStep("finalizing");
-              try {
-                // Auto-sign-in with the verified email
-                const signInRes = await fetch("/api/auth/auto-sign-in", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    email: verifiedEmail,
-                    claimSession: claimSessionData.sessionId,
-                  }),
-                });
-                const signInData = await signInRes.json();
+              // 2. Background auto-sign-in — invisible to the provider
+              (async () => {
+                try {
+                  // If already signed in and owns the listing, just switch profile
+                  if (user && account) {
+                    const { data: ownedProfile } = await createClient()
+                      .from("business_profiles")
+                      .select("id")
+                      .eq("slug", slug)
+                      .in("type", ["organization", "caregiver"])
+                      .eq("account_id", account.id)
+                      .maybeSingle();
+                    if (ownedProfile) {
+                      switchProfile(ownedProfile.id);
+                      console.log("[OneClick] Already signed in as owner");
+                      return;
+                    }
+                  }
 
-                if (signInRes.ok && signInData.tokenHash) {
-                  // Use implicit-flow client to avoid PKCE code_verifier mismatch
-                  // (SSR browser client forces PKCE, but server-generated tokens
-                  // don't have a corresponding code_challenge)
+                  // Auto-sign-in with the verified email
+                  console.log("[OneClick] Starting auto-sign-in for", verifiedEmail);
+                  const signInRes = await fetch("/api/auth/auto-sign-in", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      email: verifiedEmail,
+                      claimSession: claimSessionData.sessionId,
+                    }),
+                  });
+                  const signInData = await signInRes.json();
+
+                  if (!signInRes.ok || !signInData.tokenHash) {
+                    console.warn("[OneClick] auto-sign-in failed:", signInData.error || signInRes.status);
+                    return;
+                  }
+
+                  // Establish session (implicit flow — no PKCE)
                   const authClient = createAuthClient();
                   const { data: otpData, error: otpError } = await authClient.auth.verifyOtp({
                     token_hash: signInData.tokenHash,
                     type: "magiclink",
                   });
 
-                  if (!otpError && otpData?.session) {
-                    // Transfer session to the SSR client (matches UnifiedAuthModal pattern)
-                    await createClient().auth.setSession({
-                      access_token: otpData.session.access_token,
-                      refresh_token: otpData.session.refresh_token,
-                    });
+                  if (otpError || !otpData?.session) {
+                    console.warn("[OneClick] verifyOtp failed:", otpError?.message);
+                    return;
+                  }
 
-                    // IMPORTANT: Finalize BEFORE refreshAccountData.
-                    // For first-time providers, finalize creates the account and
-                    // links the provider profile. If we refresh first, the account
-                    // doesn't exist yet → profiles=[] → Leads page shows skeleton.
-                    let finalizeProfileId: string | null = null;
-                    if (!tokenResult.alreadyClaimed) {
-                      try {
-                        const finalizeRes = await fetch("/api/claim/finalize", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            providerId: foundProvider.provider_id,
-                            claimSession: claimSessionData.sessionId,
-                          }),
-                        });
-                        if (finalizeRes.ok) {
-                          const finalizeData = await finalizeRes.json();
-                          finalizeProfileId = finalizeData.profileId || null;
-                        }
-                      } catch {
-                        // Claim may already exist — that's fine
-                      }
-                    }
+                  // Transfer session to SSR client
+                  await createClient().auth.setSession({
+                    access_token: otpData.session.access_token,
+                    refresh_token: otpData.session.refresh_token,
+                  });
+                  console.log("[OneClick] Session established");
 
-                    // NOW refresh auth state — account and profile exist in the DB
-                    await refreshAccountData();
-
-                    // Switch to the provider profile so the destination page loads correctly
-                    const profileToActivate = finalizeProfileId || await (async () => {
-                      try {
-                        const { data: bp } = await createClient()
-                          .from("business_profiles")
-                          .select("id")
-                          .eq("slug", slug)
-                          .in("type", ["organization", "caregiver"])
-                          .maybeSingle();
-                        return bp?.id || null;
-                      } catch {
-                        return null;
-                      }
-                    })();
-                    if (profileToActivate) {
-                      switchProfile(profileToActivate);
-                    }
-
-                    // Log one-click access for observability (fire-and-forget)
-                    fetch("/api/activity/track", {
+                  // Finalize claim (creates account + links profile for first-time providers)
+                  if (!tokenResult.alreadyClaimed) {
+                    const finalizeRes = await fetch("/api/claim/finalize", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
-                        provider_id: slug,
-                        event_type: "one_click_access",
-                        metadata: {
-                          action: actionParam,
-                          action_id: actionIdParam,
-                          email: verifiedEmail,
-                          provider_name: foundProvider.provider_name,
-                          source: "email_token",
-                        },
+                        providerId: foundProvider.provider_id,
+                        claimSession: claimSessionData.sessionId,
                       }),
-                    }).catch(() => {});
-
-                    // Stay on onboard page — show notification card hero + dashboard.
-                    // The "Trojan horse" strategy: lead hooks, dashboard below sells
-                    // the platform. Skipping to Leads gives providers nothing to trust.
-                    setPreVerifiedEmail(verifiedEmail);
-                    setNotificationData(fetchedNotificationData);
-                    setActionCardState(
-                      (({ lead: "notification-lead", message: "notification-lead", question: "notification-question", review: "notification-review" } as Record<string, ActionCardState>)[actionParam!] || "pre-verified")
-                    );
-                    setStep("dashboard");
-                    return;
+                    });
+                    console.log("[OneClick] Finalize:", finalizeRes.ok ? "success" : finalizeRes.status);
                   }
+
+                  // Refresh auth state + switch to provider profile
+                  await refreshAccountData();
+                  const { data: bp } = await createClient()
+                    .from("business_profiles")
+                    .select("id")
+                    .eq("slug", slug)
+                    .in("type", ["organization", "caregiver"])
+                    .maybeSingle();
+                  if (bp) switchProfile(bp.id);
+
+                  console.log("[OneClick] Background sign-in complete");
+
+                  // Log for observability
+                  fetch("/api/activity/track", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      provider_id: slug,
+                      event_type: "one_click_access",
+                      metadata: { action: actionParam, action_id: actionIdParam, email: verifiedEmail, source: "email_token" },
+                    }),
+                  }).catch(() => {});
+                } catch (err) {
+                  console.warn("[OneClick] Background sign-in error:", err);
                 }
-              } catch (err) {
-                console.error("[ProviderOnboard] One-click flow failed:", err);
-              }
-              // One-click failed — fall through to show notification card with pre-verified state
-              setStep("dashboard");
+              })();
+
+              return; // notification card is already showing
             }
 
             // For campaign or fallback: show pre-verified state
@@ -458,15 +426,9 @@ export default function ProviderOnboardPage() {
             setStep("dashboard");
             return;
           } else if (tokenResult.alreadyClaimed) {
-            // Already claimed — show notification card (not redirect)
-            if (actionParam && actionParam !== "campaign") {
-              setPreVerifiedEmail(tokenResult.email || tokenResult.emailHint || "");
-              setActionCardState(
-                (({ lead: "notification-lead", message: "notification-lead", question: "notification-question", review: "notification-review" } as Record<string, ActionCardState>)[actionParam] || "pre-verified")
-              );
-              setStep("dashboard");
-              return;
-            }
+            // Token valid but already claimed — for notification actions,
+            // this is handled by the notification card path above (which
+            // fires background sign-in). For campaigns, show already-claimed.
             setActionCardState("already-claimed");
             setStep("dashboard");
             return;

@@ -363,32 +363,14 @@ export default function ProviderOnboardPage() {
                       refresh_token: otpData.session.refresh_token,
                     });
 
-                    // Session established — refresh auth and ensure correct profile is active
-                    await refreshAccountData();
-
-                    // Switch to the provider profile so the destination page shows the right data
-                    try {
-                      const supabaseCheck = createClient();
-                      const { data: { user: signedInUser } } = await supabaseCheck.auth.getUser();
-                      if (signedInUser) {
-                        const { data: providerProfile } = await supabaseCheck
-                          .from("business_profiles")
-                          .select("id")
-                          .eq("slug", slug)
-                          .in("type", ["organization", "caregiver"])
-                          .maybeSingle();
-                        if (providerProfile) {
-                          switchProfile(providerProfile.id);
-                        }
-                      }
-                    } catch {
-                      // Non-critical — connections page may still work with default profile
-                    }
-
-                    // Finalize claim if not already claimed
+                    // IMPORTANT: Finalize BEFORE refreshAccountData.
+                    // For first-time providers, finalize creates the account and
+                    // links the provider profile. If we refresh first, the account
+                    // doesn't exist yet → profiles=[] → Leads page shows skeleton.
+                    let finalizeProfileId: string | null = null;
                     if (!tokenResult.alreadyClaimed) {
                       try {
-                        await fetch("/api/claim/finalize", {
+                        const finalizeRes = await fetch("/api/claim/finalize", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
@@ -396,9 +378,34 @@ export default function ProviderOnboardPage() {
                             claimSession: claimSessionData.sessionId,
                           }),
                         });
+                        if (finalizeRes.ok) {
+                          const finalizeData = await finalizeRes.json();
+                          finalizeProfileId = finalizeData.profileId || null;
+                        }
                       } catch {
                         // Claim may already exist — that's fine
                       }
+                    }
+
+                    // NOW refresh auth state — account and profile exist in the DB
+                    await refreshAccountData();
+
+                    // Switch to the provider profile so the destination page loads correctly
+                    const profileToActivate = finalizeProfileId || await (async () => {
+                      try {
+                        const { data: bp } = await createClient()
+                          .from("business_profiles")
+                          .select("id")
+                          .eq("slug", slug)
+                          .in("type", ["organization", "caregiver"])
+                          .maybeSingle();
+                        return bp?.id || null;
+                      } catch {
+                        return null;
+                      }
+                    })();
+                    if (profileToActivate) {
+                      switchProfile(profileToActivate);
                     }
 
                     // Log one-click access for observability (fire-and-forget)

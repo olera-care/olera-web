@@ -94,6 +94,28 @@ The core error: **treating the plan as authoritative when the code told a differ
 
 ---
 
+### 2026-03-27: One-click provider onboarding never executed — Apple Mail strips `token` param
+
+**Symptom**: Provider clicks notification email link. Expected: onboard page with lead preview + dashboard. Actual: "This listing is claimed" error, skeleton loaders, or wrong page. Debugged across ~10 rounds, 2.5 hours, 7 commits — none of which fixed the user-facing problem.
+
+**Root Cause**: Apple Mail's Link Tracking Protection silently strips URL parameters named `token` from email links — both on click AND on copy-link. The `token` query parameter (a signed JWT for zero-friction auth) was removed before the browser ever loaded the page. `searchParams.get("token")` returned `null`, so the one-click flow never ran and the page fell through to the default claim-check path.
+
+Evidence that revealed it: comparing the URL in the email (`...&token=eyJ...&ref=email`) to the URL in the browser bar (`...&ref=email` — token gone, params reordered). TJ had been copying links from Apple Mail into Dia browser, unaware Apple was modifying the clipboard.
+
+**Fix**: Renamed query param from `token` to `otk` (one-time key) in `lib/claim-tokens.ts` and `app/provider/[slug]/onboard/page.tsx`. Apple doesn't strip `otk`.
+
+**Time to Resolution**: ~2.5 hours total. ~2 hours on real-but-unreachable downstream bugs. ~15 minutes to find the actual root cause once the right question was asked ("show me the URL you clicked vs the URL you landed on").
+
+**Prevention**:
+- **Never name URL params `token`, `session`, `key`, `auth` in email links.** Apple Mail, Outlook, Brave, and Firefox Enhanced Tracking Protection strip params that look like tracking/auth identifiers. Use abbreviations: `otk`, `sid`, `k`.
+- **Verify inputs before debugging processing.** When a feature "never works," check that the data reaches the code before tracing logic paths. A single `console.log("tokenParam:", tokenParam)` would have caught this in round 1.
+- **Ask for the actual URL early.** "Show me the URL in your browser bar" should be the first troubleshooting question, not the sixth.
+- Added to memory: `feedback_email_param_names.md` — never use `token` as a URL param name in emails.
+
+**Lesson**: When every code fix is correct but the bug persists, the problem is upstream of your code. Verify the inputs arrive before debugging how they're processed. The most expensive assumption in debugging is "the data reaches my code."
+
+---
+
 ### 2026-03-25: Admin image delete returned 500 — `hero_image_url` column doesn't exist
 
 **Symptom**: Clicking "Delete" on a provider photo in the admin dashboard did nothing. The image stayed in the grid and could be "deleted" infinitely. No error was shown to the user.

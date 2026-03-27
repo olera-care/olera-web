@@ -102,6 +102,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
   // Track where to redirect after enrichment save/skip
   const postEnrichmentRedirect = useRef<string | null>(null);
+  // Lock: prevents checkExisting from overriding enrichment state
+  const enrichmentLock = useRef(false);
 
   // ── Derived ──
   const availableCareTypes = mapProviderCareTypes();
@@ -149,6 +151,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // ── Check for existing connection + fetch previous intent (logged-in users) ──
   useEffect(() => {
     if (!user || !profiles.length || !isSupabaseConfigured()) return;
+    // Don't override enrichment state — the user is answering post-submission questions
+    if (enrichmentLock.current) return;
 
     const checkExisting = async () => {
       const supabase = createClient();
@@ -530,7 +534,6 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
         window.dispatchEvent(new CustomEvent("olera:connection-created"));
 
-        await refreshAccountData();
         if (data.created_at) setPendingRequestDate(data.created_at);
         if (data.connectionId) setConnectionId(data.connectionId);
 
@@ -541,8 +544,12 @@ export function useConnectionCard(props: ConnectionCardProps) {
           postEnrichmentRedirect.current = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
         }
 
-        // Show enrichment questions before redirecting
+        // Lock enrichment state so checkExisting can't override it
+        enrichmentLock.current = true;
         setCardState("enrichment");
+
+        // Refresh account data in background (non-blocking) — enrichment UI doesn't need it
+        refreshAccountData().catch(() => {});
         return;
       } else {
         // Guest flow — instant account creation + session
@@ -610,7 +617,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
           });
         }
 
-        // Show enrichment questions before redirecting
+        // Lock enrichment state so checkExisting can't override it
+        enrichmentLock.current = true;
         setCardState("enrichment");
         return;
       }
@@ -628,6 +636,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
   // ── Navigate after enrichment (save or skip) ──
   const navigatePostEnrichment = useCallback(() => {
+    enrichmentLock.current = false;
+
     if (onConnectionCreated && connectionId) {
       onConnectionCreated(connectionId);
     } else if (postEnrichmentRedirect.current) {

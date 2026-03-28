@@ -208,14 +208,6 @@ function ReviewsIcon() {
   );
 }
 
-function QAIcon() {
-  return (
-    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  );
-}
-
 function StaffIcon() {
   return (
     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -246,11 +238,11 @@ export default function PlatformShowcase({
         What you can do on Olera
       </p>
 
-      {/* 2x2 Grid of value cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {/* Value cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <ValueCard
           href="/provider/matches"
-          headline="Find families"
+          headline="Families in your area"
           subtext={`Get notified when families in ${city} are looking for care`}
           icon={<FamiliesIcon />}
           delay={150}
@@ -273,22 +265,12 @@ export default function PlatformShowcase({
         />
 
         <ValueCard
-          href="/provider/qna"
-          headline="Answer questions"
-          subtext="Respond to families and build your visibility"
-          icon={<QAIcon />}
-          delay={270}
-          isSignedIn={isSignedIn}
-          onUnauthenticatedClick={onUnauthenticatedClick}
-        />
-
-        <ValueCard
-          href="/provider/medjobs"
+          href="/provider/medjobs/candidates"
           headline="Hire staff"
           subtext="Browse pre-screened healthcare students"
           badge="New"
           icon={<StaffIcon />}
-          delay={330}
+          delay={270}
           isSignedIn={isSignedIn}
           onUnauthenticatedClick={onUnauthenticatedClick}
         />

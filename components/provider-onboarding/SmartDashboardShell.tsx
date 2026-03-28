@@ -12,27 +12,16 @@ import {
 } from "@/lib/profile-completeness";
 import { useNavbar } from "@/components/shared/NavbarContext";
 
-// Dashboard card components (reused in preview mode)
-import ProfileOverviewCard from "@/components/provider-dashboard/ProfileOverviewCard";
-import GalleryCard from "@/components/provider-dashboard/GalleryCard";
-import CareServicesCard from "@/components/provider-dashboard/CareServicesCard";
-import StaffScreeningCard from "@/components/provider-dashboard/StaffScreeningCard";
-import AboutCard from "@/components/provider-dashboard/AboutCard";
-import PricingCard from "@/components/provider-dashboard/PricingCard";
-import PaymentInsuranceCard from "@/components/provider-dashboard/PaymentInsuranceCard";
-import ProfileCompletenessSidebar from "@/components/provider-dashboard/ProfileCompletenessSidebar";
-
 // Onboarding components
-import OnboardingWizard from "./OnboardingWizard";
 import ActionCard, { type ActionCardState, type NotificationData } from "./ActionCard";
+import PlatformShowcase from "./PlatformShowcase";
 
 // ============================================================
-// Onboarding Header (replaces main navbar during claim flow)
+// Onboarding Header (minimal — logo + provider name + back)
 // ============================================================
 
-function OnboardingHeader({ providerName, isNotification }: { providerName: string; isNotification?: boolean }) {
+function OnboardingHeader({ providerName }: { providerName: string }) {
   const handleBack = () => {
-    // Go back to previous page
     if (typeof window !== "undefined" && window.history.length > 1) {
       window.history.back();
     } else {
@@ -41,27 +30,24 @@ function OnboardingHeader({ providerName, isNotification }: { providerName: stri
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#F7F5F0]/80 backdrop-blur-sm border-b border-gray-200/40">
+      <div className="max-w-3xl mx-auto px-5 sm:px-8">
+        <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 shrink-0">
-            <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
-            <span className="text-xl font-bold text-gray-900">Olera</span>
+            <Image src="/images/olera-logo.png" alt="Olera" width={28} height={28} className="object-contain" />
+            <span className="text-lg font-bold text-gray-900">Olera</span>
           </Link>
 
-          {/* Center: Claiming context */}
-          <div className="hidden sm:flex items-center gap-2 text-sm">
-            <span className="text-gray-400">{isNotification ? "" : "Claiming:"}</span>
-            <span className="font-medium text-gray-700 truncate max-w-[200px] md:max-w-[300px]">
-              {providerName}
-            </span>
-          </div>
+          {/* Center: Provider name — desktop only */}
+          <span className="hidden sm:block text-sm font-medium text-gray-500 truncate max-w-[240px]">
+            {providerName}
+          </span>
 
-          {/* Right: Back button - outlined style matching "Save & exit" */}
+          {/* Back */}
           <button
             onClick={handleBack}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-medium text-gray-500 rounded-lg hover:text-gray-700 hover:bg-white/60 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -70,64 +56,7 @@ function OnboardingHeader({ providerName, isNotification }: { providerName: stri
           </button>
         </div>
       </div>
-
-      {/* Mobile: Show provider name below */}
-      <div className="sm:hidden border-t border-gray-50 px-4 py-2 bg-gray-50/50">
-        <p className="text-xs text-gray-400">
-          {isNotification ? "" : "Claiming: "}<span className="font-medium text-gray-600">{providerName}</span>
-        </p>
-      </div>
     </header>
-  );
-}
-
-// ============================================================
-// Mobile Progress Banner (matches DashboardPage)
-// ============================================================
-
-function MobileProgressBanner({
-  completeness,
-}: {
-  completeness: ReturnType<typeof calculateProfileCompleteness>;
-}) {
-  const completedCount = completeness.sections.filter(
-    (s) => s.percent >= 100
-  ).length;
-  const totalSections = completeness.sections.length;
-
-  return (
-    <div className="lg:hidden w-full mb-5 bg-white rounded-xl border border-gray-200/80 shadow-sm px-4 py-3">
-      <div className="flex items-center gap-3">
-        {/* Progress ring */}
-        <div className="relative w-10 h-10 shrink-0">
-          <svg className="w-10 h-10 -rotate-90" viewBox="0 0 40 40">
-            <circle cx="20" cy="20" r="16" fill="none" stroke="#f3f4f6" strokeWidth="3" />
-            <circle
-              cx="20" cy="20" r="16" fill="none"
-              stroke="#199087"
-              strokeWidth="3" strokeLinecap="round"
-              strokeDasharray={`${completeness.overall * 1.005} 100.5`}
-            />
-          </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-700">
-            {completeness.overall}%
-          </span>
-        </div>
-
-        {/* Text */}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900">Profile completeness</p>
-          <p className="text-xs text-gray-500">{completedCount} of {totalSections} sections</p>
-        </div>
-
-        {/* Info icon (non-interactive in preview) */}
-        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center">
-          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -234,82 +163,50 @@ export default function SmartDashboardShell({
 }: SmartDashboardShellProps) {
   const { setForceHidden } = useNavbar();
 
-  // Convert provider to profile shape
+  // Convert provider to profile shape for completeness calculation
   const profile = useMemo(() => providerToProfile(provider), [provider]);
   const metadata = profile.metadata as ExtendedMetadata;
-
-  // Calculate completeness from public data
   const completeness = useMemo(
     () => calculateProfileCompleteness(profile, metadata),
     [profile, metadata]
   );
 
-  // Wizard state
-  const [wizardStep, setWizardStep] = useState(0);
-  const [wizardComplete, setWizardComplete] = useState(
-    // Skip wizard if already showing verification states
-    initialActionState !== "verify-form" || !!preVerifiedEmail
-  );
-  const [highlightAction, setHighlightAction] = useState(false);
-
-  // Action card state - derived from initial + wizard completion.
-  // Notification states (from email links) take priority over pre-verified —
-  // the notification card IS the intended display, not the claim form.
+  // Action card state
   const isNotificationState = initialActionState?.startsWith("notification-");
-  const [actionCardState, setActionCardState] = useState<ActionCardState>(
+  const [actionCardState] = useState<ActionCardState>(
     isNotificationState ? initialActionState : (preVerifiedEmail ? "pre-verified" : initialActionState)
   );
 
-  // Handle wizard completion
-  const handleWizardComplete = useCallback(() => {
-    setWizardComplete(true);
-  }, []);
+  // Is this a notification-driven entry (lead/question/review from email)?
+  // Guard: only treat as notification if we actually have the data to render it.
+  // Without notificationData, the ActionCard notification renders would return nothing.
+  const isNotificationEntry =
+    ["notification-lead", "notification-question", "notification-review"].includes(actionCardState)
+    && !!notificationData;
 
-  // Hide main navbar only after wizard completes
+  // Hide main navbar — this page has its own header
   useEffect(() => {
-    if (wizardComplete) {
-      setForceHidden(true);
-    }
+    setForceHidden(true);
     return () => setForceHidden(false);
-  }, [wizardComplete, setForceHidden]);
+  }, [setForceHidden]);
 
-  // Handle click on preview cards - scroll to top and highlight ActionCard
-  const handlePreviewCardClick = useCallback(() => {
-    setHighlightAction(true);
+  // When unauthenticated user clicks a platform card, scroll to verify prompt
+  const handleUnauthenticatedClick = useCallback(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  // Reset highlight after animation
-  useEffect(() => {
-    if (highlightAction) {
-      const timer = setTimeout(() => setHighlightAction(false), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [highlightAction]);
-
-  // Helper to get section completion percent
-  const sectionPercent = (id: string) =>
-    completeness.sections.find((s) => s.id === id)?.percent ?? 0;
-
-  // Determine which elements are highlighted based on wizard step
-  const isSidebarHighlighted = !wizardComplete && wizardStep === 0;
-  const isWizardActive = !wizardComplete;
-
-  // Is this a notification-driven entry (lead/question/review from email)?
-  const isNotificationEntry = ["notification-lead", "notification-question", "notification-review"].includes(actionCardState);
-
   return (
-    <div className={`min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white ${wizardComplete ? "pt-16" : ""}`}>
-      {/* Custom Onboarding Header - only shown after wizard completes (fixed position) */}
-      {wizardComplete && <OnboardingHeader providerName={provider.provider_name} isNotification={isNotificationEntry} />}
+    <div className="min-h-screen bg-[#F7F5F0] pt-14">
+      {/* Header */}
+      <OnboardingHeader providerName={provider.provider_name} />
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Content — narrow, centered */}
+      <div className="max-w-2xl mx-auto px-5 sm:px-8 py-10">
 
-        {/* ── Notification Hero (full-width, above grid) ── */}
-        {isNotificationEntry && wizardComplete && (
+        {/* ── Notification Hero (when coming from email) ── */}
+        {isNotificationEntry ? (
           <div
-            className="mb-8 max-w-2xl mx-auto"
+            className="mb-10"
             style={{ animation: "card-enter 0.3s ease-out both" }}
           >
             <ActionCard
@@ -318,142 +215,37 @@ export default function SmartDashboardShell({
               initialState={actionCardState}
               onVerificationComplete={onVerificationComplete}
               preVerifiedEmail={preVerifiedEmail}
-              highlighted={highlightAction}
               notificationData={notificationData}
               isSignedIn={isSignedIn}
             />
-
-            {/* Trust line moved inside the card */}
           </div>
-        )}
-
-        {/* ── Discover your listing section ── */}
-        {isNotificationEntry && wizardComplete && (
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-1">
-              <div className="h-px flex-1 bg-gray-100" />
-              <span className="text-xs font-medium tracking-wide text-gray-400 uppercase">Your listing on Olera</span>
-              <div className="h-px flex-1 bg-gray-100" />
-            </div>
-          </div>
-        )}
-
-        {/* Mobile Progress Banner */}
-        <MobileProgressBanner completeness={completeness} />
-
-        {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          {/* Main Content - Cards */}
-          <div className={`lg:col-span-2 space-y-6 ${isWizardActive ? "opacity-40 blur-[2px]" : ""}`}>
-            {/* Action Card - inline for non-notification flows */}
-            {!isNotificationEntry && (
-              <ActionCard
-                provider={provider}
-                claimSession={claimSession}
-                initialState={actionCardState}
-                onVerificationComplete={onVerificationComplete}
-                preVerifiedEmail={preVerifiedEmail}
-                highlighted={highlightAction}
-                notificationData={notificationData}
-                isSignedIn={isSignedIn}
-              />
-            )}
-
-            {/* Dashboard Cards - clickable to trigger verification prompt */}
-            {[
-              <ProfileOverviewCard
-                key="overview"
-                profile={profile}
-                completionPercent={sectionPercent("overview")}
-                onEdit={undefined}
-              />,
-              <GalleryCard
-                key="gallery"
-                metadata={metadata}
-                completionPercent={sectionPercent("gallery")}
-                onEdit={undefined}
-              />,
-              <CareServicesCard
-                key="services"
-                profile={profile}
-                completionPercent={sectionPercent("services")}
-                onEdit={undefined}
-              />,
-              <StaffScreeningCard
-                key="screening"
-                metadata={metadata}
-                completionPercent={sectionPercent("screening")}
-                onEdit={undefined}
-              />,
-              <AboutCard
-                key="about"
-                profile={profile}
-                metadata={metadata}
-                completionPercent={sectionPercent("about")}
-                onEdit={undefined}
-              />,
-              <PricingCard
-                key="pricing"
-                metadata={metadata}
-                completionPercent={sectionPercent("pricing")}
-                onEdit={undefined}
-              />,
-              <PaymentInsuranceCard
-                key="payment"
-                metadata={metadata}
-                completionPercent={sectionPercent("payment")}
-                onEdit={undefined}
-              />,
-            ].map((card, i) => (
-              <div
-                key={i}
-                onClick={handlePreviewCardClick}
-                className="cursor-pointer"
-                style={{
-                  animation: "card-enter 0.25s ease-out both",
-                  animationDelay: `${(i + 2) * 60}ms`,
-                }}
-              >
-                {card}
-              </div>
-            ))}
-          </div>
-
-          {/* Sidebar */}
+        ) : (
+          /* ── Welcome Hero (organic visit, no notification) ── */
           <div
-            data-wizard-target="sidebar"
-            className={`hidden lg:block lg:col-span-1 ${isWizardActive && !isSidebarHighlighted ? "opacity-40 blur-[2px]" : ""} ${isSidebarHighlighted ? "relative z-50" : ""}`}
+            className="mb-10"
+            style={{ animation: "card-enter 0.3s ease-out both" }}
           >
-            <div
-              className={`sticky top-24 ${isSidebarHighlighted ? "ring-2 ring-primary-400 ring-offset-4 rounded-2xl" : ""}`}
-              style={{
-                animation: "card-enter 0.25s ease-out both",
-                animationDelay: "540ms",
-              }}
-            >
-              <ProfileCompletenessSidebar
-                completeness={completeness}
-                lastUpdated={profile.updated_at}
-              />
-            </div>
+            {/* ActionCard for verification (verify-form, pre-verified, etc.) */}
+            <ActionCard
+              provider={provider}
+              claimSession={claimSession}
+              initialState={actionCardState}
+              onVerificationComplete={onVerificationComplete}
+              preVerifiedEmail={preVerifiedEmail}
+              notificationData={notificationData}
+              isSignedIn={isSignedIn}
+            />
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* Onboarding Wizard (only when wizard not complete) */}
-      {!wizardComplete && (
-        <OnboardingWizard
-          step={wizardStep}
-          onNext={() => {
-            if (wizardStep < 2) {
-              setWizardStep(wizardStep + 1);
-            } else {
-              handleWizardComplete();
-            }
-          }}
-          onComplete={handleWizardComplete}
+        {/* ── Platform Showcase ── */}
+        <PlatformShowcase
+          provider={provider}
+          completenessPercent={completeness.overall}
+          isSignedIn={isSignedIn}
+          onUnauthenticatedClick={handleUnauthenticatedClick}
         />
-      )}
+      </div>
     </div>
   );
 }

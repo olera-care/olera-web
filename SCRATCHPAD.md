@@ -7,6 +7,16 @@
 
 ## Current Focus
 
+- **Provider Onboard Page Redesign** (branch: `funny-turing`) — IN PROGRESS
+  - Redesigned onboard page from profile-editor to platform showcase
+  - Replaced 7 profile section cards with 4 platform value cards (Find Families, Reviews, Q&A, Hire Staff) + 1 compact listing card
+  - Warm bg-[#F7F5F0] Perena/Airbnb-inspired styling, narrower centered layout
+  - Notification card copy warmed: "A family in {City} is looking for care"
+  - Removed wizard overlay, sidebar, progress banners, percentage badges
+  - Auth-aware cards: navigate when signed in, scroll-to-verify when not
+  - Fixed pre-existing bug: notification state with null data rendered blank card
+  - **Next: Visual review on Vercel preview, polish based on feedback, enrichment questions (separate workstream), MedJobs card refinement (placeholder for now)**
+
 - **SEO: City/Browse Page Optimization** (branch: `zen-perlman`) — ANALYSIS COMPLETE, IMPLEMENTATION NEXT
   - GSC 7-day report analyzed (Mar 19-25): 690K impressions, 2.7K clicks, 0.4% CTR, avg position 26.7
   - City pages ranking position 35-60 for "[care type] [city]" queries — massive impressions, near-zero clicks
@@ -229,7 +239,10 @@
 
 ## Next Up
 
-1. **SEO Action 1: City-specific content sections** — Add cost snapshot, "Paying for Care" module (waiver library links), city stats, FAQ section to browse pages
+1. **Provider onboard polish** — Visual review on Vercel, iterate on card styling/copy, MedJobs card refinement
+2. **Enrichment questions after connection** — Add follow-up questions after seeker submits connection to feed into their profile (separate workstream from onboard redesign)
+3. **De-jank provider transitions** — Airbnb-smooth state transitions across provider flows (notification → dashboard, claim → portal)
+4. **SEO Action 1: City-specific content sections** — Add cost snapshot, "Paying for Care" module (waiver library links), city stats, FAQ section to browse pages
 2. **SEO Action 2: Internal linking** — Link caregiver articles → city pages, waiver library → city pages, nearby city cross-links
 3. **SEO Action 3: Structured data + meta** — FAQ schema, AggregateRating schema, cost/review-enriched meta descriptions
 4. **SEO Action 4: More caregiver content** — 10-15 articles targeting financial/benefits queries (Medicare, Medicaid, cost guides)
@@ -247,6 +260,12 @@
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-03-28 | Onboard page is a platform showcase, not a profile editor | Provider's first impression should be "here's what Olera can do" not "fill out these 7 forms." Profile completion is ONE compact card, not the entire page. |
+| 2026-03-28 | Platform cards use router.push, not Link elements | Avoids DOM swap when isSignedIn changes (div→Link remount re-triggers animations). Single div with onClick handler works for both auth states. |
+| 2026-03-28 | Guard isNotificationEntry on notificationData presence | ActionCard notification renders require data — without it, renders nothing. SmartDashboardShell must check `&& !!notificationData` before treating as notification entry. Falls back to verify-form. |
+| 2026-03-28 | No new API endpoints for v1 of onboard redesign | Value cards use aspirational copy + existing provider data (google_reviews_data). Live counts (lead count in area, Q&A pending) are a fast follow once design is validated. |
+| 2026-03-28 | Profile editing removed from onboard page | Wizard/inline editing moves to the portal Dashboard. Onboard page is the "lobby" — sells the vision. Portal is where they work. |
+| 2026-03-28 | MedJobs card on onboard is placeholder for now | Feature is early, will be refined in next work session with proper data + design |
 | 2026-03-27 | /welcome page must be static, not force-dynamic | Server component ran 3+ Supabase queries that always fail for guests (no session cookie). Blocked page render 2-3s + AuthProvider timeout 5s = 6-8s blank screen. Static page + client-side data fetching = instant render. |
 | 2026-03-27 | Never gate /welcome page render on auth state | Connection card, step cards, greeting all work without auth. Auth resolving in background upgrades the UI (profile %, live status) but shouldn't block first paint. Show skeleton for async data, not a loading spinner for the whole page. |
 | 2026-03-27 | Side-by-side card layout (square image) > landscape hero for provider cards | Landscape aspect ratio crops provider logos/photos badly — most provider images are logos or square portraits, not wide photos. Square image left + content right works for all image shapes. |

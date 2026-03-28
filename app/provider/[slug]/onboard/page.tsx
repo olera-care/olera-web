@@ -705,7 +705,7 @@ export default function ProviderOnboardPage() {
   // Loading state
   if (step === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-vanilla-50 via-white to-white">
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F5F0]">
         <div className="text-center px-4">
           <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
           <p className="mt-4 text-gray-500">Loading...</p>
@@ -717,7 +717,7 @@ export default function ProviderOnboardPage() {
   // Error state
   if (step === "error") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-vanilla-50 via-white to-white">
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F5F0]">
         <div className="text-center max-w-md px-4">
           <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-6">
             <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -767,7 +767,7 @@ export default function ProviderOnboardPage() {
   // Success state
   if (step === "success") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-vanilla-50 via-white to-white">
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F5F0]">
         <div className="text-center max-w-md px-4" style={{ animation: "card-enter 0.3s ease-out both" }}>
           <div className="relative inline-block mb-6">
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shadow-sm border border-primary-100/60">
@@ -801,7 +801,7 @@ export default function ProviderOnboardPage() {
   // Finalizing state
   if (step === "finalizing") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-vanilla-50 via-white to-white">
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F5F0]">
         <div className="text-center px-4">
           <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
           <p className="mt-4 text-gray-500">Setting up your account...</p>

@@ -689,8 +689,8 @@ export default function ActionCard({
     "relative z-10 bg-white rounded-2xl shadow-sm p-8 md:p-10 transition-all duration-300";
   // Default: quiet border. Highlighted: warm ring for urgent attention
   const cardClass = highlighted
-    ? `${baseCardClass} border-2 border-orange-400 ring-4 ring-orange-200 shadow-lg shadow-orange-100/50 animate-pulse-subtle`
-    : `${baseCardClass} border border-gray-200 shadow-md shadow-gray-100/50`;
+    ? `${baseCardClass} border border-primary-200 ring-2 ring-primary-100 shadow-md`
+    : `${baseCardClass} border border-gray-200 shadow-sm`;
 
   // ════════════════════════════════════════════════════════════
   // RENDER: Notification States (Lead, Question, Review)
@@ -718,7 +718,7 @@ export default function ActionCard({
           <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
           <div>
             <h3 className="text-lg font-display font-bold text-gray-900">
-              A family is interested in your services
+              A family in {notificationData.from_profile?.city || provider.city || "your area"} is looking for care
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
           </div>
@@ -758,7 +758,7 @@ export default function ActionCard({
             href={`/provider/connections?id=${notificationData.id}`}
             className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
           >
-            View full inquiry
+            See their message
           </Link>
         ) : (
           <>
@@ -766,10 +766,10 @@ export default function ActionCard({
               onClick={() => setState("verify-form")}
               className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
             >
-              Verify your email to respond
+              Verify to respond
             </button>
             <p className="text-xs text-gray-400 mt-3 text-center">
-              Olera is an NIH-backed platform connecting families with quality senior care providers.
+              Olera connects families with quality senior care providers.
             </p>
           </>
         )}
@@ -828,10 +828,10 @@ export default function ActionCard({
               onClick={() => setState("verify-form")}
               className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
             >
-              Verify your email to answer
+              Verify to answer
             </button>
             <p className="text-xs text-gray-400 mt-3 text-center">
-              Olera is an NIH-backed platform connecting families with quality senior care providers.
+              Olera connects families with quality senior care providers.
             </p>
           </>
         )}
@@ -904,10 +904,10 @@ export default function ActionCard({
               onClick={() => setState("verify-form")}
               className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
             >
-              Verify your email to respond
+              Verify to respond
             </button>
             <p className="text-xs text-gray-400 mt-3 text-center">
-              Olera is an NIH-backed platform connecting families with quality senior care providers.
+              Olera connects families with quality senior care providers.
             </p>
           </>
         )}

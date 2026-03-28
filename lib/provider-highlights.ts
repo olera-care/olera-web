@@ -207,7 +207,7 @@ export function buildHighlights(opts: BuildHighlightsOpts): HighlightItem[] {
   }
 
   // ── Tier 1: AI Trust Signals (confirmed only) ──
-  if (opts.trustSignals?.signals) {
+  if (Array.isArray(opts.trustSignals?.signals)) {
     // Priority order: licensed > accredited > bbb > clean record
     const priorityOrder = ["state_licensed", "accredited", "bbb_rated", "regulatory_actions"];
 
@@ -226,7 +226,7 @@ export function buildHighlights(opts: BuildHighlightsOpts): HighlightItem[] {
   // ── Tier 2: Longevity + Social Proof ──
 
   // Years in operation → "Est. YYYY"
-  if (items.length < maxItems && opts.trustSignals?.signals) {
+  if (items.length < maxItems && Array.isArray(opts.trustSignals?.signals)) {
     const yearsSignal = opts.trustSignals.signals.find(
       (s) => s.signal === "years_in_operation" && s.status === "confirmed" && s.detail
     );

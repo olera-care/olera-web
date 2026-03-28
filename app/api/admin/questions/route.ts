@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import { questionAnsweredEmail } from "@/lib/email-templates";
+import { generateProviderSlug } from "@/lib/slugify";
 
 /**
  * GET /api/admin/questions
@@ -62,16 +63,71 @@ export async function GET(request: NextRequest) {
     let providerNames: Record<string, string> = {};
     let providerEditorIds: Record<string, string> = {};
     if (slugs.length > 0) {
-      const { data: providers } = await db
+      // Try business_profiles first
+      const { data: bpProviders } = await db
         .from("business_profiles")
         .select("slug, display_name, source_provider_id")
         .in("slug", slugs);
       providerNames = Object.fromEntries(
-        (providers ?? []).map((p) => [p.slug, p.display_name])
+        (bpProviders ?? []).map((p) => [p.slug, p.display_name])
       );
       providerEditorIds = Object.fromEntries(
-        (providers ?? []).filter((p) => p.source_provider_id).map((p) => [p.slug, p.source_provider_id])
+        (bpProviders ?? []).filter((p) => p.source_provider_id).map((p) => [p.slug, p.source_provider_id])
       );
+
+      // For slugs not found in business_profiles, try olera-providers
+      const missingSlugs = slugs.filter((s) => !providerNames[s]);
+      if (missingSlugs.length > 0) {
+        const { data: iosProviders } = await db
+          .from("olera-providers")
+          .select("slug, provider_id, provider_name")
+          .in("slug", missingSlugs)
+          .not("deleted", "is", true);
+        for (const p of iosProviders ?? []) {
+          if (p.slug && p.provider_name) providerNames[p.slug] = p.provider_name;
+          if (p.slug && p.provider_id) providerEditorIds[p.slug] = p.provider_id;
+        }
+
+        // Also try by provider_id for legacy slugs
+        const stillMissing = missingSlugs.filter((s) => !providerNames[s]);
+        if (stillMissing.length > 0) {
+          const { data: legacyProviders } = await db
+            .from("olera-providers")
+            .select("provider_id, provider_name")
+            .in("provider_id", stillMissing)
+            .not("deleted", "is", true);
+          for (const p of legacyProviders ?? []) {
+            if (p.provider_id && p.provider_name) providerNames[p.provider_id] = p.provider_name;
+          }
+        }
+
+        // Strategy 4: reverse-match auto-generated slugs for providers with slug=null
+        const finalMissing = missingSlugs.filter((s) => !providerNames[s]);
+        if (finalMissing.length > 0) {
+          // For each missing slug, extract a name prefix and search candidates
+          for (const missingSlug of finalMissing) {
+            const slugParts = missingSlug.split("-");
+            const namePrefix = slugParts.slice(0, 3).join("-");
+            const { data: candidates } = await db
+              .from("olera-providers")
+              .select("provider_id, provider_name, state")
+              .not("deleted", "is", true)
+              .is("slug", null)
+              .ilike("provider_name", `${namePrefix.replace(/-/g, "%")}%`)
+              .limit(20);
+            if (candidates) {
+              for (const c of candidates) {
+                const generatedSlug = generateProviderSlug(c.provider_name, c.state);
+                if (generatedSlug === missingSlug) {
+                  providerNames[missingSlug] = c.provider_name;
+                  providerEditorIds[missingSlug] = c.provider_id;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
     const enriched = (questions ?? []).map((q) => ({

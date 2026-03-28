@@ -104,6 +104,7 @@ export default function Navbar() {
     pathname.startsWith("/provider/qna") ||
     pathname.startsWith("/provider/verification") ||
     pathname.startsWith("/provider/account") ||
+    pathname.startsWith("/provider/medjobs") ||
     // Claim/onboard flow shows provider portal nav
     (pathname.startsWith("/provider/") && pathname.endsWith("/onboard"));
   const isMinimalNav = pathname.startsWith("/portal/inbox") || pathname.startsWith("/welcome") || pathname.startsWith("/provider/welcome");
@@ -616,7 +617,7 @@ export default function Navbar() {
                       Families
                     </Link>
 
-                    {/* MedJobs - standalone */}
+                    {/* Hire Staff */}
                     <Link
                       href="/provider/medjobs/candidates"
                       className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
@@ -625,7 +626,7 @@ export default function Navbar() {
                           : "text-gray-700 hover:text-gray-900"
                       }`}
                     >
-                      MedJobs
+                      Hire Staff
                     </Link>
                   </>
                 ) : (
@@ -996,7 +997,7 @@ export default function Navbar() {
                               { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount, showOnlyWithBadge: true, icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" },
                               { label: "Families", href: "/provider/matches", match: "/provider/matches", badge: 0, showOnlyWithBadge: false, icon: "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" },
                               { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: reviewsCount, showOnlyWithBadge: false, icon: "M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" },
-                              { label: "MedJobs", href: "/provider/medjobs/candidates", match: "/provider/medjobs", badge: 0, showOnlyWithBadge: false, icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" },
+                              { label: "Hire Staff", href: "/provider/medjobs/candidates", match: "/provider/medjobs", badge: 0, showOnlyWithBadge: false, icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" },
                             ] as const).map((item) => {
                               if (item.showOnlyWithBadge && item.badge === 0) return null;
                               const active = item.match === "/provider" ? pathname === "/provider" : pathname.startsWith(item.match);

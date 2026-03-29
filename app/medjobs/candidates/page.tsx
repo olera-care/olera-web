@@ -2,24 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { createBrowserClient } from "@supabase/ssr";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { matchesTrackFilter } from "@/lib/medjobs-helpers";
 import CandidateRow from "@/components/medjobs/CandidateRow";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import CandidateFilters from "@/components/medjobs/CandidateFilters";
 import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilters";
-
-let _supabase: SupabaseClient | null = null;
-function getSupabase(): SupabaseClient {
-  if (!_supabase) {
-    _supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-  }
-  return _supabase;
-}
 
 const PAGE_SIZE = 20;
 
@@ -37,38 +23,26 @@ export default function CandidateBrowsePage() {
 
   const fetchCandidates = useCallback(async () => {
     setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: String(PAGE_SIZE),
+        sort: filters.sort,
+      });
+      if (filters.state) params.set("state", filters.state);
+      if (filters.search.trim()) params.set("search", filters.search.trim());
+      if (filters.track) params.set("programTrack", filters.track);
 
-    let query = getSupabase()
-      .from("business_profiles")
-      .select(
-        "id, slug, display_name, city, state, description, care_types, metadata, image_url, created_at",
-        { count: "exact" }
-      )
-      .eq("type", "student")
-      .eq("is_active", true)
-      .order("created_at", { ascending: filters.sort === "oldest" })
-      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+      const res = await fetch(`/api/medjobs/candidates?${params}`);
+      const data = await res.json();
 
-    if (filters.state) {
-      query = query.eq("state", filters.state);
+      setCandidates(data.candidates || []);
+      setTotal(data.total || 0);
+    } catch (err) {
+      console.error("[medjobs/candidates] fetch error:", err);
+    } finally {
+      setLoading(false);
     }
-
-    if (filters.search.trim()) {
-      query = query.ilike("display_name", `%${filters.search.trim()}%`);
-    }
-
-    const { data, count } = await query;
-
-    let results = (data || []) as CandidateData[];
-
-    // Client-side track filter (JSONB field)
-    if (filters.track) {
-      results = results.filter((c) => matchesTrackFilter(c.metadata, filters.track));
-    }
-
-    setCandidates(results);
-    setTotal(filters.track ? results.length : count || 0);
-    setLoading(false);
   }, [page, filters]);
 
   useEffect(() => {
@@ -78,7 +52,6 @@ export default function CandidateBrowsePage() {
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const handleFilterChange = useCallback(
     (newFilters: CandidateFilterValues) => {
-      // Debounce search, apply other filters immediately
       if (newFilters.search !== filters.search) {
         setFilters((prev) => ({ ...prev, search: newFilters.search }));
         if (debounceRef.current) clearTimeout(debounceRef.current);

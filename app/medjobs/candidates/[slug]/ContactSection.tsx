@@ -129,24 +129,24 @@ export default function ContactSection({
     );
   }
 
-  // ── State 3: Not signed in — compelling, value-first gate ──
+  // ── State 3: Not signed in — warm, welcoming gate ──
   return (
     <div className="mt-6">
       <div className="p-5 bg-[#FAFAF8] rounded-xl border border-gray-100">
         <p className="text-[15px] font-semibold text-gray-900">
-          Interested in {firstName}?
+          Want to connect with {firstName}?
         </p>
         <p className="mt-1 text-sm text-gray-500">
-          Sign in to see contact details, schedule an interview, and hire directly.
+          Create a free account to see {firstName}&apos;s contact info and reach out directly.
         </p>
         <button
           onClick={() => openAuth({ defaultMode: "sign-in" })}
           className="mt-4 w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
         >
-          Continue with Google
+          Get Started
         </button>
         <p className="mt-2 text-center text-xs text-gray-400">
-          Free account. No credit card.
+          Free. Takes 30 seconds.
         </p>
       </div>
     </div>

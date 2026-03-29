@@ -7,15 +7,27 @@
 
 ## Current Focus
 
-- **Provider Onboard Page Redesign** (branch: `funny-turing`) — IN PROGRESS
+- **MedJobs Candidates Redesign** (branch: `keen-perlman`) — IN PROGRESS
+  - Redesigned candidates browse from image-heavy card grid to dense, scannable list rows
+  - Shared `CandidateRow` + `CandidateFilters` components used by both `/medjobs/candidates` and `/provider/medjobs/candidates`
+  - Searchable state dropdown (all 50 + DC) via enhanced `Select` component with `searchable` prop
+  - Track, sort, and debounced name search filters
+  - Infinite scroll with IntersectionObserver (no pagination buttons)
+  - API switched from `count: "exact"` to `count: "estimated"` for speed
+  - Public page switched from browser→Supabase to API route (fixed ~7s load time)
+  - ContactSection simplified: 4 auth states → 3 (any authenticated user sees contact, no provider profile gate)
+  - Warm `bg-[#FAFAF8]` surface on all candidates pages
+  - Discovery zone prefooter hidden on `/medjobs` pages
+  - Bug fixes: API `image_url` missing, track filter legacy mapping, API checking wrong field, search debounce
+  - Fixed post-auth redirect: ContactSection now passes deferred `inquiry` action so users return to candidate page instead of `/welcome`
+  - Auth gate copy warmed: "Continue with Google" → "Get Started", method-agnostic
+  - **5 commits on `keen-perlman`, all pushed. Awaiting TJ visual review on Vercel preview.**
+  - **Next: Detail page taste pass, test auth flow end-to-end on preview**
+
+- **Provider Onboard Page Redesign** (branch: `funny-turing`) — MERGED ✅ (PR #433)
   - Redesigned onboard page from profile-editor to platform showcase
-  - Replaced 7 profile section cards with 4 platform value cards (Find Families, Reviews, Q&A, Hire Staff) + 1 compact listing card
-  - Warm bg-[#F7F5F0] Perena/Airbnb-inspired styling, narrower centered layout
-  - Notification card copy warmed: "A family in {City} is looking for care"
-  - Removed wizard overlay, sidebar, progress banners, percentage badges
-  - Auth-aware cards: navigate when signed in, scroll-to-verify when not
-  - Fixed pre-existing bug: notification state with null data rendered blank card
-  - **Next: Visual review on Vercel preview, polish based on feedback, enrichment questions (separate workstream), MedJobs card refinement (placeholder for now)**
+  - Replaced 7 profile section cards with 4 platform value cards + 1 compact listing card
+  - Warm bg-[#F7F5F0] Perena/Airbnb-inspired styling
 
 - **SEO: City/Browse Page Optimization** (branch: `zen-perlman`) — ANALYSIS COMPLETE, IMPLEMENTATION NEXT
   - GSC 7-day report analyzed (Mar 19-25): 690K impressions, 2.7K clicks, 0.4% CTR, avg position 26.7
@@ -239,10 +251,11 @@
 
 ## Next Up
 
-1. **Provider onboard polish** — Visual review on Vercel, iterate on card styling/copy, MedJobs card refinement
-2. **Enrichment questions after connection** — Add follow-up questions after seeker submits connection to feed into their profile (separate workstream from onboard redesign)
-3. **De-jank provider transitions** — Airbnb-smooth state transitions across provider flows (notification → dashboard, claim → portal)
-4. **SEO Action 1: City-specific content sections** — Add cost snapshot, "Paying for Care" module (waiver library links), city stats, FAQ section to browse pages
+1. **MedJobs candidates detail page taste pass** — Apply warm surface + Perena-inspired styling to `/medjobs/candidates/[slug]` and `/provider/medjobs/candidates/[slug]`
+2. **MedJobs provider onboarding flow** — Ensure MedJobs tab → browse → candidate detail → auth → contact is butter smooth end-to-end
+3. **Enrichment questions after connection** — Add follow-up questions after seeker submits connection to feed into their profile (separate workstream from onboard redesign)
+4. **De-jank provider transitions** — Airbnb-smooth state transitions across provider flows (notification → dashboard, claim → portal)
+5. **SEO Action 1: City-specific content sections** — Add cost snapshot, "Paying for Care" module (waiver library links), city stats, FAQ section to browse pages
 2. **SEO Action 2: Internal linking** — Link caregiver articles → city pages, waiver library → city pages, nearby city cross-links
 3. **SEO Action 3: Structured data + meta** — FAQ schema, AggregateRating schema, cost/review-enriched meta descriptions
 4. **SEO Action 4: More caregiver content** — 10-15 articles targeting financial/benefits queries (Medicare, Medicaid, cost guides)
@@ -260,6 +273,9 @@
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-03-28 | MedJobs candidates page is a search tool, not a gallery | Hiring is purposeful evaluation, not emotional discovery. Giant image blocks waste space when most students don't have photos. List rows let providers scan 8-10 candidates per screen vs 3. |
+| 2026-03-28 | Any authenticated user sees contact info (not just providers) | Provider profile creation is progressive profiling, not a prerequisite. Gating on "is provider" after auth creates a second wall that breaks the onboarding flow. |
+| 2026-03-28 | Infinite scroll over pagination buttons | Pagination feels dated and adds cognitive load. IntersectionObserver with 200px rootMargin pre-fetches the next batch before the user reaches bottom. Feels like Telegram. |
 | 2026-03-28 | Onboard page is a platform showcase, not a profile editor | Provider's first impression should be "here's what Olera can do" not "fill out these 7 forms." Profile completion is ONE compact card, not the entire page. |
 | 2026-03-28 | Platform cards use router.push, not Link elements | Avoids DOM swap when isSignedIn changes (div→Link remount re-triggers animations). Single div with onClick handler works for both auth states. |
 | 2026-03-28 | Guard isNotificationEntry on notificationData presence | ActionCard notification renders require data — without it, renders nothing. SmartDashboardShell must check `&& !!notificationData` before treating as notification entry. Falls back to verify-form. |

@@ -77,7 +77,7 @@ export default async function CityPage({
       { "@type": "ListItem", position: 1, name: "Home", item: "https://olera.care" },
       { "@type": "ListItem", position: 2, name: config.displayName, item: `https://olera.care/${catSlug}` },
       { "@type": "ListItem", position: 3, name: stateName, item: `https://olera.care/${catSlug}/${stateSlug}` },
-      { "@type": "ListItem", position: 4, name: `${cityName}, ${abbrev}` },
+      { "@type": "ListItem", position: 4, name: `${cityName}, ${abbrev}`, item: `https://olera.care/${catSlug}/${stateSlug}/${citySlug}` },
     ],
   };
 

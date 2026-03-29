@@ -174,7 +174,7 @@ export default async function ResearchAndPressArticlePage({
         name: "Research & Press",
         item: "https://olera.care/research-and-press",
       },
-      { "@type": "ListItem", position: 3, name: title },
+      { "@type": "ListItem", position: 3, name: title, item: `https://olera.care/research-and-press/${slug}` },
     ],
   };
 

@@ -172,7 +172,7 @@ export default async function TexasArticlePage({
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://olera.care" },
       { "@type": "ListItem", position: 2, name: "Texas", item: "https://olera.care/texas" },
-      { "@type": "ListItem", position: 3, name: title },
+      { "@type": "ListItem", position: 3, name: title, item: `https://olera.care/texas/${slug}` },
     ],
   };
 

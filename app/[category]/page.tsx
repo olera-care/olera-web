@@ -66,7 +66,7 @@ export default async function CategoryPage({
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://olera.care" },
-      { "@type": "ListItem", position: 2, name: config.displayName },
+      { "@type": "ListItem", position: 2, name: config.displayName, item: `https://olera.care/${slug}` },
     ],
   };
 

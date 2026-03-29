@@ -77,3 +77,21 @@ export function formatDuration(meta: StudentMetadata): string | null {
 export function hasVideo(meta: StudentMetadata): boolean {
   return !!meta.video_intro_url;
 }
+
+/** Map legacy program_track values to intended_professional_school equivalents */
+const LEGACY_TRACK_TO_INTENDED: Record<string, string> = {
+  pre_med: "medicine",
+  pre_nursing: "nursing",
+  nursing: "nursing",
+  pre_pa: "pa",
+  pre_health: "public_health",
+};
+
+/** Check if a student's track matches a given intended_professional_school filter value.
+ *  Handles both new `intended_professional_school` and legacy `program_track` fields. */
+export function matchesTrackFilter(meta: StudentMetadata, filterValue: string): boolean {
+  if (!filterValue) return true;
+  if (meta.intended_professional_school === filterValue) return true;
+  if (meta.program_track && LEGACY_TRACK_TO_INTENDED[meta.program_track] === filterValue) return true;
+  return false;
+}

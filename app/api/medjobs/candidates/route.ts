@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
     let query = supabaseAdmin
       .from("business_profiles")
       .select(
-        "id, slug, display_name, city, state, zip, lat, lng, description, care_types, metadata, created_at" +
+        "id, slug, display_name, city, state, zip, lat, lng, description, care_types, metadata, image_url, created_at" +
         (isProvider ? ", email, phone" : ""),
         { count: "exact" }
       )
@@ -105,12 +105,22 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch candidates" }, { status: 500 });
     }
 
-    // Client-side filter for metadata fields (program_track in JSONB)
+    // Client-side filter for metadata fields (JSONB — not queryable server-side)
     let candidates = data || [];
     if (programTrack) {
+      // Map legacy program_track values to intended_professional_school equivalents
+      const legacyMap: Record<string, string> = {
+        pre_med: "medicine", pre_nursing: "nursing", nursing: "nursing",
+        pre_pa: "pa", pre_health: "public_health",
+      };
       candidates = candidates.filter(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (c: any) => c.metadata?.program_track === programTrack
+        (c: any) => {
+          const meta = c.metadata || {};
+          if (meta.intended_professional_school === programTrack) return true;
+          if (meta.program_track && legacyMap[meta.program_track] === programTrack) return true;
+          return false;
+        }
       );
     }
 

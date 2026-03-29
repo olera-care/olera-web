@@ -84,16 +84,15 @@ function ValueCard({
         </div>
       </div>
 
-      {/* Subtle arrow */}
-      <div className="mt-4 flex items-center gap-1 text-sm font-medium text-gray-400 group-hover:text-gray-600 transition-colors">
-        <span>Explore</span>
+      {/* Subtle arrow — no text, just the chevron */}
+      <div className="mt-4 flex items-center text-gray-300 group-hover:text-gray-500 transition-colors">
         <svg
-          className="w-3.5 h-3.5 transform group-hover:translate-x-0.5 transition-transform"
+          className="w-4 h-4 transform group-hover:translate-x-0.5 transition-transform"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
         </svg>
       </div>
     </div>
@@ -200,22 +199,6 @@ function FamiliesIcon() {
   );
 }
 
-function ReviewsIcon() {
-  return (
-    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-    </svg>
-  );
-}
-
-function QAIcon() {
-  return (
-    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  );
-}
-
 function StaffIcon() {
   return (
     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,25 +216,23 @@ export default function PlatformShowcase({
   onUnauthenticatedClick,
 }: PlatformShowcaseProps) {
   const city = provider.city || "your area";
-  const reviewData = provider.google_reviews_data;
-  const hasReviews = reviewData && reviewData.review_count > 0;
 
   return (
-    <div className="space-y-4">
-      {/* Section label */}
+    <div className="space-y-4 mt-2">
+      {/* Section label — subtle, not competing */}
       <p
-        className="text-sm font-medium text-gray-400 tracking-wide"
+        className="text-xs font-medium text-gray-300 tracking-widest uppercase"
         style={{ animation: "card-enter 0.3s ease-out both", animationDelay: "100ms" }}
       >
-        What you can do on Olera
+        What you can do
       </p>
 
-      {/* 2x2 Grid of value cards */}
+      {/* Value cards — 2-column, balanced */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <ValueCard
           href="/provider/matches"
-          headline="Find families"
-          subtext={`Get notified when families in ${city} are looking for care`}
+          headline="Families in your area"
+          subtext={`Families nearby in ${city} are looking for care`}
           icon={<FamiliesIcon />}
           delay={150}
           isSignedIn={isSignedIn}
@@ -259,36 +240,12 @@ export default function PlatformShowcase({
         />
 
         <ValueCard
-          href="/provider/reviews"
-          headline={hasReviews ? `${reviewData.review_count} reviews` : "Your reviews"}
-          subtext={
-            hasReviews
-              ? `${reviewData.rating.toFixed(1)} stars on Google — families see these on your listing`
-              : "Collect and showcase reviews from families"
-          }
-          icon={<ReviewsIcon />}
-          delay={210}
-          isSignedIn={isSignedIn}
-          onUnauthenticatedClick={onUnauthenticatedClick}
-        />
-
-        <ValueCard
-          href="/provider/qna"
-          headline="Answer questions"
-          subtext="Respond to families and build your visibility"
-          icon={<QAIcon />}
-          delay={270}
-          isSignedIn={isSignedIn}
-          onUnauthenticatedClick={onUnauthenticatedClick}
-        />
-
-        <ValueCard
-          href="/provider/medjobs"
+          href="/provider/medjobs/candidates"
           headline="Hire staff"
           subtext="Browse pre-screened healthcare students"
           badge="New"
           icon={<StaffIcon />}
-          delay={330}
+          delay={210}
           isSignedIn={isSignedIn}
           onUnauthenticatedClick={onUnauthenticatedClick}
         />

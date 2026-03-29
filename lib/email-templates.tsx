@@ -338,8 +338,11 @@ export function questionReceivedEmail(opts: {
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A family has a question about ${opts.providerName}</h1>
     ${trustIntro()}
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-      <strong>${firstName(opts.askerName)}</strong> is researching care options and asked a question on your profile. Log in to read and respond.
+      <strong>${firstName(opts.askerName)}</strong> is researching care options and asked:
     </p>
+    <div style="background:#f9fafb;padding:16px;border-radius:12px;margin:0 0 16px;">
+      <p style="font-size:15px;color:#111827;margin:0;line-height:1.5;font-style:italic;">&ldquo;${opts.question}&rdquo;</p>
+    </div>
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">A thoughtful answer helps families see your expertise and builds trust with people actively looking for care.</p>
     <div>${button("View and respond", opts.providerUrl)}</div>
     ${offRampBlock(opts.providerSlug)}

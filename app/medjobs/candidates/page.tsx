@@ -12,6 +12,8 @@ const PAGE_SIZE = 20;
 export default function CandidateBrowsePage() {
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [filters, setFilters] = useState<CandidateFilterValues>({
@@ -21,33 +23,73 @@ export default function CandidateBrowsePage() {
     sort: "newest",
   });
 
-  const fetchCandidates = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: String(page),
-        pageSize: String(PAGE_SIZE),
-        sort: filters.sort,
-      });
-      if (filters.state) params.set("state", filters.state);
-      if (filters.search.trim()) params.set("search", filters.search.trim());
-      if (filters.track) params.set("programTrack", filters.track);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-      const res = await fetch(`/api/medjobs/candidates?${params}`);
-      const data = await res.json();
+  const fetchCandidates = useCallback(
+    async (pageNum: number, append: boolean) => {
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
 
-      setCandidates(data.candidates || []);
-      setTotal(data.total || 0);
-    } catch (err) {
-      console.error("[medjobs/candidates] fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, filters]);
+      try {
+        const params = new URLSearchParams({
+          page: String(pageNum),
+          pageSize: String(PAGE_SIZE),
+          sort: filters.sort,
+        });
+        if (filters.state) params.set("state", filters.state);
+        if (filters.search.trim()) params.set("search", filters.search.trim());
+        if (filters.track) params.set("programTrack", filters.track);
 
+        const res = await fetch(`/api/medjobs/candidates?${params}`);
+        const data = await res.json();
+
+        const newCandidates = data.candidates || [];
+
+        if (append) {
+          setCandidates((prev) => [...prev, ...newCandidates]);
+        } else {
+          setCandidates(newCandidates);
+        }
+
+        setTotal(data.total || 0);
+        setHasMore(newCandidates.length === PAGE_SIZE);
+      } catch (err) {
+        console.error("[medjobs/candidates] fetch error:", err);
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [filters]
+  );
+
+  // Initial load + filter changes
   useEffect(() => {
-    fetchCandidates();
+    setPage(0);
+    fetchCandidates(0, false);
   }, [fetchCandidates]);
+
+  // Infinite scroll — intersection observer
+  useEffect(() => {
+    if (!sentinelRef.current || !hasMore || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          const nextPage = page + 1;
+          setPage(nextPage);
+          fetchCandidates(nextPage, true);
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, page, fetchCandidates]);
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const handleFilterChange = useCallback(
@@ -57,17 +99,13 @@ export default function CandidateBrowsePage() {
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => {
           setFilters(newFilters);
-          setPage(0);
         }, 300);
       } else {
         setFilters(newFilters);
-        setPage(0);
       }
     },
     [filters.search]
   );
-
-  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <main className="min-h-screen bg-[#FAFAF8] py-8 sm:py-12">
@@ -85,7 +123,7 @@ export default function CandidateBrowsePage() {
               Student Candidates
             </h1>
             <p className="mt-1 text-sm text-gray-500">
-              {total} student{total !== 1 ? "s" : ""} available
+              {total > 0 && `${total} student${total !== 1 ? "s" : ""} available`}
             </p>
           </div>
           <Link
@@ -138,39 +176,28 @@ export default function CandidateBrowsePage() {
               ))}
             </div>
 
-            {/* Provider upsell */}
-            <div className="mt-4 text-center">
-              <p className="text-sm text-gray-400">
-                <Link
-                  href="/provider/medjobs/candidates"
-                  className="text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  Sign in as a provider
-                </Link>{" "}
-                to see contact details and reach out directly.
-              </p>
-            </div>
+            {/* Loading more indicator */}
+            {loadingMore && (
+              <div className="flex justify-center py-6">
+                <div className="w-5 h-5 border-2 border-gray-300 border-t-primary-600 rounded-full animate-spin" />
+              </div>
+            )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-center gap-3">
-                <button
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  disabled={page === 0}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  Previous
-                </button>
-                <span className="text-sm text-gray-400">
-                  {page + 1} / {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={(page + 1) * PAGE_SIZE >= total}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  Next
-                </button>
+            {/* Infinite scroll sentinel */}
+            {hasMore && !loadingMore && <div ref={sentinelRef} className="h-1" />}
+
+            {/* End of list */}
+            {!hasMore && candidates.length > 0 && (
+              <div className="mt-4 text-center">
+                <p className="text-sm text-gray-400">
+                  <Link
+                    href="/provider/medjobs/candidates"
+                    className="text-primary-600 hover:text-primary-700 font-medium"
+                  >
+                    Sign in as a provider
+                  </Link>{" "}
+                  to see contact details and reach out directly.
+                </p>
               </div>
             )}
           </>

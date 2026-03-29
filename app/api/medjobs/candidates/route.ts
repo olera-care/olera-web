@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
       .select(
         "id, slug, display_name, city, state, zip, lat, lng, description, care_types, metadata, image_url, created_at" +
         (isProvider ? ", email, phone" : ""),
-        { count: "exact" }
+        { count: "estimated" }
       )
       .eq("type", "student")
       .eq("is_active", true);

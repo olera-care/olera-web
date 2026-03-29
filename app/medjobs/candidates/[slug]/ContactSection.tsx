@@ -140,7 +140,15 @@ export default function ContactSection({
           Create a free account to see {firstName}&apos;s contact info and reach out directly.
         </p>
         <button
-          onClick={() => openAuth({ defaultMode: "sign-in" })}
+          onClick={() =>
+            openAuth({
+              defaultMode: "sign-in",
+              deferred: {
+                action: "inquiry",
+                returnUrl: `/medjobs/candidates/${studentSlug}`,
+              },
+            })
+          }
           className="mt-4 w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
         >
           Get Started

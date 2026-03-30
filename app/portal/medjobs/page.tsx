@@ -632,12 +632,7 @@ function AvailabilityCommitmentSection({ profileId, meta, onSave }: {
         <DateFieldEditor profileId={profileId} field="schedule_update_date" value={meta.schedule_update_date || ""} onSave={onSave}
           label="Schedule update date" hint="When does your current schedule end? We'll remind you to update." />
 
-        <div>
-          <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Availability notes</label>
-          <p className="text-xs text-gray-400 mb-2">Finals, spring break, known travel — the more detail, the better your chances.</p>
-          <MetadataEditor profileId={profileId} field="availability_notes" value={meta.availability_notes || ""} onSave={onSave}
-            placeholder="E.g. Finals week May 5-12 (limited). Spring break Mar 10-17 (fully available)." multiline />
-        </div>
+        <AvailabilityNotesSection profileId={profileId} value={meta.availability_notes || ""} onSave={onSave} />
       </div>
     </SectionCard>
   );
@@ -662,6 +657,69 @@ function SuggestionButton({ text, profileId, field, currentValue, onSave }: {
       }`}>
       {text}
     </button>
+  );
+}
+
+/* ─── Availability Notes Section ──────────────────────────── */
+
+const AVAILABILITY_SNIPPETS = [
+  "I have no planned travel and am available for shifts anytime outside of class.",
+  "Finals week [dates] — limited to weekends only.",
+  "Spring break [dates] — fully available for extra shifts.",
+  "I can pick up additional shifts during holidays and semester breaks.",
+  "I have reliable transportation and can drive to clients within 30 minutes.",
+  "I am flexible with short-notice shift changes and happy to cover for others.",
+];
+
+function AvailabilityNotesSection({ profileId, value, onSave }: {
+  profileId: string; value: string; onSave: () => void;
+}) {
+  const [text, setText] = useState(value);
+  const [saving, setSaving] = useState(false);
+
+  const appendSnippet = (snippet: string) => {
+    setText((prev) => prev ? `${prev}\n${snippet}` : snippet);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+      const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
+      const m = (current?.metadata || {}) as Record<string, unknown>;
+      m.availability_notes = text.trim() || null;
+      await sb.from("business_profiles").update({ metadata: m }).eq("id", profileId);
+      onSave();
+    } catch { /* ignore */ }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div>
+      <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Availability notes</label>
+      <p className="text-xs text-gray-400 mb-2">Finals, spring break, known travel — the more detail, the better your chances. Tap to add:</p>
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {AVAILABILITY_SNIPPETS.map((s) => (
+          <button key={s} type="button" onClick={() => appendSnippet(s)}
+            className="px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors text-left">
+            + {s.length > 45 ? s.slice(0, 45) + "..." : s}
+          </button>
+        ))}
+      </div>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Build your availability notes using the suggestions above, or type your own..."
+        rows={4}
+        className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors resize-none"
+      />
+      <div className="flex justify-end mt-2">
+        <button type="button" disabled={saving} onClick={handleSave}
+          className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 rounded-lg text-sm font-medium text-white transition-colors">
+          {saving ? "Saving..." : "Save"}
+        </button>
+      </div>
+    </div>
   );
 }
 

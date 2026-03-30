@@ -268,10 +268,12 @@ export default async function StudentProfilePage({ params }: PageProps) {
           )}
         </div>
 
-        {/* ── Video Hero + Sidebar ── */}
+        {/* ── Video Hero + Availability + Sidebar ── */}
         <div className="mt-5 flex flex-col lg:flex-row lg:items-start gap-5">
-          {/* Video / Primary visual */}
-          <div className="flex-1 min-w-0 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          {/* Left column: video + availability stacked */}
+          <div className="flex-1 min-w-0 space-y-4">
+            {/* Video */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             {videoAvailable && youtubeId ? (
               <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
                 <iframe
@@ -321,6 +323,41 @@ export default async function StudentProfilePage({ params }: PageProps) {
                 {trackLabel && <p className="text-sm text-gray-500">{trackLabel} Student</p>}
               </div>
             )}
+            </div>
+
+            {/* Availability — directly under video */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-3">
+                <svg className="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Availability
+              </h2>
+              <dl className="space-y-2.5">
+                {meta.course_schedule_grid && (
+                  <div>
+                    <dt className="text-xs text-gray-400 uppercase tracking-wide mb-2">Class Schedule {meta.course_schedule_semester && `(${meta.course_schedule_semester})`}</dt>
+                    <dd><ScheduleBuilderReadOnly grid={meta.course_schedule_grid} /></dd>
+                  </div>
+                )}
+                {hoursLabel && <div><dt className="text-xs text-gray-400 uppercase tracking-wide">Hours/Week</dt><dd className="text-sm text-gray-900">{hoursLabel}</dd></div>}
+                {durationLabel && <div><dt className="text-xs text-gray-400 uppercase tracking-wide">Commitment</dt><dd className="text-sm text-gray-900">{durationLabel}</dd></div>}
+                {meta.summer_availability && <div><dt className="text-xs text-gray-400 uppercase tracking-wide">Summer</dt><dd className="text-sm text-gray-900">{meta.summer_availability}</dd></div>}
+                {meta.winter_availability && <div><dt className="text-xs text-gray-400 uppercase tracking-wide">Winter</dt><dd className="text-sm text-gray-900">{meta.winter_availability}</dd></div>}
+                {meta.commitment_statement && (
+                  <div className="pt-1 border-t border-gray-100">
+                    <dt className="text-xs text-gray-400 uppercase tracking-wide">Commitment Statement</dt>
+                    <dd className="text-sm text-gray-900 whitespace-pre-line mt-0.5">{meta.commitment_statement}</dd>
+                  </div>
+                )}
+                {meta.availability_notes && (
+                  <div className="pt-1 border-t border-gray-100">
+                    <dt className="text-xs text-gray-400 uppercase tracking-wide">Notes</dt>
+                    <dd className="text-sm text-gray-900 whitespace-pre-line mt-0.5">{meta.availability_notes}</dd>
+                  </div>
+                )}
+              </dl>
+            </div>
           </div>
 
           {/* Sidebar — resume, social, bio, CTA */}
@@ -433,65 +470,6 @@ export default async function StudentProfilePage({ params }: PageProps) {
         {/* ── Below the fold: scrollable while video plays ── */}
         <div className="mt-6 grid sm:grid-cols-2 gap-5">
 
-          {/* Availability */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-3">
-              <svg className="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Availability
-            </h2>
-            <dl className="space-y-2.5">
-              {meta.course_schedule_grid && (
-                <div>
-                  <dt className="text-xs text-gray-400 uppercase tracking-wide mb-2">Class Schedule {meta.course_schedule_semester && `(${meta.course_schedule_semester})`}</dt>
-                  <dd><ScheduleBuilderReadOnly grid={meta.course_schedule_grid} /></dd>
-                </div>
-              )}
-              {hoursLabel && (
-                <div>
-                  <dt className="text-xs text-gray-400 uppercase tracking-wide">Hours/Week</dt>
-                  <dd className="text-sm text-gray-900">{hoursLabel}</dd>
-                </div>
-              )}
-              {durationLabel && (
-                <div>
-                  <dt className="text-xs text-gray-400 uppercase tracking-wide">Commitment</dt>
-                  <dd className="text-sm text-gray-900">{durationLabel}</dd>
-                </div>
-              )}
-              {meta.summer_availability && (
-                <div>
-                  <dt className="text-xs text-gray-400 uppercase tracking-wide">Summer</dt>
-                  <dd className="text-sm text-gray-900">{meta.summer_availability}</dd>
-                </div>
-              )}
-              {meta.winter_availability && (
-                <div>
-                  <dt className="text-xs text-gray-400 uppercase tracking-wide">Winter</dt>
-                  <dd className="text-sm text-gray-900">{meta.winter_availability}</dd>
-                </div>
-              )}
-              {meta.commitment_statement && (
-                <div className="pt-1 border-t border-gray-100">
-                  <dt className="text-xs text-gray-400 uppercase tracking-wide">Commitment</dt>
-                  <dd className="text-sm text-gray-900 whitespace-pre-line mt-0.5">{meta.commitment_statement}</dd>
-                </div>
-              )}
-              {meta.availability_notes && (
-                <div className="pt-1 border-t border-gray-100">
-                  <dt className="text-xs text-gray-400 uppercase tracking-wide">Notes</dt>
-                  <dd className="text-sm text-gray-900 whitespace-pre-line mt-0.5">{meta.availability_notes}</dd>
-                </div>
-              )}
-              {meta.course_schedule_description && (
-                <div className="pt-1 border-t border-gray-100">
-                  <dt className="text-xs text-gray-400 uppercase tracking-wide">Course Schedule</dt>
-                  <dd className="text-sm text-gray-900 whitespace-pre-line mt-0.5">{meta.course_schedule_description}</dd>
-                </div>
-              )}
-            </dl>
-          </div>
 
           {/* Qualifications & Documents */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">

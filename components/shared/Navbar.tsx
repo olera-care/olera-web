@@ -108,6 +108,17 @@ export default function Navbar() {
     // Claim/onboard flow shows provider portal nav
     (pathname.startsWith("/provider/") && pathname.endsWith("/onboard"));
   const isMinimalNav = pathname.startsWith("/portal/inbox") || pathname.startsWith("/welcome") || pathname.startsWith("/provider/welcome");
+  // Auth-gated provider hub routes — the layout gate guarantees the user is signed in,
+  // so we can safely render signed-in UI without waiting for hasSession
+  const isProviderHub = pathname === "/provider" ||
+    pathname.startsWith("/provider/connections") ||
+    pathname.startsWith("/provider/inbox") ||
+    pathname.startsWith("/provider/reviews") ||
+    pathname.startsWith("/provider/matches") ||
+    pathname.startsWith("/provider/pro") ||
+    pathname.startsWith("/provider/qna") ||
+    pathname.startsWith("/provider/medjobs") ||
+    pathname.startsWith("/provider/verification");
   const isProviderWelcome = pathname.startsWith("/provider/welcome");
 
   // Show auth pill as soon as we know a user session exists.
@@ -688,44 +699,70 @@ export default function Navbar() {
               <div className="hidden lg:flex items-center gap-2">
                 {isProviderPortal ? (
                   /* Provider mode: Switch to family + user menu
-                   * Always render signed-in layout — provider pages require auth,
-                   * so avoid flipping between signed-out/signed-in hamburger during auth churn */
+                   * On auth-gated hub routes, always render signed-in layout to avoid
+                   * flipping between signed-out/signed-in hamburger during auth churn.
+                   * On public provider pages (onboard, detail), respect hasSession. */
                   <>
-                    {/* Switch to family */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
-                        router.push("/");
-                      }}
-                      className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
-                    >
-                      Switch to family
-                    </button>
-                    <div className="relative" ref={userMenuRef}>
+                    {/* Switch to family — only when signed in */}
+                    {(hasSession || isProviderHub) && (
                       <button
                         type="button"
-                        onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                        className="relative flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
-                        aria-label="User menu"
-                        aria-expanded={isUserMenuOpen}
+                        onClick={() => {
+                          if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
+                          router.push("/");
+                        }}
+                        className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
                       >
-                        <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                        {activeProfile?.image_url ? (
-                          <Image src={activeProfile.image_url} alt={displayName} width={32} height={32} className="w-8 h-8 rounded-full object-cover aspect-square shrink-0" />
-                        ) : (
-                          <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
-                            {initials || "?"}
-                          </div>
-                        )}
-                        {(providerInboxCount > 0 || newLeadsCount > 0 || qnaCount > 0) && (
-                          <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary-600 rounded-full border-2 border-white" />
-                        )}
+                        Switch to family
                       </button>
-                      {isUserMenuOpen && signedInDropdown}
-                    </div>
+                    )}
+                    {(hasSession || isProviderHub) ? (
+                      <div className="relative" ref={userMenuRef}>
+                        <button
+                          type="button"
+                          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                          className="relative flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
+                          aria-label="User menu"
+                          aria-expanded={isUserMenuOpen}
+                        >
+                          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                          </svg>
+                          {activeProfile?.image_url ? (
+                            <Image src={activeProfile.image_url} alt={displayName} width={32} height={32} className="w-8 h-8 rounded-full object-cover aspect-square shrink-0" />
+                          ) : (
+                            <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
+                              {initials || "?"}
+                            </div>
+                          )}
+                          {(providerInboxCount > 0 || newLeadsCount > 0 || qnaCount > 0) && (
+                            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary-600 rounded-full border-2 border-white" />
+                          )}
+                        </button>
+                        {isUserMenuOpen && signedInDropdown}
+                      </div>
+                    ) : (
+                      <div className="relative" ref={userMenuRef}>
+                        <button
+                          type="button"
+                          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                          className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 min-h-[44px]"
+                          aria-label="Account menu"
+                          aria-expanded={isUserMenuOpen}
+                          aria-haspopup="true"
+                        >
+                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                          </svg>
+                          <div className="w-8 h-8 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                            </svg>
+                          </div>
+                        </button>
+                        {isUserMenuOpen && unauthDropdown}
+                      </div>
+                    )}
                   </>
                 ) : (
                   /* Family mode: For Providers + heart + user menu */

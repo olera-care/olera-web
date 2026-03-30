@@ -407,7 +407,12 @@ export interface StudentMetadata {
 
   // Course Schedule
   course_schedule_description?: string;
+  course_schedule_grid?: string;      // JSON serialized ScheduleGrid (day-slot toggles)
   course_schedule_semester?: string;  // e.g. "Fall 2026"
+
+  // Document Expiration
+  drivers_license_expiration?: string;  // ISO date
+  car_insurance_expiration?: string;    // ISO date
 
   // Commitments & Pledges
   ncns_pledge?: boolean;

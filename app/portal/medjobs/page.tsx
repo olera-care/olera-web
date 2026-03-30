@@ -4,9 +4,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
-import { LifecycleProgress } from "@/components/medjobs/LifecycleProgress";
 import type { StudentMetadata } from "@/lib/types";
 import { getTrackLabel, INTENDED_SCHOOL_LABELS } from "@/lib/medjobs-helpers";
+import { ScheduleBuilder, parseSchedule, serializeSchedule } from "@/components/medjobs/ScheduleBuilder";
 
 /* ─── Types ───────────────────────────────────────────────── */
 
@@ -34,13 +34,6 @@ function getCurrentSemester(): string {
   return `Fall ${year}`;
 }
 
-function getLifecyclePhase(meta: StudentMetadata, isActive: boolean): "apply" | "verify" | "interview" | "hired" {
-  if (!meta.application_completed) return "apply";
-  if (!meta.video_intro_url || !meta.drivers_license_url || !meta.car_insurance_url) return "verify";
-  if (isActive) return "interview";
-  return "verify";
-}
-
 function getVerificationItems(meta: StudentMetadata) {
   return [
     { key: "video", label: "Intro video", desc: "2\u20133 min — providers want to see who they\u2019re hiring", done: !!meta.video_intro_url },
@@ -49,12 +42,29 @@ function getVerificationItems(meta: StudentMetadata) {
   ];
 }
 
+const SCENARIO_QUESTIONS = [
+  {
+    key: "scenario_reliability",
+    question: "You have an exam tomorrow but your client's family is counting on you for a shift tonight. What do you do?",
+  },
+  {
+    key: "scenario_judgement",
+    question: "You arrive at a client's home and notice they seem confused and have a bruise they can't explain. What steps do you take?",
+  },
+  {
+    key: "scenario_commitment",
+    question: "Why do you want to commit to caregiving for multiple semesters, and how will this experience help your career in healthcare?",
+  },
+];
+
 function getProfileSections(meta: StudentMetadata, profile: StudentProfile) {
+  const scenarios = meta.scenario_responses || [];
   return [
-    { key: "photo", label: "Profile photo", done: !!profile.image_url },
-    { key: "schedule", label: "Semester schedule", done: !!meta.course_schedule_description },
-    { key: "resume", label: "Resume or LinkedIn", done: !!(meta.resume_url || meta.linkedin_url) },
-    { key: "why", label: "Why I want to be a caregiver", done: !!meta.why_caregiving },
+    { key: "schedule", label: "Semester schedule", done: !!meta.course_schedule_grid },
+    { key: "resume", label: "Resume", done: !!meta.resume_url },
+    { key: "linkedin", label: "LinkedIn", done: !!meta.linkedin_url },
+    { key: "why", label: "Why I want to be a caregiver", done: !!(meta.why_caregiving && meta.why_caregiving.length >= 100) },
+    { key: "scenarios", label: "Screening questions", done: scenarios.length >= SCENARIO_QUESTIONS.length && scenarios.every((s) => s.answer?.length >= 50) },
     { key: "basic", label: "Basic info", done: true },
     { key: "background", label: "Background", done: true },
     { key: "availability", label: "Availability", done: !!(meta.hours_per_week_range || meta.duration_commitment) },
@@ -99,7 +109,7 @@ function InlineUpload({ profileId, documentType, onComplete, accept, label }: {
   return (
     <>
       <input ref={inputRef} type="file"
-        accept={accept || "image/jpeg,image/png,image/webp,application/pdf"}
+        accept={accept || "image/*,application/pdf"}
         className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); }} />
       {error && <p className="text-xs text-red-600 mb-2">{error}</p>}
       <button type="button" disabled={uploading} onClick={() => inputRef.current?.click()}
@@ -247,6 +257,175 @@ function SectionCard({ label, done, children, defaultOpen }: {
   );
 }
 
+/* ─── Schedule Section ─────────────────────────────────────── */
+
+function ScheduleSection({ profileId, meta, currentSemester, onSave }: {
+  profileId: string; meta: StudentMetadata; currentSemester: string; onSave: () => void;
+}) {
+  const [grid, setGrid] = useState(() => parseSchedule(meta.course_schedule_grid));
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+      const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
+      const m = (current?.metadata || {}) as Record<string, unknown>;
+      m.course_schedule_grid = serializeSchedule(grid);
+      m.course_schedule_semester = currentSemester;
+      await sb.from("business_profiles").update({ metadata: m }).eq("id", profileId);
+      onSave();
+    } catch { /* ignore */ }
+    finally { setSaving(false); }
+  };
+
+  const stale = meta.course_schedule_semester && meta.course_schedule_semester !== currentSemester;
+
+  return (
+    <SectionCard label="Semester schedule" done={!!meta.course_schedule_grid} defaultOpen={!meta.course_schedule_grid}>
+      <div>
+        {stale && (
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50/60 mb-3">
+            <svg className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-sm text-amber-700">Your schedule is from {meta.course_schedule_semester}. Please update it for {currentSemester}.</p>
+          </div>
+        )}
+        <p className="text-sm text-gray-500 mb-3">Tap to mark when you have class. Everything else = available for shifts. Update each semester.</p>
+        <ScheduleBuilder value={grid} onChange={setGrid} />
+        <div className="mt-4">
+          <button type="button" disabled={saving} onClick={handleSave}
+            className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 rounded-lg text-sm font-medium text-white transition-colors">
+            {saving ? "Saving..." : "Save schedule"}
+          </button>
+        </div>
+      </div>
+    </SectionCard>
+  );
+}
+
+/* ─── Why Caregiving Section ──────────────────────────────── */
+
+function WhyCaregivingSection({ profileId, value, onSave }: {
+  profileId: string; value: string; onSave: () => void;
+}) {
+  const [text, setText] = useState(value);
+  const [saving, setSaving] = useState(false);
+  const charCount = text.length;
+  const isValid = charCount >= 100 && charCount <= 500;
+
+  const handleSave = async () => {
+    if (!isValid) return;
+    setSaving(true);
+    try {
+      const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+      const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
+      const m = (current?.metadata || {}) as Record<string, unknown>;
+      m.why_caregiving = text.trim();
+      await sb.from("business_profiles").update({ metadata: m }).eq("id", profileId);
+      onSave();
+    } catch { /* ignore */ }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div>
+      <p className="text-sm text-gray-500 mb-2">
+        This is one of the first things providers read. Be genuine — think of it like a personal statement.
+      </p>
+      <div className="text-xs text-gray-400 mb-2 space-y-1">
+        <p><strong>Strong answers include:</strong></p>
+        <ul className="ml-3 list-disc space-y-0.5">
+          <li>What personally draws you to caregiving</li>
+          <li>How this connects to your career path (med school, nursing, PA, etc.)</li>
+          <li>A specific experience that motivated you (family care, volunteer work, etc.)</li>
+        </ul>
+      </div>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="I want to be a caregiver because..."
+        rows={5}
+        maxLength={500}
+        className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors resize-none"
+      />
+      <div className="flex items-center justify-between mt-1">
+        <span className={`text-xs ${charCount < 100 ? "text-amber-500" : charCount > 500 ? "text-red-500" : "text-gray-400"}`}>
+          {charCount}/500 {charCount < 100 && `(${100 - charCount} more needed)`}
+        </span>
+        <button type="button" disabled={saving || !isValid} onClick={handleSave}
+          className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 rounded-lg text-sm font-medium text-white transition-colors">
+          {saving ? "Saving..." : "Save"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Scenario Questions Section ──────────────────────────── */
+
+function ScenarioSection({ profileId, responses, onSave }: {
+  profileId: string; responses: Array<{ question: string; answer: string }>; onSave: () => void;
+}) {
+  const [answers, setAnswers] = useState<string[]>(() =>
+    SCENARIO_QUESTIONS.map((q) => {
+      const existing = responses.find((r) => r.question === q.question);
+      return existing?.answer || "";
+    })
+  );
+  const [saving, setSaving] = useState(false);
+  const allValid = answers.every((a) => a.length >= 50);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+      const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
+      const m = (current?.metadata || {}) as Record<string, unknown>;
+      m.scenario_responses = SCENARIO_QUESTIONS.map((q, i) => ({
+        question: q.question,
+        answer: answers[i].trim(),
+      }));
+      await sb.from("business_profiles").update({ metadata: m }).eq("id", profileId);
+      onSave();
+    } catch { /* ignore */ }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div>
+      <p className="text-sm text-gray-500 mb-4">
+        Providers use these answers to assess reliability, judgement, and commitment. Thoughtful, honest responses make you stand out.
+      </p>
+      <div className="space-y-5">
+        {SCENARIO_QUESTIONS.map((q, i) => (
+          <div key={q.key}>
+            <p className="text-sm font-medium text-gray-900 mb-2">{q.question}</p>
+            <textarea
+              value={answers[i]}
+              onChange={(e) => { const next = [...answers]; next[i] = e.target.value; setAnswers(next); }}
+              placeholder="Your answer (minimum 50 characters)..."
+              rows={3}
+              className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors resize-none"
+            />
+            <span className={`text-xs ${answers[i].length < 50 ? "text-amber-500" : "text-gray-400"}`}>
+              {answers[i].length}/50 min
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4">
+        <button type="button" disabled={saving || !allValid} onClick={handleSave}
+          className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 rounded-lg text-sm font-medium text-white transition-colors">
+          {saving ? "Saving..." : "Save all answers"}
+        </button>
+        {!allValid && <p className="text-xs text-amber-500 mt-2">All questions require at least 50 characters.</p>}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Page ─────────────────────────────────────────────────── */
 
 export default function StudentPortalPage() {
@@ -305,7 +484,6 @@ export default function StudentPortalPage() {
   }
 
   const meta = profile.metadata || {} as StudentMetadata;
-  const phase = getLifecyclePhase(meta, profile.is_active);
   const verificationItems = getVerificationItems(meta);
   const verificationDone = verificationItems.every((v) => v.done);
   const profileSections = getProfileSections(meta, profile);
@@ -326,10 +504,10 @@ export default function StudentPortalPage() {
 
           {/* ── Main Column (2/3) ── */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Profile Header Card */}
+            {/* Profile Header Card — with photo upload */}
             <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 relative group">
                   {profile.image_url ? (
                     <img src={profile.image_url} alt="" className="w-16 h-16 rounded-full object-cover" />
                   ) : (
@@ -339,6 +517,10 @@ export default function StudentPortalPage() {
                       </span>
                     </div>
                   )}
+                  <div className="absolute -bottom-1 -right-1">
+                    <InlineUpload profileId={profile.id} documentType="photo" onComplete={refresh}
+                      accept="image/*" label={profile.image_url ? "\u270E" : "+"} />
+                  </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 flex-wrap">
@@ -390,6 +572,16 @@ export default function StudentPortalPage() {
                       ) : (
                         <div>
                           <p className="text-sm text-gray-500 mb-3">{item.desc}</p>
+                          <div className="mb-3">
+                            <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Expiration date</label>
+                            <MetadataEditor
+                              profileId={profile.id}
+                              field={item.key === "license" ? "drivers_license_expiration" : "car_insurance_expiration"}
+                              value={(item.key === "license" ? meta.drivers_license_expiration : meta.car_insurance_expiration) || ""}
+                              onSave={refresh}
+                              placeholder="MM/DD/YYYY"
+                            />
+                          </div>
                           <InlineUpload profileId={profile.id} documentType={item.key as "drivers_license" | "car_insurance"} onComplete={refresh} />
                         </div>
                       )}
@@ -403,185 +595,99 @@ export default function StudentPortalPage() {
             <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
               <h2 className="text-base font-semibold text-gray-900 mb-1">Your profile</h2>
               <p className="text-sm text-gray-500 mb-5">
-                This is what providers see. A stronger profile means more interview requests.
+                This is what providers see. Every section is required before your profile goes live.
               </p>
 
-          <div className="space-y-3">
-            {/* Profile Photo */}
-            <SectionCard label="Profile photo" done={!!profile.image_url}>
-              {profile.image_url ? (
-                <div className="flex items-center gap-4">
-                  <img src={profile.image_url} alt="" className="w-16 h-16 rounded-full object-cover" />
-                  <InlineUpload profileId={profile.id} documentType="photo" onComplete={refresh}
-                    accept="image/jpeg,image/png,image/webp" label="Change photo" />
-                </div>
-              ) : (
-                <div>
-                  <p className="text-sm text-gray-500 mb-3">Profiles with photos get significantly more interest from providers.</p>
-                  <InlineUpload profileId={profile.id} documentType="photo" onComplete={refresh}
-                    accept="image/jpeg,image/png,image/webp" label="Upload photo" />
-                </div>
-              )}
-            </SectionCard>
+              <div className="space-y-3">
+                {/* Semester Schedule — visual builder */}
+                <ScheduleSection profileId={profile.id} meta={meta} currentSemester={currentSemester} onSave={refresh} />
 
-            {/* Semester Schedule */}
-            <SectionCard label="Semester schedule" done={!!meta.course_schedule_description}>
-              <div>
-                {meta.course_schedule_semester && meta.course_schedule_semester !== currentSemester && (
-                  <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50/60 mb-3">
-                    <svg className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p className="text-sm text-amber-700">Your schedule is from {meta.course_schedule_semester}. Please update it for {currentSemester}.</p>
-                  </div>
-                )}
-                <p className="text-sm text-gray-500 mb-3">Share your class schedule so we can match you with shifts that fit. Update this each semester.</p>
-                <MetadataEditor
-                  profileId={profile.id}
-                  field="course_schedule_description"
-                  value={meta.course_schedule_description || ""}
-                  onSave={refresh}
-                  placeholder={`E.g. "MWF 8am-12pm, TTh 10am-2pm, free afternoons and weekends"`}
-                  multiline
-                  extraFields={{ course_schedule_semester: currentSemester }}
-                />
-              </div>
-            </SectionCard>
-
-            {/* Resume / LinkedIn */}
-            <SectionCard label="Resume or LinkedIn" done={!!(meta.resume_url || meta.linkedin_url)}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">LinkedIn URL</label>
-                  <MetadataEditor
-                    profileId={profile.id}
-                    field="linkedin_url"
-                    value={meta.linkedin_url || ""}
-                    onSave={refresh}
-                    placeholder="https://linkedin.com/in/yourname"
-                  />
-                </div>
-                {meta.resume_url && (
-                  <p className="text-sm text-emerald-600">Resume uploaded</p>
-                )}
-              </div>
-            </SectionCard>
-
-            {/* Why Caregiving */}
-            <SectionCard label="Why I want to be a caregiver" done={!!meta.why_caregiving}>
-              <div>
-                <p className="text-sm text-gray-500 mb-3">Tell providers what motivates you. This is one of the first things they read.</p>
-                <MetadataEditor
-                  profileId={profile.id}
-                  field="why_caregiving"
-                  value={meta.why_caregiving || ""}
-                  onSave={refresh}
-                  placeholder="What draws you to caregiving? How does it connect to your career goals?"
-                  multiline
-                />
-              </div>
-            </SectionCard>
-
-            {/* Basic Info (read-only summary + edit link) */}
-            <SectionCard label="Basic info" done={true}>
-              <dl className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <dt className="text-gray-500">Name</dt>
-                  <dd className="text-gray-900">{profile.display_name}</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-gray-500">Email</dt>
-                  <dd className="text-gray-900">{profile.email}</dd>
-                </div>
-                {profile.phone && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-500">Phone</dt>
-                    <dd className="text-gray-900">{profile.phone}</dd>
-                  </div>
-                )}
-                {profile.city && profile.state && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-500">Location</dt>
-                    <dd className="text-gray-900">{profile.city}, {profile.state}</dd>
-                  </div>
-                )}
-                {meta.university && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-500">University</dt>
-                    <dd className="text-gray-900">{meta.university}</dd>
-                  </div>
-                )}
-                {meta.major && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-500">Major</dt>
-                    <dd className="text-gray-900">{meta.major}</dd>
-                  </div>
-                )}
-                {meta.intended_professional_school && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-500">Career path</dt>
-                    <dd className="text-gray-900">{INTENDED_SCHOOL_LABELS[meta.intended_professional_school]}</dd>
-                  </div>
-                )}
-              </dl>
-            </SectionCard>
-
-            {/* Background */}
-            <SectionCard label="Background" done={true}>
-              <dl className="space-y-2 text-sm">
-                {meta.years_caregiving && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-500">Experience</dt>
-                    <dd className="text-gray-900">{meta.years_caregiving}</dd>
-                  </div>
-                )}
-                {(meta.certifications?.length ?? 0) > 0 && (
+                {/* Resume */}
+                <SectionCard label="Resume" done={!!meta.resume_url}>
                   <div>
-                    <dt className="text-gray-500 mb-1">Certifications</dt>
-                    <dd className="flex flex-wrap gap-1.5">
-                      {meta.certifications!.map((c) => (
-                        <span key={c} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs">{c}</span>
-                      ))}
-                    </dd>
+                    <p className="text-sm text-gray-500 mb-2">Upload a PDF of your resume. A strong caregiver resume includes:</p>
+                    <ul className="text-sm text-gray-500 mb-3 space-y-1 ml-4 list-disc">
+                      <li>Any caregiving, volunteer, or clinical experience</li>
+                      <li>Relevant coursework and certifications (CNA, BLS, CPR)</li>
+                      <li>Soft skills: communication, empathy, reliability</li>
+                      <li>References from professors, coaches, or supervisors</li>
+                    </ul>
+                    {meta.resume_url ? (
+                      <p className="text-sm text-emerald-600 mb-2">Resume uploaded</p>
+                    ) : null}
+                    <InlineUpload profileId={profile.id} documentType="photo" onComplete={refresh}
+                      accept="application/pdf" label={meta.resume_url ? "Replace resume" : "Upload resume (PDF)"} />
                   </div>
-                )}
-                {(meta.care_experience_types?.length ?? 0) > 0 && (
-                  <div>
-                    <dt className="text-gray-500 mb-1">Care types</dt>
-                    <dd className="flex flex-wrap gap-1.5">
-                      {meta.care_experience_types!.map((c) => (
-                        <span key={c} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs">{c}</span>
-                      ))}
-                    </dd>
-                  </div>
-                )}
-                {(meta.languages?.length ?? 0) > 0 && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-500">Languages</dt>
-                    <dd className="text-gray-900">{meta.languages!.join(", ")}</dd>
-                  </div>
-                )}
-              </dl>
-            </SectionCard>
+                </SectionCard>
 
-            {/* Availability */}
-            <SectionCard label="Availability" done={!!(meta.hours_per_week_range || meta.duration_commitment)}>
-              <dl className="space-y-2 text-sm">
-                {meta.hours_per_week_range && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-500">Hours/week</dt>
-                    <dd className="text-gray-900">{meta.hours_per_week_range} hrs</dd>
+                {/* LinkedIn */}
+                <SectionCard label="LinkedIn" done={!!meta.linkedin_url}>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-3">Add your LinkedIn profile so providers can learn more about your background.</p>
+                    <MetadataEditor
+                      profileId={profile.id}
+                      field="linkedin_url"
+                      value={meta.linkedin_url || ""}
+                      onSave={refresh}
+                      placeholder="https://linkedin.com/in/yourname"
+                    />
                   </div>
-                )}
-                {meta.duration_commitment && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-500">Commitment</dt>
-                    <dd className="text-gray-900">{meta.duration_commitment.replace(/_/g, " ")}</dd>
-                  </div>
-                )}
-              </dl>
-            </SectionCard>
-          </div>
+                </SectionCard>
+
+                {/* Why Caregiving — dating-app style */}
+                <SectionCard label="Why I want to be a caregiver" done={!!(meta.why_caregiving && meta.why_caregiving.length >= 100)}>
+                  <WhyCaregivingSection profileId={profile.id} value={meta.why_caregiving || ""} onSave={refresh} />
+                </SectionCard>
+
+                {/* Scenario Questions */}
+                <SectionCard label="Screening questions" done={
+                  (meta.scenario_responses || []).length >= SCENARIO_QUESTIONS.length &&
+                  (meta.scenario_responses || []).every((s) => s.answer?.length >= 50)
+                }>
+                  <ScenarioSection profileId={profile.id} responses={meta.scenario_responses || []} onSave={refresh} />
+                </SectionCard>
+
+                {/* Basic Info */}
+                <SectionCard label="Basic info" done={true}>
+                  <dl className="space-y-2 text-sm">
+                    <div className="flex justify-between"><dt className="text-gray-500">Name</dt><dd className="text-gray-900">{profile.display_name}</dd></div>
+                    <div className="flex justify-between"><dt className="text-gray-500">Email</dt><dd className="text-gray-900">{profile.email}</dd></div>
+                    {profile.phone && <div className="flex justify-between"><dt className="text-gray-500">Phone</dt><dd className="text-gray-900">{profile.phone}</dd></div>}
+                    {profile.city && profile.state && <div className="flex justify-between"><dt className="text-gray-500">Location</dt><dd className="text-gray-900">{profile.city}, {profile.state}</dd></div>}
+                    {meta.university && <div className="flex justify-between"><dt className="text-gray-500">University</dt><dd className="text-gray-900">{meta.university}</dd></div>}
+                    {meta.major && <div className="flex justify-between"><dt className="text-gray-500">Major</dt><dd className="text-gray-900">{meta.major}</dd></div>}
+                    {meta.intended_professional_school && <div className="flex justify-between"><dt className="text-gray-500">Career path</dt><dd className="text-gray-900">{INTENDED_SCHOOL_LABELS[meta.intended_professional_school]}</dd></div>}
+                  </dl>
+                </SectionCard>
+
+                {/* Background */}
+                <SectionCard label="Background" done={true}>
+                  <dl className="space-y-2 text-sm">
+                    {meta.years_caregiving != null && <div className="flex justify-between"><dt className="text-gray-500">Experience</dt><dd className="text-gray-900">{meta.years_caregiving}</dd></div>}
+                    {(meta.certifications?.length ?? 0) > 0 && (
+                      <div>
+                        <dt className="text-gray-500 mb-1">Certifications</dt>
+                        <dd className="flex flex-wrap gap-1.5">{meta.certifications!.map((c) => <span key={c} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs">{c}</span>)}</dd>
+                      </div>
+                    )}
+                    {(meta.care_experience_types?.length ?? 0) > 0 && (
+                      <div>
+                        <dt className="text-gray-500 mb-1">Care types</dt>
+                        <dd className="flex flex-wrap gap-1.5">{meta.care_experience_types!.map((c) => <span key={c} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs">{c}</span>)}</dd>
+                      </div>
+                    )}
+                    {(meta.languages?.length ?? 0) > 0 && <div className="flex justify-between"><dt className="text-gray-500">Languages</dt><dd className="text-gray-900">{meta.languages!.join(", ")}</dd></div>}
+                  </dl>
+                </SectionCard>
+
+                {/* Availability */}
+                <SectionCard label="Availability" done={!!(meta.hours_per_week_range || meta.duration_commitment)}>
+                  <dl className="space-y-2 text-sm">
+                    {meta.hours_per_week_range && <div className="flex justify-between"><dt className="text-gray-500">Hours/week</dt><dd className="text-gray-900">{meta.hours_per_week_range} hrs</dd></div>}
+                    {meta.duration_commitment && <div className="flex justify-between"><dt className="text-gray-500">Commitment</dt><dd className="text-gray-900">{meta.duration_commitment.replace(/_/g, " ")}</dd></div>}
+                  </dl>
+                </SectionCard>
+              </div>
             </div>
           </div>
 

@@ -113,7 +113,7 @@ function Accordion({
         </svg>
       </button>
       {isOpen && !disabled && children && (
-        <div className="px-4 pb-4 pt-1 border-t border-gray-100">
+        <div className="px-4 py-4 border-t border-gray-100">
           {children}
         </div>
       )}
@@ -245,14 +245,14 @@ export default function ProviderDetailPanel({
 
   return (
     <div className={`flex flex-col bg-white border-l border-gray-200 ${className}`}>
-      {/* Header */}
-      <div className="shrink-0 px-5 h-14 border-b border-gray-100 flex items-center justify-end">
+      {/* Header - aligned with middle section header */}
+      <div className="shrink-0 px-5 h-[68px] border-b border-gray-200 flex items-center justify-end">
         <button
           onClick={onClose}
-          className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+          className="p-1.5 border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
           aria-label="Close details"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -350,7 +350,7 @@ export default function ProviderDetailPanel({
               )
             }
             title={isFamily ? "Family Profile" : "Provider Profile"}
-            defaultOpen={true}
+            defaultOpen={false}
           >
             <div className="space-y-3.5">
               {/* ===== FAMILY PROFILE CONTENT ===== */}

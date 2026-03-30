@@ -27,27 +27,27 @@ interface LeadDetail {
   status: LeadStatus;
   date: string;
   isNew: boolean;
+  // Contact info (Step 1)
   email?: string;
   phone?: string;
   contactPreference?: ContactMethod;
+  // Care recipient (Step 2)
   careRecipient?: string;
-  careRecipientName?: string;
   careRecipientAge?: number;
+  aboutSituation?: string;
+  // Care needs (Step 3)
   careType?: string[];
   careNeeds?: string[];
-  livingSituation?: string;
+  timeline?: string;
   schedulePreference?: string;
-  careLocation?: string;
-  languagePreference?: string;
-  insuranceType?: string;
+  // Payment (Step 4)
   paymentMethods?: string[];
-  benefits?: string[];
-  additionalNotes?: string;
+  // System fields
   activity?: ActivityEvent[];
   archivedDate?: string;
   archiveReason?: string;
   messagedAt?: string;
-  connectionId?: string; // Link to actual connection
+  connectionId?: string;
 }
 
 // ── Types ──
@@ -198,8 +198,8 @@ function LeadDetailDrawer({
 
   // Generate pre-filled template from lead data
   const firstName = lead?.name.split(" ")[0] ?? "";
-  const recipientName = lead?.careRecipientName ?? "";
-  const defaultTemplate = `Hi ${firstName},\n\nThank you for reaching out about care for ${recipientName}. I'd love to learn more about her needs and discuss how we can help.\n\nWould you be available for a brief call this week to talk through the details?\n\nWarm regards`;
+  const careRecipientLabel = lead?.careRecipient ? `your ${lead.careRecipient.toLowerCase()}` : "your loved one";
+  const defaultTemplate = `Hi ${firstName},\n\nThank you for reaching out about care for ${careRecipientLabel}. I'd love to learn more about the needs and discuss how we can help.\n\nWould you be available for a brief call this week to talk through the details?\n\nWarm regards`;
   const [messageText, setMessageText] = useState(defaultTemplate);
 
   // Reset composer state when drawer closes or lead changes
@@ -221,8 +221,8 @@ function LeadDetailDrawer({
   useEffect(() => {
     if (lead) {
       const fn = lead.name.split(" ")[0];
-      const rn = lead.careRecipientName;
-      setMessageText(`Hi ${fn},\n\nThank you for reaching out about care for ${rn}. I'd love to learn more about her needs and discuss how we can help.\n\nWould you be available for a brief call this week to talk through the details?\n\nWarm regards`);
+      const recipientLabel = lead.careRecipient ? `your ${lead.careRecipient.toLowerCase()}` : "your loved one";
+      setMessageText(`Hi ${fn},\n\nThank you for reaching out about care for ${recipientLabel}. I'd love to learn more about the needs and discuss how we can help.\n\nWould you be available for a brief call this week to talk through the details?\n\nWarm regards`);
       setShowComposer(false);
       setMessageSent(false);
       setShowArchive(false);
@@ -691,82 +691,70 @@ function LeadDetailDrawer({
             )}
           </CollapsibleSection>
 
-          {/* 3. Living Situation — 2-column grid */}
-          <CollapsibleSection title="Living Situation">
-            {(lead.livingSituation || lead.schedulePreference || lead.careLocation || lead.languagePreference) ? (
+          {/* 3. Timing & Schedule */}
+          <CollapsibleSection title="Timing & Schedule">
+            {(lead.timeline || lead.schedulePreference) ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
-                <div>
-                  <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Living situation</p>
-                  <p className="text-[15px] text-gray-800">{lead.livingSituation || <span className="text-gray-400 italic">Not provided</span>}</p>
-                </div>
-                <div>
-                  <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Schedule preference</p>
-                  <p className="text-[15px] text-gray-800">{lead.schedulePreference || <span className="text-gray-400 italic">Not provided</span>}</p>
-                </div>
-                <div>
-                  <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Care location</p>
-                  <p className="text-[15px] text-gray-800">{lead.careLocation || <span className="text-gray-400 italic">Not provided</span>}</p>
-                </div>
-                <div>
-                  <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Language preference</p>
-                  <p className="text-[15px] text-gray-800">{lead.languagePreference || <span className="text-gray-400 italic">Not provided</span>}</p>
-                </div>
-              </div>
-            ) : (
-              <p className="text-[15px] text-gray-400 italic">No living situation details provided yet</p>
-            )}
-          </CollapsibleSection>
-
-          {/* 4. Payment & Benefits — payment methods + benefit cards */}
-          <CollapsibleSection title="Payment & Benefits">
-            {(lead.paymentMethods && lead.paymentMethods.length > 0) || lead.insuranceType || (lead.benefits && lead.benefits.length > 0) ? (
-              <div className="space-y-5">
-                {lead.paymentMethods && lead.paymentMethods.length > 0 && (
+                {lead.timeline && (
                   <div>
-                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2.5">Payment methods</p>
-                    <div className="flex flex-wrap gap-2">
-                      {lead.paymentMethods.map((method) => (
-                        <span key={method} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700">
-                          {method}
-                        </span>
-                      ))}
-                    </div>
+                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">When needed</p>
+                    <p className="text-[15px] text-gray-800">
+                      {lead.timeline === "asap" || lead.timeline === "immediate" ? "Immediately" :
+                       lead.timeline === "within_month" || lead.timeline === "within_1_month" ? "Within a month" :
+                       lead.timeline === "few_months" || lead.timeline === "within_3_months" ? "In a few months" :
+                       lead.timeline === "exploring" || lead.timeline === "researching" ? "Just exploring" :
+                       lead.timeline}
+                    </p>
                   </div>
                 )}
-                {lead.insuranceType && (
+                {lead.schedulePreference && (
                   <div>
-                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Insurance</p>
-                    <p className="text-[15px] text-gray-800">{lead.insuranceType}</p>
-                  </div>
-                )}
-                {lead.benefits && lead.benefits.length > 0 && (
-                  <div>
-                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2.5">Saved benefits</p>
-                    <div className="space-y-2">
-                      {lead.benefits.map((benefit) => (
-                        <div key={benefit} className="px-4 py-3 rounded-xl bg-gray-50/80 border border-gray-100">
-                          <span className="text-[15px] text-gray-700">{benefit}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Schedule preference</p>
+                    <p className="text-[15px] text-gray-800">
+                      {lead.schedulePreference === "mornings" ? "Mornings" :
+                       lead.schedulePreference === "afternoons" ? "Afternoons" :
+                       lead.schedulePreference === "evenings" ? "Evenings" :
+                       lead.schedulePreference === "overnight" ? "Overnight" :
+                       lead.schedulePreference === "full_time" ? "Full-time / Live-in" :
+                       lead.schedulePreference === "flexible" ? "Flexible" :
+                       lead.schedulePreference}
+                    </p>
                   </div>
                 )}
               </div>
             ) : (
-              <p className="text-[15px] text-gray-400 italic">No payment or benefits information yet</p>
+              <p className="text-[15px] text-gray-400 italic">No timing preferences specified yet</p>
             )}
           </CollapsibleSection>
 
-          {/* 5. Additional Notes — blockquote style */}
-          <CollapsibleSection title="Additional Notes">
-            {lead.additionalNotes ? (
+          {/* 4. Payment */}
+          <CollapsibleSection title="Payment">
+            {lead.paymentMethods && lead.paymentMethods.length > 0 ? (
+              <div>
+                <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2.5">Payment methods</p>
+                <div className="flex flex-wrap gap-2">
+                  {lead.paymentMethods.map((method) => (
+                    <span key={method} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700">
+                      {method}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-[15px] text-gray-400 italic">No payment information yet</p>
+            )}
+          </CollapsibleSection>
+
+          {/* 5. About / Situation — blockquote style */}
+          <CollapsibleSection title="About">
+            {lead.aboutSituation ? (
               <div className="border-l-[3px] border-primary-300 bg-primary-50/40 rounded-r-xl rounded-l-sm px-5 py-4">
                 <p className="text-[15px] text-gray-700 leading-relaxed">
-                  {lead.additionalNotes}
+                  {lead.aboutSituation}
                 </p>
               </div>
             ) : (
-              <p className="text-[15px] text-gray-400 italic">No additional notes</p>
+              <p className="text-[15px] text-gray-400 italic">No additional details shared</p>
             )}
           </CollapsibleSection>
 
@@ -1085,14 +1073,12 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
   const profileCareNeeds = (familyMeta.care_needs as string[]) || [];
   const messageCareType = careDetails.care_type as string;
 
-  // Additional profile metadata fields (fresh data)
-  const livingSituation = familyMeta.living_situation as string | undefined;
+  // Additional profile metadata fields (fresh data) - matches family profile wizard
   const schedulePreference = familyMeta.schedule_preference as string | undefined;
-  const careLocation = familyMeta.care_location as string | undefined;
-  const languagePreference = familyMeta.language_preference as string | undefined;
+  const timeline = familyMeta.timeline as string | undefined;
   const careRecipientAge = familyMeta.age as number | undefined;
   const paymentMethods = familyMeta.payment_methods as string[] | undefined;
-  const aboutSituation = familyMeta.about_situation as string | undefined;
+  const aboutSituation = (familyMeta.about_situation as string) || familyProfile?.description || undefined;
 
   // Map contact preference to ContactMethod type
   const contactPrefMap: Record<string, ContactMethod> = {
@@ -1200,20 +1186,22 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
     status,
     date: timeAgo(conn.created_at),
     isNew,
+    // Contact info
     email,
     phone,
+    contactPreference,
+    // Care recipient
     careRecipient,
     careRecipientAge,
-    // Fresh profile data for enriched lead details
+    aboutSituation: aboutSituation || (careDetails.additional_notes as string) || (meta?.auto_intro as string) || undefined,
+    // Care needs
     careType: profileCareTypes.length > 0 ? profileCareTypes : (messageCareType ? [messageCareType] : undefined),
     careNeeds: profileCareNeeds.length > 0 ? profileCareNeeds : undefined,
-    livingSituation,
+    timeline,
     schedulePreference,
-    careLocation,
-    languagePreference,
-    contactPreference,
+    // Payment
     paymentMethods,
-    additionalNotes: aboutSituation || (careDetails.additional_notes as string) || (meta?.auto_intro as string) || undefined,
+    // System
     activity,
   };
 }

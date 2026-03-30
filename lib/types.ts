@@ -305,6 +305,9 @@ export interface FamilyMetadata {
   budget_min?: number;
   budget_max?: number;
   relationship_to_recipient?: string;
+  who_needs_care?: string;
+  profile_completeness?: number;
+  last_active_at?: string;
   // Enrichment fields
   country?: string;
   contact_preference?: "call" | "text" | "email";

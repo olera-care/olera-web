@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { useCitySearch } from "@/hooks/use-city-search";
+import { citySearchService } from "@/lib/us-city-search";
 import { useRouter } from "next/navigation";
 
 const careTypeOptions = [
@@ -84,31 +85,47 @@ export default function HeroSection() {
   useClickOutside(locationDropdownRef, () => setShowLocationDropdown(false));
   useClickOutside(careTypeDropdownRef, () => setShowCareTypeDropdown(false));
 
+  /** Resolve a "City, ST" string to a power page URL and navigate. */
+  const navigateToCityPage = (city: string, stateAbbrev: string) => {
+    const stateName = Object.entries(stateAbbreviations).find(
+      ([, abbr]) => abbr === stateAbbrev
+    )?.[0];
+    if (!stateName) return false;
+
+    const stateSlug = stateName.toLowerCase().replace(/\s+/g, "-");
+    const citySlug = city.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    const categorySlug = careType === "home-health" ? "home-health-care" : careType;
+    router.push(`/${categorySlug}/${stateSlug}/${citySlug}`);
+    return true;
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedLocation = location.trim();
 
     if (trimmedLocation) {
+      // 1. Structured "City, ST" — route directly to power page
       const match = trimmedLocation.match(/^(.+),\s*([A-Z]{2})$/);
       if (match) {
-        const city = match[1].trim();
-        const stateAbbrev = match[2];
+        if (navigateToCityPage(match[1].trim(), match[2])) return;
+      }
 
-        const stateName = Object.entries(stateAbbreviations).find(
-          ([, abbr]) => abbr === stateAbbrev
-        )?.[0];
-
-        if (stateName) {
-          const stateSlug = stateName.toLowerCase().replace(/\s+/g, "-");
-          const citySlug = city.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-          const categorySlug = careType === "home-health" ? "home-health-care" : careType;
-
-          router.push(`/${categorySlug}/${stateSlug}/${citySlug}`);
-          return;
+      // 2. ZIP code — resolve to best city using already-loaded data
+      if (/^\d{3,5}$/.test(trimmedLocation)) {
+        // First try: hook results already in React state (fastest, zero work)
+        const hookResult = cityResults[0];
+        if (hookResult) {
+          if (navigateToCityPage(hookResult.city, hookResult.state)) return;
+        }
+        // Fallback: synchronous lookup from the service's in-memory cache
+        const serviceResult = citySearchService.search(trimmedLocation, 1)[0];
+        if (serviceResult) {
+          if (navigateToCityPage(serviceResult.city, serviceResult.state)) return;
         }
       }
     }
 
+    // 3. Anything else — pass to browse page
     const params = new URLSearchParams();
     if (trimmedLocation) {
       params.set("location", trimmedLocation);

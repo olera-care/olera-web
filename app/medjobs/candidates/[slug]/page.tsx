@@ -6,10 +6,13 @@ import type { StudentMetadata } from "@/lib/types";
 import { getTrackLabel, formatAvailability, formatHoursPerWeek, formatDuration, hasVideo, INTENDED_SCHOOL_LABELS } from "@/lib/medjobs-helpers";
 import ContactSection from "./ContactSection";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Lazy initialization to avoid build-time errors when env vars are not available
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -17,6 +20,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const supabase = getSupabase();
   const { data } = await supabase
     .from("business_profiles")
     .select("display_name, metadata, city, state")
@@ -38,6 +42,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function StudentProfilePage({ params }: PageProps) {
   const { slug } = await params;
 
+  const supabase = getSupabase();
   const { data: profile } = await supabase
     .from("business_profiles")
     .select("*")
@@ -56,7 +61,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
   const videoAvailable = hasVideo(meta);
 
   return (
-    <main className="min-h-screen bg-gray-50 py-8 sm:py-12">
+    <main className="min-h-screen bg-[#FAFAF8] py-8 sm:py-12">
       <div className="max-w-3xl mx-auto px-4">
         <Link href="/medjobs/candidates" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
           &larr; Back to Candidates

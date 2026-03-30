@@ -13,6 +13,13 @@ import Button from "@/components/ui/Button";
 import OtpInput from "@/components/auth/OtpInput";
 
 // ============================================================
+// Constants
+// ============================================================
+
+/** Key for storing pre-auth page in localStorage (for "Skip for now" on /welcome) */
+export const PRE_AUTH_PAGE_KEY = "olera_pre_auth_page";
+
+// ============================================================
 // Types
 // ============================================================
 
@@ -117,12 +124,24 @@ export default function UnifiedAuthModal({
   const handleGoogleSignIn = async () => {
     if (!isSupabaseConfigured()) return;
 
+    // Store current page for "Skip for now" redirect on /welcome
+    try {
+      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname);
+    } catch { /* localStorage not available */ }
+
     const supabase = createClient();
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(window.location.pathname)}`;
+
+    // Build callback URL with action hint if there's a deferred action
+    // This lets the server-side callback know to skip the welcome redirect
+    const deferred = options.deferred || getDeferredAction();
+    let callbackUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(window.location.pathname)}`;
+    if (deferred?.action) {
+      callbackUrl += `&action=${encodeURIComponent(deferred.action)}`;
+    }
 
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo },
+      options: { redirectTo: callbackUrl },
     });
 
     if (oauthError) {
@@ -143,6 +162,11 @@ export default function UnifiedAuthModal({
       setError("Password must be at least 8 characters.");
       return;
     }
+
+    // Store current page for "Skip for now" redirect on /welcome
+    try {
+      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname);
+    } catch { /* localStorage not available */ }
 
     setLoading(true);
 
@@ -215,6 +239,12 @@ export default function UnifiedAuthModal({
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // Store current page for "Skip for now" redirect on /welcome
+    try {
+      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname);
+    } catch { /* localStorage not available */ }
+
     setLoading(true);
 
     try {
@@ -405,6 +435,11 @@ export default function UnifiedAuthModal({
       return;
     }
 
+    // Store current page for "Skip for now" redirect on /welcome
+    try {
+      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname);
+    } catch { /* localStorage not available */ }
+
     setError("");
     setLoading(true);
 
@@ -504,9 +539,10 @@ export default function UnifiedAuthModal({
     }
 
     // Check if user already has a provider profile (from cache)
-    const hasProviderProfile = (profiles || []).some(
+    const providerProfile = (profiles || []).find(
       (p) => p.type === "organization" || p.type === "caregiver"
     );
+    const hasProviderProfile = !!providerProfile;
 
     // Provider intent — route to provider onboarding (not /welcome)
     if (options.intent === "provider") {
@@ -531,10 +567,44 @@ export default function UnifiedAuthModal({
           const { account: freshAccount } = await res.json();
           if (freshAccount?.onboarding_completed === false) {
             onClose();
-            // Pass current page as ?next= so they return here after welcome
+            // Pass current page as ?next= so they return here after onboarding
             const currentPath = window.location.pathname + window.location.search;
-            router.push(`/welcome?next=${encodeURIComponent(currentPath)}`);
+
+            if (providerProfile) {
+              // Route providers to their onboard page
+              const slug = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
+              router.push(`/provider/${slug}/onboard?next=${encodeURIComponent(currentPath)}`);
+            } else {
+              // Route families to family welcome page
+              router.push(`/welcome?next=${encodeURIComponent(currentPath)}`);
+            }
             return;
+          }
+
+          // Check for incomplete student profile → redirect to student dashboard
+          if (freshAccount?.id) {
+            try {
+              const { createBrowserClient } = await import("@supabase/ssr");
+              const sb = createBrowserClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+              );
+              const { data: studentProfile } = await sb
+                .from("business_profiles")
+                .select("id, is_active")
+                .eq("account_id", freshAccount.id)
+                .eq("type", "student")
+                .limit(1)
+                .maybeSingle();
+
+              if (studentProfile && !studentProfile.is_active) {
+                onClose();
+                router.push("/portal/medjobs");
+                return;
+              }
+            } catch {
+              // Non-blocking
+            }
           }
         }
       } catch {

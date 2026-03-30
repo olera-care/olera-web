@@ -1,21 +1,23 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { createBrowserClient } from "@supabase/ssr";
 
 const VIDEO_PROMPTS = [
-  "Tell us your name, university, and what you're studying.",
-  "Why are you interested in caregiving?",
-  "Describe any relevant experience you have (professional, volunteer, or personal).",
-  "What does reliability mean to you in a caregiving context?",
-  "What are your career goals and how does this experience fit in?",
+  "Your name, university, and what you're studying",
+  "Why you're interested in caregiving",
+  "Any relevant experience (professional, volunteer, or personal)",
+  "What reliability means to you in a caregiving context",
+  "Your career goals and how this fits in",
 ];
 
 const SCENARIO_PROMPTS = [
-  "A client seems confused and agitated. How would you handle the situation?",
-  "You're running 15 minutes late to a shift. What do you do?",
-  "A family member asks you to do something outside your normal duties. How do you respond?",
+  "A client seems confused and agitated \u2014 how do you handle it?",
+  "You're running 15 minutes late to a shift \u2014 what do you do?",
+  "A family member asks you to do something outside your duties \u2014 how do you respond?",
 ];
 
 function isValidVideoUrl(url: string): boolean {
@@ -23,22 +25,17 @@ function isValidVideoUrl(url: string): boolean {
     const parsed = new URL(url);
     const host = parsed.hostname.toLowerCase();
     return (
-      host === "youtube.com" ||
-      host === "www.youtube.com" ||
-      host === "youtu.be" ||
-      host === "loom.com" ||
-      host === "www.loom.com"
+      host === "youtube.com" || host === "www.youtube.com" ||
+      host === "youtu.be" || host === "loom.com" || host === "www.loom.com"
     );
-  } catch {
-    return false;
-  }
+  } catch { return false; }
 }
 
 export default function SubmitVideoPage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-400">Loading...</div>
+      <main className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-gray-300 text-sm">Loading...</div>
       </main>
     }>
       <SubmitVideoContent />
@@ -48,7 +45,50 @@ export default function SubmitVideoPage() {
 
 function SubmitVideoContent() {
   const searchParams = useSearchParams();
-  const slug = searchParams.get("slug") || "";
+  const paramSlug = searchParams.get("slug") || "";
+  const paramProfileId = searchParams.get("profileId") || "";
+
+  const { account, profiles, isLoading: authLoading } = useAuth();
+
+  // Resolved profile info — from URL params or auth session
+  const [slug, setSlug] = useState(paramSlug);
+  const [profileId, setProfileId] = useState(paramProfileId);
+  const [resolving, setResolving] = useState(!paramSlug);
+
+  // If no URL params, find student profile from auth session
+  useEffect(() => {
+    if (paramSlug && paramProfileId) { setResolving(false); return; }
+    if (authLoading) return;
+
+    const studentProfile = profiles?.find((p) => p.type === "student");
+    if (studentProfile) {
+      setProfileId(studentProfile.id);
+      setSlug(studentProfile.slug);
+      setResolving(false);
+      return;
+    }
+
+    // Fallback: query by account_id
+    if (account?.id) {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      supabase
+        .from("business_profiles")
+        .select("id, slug")
+        .eq("account_id", account.id)
+        .eq("type", "student")
+        .limit(1)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) { setProfileId(data.id); setSlug(data.slug); }
+          setResolving(false);
+        });
+    } else {
+      setResolving(false);
+    }
+  }, [paramSlug, paramProfileId, authLoading, account?.id, profiles]);
 
   const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -57,21 +97,9 @@ function SubmitVideoContent() {
 
   const handleSubmit = async () => {
     setError("");
-
-    if (!slug) {
-      setError("Missing profile slug. Please use the link from your confirmation page.");
-      return;
-    }
-
-    if (!videoUrl.trim()) {
-      setError("Please enter your video URL.");
-      return;
-    }
-
-    if (!isValidVideoUrl(videoUrl.trim())) {
-      setError("Please enter a valid YouTube or Loom URL.");
-      return;
-    }
+    if (!slug) { setError("Missing profile. Please use the link from your email or sign in first."); return; }
+    if (!videoUrl.trim()) { setError("Please enter your video URL."); return; }
+    if (!isValidVideoUrl(videoUrl.trim())) { setError("Please enter a valid YouTube or Loom URL."); return; }
 
     setLoading(true);
     try {
@@ -80,125 +108,126 @@ function SubmitVideoContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug, videoUrl: videoUrl.trim() }),
       });
-
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Something went wrong. Please try again.");
-        return;
-      }
-
+      if (!res.ok) { setError(data.error || "Something went wrong."); return; }
       setSuccess(true);
-    } catch {
-      setError("Network error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    } catch { setError("Network error."); }
+    finally { setLoading(false); }
   };
+
+  /* ─── Loading ──────────────────────────────────────────── */
+
+  if (resolving || authLoading) {
+    return (
+      <main className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-gray-300 text-sm">Loading...</div>
+      </main>
+    );
+  }
+
+  /* ─── Success ──────────────────────────────────────────── */
 
   if (success) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm p-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 mb-4">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      <main className="min-h-screen bg-white flex items-center justify-center px-4 py-16">
+        <div className="max-w-md w-full text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-50 mb-6">
+            <svg className="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              style={{ animation: "scale-in 0.4s ease-out" }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Profile Activated!</h1>
-          <p className="text-gray-500 mb-6">
-            Your intro video has been submitted and your profile is now visible to providers.
+          <h1 className="text-3xl font-semibold text-gray-900 mb-3">Video submitted!</h1>
+          <p className="text-gray-500 text-lg mb-8">
+            Your profile is one step closer to going live.
           </p>
-          <div className="flex flex-col gap-3">
-            <Link
-              href={`/medjobs/candidates/${slug}`}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
-            >
-              View Your Profile
-            </Link>
-            <Link
-              href="/medjobs"
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
-              Back to MedJobs
-            </Link>
-          </div>
+          <Link href="/portal/medjobs"
+            className="inline-flex items-center justify-center w-full px-6 py-3.5 bg-gray-900 hover:bg-gray-800 rounded-lg text-sm font-semibold text-white transition-colors">
+            Back to your dashboard
+          </Link>
+          <style>{`@keyframes scale-in { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }`}</style>
         </div>
       </main>
     );
   }
 
+  /* ─── Form ─────────────────────────────────────────────── */
+
   return (
-    <main className="min-h-screen bg-gray-50 py-8 sm:py-12">
-      <div className="max-w-2xl mx-auto px-4">
-        <div className="mb-8">
-          <Link href="/medjobs" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
-            &larr; Back to MedJobs
+    <main className="min-h-screen bg-white">
+      <div className="max-w-xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="mb-2">
+          <Link href="/portal/medjobs" className="text-sm text-gray-300 hover:text-gray-500 transition-colors">
+            &larr; Dashboard
           </Link>
-          <h1 className="mt-3 text-2xl sm:text-3xl font-bold text-gray-900">
-            Submit Your Intro Video
-          </h1>
-          <p className="mt-1 text-gray-500">
-            Record a 2-3 minute video and share the link below. This is required to activate your profile.
+        </div>
+
+        <div className="mb-10 pt-4">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-900 text-white text-xs font-medium">1</span>
+            <h1 className="text-2xl font-semibold text-gray-900">Intro video</h1>
+          </div>
+          <p className="text-sm text-gray-400 ml-9">
+            Record a 2-3 minute video. Upload to{" "}
+            <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 underline underline-offset-2">YouTube</a>{" "}
+            (unlisted) or{" "}
+            <a href="https://www.loom.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 underline underline-offset-2">Loom</a>{" "}
+            (free), then paste the link.
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 space-y-6">
-          {/* Prompts */}
-          <div>
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">In your video, please address:</h2>
-            <ol className="space-y-2 list-decimal list-inside">
-              {VIDEO_PROMPTS.map((prompt) => (
-                <li key={prompt} className="text-sm text-gray-600">{prompt}</li>
-              ))}
-            </ol>
-          </div>
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 rounded-lg text-sm text-red-700">{error}</div>
+        )}
 
-          <div>
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">Scenario questions (pick at least one):</h2>
-            <ol className="space-y-2 list-decimal list-inside">
-              {SCENARIO_PROMPTS.map((prompt) => (
-                <li key={prompt} className="text-sm text-gray-600">{prompt}</li>
-              ))}
-            </ol>
-          </div>
-
-          <div className="bg-gray-50 rounded-xl p-4">
-            <p className="text-sm text-gray-600">
-              <strong>How to record:</strong> Use your phone or laptop to record, then upload to{" "}
-              <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">YouTube</a>{" "}
-              (unlisted) or{" "}
-              <a href="https://www.loom.com" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">Loom</a>{" "}
-              (free). Paste the link below.
-            </p>
-          </div>
-
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-              {error}
+        {/* Prompts */}
+        <details className="mb-8 group">
+          <summary className="text-xs text-gray-400 uppercase tracking-wide font-medium cursor-pointer hover:text-gray-600 transition-colors">
+            What to cover in your video
+          </summary>
+          <div className="mt-3 space-y-4 pl-1">
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Talk about</p>
+              <ol className="space-y-1.5">
+                {VIDEO_PROMPTS.map((p, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-300 shrink-0">{i + 1}.</span> {p}
+                  </li>
+                ))}
+              </ol>
             </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Video URL *</label>
-            <input
-              type="url"
-              value={videoUrl}
-              onChange={(e) => setVideoUrl(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-              placeholder="https://youtu.be/... or https://www.loom.com/share/..."
-            />
-            <p className="mt-1 text-xs text-gray-400">Accepts YouTube or Loom links</p>
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Pick one scenario</p>
+              <ol className="space-y-1.5">
+                {SCENARIO_PROMPTS.map((p, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-300 shrink-0">&bull;</span> {p}
+                  </li>
+                ))}
+              </ol>
+            </div>
           </div>
+        </details>
 
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={loading || !videoUrl.trim()}
-            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-sm font-semibold text-white transition-colors"
-          >
-            {loading ? "Submitting..." : "Submit Video & Activate Profile"}
-          </button>
+        {/* URL input */}
+        <div className="mb-6">
+          <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Video URL</label>
+          <input
+            type="url"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+            placeholder="https://youtu.be/... or https://loom.com/share/..."
+            className="w-full border-0 border-b-2 border-gray-200 focus:border-gray-900 outline-none text-lg text-gray-900 placeholder:text-gray-300 py-2 bg-transparent transition-colors"
+            autoFocus
+          />
+          <p className="mt-1.5 text-xs text-gray-300">YouTube or Loom links</p>
         </div>
+
+        <button type="button" onClick={handleSubmit}
+          disabled={loading || !videoUrl.trim()}
+          className="inline-flex items-center gap-2 px-8 py-3 bg-gray-900 hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg text-sm font-semibold text-white transition-colors">
+          {loading ? "Submitting..." : "Submit video"}
+        </button>
       </div>
     </main>
   );

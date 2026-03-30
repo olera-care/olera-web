@@ -9,10 +9,11 @@ interface ProgramCardProps {
   match: BenefitMatch;
   isSaved: boolean;
   onToggleSave: () => void;
+  defaultExpanded?: boolean;
 }
 
-export default function ProgramCard({ match, isSaved, onToggleSave }: ProgramCardProps) {
-  const [expanded, setExpanded] = useState(false);
+export default function ProgramCard({ match, isSaved, onToggleSave, defaultExpanded = false }: ProgramCardProps) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const [showSavedToast, setShowSavedToast] = useState(false);
   const { program, matchScore, matchReasons, tierLabel } = match;
   const bookmarkRef = useRef<SVGSVGElement>(null);
@@ -55,9 +56,21 @@ export default function ProgramCard({ match, isSaved, onToggleSave }: ProgramCar
           {/* Program name + savings badge */}
           <div className="flex items-baseline gap-2 mb-1 flex-wrap">
             <h4 className="font-display text-lg font-medium text-gray-900 leading-snug">
-              {program.short_name || program.name}
+              {program.name}
+              {program.short_name && program.short_name !== program.name && (
+                <span className="text-sm font-normal text-gray-400 ml-1.5">({program.short_name})</span>
+              )}
             </h4>
             {(() => {
+              // Prefer savings_range from waiver library data (e.g., "$5,000 – $20,000/year")
+              if (program.savings_range) {
+                return (
+                  <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                    Save {program.savings_range}
+                  </span>
+                );
+              }
+              // Fallback to hardcoded estimates
               const range = getSavingsRange(program.name);
               if (!range) return null;
               return (
@@ -218,7 +231,7 @@ export default function ProgramCard({ match, isSaved, onToggleSave }: ProgramCar
                   {program.application_url && (
                     <li className="flex items-start gap-2.5 text-sm text-gray-600">
                       <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary-50 text-primary-700 text-[11px] font-bold shrink-0 mt-0.5">1</span>
-                      <span>Apply online at <a href={program.application_url} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline underline-offset-2">{new URL(program.application_url).hostname.replace("www.", "")}</a></span>
+                      <span>Apply online at <a href={program.application_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-primary-600 hover:text-primary-700 underline underline-offset-2">{new URL(program.application_url).hostname.replace("www.", "")}<svg className="h-3 w-3 inline" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg></a></span>
                     </li>
                   )}
                   {program.phone && (
@@ -230,7 +243,7 @@ export default function ProgramCard({ match, isSaved, onToggleSave }: ProgramCar
                   {program.website && !program.application_url && (
                     <li className="flex items-start gap-2.5 text-sm text-gray-600">
                       <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary-50 text-primary-700 text-[11px] font-bold shrink-0 mt-0.5">{program.phone ? "2" : "1"}</span>
-                      <span>Visit <a href={program.website} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline underline-offset-2">{new URL(program.website).hostname.replace("www.", "")}</a> for details</span>
+                      <span>Visit <a href={program.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-primary-600 hover:text-primary-700 underline underline-offset-2">{new URL(program.website).hostname.replace("www.", "")}<svg className="h-3 w-3 inline" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg></a> for details</span>
                     </li>
                   )}
                 </ol>
@@ -256,7 +269,8 @@ export default function ProgramCard({ match, isSaved, onToggleSave }: ProgramCar
                   aria-label={`Visit ${program.short_name || program.name} website`}
                   className="inline-flex items-center min-h-[44px] px-2 text-sm font-medium text-gray-500 hover:text-gray-900 no-underline transition-colors"
                 >
-                  Website &rarr;
+                  Website
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
                 </a>
               )}
               {program.application_url && (
@@ -267,10 +281,24 @@ export default function ProgramCard({ match, isSaved, onToggleSave }: ProgramCar
                   aria-label={`Apply online for ${program.short_name || program.name}`}
                   className="inline-flex items-center min-h-[44px] px-2 text-sm font-medium text-gray-500 hover:text-gray-900 no-underline transition-colors"
                 >
-                  Apply online &rarr;
+                  Apply online
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
                 </a>
               )}
             </div>
+
+            {/* Waiver library detail link */}
+            {program.waiver_library_url && (
+              <a
+                href={program.waiver_library_url}
+                className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium text-primary-600 hover:text-primary-700 no-underline transition-colors"
+              >
+                View full details — forms, checklists &amp; FAQs
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M7 17l9.2-9.2M17 17V7H7" />
+                </svg>
+              </a>
+            )}
           </div>
         </div>
       </div>

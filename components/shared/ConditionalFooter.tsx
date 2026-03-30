@@ -13,14 +13,18 @@ import SimpleFooter from "./SimpleFooter";
 export default function ConditionalFooter() {
   const pathname = usePathname();
 
-  // Inbox, onboarding, claim wizard, removal request, and match detail — no footer
+  // Admin, inbox, onboarding, claim wizard, removal request, match detail, and MedJobs forms — no footer
   if (
+    pathname.startsWith("/admin") ||
     pathname.startsWith("/portal/inbox") ||
+    pathname.startsWith("/portal/medjobs") ||
     pathname.startsWith("/provider/inbox") ||
     pathname.startsWith("/provider/onboarding") ||
     pathname.startsWith("/for-providers/claim") ||
     pathname.startsWith("/for-providers/removal-request") ||
     pathname.startsWith("/for-providers/dispute") ||
+    pathname.startsWith("/medjobs/apply") ||
+    pathname.startsWith("/medjobs/submit-video") ||
     pathname.match(/^\/portal\/matches\/[^/]+$/)
   ) {
     return null;
@@ -34,6 +38,8 @@ export default function ConditionalFooter() {
     return <SimpleFooter />;
   }
 
-  // Everything else — full marketing footer
-  return <Footer />;
+  // MedJobs pages — full footer but skip the senior care discovery zone
+  const hidePrefooter = pathname.startsWith("/medjobs");
+
+  return <Footer hideDiscoveryZone={hidePrefooter} />;
 }

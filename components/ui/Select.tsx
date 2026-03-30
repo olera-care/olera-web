@@ -35,6 +35,12 @@ interface SelectProps {
   className?: string;
   /** Size variant */
   size?: "sm" | "md" | "lg";
+  /** Force dropdown direction (auto by default) */
+  dropdownDirection?: "auto" | "down" | "up";
+  /** Enable search/filter input in the dropdown */
+  searchable?: boolean;
+  /** Placeholder for the search input */
+  searchPlaceholder?: string;
 }
 
 // ============================================================
@@ -63,20 +69,31 @@ export default function Select({
   errorMessage,
   className = "",
   size = "md",
+  dropdownDirection = "auto",
+  searchable = false,
+  searchPlaceholder = "Search...",
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const labelId = useId();
   const listboxId = useId();
 
   const normalizedOptions = normalizeOptions(options);
+  const filteredOptions = searchable && searchQuery
+    ? normalizedOptions.filter((opt) =>
+        opt.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        opt.value.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : normalizedOptions;
   const selectedOption = normalizedOptions.find((opt) => opt.value === value);
 
   // Size classes
@@ -96,14 +113,31 @@ export default function Select({
   // Positioning
   // ────────────────────────────────────────────────────────────
 
+  // Reset search when closing
+  useEffect(() => {
+    if (!isOpen) {
+      setSearchQuery("");
+    } else if (searchable) {
+      // Focus search input when opening
+      setTimeout(() => searchInputRef.current?.focus(), 0);
+    }
+  }, [isOpen, searchable]);
+
   useEffect(() => {
     if (isOpen && triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const dropdownHeight = Math.min(normalizedOptions.length * 48 + 16, 320);
-      setOpenUpward(spaceBelow < dropdownHeight && rect.top > dropdownHeight);
+      if (dropdownDirection === "down") {
+        setOpenUpward(false);
+      } else if (dropdownDirection === "up") {
+        setOpenUpward(true);
+      } else {
+        // Auto: calculate based on available space
+        const rect = triggerRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const dropdownHeight = Math.min(filteredOptions.length * 48 + (searchable ? 56 : 16), 320);
+        setOpenUpward(spaceBelow < dropdownHeight && rect.top > dropdownHeight);
+      }
     }
-  }, [isOpen, normalizedOptions.length]);
+  }, [isOpen, filteredOptions.length, dropdownDirection, searchable]);
 
   // ────────────────────────────────────────────────────────────
   // Click outside
@@ -133,10 +167,9 @@ export default function Select({
 
       switch (e.key) {
         case "Enter":
-        case " ":
           e.preventDefault();
           if (isOpen && focusedIndex >= 0) {
-            const opt = normalizedOptions[focusedIndex];
+            const opt = filteredOptions[focusedIndex];
             if (!opt.disabled) {
               onChange(opt.value);
               setIsOpen(false);
@@ -146,7 +179,28 @@ export default function Select({
           } else {
             setIsOpen(!isOpen);
             if (!isOpen) {
-              const currentIndex = normalizedOptions.findIndex((opt) => opt.value === value);
+              const currentIndex = filteredOptions.findIndex((opt) => opt.value === value);
+              setFocusedIndex(currentIndex >= 0 ? currentIndex : 0);
+            }
+          }
+          break;
+
+        case " ":
+          // Don't intercept space when typing in search
+          if (searchable && isOpen) return;
+          e.preventDefault();
+          if (isOpen && focusedIndex >= 0) {
+            const opt = filteredOptions[focusedIndex];
+            if (!opt.disabled) {
+              onChange(opt.value);
+              setIsOpen(false);
+              setFocusedIndex(-1);
+              triggerRef.current?.focus();
+            }
+          } else {
+            setIsOpen(!isOpen);
+            if (!isOpen) {
+              const currentIndex = filteredOptions.findIndex((opt) => opt.value === value);
               setFocusedIndex(currentIndex >= 0 ? currentIndex : 0);
             }
           }
@@ -163,15 +217,15 @@ export default function Select({
           e.preventDefault();
           if (!isOpen) {
             setIsOpen(true);
-            const currentIndex = normalizedOptions.findIndex((opt) => opt.value === value);
+            const currentIndex = filteredOptions.findIndex((opt) => opt.value === value);
             setFocusedIndex(currentIndex >= 0 ? currentIndex : 0);
           } else {
             setFocusedIndex((prev) => {
               let next = prev + 1;
-              while (next < normalizedOptions.length && normalizedOptions[next].disabled) {
+              while (next < filteredOptions.length && filteredOptions[next].disabled) {
                 next++;
               }
-              return next < normalizedOptions.length ? next : prev;
+              return next < filteredOptions.length ? next : prev;
             });
           }
           break;
@@ -180,12 +234,12 @@ export default function Select({
           e.preventDefault();
           if (!isOpen) {
             setIsOpen(true);
-            const currentIndex = normalizedOptions.findIndex((opt) => opt.value === value);
+            const currentIndex = filteredOptions.findIndex((opt) => opt.value === value);
             setFocusedIndex(currentIndex >= 0 ? currentIndex : 0);
           } else {
             setFocusedIndex((prev) => {
               let next = prev - 1;
-              while (next >= 0 && normalizedOptions[next].disabled) {
+              while (next >= 0 && filteredOptions[next].disabled) {
                 next--;
               }
               return next >= 0 ? next : prev;
@@ -196,7 +250,7 @@ export default function Select({
         case "Home":
           e.preventDefault();
           if (isOpen) {
-            const firstEnabled = normalizedOptions.findIndex((opt) => !opt.disabled);
+            const firstEnabled = filteredOptions.findIndex((opt) => !opt.disabled);
             setFocusedIndex(firstEnabled >= 0 ? firstEnabled : 0);
           }
           break;
@@ -204,11 +258,11 @@ export default function Select({
         case "End":
           e.preventDefault();
           if (isOpen) {
-            let lastEnabled = normalizedOptions.length - 1;
-            while (lastEnabled >= 0 && normalizedOptions[lastEnabled].disabled) {
+            let lastEnabled = filteredOptions.length - 1;
+            while (lastEnabled >= 0 && filteredOptions[lastEnabled].disabled) {
               lastEnabled--;
             }
-            setFocusedIndex(lastEnabled >= 0 ? lastEnabled : normalizedOptions.length - 1);
+            setFocusedIndex(lastEnabled >= 0 ? lastEnabled : filteredOptions.length - 1);
           }
           break;
 
@@ -220,7 +274,7 @@ export default function Select({
           break;
       }
     },
-    [disabled, isOpen, focusedIndex, normalizedOptions, value, onChange]
+    [disabled, isOpen, focusedIndex, filteredOptions, value, onChange, searchable]
   );
 
   // Scroll focused option into view
@@ -242,7 +296,7 @@ export default function Select({
       {label && (
         <label
           id={labelId}
-          className="block text-sm font-medium text-gray-700 mb-1.5"
+          className="block text-base font-semibold text-gray-900 mb-2"
         >
           {label}
           {required && <span className="text-red-500 ml-0.5">*</span>}
@@ -309,68 +363,93 @@ export default function Select({
           aria-labelledby={label ? labelId : undefined}
           aria-activedescendant={focusedIndex >= 0 ? `${listboxId}-option-${focusedIndex}` : undefined}
           className={[
-            "absolute left-0 right-0 z-50 bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden max-h-[280px] overflow-y-auto",
+            "absolute left-0 right-0 z-50 bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden max-h-[320px] flex flex-col",
             openUpward ? "bottom-full mb-1.5" : "top-full mt-1.5",
           ].join(" ")}
           style={{ animation: "fade-in 0.15s ease-out" }}
         >
-          {normalizedOptions.map((option, index) => {
-            const isSelected = value === option.value;
-            const isFocused = focusedIndex === index;
-
-            return (
-              <button
-                key={option.value}
-                ref={(el) => { optionRefs.current[index] = el; }}
-                id={`${listboxId}-option-${index}`}
-                type="button"
-                role="option"
-                aria-selected={isSelected}
-                aria-disabled={option.disabled}
-                disabled={option.disabled}
-                onClick={() => {
-                  if (!option.disabled) {
-                    onChange(option.value);
-                    setIsOpen(false);
-                    setFocusedIndex(-1);
-                    triggerRef.current?.focus();
-                  }
+          {/* Search input */}
+          {searchable && (
+            <div className="px-3 py-2 border-b border-gray-100 shrink-0">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setFocusedIndex(0);
                 }}
-                onMouseEnter={() => setFocusedIndex(index)}
-                className={[
-                  "w-full text-left transition-colors focus:outline-none",
-                  optionSizeClasses[size],
-                  isSelected
-                    ? "bg-primary-50 text-primary-700 font-medium"
-                    : isFocused
-                      ? "bg-gray-100 text-gray-900"
-                      : "text-gray-700 hover:bg-gray-50",
-                  option.disabled
-                    ? "opacity-50 cursor-not-allowed"
-                    : "",
-                  index === 0 ? "rounded-t-xl" : "",
-                  index === normalizedOptions.length - 1 ? "rounded-b-xl" : "",
-                ].filter(Boolean).join(" ")}
-              >
-                <span className="flex items-center gap-2.5">
-                  {isSelected ? (
-                    <svg
-                      className="w-4 h-4 text-primary-600 shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    <span className="w-4 shrink-0" aria-hidden="true" />
-                  )}
-                  <span>{option.label}</span>
-                </span>
-              </button>
-            );
-          })}
+                onKeyDown={handleKeyDown}
+                placeholder={searchPlaceholder}
+                className="w-full px-2.5 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 placeholder:text-gray-400"
+                aria-label="Filter options"
+              />
+            </div>
+          )}
+
+          <div className="overflow-y-auto">
+            {filteredOptions.length === 0 ? (
+              <div className="px-4 py-3 text-sm text-gray-400 text-center">No results</div>
+            ) : (
+              filteredOptions.map((option, index) => {
+                const isSelected = value === option.value;
+                const isFocused = focusedIndex === index;
+
+                return (
+                  <button
+                    key={option.value}
+                    ref={(el) => { optionRefs.current[index] = el; }}
+                    id={`${listboxId}-option-${index}`}
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    aria-disabled={option.disabled}
+                    disabled={option.disabled}
+                    onClick={() => {
+                      if (!option.disabled) {
+                        onChange(option.value);
+                        setIsOpen(false);
+                        setFocusedIndex(-1);
+                        triggerRef.current?.focus();
+                      }
+                    }}
+                    onMouseEnter={() => setFocusedIndex(index)}
+                    className={[
+                      "w-full text-left transition-colors focus:outline-none",
+                      optionSizeClasses[size],
+                      isSelected
+                        ? "bg-primary-50 text-primary-700 font-medium"
+                        : isFocused
+                          ? "bg-gray-100 text-gray-900"
+                          : "text-gray-700 hover:bg-gray-50",
+                      option.disabled
+                        ? "opacity-50 cursor-not-allowed"
+                        : "",
+                      !searchable && index === 0 ? "rounded-t-xl" : "",
+                      index === filteredOptions.length - 1 ? "rounded-b-xl" : "",
+                    ].filter(Boolean).join(" ")}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      {isSelected ? (
+                        <svg
+                          className="w-4 h-4 text-primary-600 shrink-0"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <span className="w-4 shrink-0" aria-hidden="true" />
+                      )}
+                      <span>{option.label}</span>
+                    </span>
+                  </button>
+                );
+              })
+            )}
+          </div>
         </div>
       )}
 

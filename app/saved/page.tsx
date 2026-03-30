@@ -1,141 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import ProviderCard, {
   type Provider,
 } from "@/components/providers/ProviderCard";
-import type { FamilyMetadata } from "@/lib/types";
-
-const MATCHES_BANNER_DISMISSED_KEY = "olera_saved_matches_banner_dismissed";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Matches Promotion Card (premium card style, sits in grid)
-// ─────────────────────────────────────────────────────────────────────────────
-
-function MatchesPromoCard({
-  city,
-  isMatchesActive,
-}: {
-  city: string | null;
-  isMatchesActive: boolean;
-}) {
-  const [dismissed, setDismissed] = useState(false);
-
-  // Check sessionStorage on mount for session-only dismiss
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const wasDismissed = sessionStorage.getItem(MATCHES_BANNER_DISMISSED_KEY);
-      if (wasDismissed === "true") {
-        setDismissed(true);
-      }
-    }
-  }, []);
-
-  const handleDismiss = () => {
-    setDismissed(true);
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem(MATCHES_BANNER_DISMISSED_KEY, "true");
-    }
-  };
-
-  const locationText = city || "near you";
-
-  // When Matches is already active, don't show — user knows it's on
-  if (isMatchesActive) {
-    return null;
-  }
-
-  // When dismissed for this session, don't show
-  if (dismissed) {
-    return null;
-  }
-
-  // Premium card style matching empty state design
-  return (
-    <div className="relative bg-white/80 backdrop-blur-sm border border-gray-200/80 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.05),0_8px_24px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.06)] transition-shadow duration-300 overflow-hidden">
-      {/* Gradient accent at top */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600" />
-
-      <div className="px-6 py-8 text-center">
-        {/* Delightful animated illustration - person being discovered by providers */}
-        <div className="w-20 h-20 mx-auto mb-5">
-          <svg viewBox="0 0 80 80" fill="none" className="w-full h-full">
-            {/* Soft radiating rings */}
-            <circle cx="40" cy="40" r="36" stroke="#199087" strokeOpacity="0.08" strokeWidth="1.5">
-              <animate attributeName="r" values="32;36;32" dur="3s" repeatCount="indefinite" />
-              <animate attributeName="stroke-opacity" values="0.1;0.05;0.1" dur="3s" repeatCount="indefinite" />
-            </circle>
-            <circle cx="40" cy="40" r="28" stroke="#199087" strokeOpacity="0.12" strokeWidth="1.5">
-              <animate attributeName="r" values="26;30;26" dur="3s" repeatCount="indefinite" begin="0.3s" />
-            </circle>
-
-            {/* Central warm glow */}
-            <circle cx="40" cy="40" r="22" fill="#199087" fillOpacity="0.08" />
-
-            {/* Person silhouette - warm, approachable */}
-            <circle cx="40" cy="32" r="8" fill="#199087" fillOpacity="0.9" />
-            <path
-              d="M28 52c0-6.627 5.373-12 12-12s12 5.373 12 12"
-              fill="#199087"
-              fillOpacity="0.85"
-            />
-
-            {/* Discovery sparkles */}
-            <circle cx="18" cy="34" r="2.5" fill="#199087" fillOpacity="0.4">
-              <animate attributeName="fill-opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" />
-            </circle>
-            <circle cx="62" cy="34" r="2.5" fill="#199087" fillOpacity="0.4">
-              <animate attributeName="fill-opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" begin="0.5s" />
-            </circle>
-            <circle cx="22" cy="50" r="2" fill="#199087" fillOpacity="0.3">
-              <animate attributeName="fill-opacity" values="0.15;0.4;0.15" dur="2s" repeatCount="indefinite" begin="0.25s" />
-            </circle>
-            <circle cx="58" cy="50" r="2" fill="#199087" fillOpacity="0.3">
-              <animate attributeName="fill-opacity" values="0.15;0.4;0.15" dur="2s" repeatCount="indefinite" begin="0.75s" />
-            </circle>
-
-            {/* Subtle connection lines */}
-            <path d="M22 34 L32 33" stroke="#199087" strokeOpacity="0.15" strokeWidth="1" strokeLinecap="round" />
-            <path d="M58 34 L48 33" stroke="#199087" strokeOpacity="0.15" strokeWidth="1" strokeLinecap="round" />
-          </svg>
-        </div>
-
-        {/* Headline */}
-        <h3 className="text-lg font-display font-bold text-gray-900 mb-1.5">
-          Let providers come to you
-        </h3>
-
-        {/* Description */}
-        <p className="text-sm text-gray-500 leading-relaxed mb-6 max-w-[240px] mx-auto">
-          Qualified providers in {locationText} can reach out directly when you set up your care profile.
-        </p>
-
-        {/* CTA Button */}
-        <Link
-          href="/portal/matches"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-primary-600/25 hover:shadow-lg hover:shadow-primary-600/30 active:scale-[0.98]"
-        >
-          Set up profile
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-          </svg>
-        </Link>
-
-        {/* Dismiss link */}
-        <button
-          type="button"
-          onClick={handleDismiss}
-          className="block mx-auto mt-3 text-xs text-gray-400 hover:text-gray-600 transition-colors"
-        >
-          Maybe later
-        </button>
-      </div>
-    </div>
-  );
-}
 
 /** Map a saved entry to the Provider shape expected by ProviderCard */
 function toProvider(entry: {
@@ -163,21 +34,10 @@ function toProvider(entry: {
 }
 
 export default function SavedProvidersPage() {
-  const { user, activeProfile, openAuth } = useAuth();
+  const { user, openAuth } = useAuth();
   const { savedProviders } = useSavedProviders();
   const [shareLabel, setShareLabel] = useState<"share" | "copied">("share");
   const [showToast, setShowToast] = useState(false);
-
-  // Check Matches status from profile metadata
-  const meta = activeProfile?.metadata as FamilyMetadata | undefined;
-  const carePostStatus = meta?.care_post?.status;
-  const isMatchesActive = carePostStatus === "active";
-
-  // Get city from profile for dynamic text
-  const city = activeProfile?.city || null;
-
-  // Show Matches banner when: logged in + has saved providers
-  const showMatchesBanner = !!user && savedProviders.length > 0;
 
   async function handleShare() {
     const url = typeof window !== "undefined" ? window.location.href : "";
@@ -281,37 +141,14 @@ export default function SavedProvidersPage() {
 
         {/* Provider grid or empty state */}
         {savedProviders.length > 0 ? (
-          <>
-            <div className="flex gap-8">
-              {/* Main content — provider grid */}
-              <div className="flex-1 min-w-0">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {savedProviders.map((entry) => (
-                    <ProviderCard
-                      key={entry.providerId}
-                      provider={toProvider(entry)}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Fixed sidebar — Matches promo card (desktop only) */}
-              {showMatchesBanner && !isMatchesActive && (
-                <div className="hidden lg:block w-[320px] flex-shrink-0">
-                  <div className="sticky top-24">
-                    <MatchesPromoCard city={city} isMatchesActive={isMatchesActive} />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Mobile promo card — appears below the grid */}
-            {showMatchesBanner && !isMatchesActive && (
-              <div className="lg:hidden mt-8">
-                <MatchesPromoCard city={city} isMatchesActive={isMatchesActive} />
-              </div>
-            )}
-          </>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {savedProviders.map((entry) => (
+              <ProviderCard
+                key={entry.providerId}
+                provider={toProvider(entry)}
+              />
+            ))}
+          </div>
         ) : (
           <div>
             <div className="relative w-full max-w-md">

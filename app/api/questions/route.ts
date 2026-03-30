@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendSlackAlert, slackQuestionAsked, slackQuestionMissingEmail } from "@/lib/slack";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { questionConfirmationEmail, questionReceivedEmail } from "@/lib/email-templates";
+import { generateProviderSlug } from "@/lib/slugify";
 
 /**
  * GET /api/questions?provider_id=xxx
@@ -78,14 +79,17 @@ export async function POST(request: NextRequest) {
     let askerEmail: string | null;
     let askerUserId: string | null;
 
+    let askerProfileId: string | null = null;
+
     if (user) {
       // Authenticated user — get display name from profile
       const { data: profile } = await db
         .from("business_profiles")
-        .select("display_name")
+        .select("id, display_name")
         .eq("user_id", user.id)
         .single();
 
+      askerProfileId = profile?.id || null;
       askerName = profile?.display_name || user.email?.split("@")[0] || "Anonymous";
       askerEmail = user.email || null;
       askerUserId = user.id;
@@ -137,40 +141,145 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to submit question" }, { status: 500 });
     }
 
+    // Log family engagement event (fire-and-forget, authenticated users only)
+    if (askerProfileId) {
+      db.from("seeker_activity").insert({
+        profile_id: askerProfileId,
+        event_type: "question_asked",
+        related_provider_id: provider_id,
+        metadata: {
+          question_id: newQuestion.id,
+          question_preview: question.trim().substring(0, 100),
+        },
+      }).then(({ error: actErr }: { error: { message: string } | null }) => {
+        if (actErr) console.error("[seeker_activity] question_asked insert failed:", actErr);
+      });
+    }
+
+    // Log provider-side activity (fire-and-forget, ALL questions including guests)
+    db.from("provider_activity").insert({
+      provider_id,
+      event_type: "question_received",
+      metadata: {
+        question_id: newQuestion.id,
+        question_preview: question.trim().substring(0, 100),
+        asker_name: askerName,
+        is_guest: !user,
+      },
+    }).then(({ error: actErr }: { error: { message: string } | null }) => {
+      if (actErr) console.error("[provider_activity] question_received insert failed:", actErr);
+    });
+
+    // ── Multi-strategy provider lookup (shared by Slack + email below) ──
+    // Mirrors the 4-strategy lookup from admin add-email endpoint.
+    // Provider detail pages generate ephemeral slugs via generateProviderSlug()
+    // for iOS providers with slug=null, so the stored provider_id may not match
+    // any persisted slug in either table.
+    let resolvedProvider: { id: string; display_name: string; email: string | null; slug: string | null; source_provider_id: string | null } | null = null;
+    let resolvedIos: { provider_id: string; email: string | null; provider_name: string | null } | null = null;
+
+    try {
+      // Strategy 1: business_profiles by slug
+      resolvedProvider = await db
+        .from("business_profiles")
+        .select("id, display_name, email, slug, source_provider_id")
+        .eq("slug", provider_id)
+        .maybeSingle()
+        .then(r => r.data);
+
+      if (!resolvedProvider) {
+        // Strategy 2: olera-providers by slug
+        resolvedIos = await db
+          .from("olera-providers")
+          .select("provider_id, email, provider_name")
+          .eq("slug", provider_id)
+          .not("deleted", "is", true)
+          .maybeSingle()
+          .then(r => r.data);
+
+        if (!resolvedIos) {
+          // Strategy 3: olera-providers by provider_id (legacy alphanumeric ID)
+          resolvedIos = await db
+            .from("olera-providers")
+            .select("provider_id, email, provider_name")
+            .eq("provider_id", provider_id)
+            .not("deleted", "is", true)
+            .maybeSingle()
+            .then(r => r.data);
+        }
+
+        if (!resolvedIos) {
+          // Strategy 4: reverse-match auto-generated slug from name+state
+          const slugParts = provider_id.split("-");
+          const namePrefix = slugParts.slice(0, 3).join("-");
+          const { data: candidates } = await db
+            .from("olera-providers")
+            .select("provider_id, email, provider_name, state")
+            .not("deleted", "is", true)
+            .is("slug", null)
+            .ilike("provider_name", `${namePrefix.replace(/-/g, "%")}%`)
+            .limit(20);
+          if (candidates) {
+            for (const c of candidates) {
+              if (generateProviderSlug(c.provider_name, c.state) === provider_id) {
+                resolvedIos = { provider_id: c.provider_id, email: c.email, provider_name: c.provider_name };
+                break;
+              }
+            }
+          }
+        }
+
+        // If found in olera-providers, check for linked business_profile
+        if (resolvedIos) {
+          resolvedProvider = await db
+            .from("business_profiles")
+            .select("id, display_name, email, slug, source_provider_id")
+            .eq("source_provider_id", resolvedIos.provider_id)
+            .maybeSingle()
+            .then(r => r.data);
+        }
+      }
+    } catch (lookupErr) {
+      console.error("Provider lookup for notifications failed:", lookupErr);
+    }
+
+    const providerDisplayName = resolvedProvider?.display_name || resolvedIos?.provider_name || provider_id;
+    const providerIdForLogs = resolvedProvider?.id || resolvedIos?.provider_id || provider_id;
+
+    // Resolve email: business_profiles first, then olera-providers fallback
+    let pEmail = resolvedProvider?.email || null;
+    if (!pEmail) {
+      const iosProviderId = resolvedProvider?.source_provider_id || resolvedIos?.provider_id;
+      if (iosProviderId) {
+        const { data: ios } = await db
+          .from("olera-providers")
+          .select("email")
+          .eq("provider_id", iosProviderId)
+          .maybeSingle();
+        pEmail = ios?.email || null;
+      }
+      // resolvedIos may already have the email
+      if (!pEmail && resolvedIos?.email) {
+        pEmail = resolvedIos.email;
+      }
+    }
+
     // Slack notifications — must await in serverless to prevent early termination
     try {
-      const { data: provider } = await db
-        .from("business_profiles")
-        .select("id, display_name, email")
-        .eq("slug", provider_id)
-        .single();
-
-      const providerName = provider?.display_name || provider_id;
-
-      let providerEmail = provider?.email || null;
-      if (!providerEmail && provider?.id) {
-        const { data: ios } = await db
-          .from("ios_provider_profiles")
-          .select("email")
-          .eq("provider_id", provider.id)
-          .single();
-        providerEmail = ios?.email || null;
-      }
-
       const guestSuffix = !user ? " (guest)" : "";
       const { text, blocks } = slackQuestionAsked({
         askerName: askerName + guestSuffix,
-        providerName,
+        providerName: providerDisplayName,
         question: question.trim(),
         providerSlug: provider_id,
       });
       await sendSlackAlert(text, blocks);
 
-      if (!providerEmail) {
+      if (!pEmail) {
         const missing = slackQuestionMissingEmail({
           askerName: askerName + guestSuffix,
-          providerName,
-          providerId: provider?.id || provider_id,
+          providerName: providerDisplayName,
+          providerId: providerIdForLogs,
           question: question.trim(),
         });
         await sendSlackAlert(missing.text, missing.blocks);
@@ -181,44 +290,57 @@ export async function POST(request: NextRequest) {
 
     // Email notifications — must await in serverless
     try {
-      // Look up provider for emails (reuse from Slack block or fetch fresh)
-      const { data: providerForEmail } = await db
-        .from("business_profiles")
-        .select("id, display_name, email, slug")
-        .eq("slug", provider_id)
-        .single();
-
-      const providerDisplayName = providerForEmail?.display_name || provider_id;
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
       const providerPageUrl = `${siteUrl}/provider/${provider_id}`;
-      const providerPortalUrl = `${siteUrl}/provider/${provider_id}/onboard`;
 
       // 1. Email the provider about the new question (if they have an email)
-      let pEmail = providerForEmail?.email || null;
-      if (!pEmail && providerForEmail?.id) {
-        const { data: ios } = await db
-          .from("ios_provider_profiles")
-          .select("email")
-          .eq("provider_id", providerForEmail.id)
-          .single();
-        pEmail = ios?.email || null;
-      }
-
       if (pEmail) {
+        const providerSlug = resolvedProvider?.slug || provider_id;
+        let providerUrl: string;
+        try {
+          const { generateNotificationUrl } = await import("@/lib/claim-tokens");
+          providerUrl = generateNotificationUrl(
+            providerSlug,
+            pEmail,
+            "question",
+            newQuestion.id,
+            siteUrl
+          );
+        } catch {
+          providerUrl = `${siteUrl}/provider/${providerSlug}/onboard?action=question&actionId=${newQuestion.id}`;
+        }
+
         await sendEmail({
           to: pEmail,
-          subject: `New question on your Olera page`,
+          subject: `A family has a question about ${providerDisplayName}`,
           html: questionReceivedEmail({
             providerName: providerDisplayName,
             askerName,
             question: question.trim(),
-            providerUrl: providerPortalUrl,
+            providerUrl,
+            providerSlug: provider_id,
           }),
+          emailType: 'question_received',
+          recipientType: 'provider',
+          providerId: providerIdForLogs,
         });
+      } else if (newQuestion?.id) {
+        // No provider email — flag for admin "Needs Email" tab
+        await db
+          .from("provider_questions")
+          .update({ metadata: { needs_provider_email: true } })
+          .eq("id", newQuestion.id);
       }
 
       // 2. Confirmation email to the asker (if they have an email)
       if (askerEmail) {
+        const qConfirmEmailLogId = await reserveEmailLogId({
+          to: askerEmail,
+          subject: `Your question to ${providerDisplayName} on Olera`,
+          emailType: "question_confirmation",
+          recipientType: "family",
+        });
+
         await sendEmail({
           to: askerEmail,
           subject: `Your question to ${providerDisplayName} on Olera`,
@@ -226,8 +348,11 @@ export async function POST(request: NextRequest) {
             askerName,
             providerName: providerDisplayName,
             question: question.trim(),
-            providerUrl: providerPageUrl,
+            providerUrl: appendTrackingParams(providerPageUrl, qConfirmEmailLogId),
           }),
+          emailType: 'question_confirmation',
+          recipientType: 'family',
+          emailLogId: qConfirmEmailLogId ?? undefined,
         });
       }
     } catch (emailErr) {
@@ -309,22 +434,64 @@ export async function PATCH(request: NextRequest) {
             .single();
 
           const providerSlug = q?.provider_id || "";
-          const { data: provider } = await db
+          // Multi-strategy name lookup (same root cause as POST handler)
+          let providerName: string | null = null;
+          const { data: bp } = await db
             .from("business_profiles")
             .select("display_name")
             .eq("slug", providerSlug)
-            .single();
+            .maybeSingle();
+          providerName = bp?.display_name || null;
+          if (!providerName) {
+            // Try olera-providers by slug, then reverse slug match
+            const { data: ios } = await db
+              .from("olera-providers")
+              .select("provider_name")
+              .eq("slug", providerSlug)
+              .not("deleted", "is", true)
+              .maybeSingle();
+            providerName = ios?.provider_name || null;
+            if (!providerName) {
+              const slugParts = providerSlug.split("-");
+              const namePrefix = slugParts.slice(0, 3).join("-");
+              const { data: candidates } = await db
+                .from("olera-providers")
+                .select("provider_name, state")
+                .not("deleted", "is", true)
+                .is("slug", null)
+                .ilike("provider_name", `${namePrefix.replace(/-/g, "%")}%`)
+                .limit(20);
+              if (candidates) {
+                for (const c of candidates) {
+                  if (generateProviderSlug(c.provider_name, c.state) === providerSlug) {
+                    providerName = c.provider_name;
+                    break;
+                  }
+                }
+              }
+            }
+          }
 
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+          const enrichEmailLogId = await reserveEmailLogId({
+            to: updates.asker_email,
+            subject: `Your question to ${providerName || "a provider"} on Olera`,
+            emailType: "question_confirmation",
+            recipientType: "family",
+          });
+
           await sendEmail({
             to: updates.asker_email,
-            subject: `Your question to ${provider?.display_name || "a provider"} on Olera`,
+            subject: `Your question to ${providerName || "a provider"} on Olera`,
             html: questionConfirmationEmail({
               askerName: updates.asker_name || "there",
-              providerName: provider?.display_name || "the provider",
+              providerName: providerName || "the provider",
               question: updated.question,
-              providerUrl: `${siteUrl}/provider/${providerSlug}`,
+              providerUrl: appendTrackingParams(`${siteUrl}/provider/${providerSlug}`, enrichEmailLogId),
             }),
+            emailType: 'question_confirmation',
+            recipientType: 'family',
+            emailLogId: enrichEmailLogId ?? undefined,
           });
         } catch (emailErr) {
           console.error("Question confirmation email failed:", emailErr);

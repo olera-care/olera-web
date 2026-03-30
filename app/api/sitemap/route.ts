@@ -168,19 +168,26 @@ export async function GET(request: Request) {
         }
       }
     } else {
-      // Provider shards
+      // Provider shards — paginate in batches of 1000 (Supabase default row limit)
       if (supabase) {
-        const batchSize = 10_000;
-        const offset = (shard - 1) * batchSize;
-        const { data: providers } = await supabase
-          .from("olera-providers")
-          .select("provider_id, slug")
-          .or("deleted.is.null,deleted.eq.false")
-          .range(offset, offset + batchSize - 1);
-        if (providers) {
+        const SHARD_SIZE = 10_000;
+        const PAGE_SIZE = 1_000;
+        const shardStart = (shard - 1) * SHARD_SIZE;
+        let fetched = 0;
+        while (fetched < SHARD_SIZE) {
+          const from = shardStart + fetched;
+          const to = from + PAGE_SIZE - 1;
+          const { data: providers } = await supabase
+            .from("olera-providers")
+            .select("provider_id, slug")
+            .or("deleted.is.null,deleted.eq.false")
+            .range(from, to);
+          if (!providers || providers.length === 0) break;
           for (const p of providers) {
             entries.push(xmlEntry(`${SITE_URL}/provider/${p.slug || p.provider_id}`, 0.7, "weekly"));
           }
+          if (providers.length < PAGE_SIZE) break;
+          fetched += providers.length;
         }
       }
     }

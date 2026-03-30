@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import {
   matchesNudgeEmail,
   providerIncompleteProfileEmail,
@@ -92,15 +92,19 @@ export async function GET(request: NextRequest) {
 
           const stats = eligibleFamilyIds.find((f) => f.id === fp.id);
 
+          const mnSubject = "Still waiting to hear back? There's a better way.";
+          const mnLogId = await reserveEmailLogId({ to: fp.email, subject: mnSubject, emailType: "matches_nudge", recipientType: "family" });
           await sendEmail({
             to: fp.email,
-            subject:
-              "Still waiting to hear back? There's a better way.",
+            subject: mnSubject,
             html: matchesNudgeEmail({
               familyName: fp.display_name || "there",
               unansweredCount: stats?.total || 2,
-              matchesUrl: `${siteUrl}/portal/matches`,
+              matchesUrl: appendTrackingParams(`${siteUrl}/portal/matches`, mnLogId),
             }),
+            emailType: "matches_nudge",
+            recipientType: "family",
+            emailLogId: mnLogId ?? undefined,
           });
 
           // Mark as sent
@@ -150,6 +154,9 @@ export async function GET(request: NextRequest) {
           city: prov.city || prov.state || "your area",
           profileUrl: `${siteUrl}/provider/profile`,
         }),
+        emailType: "provider_incomplete_profile",
+        recipientType: "provider",
+        providerId: prov.id,
       });
 
       // Mark as sent

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { providerReachOutEmail } from "@/lib/email-templates";
 import { sendSlackAlert } from "@/lib/slack";
 
@@ -75,6 +75,14 @@ export async function POST(request: Request) {
       .limit(1)
       .single();
 
+    const reachOutEmailLogId = await reserveEmailLogId({
+      to: family.email,
+      subject: `A provider in ${providerCity} is interested in your care needs`,
+      emailType: "provider_reach_out",
+      recipientType: "family",
+      providerId: account.active_profile_id,
+    });
+
     await sendEmail({
       to: family.email,
       subject: `A provider in ${providerCity} is interested in your care needs`,
@@ -83,8 +91,12 @@ export async function POST(request: Request) {
         providerName: provider?.display_name || "A care provider",
         city: providerCity,
         message: conn?.message || null,
-        matchesUrl: `${siteUrl}/portal/matches`,
+        matchesUrl: appendTrackingParams(`${siteUrl}/portal/matches`, reachOutEmailLogId),
       }),
+      emailType: "provider_reach_out",
+      recipientType: "family",
+      providerId: account.active_profile_id,
+      emailLogId: reachOutEmailLogId ?? undefined,
     });
 
     // Slack alert (fire-and-forget)

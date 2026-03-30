@@ -345,6 +345,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
                   match={m}
                   isSaved={isSaved(m.program.name)}
                   onToggleSave={() => toggleSave(m.program.name)}
+                  defaultExpanded={i === 0}
                 />
               </div>
             ))}
@@ -389,6 +390,19 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
             <DocumentChecklist />
           </div>
         )}
+      </div>
+
+      {/* Start over — quiet secondary action */}
+      <div className="mt-8 flex justify-center print:hidden">
+        <button
+          onClick={reset}
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+          </svg>
+          Start over
+        </button>
       </div>
 
       {/* Matches invitation card — after value is shown */}

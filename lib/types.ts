@@ -144,6 +144,9 @@ export interface Review {
   replied_by: string | null;
   // Migration tracking
   migration_source?: string | null;
+  // Read tracking
+  metadata?: Record<string, unknown>;
+  isNew?: boolean;
 }
 
 // ============================================================
@@ -183,6 +186,43 @@ export interface GoogleReviewsData {
   review_count: number;
   reviews: GoogleReviewSnippet[];
   last_synced: string; // ISO 8601
+}
+
+/** CMS (Medicare) quality data — stored as JSONB on olera-providers */
+export interface CMSData {
+  ccn: string; // CMS Certification Number
+  source: "home_health" | "nursing_home" | "hospice";
+  overall_rating: number | null; // 1-5 stars
+  health_inspection_rating?: number | null;
+  staffing_rating?: number | null;
+  quality_rating?: number | null;
+  provider_name: string; // CMS name (may differ from ours)
+  certification_date?: string | null;
+  deficiency_count?: number;
+  penalty_count?: number;
+  total_fines?: number;
+  abuse_icon?: string;
+  last_synced: string; // ISO 8601
+}
+
+/** AI-verified trust signal — individual verification result */
+export interface AiTrustSignal {
+  signal: string; // e.g., "state_licensed", "accredited"
+  status: "confirmed" | "not_found" | "unclear";
+  detail: string | null;
+  source_url: string | null;
+}
+
+/** AI-verified trust signals for a provider */
+export interface AiTrustSignals {
+  provider_name: string;
+  state: string;
+  category: string;
+  signals: AiTrustSignal[];
+  summary_score: number; // count of confirmed signals (0-8)
+  last_verified: string; // ISO 8601
+  model: string; // e.g., "sonar"
+  confidence: "high" | "medium" | "low";
 }
 
 /** Staff/owner info displayed on provider detail pages */
@@ -275,6 +315,9 @@ export interface FamilyMetadata {
   care_location?: string;
   language_preference?: string | string[];
   about_situation?: string;
+  // Benefits intake fields
+  income_range?: string;
+  medicaid_status?: string;
   notification_prefs?: {
     connection_updates?: { email?: boolean; sms?: boolean };
     saved_provider_alerts?: { email?: boolean; sms?: boolean };
@@ -286,10 +329,11 @@ export interface FamilyMetadata {
     published_at?: string;
   };
   benefits_results?: {
-    answers: Record<string, unknown>;
-    results: Record<string, unknown>;
-    location_display: string;
-    completed_at: string;
+    answers?: Record<string, unknown>;
+    results?: Record<string, unknown>;
+    location_display?: string;
+    completed_at?: string;
+    matchCount?: number;
   };
 }
 
@@ -336,6 +380,12 @@ export interface StudentMetadata {
   resume_url?: string;
   video_intro_url?: string;
   linkedin_url?: string;
+
+  // Documents (private, PII)
+  drivers_license_url?: string;
+  drivers_license_uploaded_at?: string;
+  car_insurance_url?: string;
+  car_insurance_uploaded_at?: string;
 
   // Credential engine (data model ready, UI Phase 2)
   total_verified_hours?: number;
@@ -425,6 +475,7 @@ export interface DeferredAction {
     comment: string;
     title?: string;
     relationship?: string;
+    reviewer_name?: string;
   };
   returnUrl: string;
   createdAt: string;

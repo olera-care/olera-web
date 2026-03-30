@@ -23,9 +23,6 @@ const EDITABLE_FIELDS = new Set([
   "upper_price",
   "contact_for_price",
   "google_rating",
-  "community_Score",
-  "value_score",
-  "information_availability_score",
   "provider_logo",
   "provider_images",
   "hero_image_url",
@@ -365,7 +362,7 @@ export async function PATCH(
 
                 await sendEmail({
                   to: newEmail,
-                  subject: `New care inquiry from ${familyName} on Olera`,
+                  subject: `A family is looking for care from ${current.provider_name || "your organization"}`,
                   html: connectionRequestEmail({
                     providerName: current.provider_name || "Provider",
                     familyName,
@@ -373,6 +370,9 @@ export async function PATCH(
                     message: additionalNotes,
                     viewUrl: `${siteUrl}/provider/connections`,
                   }),
+                  emailType: "connection_request",
+                  recipientType: "provider",
+                  providerId,
                 });
 
                 // Clear the flag on this connection

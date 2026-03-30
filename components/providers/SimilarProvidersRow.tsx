@@ -53,15 +53,23 @@ export default function SimilarProvidersRow({
           .select("*")
           .not("deleted", "is", true)
           .not("google_rating", "is", null)
-          .gte("google_rating", 4.0)
+          .gte("google_rating", 3.5)
           .not("provider_images", "is", null)
           .order("google_rating", { ascending: false })
-          .limit(8);
+          .limit(30);
 
         if (error || !data) {
           setProviders([]);
         } else {
-          const formatted = (data as IOSProvider[])
+          // Sort by evidence density: rating × log(reviewCount + 1)
+          const sorted = (data as IOSProvider[]).sort((a, b) => {
+            const aRating = (a.google_reviews_data as { rating?: number } | null)?.rating ?? a.google_rating ?? 0;
+            const bRating = (b.google_reviews_data as { rating?: number } | null)?.rating ?? b.google_rating ?? 0;
+            const aCount = (a.google_reviews_data as { review_count?: number } | null)?.review_count ?? 0;
+            const bCount = (b.google_reviews_data as { review_count?: number } | null)?.review_count ?? 0;
+            return (bRating * Math.log(bCount + 1)) - (aRating * Math.log(aCount + 1));
+          });
+          const formatted = sorted.slice(0, 8)
             .map(toCardFormat)
             .filter((p) => p.slug !== excludeSlug);
           setProviders(formatted);

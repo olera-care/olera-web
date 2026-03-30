@@ -196,9 +196,20 @@ function getReadSet(profileId: string): Set<string> {
 }
 
 function markAsRead(connectionId: string, profileId: string) {
+  // Update localStorage for backwards compatibility and immediate local state
   const readSet = getReadSet(profileId);
   readSet.add(connectionId);
   localStorage.setItem(getInboxReadKey(profileId), JSON.stringify([...readSet]));
+
+  // Persist to database (fire-and-forget, non-blocking)
+  fetch("/api/connections/mark-read", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ connectionId, profileId }),
+  }).catch((err) => {
+    console.error("[markAsRead] Failed to persist to database:", err);
+  });
+
   // Notify navbar badge hook to re-count
   window.dispatchEvent(new CustomEvent("olera:inbox-read"));
 }

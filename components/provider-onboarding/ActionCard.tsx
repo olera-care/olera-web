@@ -1,12 +1,42 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
 import type { Provider } from "@/lib/types/provider";
 import Link from "next/link";
 
 // ============================================================
 // Types
 // ============================================================
+
+export type NotificationType = "lead" | "message" | "question" | "review";
+
+interface FromProfile {
+  display_name: string;
+  city?: string | null;
+  state?: string | null;
+  image_url?: string | null;
+}
+
+export interface NotificationData {
+  type: NotificationType;
+  id: string;
+  created_at: string;
+  // Lead-specific
+  message?: string | null;
+  metadata?: {
+    care_type?: string;
+    auto_intro?: string;
+  } | null;
+  from_profile?: FromProfile | null;
+  // Question-specific
+  question?: string;
+  asker_name?: string | null;
+  // Review-specific
+  rating?: number;
+  comment?: string;
+  reviewer_name?: string;
+}
 
 export type ActionCardState =
   | "verify-form"
@@ -15,17 +45,25 @@ export type ActionCardState =
   | "no-access"
   | "no-access-success"
   | "already-claimed"
-  | "dispute-submitted";
+  | "dispute-submitted"
+  // Notification states (from email links)
+  | "notification-lead"
+  | "notification-question"
+  | "notification-review";
 
 interface ActionCardProps {
   provider: Provider;
   claimSession: string;
   initialState?: ActionCardState;
-  onVerificationComplete: () => void;
+  onVerificationComplete: (verifiedEmail?: string) => void;
   /** Pre-verified email hint from token validation */
   preVerifiedEmail?: string;
   /** Whether to highlight the card (attention state) */
   highlighted?: boolean;
+  /** Notification data when coming from email */
+  notificationData?: NotificationData | null;
+  /** Whether the user is currently signed in */
+  isSignedIn?: boolean;
 }
 
 // ============================================================
@@ -69,7 +107,70 @@ const TOOLTIP_CONTENT: Record<ActionCardState, { text: string; showTos?: boolean
   "dispute-submitted": {
     text: "Our team will review your dispute and contact you at the email provided.",
   },
+  "notification-lead": {
+    text: "A family is interested in your services. Verify your email to respond.",
+    showTos: true,
+  },
+  "notification-question": {
+    text: "Someone asked a question about your listing. Verify your email to answer.",
+    showTos: true,
+  },
+  "notification-review": {
+    text: "Someone left a review for your listing. Verify your email to respond.",
+    showTos: true,
+  },
 };
+
+// Care type labels
+const CARE_TYPE_LABELS: Record<string, string> = {
+  home_care: "Home Care",
+  home_health: "Home Health",
+  assisted_living: "Assisted Living",
+  memory_care: "Memory Care",
+  nursing_home: "Nursing Home",
+  independent_living: "Independent Living",
+};
+
+// Helper functions for notification display
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+function avatarGradient(name: string): string {
+  const gradients = [
+    "linear-gradient(135deg, #5fa3a3, #7ab8b8)",
+    "linear-gradient(135deg, #417272, #5fa3a3)",
+    "linear-gradient(135deg, #4d8a8a, #7ab8b8)",
+    "linear-gradient(135deg, #385e5e, #5fa3a3)",
+    "linear-gradient(135deg, #5fa3a3, #96c8c8)",
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return gradients[Math.abs(hash) % gradients.length];
+}
+
+function formatTimeAgo(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
+}
 
 // ============================================================
 // Info Tooltip Component
@@ -292,6 +393,8 @@ export default function ActionCard({
   onVerificationComplete,
   preVerifiedEmail,
   highlighted = false,
+  notificationData,
+  isSignedIn = false,
 }: ActionCardProps) {
   // Current state
   const [state, setState] = useState<ActionCardState>(initialState);
@@ -416,14 +519,14 @@ export default function ActionCard({
         return;
       }
 
-      // Code verified!
-      onVerificationComplete();
+      // Code verified — pass the verified email for auto-sign-in
+      onVerificationComplete(emailHint || undefined);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setVerifying(false);
     }
-  }, [code, provider.provider_id, claimSession, onVerificationComplete]);
+  }, [code, provider.provider_id, claimSession, onVerificationComplete, emailHint]);
 
   // Auto-submit code when 6 digits entered
   useEffect(() => {
@@ -583,11 +686,234 @@ export default function ActionCard({
   // ────────────────────────────────────────────────────────────
 
   const baseCardClass =
-    "relative z-10 bg-white rounded-2xl border-2 shadow-sm p-6 md:p-8 transition-all duration-300";
-  // Default: blue border to draw attention. Highlighted: orange/coral ring for urgent attention
+    "relative z-10 bg-white rounded-2xl shadow-sm p-8 md:p-10 transition-all duration-300";
+  // Default: quiet border. Highlighted: warm ring for urgent attention
   const cardClass = highlighted
-    ? `${baseCardClass} border-orange-400 ring-4 ring-orange-200 shadow-lg shadow-orange-100/50 animate-pulse-subtle`
-    : `${baseCardClass} border-primary-300 shadow-md shadow-primary-50`;
+    ? `${baseCardClass} border border-primary-200 ring-2 ring-primary-100 shadow-md`
+    : `${baseCardClass} border border-gray-200 shadow-sm`;
+
+  // ════════════════════════════════════════════════════════════
+  // RENDER: Notification States (Lead, Question, Review)
+  // ════════════════════════════════════════════════════════════
+
+  if (state === "notification-lead" && notificationData) {
+    const rawName = notificationData.from_profile?.display_name || "A family";
+    const rawImage = notificationData.from_profile?.image_url || null;
+    const rawLocation = [notificationData.from_profile?.city, notificationData.from_profile?.state].filter(Boolean).join(", ");
+    const careType = notificationData.metadata?.care_type;
+    const rawMessage = notificationData.metadata?.auto_intro;
+    const timeAgo = formatTimeAgo(notificationData.created_at);
+
+    // Always mask seeker info on the onboard page — full details revealed in /provider/connections
+    // after the provider verifies ownership. This protects seekers if email goes to wrong recipient.
+    const personName = rawName.split(" ")[0] || "A family";
+    const personImage: string | null = null;
+    const location = rawLocation ? rawLocation.split(",")[0]?.trim() : "";
+    const message = rawMessage ? rawMessage.slice(0, 40) + "..." : null;
+
+    return (
+      <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
+        {/* Mascot + Header */}
+        <div className="flex items-start gap-4 mb-6">
+          <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+          <div>
+            <h3 className="text-lg font-display font-bold text-gray-900">
+              A family in {notificationData.from_profile?.city || provider.city || "your area"} is looking for care
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
+          </div>
+        </div>
+
+        {/* Seeker info — flat, no nested card */}
+        <div className="border-t border-gray-100 pt-5 mb-6">
+          <div className="flex items-center gap-3">
+            {personImage ? (
+              <Image src={personImage} alt={personName} width={40} height={40} className="w-10 h-10 rounded-full object-cover shrink-0" />
+            ) : (
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
+                {getInitials(personName)}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-[15px] font-semibold text-gray-900">{personName}</p>
+              {(location || careType) && (
+                <p className="text-sm text-gray-500">
+                  {[location, careType ? (CARE_TYPE_LABELS[careType] || careType) : null].filter(Boolean).join(" · ")}
+                </p>
+              )}
+            </div>
+          </div>
+          {message && (
+            <p className="text-[15px] text-gray-500 mt-3 leading-relaxed italic">
+              &ldquo;{message}&rdquo;
+            </p>
+          )}
+        </div>
+
+        {/* CTA — always show "View full inquiry" when token-verified.
+            The provider proved identity via the email token. Browser session
+            is established in the background. No verify/claim UI. */}
+        {(isSignedIn || preVerifiedEmail) ? (
+          <Link
+            href={`/provider/connections?id=${notificationData.id}`}
+            className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+          >
+            See their message
+          </Link>
+        ) : (
+          <>
+            <button
+              onClick={() => setState("verify-form")}
+              className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
+            >
+              Verify to respond
+            </button>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              Olera connects families with quality senior care providers.
+            </p>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  if (state === "notification-question" && notificationData) {
+    const rawName = notificationData.asker_name || "Someone";
+    const rawQuestion = notificationData.question || "";
+    const timeAgo = formatTimeAgo(notificationData.created_at);
+
+    // Q&A is public data — no masking needed
+    const personName = rawName;
+    const question = rawQuestion;
+
+    return (
+      <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
+        {/* Mascot + Header */}
+        <div className="flex items-start gap-4 mb-6">
+          <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+          <div>
+            <h3 className="text-lg font-display font-bold text-gray-900">
+              Someone has a question about your services
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
+          </div>
+        </div>
+
+        {/* Question info — flat */}
+        <div className="border-t border-gray-100 pt-5 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
+              {getInitials(personName)}
+            </div>
+            <p className="text-[15px] font-semibold text-gray-900">{personName}</p>
+          </div>
+          {question && (
+            <p className="text-[15px] text-gray-500 mt-3 leading-relaxed italic">
+              &ldquo;{question}&rdquo;
+            </p>
+          )}
+        </div>
+
+        {/* CTA */}
+        {(isSignedIn || preVerifiedEmail) ? (
+          <Link
+            href={`/provider/qna?id=${notificationData.id}`}
+            className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+          >
+            View and answer
+          </Link>
+        ) : (
+          <>
+            <button
+              onClick={() => setState("verify-form")}
+              className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
+            >
+              Verify to answer
+            </button>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              Olera connects families with quality senior care providers.
+            </p>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  if (state === "notification-review" && notificationData) {
+    const rawName = notificationData.reviewer_name || "Someone";
+    const rating = notificationData.rating || 5;
+    const rawComment = notificationData.comment || "";
+    const timeAgo = formatTimeAgo(notificationData.created_at);
+
+    // Reviews are public data — no masking needed
+    const personName = rawName;
+    const comment = rawComment;
+
+    return (
+      <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
+        {/* Mascot + Header */}
+        <div className="flex items-start gap-4 mb-6">
+          <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+          <div>
+            <h3 className="text-lg font-display font-bold text-gray-900">
+              Someone left a review on your listing
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
+          </div>
+        </div>
+
+        {/* Review info — flat */}
+        <div className="border-t border-gray-100 pt-5 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
+              {getInitials(personName)}
+            </div>
+            <p className="text-[15px] font-semibold text-gray-900 flex-1">{personName}</p>
+            {/* Rating stars */}
+            <div className="flex items-center gap-0.5 shrink-0">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <svg
+                  key={star}
+                  className={`w-4 h-4 ${star <= rating ? "text-amber-400" : "text-gray-200"}`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              ))}
+            </div>
+          </div>
+          {comment && (
+            <p className="text-[15px] text-gray-500 mt-3 leading-relaxed italic">
+              &ldquo;{comment}&rdquo;
+            </p>
+          )}
+        </div>
+
+        {/* CTA */}
+        {(isSignedIn || preVerifiedEmail) ? (
+          <Link
+            href={`/provider/reviews?id=${notificationData.id}`}
+            className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+          >
+            View review
+          </Link>
+        ) : (
+          <>
+            <button
+              onClick={() => setState("verify-form")}
+              className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
+            >
+              Verify to respond
+            </button>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              Olera connects families with quality senior care providers.
+            </p>
+          </>
+        )}
+      </div>
+    );
+  }
 
   // ════════════════════════════════════════════════════════════
   // RENDER: Pre-verified State (from email campaign token)
@@ -612,10 +938,10 @@ export default function ActionCard({
         </div>
 
         <button
-          onClick={onVerificationComplete}
+          onClick={() => onVerificationComplete(emailHint || preVerifiedEmail || undefined)}
           className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
         >
-          Continue to sign in
+          Claim this listing
         </button>
       </div>
     );

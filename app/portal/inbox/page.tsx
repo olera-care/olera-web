@@ -42,6 +42,33 @@ function InboxContent() {
   const urlToken = searchParams.get("token");
   const urlRole = searchParams.get("role") as RoleFilter | null;
 
+  // Track email click-back if arriving from a family email link
+  const emailTrackingDone = useRef(false);
+  useEffect(() => {
+    if (emailTrackingDone.current) return;
+    const ref = searchParams.get("ref");
+    const eid = searchParams.get("eid");
+    if (ref === "email" && eid && activeProfile?.id) {
+      emailTrackingDone.current = true;
+      fetch("/api/activity/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actor_type: "family",
+          profile_id: activeProfile.id,
+          event_type: "email_click",
+          email_log_id: eid,
+          metadata: { source: "direct_link", destination: "/portal/inbox" },
+        }),
+      }).catch(() => {});
+      // Clean tracking params from URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete("ref");
+      url.searchParams.delete("eid");
+      window.history.replaceState(null, "", url.pathname + url.search);
+    }
+  }, [searchParams, activeProfile]);
+
   // Compute provider profile IDs and whether user has both account types
   const { providerProfileIds, hasProviderProfile, hasFamilyProfile } = useMemo(() => {
     const providerIds = new Set<string>();
@@ -219,7 +246,9 @@ function InboxContent() {
 
     try {
       const supabase = createClient();
-      const profileIds = profiles.map((p) => p.id);
+      // Use only the active profile ID for data isolation
+      // Each profile (organization/caregiver) should have its own isolated inbox
+      const activeProfileId = activeProfile.id;
 
       // Fire archived count in the background — JSONB filter queries are slower and
       // don't need to block the active conversations render.
@@ -230,13 +259,13 @@ function InboxContent() {
             supabase
               .from("connections")
               .select("id, metadata")
-              .in("from_profile_id", profileIds)
+              .eq("from_profile_id", activeProfileId)
               .in("type", ["inquiry", "request"])
               .filter("metadata->>archived", "eq", "true"),
             supabase
               .from("connections")
               .select("id, metadata")
-              .in("to_profile_id", profileIds)
+              .eq("to_profile_id", activeProfileId)
               .in("type", ["inquiry", "request"])
               .filter("metadata->>archived", "eq", "true"),
           ]);
@@ -258,14 +287,14 @@ function InboxContent() {
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
-          .in("from_profile_id", profileIds)
+          .eq("from_profile_id", activeProfileId)
           .eq("type", "inquiry")
           .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
-          .in("to_profile_id", profileIds)
+          .eq("to_profile_id", activeProfileId)
           .eq("type", "inquiry")
           .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
@@ -273,14 +302,14 @@ function InboxContent() {
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
-          .in("from_profile_id", profileIds)
+          .eq("from_profile_id", activeProfileId)
           .eq("type", "request")
           .eq("status", "accepted")
           .order("updated_at", { ascending: false }),
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
-          .in("to_profile_id", profileIds)
+          .eq("to_profile_id", activeProfileId)
           .eq("type", "request")
           .eq("status", "accepted")
           .order("updated_at", { ascending: false }),
@@ -413,6 +442,37 @@ function InboxContent() {
         return [...merged, ...keptFromPrev];
       });
 
+      // Sync navbar badge with actual unread count from loaded connections
+      // This is the authoritative source — we have the connections and can check read state
+      if (activeProfile) {
+        const activeProfileId = activeProfile.id;
+        // Get localStorage read IDs for this profile
+        let localStorageReadIds = new Set<string>();
+        try {
+          const stored = localStorage.getItem(`olera_inbox_read_${activeProfileId}`);
+          if (stored) {
+            localStorageReadIds = new Set(JSON.parse(stored));
+          }
+        } catch { /* localStorage unavailable */ }
+
+        // Count unread connections
+        let unreadCount = 0;
+        for (const conn of enriched) {
+          const meta = conn.metadata as Record<string, unknown> | null;
+          const readBy = (meta?.read_by as Record<string, string>) || {};
+          const isReadInDb = !!readBy[activeProfileId];
+          const isReadInLocalStorage = localStorageReadIds.has(conn.id);
+          if (!isReadInDb && !isReadInLocalStorage) {
+            unreadCount++;
+          }
+        }
+
+        // Dispatch sync event to update navbar badge
+        window.dispatchEvent(new CustomEvent("olera:inbox-sync", {
+          detail: { count: unreadCount, profileIds: [activeProfileId] }
+        }));
+      }
+
       // Auto-select first conversation if none selected and on desktop
       if (!selectedIdRef.current && enriched.length > 0 && window.innerWidth >= 1024) {
         setSelectedId(enriched[0].id);
@@ -437,13 +497,19 @@ function InboxContent() {
 
   // Lazy-load archived connections when the user opens the archive section
   const archivedLoadedRef = useRef(false);
+  // Reset archived cache when active profile changes (profile switching)
+  useEffect(() => {
+    archivedLoadedRef.current = false;
+  }, [activeProfile?.id]);
+
   const fetchArchived = useCallback(async () => {
-    if (archivedLoadedRef.current || !activeProfile || !profiles.length || !isSupabaseConfigured()) return;
+    if (archivedLoadedRef.current || !activeProfile || !isSupabaseConfigured()) return;
     archivedLoadedRef.current = true;
 
     try {
       const supabase = createClient();
-      const pIds = profiles.map((p) => p.id);
+      // Use only the active profile ID for data isolation (same as fetchConnections)
+      const activeProfileId = activeProfile.id;
 
       // Archive state is in metadata.archived = true (not status column)
       // Include both inquiry and request types
@@ -451,14 +517,14 @@ function InboxContent() {
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
-          .in("from_profile_id", pIds)
+          .eq("from_profile_id", activeProfileId)
           .in("type", ["inquiry", "request"])
           .filter("metadata->>archived", "eq", "true")
           .order("updated_at", { ascending: false }),
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
-          .in("to_profile_id", pIds)
+          .eq("to_profile_id", activeProfileId)
           .in("type", ["inquiry", "request"])
           .filter("metadata->>archived", "eq", "true")
           .order("updated_at", { ascending: false }),
@@ -507,7 +573,7 @@ function InboxContent() {
       console.error("[inbox] fetch archived error:", err);
       archivedLoadedRef.current = false; // Allow retry
     }
-  }, [activeProfile, profiles]);
+  }, [activeProfile]);
 
   // Handle message sent — update thread in local state
   const handleMessageSent = useCallback((connectionId: string, thread: ThreadMessage[]) => {
@@ -525,20 +591,6 @@ function InboxContent() {
       )
     );
   }, []);
-
-  // Handle care request updated — update message + metadata in local state
-  const handleCareRequestUpdated = useCallback(
-    (connectionId: string, message: string, metadata: Record<string, unknown>) => {
-      setConnections((prev) =>
-        prev.map((conn) =>
-          conn.id === connectionId
-            ? { ...conn, message, metadata }
-            : conn
-        )
-      );
-    },
-    []
-  );
 
   const selectedConnection = connections.find((c) => c.id === selectedId) || null;
 
@@ -720,7 +772,6 @@ function InboxContent() {
         connection={selectedConnection}
         activeProfile={activeProfile ?? null}
         onMessageSent={handleMessageSent}
-        onCareRequestUpdated={handleCareRequestUpdated}
         onBack={() => setSelectedId(null)}
         detailOpen={detailOpen}
         onToggleDetail={() => setDetailOpen((p) => !p)}

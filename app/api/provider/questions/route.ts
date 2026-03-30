@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     const { data: profile } = await supabase
       .from("business_profiles")
-      .select("id, slug")
+      .select("id, slug, source_provider_id")
       .eq("account_id", account.id)
       .in("type", ["organization", "caregiver"])
       .single();
@@ -46,11 +46,30 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || "all";
 
-    // Build query
-    let query = supabase
+    // Use service client to bypass RLS for question lookups
+    const db = getServiceClient();
+
+    // Build list of possible provider_id values (questions may be stored with slug, source_provider_id, or UUID)
+    // Also check the olera-providers slug — the detail page may use the iOS slug when storing questions
+    const providerIdVariants = [profile.slug, profile.id];
+    if (profile.source_provider_id) {
+      providerIdVariants.push(profile.source_provider_id);
+      const { data: iosProvider } = await db
+        .from("olera-providers")
+        .select("slug")
+        .eq("provider_id", profile.source_provider_id)
+        .single();
+      if (iosProvider?.slug && !providerIdVariants.includes(iosProvider.slug)) {
+        providerIdVariants.push(iosProvider.slug);
+      }
+    }
+
+    // Build query - match any of the possible provider_id formats
+    // Include metadata for read tracking
+    let query = db
       .from("provider_questions")
-      .select("id, question, answer, asker_name, asker_email, status, is_public, answered_at, created_at, updated_at")
-      .eq("provider_id", profile.slug)
+      .select("id, question, answer, asker_name, asker_email, status, is_public, answered_at, created_at, updated_at, metadata")
+      .in("provider_id", providerIdVariants)
       .order("created_at", { ascending: false });
 
     // Apply status filter
@@ -71,6 +90,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       questions: questions ?? [],
       providerSlug: profile.slug,
+      profileId: profile.id,
     });
   } catch (err) {
     console.error("Provider questions GET error:", err);
@@ -122,7 +142,7 @@ export async function PATCH(request: NextRequest) {
 
     const { data: profile } = await supabase
       .from("business_profiles")
-      .select("id, slug")
+      .select("id, slug, source_provider_id")
       .eq("account_id", account.id)
       .in("type", ["organization", "caregiver"])
       .single();
@@ -137,7 +157,7 @@ export async function PATCH(request: NextRequest) {
     // Verify the question belongs to this provider
     const { data: question, error: questionError } = await db
       .from("provider_questions")
-      .select("id, provider_id, answer")
+      .select("id, provider_id, question, answer, asker_name")
       .eq("id", id)
       .single();
 
@@ -146,8 +166,22 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Question not found" }, { status: 404 });
     }
 
-    if (question.provider_id !== profile.slug) {
-      console.error("Provider mismatch:", { questionProviderId: question.provider_id, profileSlug: profile.slug });
+    // Check if question's provider_id matches any of our possible identifiers (slug, UUID, source_provider_id, or iOS slug)
+    const providerIdVariants = [profile.slug, profile.id];
+    if (profile.source_provider_id) {
+      providerIdVariants.push(profile.source_provider_id);
+      const { data: iosProvider } = await db
+        .from("olera-providers")
+        .select("slug")
+        .eq("provider_id", profile.source_provider_id)
+        .single();
+      if (iosProvider?.slug && !providerIdVariants.includes(iosProvider.slug)) {
+        providerIdVariants.push(iosProvider.slug);
+      }
+    }
+
+    if (!providerIdVariants.includes(question.provider_id)) {
+      console.error("Provider mismatch:", { questionProviderId: question.provider_id, providerIdVariants });
       return NextResponse.json({ error: "Not authorized to answer this question" }, { status: 403 });
     }
 
@@ -170,6 +204,21 @@ export async function PATCH(request: NextRequest) {
       console.error("Failed to answer question:", updateError);
       return NextResponse.json({ error: `Failed to publish: ${updateError.message}` }, { status: 500 });
     }
+
+    // Log provider-side activity (fire-and-forget)
+    db.from("provider_activity").insert({
+      provider_id: question.provider_id,
+      profile_id: profile.id,
+      event_type: "question_responded",
+      metadata: {
+        question_id: id,
+        question_preview: question.question?.substring(0, 100),
+        answer_preview: answer.trim().substring(0, 100),
+        asker_name: question.asker_name,
+      },
+    }).then(({ error: actErr }: { error: { message: string } | null }) => {
+      if (actErr) console.error("[provider_activity] question_responded insert failed:", actErr);
+    });
 
     return NextResponse.json({ question: updated });
   } catch (err) {

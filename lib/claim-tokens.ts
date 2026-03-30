@@ -88,13 +88,46 @@ export function validateClaimToken(
 
 /**
  * Generate a claim URL for email campaigns
+ * Routes to the provider onboard page which handles the full claim flow
  */
 export function generateClaimUrl(
   providerId: string,
   providerSlug: string,
   email: string,
-  baseUrl: string = process.env.NEXT_PUBLIC_APP_URL || "https://olera.care"
+  baseUrl: string = process.env.NEXT_PUBLIC_APP_URL || "https://olera.care",
+  options?: {
+    headline?: string;
+    message?: string;
+  }
 ): string {
   const token = generateClaimToken(providerId, email);
-  return `${baseUrl}/provider/${providerSlug}/onboard?token=${token}`;
+  const url = new URL(`${baseUrl}/provider/${providerSlug}/onboard`);
+  url.searchParams.set("action", "campaign");
+  url.searchParams.set("otk", token);
+  if (options?.headline) {
+    url.searchParams.set("headline", options.headline);
+  }
+  if (options?.message) {
+    url.searchParams.set("message", options.message);
+  }
+  return url.toString();
+}
+
+/**
+ * Generate a notification URL with embedded claim token.
+ * Used for lead/question/review email links — enables one-click access.
+ */
+export function generateNotificationUrl(
+  providerSlug: string,
+  email: string,
+  action: "lead" | "question" | "review",
+  actionId: string,
+  baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"
+): string {
+  const token = generateClaimToken(providerSlug, email);
+  const url = new URL(`${baseUrl}/provider/${providerSlug}/onboard`);
+  url.searchParams.set("action", action);
+  url.searchParams.set("actionId", actionId);
+  url.searchParams.set("otk", token);
+  return url.toString();
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import { questionAnsweredEmail } from "@/lib/email-templates";
+import { generateProviderSlug } from "@/lib/slugify";
 
 /**
  * GET /api/admin/questions
@@ -19,6 +20,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const providerId = searchParams.get("provider_id");
+    const needsEmail = searchParams.get("needs_email") === "true";
     const countOnly = searchParams.get("count_only") === "true";
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
@@ -30,6 +32,7 @@ export async function GET(request: NextRequest) {
       let countQuery = db.from("provider_questions").select("*", { count: "exact", head: true });
       if (status) countQuery = countQuery.eq("status", status);
       if (providerId) countQuery = countQuery.eq("provider_id", providerId);
+      if (needsEmail) countQuery = countQuery.contains("metadata", { needs_provider_email: true });
       const { count, error } = await countQuery;
       if (error) {
         console.error("Admin questions count error:", error);
@@ -46,6 +49,7 @@ export async function GET(request: NextRequest) {
 
     if (status) query = query.eq("status", status);
     if (providerId) query = query.eq("provider_id", providerId);
+    if (needsEmail) query = query.contains("metadata", { needs_provider_email: true });
 
     const { data: questions, count, error } = await query;
 
@@ -54,7 +58,98 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
     }
 
-    return NextResponse.json({ questions: questions ?? [], count: count ?? 0 });
+    // Enrich with provider display names
+    const slugs = [...new Set((questions ?? []).map((q) => q.provider_id).filter(Boolean))];
+    let providerNames: Record<string, string> = {};
+    let providerEditorIds: Record<string, string> = {};
+    if (slugs.length > 0) {
+      // Try business_profiles first
+      const { data: bpProviders } = await db
+        .from("business_profiles")
+        .select("slug, display_name, source_provider_id")
+        .in("slug", slugs);
+      providerNames = Object.fromEntries(
+        (bpProviders ?? []).map((p) => [p.slug, p.display_name])
+      );
+      providerEditorIds = Object.fromEntries(
+        (bpProviders ?? []).filter((p) => p.source_provider_id).map((p) => [p.slug, p.source_provider_id])
+      );
+
+      // For slugs not found in business_profiles, try olera-providers
+      const missingSlugs = slugs.filter((s) => !providerNames[s]);
+      if (missingSlugs.length > 0) {
+        const { data: iosProviders } = await db
+          .from("olera-providers")
+          .select("slug, provider_id, provider_name")
+          .in("slug", missingSlugs)
+          .not("deleted", "is", true);
+        for (const p of iosProviders ?? []) {
+          if (p.slug && p.provider_name) providerNames[p.slug] = p.provider_name;
+          if (p.slug && p.provider_id) providerEditorIds[p.slug] = p.provider_id;
+        }
+
+        // Also try by provider_id for legacy slugs
+        const stillMissing = missingSlugs.filter((s) => !providerNames[s]);
+        if (stillMissing.length > 0) {
+          const { data: legacyProviders } = await db
+            .from("olera-providers")
+            .select("provider_id, provider_name")
+            .in("provider_id", stillMissing)
+            .not("deleted", "is", true);
+          for (const p of legacyProviders ?? []) {
+            if (p.provider_id && p.provider_name) providerNames[p.provider_id] = p.provider_name;
+          }
+        }
+
+        // Strategy 4: reverse-match auto-generated slugs for providers with slug=null
+        const finalMissing = missingSlugs.filter((s) => !providerNames[s]);
+        if (finalMissing.length > 0) {
+          // For each missing slug, extract a name prefix and search candidates
+          for (const missingSlug of finalMissing) {
+            const slugParts = missingSlug.split("-");
+            const namePrefix = slugParts.slice(0, 3).join("-");
+            const { data: candidates } = await db
+              .from("olera-providers")
+              .select("provider_id, provider_name, state")
+              .not("deleted", "is", true)
+              .is("slug", null)
+              .ilike("provider_name", `${namePrefix.replace(/-/g, "%")}%`)
+              .limit(20);
+            if (candidates) {
+              for (const c of candidates) {
+                const generatedSlug = generateProviderSlug(c.provider_name, c.state);
+                if (generatedSlug === missingSlug) {
+                  providerNames[missingSlug] = c.provider_name;
+                  providerEditorIds[missingSlug] = c.provider_id;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    const enriched = (questions ?? []).map((q) => ({
+      ...q,
+      provider_name: providerNames[q.provider_id] || null,
+      provider_editor_id: providerEditorIds[q.provider_id] || null,
+    }));
+
+    // Fetch tab counts for pending and needs_email
+    const [pendingCount, needsEmailCount] = await Promise.all([
+      db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "pending"),
+      db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }),
+    ]);
+
+    return NextResponse.json({
+      questions: enriched,
+      count: count ?? 0,
+      tabCounts: {
+        pending: pendingCount.count ?? 0,
+        needs_email: needsEmailCount.count ?? 0,
+      },
+    });
   } catch (err) {
     console.error("Admin questions error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -126,10 +221,30 @@ export async function PATCH(request: NextRequest) {
             answer,
             providerUrl: `${siteUrl}/provider/${providerSlug}`,
           }),
+          emailType: "question_answered",
+          recipientType: "family",
+          providerId: providerSlug,
         });
       } catch (emailErr) {
         console.error("Answer notification email failed:", emailErr);
       }
+    }
+
+    // Log provider-side activity when admin answers (fire-and-forget)
+    if (answer && data?.provider_id) {
+      db.from("provider_activity").insert({
+        provider_id: data.provider_id,
+        event_type: "question_responded",
+        metadata: {
+          question_id: id,
+          question_preview: data.question?.substring(0, 100),
+          answer_preview: answer.trim().substring(0, 100),
+          asker_name: data.asker_name,
+          answered_by_admin: true,
+        },
+      }).then(({ error: actErr }: { error: { message: string } | null }) => {
+        if (actErr) console.error("[provider_activity] question_responded insert failed:", actErr);
+      });
     }
 
     return NextResponse.json({ question: data });

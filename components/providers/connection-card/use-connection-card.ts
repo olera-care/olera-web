@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
@@ -76,6 +77,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     onConnectionCreated,
   } = props;
 
+  const router = useRouter();
   const { user, account, activeProfile, profiles, isLoading: authLoading, openAuth, refreshAccountData } =
     useAuth();
   const savedProviders = useSavedProviders();
@@ -98,13 +100,55 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const [submitting, setSubmitting] = useState(false);
   const [connectionId, setConnectionId] = useState<string | null>(null);
 
+  // Track where to redirect after enrichment save/skip
+  const postEnrichmentRedirect = useRef<string | null>(null);
+  // Lock: prevents checkExisting from overriding enrichment state
+  const enrichmentLock = useRef(false);
+
   // ── Derived ──
   const availableCareTypes = mapProviderCareTypes();
   const notificationEmail = user?.email || "your email";
 
+  // ── Profile pre-fill data (must be before callbacks that use it) ──
+  const profileMeta = (activeProfile?.metadata || {}) as Record<string, unknown>;
+  const hasProfileCareDetails = Boolean(
+    profileMeta.relationship_to_recipient && profileMeta.timeline
+  );
+  const profileRecipient = profileMeta.relationship_to_recipient as string | undefined;
+  const profileTimeline = profileMeta.timeline as string | undefined;
+  const initialRecipient = profileRecipient
+    ? RECIPIENT_FROM_PROFILE[profileRecipient] || null
+    : null;
+  const initialUrgency = profileTimeline
+    ? URGENCY_FROM_TIMELINE[profileTimeline] || null
+    : null;
+
+  // ── Smart routing: check if user is fully onboarded ──
+  // Profile complete = has name, location, care types, and care details
+  const isProfileComplete = Boolean(
+    activeProfile?.display_name &&
+    activeProfile?.city &&
+    activeProfile?.state &&
+    activeProfile?.care_types?.length &&
+    profileMeta.relationship_to_recipient &&
+    profileMeta.timeline
+  );
+  // Matches live = care_post.status === "active"
+  const carePost = profileMeta.care_post as { status?: string } | undefined;
+  const isMatchesLive = carePost?.status === "active";
+  // Fully onboarded = profile complete AND matches live
+  const isFullyOnboarded = isProfileComplete && isMatchesLive;
+
+  // ── Prefetch /welcome so post-enrichment navigation is instant ──
+  useEffect(() => {
+    router.prefetch("/welcome");
+  }, [router]);
+
   // ── Resolve initial state — show form immediately for everyone ──
   useEffect(() => {
     if (authLoading) return;
+    // Don't reset to form if user is answering enrichment questions
+    if (enrichmentLock.current) return;
     // Both guests and signed-in users see the form ("default" state).
     // Signed-in users get pre-filled fields; the DB check below
     // may upgrade to "connected" if they already have an active connection.
@@ -114,6 +158,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // ── Check for existing connection + fetch previous intent (logged-in users) ──
   useEffect(() => {
     if (!user || !profiles.length || !isSupabaseConfigured()) return;
+    // Don't override enrichment state — the user is answering post-submission questions
+    if (enrichmentLock.current) return;
 
     const checkExisting = async () => {
       const supabase = createClient();
@@ -339,7 +385,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     setIntentData((prev) => ({ ...prev, urgency: val }));
   }, []);
 
-  // ── Submit guest connection request via API ──
+  // ── Submit guest connection request via API (instant account creation) ──
   const submitGuestRequest = useCallback(async (email: string) => {
     setError("");
     setSubmitting(true);
@@ -364,39 +410,28 @@ export function useConnectionCard(props: ConnectionCardProps) {
         throw new Error(data.error || "Failed to send request.");
       }
 
-      // Store claim token in localStorage for inbox access
-      if (data.claimToken) {
+      window.dispatchEvent(new CustomEvent("olera:connection-created"));
+
+      // Establish session instantly using tokenHash
+      if (data.tokenHash) {
         try {
-          localStorage.setItem(CLAIM_TOKEN_KEY, data.claimToken);
-        } catch {
-          // localStorage may fail in private browsing
+          const supabase = createClient();
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: data.tokenHash,
+            type: "magiclink",
+          });
+
+          if (verifyError) {
+            console.error("Failed to establish session:", verifyError);
+          }
+        } catch (sessionErr) {
+          console.error("Session error:", sessionErr);
         }
       }
 
-      // Store redirect destination for magic link handler
-      // When user clicks magic link, they'll be redirected here after auth
-      if (data.connectionId && data.claimToken) {
-        const redirectUrl = `/portal/inbox?id=${data.connectionId}&token=${data.claimToken}`;
-        storeGuestRedirect(redirectUrl, data.claimToken);
-      }
-
-      // Redirect to post-connection success page if callback provided
-      if (data.connectionId && onConnectionCreated) {
-        onConnectionCreated(data.connectionId);
-        return;
-      }
-
-      // No redirect callback — update local state
-      if (data.created_at) {
-        setPendingRequestDate(data.created_at);
-      }
-      if (data.connectionId) {
-        setConnectionId(data.connectionId);
-      }
-
-      setCardState("connected");
-      setPendingRequestDate((prev) => prev || new Date().toISOString());
-      setPhoneRevealed(true);
+      // Navigate to /welcome with connection info
+      const welcomeUrl = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
+      router.push(welcomeUrl);
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "message" in err
@@ -407,7 +442,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     } finally {
       setSubmitting(false);
     }
-  }, [providerId, providerName, providerSlug, intentData, onConnectionCreated]);
+  }, [providerId, providerName, providerSlug, intentData, router]);
 
   // ── Connect (submit from intent or returning) ──
   const connect = useCallback(() => {
@@ -464,25 +499,30 @@ export function useConnectionCard(props: ConnectionCardProps) {
     setCardState("intent");
   }, []);
 
-  // ── Submit inquiry form (v2.0 — simple form, no multi-step) ──
+  // ── Submit inquiry form (v2.0 — optimistic enrichment) ──
   const submitInquiryForm = useCallback(async (formData: {
     email: string;
     fullName: string;
     phone: string;
     message: string;
   }) => {
+    if (enrichmentLock.current) return; // Prevent double-submit
     setError("");
-    setSubmitting(true);
+
+    // ── OPTIMISTIC: Show enrichment instantly (before API) ──
+    enrichmentLock.current = true;
+    postEnrichmentRedirect.current = `/welcome?provider=${providerSlug}`;
+    setCardState("enrichment");
+
+    // ── BACKGROUND: Fire API without blocking the UI ──
+    const formIntentData = {
+      careRecipient: null,
+      careType: null,
+      urgency: null,
+      additionalNotes: formData.message,
+    };
 
     try {
-      // Build intent data from the message (minimal — enrichment comes after)
-      const formIntentData = {
-        careRecipient: null,
-        careType: null,
-        urgency: null,
-        additionalNotes: formData.message,
-      };
-
       if (user) {
         // Authenticated user flow
         const res = await fetch("/api/connections/request", {
@@ -505,16 +545,18 @@ export function useConnectionCard(props: ConnectionCardProps) {
         if (!res.ok) throw new Error(data.error || "Failed to send request.");
 
         window.dispatchEvent(new CustomEvent("olera:connection-created"));
-
-        await refreshAccountData();
         if (data.created_at) setPendingRequestDate(data.created_at);
         if (data.connectionId) setConnectionId(data.connectionId);
 
-        // Show enrichment first — redirect happens after save/skip
-        setCardState("enrichment");
-        setPhoneRevealed(true);
+        // Update redirect with real connectionId
+        postEnrichmentRedirect.current = isFullyOnboarded
+          ? `/portal/inbox?id=${data.connectionId}`
+          : `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
+
+        // Refresh account data in background (non-blocking)
+        refreshAccountData().catch(() => {});
       } else {
-        // Guest flow — use email for connection
+        // Guest flow — instant account creation + session
         const res = await fetch("/api/connections/request", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -536,87 +578,109 @@ export function useConnectionCard(props: ConnectionCardProps) {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to send request.");
 
-        // Store claim token
-        if (data.claimToken) {
-          try { localStorage.setItem(CLAIM_TOKEN_KEY, data.claimToken); } catch {}
-        }
-        if (data.connectionId && data.claimToken) {
-          storeGuestRedirect(
-            `/portal/inbox?id=${data.connectionId}&token=${data.claimToken}`,
-            data.claimToken
-          );
-        }
-
         window.dispatchEvent(new CustomEvent("olera:connection-created"));
 
-        if (data.created_at) setPendingRequestDate(data.created_at);
-        if (data.connectionId) setConnectionId(data.connectionId);
+        try {
+          localStorage.setItem("olera_pending_connection", JSON.stringify({
+            connectionId: data.connectionId,
+            providerId,
+            providerSlug,
+            providerName,
+          }));
+        } catch {
+          // localStorage not available
+        }
 
-        // Show enrichment first — redirect happens after save/skip
-        setCardState("enrichment");
-        setPhoneRevealed(true);
+        if (data.connectionId) setConnectionId(data.connectionId);
+        if (data.created_at) setPendingRequestDate(data.created_at);
+
+        // Update redirect with real connectionId
+        postEnrichmentRedirect.current = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
+
+        // Establish session in background
+        if (data.accessToken && data.refreshToken) {
+          const supabase = createClient();
+          supabase.auth.setSession({
+            access_token: data.accessToken,
+            refresh_token: data.refreshToken,
+          }).then(({ data: sessionData, error: sessionError }) => {
+            if (sessionError) {
+              console.error("[guest-connection] Background session error:", sessionError);
+            } else {
+              const userId = sessionData?.session?.user?.id;
+              if (userId && refreshAccountData) {
+                refreshAccountData(userId).catch(() => {});
+              }
+            }
+          }).catch(err => {
+            console.error("[guest-connection] Background session error:", err);
+          });
+        }
       }
     } catch (err: unknown) {
+      // ── ROLLBACK: API failed — snap back to form ──
+      enrichmentLock.current = false;
+      postEnrichmentRedirect.current = null;
+      setCardState("default");
       const msg =
         err && typeof err === "object" && "message" in err
           ? (err as { message: string }).message
           : String(err);
       console.error("Inquiry form error:", msg);
       setError(msg || "Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
     }
-  }, [user, providerId, providerName, providerSlug, refreshAccountData, onConnectionCreated]);
+  }, [user, providerId, providerName, providerSlug, refreshAccountData, isFullyOnboarded]);
 
-  // ── Save enrichment data (post-submit) ──
-  const saveEnrichment = useCallback(async (data: {
-    careRecipient: string;
-    urgency: string;
-  }) => {
-    setSubmitting(true);
-    try {
-      if (connectionId) {
-        // Guest users need claim token for authorization
-        let claimToken: string | undefined;
-        if (!user) {
-          try {
-            claimToken = localStorage.getItem(CLAIM_TOKEN_KEY) || undefined;
-          } catch {
-            // localStorage may fail in private browsing
-          }
-        }
+  // ── Navigate after enrichment (save or skip) ──
+  const navigatePostEnrichment = useCallback(() => {
+    enrichmentLock.current = false;
 
-        await fetch("/api/connections/update-intent", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            connectionId,
-            careRecipient: data.careRecipient,
-            urgency: data.urgency,
-            ...(claimToken ? { claimToken } : {}),
-          }),
-        });
-      }
-    } catch {
-      // Non-blocking
-    } finally {
-      setSubmitting(false);
-      // Redirect to connected page if callback available, else show connected state
-      if (connectionId && onConnectionCreated) {
-        onConnectionCreated(connectionId);
-      } else {
-        setCardState("connected");
-      }
-    }
-  }, [connectionId, onConnectionCreated, user]);
-
-  const skipEnrichment = useCallback(() => {
-    if (connectionId && onConnectionCreated) {
+    if (onConnectionCreated && connectionId) {
       onConnectionCreated(connectionId);
+    } else if (postEnrichmentRedirect.current) {
+      router.push(postEnrichmentRedirect.current);
     } else {
       setCardState("connected");
     }
-  }, [connectionId, onConnectionCreated]);
+  }, [connectionId, onConnectionCreated, router]);
+
+  // ── Save enrichment data (post-submit) → update connection + sync to profile ──
+  const saveEnrichment = useCallback(async (data?: {
+    careRecipient?: string;
+    urgency?: string;
+  }) => {
+    if (!connectionId || !data?.careRecipient || !data?.urgency) {
+      navigatePostEnrichment();
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/connections/update-intent", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId,
+          careRecipient: data.careRecipient,
+          urgency: data.urgency,
+        }),
+      });
+
+      if (!res.ok) {
+        console.error("[enrichment] update-intent failed:", await res.text());
+      }
+    } catch (err) {
+      console.error("[enrichment] update-intent error:", err);
+    } finally {
+      setSubmitting(false);
+    }
+
+    navigatePostEnrichment();
+  }, [connectionId, navigatePostEnrichment]);
+
+  const skipEnrichment = useCallback(() => {
+    navigatePostEnrichment();
+  }, [navigatePostEnrichment]);
 
   // Total steps: 2 for logged-in, 3 for guest (includes email capture)
   const totalSteps = user ? 2 : 3;
@@ -624,6 +688,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // Pre-fill data for signed-in users
   const userEmail = user?.email || "";
   const userName = account?.display_name || "";
+  const userPhone = activeProfile?.phone || "";
 
   return {
     // State
@@ -665,5 +730,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
     // Pre-fill for signed-in users
     userEmail,
     userName,
+    userPhone,
+    hasProfileCareDetails,
+    initialRecipient,
+    initialUrgency,
   };
 }

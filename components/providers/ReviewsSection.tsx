@@ -63,6 +63,8 @@ interface ReviewsSectionProps {
   googleReviewsData?: GoogleReviewsData | null;
   /** Google Place ID for "See all on Google" link */
   placeId?: string | null;
+  /** Hide the top border (e.g., when this is the first section) */
+  hideBorder?: boolean;
 }
 
 // ── Component ──
@@ -75,6 +77,7 @@ export default function ReviewsSection({
   isDemoMode = false,
   googleReviewsData,
   placeId,
+  hideBorder = false,
 }: ReviewsSectionProps) {
   const { user, account } = useAuth();
 
@@ -238,7 +241,7 @@ export default function ReviewsSection({
   // ── Render ──
 
   return (
-    <div className="py-8 border-t border-gray-200">
+    <div className={`py-8 ${hideBorder ? "" : "border-t border-gray-200"}`}>
       <div className="flex items-center gap-3 mb-6">
         <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight">
           What families are saying
@@ -278,9 +281,10 @@ export default function ReviewsSection({
                 href={googleMapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
               >
-                See all on Google <span aria-hidden="true">&rarr;</span>
+                See all on Google
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
               </a>
             )}
           </div>
@@ -514,6 +518,7 @@ export default function ReviewsSection({
         providerId={providerId}
         providerSlug={providerSlug}
         providerName={providerName}
+        googlePlaceId={placeId}
         onReviewSubmitted={(review) => setRealReviews((prev) => [review, ...prev])}
       />
 

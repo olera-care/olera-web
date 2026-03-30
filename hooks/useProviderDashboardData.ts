@@ -49,7 +49,7 @@ export function useProviderDashboardData(profile: Profile | null) {
         const { data } = await supabase
           .from("olera-providers")
           .select(
-            "provider_images, provider_logo, community_Score, value_score, information_availability_score, google_rating"
+            "provider_images, provider_logo, google_rating"
           )
           .eq("provider_id", profile.source_provider_id!)
           .single();
@@ -71,18 +71,6 @@ export function useProviderDashboardData(profile: Profile | null) {
               currentBaseMeta.images && currentBaseMeta.images.length > 0
                 ? currentBaseMeta.images
                 : logoImages,
-            community_score:
-              currentBaseMeta.community_score ??
-              (data.community_Score as number | null) ??
-              undefined,
-            value_score:
-              currentBaseMeta.value_score ??
-              (data.value_score as number | null) ??
-              undefined,
-            info_score:
-              currentBaseMeta.info_score ??
-              (data.information_availability_score as number | null) ??
-              undefined,
             rating:
               currentBaseMeta.rating ??
               (data.google_rating as number | null) ??

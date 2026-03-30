@@ -38,6 +38,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             error={hook.error}
             initialEmail={hook.userEmail}
             initialName={hook.userName}
+            initialPhone={hook.userPhone}
           />
         )}
 
@@ -47,6 +48,8 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             onSave={hook.saveEnrichment}
             onSkip={hook.skipEnrichment}
             saving={hook.submitting}
+            initialRecipient={hook.initialRecipient}
+            initialUrgency={hook.initialUrgency}
           />
         )}
 

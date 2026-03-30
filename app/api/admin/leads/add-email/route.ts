@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { connectionRequestEmail } from "@/lib/email-templates";
 
 /**
@@ -96,16 +96,29 @@ export async function POST(request: NextRequest) {
             familyName = fromProfile?.display_name || `${msg.seeker_first_name || ""} ${msg.seeker_last_name || ""}`.trim() || "A family";
           } catch { /* use defaults */ }
 
+          const emailSubject = `A family is looking for care from ${profile.display_name || "your organization"}`;
+          const emailLogId = await reserveEmailLogId({
+            to: email,
+            subject: emailSubject,
+            emailType: "add_email_notification",
+            recipientType: "provider",
+            providerId: profileId,
+          });
+
           await sendEmail({
             to: email,
-            subject: `New care inquiry from ${familyName} on Olera`,
+            subject: emailSubject,
             html: connectionRequestEmail({
               providerName: profile.display_name || "Provider",
               familyName,
               careType,
               message: additionalNotes,
-              viewUrl: `${siteUrl}/provider/connections`,
+              viewUrl: appendTrackingParams(`${siteUrl}/provider/connections`, emailLogId),
             }),
+            emailType: "add_email_notification",
+            recipientType: "provider",
+            providerId: profileId,
+            emailLogId: emailLogId ?? undefined,
           });
 
           // Clear the flag

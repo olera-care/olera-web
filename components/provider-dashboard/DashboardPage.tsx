@@ -339,8 +339,8 @@ function DashboardHeader({ slug }: { slug: string | null }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 lg:gap-4 mb-4 lg:mb-8">
       <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display">Dashboard</h1>
-        <p className="text-sm lg:text-[15px] text-gray-500 mt-0.5 lg:mt-1">Manage your listing and track your profile</p>
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display">Your listing</h1>
+        <p className="text-sm lg:text-[15px] text-gray-500 mt-0.5 lg:mt-1">Manage your profile and how families find you</p>
       </div>
 
       {slug && (
@@ -477,7 +477,7 @@ function MobileCompletenessSheet({
 
       {/* Sheet */}
       <div
-        className="fixed inset-x-0 bottom-0 z-50 lg:hidden bg-white rounded-t-3xl shadow-xl max-h-[85vh] overflow-y-auto"
+        className="fixed inset-x-0 bottom-0 z-50 lg:hidden bg-white rounded-t-3xl shadow-xl max-h-[85dvh] overflow-y-auto pb-[env(safe-area-inset-bottom)]"
         style={{ animation: "slide-up 0.3s ease-out both" }}
       >
         {/* Handle */}

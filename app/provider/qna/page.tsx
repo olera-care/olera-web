@@ -16,24 +16,11 @@ interface Question {
   answer?: string;
   answered_at?: string;
   is_public?: boolean;
+  metadata?: Record<string, unknown>;
+  isNew?: boolean;
 }
 
-// ── Helper to mark question as read (scoped by provider slug) ──
-
-function markQuestionAsRead(questionId: string, providerSlug: string): void {
-  try {
-    const qnaReadKey = `olera_qna_read_${providerSlug}`;
-    const stored = localStorage.getItem(qnaReadKey);
-    const readIds: string[] = stored ? JSON.parse(stored) : [];
-    if (!readIds.includes(questionId)) {
-      readIds.push(questionId);
-      localStorage.setItem(qnaReadKey, JSON.stringify(readIds));
-      window.dispatchEvent(new CustomEvent("olera:qna-read"));
-    }
-  } catch {
-    // localStorage unavailable
-  }
-}
+import { markQuestionAsRead, migrateQnaReadData } from "@/hooks/useUnreadQnACount";
 
 // ── Helpers ──
 
@@ -208,26 +195,46 @@ function PendingQuestionCard({
   question,
   onReply,
   isMobile,
+  isNew,
+  onMarkAsRead,
 }: {
   question: Question;
   onReply: (question: Question, answer?: string) => Promise<boolean>;
   isMobile: boolean;
+  isNew?: boolean;
+  onMarkAsRead?: () => void;
 }) {
   const [answer, setAnswer] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasBeenViewed, setHasBeenViewed] = useState(false);
+
+  // Mark as read when card is clicked/interacted with
+  const handleInteraction = useCallback(() => {
+    if (isNew && !hasBeenViewed && onMarkAsRead) {
+      setHasBeenViewed(true);
+      onMarkAsRead();
+    }
+  }, [isNew, hasBeenViewed, onMarkAsRead]);
 
   // Mobile: tap to open reply sheet
   if (isMobile) {
     return (
       <button
         type="button"
-        onClick={() => onReply(question)}
-        className="w-full text-left bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden active:bg-vanilla-50/60 transition-colors"
+        onClick={() => {
+          handleInteraction();
+          onReply(question);
+        }}
+        className="w-full text-left bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden active:bg-vanilla-50/60 transition-colors relative"
       >
+        {/* New indicator dot */}
+        {isNew && !hasBeenViewed && (
+          <div className="absolute top-4 right-4 w-2.5 h-2.5 rounded-full bg-primary-500 ring-2 ring-white shadow-sm" />
+        )}
         <div className="p-4">
           <div className="flex items-start gap-3">
             <Avatar name={question.asker_name} size="lg" />
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 pr-4">
               <p className="text-[15px] font-semibold text-gray-900 leading-snug line-clamp-2">
                 {question.question}
               </p>
@@ -268,11 +275,18 @@ function PendingQuestionCard({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden hover:border-gray-300/80 transition-colors">
+    <div
+      className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden hover:border-gray-300/80 transition-colors relative"
+      onClick={handleInteraction}
+    >
+      {/* New indicator dot */}
+      {isNew && !hasBeenViewed && (
+        <div className="absolute top-6 right-6 w-2.5 h-2.5 rounded-full bg-primary-500 ring-2 ring-white shadow-sm" />
+      )}
       <div className="p-6">
         <div className="flex items-start gap-4">
           <Avatar name={question.asker_name} size="lg" />
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 pr-4">
             <p className="text-lg font-semibold text-gray-900 leading-snug">
               {question.question}
             </p>
@@ -287,6 +301,7 @@ function PendingQuestionCard({
           <textarea
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
+            onFocus={handleInteraction}
             placeholder="Type your answer here..."
             rows={4}
             className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3.5 text-[15px] text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent focus:bg-white transition-all"
@@ -465,10 +480,10 @@ function BottomSheet({
         aria-modal="true"
         aria-labelledby="sheet-title"
         className={`fixed z-50 bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-300 ease-out
-          /* Mobile: bottom sheet */
-          inset-x-0 bottom-0 max-h-[90vh] rounded-t-3xl
+          /* Mobile: bottom sheet - use dvh for proper mobile Safari support */
+          inset-x-0 bottom-0 max-h-[90dvh] rounded-t-3xl pb-[env(safe-area-inset-bottom)]
           /* Desktop: side drawer */
-          lg:inset-y-0 lg:top-16 lg:right-0 lg:left-auto lg:bottom-auto lg:w-[520px] lg:max-w-[calc(100vw-24px)] lg:h-[calc(100dvh-64px)] lg:max-h-none lg:rounded-none
+          lg:inset-y-0 lg:top-16 lg:right-0 lg:left-auto lg:bottom-auto lg:w-[520px] lg:max-w-[calc(100vw-24px)] lg:h-[calc(100dvh-64px)] lg:max-h-none lg:rounded-none lg:pb-0
           ${isOpen
             ? "translate-y-0 lg:translate-x-0"
             : "translate-y-full lg:translate-y-0 lg:translate-x-full"
@@ -850,6 +865,7 @@ export default function ProviderQnAPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [profileId, setProfileId] = useState<string | null>(null);
 
   // Sheet state
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
@@ -878,19 +894,46 @@ export default function ProviderQnAPage() {
           throw new Error("Failed to fetch questions");
         }
         const data = await res.json();
-        setQuestions(data.questions || []);
-
-        // Mark all pending questions as read when page loads
-        const pendingQuestions = (data.questions || []).filter((q: Question) => q.status === "pending");
-        for (const q of pendingQuestions) {
-          if (providerProfile?.slug) {
-            markQuestionAsRead(q.id, providerProfile.slug);
-          }
+        const fetchedProfileId = data.profileId as string | undefined;
+        if (fetchedProfileId) {
+          setProfileId(fetchedProfileId);
+          // Migrate localStorage data from slug-based to profileId-based key
+          migrateQnaReadData(providerProfile.slug, fetchedProfileId);
         }
 
-        // Dispatch event to sync navbar badge with actual count (fixes stale badge)
+        // Determine isNew for each question based on database read_by with localStorage fallback
+        const questionsWithReadState = (data.questions || []).map((q: Question) => {
+          // Only pending questions can be "new"
+          if (q.status !== "pending") {
+            return { ...q, isNew: false };
+          }
+
+          // Check database read_by first
+          const meta = q.metadata || {};
+          const readBy = (meta.read_by as Record<string, string>) || {};
+          const isReadInDb = fetchedProfileId ? !!readBy[fetchedProfileId] : false;
+
+          if (isReadInDb) {
+            return { ...q, isNew: false };
+          }
+
+          // Fallback to localStorage
+          try {
+            const readKey = fetchedProfileId ? `olera_qna_read_${fetchedProfileId}` : `olera_qna_read_${providerProfile.slug}`;
+            const stored = localStorage.getItem(readKey);
+            const readIds: string[] = stored ? JSON.parse(stored) : [];
+            return { ...q, isNew: !readIds.includes(q.id) };
+          } catch {
+            return { ...q, isNew: true };
+          }
+        });
+
+        setQuestions(questionsWithReadState);
+
+        // Count unread questions and sync navbar badge
+        const unreadCount = questionsWithReadState.filter((q: Question) => q.isNew).length;
         window.dispatchEvent(new CustomEvent("olera:qna-sync", {
-          detail: { count: 0, providerSlug: providerProfile?.slug }
+          detail: { count: unreadCount, providerSlug: providerProfile?.slug }
         }));
       } catch (err) {
         console.error("Failed to fetch questions:", err);
@@ -911,6 +954,25 @@ export default function ProviderQnAPage() {
     pending: questions.filter((q) => q.status === "pending").length,
     published: questions.filter((q) => q.status === "answered").length,
   }), [questions]);
+
+  // Handle marking a question as read
+  const handleMarkAsRead = useCallback((questionId: string) => {
+    if (!profileId) return;
+
+    // Update local state
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === questionId ? { ...q, isNew: false } : q))
+    );
+
+    // Persist to database
+    markQuestionAsRead(questionId, profileId);
+
+    // Sync navbar badge (decrement count)
+    const currentUnreadCount = questions.filter((q) => q.isNew && q.id !== questionId).length;
+    window.dispatchEvent(new CustomEvent("olera:qna-sync", {
+      detail: { count: currentUnreadCount, providerSlug: providerProfile?.slug }
+    }));
+  }, [profileId, questions, providerProfile?.slug]);
 
   // Handle reply (from card or sheet)
   const handleReply = useCallback(async (question: Question, answer?: string): Promise<boolean> => {
@@ -1064,6 +1126,8 @@ export default function ProviderQnAPage() {
                       question={question}
                       onReply={handleReply}
                       isMobile={isMobile}
+                      isNew={question.isNew}
+                      onMarkAsRead={() => handleMarkAsRead(question.id)}
                     />
                   ) : (
                     <PublishedQuestionCard

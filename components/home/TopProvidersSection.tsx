@@ -30,16 +30,30 @@ export default function TopProvidersSection({ geoState, geoCity }: TopProvidersS
       try {
         const supabase = createClient();
 
+        // Sort by evidence density: rating × log(reviewCount + 1)
+        // Fetch more than needed, sort client-side (JSONB fields can't be sorted in Supabase)
+        const sortByEvidence = (providers: IOSProvider[]): IOSProvider[] => {
+          return providers.sort((a, b) => {
+            const aRating = (a.google_reviews_data as { rating?: number } | null)?.rating ?? a.google_rating ?? 0;
+            const bRating = (b.google_reviews_data as { rating?: number } | null)?.rating ?? b.google_rating ?? 0;
+            const aCount = (a.google_reviews_data as { review_count?: number } | null)?.review_count ?? 0;
+            const bCount = (b.google_reviews_data as { review_count?: number } | null)?.review_count ?? 0;
+            const aScore = aRating * Math.log(aCount + 1);
+            const bScore = bRating * Math.log(bCount + 1);
+            return bScore - aScore;
+          });
+        };
+
         const buildQuery = (opts?: { state?: string; city?: string }) => {
           let q = supabase
             .from(PROVIDERS_TABLE)
             .select("*")
             .not("deleted", "is", true)
             .not("google_rating", "is", null)
-            .gte("google_rating", 4.0)
+            .gte("google_rating", 3.5)
             .not("provider_images", "is", null)
             .order("google_rating", { ascending: false })
-            .limit(8);
+            .limit(30); // Fetch more, sort client-side by evidence density
           if (opts?.state) q = q.eq("state", opts.state);
           if (opts?.city) q = q.ilike("city", opts.city);
           return q;
@@ -55,16 +69,16 @@ export default function TopProvidersSection({ geoState, geoCity }: TopProvidersS
           const [cityResult, stateResult, nationalResult] = await Promise.all(queries);
 
           if (cityResult.data && cityResult.data.length > 0) {
-            setFeaturedProviders((cityResult.data as IOSProvider[]).map(toCardFormat));
+            setFeaturedProviders(sortByEvidence(cityResult.data as IOSProvider[]).slice(0, 8).map(toCardFormat));
             setLocationLabel(`${geoCity}, ${US_STATES[geoState]}`);
           } else if (stateResult.data && stateResult.data.length > 0) {
-            setFeaturedProviders((stateResult.data as IOSProvider[]).map(toCardFormat));
+            setFeaturedProviders(sortByEvidence(stateResult.data as IOSProvider[]).slice(0, 8).map(toCardFormat));
             setLocationLabel(US_STATES[geoState]);
           } else {
             setLocationLabel(null);
             setFeaturedProviders(
               nationalResult.data
-                ? (nationalResult.data as IOSProvider[]).map(toCardFormat)
+                ? sortByEvidence(nationalResult.data as IOSProvider[]).slice(0, 8).map(toCardFormat)
                 : []
             );
           }
@@ -74,7 +88,7 @@ export default function TopProvidersSection({ geoState, geoCity }: TopProvidersS
             console.error("Error fetching featured providers:", error?.message);
             setFeaturedProviders([]);
           } else {
-            setFeaturedProviders((data as IOSProvider[]).map(toCardFormat));
+            setFeaturedProviders(sortByEvidence(data as IOSProvider[]).slice(0, 8).map(toCardFormat));
           }
         }
       } catch (err) {

@@ -3,12 +3,13 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useCitySearch } from "@/hooks/use-city-search";
+import { citySearchService } from "@/lib/us-city-search";
 import { useRouter } from "next/navigation";
 import BrowseCard from "@/components/browse/BrowseCard";
-import MatchesActivatedBanner from "@/components/browse/MatchesActivatedBanner";
 import { useNavbar } from "@/components/shared/NavbarContext";
 import Pagination from "@/components/ui/Pagination";
 import { createClient } from "@/lib/supabase/client";
+import { expandCityAliases } from "@/lib/city-aliases";
 import {
   type Provider as SupabaseProvider,
   PROVIDERS_TABLE,
@@ -100,10 +101,26 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     return () => disableAutoHide();
   }, [enableAutoHide, disableAutoHide]);
 
-  // Filter states
-  const initialLocation = searchQuery?.trim() || "";
-  const [searchLocation, setSearchLocation] = useState(initialLocation);
-  const [locationInput, setLocationInput] = useState(initialLocation);
+  // Filter states — resolve ZIP codes to city names before first query
+  const rawLocation = searchQuery?.trim() || "";
+  const [searchLocation, setSearchLocation] = useState(rawLocation);
+  const [locationInput, setLocationInput] = useState(rawLocation);
+
+  // If the URL contains a raw ZIP (e.g. ?location=10001), resolve it to a city
+  // once the zip-index loads. This prevents "0 Home Care in 10001".
+  const zipResolvedRef = useRef(false);
+  useEffect(() => {
+    if (zipResolvedRef.current || !/^\d{3,5}$/.test(rawLocation)) return;
+    // Preload ZIP data then resolve
+    citySearchService.preloadZips().then(() => {
+      const resolved = citySearchService.search(rawLocation, 1)[0];
+      if (resolved) {
+        zipResolvedRef.current = true;
+        setSearchLocation(resolved.full);
+        setLocationInput(resolved.full);
+      }
+    });
+  }, [rawLocation]);
   const [selectedRating, setSelectedRating] = useState("any");
   const [sortBy, setSortBy] = useState("recommended");
   const [hoveredProviderId, setHoveredProviderId] = useState<string | null>(null);
@@ -158,14 +175,19 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
           }
         }
 
-        // Apply location filter
+        // Apply location filter (with city alias expansion for metros like NYC)
         if (searchLocation) {
           const trimmed = searchLocation.trim();
           const cityStateMatch = trimmed.match(/^(.+),\s*([A-Z]{2})$/i);
           if (cityStateMatch) {
             const city = cityStateMatch[1].trim();
             const state = cityStateMatch[2].toUpperCase();
-            query = query.ilike("city", `%${city}%`).eq("state", state);
+            const aliases = expandCityAliases(city);
+            if (aliases.length === 1) {
+              query = query.ilike("city", `%${aliases[0]}%`).eq("state", state);
+            } else {
+              query = query.in("city", aliases).eq("state", state);
+            }
           } else if (/^[A-Z]{2}$/i.test(trimmed)) {
             query = query.eq("state", trimmed.toUpperCase());
           } else {
@@ -194,7 +216,12 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
           if (cityStateMatch) {
             const city = cityStateMatch[1].trim();
             const state = cityStateMatch[2].toUpperCase();
-            bpQuery = bpQuery.ilike("city", `%${city}%`).eq("state", state);
+            const aliases = expandCityAliases(city);
+            if (aliases.length === 1) {
+              bpQuery = bpQuery.ilike("city", `%${aliases[0]}%`).eq("state", state);
+            } else {
+              bpQuery = bpQuery.in("city", aliases).eq("state", state);
+            }
           } else if (/^[A-Z]{2}$/i.test(trimmed)) {
             bpQuery = bpQuery.eq("state", trimmed.toUpperCase());
           } else {
@@ -322,7 +349,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
 
   // Auto-detect location on mount ONLY if no location was provided via URL
   useEffect(() => {
-    if (!initialLocation) {
+    if (!rawLocation) {
       detectLocation();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -717,9 +744,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       <div className="lg:flex">
         {/* Left Panel - Provider List */}
         <div className="flex-1 min-w-0 px-4 sm:px-6 lg:pl-8 lg:pr-6 py-6">
-          {/* Banners - Inside left panel, above heading */}
-          <MatchesActivatedBanner />
-
           {/* Heading + Sort */}
           <div className="relative z-20">
             <div className="flex items-baseline justify-between gap-4 mb-6">

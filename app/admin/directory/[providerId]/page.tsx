@@ -183,17 +183,43 @@ export default function AdminDirectoryDetailPage() {
         const detailRes = await fetch(`/api/admin/directory/${providerId}`);
         if (detailRes.ok) {
           const data = await detailRes.json();
+          const prevCount = images.length + rawImages.length;
+          const newCount = (data.images?.length ?? 0) + (data.rawImages?.length ?? 0);
           setImages(data.images ?? []);
           setRawImages(data.rawImages ?? []);
-          // Update hero_image_url in form if it changed
-          if (data.provider.hero_image_url !== formData.hero_image_url) {
-            setFormData((prev) => ({ ...prev, hero_image_url: data.provider.hero_image_url }));
-            setOriginalData((prev) => ({ ...prev, hero_image_url: data.provider.hero_image_url }));
+          // Sync provider fields that image actions can change
+          setFormData((prev) => ({
+            ...prev,
+            hero_image_url: data.provider.hero_image_url,
+            provider_images: data.provider.provider_images,
+            provider_logo: data.provider.provider_logo,
+          }));
+          setOriginalData((prev) => ({
+            ...prev,
+            hero_image_url: data.provider.hero_image_url,
+            provider_images: data.provider.provider_images,
+            provider_logo: data.provider.provider_logo,
+          }));
+          // Show feedback for delete actions
+          if (action === "delete_image") {
+            if (newCount < prevCount) {
+              setSaveMessage({ type: "success", text: "Image deleted." });
+            } else {
+              setSaveMessage({ type: "error", text: "Delete sent but image count unchanged — check server logs." });
+            }
+            setTimeout(() => setSaveMessage(null), 3000);
           }
         }
+      } else {
+        const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        console.error(`[handleImageAction] ${action} failed:`, res.status, err);
+        setSaveMessage({ type: "error", text: err.error || `Image action failed (${res.status}).` });
+        setTimeout(() => setSaveMessage(null), 6000);
       }
     } catch (err) {
       console.error("Image action failed:", err);
+      setSaveMessage({ type: "error", text: "Network error during image action." });
+      setTimeout(() => setSaveMessage(null), 4000);
     } finally {
       setActionLoading(null);
     }
@@ -498,13 +524,10 @@ export default function AdminDirectoryDetailPage() {
           </div>
         </Section>
 
-        {/* Scores */}
-        <Section title="Scores">
+        {/* Google Rating (read-only reference) */}
+        <Section title="Google Rating">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <FieldInput label="Google Rating" value={formData.google_rating as string} onChange={(v) => updateField("google_rating", v === "" ? null : Number(v))} type="number" step="0.1" />
-            <FieldInput label="Community Score" value={formData.community_Score as string} onChange={(v) => updateField("community_Score", v === "" ? null : Number(v))} type="number" step="0.1" />
-            <FieldInput label="Value Score" value={formData.value_score as string} onChange={(v) => updateField("value_score", v === "" ? null : Number(v))} type="number" step="0.1" />
-            <FieldInput label="Info Availability" value={formData.information_availability_score as string} onChange={(v) => updateField("information_availability_score", v === "" ? null : Number(v))} type="number" step="0.1" />
           </div>
         </Section>
 
@@ -557,11 +580,10 @@ export default function AdminDirectoryDetailPage() {
           {/* Classified images */}
           {images.length > 0 && (
             <div className="mb-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">Classified Images</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {images.map((img) => (
                   <div key={img.id} className="relative group">
-                    <div className="aspect-square rounded-lg overflow-hidden bg-gray-200 border-2 border-transparent hover:border-primary-400 transition-colors">
+                    <div className={`aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-sm transition-all duration-200 ${img.is_hero ? "ring-2 ring-yellow-400 ring-offset-2" : "hover:shadow-md"}`}>
                       {img.is_accessible ? (
                         <img
                           src={img.image_url}
@@ -570,71 +592,94 @@ export default function AdminDirectoryDetailPage() {
                           onError={(e) => { (e.target as HTMLImageElement).className = "hidden"; }}
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Inaccessible</div>
+                        <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 gap-1.5">
+                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" /></svg>
+                          <span className="text-[11px]">Unavailable</span>
+                        </div>
                       )}
 
+                      {/* Persistent badges */}
                       {img.is_hero && (
-                        <div className="absolute top-1 left-1 bg-yellow-400 text-yellow-900 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold" title="Hero image">
+                        <div className="absolute top-1.5 left-1.5 bg-yellow-400 text-yellow-900 rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold shadow-sm" title="Hero image">
                           ★
                         </div>
                       )}
 
-                      <div className="absolute top-1 right-1">
-                        <Badge variant={img.image_type === "photo" ? "verified" : img.image_type === "logo" ? "pending" : "default"}>
+                      <div className="absolute top-1.5 right-1.5">
+                        <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full backdrop-blur-sm ${img.image_type === "photo" ? "bg-white/80 text-gray-700" : img.image_type === "logo" ? "bg-orange-50/80 text-orange-700" : "bg-gray-100/80 text-gray-500"}`}>
                           {img.image_type}
-                        </Badge>
+                        </span>
                       </div>
 
                       {img.review_status === "admin_overridden" && (
-                        <div className="absolute bottom-1 left-1 bg-purple-100 text-purple-700 text-[10px] px-1.5 py-0.5 rounded font-medium">
+                        <div className="absolute bottom-1.5 left-1.5 bg-purple-50/90 text-purple-600 text-[10px] px-1.5 py-0.5 rounded-full font-medium backdrop-blur-sm">
                           Overridden
                         </div>
                       )}
+
+                      {/* Hover overlay with actions */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-between p-2">
+                        <div className="flex gap-1">
+                          {!img.is_hero && img.is_accessible && (
+                            <button
+                              onClick={() => handleImageAction("set_hero", img.image_url)}
+                              disabled={actionLoading !== null}
+                              className="w-7 h-7 rounded-lg bg-white/90 hover:bg-white text-gray-700 flex items-center justify-center transition-colors disabled:opacity-50 shadow-sm"
+                              title="Set as hero"
+                            >
+                              <span className="text-sm">★</span>
+                            </button>
+                          )}
+                          {img.image_type !== "photo" && (
+                            <button
+                              onClick={() => handleImageAction("override_type", img.image_url, "photo")}
+                              disabled={actionLoading !== null}
+                              className="h-7 px-2 rounded-lg bg-white/90 hover:bg-white text-gray-700 text-[10px] font-medium flex items-center transition-colors disabled:opacity-50 shadow-sm"
+                              title="Mark as photo"
+                            >
+                              Photo
+                            </button>
+                          )}
+                          {img.image_type !== "logo" && (
+                            <button
+                              onClick={() => handleImageAction("override_type", img.image_url, "logo")}
+                              disabled={actionLoading !== null}
+                              className="h-7 px-2 rounded-lg bg-white/90 hover:bg-white text-gray-700 text-[10px] font-medium flex items-center transition-colors disabled:opacity-50 shadow-sm"
+                              title="Mark as logo"
+                            >
+                              Logo
+                            </button>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => {
+                            if (window.confirm("Delete this image? This cannot be undone.")) {
+                              handleImageAction("delete_image", img.image_url);
+                            }
+                          }}
+                          disabled={actionLoading !== null}
+                          className="w-7 h-7 rounded-lg bg-white/90 hover:bg-red-50 text-gray-500 hover:text-red-600 flex items-center justify-center transition-colors disabled:opacity-50 shadow-sm"
+                          title="Delete image"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="mt-1 text-xs text-gray-500">
-                      <p>{img.classification_method} ({(img.classification_confidence * 100).toFixed(0)}%)</p>
-                      {img.width && img.height && <p>{img.width}x{img.height}</p>}
-                    </div>
-
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {img.image_type !== "photo" && (
-                        <button
-                          onClick={() => handleImageAction("override_type", img.image_url, "photo")}
-                          disabled={actionLoading !== null}
-                          className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50"
-                        >
-                          Mark Photo
-                        </button>
-                      )}
-                      {img.image_type !== "logo" && (
-                        <button
-                          onClick={() => handleImageAction("override_type", img.image_url, "logo")}
-                          disabled={actionLoading !== null}
-                          className="text-[10px] px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded hover:bg-orange-200 disabled:opacity-50"
-                        >
-                          Mark Logo
-                        </button>
-                      )}
-                      {!img.is_hero && img.is_accessible && (
-                        <button
-                          onClick={() => handleImageAction("set_hero", img.image_url)}
-                          disabled={actionLoading !== null}
-                          className="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 disabled:opacity-50"
-                        >
-                          Set Hero
-                        </button>
-                      )}
+                    {/* Subtle metadata below */}
+                    <div className="mt-1.5 text-[11px] text-gray-400 leading-tight">
+                      <span>{img.classification_method} · {(img.classification_confidence * 100).toFixed(0)}%</span>
+                      {img.width && img.height && <span> · {img.width}x{img.height}</span>}
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200">
+              <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
                 <button
                   onClick={() => handleImageAction("mark_reviewed")}
                   disabled={actionLoading !== null}
-                  className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                  className="px-3 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
                 >
                   Mark All Reviewed
                 </button>
@@ -642,9 +687,9 @@ export default function AdminDirectoryDetailPage() {
                   <button
                     onClick={() => handleImageAction("clear_hero")}
                     disabled={actionLoading !== null}
-                    className="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 disabled:opacity-50 transition-colors"
+                    className="px-3 py-1.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors"
                   >
-                    Clear Hero (Use Stock)
+                    Clear Hero
                   </button>
                 )}
               </div>
@@ -654,40 +699,75 @@ export default function AdminDirectoryDetailPage() {
           {/* Raw images fallback */}
           {images.length === 0 && rawImages.length > 0 && (
             <div>
-              <p className="text-xs text-gray-500 mb-3">
-                Raw images from provider record — run classification script for AI analysis.
+              <p className="text-[11px] text-gray-400 mb-3">
+                Unclassified images — run classification script for metadata.
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {rawImages.map((url, i) => (
-                  <div key={i} className="relative">
-                    <div className="aspect-square rounded-lg overflow-hidden bg-gray-200">
+                  <div key={i} className="relative group">
+                    <div className={`aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-sm transition-all duration-200 ${formData.hero_image_url === url ? "ring-2 ring-yellow-400 ring-offset-2" : "hover:shadow-md"}`}>
                       <img
                         src={url}
                         alt=""
                         className="w-full h-full object-cover"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                        onError={(e) => {
+                          const el = e.target as HTMLImageElement;
+                          el.style.display = "none";
+                          const parent = el.parentElement;
+                          if (parent && !parent.querySelector(".img-fallback")) {
+                            const fallback = document.createElement("div");
+                            fallback.className = "img-fallback w-full h-full flex flex-col items-center justify-center text-gray-400 gap-1.5";
+                            fallback.innerHTML = `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" /></svg><span class="text-[11px]">Unavailable</span>`;
+                            parent.appendChild(fallback);
+                          }
+                        }}
                       />
-                    </div>
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      <button
-                        onClick={() => handleImageAction("set_hero", url)}
-                        disabled={actionLoading !== null}
-                        className="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 disabled:opacity-50"
-                      >
-                        Set as Hero
-                      </button>
+
+                      {formData.hero_image_url === url && (
+                        <div className="absolute top-1.5 left-1.5 bg-yellow-400 text-yellow-900 rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold shadow-sm" title="Hero image">
+                          ★
+                        </div>
+                      )}
+
+                      {/* Hover overlay with actions */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-between p-2">
+                        <div className="flex gap-1">
+                          {formData.hero_image_url !== url && (
+                            <button
+                              onClick={() => handleImageAction("set_hero", url)}
+                              disabled={actionLoading !== null}
+                              className="w-7 h-7 rounded-lg bg-white/90 hover:bg-white text-gray-700 flex items-center justify-center transition-colors disabled:opacity-50 shadow-sm"
+                              title="Set as hero"
+                            >
+                              <span className="text-sm">★</span>
+                            </button>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => {
+                            if (window.confirm("Delete this image? This cannot be undone.")) {
+                              handleImageAction("delete_image", url);
+                            }
+                          }}
+                          disabled={actionLoading !== null}
+                          className="w-7 h-7 rounded-lg bg-white/90 hover:bg-red-50 text-gray-500 hover:text-red-600 flex items-center justify-center transition-colors disabled:opacity-50 shadow-sm"
+                          title="Delete image"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
               {!!formData.hero_image_url && (
-                <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200">
+                <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
                   <button
                     onClick={() => handleImageAction("clear_hero")}
                     disabled={actionLoading !== null}
-                    className="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 disabled:opacity-50 transition-colors"
+                    className="px-3 py-1.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors"
                   >
-                    Clear Hero (Use Stock)
+                    Clear Hero
                   </button>
                 </div>
               )}

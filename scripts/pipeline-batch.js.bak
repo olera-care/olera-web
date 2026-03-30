@@ -1,0 +1,1294 @@
+#!/usr/bin/env node
+/**
+ * Olera City Expansion Pipeline — Batch Processor
+ *
+ * Processes post-discovery pipeline steps for multiple cities:
+ *   node pipeline-batch.js --batch expansion-dir/ --phase all
+ *
+ * Phases:
+ *   clean   — Keyword filter, AI classify, category map, name check, IDs, dedup
+ *   load    — Upload to Supabase, geocode, out-of-area cleanup
+ *   enrich  — Descriptions, reviews, trust signals, images (parallel streams)
+ *   finalize — Notion updates, final report
+ *   all     — Run clean → load → enrich → finalize
+ */
+
+'use strict';
+
+// ---------------------------------------------------------------------------
+// Dependencies
+// ---------------------------------------------------------------------------
+
+// Ensure node_modules resolve from main olera-web repo (worktrees lack node_modules)
+const MAIN_REPO = require('path').resolve(process.env.HOME, 'Desktop/olera-web');
+module.paths.unshift(require('path').join(MAIN_REPO, 'node_modules'));
+
+// Load .env.local — try repo root first, then main olera-web dir
+const envPaths = [
+  require('path').resolve(__dirname, '..', '.env.local'),
+  require('path').resolve(MAIN_REPO, '.env.local'),
+];
+for (const p of envPaths) {
+  if (require('fs').existsSync(p)) {
+    require('dotenv').config({ path: p });
+    break;
+  }
+}
+
+const fs = require('fs');
+const path = require('path');
+const { createClient } = require('@supabase/supabase-js');
+const csvParse = require('csv-parse/sync');
+
+// ---------------------------------------------------------------------------
+// CLI Parsing
+// ---------------------------------------------------------------------------
+
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const opts = {
+    batch: null,        // path to expansion dir or .md file
+    phase: 'all',       // clean | load | enrich | finalize | all
+    expansionDir: path.resolve(process.env.HOME, 'Desktop/TJ-hq/Olera/Provider Database/Expansion'),
+    dedupCsv: path.resolve(process.env.HOME, 'Desktop/TJ-hq/Olera/Provider Database/olera-providers_rows.csv'),
+    resume: false,
+    dryRun: false,
+    concurrency: 5,
+    help: false,
+  };
+
+  for (let i = 0; i < args.length; i++) {
+    switch (args[i]) {
+      case '--batch':       opts.batch = args[++i]; break;
+      case '--phase':       opts.phase = args[++i]; break;
+      case '--expansion-dir': opts.expansionDir = args[++i]; break;
+      case '--dedup-csv':   opts.dedupCsv = args[++i]; break;
+      case '--resume':      opts.resume = true; break;
+      case '--dry-run':     opts.dryRun = true; break;
+      case '--concurrency': opts.concurrency = parseInt(args[++i]) || 5; break;
+      case '--help': case '-h': opts.help = true; break;
+    }
+  }
+
+  return opts;
+}
+
+function printUsage() {
+  console.log(`
+Olera City Pipeline — Batch Processor
+
+Usage:
+  node pipeline-batch.js --batch <dir-or-md> [--phase <phase>] [options]
+
+Required:
+  --batch <path>        Expansion directory with per-city discovery CSVs,
+                        OR a .md batch file (will look for CSVs in --expansion-dir)
+
+Options:
+  --phase <phase>       Phase to run: clean | load | enrich | finalize | all (default: all)
+  --expansion-dir <dir> Base expansion directory (default: ~/Desktop/TJ-hq/.../Expansion)
+  --dedup-csv <path>    Path to full provider export CSV for dedup
+  --resume              Skip cities already marked Complete in Notion
+  --dry-run             Print what would happen without executing
+  --concurrency <n>     Max parallel API calls per service (default: 5)
+  -h, --help            Show this help
+
+Examples:
+  # Run full pipeline on all cities in expansion dir:
+  node pipeline-batch.js --batch ~/Desktop/TJ-hq/.../Expansion --phase all
+
+  # Run only enrichment:
+  node pipeline-batch.js --batch ~/Desktop/TJ-hq/.../Expansion --phase enrich
+
+  # Resume after interruption:
+  node pipeline-batch.js --batch ~/Desktop/TJ-hq/.../Expansion --phase all --resume
+`);
+}
+
+// ---------------------------------------------------------------------------
+// Configuration & Constants
+// ---------------------------------------------------------------------------
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
+const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+// Notion token: set NOTION_TOKEN env var, or the script will skip Notion updates
+// (Claude Code uses MCP for Notion, so this is only needed for standalone runs)
+const NOTION_TOKEN = process.env.NOTION_API_KEY || process.env.NOTION_TOKEN;
+
+const NOTION_DB_ID = '4cf471e5-0d7e-43a5-a793-a87410e2ae24';
+
+const CATEGORY_MAP = {
+  'assisted_living': 'Assisted Living',
+  'memory_care': 'Memory Care',
+  'nursing_home': 'Nursing Home',
+  'home_health_care': 'Home Health Care',
+  'home_care_non_medical': 'Home Care (Non-medical)',
+  'independent_living': 'Independent Living',
+  'home_care': 'Home Health Care',
+};
+
+const NON_CMS_CATEGORIES = ['Assisted Living', 'Memory Care', 'Home Care (Non-medical)', 'Independent Living'];
+
+const KEYWORD_BLOCKLIST = [
+  'pharmacy', 'hospital', 'pediatric', 'veterinary', 'dental', 'optometrist',
+  'chiropractor', 'urgent care', 'physical therapy', 'dialysis', 'medical supply',
+  'staffing agency', 'storage', 'plumbing', 'construction', 'insurance',
+  'real estate', 'auto', 'restaurant', 'grocery', 'hardware',
+];
+
+const DESC_TEMPLATES = {
+  'Assisted Living': { article: 'an', desc: 'assisted living community offering personal care support and daily living assistance' },
+  'Memory Care': { article: 'a', desc: 'memory care community providing specialized support for individuals with Alzheimer\'s and dementia' },
+  'Nursing Home': { article: 'a', desc: 'skilled nursing facility providing 24-hour medical care and rehabilitation services' },
+  'Home Health Care': { article: 'a', desc: 'home health care agency delivering skilled nursing and therapeutic services in the comfort of home' },
+  'Home Care (Non-medical)': { article: 'a', desc: 'non-medical home care provider offering companionship, personal care, and daily living support' },
+  'Independent Living': { article: 'an', desc: 'independent living community designed for active seniors seeking a maintenance-free lifestyle' },
+};
+
+// State bounding boxes [minLat, maxLat, minLon, maxLon]
+const STATE_BOUNDS = {
+  AL: [30.2, 35.0, -88.5, -84.9], AK: [51.2, 71.4, -179.1, -129.9],
+  AZ: [31.3, 37.0, -114.8, -109.0], AR: [33.0, 36.5, -94.6, -89.6],
+  CA: [32.5, 42.0, -124.4, -114.1], CO: [37.0, 41.0, -109.1, -102.0],
+  CT: [41.0, 42.1, -73.7, -71.8], DE: [38.5, 39.8, -75.8, -75.0],
+  FL: [24.5, 31.0, -87.6, -80.0], GA: [30.4, 35.0, -85.6, -80.8],
+  HI: [18.9, 22.2, -160.2, -154.8], ID: [42.0, 49.0, -117.2, -111.0],
+  IL: [37.0, 42.5, -91.5, -87.0], IN: [37.8, 41.8, -88.1, -84.8],
+  IA: [40.4, 43.5, -96.6, -90.1], KS: [37.0, 40.0, -102.1, -94.6],
+  KY: [36.5, 39.1, -89.6, -82.0], LA: [29.0, 33.0, -94.0, -89.0],
+  ME: [43.1, 47.5, -71.1, -67.0], MD: [37.9, 39.7, -79.5, -75.0],
+  MA: [41.2, 42.9, -73.5, -69.9], MI: [41.7, 48.3, -90.4, -82.4],
+  MN: [43.5, 49.4, -97.2, -89.5], MS: [30.2, 35.0, -91.7, -88.1],
+  MO: [36.0, 40.6, -95.8, -89.1], MT: [44.4, 49.0, -116.0, -104.0],
+  NE: [40.0, 43.0, -104.1, -95.3], NV: [35.0, 42.0, -120.0, -114.0],
+  NH: [42.7, 45.3, -72.6, -70.7], NJ: [38.9, 41.4, -75.6, -73.9],
+  NM: [31.3, 37.0, -109.1, -103.0], NY: [40.5, 45.0, -79.8, -71.9],
+  NC: [33.8, 36.6, -84.3, -75.5], ND: [45.9, 49.0, -104.0, -96.6],
+  OH: [38.4, 42.0, -84.8, -80.5], OK: [33.6, 37.0, -103.0, -94.4],
+  OR: [42.0, 46.3, -124.6, -116.5], PA: [39.7, 42.3, -80.5, -74.7],
+  RI: [41.1, 42.0, -71.9, -71.1], SC: [32.0, 35.2, -83.4, -78.5],
+  SD: [42.5, 45.9, -104.1, -96.4], TN: [35.0, 36.7, -90.3, -81.6],
+  TX: [25.8, 36.5, -106.6, -93.5], UT: [37.0, 42.0, -114.1, -109.0],
+  VT: [42.7, 45.0, -73.4, -71.5], VA: [36.5, 39.5, -83.7, -75.2],
+  WA: [45.5, 49.0, -124.8, -116.9], WV: [37.2, 40.6, -82.6, -77.7],
+  WI: [42.5, 47.1, -92.9, -86.8], WY: [41.0, 45.0, -111.1, -104.1],
+  DC: [38.8, 39.0, -77.1, -76.9],
+};
+
+// Full state name lookup (for geocoding — use full name to avoid cross-state matches)
+const STATE_NAMES = {
+  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+  CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', FL: 'Florida', GA: 'Georgia',
+  HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa',
+  KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland',
+  MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi',
+  MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire',
+  NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina',
+  ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania',
+  RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee',
+  TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington',
+  WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming', DC: 'District of Columbia',
+};
+
+// ---------------------------------------------------------------------------
+// Clients
+// ---------------------------------------------------------------------------
+
+let supabase;
+
+function initClients() {
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.error('ERROR: Missing SUPABASE env vars. Run: cd ~/Desktop/olera-web && npx vercel env pull .env.local');
+    process.exit(1);
+  }
+  supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+}
+
+// ---------------------------------------------------------------------------
+// Rate Limiter
+// ---------------------------------------------------------------------------
+
+class RateLimiter {
+  constructor(minDelayMs = 200) {
+    this.minDelay = minDelayMs;
+    this.lastCall = 0;
+  }
+
+  async wait() {
+    const now = Date.now();
+    const elapsed = now - this.lastCall;
+    if (elapsed < this.minDelay) {
+      await new Promise(r => setTimeout(r, this.minDelay - elapsed));
+    }
+    this.lastCall = Date.now();
+  }
+}
+
+const rateLimiters = {
+  google: new RateLimiter(100),
+  perplexity: new RateLimiter(300),
+  notion: new RateLimiter(350),  // Notion rate limit: 3 req/sec
+};
+
+// ---------------------------------------------------------------------------
+// Cost Tracker
+// ---------------------------------------------------------------------------
+
+class CostTracker {
+  constructor() {
+    this.google = 0;      // Google Places/Geocoding calls
+    this.perplexity = 0;  // Perplexity calls
+    this.startTime = Date.now();
+  }
+
+  addGoogle(n = 1) { this.google += n; }
+  addPerplexity(n = 1) { this.perplexity += n; }
+
+  get cost() {
+    return (this.google * 32) / 1000 + this.perplexity * 0.005;
+  }
+
+  get elapsed() {
+    return (Date.now() - this.startTime) / 1000;
+  }
+
+  summary() {
+    return `$${this.cost.toFixed(2)} (${this.google} Google, ${this.perplexity} Perplexity, ${formatDuration(this.elapsed)})`;
+  }
+}
+
+const cost = new CostTracker();
+
+// ---------------------------------------------------------------------------
+// Notion API Helper (direct REST, no MCP)
+// ---------------------------------------------------------------------------
+
+async function notionRequest(method, endpoint, body = null) {
+  await rateLimiters.notion.wait();
+  const url = `https://api.notion.com/v1${endpoint}`;
+  const opts = {
+    method,
+    headers: {
+      'Authorization': `Bearer ${NOTION_TOKEN}`,
+      'Content-Type': 'application/json',
+      'Notion-Version': '2022-06-28',
+    },
+  };
+  if (body) opts.body = JSON.stringify(body);
+
+  const resp = await fetch(url, opts);
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`Notion ${method} ${endpoint}: ${resp.status} ${text.slice(0, 200)}`);
+  }
+  return resp.json();
+}
+
+async function notionQueryCities(filter) {
+  return notionRequest('POST', `/databases/${NOTION_DB_ID}/query`, { filter, page_size: 100 });
+}
+
+async function notionCreatePage(title, state) {
+  return notionRequest('POST', '/pages', {
+    parent: { database_id: NOTION_DB_ID },
+    properties: {
+      'City Name': { title: [{ text: { content: title } }] },
+      'State': { select: { name: state } },
+      'City Status': { status: { name: 'Planning' } },
+    },
+  });
+}
+
+async function notionUpdatePage(pageId, properties) {
+  return notionRequest('PATCH', `/pages/${pageId}`, { properties });
+}
+
+async function notionCompletePage(pageId) {
+  const checkboxes = [
+    'Done: Discovery', 'Done: Verify if Senior Care Business',
+    'Done: Check Business Status (Open/Closed)', 'Done: Verify Category',
+    'Done: Check Provider Category Spelling & Capitalization',
+    'Done: Name Check (Remove "LLC" or "Inc" from provider names)',
+    'Done: Add Provider ID', 'Done: Upload to Supabase',
+    'Done: Rich Description', 'Done: Hydrate Google Reviews Data',
+    'Done: Verify Trust Signals (Non-CMS)',
+    'Done: Ensure Review Snippets Are Active',
+    'Done: Fetch Unique Images', 'Done: Fetch Email & Contact Info',
+    'Done: Add Score',
+  ];
+  const props = { 'City Status': { status: { name: 'Complete' } } };
+  for (const cb of checkboxes) {
+    props[cb] = { checkbox: true };
+  }
+  return notionUpdatePage(pageId, props);
+}
+
+// ---------------------------------------------------------------------------
+// Perplexity API Helper
+// ---------------------------------------------------------------------------
+
+async function perplexityChat(prompt, temperature = 0.1) {
+  await rateLimiters.perplexity.wait();
+  cost.addPerplexity();
+
+  const resp = await fetch('https://api.perplexity.ai/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'sonar',
+      messages: [{ role: 'user', content: prompt }],
+      temperature,
+    }),
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`Perplexity: ${resp.status} ${text.slice(0, 200)}`);
+  }
+
+  const json = await resp.json();
+  return json.choices?.[0]?.message?.content || '';
+}
+
+function extractJson(text) {
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) return null;
+  try { return JSON.parse(match[0]); } catch { return null; }
+}
+
+// ---------------------------------------------------------------------------
+// Google APIs Helper
+// ---------------------------------------------------------------------------
+
+async function fetchWithRetry(url, opts = {}, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fetch(url, opts);
+    } catch (err) {
+      if (i === retries - 1) throw err;
+      const delay = 2000 * (i + 1);
+      console.log(`  [retry ${i + 1}/${retries}] fetch failed (${err.cause?.code || err.message}), waiting ${delay}ms...`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+}
+
+async function googleGeocode(address) {
+  await rateLimiters.google.wait();
+  cost.addGoogle();
+
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_API_KEY}`;
+  const resp = await fetchWithRetry(url);
+  const json = await resp.json();
+  if (json.results?.[0]) {
+    const loc = json.results[0].geometry.location;
+    return { lat: loc.lat, lon: loc.lng };
+  }
+  return null;
+}
+
+async function googlePlacesField(placeId, fields) {
+  await rateLimiters.google.wait();
+  cost.addGoogle();
+
+  const url = `https://places.googleapis.com/v1/places/${placeId}?fields=${fields}&key=${GOOGLE_API_KEY}`;
+  const resp = await fetchWithRetry(url);
+  if (!resp.ok) return null;
+  return resp.json();
+}
+
+async function googlePhotoUri(photoName) {
+  await rateLimiters.google.wait();
+  cost.addGoogle();
+
+  const url = `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=800&key=${GOOGLE_API_KEY}&skipHttpRedirect=true`;
+  const resp = await fetchWithRetry(url);
+  if (!resp.ok) return null;
+  const json = await resp.json();
+  return json.photoUri || null;
+}
+
+// ---------------------------------------------------------------------------
+// Utility Functions
+// ---------------------------------------------------------------------------
+
+function formatDuration(seconds) {
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  if (seconds < 3600) return `${(seconds / 60).toFixed(1)}m`;
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return `${h}h${m}m`;
+}
+
+function slug(name, city, state) {
+  return (name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-')
+    + '-' + city.toLowerCase().replace(/\s+/g, '-')
+    + '-' + state.toLowerCase()
+  ).replace(/--+/g, '-');
+}
+
+function discoveryCsvForCity(expansionDir, city, state) {
+  const cityDir = path.join(expansionDir, `${city}-${state}`);
+  if (!fs.existsSync(cityDir)) return null;
+  const csvs = fs.readdirSync(cityDir).filter(f => f.startsWith('providers_discovered_') && f.endsWith('.csv'));
+  if (csvs.length === 0) return null;
+  csvs.sort();
+  return path.join(cityDir, csvs[csvs.length - 1]); // latest
+}
+
+function readyCityList(expansionDir) {
+  // Find all city dirs that have a discovery CSV
+  if (!fs.existsSync(expansionDir)) return [];
+  return fs.readdirSync(expansionDir)
+    .filter(d => {
+      const parts = d.split('-');
+      return parts.length >= 2 && fs.statSync(path.join(expansionDir, d)).isDirectory();
+    })
+    .map(d => {
+      const lastDash = d.lastIndexOf('-');
+      const city = d.slice(0, lastDash);
+      const state = d.slice(lastDash + 1);
+      const csv = discoveryCsvForCity(expansionDir, city, state);
+      return { city, state, dir: d, csvPath: csv };
+    })
+    .filter(c => c.csvPath);
+}
+
+function parseBatchMd(mdPath) {
+  const content = fs.readFileSync(mdPath, 'utf-8');
+  const match = content.match(/```(?:batch-cities)?\s*\n([\s\S]*?)```/);
+  const block = match ? match[1] : content.slice(content.indexOf('Machine-Readable'));
+  return block.trim().split('\n')
+    .filter(l => l.trim() && !l.startsWith('City') && !l.startsWith('#') && !l.startsWith('|'))
+    .map(l => {
+      const [city, state] = l.split(',').map(s => s.trim());
+      return city && state ? { city, state: state.toUpperCase() } : null;
+    })
+    .filter(Boolean);
+}
+
+// ---------------------------------------------------------------------------
+// Phase Stubs (implemented in subsequent tasks)
+// ---------------------------------------------------------------------------
+
+async function phaseClean(cities, opts) {
+  console.log(`\n${'='.repeat(70)}`);
+  console.log('PHASE 2: CLEAN & PREPARE');
+  console.log(`${'='.repeat(70)}`);
+  console.log(`  Cities: ${cities.length}`);
+
+  // Step 1: Load dedup set ONCE
+  console.log(`\n  Loading dedup CSV...`);
+  const dedupSet = new Set();
+  if (fs.existsSync(opts.dedupCsv)) {
+    const raw = fs.readFileSync(opts.dedupCsv);
+    const rows = csvParse.parse(raw, { columns: true, relax_column_count: true });
+    for (const row of rows) {
+      if (row.provider_name && row.state) {
+        dedupSet.add(row.provider_name.trim().toLowerCase() + '|' + row.state.trim().toUpperCase());
+      }
+    }
+    console.log(`  Dedup set loaded: ${dedupSet.size} existing providers`);
+  } else {
+    console.log(`  WARN: Dedup CSV not found at ${opts.dedupCsv} — skipping dedup`);
+  }
+
+  // Step 2: Process each city
+  for (let i = 0; i < cities.length; i++) {
+    const c = cities[i];
+    const csvPath = c.csvPath || discoveryCsvForCity(opts.expansionDir, c.city, c.state);
+    if (!csvPath) {
+      console.log(`  [${i + 1}/${cities.length}] ${c.city}, ${c.state} — SKIP (no discovery CSV)`);
+      continue;
+    }
+
+    const readyPath = path.join(opts.expansionDir, `${c.city}-${c.state}`, 'providers_ready.json');
+    if (fs.existsSync(readyPath) && !opts.force) {
+      const existing = JSON.parse(fs.readFileSync(readyPath, 'utf-8'));
+      console.log(`  [${i + 1}/${cities.length}] ${c.city}, ${c.state} — SKIP (already cleaned: ${existing.length} providers)`);
+      continue;
+    }
+
+    console.log(`  [${i + 1}/${cities.length}] ${c.city}, ${c.state}...`);
+
+    // Load discovery CSV
+    const raw = fs.readFileSync(csvPath);
+    let providers = csvParse.parse(raw, { columns: true });
+    const discovered = providers.length;
+
+    // 2a: Keyword filter + business status
+    providers = providers.filter(row => {
+      const name = (row.provider_name || '').toLowerCase();
+      const cat = (row.provider_category || '').toLowerCase();
+      const types = (row.types || '').toLowerCase();
+      const combined = name + ' ' + cat + ' ' + types;
+      if (KEYWORD_BLOCKLIST.some(kw => combined.includes(kw))) return false;
+      if ((row.business_status || '').includes('CLOSED')) return false;
+      return true;
+    });
+    const afterKeyword = providers.length;
+
+    // 2b: AI classification (batch size 50)
+    let afterAI = providers.length;
+    if (PERPLEXITY_API_KEY && providers.length > 0) {
+      const kept = [];
+      const removed = [];
+      const BATCH = 50;
+
+      for (let b = 0; b < providers.length; b += BATCH) {
+        const batch = providers.slice(b, b + BATCH);
+        const list = batch.map((p, j) => `${j + 1}. "${p.provider_name}" — category: ${p.provider_category}, address: ${p.address || 'unknown'}`).join('\n');
+
+        const prompt = `For each business below, determine if its PRIMARY BUSINESS is providing senior care.
+
+Answer YES only if the entity is one of these:
+- Residential senior living facility (assisted living, memory care, nursing home, independent living)
+- In-home care agency (home health, non-medical home care, hospice)
+- Dedicated senior care program (adult day care, geriatric care management)
+
+Answer NO if the entity is:
+- A place seniors might USE but that is not a care provider (community centers, recreation facilities, YMCAs)
+- General medical (family medicine, urgent care, VA clinics, hospitals, rehab clinics)
+- Mental health / therapy only (counselors, psychologists, behavioral health)
+- A DME supplier, medical supply store, or equipment rental company
+- Retail, food service, construction, IT, storage, or any non-care business
+- Nonprofit / community service that serves the general public
+- Funeral homes, universities, churches, government agencies
+- Wedding venues, event spaces, banquet halls
+- General apartment complexes (not senior-specific independent living)
+
+Businesses:
+${list}
+
+Return JSON: {"results": [{"num": 1, "is_senior_care": true, "reason": "brief reason"}]}`;
+
+        try {
+          const content = await perplexityChat(prompt);
+          const match = content.match(/\{[\s\S]*"results"[\s\S]*\}/);
+          if (match) {
+            const parsed = JSON.parse(match[0]);
+            const results = parsed.results || [];
+            for (const r of results) {
+              const idx = (r.num || 0) - 1;
+              if (idx >= 0 && idx < batch.length) {
+                if (r.is_senior_care) kept.push(batch[idx]);
+                else removed.push({ name: batch[idx].provider_name, reason: r.reason });
+              }
+            }
+            // Handle providers not in results (keep them to be safe)
+            const resultNums = new Set(results.map(r => r.num));
+            for (let j = 0; j < batch.length; j++) {
+              if (!resultNums.has(j + 1)) kept.push(batch[j]);
+            }
+          } else {
+            // Parse failed — keep all to be safe
+            kept.push(...batch);
+          }
+        } catch (e) {
+          console.log(`    AI batch error: ${e.message} — keeping batch`);
+          kept.push(...batch);
+        }
+      }
+
+      providers = kept;
+      afterAI = providers.length;
+    }
+
+    // 2c: Category mapping
+    for (const p of providers) {
+      const mapped = CATEGORY_MAP[p.provider_category];
+      if (mapped) p.provider_category = mapped;
+    }
+
+    // 2d: Name cleaning
+    let namesCleaned = 0;
+    for (const p of providers) {
+      const orig = p.provider_name;
+      p.provider_name = p.provider_name
+        .replace(/,?\s*(LLC|Inc\.?|Corp\.?|Ltd\.?|L\.?L\.?C\.?|Incorporated|Corporation|Limited|Co\.?)\.?\s*$/i, '')
+        .trim();
+      if (p.provider_name !== orig) namesCleaned++;
+    }
+
+    // 2e: Dedup against existing DB
+    const beforeDedup = providers.length;
+    providers = providers.filter(p => {
+      const key = p.provider_name.trim().toLowerCase() + '|' + (p.state || c.state).trim().toUpperCase();
+      return !dedupSet.has(key);
+    });
+    const dupes = beforeDedup - providers.length;
+
+    // 2f: Generate provider IDs and slugs
+    const citySlug = c.city.toLowerCase().replace(/\s+/g, '-');
+    const stateSlug = c.state.toLowerCase();
+    for (let j = 0; j < providers.length; j++) {
+      providers[j].provider_id = `${citySlug}-${stateSlug}-${String(j + 1).padStart(4, '0')}`;
+      providers[j].slug = slug(providers[j].provider_name, c.city, c.state);
+      // Ensure city/state are set
+      if (!providers[j].city) providers[j].city = c.city;
+      if (!providers[j].state) providers[j].state = c.state;
+    }
+
+    // Save ready JSON
+    const cityDir = path.join(opts.expansionDir, `${c.city}-${c.state}`);
+    fs.mkdirSync(cityDir, { recursive: true });
+    fs.writeFileSync(readyPath, JSON.stringify(providers, null, 2));
+
+    // Category breakdown
+    const cats = {};
+    for (const p of providers) cats[p.provider_category] = (cats[p.provider_category] || 0) + 1;
+    const catStr = Object.entries(cats).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k}: ${v}`).join(', ');
+
+    console.log(`    ${discovered} → kw:${afterKeyword} → ai:${afterAI} → dedup:-${dupes} → ready:${providers.length}`);
+    console.log(`    ${catStr}${namesCleaned > 0 ? ` | ${namesCleaned} names cleaned` : ''}`);
+
+    // Add dedup entries for this city (so next city dedupes against it too)
+    for (const p of providers) {
+      dedupSet.add(p.provider_name.trim().toLowerCase() + '|' + (p.state || c.state).trim().toUpperCase());
+    }
+  }
+
+  console.log(`\n  Clean phase complete. Cost so far: ${cost.summary()}`);
+}
+
+async function phaseLoad(cities, opts) {
+  console.log(`\n${'='.repeat(70)}`);
+  console.log('PHASE 3: UPLOAD & GEOCODE');
+  console.log(`${'='.repeat(70)}`);
+  console.log(`  Cities: ${cities.length}`);
+
+  // Get all existing slugs for collision detection
+  console.log('  Loading existing slugs...');
+  const { data: allSlugs } = await supabase.from('olera-providers').select('slug');
+  const slugSet = new Set((allSlugs || []).map(s => s.slug));
+
+  for (let i = 0; i < cities.length; i++) {
+    const c = cities[i];
+    const readyPath = path.join(opts.expansionDir, `${c.city}-${c.state}`, 'providers_ready.json');
+    if (!fs.existsSync(readyPath)) {
+      console.log(`  [${i + 1}/${cities.length}] ${c.city}, ${c.state} — SKIP (no providers_ready.json)`);
+      continue;
+    }
+
+    // Check if already uploaded
+    const citySlug = c.city.toLowerCase().replace(/\s+/g, '-');
+    const stateSlug = c.state.toLowerCase();
+    const idPrefix = `${citySlug}-${stateSlug}-`;
+    const { count: existingCount } = await supabase
+      .from('olera-providers')
+      .select('*', { count: 'exact', head: true })
+      .like('provider_id', `${idPrefix}%`);
+
+    if (existingCount > 0 && !opts.force) {
+      console.log(`  [${i + 1}/${cities.length}] ${c.city}, ${c.state} — SKIP (${existingCount} already in DB)`);
+      continue;
+    }
+
+    const providers = JSON.parse(fs.readFileSync(readyPath, 'utf-8'));
+    console.log(`  [${i + 1}/${cities.length}] ${c.city}, ${c.state} — uploading ${providers.length}...`);
+
+    // Upload in batches with slug collision handling
+    let uploaded = 0;
+    let slugCollisions = 0;
+    const BATCH = 50;
+
+    for (let b = 0; b < providers.length; b += BATCH) {
+      const batch = providers.slice(b, b + BATCH).map(row => {
+        // Handle slug collisions
+        let s = row.slug;
+        if (slugSet.has(s)) {
+          const catSuffix = (row.provider_category || '').toLowerCase().replace(/[^a-z]/g, '-').replace(/--+/g, '-');
+          s = s + '-' + catSuffix;
+          let counter = 2;
+          while (slugSet.has(s)) { s = s.replace(/-\d+$/, '') + '-' + counter; counter++; }
+          slugCollisions++;
+        }
+        slugSet.add(s);
+
+        return {
+          provider_id: row.provider_id,
+          provider_name: row.provider_name,
+          provider_category: row.provider_category,
+          address: row.address || null,
+          city: row.city || c.city,
+          state: row.state || c.state,
+          zipcode: row.zipcode || null,
+          phone: row.phone || null,
+          website: row.website || null,
+          lat: row.lat ? parseFloat(row.lat) : null,
+          lon: row.lon ? parseFloat(row.lon) : null,
+          google_rating: row.google_rating ? parseFloat(row.google_rating) : null,
+          place_id: row.place_id || null,
+          slug: s,
+          deleted: false,
+        };
+      });
+
+      const { error } = await supabase.from('olera-providers').upsert(batch, { onConflict: 'provider_id' });
+      if (error) {
+        // Try one by one on batch failure
+        for (const item of batch) {
+          const { error: e2 } = await supabase.from('olera-providers').upsert([item], { onConflict: 'provider_id' });
+          if (e2) console.log(`    WARN: Failed ${item.provider_name}: ${e2.message}`);
+          else uploaded++;
+        }
+      } else {
+        uploaded += batch.length;
+      }
+    }
+
+    console.log(`    Uploaded: ${uploaded}${slugCollisions > 0 ? ` (${slugCollisions} slug collisions resolved)` : ''}`);
+
+    // Geocode
+    const { data: toGeocode } = await supabase
+      .from('olera-providers')
+      .select('provider_id, provider_name, address, city, state, lat, lon')
+      .like('provider_id', `${idPrefix}%`)
+      .eq('deleted', false);
+
+    let corrections = 0;
+    let outOfArea = 0;
+    const stateName = STATE_NAMES[c.state] || c.state;
+    const bounds = STATE_BOUNDS[c.state];
+
+    // Get city center for area check (approximate from first provider or geocode)
+    let cityLat = null, cityLon = null;
+    const centerResult = await googleGeocode(`${c.city}, ${stateName}`);
+    if (centerResult) { cityLat = centerResult.lat; cityLon = centerResult.lon; }
+
+    for (let g = 0; g < (toGeocode || []).length; g++) {
+      const p = toGeocode[g];
+      const fullAddr = [p.address, p.city, stateName].filter(Boolean).join(', ');
+      const result = await googleGeocode(fullAddr);
+      if (!result) continue;
+
+      const diff = Math.abs((p.lat || 0) - result.lat) + Math.abs((p.lon || 0) - result.lon);
+      if (diff > 0.01) corrections++;
+
+      // State bounding box check
+      let isOutOfArea = false;
+      if (bounds) {
+        if (result.lat < bounds[0] || result.lat > bounds[1] || result.lon < bounds[2] || result.lon > bounds[3]) {
+          isOutOfArea = true;
+        }
+      }
+      // City proximity check (~0.5° ≈ 30 miles)
+      if (!isOutOfArea && cityLat && cityLon) {
+        if (Math.abs(result.lat - cityLat) > 0.5 || Math.abs(result.lon - cityLon) > 0.5) {
+          isOutOfArea = true;
+        }
+      }
+
+      if (isOutOfArea) {
+        await supabase.from('olera-providers')
+          .update({ lat: result.lat, lon: result.lon, deleted: true, deleted_at: new Date().toISOString() })
+          .eq('provider_id', p.provider_id);
+        outOfArea++;
+      } else {
+        await supabase.from('olera-providers')
+          .update({ lat: result.lat, lon: result.lon })
+          .eq('provider_id', p.provider_id);
+      }
+
+      if ((g + 1) % 50 === 0) process.stdout.write(`    Geocoded ${g + 1}/${toGeocode.length}\r`);
+    }
+
+    const { count: activeCount } = await supabase
+      .from('olera-providers')
+      .select('*', { count: 'exact', head: true })
+      .like('provider_id', `${idPrefix}%`)
+      .eq('deleted', false);
+
+    console.log(`    Geocoded: ${corrections} corrections, ${outOfArea} out-of-area removed → ${activeCount} active`);
+  }
+
+  console.log(`\n  Load phase complete. Cost so far: ${cost.summary()}`);
+}
+
+async function phaseEnrich(cities, opts) {
+  console.log(`\n${'='.repeat(70)}`);
+  console.log('PHASE 4: ENRICHMENT');
+  console.log(`${'='.repeat(70)}`);
+
+  // Collect ALL active providers across ALL cities
+  const allProviders = [];
+  for (const c of cities) {
+    const citySlug = c.city.toLowerCase().replace(/\s+/g, '-');
+    const stateSlug = c.state.toLowerCase();
+    const idPrefix = `${citySlug}-${stateSlug}-`;
+    const { data } = await supabase
+      .from('olera-providers')
+      .select('provider_id, provider_name, provider_category, address, city, state, website, google_rating, place_id, provider_description, google_reviews_data, ai_trust_signals, provider_images')
+      .like('provider_id', `${idPrefix}%`)
+      .eq('deleted', false);
+    if (data) allProviders.push(...data);
+  }
+  console.log(`  Total active providers across ${cities.length} cities: ${allProviders.length}`);
+
+  // Load discovery CSV data for review_count (needed for hydration)
+  const csvReviewMap = {};
+  for (const c of cities) {
+    const csvPath = c.csvPath || discoveryCsvForCity(opts.expansionDir, c.city, c.state);
+    if (csvPath && fs.existsSync(csvPath)) {
+      const rows = csvParse.parse(fs.readFileSync(csvPath), { columns: true });
+      for (const row of rows) {
+        if (row.place_id) csvReviewMap[row.place_id] = row;
+      }
+    }
+  }
+
+  // --- Stream D: Descriptions + initial hydration (no API, instant) ---
+  console.log('\n  Stream D: Descriptions + Reviews hydration (no API)...');
+  let descCount = 0, hydrateCount = 0;
+  for (const p of allProviders) {
+    // Descriptions
+    if (!p.provider_description) {
+      const tmpl = DESC_TEMPLATES[p.provider_category];
+      if (tmpl) {
+        let desc = `${p.provider_name} is ${tmpl.article} ${tmpl.desc} located in ${p.city || 'unknown'}, ${p.state || 'unknown'}.`;
+        if (p.google_rating && parseFloat(p.google_rating) >= 3.0) {
+          desc += ` The community is rated ${p.google_rating} out of 5 stars on Google.`;
+        }
+        await supabase.from('olera-providers').update({ provider_description: desc }).eq('provider_id', p.provider_id);
+        descCount++;
+      }
+    }
+
+    // Hydrate google_reviews_data (rating + review_count from discovery CSV)
+    if (p.google_rating && (!p.google_reviews_data || !p.google_reviews_data.rating)) {
+      const csvRow = csvReviewMap[p.place_id] || {};
+      const reviewData = {
+        rating: parseFloat(p.google_rating),
+        review_count: parseInt(csvRow.review_count) || 0,
+        reviews: p.google_reviews_data?.reviews || [],
+        last_synced: new Date().toISOString(),
+      };
+      await supabase.from('olera-providers').update({ google_reviews_data: reviewData }).eq('provider_id', p.provider_id);
+      hydrateCount++;
+    }
+  }
+  console.log(`    Descriptions: ${descCount} written | Reviews hydrated: ${hydrateCount}`);
+
+  // --- Parallel streams A/B/C ---
+  const streamA = enrichTrustSignals(allProviders);
+  const streamB = enrichReviewSnippets(allProviders);
+  const streamC = enrichImages(allProviders);
+
+  console.log('\n  Streams A/B/C running in parallel...');
+  const [trustResult, snippetResult, imageResult] = await Promise.all([streamA, streamB, streamC]);
+
+  console.log(`    Stream A (Trust signals): ${trustResult.confirmed} confirmed, ${trustResult.deleted} deleted`);
+  console.log(`    Stream B (Review snippets): ${snippetResult.fetched} fetched, ${snippetResult.empty} empty`);
+  console.log(`    Stream C (Images): ${imageResult.fetched} fetched, ${imageResult.noPhotos} no photos`);
+
+  // --- Post-streams: Re-hydrate to merge snippets into existing JSONB ---
+  console.log('\n  Re-hydrating reviews (merging snippets into JSONB)...');
+  let rehydrated = 0;
+  for (const c of cities) {
+    const citySlug = c.city.toLowerCase().replace(/\s+/g, '-');
+    const stateSlug = c.state.toLowerCase();
+    const { data: providers } = await supabase
+      .from('olera-providers')
+      .select('provider_id, google_rating, place_id, google_reviews_data')
+      .like('provider_id', `${citySlug}-${stateSlug}-%`)
+      .eq('deleted', false);
+
+    for (const p of (providers || [])) {
+      if (!p.google_rating) continue;
+      const csvRow = csvReviewMap[p.place_id] || {};
+      const existing = p.google_reviews_data || {};
+      existing.rating = parseFloat(p.google_rating);
+      existing.review_count = parseInt(csvRow.review_count) || existing.review_count || 0;
+      existing.last_synced = new Date().toISOString();
+      await supabase.from('olera-providers').update({ google_reviews_data: existing }).eq('provider_id', p.provider_id);
+      rehydrated++;
+    }
+  }
+  console.log(`    Re-hydrated: ${rehydrated}`);
+
+  console.log(`\n  Enrich phase complete. Cost so far: ${cost.summary()}`);
+}
+
+// --- Enrichment stream helpers ---
+
+async function enrichTrustSignals(allProviders) {
+  const nonCms = allProviders.filter(p => NON_CMS_CATEGORIES.includes(p.provider_category) && !p.ai_trust_signals);
+  if (!PERPLEXITY_API_KEY || nonCms.length === 0) return { confirmed: 0, deleted: 0, failed: 0 };
+
+  let confirmed = 0, deleted = 0, failed = 0;
+  const BATCH = 3; // 3 providers per Perplexity call
+
+  for (let i = 0; i < nonCms.length; i += BATCH) {
+    const batch = nonCms.slice(i, i + BATCH);
+    const providerList = batch.map((p, j) => `
+Provider ${j + 1}:
+  Name: ${p.provider_name}
+  Location: ${p.address || ''}, ${p.city}, ${p.state}
+  Category: ${p.provider_category}
+  Website: ${p.website || 'unknown'}
+`).join('\n');
+
+    const prompt = `Search the web for each business below and answer two questions for EACH.
+
+${providerList}
+
+For EACH provider:
+
+QUESTION 1 — ENTITY VERIFICATION
+Is its PRIMARY BUSINESS senior care (residential senior living, in-home senior care, or dedicated senior programs)?
+Mark is_senior_care = false if it's: a wedding venue, community center, general medical, DME supplier, retail, nonprofit, general apartments, or in a different location than listed.
+
+QUESTION 2 — TRUST SIGNALS (only if is_senior_care = true)
+Verify: state_licensed, accredited, bbb_rated, years_in_operation, regulatory_actions, active_website, google_business, community_presence.
+
+Return ONLY this JSON:
+{"providers": [
+  {"num": 1, "is_senior_care": true/false, "entity_reason": "...", "signals": {...}, "confidence": "high/medium/low"},
+  {"num": 2, ...},
+  {"num": 3, ...}
+]}`;
+
+    try {
+      const content = await perplexityChat(prompt);
+      const parsed = extractJson(content);
+      const results = parsed?.providers || parsed?.results || [];
+
+      for (const r of results) {
+        const idx = (r.num || 0) - 1;
+        if (idx < 0 || idx >= batch.length) continue;
+        const p = batch[idx];
+
+        if (!r.is_senior_care) {
+          await supabase.from('olera-providers')
+            .update({ deleted: true, deleted_at: new Date().toISOString() })
+            .eq('provider_id', p.provider_id);
+          deleted++;
+        } else {
+          const signals = r.signals || {};
+          signals.verified_at = new Date().toISOString();
+          signals.confidence = r.confidence;
+          await supabase.from('olera-providers')
+            .update({ ai_trust_signals: signals })
+            .eq('provider_id', p.provider_id);
+          confirmed++;
+        }
+      }
+    } catch (e) {
+      failed += batch.length;
+    }
+
+    if ((i + BATCH) % 30 === 0) {
+      process.stdout.write(`    Trust: ${i + BATCH}/${nonCms.length}\r`);
+    }
+  }
+
+  return { confirmed, deleted, failed };
+}
+
+async function enrichReviewSnippets(allProviders) {
+  const withPlaceId = allProviders.filter(p =>
+    p.place_id && p.google_rating &&
+    (!p.google_reviews_data?.reviews || p.google_reviews_data.reviews.length === 0)
+  );
+  if (!GOOGLE_API_KEY || withPlaceId.length === 0) return { fetched: 0, empty: 0 };
+
+  let fetched = 0, empty = 0;
+
+  for (let i = 0; i < withPlaceId.length; i++) {
+    const p = withPlaceId[i];
+    try {
+      const data = await googlePlacesField(p.place_id, 'reviews');
+      if (data?.reviews?.length > 0) {
+        const reviews = data.reviews.slice(0, 5).map(r => ({
+          text: r.text?.text || '',
+          rating: r.rating,
+          author_name: r.authorAttribution?.displayName || '',
+          time: r.publishTime || '',
+          relative_time: r.relativePublishTimeDescription || '',
+        }));
+        const existing = p.google_reviews_data || {};
+        existing.reviews = reviews;
+        existing.last_synced = new Date().toISOString();
+        await supabase.from('olera-providers').update({ google_reviews_data: existing }).eq('provider_id', p.provider_id);
+        fetched++;
+      } else {
+        empty++;
+      }
+    } catch (e) {
+      empty++;
+    }
+
+    if ((i + 1) % 50 === 0) process.stdout.write(`    Snippets: ${i + 1}/${withPlaceId.length}\r`);
+  }
+
+  return { fetched, empty };
+}
+
+async function enrichImages(allProviders) {
+  const needImages = allProviders.filter(p => p.place_id && !p.provider_images);
+  if (!GOOGLE_API_KEY || needImages.length === 0) return { fetched: 0, noPhotos: 0 };
+
+  let fetched = 0, noPhotos = 0;
+
+  for (let i = 0; i < needImages.length; i++) {
+    const p = needImages[i];
+    try {
+      const data = await googlePlacesField(p.place_id, 'photos');
+      if (data?.photos?.length > 0) {
+        const photoName = data.photos[0].name;
+        const uri = await googlePhotoUri(photoName);
+        if (uri) {
+          await supabase.from('olera-providers').update({ provider_images: uri }).eq('provider_id', p.provider_id);
+          fetched++;
+        } else {
+          noPhotos++;
+        }
+      } else {
+        noPhotos++;
+      }
+    } catch (e) {
+      noPhotos++;
+    }
+
+    if ((i + 1) % 50 === 0) process.stdout.write(`    Images: ${i + 1}/${needImages.length}\r`);
+  }
+
+  return { fetched, noPhotos };
+}
+
+async function phaseFinalize(cities, opts) {
+  console.log(`\n${'='.repeat(70)}`);
+  console.log('PHASE 5: FINALIZE');
+  console.log(`${'='.repeat(70)}`);
+
+  const results = [];
+
+  for (let i = 0; i < cities.length; i++) {
+    const c = cities[i];
+    const citySlug = c.city.toLowerCase().replace(/\s+/g, '-');
+    const stateSlug = c.state.toLowerCase();
+    const idPrefix = `${citySlug}-${stateSlug}-`;
+
+    // Get final stats
+    const { data: providers } = await supabase
+      .from('olera-providers')
+      .select('provider_category, provider_description, google_reviews_data, ai_trust_signals, provider_images')
+      .like('provider_id', `${idPrefix}%`)
+      .eq('deleted', false);
+
+    if (!providers || providers.length === 0) {
+      results.push({ city: c.city, state: c.state, count: 0, status: 'empty' });
+      continue;
+    }
+
+    const cats = {};
+    let hasDesc = 0, hasReviews = 0, hasTrust = 0, hasImages = 0;
+    for (const p of providers) {
+      cats[p.provider_category] = (cats[p.provider_category] || 0) + 1;
+      if (p.provider_description) hasDesc++;
+      if (p.google_reviews_data?.rating) hasReviews++;
+      if (p.ai_trust_signals) hasTrust++;
+      if (p.provider_images) hasImages++;
+    }
+
+    results.push({
+      city: c.city, state: c.state, count: providers.length, status: 'complete',
+      cats, hasDesc, hasReviews, hasTrust, hasImages,
+    });
+
+    // Update Notion — one call checks all boxes + sets Complete
+    if (c.notionPageId) {
+      try {
+        await notionCompletePage(c.notionPageId);
+      } catch (e) {
+        console.log(`    WARN: Notion update failed for ${c.city}, ${c.state}: ${e.message}`);
+      }
+    }
+  }
+
+  // Print final batch summary table
+  console.log('\n  BATCH RESULTS');
+  console.log('  ' + '-'.repeat(85));
+  console.log('  ' + 'City'.padEnd(25) + 'Providers'.padEnd(12) + 'Desc'.padEnd(8) + 'Reviews'.padEnd(10) + 'Trust'.padEnd(8) + 'Images'.padEnd(8) + 'Status');
+  console.log('  ' + '-'.repeat(85));
+
+  let totalProviders = 0;
+  for (const r of results) {
+    totalProviders += r.count;
+    const pct = (n, total) => total > 0 ? `${Math.round(n / total * 100)}%` : '-';
+    console.log('  ' +
+      `${r.city}, ${r.state}`.padEnd(25) +
+      String(r.count).padEnd(12) +
+      (r.hasDesc !== undefined ? pct(r.hasDesc, r.count) : '-').padEnd(8) +
+      (r.hasReviews !== undefined ? pct(r.hasReviews, r.count) : '-').padEnd(10) +
+      (r.hasTrust !== undefined ? pct(r.hasTrust, r.count) : '-').padEnd(8) +
+      (r.hasImages !== undefined ? pct(r.hasImages, r.count) : '-').padEnd(8) +
+      r.status
+    );
+  }
+
+  console.log('  ' + '-'.repeat(85));
+  console.log(`  Total: ${totalProviders} providers across ${results.filter(r => r.status === 'complete').length} cities`);
+  console.log(`  Cost: ${cost.summary()}`);
+}
+
+// ---------------------------------------------------------------------------
+// Notion Pre-Flight
+// ---------------------------------------------------------------------------
+
+async function notionPreflight(cities) {
+  if (!NOTION_TOKEN) {
+    console.log('  WARN: No NOTION_TOKEN — skipping Notion pre-flight');
+    return {};
+  }
+
+  console.log('\nNotion pre-flight: checking existing pages...');
+
+  // Query all city pages
+  const existing = {};
+  let hasMore = true;
+  let cursor = undefined;
+
+  while (hasMore) {
+    const body = { page_size: 100 };
+    if (cursor) body.start_cursor = cursor;
+    const result = await notionRequest('POST', `/databases/${NOTION_DB_ID}/query`, body);
+
+    for (const page of result.results) {
+      const title = page.properties['City Name']?.title?.[0]?.plain_text || '';
+      const state = page.properties['State']?.select?.name || '';
+      const status = page.properties['City Status']?.status?.name || '';
+      const key = `${title}-${state}`;
+      existing[key] = { pageId: page.id, status, title, state };
+    }
+
+    hasMore = result.has_more;
+    cursor = result.next_cursor;
+  }
+
+  let created = 0, alreadyComplete = 0, alreadyExists = 0;
+
+  for (const c of cities) {
+    const key = `${c.city}-${c.state}`;
+    if (existing[key]) {
+      if (existing[key].status === 'Complete') alreadyComplete++;
+      else alreadyExists++;
+    } else {
+      try {
+        const page = await notionCreatePage(c.city, c.state);
+        existing[key] = { pageId: page.id, status: 'Planning', title: c.city, state: c.state };
+        created++;
+      } catch (e) {
+        console.error(`  Failed to create Notion page for ${c.city}, ${c.state}: ${e.message}`);
+      }
+    }
+  }
+
+  console.log(`  Created: ${created} | Already existed: ${alreadyExists} | Already complete: ${alreadyComplete}`);
+  return existing;
+}
+
+// ---------------------------------------------------------------------------
+// Main Entry
+// ---------------------------------------------------------------------------
+
+async function main() {
+  const opts = parseArgs();
+
+  if (opts.help || !opts.batch) {
+    printUsage();
+    process.exit(opts.help ? 0 : 1);
+  }
+
+  initClients();
+
+  // Determine city list
+  let cities;
+  if (opts.batch.endsWith('.md')) {
+    cities = parseBatchMd(opts.batch);
+  } else if (fs.statSync(opts.batch).isDirectory()) {
+    cities = readyCityList(opts.batch);
+    opts.expansionDir = opts.batch;
+  } else {
+    // Assume CSV
+    cities = parseBatchMd(opts.batch); // same parser works for simple CSVs
+  }
+
+  if (!cities || cities.length === 0) {
+    console.error('ERROR: No cities found. Check --batch path.');
+    process.exit(1);
+  }
+
+  // Cost/time estimates
+  const estCost = cities.length * 6;
+  const estTimeMin = cities.length * 3 + 35; // ~3 min/city for load, +35 min enrichment
+  console.log(`\n${'='.repeat(70)}`);
+  console.log('OLERA CITY PIPELINE — BATCH PROCESSOR');
+  console.log(`${'='.repeat(70)}`);
+  console.log(`  Cities:       ${cities.length}`);
+  console.log(`  Phase:        ${opts.phase}`);
+  console.log(`  Expansion:    ${opts.expansionDir}`);
+  console.log(`  Resume:       ${opts.resume}`);
+  console.log(`  Est. cost:    ~$${estCost} (post-discovery)`);
+  console.log(`  Est. time:    ~${formatDuration(estTimeMin * 60)}`);
+  if (estTimeMin > 60) {
+    console.log(`  NOTE: This will take ${formatDuration(estTimeMin * 60)}. Consider running in background.`);
+  }
+
+  // Notion pre-flight
+  const notionPages = await notionPreflight(cities);
+
+  // Filter out complete cities if --resume
+  if (opts.resume) {
+    const before = cities.length;
+    cities = cities.filter(c => {
+      const key = `${c.city}-${c.state}`;
+      return notionPages[key]?.status !== 'Complete';
+    });
+    const skipped = before - cities.length;
+    if (skipped > 0) console.log(`  Resuming: skipped ${skipped} already-complete cities`);
+  }
+
+  if (cities.length === 0) {
+    console.log('\nAll cities already complete. Nothing to do.');
+    process.exit(0);
+  }
+
+  // Attach Notion page IDs to cities
+  cities.forEach(c => {
+    const key = `${c.city}-${c.state}`;
+    c.notionPageId = notionPages[key]?.pageId || null;
+  });
+
+  // Run phases
+  const phases = opts.phase === 'all'
+    ? ['clean', 'load', 'enrich', 'finalize']
+    : [opts.phase];
+
+  for (const phase of phases) {
+    switch (phase) {
+      case 'clean':    await phaseClean(cities, opts); break;
+      case 'load':     await phaseLoad(cities, opts); break;
+      case 'enrich':   await phaseEnrich(cities, opts); break;
+      case 'finalize': await phaseFinalize(cities, opts); break;
+      default:
+        console.error(`Unknown phase: ${phase}`);
+        process.exit(1);
+    }
+  }
+
+  console.log(`\n${'='.repeat(70)}`);
+  console.log('PIPELINE COMPLETE');
+  console.log(`${'='.repeat(70)}`);
+  console.log(`  ${cost.summary()}`);
+}
+
+main().catch(err => {
+  console.error('FATAL:', err);
+  process.exit(1);
+});

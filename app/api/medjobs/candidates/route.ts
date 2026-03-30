@@ -3,10 +3,13 @@ import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy initialization to avoid build-time errors when env vars are not available
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 async function getAuthenticatedProvider(req: NextRequest) {
   const cookieStore = await cookies();
@@ -18,6 +21,8 @@ async function getAuthenticatedProvider(req: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
+
+  const supabaseAdmin = getSupabaseAdmin();
 
   // Check if user has a provider profile
   const { data: account } = await supabaseAdmin
@@ -55,13 +60,15 @@ export async function GET(req: NextRequest) {
     const auth = await getAuthenticatedProvider(req);
     const isProvider = !!auth?.providerProfile;
 
+    const supabaseAdmin = getSupabaseAdmin();
+
     // Build query
     let query = supabaseAdmin
       .from("business_profiles")
       .select(
-        "id, slug, display_name, city, state, zip, lat, lng, description, care_types, metadata, created_at" +
+        "id, slug, display_name, city, state, zip, lat, lng, description, care_types, metadata, image_url, created_at" +
         (isProvider ? ", email, phone" : ""),
-        { count: "exact" }
+        { count: "estimated" }
       )
       .eq("type", "student")
       .eq("is_active", true);
@@ -98,12 +105,22 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch candidates" }, { status: 500 });
     }
 
-    // Client-side filter for metadata fields (program_track in JSONB)
+    // Client-side filter for metadata fields (JSONB — not queryable server-side)
     let candidates = data || [];
     if (programTrack) {
+      // Map legacy program_track values to intended_professional_school equivalents
+      const legacyMap: Record<string, string> = {
+        pre_med: "medicine", pre_nursing: "nursing", nursing: "nursing",
+        pre_pa: "pa", pre_health: "public_health",
+      };
       candidates = candidates.filter(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (c: any) => c.metadata?.program_track === programTrack
+        (c: any) => {
+          const meta = c.metadata || {};
+          if (meta.intended_professional_school === programTrack) return true;
+          if (meta.program_track && legacyMap[meta.program_track] === programTrack) return true;
+          return false;
+        }
       );
     }
 

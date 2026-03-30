@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+let _supabaseAdmin: SupabaseClient | null = null;
+
+function getSupabaseAdmin(): SupabaseClient {
+  if (!_supabaseAdmin) {
+    _supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+  }
+  return _supabaseAdmin;
+}
 
 function isValidVideoUrl(url: string): boolean {
   try {
@@ -37,7 +44,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Find profile by slug
-    const { data: profile, error: fetchError } = await supabaseAdmin
+    const { data: profile, error: fetchError } = await getSupabaseAdmin()
       .from("business_profiles")
       .select("id, metadata")
       .eq("slug", slug.trim())
@@ -54,7 +61,7 @@ export async function POST(req: NextRequest) {
       video_intro_url: videoUrl.trim(),
     };
 
-    const { error: updateError } = await supabaseAdmin
+    const { error: updateError } = await getSupabaseAdmin()
       .from("business_profiles")
       .update({
         metadata: updatedMetadata,

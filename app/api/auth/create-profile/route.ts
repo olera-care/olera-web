@@ -249,6 +249,32 @@ export async function POST(request: Request) {
         }
 
         profileId = newProfile.id;
+
+        // Auto-link to olera-providers if a unique match exists (by name + city + state)
+        // This ensures source_provider_id is populated so reviews/Q&A are visible in the Hub
+        if (city && state) {
+          try {
+            const name = providerType === "organization" ? (orgName?.trim().slice(0, 100) || sanitizedDisplayName) : sanitizedDisplayName;
+            const { data: matches } = await db
+              .from("olera-providers")
+              .select("provider_id")
+              .ilike("provider_name", name)
+              .ilike("city", city)
+              .ilike("state", state)
+              .is("deleted", null)
+              .limit(2);
+
+            if (matches && matches.length === 1) {
+              // Exactly one match — safe to link
+              await db
+                .from("business_profiles")
+                .update({ source_provider_id: matches[0].provider_id })
+                .eq("id", newProfile.id);
+            }
+          } catch {
+            // Non-critical — profile works without linkage
+          }
+        }
       }
 
       // Create membership for providers (check first — no unique constraint on account_id)
@@ -308,7 +334,7 @@ export async function POST(request: Request) {
       // Family profile — check if a baseline one already exists (created by ensure-account)
       const { data: existingFamilyProfile } = await db
         .from("business_profiles")
-        .select("id")
+        .select("id, metadata")
         .eq("account_id", accountId)
         .eq("type", "family")
         .limit(1)

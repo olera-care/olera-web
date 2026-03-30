@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { Provider } from "@/lib/types/provider";
@@ -185,7 +185,8 @@ export default function SmartDashboardShell({
     && !!notificationData;
 
   // Hide main navbar — this page has its own header
-  useEffect(() => {
+  // useLayoutEffect fires before browser paint, preventing a flash of the main nav
+  useLayoutEffect(() => {
     setForceHidden(true);
     return () => setForceHidden(false);
   }, [setForceHidden]);

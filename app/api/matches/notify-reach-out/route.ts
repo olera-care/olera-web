@@ -91,7 +91,7 @@ export async function POST(request: Request) {
         providerName: provider?.display_name || "A care provider",
         city: providerCity,
         message: conn?.message || null,
-        matchesUrl: appendTrackingParams(`${siteUrl}/portal/matches`, reachOutEmailLogId),
+        matchesUrl: appendTrackingParams(`${siteUrl}/portal/inbox`, reachOutEmailLogId),
       }),
       emailType: "provider_reach_out",
       recipientType: "family",

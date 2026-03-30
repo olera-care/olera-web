@@ -846,7 +846,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
   const handleViewMatches = useCallback(() => {
     setNavigating(true);
-    router.push("/portal/matches");
+    router.push("/portal/profile");
   }, [router]);
 
   const handleBrowseProviders = useCallback(() => {
@@ -1221,7 +1221,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 <div className="relative">
                   {isProfileLive ? (
                     <Link
-                      href="/portal/matches"
+                      href="/portal/profile"
                       className="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-gray-200 transition-colors group"
                     >
                       <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
@@ -1245,7 +1245,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                     </Link>
                   ) : hasCompletedOnboarding ? (
                     <Link
-                      href="/portal/matches"
+                      href="/portal/profile"
                       className="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-gray-200 transition-colors group"
                     >
                       <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0">

@@ -233,7 +233,7 @@ export async function POST(request: Request) {
     const familyName = profile.display_name || "there";
     const locationCity = city || profile.city || "your area";
     const siteUrl = getSiteUrl();
-    const finalDestination = "/portal/matches";
+    const finalDestination = "/portal/profile";
 
     if (userEmail) {
       try {

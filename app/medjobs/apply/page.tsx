@@ -39,19 +39,6 @@ const LANGUAGES = [
   "Tagalog", "Arabic", "Korean", "French", "Other",
 ];
 
-const AVAILABILITY_TYPES = [
-  { value: "in_between_classes", label: "Between classes" },
-  { value: "evenings", label: "Evenings" },
-  { value: "weekends", label: "Weekends" },
-  { value: "overnights", label: "Overnights" },
-];
-
-const SEASONAL_OPTIONS = [
-  { value: "summer", label: "Summer" },
-  { value: "winter_break", label: "Winter break" },
-  { value: "fall_semester", label: "Fall semester" },
-  { value: "spring_semester", label: "Spring semester" },
-];
 
 const DURATION_OPTIONS = [
   { value: "less_than_3_months", label: "Less than 3 months" },
@@ -74,15 +61,8 @@ const TOTAL_STEPS = 4;
 const STEP_TITLES = [
   "Let\u2019s get to know you",
   "Your background",
-  "When are you NOT available?",
-  "One last thing",
-];
-
-const STEP_SUBTITLES = [
-  "We\u2019ll use this to set up your profile",
-  "Tell us about your experience",
-  "We assume you\u2019re open \u2014 just tell us what doesn\u2019t work",
-  "Confirm and you\u2019re done",
+  "Your availability",
+  "Your commitments",
 ];
 
 /* ─── Reusable Components ──────────────────────────────────── */
@@ -173,19 +153,10 @@ function MultiSelectCards({ options, selected, onToggle, hint = "Choose as many 
           const isSelected = selected.includes(opt.value);
           return (
             <button key={opt.value} type="button" onClick={() => onToggle(opt.value)}
-              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all ${
-                isSelected ? "border-2 border-gray-900 bg-gray-50" : "border border-gray-200 hover:border-gray-300"
+              className={`px-3 py-2.5 rounded-lg text-left text-sm transition-all ${
+                isSelected ? "border-2 border-gray-900 bg-gray-50 font-medium text-gray-900" : "border border-gray-200 hover:border-gray-300 text-gray-700"
               }`}>
-              <span className={`inline-flex items-center justify-center w-4 h-4 rounded shrink-0 ${
-                isSelected ? "bg-gray-900" : "border border-gray-300"
-              }`}>
-                {isSelected && (
-                  <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </span>
-              <span className="text-sm text-gray-700">{opt.label}</span>
+              {opt.label}
             </button>
           );
         })}
@@ -236,9 +207,10 @@ export default function MedJobsApplyPage() {
   const [seasonalAvailability, setSeasonalAvailability] = useState<string[]>([]);
   const [durationCommitment, setDurationCommitment] = useState("");
   const [hoursPerWeekRange, setHoursPerWeekRange] = useState("");
+  const [scheduleNotes, setScheduleNotes] = useState("");
 
   // Confirm — individual attestation checkboxes
-  const [attestations, setAttestations] = useState<boolean[]>([false, false, false, false, false]);
+  const [attestations, setAttestations] = useState<boolean[]>([false, false, false, false, false, false]);
   const allAcknowledged = attestations.every(Boolean);
   const [honeypot, setHoneypot] = useState("");
 
@@ -365,6 +337,7 @@ export default function MedJobsApplyPage() {
           careExperienceTypes, languages, availabilityTypes, seasonalAvailability,
           durationCommitment: durationCommitment || undefined,
           hoursPerWeekRange: hoursPerWeekRange || undefined,
+          scheduleNotes: scheduleNotes || undefined,
           acknowledgmentsCompleted: true,
           website: honeypot,
         }),
@@ -403,7 +376,7 @@ export default function MedJobsApplyPage() {
     displayName, email, phone, university, universityId, universityOther, universitySearch,
     major, majorOther, intendedSchool, city, state, certifications, yearsCaregiving,
     careExperienceTypes, languages, availabilityTypes, seasonalAvailability,
-    durationCommitment, hoursPerWeekRange, honeypot,
+    durationCommitment, hoursPerWeekRange, scheduleNotes, honeypot,
   ]);
 
   /* ─── Success ────────────────────────────────────────────── */
@@ -427,50 +400,55 @@ export default function MedJobsApplyPage() {
             {isExisting ? (
               <>
                 <h1 className="text-3xl font-semibold text-gray-900 mb-3">Welcome back!</h1>
-                <p className="text-gray-500 text-lg mb-8">Pick up where you left off and complete your profile to get hired.</p>
+                <p className="text-gray-500 text-lg mb-8">Pick up where you left off to complete verification and start interviewing.</p>
               </>
             ) : (
               <>
                 <h1 className="text-3xl font-semibold text-gray-900 mb-3">You&apos;re in, {displayName.split(" ")[0]}!</h1>
-                <p className="text-gray-500 text-lg mb-8">Your application has been submitted. Complete a few more steps to get hired.</p>
+                <p className="text-gray-500 text-lg mb-8">Your application has been submitted. Next step: verify your identity so providers can start reaching out.</p>
               </>
             )}
           </div>
 
-          <div className="text-left space-y-3 mb-10">
-            {/* Application — already done */}
-            <div className="flex items-start gap-4 p-4 rounded-xl bg-emerald-50/50">
-              <div className="flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 shrink-0">
-                <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-emerald-800">Application submitted</p>
-              </div>
-            </div>
+          <div className="text-left mb-10">
+            <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-3">To complete verification</p>
+            <p className="text-sm text-gray-500 mb-4">We verify every student to protect the families you&apos;ll care for. Once verified, your profile goes live and providers can find you.</p>
 
-            {/* Remaining steps */}
-            {[
-              { label: "Record a short intro video", desc: "2\u20133 min \u2014 helps providers get to know you" },
-              { label: "Upload driver\u2019s license", desc: "Required before your first assignment" },
-              { label: "Upload car insurance", desc: "Proof of coverage for transportation" },
-            ].map((item, i) => (
-              <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-gray-50">
-                <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white border-2 border-gray-200 shrink-0">
-                  <div className="w-2 h-2 rounded-full bg-gray-300" />
+            <div className="space-y-3">
+              {/* Application — already done */}
+              <div className="flex items-start gap-4 p-4 rounded-xl bg-emerald-50/50">
+                <div className="flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 shrink-0">
+                  <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{item.label}</p>
-                  <p className="text-xs text-gray-500">{item.desc}</p>
+                  <p className="text-sm font-medium text-emerald-800">Application submitted</p>
                 </div>
               </div>
-            ))}
+
+              {/* Remaining verification steps */}
+              {[
+                { label: "Record a short intro video", desc: "2\u20133 min \u2014 providers want to see who they\u2019re hiring" },
+                { label: "Upload driver\u2019s license", desc: "Verifies your identity \u2014 required for all caregiving roles" },
+                { label: "Upload car insurance", desc: "Confirms you can get to assignments safely" },
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-gray-50">
+                  <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white border-2 border-gray-200 shrink-0">
+                    <div className="w-2 h-2 rounded-full bg-gray-300" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{item.label}</p>
+                    <p className="text-xs text-gray-500">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <Link href="/portal/medjobs"
             className="inline-flex items-center justify-center w-full px-6 py-3.5 bg-gray-900 hover:bg-gray-800 rounded-lg text-sm font-semibold text-white transition-colors">
-            Get Started
+            Start Verification
           </Link>
           <p className="mt-4 text-sm text-gray-400 text-center">Check your email for a sign-in link</p>
           <style>{`@keyframes scale-in { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }`}</style>
@@ -480,8 +458,6 @@ export default function MedJobsApplyPage() {
   }
 
   /* ─── Progress + Layout ──────────────────────────────────── */
-
-  const progress = ((step + 1) / TOTAL_STEPS) * 100;
 
   // University dropdown (special — fetched from Supabase)
   const filteredUniversities = (universityOther ? universitySearch : "").trim()
@@ -555,13 +531,6 @@ export default function MedJobsApplyPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      {/* Progress bar */}
-      <div className="fixed top-0 left-0 right-0 z-30">
-        <div className="h-1 bg-gray-100">
-          <div className="h-full bg-gray-900 rounded-r-full transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
-        </div>
-      </div>
-
       {/* Honeypot */}
       <div className="absolute -left-[9999px]" aria-hidden="true">
         <input type="text" name="website" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} tabIndex={-1} autoComplete="off" />
@@ -577,13 +546,7 @@ export default function MedJobsApplyPage() {
         <div className={`tf-container ${animClass}`}>
           {/* Section header */}
           <div className="mb-8 pt-4">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs text-gray-400 uppercase tracking-wide font-medium">
-                Step {step + 1} of {TOTAL_STEPS}
-              </span>
-            </div>
             <h1 className="text-2xl font-semibold text-gray-900">{STEP_TITLES[step]}</h1>
-            <p className="text-sm text-gray-400 mt-1">{STEP_SUBTITLES[step]}</p>
           </div>
 
           {error && (
@@ -731,64 +694,58 @@ export default function MedJobsApplyPage() {
           {/* ── Step 2: Availability ── */}
           {step === 2 && (
             <div className="space-y-8">
-              <div className="flex items-start gap-2.5 p-3.5 rounded-lg bg-blue-50/60 mb-2">
-                <svg className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-sm text-blue-700 leading-relaxed">
-                  More availability = higher likelihood of getting hired. Employers can work around class schedules — just give advance notice.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-3">Times you can&apos;t work</label>
-                <MultiSelectCards
-                  options={AVAILABILITY_TYPES}
-                  selected={availabilityTypes}
-                  onToggle={(v) => toggleItem(setAvailabilityTypes, v)}
-                  hint="Select any that DON'T work for you" />
-              </div>
-
-              <div>
-                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-3">Semesters or breaks you&apos;re unavailable</label>
-                <MultiSelectCards
-                  options={SEASONAL_OPTIONS}
-                  selected={seasonalAvailability}
-                  onToggle={(v) => toggleItem(setSeasonalAvailability, v)}
-                  hint="Select any that DON'T work" />
-              </div>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                Students in this program are expected to be available for shifts between classes, evenings, weekends, and overnights. We work around your class schedule and exam periods — but outside of that, the more available you are, the faster you get matched.
+              </p>
 
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">
-                    How long can you commit?
-                    <Tooltip content="Commitments of 6+ months are strongly preferred by providers. Longer commitments lead to better placements." />
-                  </label>
-                  <SearchDropdown options={DURATION_OPTIONS} value={durationCommitment} onSelect={setDurationCommitment} placeholder="Select" />
-                  <ReactiveHint show={durationCommitment === "less_than_3_months" || durationCommitment === "3_to_6_months"}>
-                    Commitments of 6+ months are strongly preferred by providers. Consider whether you can extend your availability.
+                  <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Hours per week</label>
+                  <SearchDropdown options={HOURS_OPTIONS} value={hoursPerWeekRange} onSelect={setHoursPerWeekRange} placeholder="Select" />
+                  <ReactiveHint show={!!hoursPerWeekRange && ["5-10", "10-15"].includes(hoursPerWeekRange)}>
+                    Students who commit 15+ hrs/week get placed with providers significantly faster.
                   </ReactiveHint>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Hours per week</label>
-                  <SearchDropdown options={HOURS_OPTIONS} value={hoursPerWeekRange} onSelect={setHoursPerWeekRange} placeholder="Select" />
+                  <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">
+                    How long can you commit?
+                  </label>
+                  <SearchDropdown options={DURATION_OPTIONS} value={durationCommitment} onSelect={setDurationCommitment} placeholder="Select" />
+                  <ReactiveHint show={durationCommitment === "less_than_3_months" || durationCommitment === "3_to_6_months"}>
+                    Providers strongly prefer 6+ month commitments. Longer commitment = better placement and stronger references.
+                  </ReactiveHint>
                 </div>
               </div>
 
-              <ReactiveHint show={!!hoursPerWeekRange && ["5-10", "10-15"].includes(hoursPerWeekRange)}>
-                Applicants with 10-20+ hrs/week are more competitive. You can strengthen your application in your personal statement.
-              </ReactiveHint>
+              <div>
+                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">
+                  Anything we should know about your schedule?
+                  <span className="normal-case tracking-normal text-gray-300 ml-1">(optional)</span>
+                </label>
+                <textarea
+                  value={scheduleNotes}
+                  onChange={(e) => setScheduleNotes(e.target.value)}
+                  placeholder="E.g. &quot;I have classes MWF mornings but am free all other times&quot;"
+                  rows={3}
+                  className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 bg-transparent transition-colors resize-none"
+                />
+              </div>
             </div>
           )}
 
-          {/* ── Step 3: Confirm ── */}
+          {/* ── Step 3: Commitments ── */}
           {step === 3 && (
-            <div className="space-y-3">
+            <div className="space-y-4">
+              <p className="text-sm text-gray-500 leading-relaxed mb-2">
+                These standards are why providers trust MedJobs students. If these feel right to you, you&apos;re exactly who we&apos;re looking for.
+              </p>
+
               {[
                 "I\u2019ll be on time, professional, and communicate schedule changes 24+ hours in advance",
                 "I understand caregiving duties include personal care, meals, mobility, and companionship",
                 "I have reliable transportation and accept responsibility for my transport costs",
-                "I consent to background checks and will respond to interview requests within 48 hours",
+                "I consent to a background check and drug test upon hire",
+                "I\u2019ll respond to interview requests within 48 hours",
                 "All information in this application is accurate and Olera is not the employer of record",
               ].map((item, i) => (
                 <button key={i} type="button"
@@ -804,6 +761,10 @@ export default function MedJobsApplyPage() {
                   <span className="text-sm text-gray-700 leading-relaxed">{item}</span>
                 </button>
               ))}
+
+              <ReactiveHint show={allAcknowledged}>
+                You&apos;re ready. Students who meet these standards are highly sought after by providers and gain clinical experience that strengthens professional school applications.
+              </ReactiveHint>
             </div>
           )}
 

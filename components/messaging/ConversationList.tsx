@@ -342,27 +342,31 @@ export default function ConversationList({
   const isInFamilyMode = variant === "family" && (roleFilter !== "provider" || (!showRoleFilters && !providerProfileIds?.size));
 
   // Filter connections by family tab (messages vs requests)
+  // Messages: all active conversations (family-initiated + accepted provider requests)
+  // Requests: only pending provider requests awaiting family's decision
   const filterByFamilyTab = (list: ConnectionWithProfile[]) => {
     if (!isInFamilyMode || !familyProfileId) return list;
 
     return list.filter((c) => {
-      // Messages: family initiated the conversation (family is from_profile_id)
-      // Requests: provider initiated (family is to_profile_id, provider is from_profile_id)
       const familyInitiated = c.from_profile_id === familyProfileId;
+      const providerInitiated = !familyInitiated && c.to_profile_id === familyProfileId;
 
       if (familyTab === "messages") {
-        return familyInitiated;
+        // Messages: family-initiated conversations + accepted provider requests
+        return familyInitiated || (providerInitiated && c.status === "accepted");
       } else {
-        // Requests: provider reached out to family
-        return !familyInitiated && c.to_profile_id === familyProfileId;
+        // Requests: only pending provider requests (awaiting accept/decline)
+        return providerInitiated && c.status === "pending";
       }
     });
   };
 
-  // Count requests for badge
+  // Count pending requests for badge (only pending, not accepted)
   const requestsCount = familyProfileId
     ? getActiveConnections(connections).filter((c) =>
-        c.to_profile_id === familyProfileId && c.from_profile_id !== familyProfileId
+        c.to_profile_id === familyProfileId &&
+        c.from_profile_id !== familyProfileId &&
+        c.status === "pending"
       ).length
     : 0;
 

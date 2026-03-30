@@ -64,7 +64,7 @@ function calculateFamilyCompleteness(profile: Profile, meta: FamilyMetadata): nu
   return Math.round((filled / checks.length) * 100);
 }
 
-// ── Accordion component ──
+// ── Accordion component (Upwork-style card) ──
 
 function Accordion({
   icon,
@@ -84,38 +84,36 @@ function Accordion({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="border-b border-gray-100 last:border-b-0">
+    <div className={`bg-white border border-gray-200 rounded-lg ${disabled ? "opacity-60" : ""}`}>
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={`w-full flex items-center gap-3 px-5 py-4 text-left transition-colors ${
-          disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+        className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors rounded-lg ${
+          disabled ? "cursor-not-allowed" : "hover:bg-gray-50/50"
         }`}
       >
-        <span className="text-gray-400">{icon}</span>
+        <span className="text-gray-500">{icon}</span>
         <span className="flex-1 text-[15px] font-medium text-gray-900">{title}</span>
         {comingSoon && (
-          <span className="text-[11px] font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
             Soon
           </span>
         )}
-        {!disabled && (
-          <svg
-            className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
-              isOpen ? "rotate-180" : ""
-            }`}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-          </svg>
-        )}
+        <svg
+          className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+            isOpen && !disabled ? "rotate-180" : ""
+          }`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.5}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
       </button>
       {isOpen && !disabled && children && (
-        <div className="px-5 pb-5">
+        <div className="px-4 pb-4 pt-1 border-t border-gray-100">
           {children}
         </div>
       )}
@@ -159,9 +157,9 @@ function IncompleteBadge() {
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   if (!value) return null;
   return (
-    <div className="py-2 first:pt-0 last:pb-0">
-      <p className="text-[12px] text-gray-400 font-medium uppercase tracking-wider mb-1">{label}</p>
-      <div className="text-[15px] text-gray-800">{value}</div>
+    <div>
+      <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-0.5">{label}</p>
+      <div className="text-[14px] text-gray-800 leading-relaxed">{value}</div>
     </div>
   );
 }
@@ -171,10 +169,10 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 function Chip({ children, variant = "default" }: { children: React.ReactNode; variant?: "default" | "primary" }) {
   return (
     <span
-      className={`inline-block text-sm font-medium px-2.5 py-1 rounded-full ${
+      className={`inline-block text-[13px] px-2.5 py-1 rounded-md ${
         variant === "primary"
           ? "text-primary-700 bg-primary-50"
-          : "text-gray-600 bg-gray-100"
+          : "text-gray-600 bg-gray-50 border border-gray-200"
       }`}
     >
       {children}
@@ -246,17 +244,16 @@ export default function ProviderDetailPanel({
   const category = profile.category?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || null;
 
   return (
-    <div className={`flex flex-col bg-white border-l border-gray-200 ${className}`}>
+    <div className={`flex flex-col bg-gray-50 border-l border-gray-200 ${className}`}>
       {/* Header */}
-      <div className="shrink-0 px-5 h-[60px] border-b border-gray-200 flex items-center justify-between">
-        <h3 className="text-[15px] font-semibold text-gray-900">Details</h3>
+      <div className="shrink-0 px-5 h-14 bg-white border-b border-gray-100 flex items-center justify-end">
         <button
           onClick={onClose}
-          className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+          className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
           aria-label="Close details"
         >
-          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
@@ -264,51 +261,53 @@ export default function ProviderDetailPanel({
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto">
         {/* Profile header - Photo + Name + Location + Badge */}
-        <div className="px-5 py-6 text-center border-b border-gray-100">
-          {/* Photo */}
-          {images.length > 0 ? (
-            <div className="relative w-20 h-20 mx-auto mb-4">
-              <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-gray-100">
-                <Image
-                  src={images[currentImage]}
-                  alt={profile.display_name}
-                  fill
-                  sizes="80px"
-                  className="object-cover"
-                />
-              </div>
-              {/* Image carousel dots for providers */}
-              {!isFamily && images.length > 1 && (
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1">
-                  {images.map((_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setCurrentImage(i)}
-                      className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                        i === currentImage ? "bg-gray-700" : "bg-gray-300"
-                      }`}
-                    />
-                  ))}
+        <div className="px-5 pt-4 pb-5 text-center bg-white">
+          {/* Photo with optional online indicator */}
+          <div className="relative w-[88px] h-[88px] mx-auto mb-3">
+            {images.length > 0 ? (
+              <>
+                <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-gray-100">
+                  <Image
+                    src={images[currentImage]}
+                    alt={profile.display_name}
+                    fill
+                    sizes="88px"
+                    className="object-cover"
+                  />
                 </div>
-              )}
-            </div>
-          ) : (
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center">
-              <span className="text-2xl font-bold text-primary-600">
-                {(profile.display_name || "?")[0].toUpperCase()}
-              </span>
-            </div>
-          )}
+                {/* Image carousel dots for providers */}
+                {!isFamily && images.length > 1 && (
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1">
+                    {images.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setCurrentImage(i)}
+                        className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                          i === currentImage ? "bg-gray-700" : "bg-gray-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center">
+                <span className="text-2xl font-semibold text-gray-500">
+                  {(profile.display_name || "?")[0].toUpperCase()}
+                </span>
+              </div>
+            )}
+          </div>
 
           {/* Name */}
-          <h2 className="text-lg font-display font-bold text-gray-900">
+          <h2 className="text-[17px] font-semibold text-gray-900">
             {profile.display_name}
           </h2>
 
-          {/* Subtitle - category for providers, location for families */}
+          {/* Subtitle - category for providers */}
           {isProvider && category && (
-            <p className="text-[13px] text-gray-500 mt-0.5 flex items-center justify-center gap-1.5">
+            <p className="text-[13px] text-gray-500 mt-1 flex items-center justify-center gap-1.5">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
               </svg>
@@ -316,8 +315,9 @@ export default function ProviderDetailPanel({
             </p>
           )}
 
+          {/* Location */}
           {location && (
-            <p className="text-[13px] text-gray-500 mt-0.5 flex items-center justify-center gap-1.5">
+            <p className="text-[13px] text-gray-500 mt-1 flex items-center justify-center gap-1.5">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
@@ -328,14 +328,14 @@ export default function ProviderDetailPanel({
 
           {/* Incomplete badge for families */}
           {isFamily && isIncomplete && (
-            <div className="mt-3">
+            <div className="mt-2.5">
               <IncompleteBadge />
             </div>
           )}
         </div>
 
         {/* Accordion sections */}
-        <div className="divide-y divide-gray-100">
+        <div className="px-4 py-4 space-y-3">
           {/* Profile accordion - default open */}
           <Accordion
             icon={
@@ -352,29 +352,27 @@ export default function ProviderDetailPanel({
             title={isFamily ? "Family Profile" : "Provider Profile"}
             defaultOpen={true}
           >
-            <div className="space-y-4">
+            <div className="space-y-3.5">
               {/* ===== FAMILY PROFILE CONTENT ===== */}
               {isFamily && (
                 <>
                   {/* Care Recipient */}
                   {(meta.relationship_to_recipient || meta.age) && (
-                    <div>
-                      <DetailRow
-                        label="Care Recipient"
-                        value={
-                          <span>
-                            {meta.relationship_to_recipient || "Not specified"}
-                            {meta.age && `, ${meta.age} years old`}
-                          </span>
-                        }
-                      />
-                    </div>
+                    <DetailRow
+                      label="Care Recipient"
+                      value={
+                        <span>
+                          {meta.relationship_to_recipient || "Not specified"}
+                          {meta.age && `, ${meta.age} years old`}
+                        </span>
+                      }
+                    />
                   )}
 
                   {/* Looking For (care types) */}
                   {careTypes.length > 0 && (
                     <div>
-                      <p className="text-[12px] text-gray-400 font-medium uppercase tracking-wider mb-2">Looking For</p>
+                      <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-1.5">Looking For</p>
                       <div className="flex flex-wrap gap-1.5">
                         {careTypes.map((ct) => (
                           <Chip key={ct}>{ct}</Chip>
@@ -386,7 +384,7 @@ export default function ProviderDetailPanel({
                   {/* Help Needed (care needs) */}
                   {careNeeds.length > 0 && (
                     <div>
-                      <p className="text-[12px] text-gray-400 font-medium uppercase tracking-wider mb-2">Help Needed</p>
+                      <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-1.5">Help Needed</p>
                       <div className="flex flex-wrap gap-1.5">
                         {careNeeds.map((need) => (
                           <Chip key={need} variant="primary">{need}</Chip>
@@ -397,16 +395,16 @@ export default function ProviderDetailPanel({
 
                   {/* Timing */}
                   {(timeline || schedule) && (
-                    <div className="space-y-2">
-                      <DetailRow label="When" value={timeline} />
-                      <DetailRow label="Schedule" value={schedule} />
+                    <div className="space-y-2.5">
+                      {timeline && <DetailRow label="When" value={timeline} />}
+                      {schedule && <DetailRow label="Schedule" value={schedule} />}
                     </div>
                   )}
 
                   {/* Payment */}
                   {paymentMethods.length > 0 && (
                     <div>
-                      <p className="text-[12px] text-gray-400 font-medium uppercase tracking-wider mb-2">Payment</p>
+                      <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-1.5">Payment</p>
                       <div className="flex flex-wrap gap-1.5">
                         {paymentMethods.map((method) => (
                           <Chip key={method}>{method}</Chip>
@@ -419,7 +417,7 @@ export default function ProviderDetailPanel({
                   {aboutSituation && (
                     <DetailRow
                       label="About"
-                      value={<p className="leading-relaxed">{aboutSituation}</p>}
+                      value={aboutSituation}
                     />
                   )}
 
@@ -431,10 +429,10 @@ export default function ProviderDetailPanel({
                   {/* Contact info */}
                   {(profile.phone || profile.email) && (
                     <div>
-                      <p className="text-[12px] text-gray-400 font-medium uppercase tracking-wider mb-2">Contact</p>
-                      <div className="space-y-1.5">
+                      <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-1.5">Contact</p>
+                      <div className="space-y-1">
                         {profile.phone && (
-                          <p className="text-[15px] text-gray-800 flex items-center gap-2">
+                          <p className="text-[14px] text-gray-700 flex items-center gap-2">
                             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                             </svg>
@@ -442,7 +440,7 @@ export default function ProviderDetailPanel({
                           </p>
                         )}
                         {profile.email && (
-                          <p className="text-[15px] text-gray-800 flex items-center gap-2">
+                          <p className="text-[14px] text-gray-700 flex items-center gap-2">
                             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                             </svg>
@@ -462,14 +460,14 @@ export default function ProviderDetailPanel({
                   {profile.description && (
                     <DetailRow
                       label="About"
-                      value={<p className="leading-relaxed line-clamp-4">{profile.description}</p>}
+                      value={<span className="line-clamp-4">{profile.description}</span>}
                     />
                   )}
 
                   {/* Services */}
                   {careTypes.length > 0 && (
                     <div>
-                      <p className="text-[12px] text-gray-400 font-medium uppercase tracking-wider mb-2">Services</p>
+                      <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-1.5">Services</p>
                       <div className="flex flex-wrap gap-1.5">
                         {careTypes.map((ct) => (
                           <Chip key={ct}>{ct}</Chip>
@@ -481,10 +479,10 @@ export default function ProviderDetailPanel({
                   {/* Contact info */}
                   {(profile.phone || profile.email || profile.website) && (
                     <div>
-                      <p className="text-[12px] text-gray-400 font-medium uppercase tracking-wider mb-2">Contact</p>
-                      <div className="space-y-1.5">
+                      <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-1.5">Contact</p>
+                      <div className="space-y-1">
                         {profile.phone && (
-                          <p className="text-[15px] text-gray-800 flex items-center gap-2">
+                          <p className="text-[14px] text-gray-700 flex items-center gap-2">
                             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                             </svg>
@@ -492,7 +490,7 @@ export default function ProviderDetailPanel({
                           </p>
                         )}
                         {profile.email && (
-                          <p className="text-[15px] text-gray-800 flex items-center gap-2">
+                          <p className="text-[14px] text-gray-700 flex items-center gap-2">
                             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                             </svg>
@@ -504,7 +502,7 @@ export default function ProviderDetailPanel({
                             href={profile.website.startsWith("http") ? profile.website : `https://${profile.website}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[15px] text-primary-600 hover:underline flex items-center gap-2"
+                            className="text-[14px] text-primary-600 hover:text-primary-700 flex items-center gap-2"
                           >
                             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
@@ -518,14 +516,14 @@ export default function ProviderDetailPanel({
 
                   {/* View full profile link */}
                   {profileHref && (
-                    <div className="pt-2">
+                    <div className="pt-1">
                       <Link
                         href={profileHref}
                         target="_blank"
-                        className="inline-flex items-center gap-1.5 text-[14px] font-medium text-primary-600 hover:text-primary-700"
+                        className="inline-flex items-center gap-1.5 text-[13px] font-medium text-primary-600 hover:text-primary-700"
                       >
                         View full profile
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                         </svg>
                       </Link>

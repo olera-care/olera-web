@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Profile } from "@/lib/types";
@@ -127,6 +127,35 @@ export default function RequestDetailPanel({
 }: RequestDetailPanelProps) {
   const [connecting, setConnecting] = useState(false);
   const [declining, setDeclining] = useState(false);
+  const viewedRef = useRef<Set<string>>(new Set());
+
+  // Mark the request as viewed when displayed (clears navbar badge)
+  useEffect(() => {
+    if (!connection) return;
+
+    const connectionId = connection.id;
+    const meta = connection.metadata as Record<string, unknown> | undefined;
+
+    // Skip if already viewed (locally or in DB)
+    if (viewedRef.current.has(connectionId) || meta?.viewed) return;
+
+    // Mark as viewed locally to prevent duplicate calls
+    viewedRef.current.add(connectionId);
+
+    // Call API to mark as viewed in database
+    fetch("/api/connections/respond-interest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ connectionId, action: "view" }),
+    }).catch((err) => {
+      console.error("[RequestDetailPanel] Failed to mark as viewed:", err);
+    });
+
+    // Dispatch event so navbar badge updates immediately
+    window.dispatchEvent(
+      new CustomEvent("olera:interested-viewed", { detail: { connectionId } })
+    );
+  }, [connection]);
 
   // Empty state when no connection selected
   if (!connection) {
@@ -302,7 +331,7 @@ export default function RequestDetailPanel({
           {/* View full profile link */}
           {profileSlug && (
             <Link
-              href={`/providers/${profileSlug}`}
+              href={`/provider/${profileSlug}`}
               target="_blank"
               rel="noopener noreferrer"
               className="group inline-flex items-center gap-2 text-[15px] font-medium text-primary-600 hover:text-primary-700 transition-colors"

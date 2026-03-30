@@ -341,14 +341,16 @@ function InboxContent() {
           .eq("type", "inquiry")
           .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
-        // Provider-initiated requests (pending = awaiting family response, accepted = active conversation)
+        // Provider-sent requests: only show accepted (pending reach-outs stay in /provider/matches)
+        // This prevents providers from seeing "conversations" before family accepts
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .eq("from_profile_id", activeProfileId)
           .eq("type", "request")
-          .in("status", ["pending", "accepted"])
+          .eq("status", "accepted")
           .order("updated_at", { ascending: false }),
+        // Family-received requests: show both pending (for accept/decline) and accepted
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
@@ -360,7 +362,7 @@ function InboxContent() {
 
       // Merge and deduplicate — skip hidden and metadata-archived connections
       // (archive state lives in metadata.archived, not the status column)
-      // Include inquiry connections and provider-initiated requests (pending + accepted)
+      // Includes: inquiries, accepted provider-sent requests, pending/accepted family-received requests
       const allConns = [
         ...(outbound.data || []),
         ...(inbound.data || []),

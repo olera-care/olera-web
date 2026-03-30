@@ -687,68 +687,45 @@ export default function Navbar() {
               {/* Desktop right section */}
               <div className="hidden lg:flex items-center gap-2">
                 {isProviderPortal ? (
-                  /* Provider mode: Switch to family + user menu */
+                  /* Provider mode: Switch to family + user menu
+                   * Always render signed-in layout — provider pages require auth,
+                   * so avoid flipping between signed-out/signed-in hamburger during auth churn */
                   <>
                     {/* Switch to family */}
-                    {user && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
+                        router.push("/");
+                      }}
+                      className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
+                    >
+                      Switch to family
+                    </button>
+                    <div className="relative" ref={userMenuRef}>
                       <button
                         type="button"
-                        onClick={() => {
-                          if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
-                          router.push("/");
-                        }}
-                        className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
+                        onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                        className="relative flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
+                        aria-label="User menu"
+                        aria-expanded={isUserMenuOpen}
                       >
-                        Switch to family
-                      </button>
-                    )}
-                    {hasSession ? (
-                      <div className="relative" ref={userMenuRef}>
-                        <button
-                          type="button"
-                          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                          className="relative flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
-                          aria-label="User menu"
-                          aria-expanded={isUserMenuOpen}
-                        >
-                          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                          </svg>
-                          {activeProfile?.image_url ? (
-                            <Image src={activeProfile.image_url} alt={displayName} width={32} height={32} className="w-8 h-8 rounded-full object-cover aspect-square shrink-0" />
-                          ) : (
-                            <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
-                              {initials}
-                            </div>
-                          )}
-                          {(providerInboxCount > 0 || newLeadsCount > 0 || qnaCount > 0) && (
-                            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary-600 rounded-full border-2 border-white" />
-                          )}
-                        </button>
-                        {isUserMenuOpen && signedInDropdown}
-                      </div>
-                    ) : (
-                      <div className="relative" ref={userMenuRef}>
-                        <button
-                          type="button"
-                          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                          className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 min-h-[44px]"
-                          aria-label="Account menu"
-                          aria-expanded={isUserMenuOpen}
-                          aria-haspopup="true"
-                        >
-                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                          </svg>
-                          <div className="w-8 h-8 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                            </svg>
+                        <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        {activeProfile?.image_url ? (
+                          <Image src={activeProfile.image_url} alt={displayName} width={32} height={32} className="w-8 h-8 rounded-full object-cover aspect-square shrink-0" />
+                        ) : (
+                          <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
+                            {initials || "?"}
                           </div>
-                        </button>
-                        {isUserMenuOpen && unauthDropdown}
-                      </div>
-                    )}
+                        )}
+                        {(providerInboxCount > 0 || newLeadsCount > 0 || qnaCount > 0) && (
+                          <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary-600 rounded-full border-2 border-white" />
+                        )}
+                      </button>
+                      {isUserMenuOpen && signedInDropdown}
+                    </div>
                   </>
                 ) : (
                   /* Family mode: For Providers + heart + user menu */

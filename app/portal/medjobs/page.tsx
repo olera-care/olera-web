@@ -791,28 +791,6 @@ function SuggestedTextEditor({ label, profileId, field, value, suggestions, plac
   );
 }
 
-function SuggestionButton({ text, profileId, field, currentValue, onSave }: {
-  text: string; profileId: string; field: string; currentValue: string; onSave: () => void;
-}) {
-  const isSelected = currentValue === text;
-  const handleClick = async () => {
-    const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-    const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
-    const m = (current?.metadata || {}) as Record<string, unknown>;
-    m[field] = text;
-    await sb.from("business_profiles").update({ metadata: m }).eq("id", profileId);
-    onSave();
-  };
-  return (
-    <button type="button" onClick={handleClick}
-      className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
-        isSelected ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-      }`}>
-      {text}
-    </button>
-  );
-}
-
 /* ─── Availability Notes Section ──────────────────────────── */
 
 const AVAILABILITY_SNIPPETS = [
@@ -1086,13 +1064,12 @@ export default function StudentPortalPage() {
                           {item.done && <p className="text-sm text-emerald-600 mb-3">Document uploaded</p>}
                           <p className="text-sm text-gray-500 mb-3">{item.done ? "Upload a new version:" : item.desc}</p>
                           <div className="mb-3">
-                            <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Expiration date</label>
-                            <MetadataEditor
+                            <DateFieldEditor
                               profileId={profile.id}
                               field={item.key === "drivers_license" ? "drivers_license_expiration" : "car_insurance_expiration"}
                               value={(item.key === "drivers_license" ? meta.drivers_license_expiration : meta.car_insurance_expiration) || ""}
                               onSave={refresh}
-                              placeholder="MM/DD/YYYY"
+                              label="Expiration date"
                             />
                           </div>
                           <InlineUpload profileId={profile.id} documentType={item.key as "drivers_license" | "car_insurance"} onComplete={refresh} />

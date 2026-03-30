@@ -794,7 +794,7 @@ function DocItem({ url, checked, label, expiration }: { url: string | null; chec
     return (
       <a href={url} target="_blank" rel="noopener noreferrer" className="block hover:bg-gray-50 rounded-lg px-1 -mx-1 py-0.5 transition-colors">
         {inner}
-        {expiration && <p className="text-[11px] text-gray-400 ml-6 mt-0.5">Expires {expiration}</p>}
+        {expiration && <p className="text-[11px] text-gray-400 ml-6 mt-0.5">Expires {new Date(expiration + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>}
       </a>
     );
   }

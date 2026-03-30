@@ -486,10 +486,10 @@ function DiscoveryBanner({
   // ═══════════════════════════════════════════════════════════════════════════
   if (variant === "illustrated") {
     return (
-      <div className="relative rounded-[20px] overflow-hidden">
+      <div className="relative rounded-[20px]">
         {/* Warm cream background — exactly like reference */}
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 rounded-[20px] overflow-hidden"
           style={{
             background: 'linear-gradient(145deg, #f5f0e8 0%, #efe9e0 40%, #e9e2d8 100%)'
           }}
@@ -497,7 +497,7 @@ function DiscoveryBanner({
 
         {/* Subtle background accent shape */}
         <div
-          className="absolute right-0 top-0 bottom-0 w-1/2 opacity-30"
+          className="absolute right-0 top-0 bottom-0 w-1/2 opacity-30 rounded-r-[20px] overflow-hidden"
           style={{
             background: 'radial-gradient(ellipse 100% 120% at 100% 50%, #d8d0c4 0%, transparent 60%)'
           }}
@@ -545,11 +545,11 @@ function DiscoveryBanner({
   // ═══════════════════════════════════════════════════════════════════════════
   if (variant === "editorial") {
     return (
-      <div className="relative rounded-[20px] overflow-hidden">
+      <div className="relative rounded-[20px]">
         {/* Clean white with warm edge tint */}
-        <div className="absolute inset-0 bg-white" />
+        <div className="absolute inset-0 bg-white rounded-[20px]" />
         <div
-          className="absolute inset-0 opacity-40"
+          className="absolute inset-0 opacity-40 rounded-[20px]"
           style={{
             background: 'linear-gradient(135deg, transparent 50%, #f8f5f0 100%)'
           }}
@@ -601,10 +601,10 @@ function DiscoveryBanner({
   // Apple-style minimal — refined simplicity, every element intentional
   // ═══════════════════════════════════════════════════════════════════════════
   return (
-    <div className="relative rounded-[20px] overflow-hidden border border-gray-100">
+    <div className="relative rounded-[20px] border border-gray-100">
       {/* Subtle warm gradient */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 rounded-[20px]"
         style={{
           background: 'linear-gradient(180deg, #ffffff 0%, #fdfcfa 100%)'
         }}

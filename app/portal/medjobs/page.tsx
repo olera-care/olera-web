@@ -576,6 +576,38 @@ export default function StudentPortalPage() {
               </div>
             </div>
 
+            {/* ── 100% Complete — Celebration + Next Steps ── */}
+            {completeness === 100 && profile.is_active && (
+              <div className="bg-emerald-50 rounded-2xl border border-emerald-200/80 p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-lg font-semibold text-emerald-900">You&apos;re live, {firstName}!</h2>
+                    <p className="text-sm text-emerald-700 mt-1 mb-4">
+                      Your profile is complete and visible to providers. Start applying to open positions — students who reach out directly get interviewed faster.
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      <Link href="/portal/medjobs/jobs"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 rounded-lg text-sm font-medium text-white transition-colors">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0H8m8 0h2a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h2" />
+                        </svg>
+                        Browse open jobs
+                      </Link>
+                      <Link href={`/medjobs/candidates/${profile.slug}`}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 border border-emerald-300 hover:bg-emerald-100 rounded-lg text-sm font-medium text-emerald-800 transition-colors">
+                        View your public profile
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Verification Card */}
             {!verificationDone && (
               <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">

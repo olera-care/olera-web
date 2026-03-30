@@ -37,8 +37,8 @@ function getCurrentSemester(): string {
 function getVerificationItems(meta: StudentMetadata) {
   return [
     { key: "video", label: "Intro video", desc: "2\u20133 min — providers want to see who they\u2019re hiring", done: !!meta.video_intro_url },
-    { key: "license", label: "Driver\u2019s license", desc: "Verifies your identity", done: !!meta.drivers_license_url },
-    { key: "insurance", label: "Car insurance", desc: "Confirms you can get to assignments safely", done: !!meta.car_insurance_url },
+    { key: "drivers_license", label: "Driver\u2019s license", desc: "Verifies your identity", done: !!meta.drivers_license_url },
+    { key: "car_insurance", label: "Car insurance", desc: "Confirms you can get to assignments safely", done: !!meta.car_insurance_url },
   ];
 }
 
@@ -75,7 +75,7 @@ function getProfileSections(meta: StudentMetadata, profile: StudentProfile) {
 
 function InlineUpload({ profileId, documentType, onComplete, accept, label }: {
   profileId: string;
-  documentType: "drivers_license" | "car_insurance" | "photo";
+  documentType: "drivers_license" | "car_insurance" | "photo" | "resume";
   onComplete: () => void;
   accept?: string;
   label?: string;
@@ -96,7 +96,7 @@ function InlineUpload({ profileId, documentType, onComplete, accept, label }: {
         const data = await res.json();
         if (!res.ok) { setError(data.error || "Upload failed."); return; }
       } else {
-        formData.append("documentType", documentType);
+        formData.append("documentType", documentType); // drivers_license, car_insurance, or resume
         const res = await fetch("/api/medjobs/upload-document", { method: "POST", body: formData });
         const data = await res.json();
         if (!res.ok) { setError(data.error || "Upload failed."); return; }
@@ -341,6 +341,7 @@ function WhyCaregivingSection({ profileId, value, onSave }: {
           <li>How this connects to your career path (med school, nursing, PA, etc.)</li>
           <li>A specific experience that motivated you (family care, volunteer work, etc.)</li>
         </ul>
+        <p className="mt-2 text-gray-300 italic">AI tools are fine for brainstorming, but write the final version in your own voice. Providers can tell when answers feel generic — your real story is what makes you stand out.</p>
       </div>
       <textarea
         value={text}
@@ -395,8 +396,11 @@ function ScenarioSection({ profileId, responses, onSave }: {
 
   return (
     <div>
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="text-sm text-gray-500 mb-2">
         Providers use these answers to assess reliability, judgement, and commitment. Thoughtful, honest responses make you stand out.
+      </p>
+      <p className="text-xs text-gray-300 italic mb-4">
+        You can use AI to organize your thoughts, but make sure the final answers reflect how you would actually respond. Providers may ask follow-up questions in interviews.
       </p>
       <div className="space-y-5">
         {SCENARIO_QUESTIONS.map((q, i) => (
@@ -576,8 +580,8 @@ export default function StudentPortalPage() {
                             <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Expiration date</label>
                             <MetadataEditor
                               profileId={profile.id}
-                              field={item.key === "license" ? "drivers_license_expiration" : "car_insurance_expiration"}
-                              value={(item.key === "license" ? meta.drivers_license_expiration : meta.car_insurance_expiration) || ""}
+                              field={item.key === "drivers_license" ? "drivers_license_expiration" : "car_insurance_expiration"}
+                              value={(item.key === "drivers_license" ? meta.drivers_license_expiration : meta.car_insurance_expiration) || ""}
                               onSave={refresh}
                               placeholder="MM/DD/YYYY"
                             />
@@ -615,7 +619,7 @@ export default function StudentPortalPage() {
                     {meta.resume_url ? (
                       <p className="text-sm text-emerald-600 mb-2">Resume uploaded</p>
                     ) : null}
-                    <InlineUpload profileId={profile.id} documentType="photo" onComplete={refresh}
+                    <InlineUpload profileId={profile.id} documentType="resume" onComplete={refresh}
                       accept="application/pdf" label={meta.resume_url ? "Replace resume" : "Upload resume (PDF)"} />
                   </div>
                 </SectionCard>

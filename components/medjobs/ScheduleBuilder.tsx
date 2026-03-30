@@ -4,10 +4,13 @@ import { useState } from "react";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"] as const;
 const SLOTS = [
-  { key: "morning", label: "Morning", time: "8am–12pm" },
-  { key: "afternoon", label: "Afternoon", time: "12–4pm" },
-  { key: "evening", label: "Evening", time: "4–8pm" },
-  { key: "night", label: "Night", time: "8pm+" },
+  { key: "8am", label: "8–10a" },
+  { key: "10am", label: "10–12p" },
+  { key: "12pm", label: "12–2p" },
+  { key: "2pm", label: "2–4p" },
+  { key: "4pm", label: "4–6p" },
+  { key: "6pm", label: "6–8p" },
+  { key: "8pm", label: "8p+" },
 ] as const;
 
 type DayKey = (typeof DAYS)[number];
@@ -35,20 +38,19 @@ export function ScheduleBuilder({ value, onChange, readOnly }: ScheduleBuilderPr
         <p className="text-xs text-gray-400 mb-3">Tap to mark your class times. Everything else = you&apos;re available.</p>
       )}
       <div className="overflow-x-auto">
-        <div className="min-w-[400px]">
+        <div className="min-w-[420px]">
           {/* Header row */}
-          <div className="grid grid-cols-6 gap-1 mb-1">
+          <div className="grid grid-cols-[60px_repeat(5,1fr)] gap-0.5 mb-0.5">
             <div />
             {DAYS.map((day) => (
-              <div key={day} className="text-center text-xs font-medium text-gray-500 py-1">{day}</div>
+              <div key={day} className="text-center text-[11px] font-medium text-gray-500 py-1">{day}</div>
             ))}
           </div>
           {/* Time slots */}
           {SLOTS.map((slot) => (
-            <div key={slot.key} className="grid grid-cols-6 gap-1 mb-1">
-              <div className="flex flex-col justify-center pr-2 text-right">
-                <span className="text-xs font-medium text-gray-600 leading-tight">{slot.label}</span>
-                <span className="text-[10px] text-gray-400 leading-tight">{slot.time}</span>
+            <div key={slot.key} className="grid grid-cols-[60px_repeat(5,1fr)] gap-0.5 mb-0.5">
+              <div className="flex items-center justify-end pr-2">
+                <span className="text-[11px] text-gray-500">{slot.label}</span>
               </div>
               {DAYS.map((day) => {
                 const key = `${day}-${slot.key}`;
@@ -59,15 +61,15 @@ export function ScheduleBuilder({ value, onChange, readOnly }: ScheduleBuilderPr
                     type="button"
                     onClick={() => toggle(day, slot.key)}
                     disabled={readOnly}
-                    className={`h-10 rounded-md transition-all text-xs font-medium ${
+                    className={`h-8 rounded transition-all text-[10px] font-medium ${
                       isClass
                         ? "bg-gray-800 text-white"
                         : readOnly
                         ? "bg-emerald-50 text-emerald-600"
-                        : "bg-emerald-50 hover:bg-emerald-100 text-emerald-600"
+                        : "bg-emerald-50/70 hover:bg-emerald-100 text-transparent hover:text-emerald-400"
                     } ${readOnly ? "" : "cursor-pointer"}`}
                   >
-                    {isClass ? "Class" : readOnly ? "Free" : ""}
+                    {isClass ? "Class" : readOnly ? "" : ""}
                   </button>
                 );
               })}

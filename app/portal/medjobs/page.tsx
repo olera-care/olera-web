@@ -217,6 +217,43 @@ function MetadataEditor({ profileId, field, value, onSave, placeholder, multilin
   );
 }
 
+/* ─── Date Field Editor ────────────────────────────────────── */
+
+function DateFieldEditor({ profileId, field, value, onSave, label, hint }: {
+  profileId: string; field: string; value: string; onSave: () => void; label: string; hint?: string;
+}) {
+  const [date, setDate] = useState(value);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async (newDate: string) => {
+    setDate(newDate);
+    setSaving(true);
+    try {
+      const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+      const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
+      const meta = (current?.metadata || {}) as Record<string, unknown>;
+      meta[field] = newDate || null;
+      await sb.from("business_profiles").update({ metadata: meta }).eq("id", profileId);
+      onSave();
+    } catch { /* ignore */ }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div>
+      <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">{label}</label>
+      {hint && <p className="text-xs text-gray-400 mb-2">{hint}</p>}
+      <input
+        type="date"
+        value={date}
+        onChange={(e) => handleSave(e.target.value)}
+        disabled={saving}
+        className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 transition-colors disabled:opacity-50"
+      />
+    </div>
+  );
+}
+
 /* ─── Section Card ─────────────────────────────────────────── */
 
 function SectionCard({ label, done, children, defaultOpen }: {
@@ -592,11 +629,8 @@ function AvailabilityCommitmentSection({ profileId, meta, onSave }: {
           <MetadataEditor profileId={profileId} field="winter_availability" value={meta.winter_availability || ""} onSave={onSave} placeholder="Or type your own..." />
         </div>
 
-        <div>
-          <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Schedule update date</label>
-          <p className="text-xs text-gray-400 mb-2">When does your current schedule end? We&apos;ll remind you to update.</p>
-          <MetadataEditor profileId={profileId} field="schedule_update_date" value={meta.schedule_update_date || ""} onSave={onSave} placeholder="E.g. May 15, 2026" />
-        </div>
+        <DateFieldEditor profileId={profileId} field="schedule_update_date" value={meta.schedule_update_date || ""} onSave={onSave}
+          label="Schedule update date" hint="When does your current schedule end? We'll remind you to update." />
 
         <div>
           <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Availability notes</label>

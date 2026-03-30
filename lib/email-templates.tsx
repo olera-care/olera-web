@@ -408,7 +408,7 @@ export function matchesLiveEmail(opts: {
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       You're in control. When a provider contacts you, you decide whether to respond.
     </p>
-    <div>${button("View your Matches", opts.matchesUrl)}</div>
+    <div>${button("View your Profile", opts.matchesUrl)}</div>
   `);
 }
 
@@ -435,7 +435,7 @@ export function providerReachOutEmail(opts: {
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       You're in control — review their profile and decide if you'd like to start a conversation.
     </p>
-    <div>${button("View on Matches", opts.matchesUrl)}</div>
+    <div>${button("View Message", opts.matchesUrl)}</div>
   `);
 }
 
@@ -453,7 +453,7 @@ export function matchesNudgeEmail(opts: {
     <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       With Matches, providers come to you. Share what you're looking for once, and qualified providers in your area will reach out directly.
     </p>
-    <div>${button("Activate Matches", opts.matchesUrl)}</div>
+    <div>${button("Try Matches", opts.matchesUrl)}</div>
   `);
 }
 
@@ -655,7 +655,7 @@ export function goLiveReminderEmail(opts: {
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       You're always in control — you decide which providers to respond to.
     </p>
-    <div>${button("Go live on Matches", opts.matchesUrl)}</div>
+    <div>${button("Go Live", opts.matchesUrl)}</div>
   `);
 }
 

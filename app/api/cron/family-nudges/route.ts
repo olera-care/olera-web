@@ -303,7 +303,7 @@ export async function GET(request: NextRequest) {
             subject,
             html: goLiveReminderEmail({
               familyName: firstName,
-              matchesUrl: appendTrackingParams(`${siteUrl}/portal/matches`, glrLogId),
+              matchesUrl: appendTrackingParams(`${siteUrl}/portal/profile`, glrLogId),
               city: family.city!,
               providerCount,
               topProviders,

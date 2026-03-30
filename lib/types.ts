@@ -305,6 +305,9 @@ export interface FamilyMetadata {
   budget_min?: number;
   budget_max?: number;
   relationship_to_recipient?: string;
+  who_needs_care?: string;
+  profile_completeness?: number;
+  last_active_at?: string;
   // Enrichment fields
   country?: string;
   contact_preference?: "call" | "text" | "email";
@@ -431,6 +434,36 @@ export interface StudentMetadata {
     name: string;
     relationship: string;
     note?: string;
+  }>;
+
+  // Social Links
+  instagram_url?: string;
+  facebook_url?: string;
+  tiktok_url?: string;
+
+  // Motivation
+  why_caregiving?: string;          // "Why I want to be a caregiver" free-text
+
+  // Course Schedule
+  course_schedule_description?: string;  // Free-text: "MWF 8am-12pm, TTh 10am-2pm"
+
+  // Commitments & Pledges
+  ncns_pledge?: boolean;            // Acknowledged no-call-no-show policy
+  school_balance_pledge?: boolean;  // Committed to maintaining schedule during exams
+  advance_notice_pledge?: boolean;  // Will provide 2+ weeks notice for changes
+  prn_willing?: boolean;            // Open to starting PRN until right fit
+
+  // Scenario Responses (Q&A for care situations)
+  scenario_responses?: Array<{
+    question: string;
+    answer: string;
+  }>;
+
+  // References
+  references?: Array<{
+    name: string;
+    relationship: string;           // "Professor", "Previous Supervisor", "Coach", etc.
+    note?: string;                  // Optional context: "Supervised 200+ clinical hours"
   }>;
 
   // Social Links

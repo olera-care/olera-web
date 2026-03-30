@@ -80,7 +80,7 @@ export async function POST(request: Request) {
               html: matchesLiveEmail({
                 familyName: bp.display_name || "there",
                 city: bp.city || "your area",
-                matchesUrl: `${siteUrl}/portal/matches`,
+                matchesUrl: `${siteUrl}/portal/profile`,
               }),
               emailType: "matches_live",
               recipientType: "family",

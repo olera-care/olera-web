@@ -269,7 +269,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
         </div>
 
         {/* ── Video Hero + Sidebar ── */}
-        <div className="mt-5 flex flex-col lg:flex-row gap-5">
+        <div className="mt-5 flex flex-col lg:flex-row lg:items-start gap-5">
           {/* Video / Primary visual */}
           <div className="flex-1 min-w-0 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             {videoAvailable && youtubeId ? (

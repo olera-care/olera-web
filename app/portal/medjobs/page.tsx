@@ -660,55 +660,60 @@ function AvailabilityCommitmentSection({ profileId, meta, onSave }: {
 
         <CommitmentStatementSection profileId={profileId} value={meta.commitment_statement || ""} onSave={onSave} />
 
-        {/* PRN willingness */}
-        <button type="button" disabled={saving}
-          onClick={() => { const next = !prnWilling; setPrnWilling(next); saveToggle("prn_willing", next); }}
-          className={`w-full flex items-start gap-3 px-4 py-3 rounded-lg text-left transition-all ${
-            prnWilling ? "border-2 border-gray-900 bg-gray-50" : "border border-gray-200 hover:border-gray-300"
-          }`}>
-          <span className={`inline-flex items-center justify-center w-5 h-5 rounded border-2 shrink-0 mt-0.5 transition-colors ${
-            prnWilling ? "bg-gray-900 border-gray-900 text-white" : "border-gray-300"
-          }`}>
-            {prnWilling && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
-          </span>
-          <span className="text-sm text-gray-700">I am okay to be on-call / PRN until a client needs shifts that fit my schedule</span>
-        </button>
-
-        {/* Schedule update attestation */}
-        <button type="button" disabled={saving}
-          onClick={() => { const next = !scheduleAttestation; setScheduleAttestation(next); saveToggle("advance_notice_pledge", next); }}
-          className={`w-full flex items-start gap-3 px-4 py-3 rounded-lg text-left transition-all ${
-            scheduleAttestation ? "border-2 border-gray-900 bg-gray-50" : "border border-gray-200 hover:border-gray-300"
-          }`}>
-          <span className={`inline-flex items-center justify-center w-5 h-5 rounded border-2 shrink-0 mt-0.5 transition-colors ${
-            scheduleAttestation ? "bg-gray-900 border-gray-900 text-white" : "border-gray-300"
-          }`}>
-            {scheduleAttestation && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
-          </span>
-          <span className="text-sm text-gray-700">I commit to keeping my availability and course schedule updated regularly and will work with office staff if anything changes</span>
-        </button>
-
-        {/* Summer availability with suggestions */}
+        {/* Flexibility & accountability pledges */}
         <div>
-          <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Summer availability</label>
-          <div className="flex flex-wrap gap-1.5 mb-2">
-            {SUMMER_OPTIONS.map((opt) => (
-              <SuggestionButton key={opt} text={opt} profileId={profileId} field="summer_availability" currentValue={meta.summer_availability || ""} onSave={onSave} />
-            ))}
+          <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Additional commitments</label>
+          <p className="text-xs text-gray-400 mb-3">These show providers you understand the responsibility. Check all that apply.</p>
+          <div className="space-y-2">
+            <button type="button" disabled={saving}
+              onClick={() => { const next = !prnWilling; setPrnWilling(next); saveToggle("prn_willing", next); }}
+              className={`w-full flex items-start gap-3 px-4 py-3 rounded-lg text-left transition-all ${
+                prnWilling ? "border-2 border-gray-900 bg-gray-50" : "border border-gray-200 hover:border-gray-300"
+              }`}>
+              <span className={`inline-flex items-center justify-center w-5 h-5 rounded border-2 shrink-0 mt-0.5 transition-colors ${
+                prnWilling ? "bg-gray-900 border-gray-900 text-white" : "border-gray-300"
+              }`}>
+                {prnWilling && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+              </span>
+              <span className="text-sm text-gray-700">I am okay to be on-call / PRN until a client needs shifts that fit my schedule</span>
+            </button>
+
+            <button type="button" disabled={saving}
+              onClick={() => { const next = !scheduleAttestation; setScheduleAttestation(next); saveToggle("advance_notice_pledge", next); }}
+              className={`w-full flex items-start gap-3 px-4 py-3 rounded-lg text-left transition-all ${
+                scheduleAttestation ? "border-2 border-gray-900 bg-gray-50" : "border border-gray-200 hover:border-gray-300"
+              }`}>
+              <span className={`inline-flex items-center justify-center w-5 h-5 rounded border-2 shrink-0 mt-0.5 transition-colors ${
+                scheduleAttestation ? "bg-gray-900 border-gray-900 text-white" : "border-gray-300"
+              }`}>
+                {scheduleAttestation && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+              </span>
+              <span className="text-sm text-gray-700">I commit to keeping my availability and course schedule updated regularly and will work with office staff if anything changes</span>
+            </button>
           </div>
-          <MetadataEditor profileId={profileId} field="summer_availability" value={meta.summer_availability || ""} onSave={onSave} placeholder="Or type your own..." />
         </div>
 
-        {/* Winter availability with suggestions */}
-        <div>
-          <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Winter availability</label>
-          <div className="flex flex-wrap gap-1.5 mb-2">
-            {WINTER_OPTIONS.map((opt) => (
-              <SuggestionButton key={opt} text={opt} profileId={profileId} field="winter_availability" currentValue={meta.winter_availability || ""} onSave={onSave} />
-            ))}
-          </div>
-          <MetadataEditor profileId={profileId} field="winter_availability" value={meta.winter_availability || ""} onSave={onSave} placeholder="Or type your own..." />
-        </div>
+        {/* Summer availability */}
+        <SuggestedTextEditor
+          label="Summer availability"
+          profileId={profileId}
+          field="summer_availability"
+          value={meta.summer_availability || ""}
+          suggestions={SUMMER_OPTIONS}
+          placeholder="Describe your summer availability or select above..."
+          onSave={onSave}
+        />
+
+        {/* Winter availability */}
+        <SuggestedTextEditor
+          label="Winter availability"
+          profileId={profileId}
+          field="winter_availability"
+          value={meta.winter_availability || ""}
+          suggestions={WINTER_OPTIONS}
+          placeholder="Describe your winter availability or select above..."
+          onSave={onSave}
+        />
 
         <DateFieldEditor profileId={profileId} field="schedule_update_date" value={meta.schedule_update_date || ""} onSave={onSave}
           label="Schedule update date" hint="When does your current schedule end? We'll remind you to update." />
@@ -716,6 +721,73 @@ function AvailabilityCommitmentSection({ profileId, meta, onSave }: {
         <AvailabilityNotesSection profileId={profileId} value={meta.availability_notes || ""} onSave={onSave} />
       </div>
     </SectionCard>
+  );
+}
+
+/* ─── Suggested Text Editor (reusable) ─────────────────────── */
+
+function SuggestedTextEditor({ label, profileId, field, value, suggestions, placeholder, onSave }: {
+  label: string; profileId: string; field: string; value: string;
+  suggestions: string[]; placeholder?: string; onSave: () => void;
+}) {
+  const [text, setText] = useState(value);
+  const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  const doSave = useCallback(async (val: string) => {
+    setStatus("saving");
+    try {
+      const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+      const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
+      const m = (current?.metadata || {}) as Record<string, unknown>;
+      m[field] = val.trim() || null;
+      await sb.from("business_profiles").update({ metadata: m }).eq("id", profileId);
+      setStatus("saved");
+      onSave();
+      setTimeout(() => setStatus("idle"), 2000);
+    } catch { setStatus("idle"); }
+  }, [profileId, field, onSave]);
+
+  const handleChange = (val: string) => {
+    setText(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => doSave(val), 1500);
+  };
+
+  const selectSuggestion = (s: string) => {
+    setText(s);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    setTimeout(() => doSave(s), 100);
+  };
+
+  return (
+    <div>
+      <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">{label}</label>
+      {!text && (
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {suggestions.map((s) => (
+            <button key={s} type="button" onClick={() => selectSuggestion(s)}
+              className="px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="relative">
+        <input
+          type="text"
+          value={text}
+          onChange={(e) => handleChange(e.target.value)}
+          placeholder={placeholder || "Or type your own..."}
+          className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors"
+        />
+        {status !== "idle" && (
+          <span className={`absolute right-3 top-2.5 text-xs font-medium ${status === "saving" ? "text-gray-400" : "text-emerald-500"}`}>
+            {status === "saving" ? "Saving..." : "Saved"}
+          </span>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -745,11 +817,10 @@ function SuggestionButton({ text, profileId, field, currentValue, onSave }: {
 
 const AVAILABILITY_SNIPPETS = [
   "I have no planned travel and am available for shifts anytime outside of class.",
-  "Finals week [dates] — limited to weekends only.",
-  "Spring break [dates] — fully available for extra shifts.",
   "I can pick up additional shifts during holidays and semester breaks.",
   "I have reliable transportation and can drive to clients within 30 minutes.",
   "I am flexible with short-notice shift changes and happy to cover for others.",
+  "I will update my profile with specific finals and travel dates as they are confirmed.",
 ];
 
 function AvailabilityNotesSection({ profileId, value, onSave }: {

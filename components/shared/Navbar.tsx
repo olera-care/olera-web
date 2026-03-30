@@ -288,7 +288,31 @@ export default function Navbar() {
       <div className="px-2 py-1.5">
           {isProviderPortal ? (
             <>
-              {/* Provider Hub links */}
+              {/* Provider Hub engagement links — Inbox, Q&A, Leads */}
+              {([
+                { label: "Inbox", href: "/provider/inbox", badge: providerInboxCount, icon: "M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" },
+                { label: "Q&A", href: "/provider/qna", badge: qnaCount, icon: "M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" },
+                { label: "Leads", href: "/provider/connections", badge: newLeadsCount, icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" },
+              ] as const).map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <path d={item.icon} />
+                  </svg>
+                  {item.label}
+                  {item.badge > 0 && (
+                    <span className="ml-auto min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-primary-600 rounded-full">
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              ))}
+              <div className="mx-4 my-1 border-t border-gray-100" />
+              {/* Account & settings */}
               <Link
                 href="/portal/profile"
                 className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
@@ -560,7 +584,7 @@ export default function Navbar() {
                 {isProviderPortal ? (
                   /* Provider Hub nav links */
                   <>
-                    {/* Home - standalone */}
+                    {/* Home */}
                     <Link
                       href="/provider"
                       data-wizard-target="dashboard"
@@ -573,37 +597,7 @@ export default function Navbar() {
                       Home
                     </Link>
 
-                    {/* Engagement group: conditionally visible items + always-visible Reviews */}
-                    <div data-wizard-target="engage" className="flex items-center">
-                      {([
-                        { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount, showOnlyWithBadge: true },
-                        { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount, showOnlyWithBadge: true },
-                      ] as const).map((item) => {
-                        // Hide items that only show when they have unread content
-                        if (item.showOnlyWithBadge && item.badge === 0) return null;
-                        const active = pathname.startsWith(item.match);
-                        return (
-                          <Link
-                            key={item.label}
-                            href={item.href}
-                            className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
-                              active
-                                ? "text-primary-600"
-                                : "text-gray-700 hover:text-gray-900"
-                            }`}
-                          >
-                            {item.label}
-                            {item.badge > 0 && (
-                              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-primary-600 rounded-full">
-                                {item.badge}
-                              </span>
-                            )}
-                          </Link>
-                        );
-                      })}
-                    </div>
-
-                    {/* Families - standalone */}
+                    {/* Find Families */}
                     <Link
                       href="/provider/matches"
                       data-wizard-target="matches"
@@ -727,7 +721,7 @@ export default function Navbar() {
                               {initials}
                             </div>
                           )}
-                          {(unreadInboxCount > 0 || matchesPendingCount > 0) && (
+                          {(providerInboxCount > 0 || newLeadsCount > 0 || qnaCount > 0) && (
                             <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary-600 rounded-full border-2 border-white" />
                           )}
                         </button>
@@ -991,13 +985,13 @@ export default function Navbar() {
                         {mobileAccordion === "hub" && (
                           <div className="mt-1 space-y-0.5">
                             {([
-                              { label: "Home", href: "/provider", match: "/provider", badge: 0, showOnlyWithBadge: false, icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
-                              { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount, showOnlyWithBadge: true, icon: "M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" },
-                              { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount, showOnlyWithBadge: true, icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" },
-                              { label: "Find Families", href: "/provider/matches", match: "/provider/matches", badge: 0, showOnlyWithBadge: false, icon: "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" },
-                              { label: "Hire Staff", href: "/provider/medjobs/candidates", match: "/provider/medjobs", badge: 0, showOnlyWithBadge: false, icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" },
+                              { label: "Home", href: "/provider", match: "/provider", badge: 0, icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
+                              { label: "Find Families", href: "/provider/matches", match: "/provider/matches", badge: 0, icon: "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" },
+                              { label: "Hire Staff", href: "/provider/medjobs/candidates", match: "/provider/medjobs", badge: 0, icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" },
+                              { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount, icon: "M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" },
+                              { label: "Q&A", href: "/provider/qna", match: "/provider/qna", badge: qnaCount, icon: "M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" },
+                              { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount, icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" },
                             ] as const).map((item) => {
-                              if (item.showOnlyWithBadge && item.badge === 0) return null;
                               const active = item.match === "/provider" ? pathname === "/provider" : pathname.startsWith(item.match);
                               return (
                                 <Link

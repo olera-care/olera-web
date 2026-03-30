@@ -193,7 +193,7 @@ export default async function ResourceArticlePage({
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://olera.care" },
       { "@type": "ListItem", position: 2, name: "Caregiver Support", item: "https://olera.care/caregiver-support" },
-      { "@type": "ListItem", position: 3, name: title },
+      { "@type": "ListItem", position: 3, name: title, item: `https://olera.care/caregiver-support/${slug}` },
     ],
   };
 

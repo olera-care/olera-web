@@ -48,6 +48,53 @@ let supabase;
 
 const NON_CMS_CATEGORIES = ['Assisted Living', 'Memory Care', 'Home Care (Non-medical)', 'Independent Living'];
 
+const SIGNAL_NAMES = [
+  'state_licensed', 'accredited', 'bbb_rated', 'years_in_operation',
+  'regulatory_actions', 'active_website', 'google_business', 'community_presence',
+];
+
+/**
+ * Normalize raw LLM trust signal output into the canonical AiTrustSignals shape.
+ * Handles flat objects ({state_licensed: true}), nested objects, and arrays.
+ */
+function buildTrustSignalsRecord(provider, rawSignals, confidence, entityReason) {
+  let signals;
+
+  if (Array.isArray(rawSignals)) {
+    signals = SIGNAL_NAMES.map(name => {
+      const existing = rawSignals.find(s => s.signal === name);
+      if (existing) return { signal: name, status: existing.status || 'not_found', detail: existing.detail || null, source_url: existing.source_url || null };
+      return { signal: name, status: 'not_found', detail: null, source_url: null };
+    });
+  } else if (rawSignals && typeof rawSignals === 'object') {
+    signals = SIGNAL_NAMES.map(name => {
+      const value = rawSignals[name];
+      if (value === true || value === 'confirmed') return { signal: name, status: 'confirmed', detail: null, source_url: null };
+      if (value === false || value === 'not_found' || value == null) return { signal: name, status: 'not_found', detail: null, source_url: null };
+      if (typeof value === 'string') {
+        const negative = /^(no|not found|unknown|unclear|n\/a|none|no info|no evidence|no mention)/i.test(value);
+        return { signal: name, status: negative ? 'not_found' : 'confirmed', detail: negative ? null : value, source_url: null };
+      }
+      if (typeof value === 'object') return { signal: name, status: value.status === 'confirmed' || value.confirmed ? 'confirmed' : 'not_found', detail: value.detail || null, source_url: value.source_url || null };
+      return { signal: name, status: 'not_found', detail: null, source_url: null };
+    });
+  } else {
+    signals = SIGNAL_NAMES.map(name => ({ signal: name, status: 'not_found', detail: null, source_url: null }));
+  }
+
+  return {
+    provider_name: provider.provider_name,
+    state: provider.state || '',
+    category: provider.provider_category,
+    signals,
+    summary_score: signals.filter(s => s.status === 'confirmed').length,
+    last_verified: new Date().toISOString(),
+    model: 'sonar',
+    confidence: confidence || 'medium',
+    entity_reason: entityReason || undefined,
+  };
+}
+
 const DESC_TEMPLATES = {
   'Assisted Living': { article: 'an', desc: 'assisted living community offering personal care support and daily living assistance' },
   'Memory Care': { article: 'a', desc: 'memory care community providing specialized support for individuals with Alzheimer\'s and dementia' },
@@ -346,12 +393,9 @@ Return ONLY this JSON:
           deleted++;
           console.log(`    [DELETED] ${p.provider_name}: ${parsed.entity_reason}`);
         } else {
-          const signals = parsed.signals || {};
-          signals.verified_at = new Date().toISOString();
-          signals.confidence = parsed.confidence || 'medium';
-          signals.entity_reason = parsed.entity_reason;
+          const trustSignals = buildTrustSignalsRecord(p, parsed.signals, parsed.confidence, parsed.entity_reason);
           await supabase.from('olera-providers')
-            .update({ ai_trust_signals: signals })
+            .update({ ai_trust_signals: trustSignals })
             .eq('provider_id', p.provider_id);
           confirmed++;
         }

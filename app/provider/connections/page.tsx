@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Select from "@/components/ui/Select";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { markLeadAsRead } from "@/hooks/useUnreadLeadsCount";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Connection, Profile } from "@/lib/types";
@@ -1198,6 +1199,7 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
 
 export default function ProviderLeadsPage() {
   const providerProfile = useProviderProfile();
+  const { isLoading: authLoading } = useAuth();
   const [activeFilter, setActiveFilter] = useState<StatusFilter>("all");
   const [sortBy, setSortBy] = useState<SortOption>("best_match");
   const [leads, setLeads] = useState<LeadDetail[]>([]);
@@ -1205,6 +1207,14 @@ export default function ProviderLeadsPage() {
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const fetchedRef = useRef(false);
+
+  // If auth is done loading and there's no provider profile, stop showing skeletons.
+  // This prevents eternal loading when the signed-in user doesn't own a provider listing.
+  useEffect(() => {
+    if (!authLoading && !providerProfile && isLoading) {
+      setIsLoading(false);
+    }
+  }, [authLoading, providerProfile, isLoading]);
 
   // Fetch leads (connections) from Supabase
   const fetchLeads = useCallback(async (isInitialLoad = false) => {

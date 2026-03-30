@@ -132,7 +132,7 @@ export default function ProviderStudentProfilePage() {
   const videoAvailable = hasVideo(meta);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-[#FAFAF8] py-8 sm:py-12"><div className="max-w-3xl mx-auto px-4">
       <Link href="/provider/medjobs/candidates" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
         &larr; Back to Candidates
       </Link>
@@ -459,6 +459,6 @@ export default function ProviderStudentProfilePage() {
           </div>
         )}
       </div>
-    </div>
+    </div></div>
   );
 }

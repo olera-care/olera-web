@@ -72,7 +72,7 @@ export default async function StatePage({
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://olera.care" },
       { "@type": "ListItem", position: 2, name: config.displayName, item: `https://olera.care/${catSlug}` },
-      { "@type": "ListItem", position: 3, name: stateName },
+      { "@type": "ListItem", position: 3, name: stateName, item: `https://olera.care/${catSlug}/${stateSlug}` },
     ],
   };
 

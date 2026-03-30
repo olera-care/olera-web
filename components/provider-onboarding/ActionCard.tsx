@@ -55,7 +55,7 @@ interface ActionCardProps {
   provider: Provider;
   claimSession: string;
   initialState?: ActionCardState;
-  onVerificationComplete: () => void;
+  onVerificationComplete: (verifiedEmail?: string) => void;
   /** Pre-verified email hint from token validation */
   preVerifiedEmail?: string;
   /** Whether to highlight the card (attention state) */
@@ -519,14 +519,14 @@ export default function ActionCard({
         return;
       }
 
-      // Code verified!
-      onVerificationComplete();
+      // Code verified — pass the verified email for auto-sign-in
+      onVerificationComplete(emailHint || undefined);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setVerifying(false);
     }
-  }, [code, provider.provider_id, claimSession, onVerificationComplete]);
+  }, [code, provider.provider_id, claimSession, onVerificationComplete, emailHint]);
 
   // Auto-submit code when 6 digits entered
   useEffect(() => {
@@ -686,203 +686,195 @@ export default function ActionCard({
   // ────────────────────────────────────────────────────────────
 
   const baseCardClass =
-    "relative z-10 bg-white rounded-2xl border-2 shadow-sm p-6 md:p-8 transition-all duration-300";
-  // Default: blue border to draw attention. Highlighted: orange/coral ring for urgent attention
+    "relative z-10 bg-white rounded-2xl shadow-sm p-8 md:p-10 transition-all duration-300";
+  // Default: quiet border. Highlighted: warm ring for urgent attention
   const cardClass = highlighted
-    ? `${baseCardClass} border-orange-400 ring-4 ring-orange-200 shadow-lg shadow-orange-100/50 animate-pulse-subtle`
-    : `${baseCardClass} border-primary-300 shadow-md shadow-primary-50`;
+    ? `${baseCardClass} border border-primary-200 ring-2 ring-primary-100 shadow-md`
+    : `${baseCardClass} border border-gray-200 shadow-sm`;
 
   // ════════════════════════════════════════════════════════════
   // RENDER: Notification States (Lead, Question, Review)
   // ════════════════════════════════════════════════════════════
 
   if (state === "notification-lead" && notificationData) {
-    const personName = notificationData.from_profile?.display_name || "A family";
-    const personImage = notificationData.from_profile?.image_url || null;
-    const location = [notificationData.from_profile?.city, notificationData.from_profile?.state].filter(Boolean).join(", ");
+    const rawName = notificationData.from_profile?.display_name || "A family";
+    const rawImage = notificationData.from_profile?.image_url || null;
+    const rawLocation = [notificationData.from_profile?.city, notificationData.from_profile?.state].filter(Boolean).join(", ");
     const careType = notificationData.metadata?.care_type;
-    const message = notificationData.metadata?.auto_intro;
+    const rawMessage = notificationData.metadata?.auto_intro;
     const timeAgo = formatTimeAgo(notificationData.created_at);
+
+    // Always mask seeker info on the onboard page — full details revealed in /provider/connections
+    // after the provider verifies ownership. This protects seekers if email goes to wrong recipient.
+    const personName = rawName.split(" ")[0] || "A family";
+    const personImage: string | null = null;
+    const location = rawLocation ? rawLocation.split(",")[0]?.trim() : "";
+    const message = rawMessage ? rawMessage.slice(0, 40) + "..." : null;
 
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        {/* Header */}
-        <div className="text-center mb-5">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
-            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
+        {/* Mascot + Header */}
+        <div className="flex items-start gap-4 mb-6">
+          <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+          <div>
+            <h3 className="text-lg font-display font-bold text-gray-900">
+              A family in {notificationData.from_profile?.city || provider.city || "your area"} is looking for care
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
           </div>
-          <h3 className="text-xl font-display font-bold text-gray-900 inline-flex items-center gap-1.5">
-            New lead
-            <InfoTooltip content={TOOLTIP_CONTENT["notification-lead"].text} showTos={TOOLTIP_CONTENT["notification-lead"].showTos} />
-          </h3>
         </div>
 
-        {/* Consolidated lead card */}
-        <div className="bg-primary-50/40 border border-primary-100 rounded-xl p-4 mb-5">
-          {/* Top row: Avatar + info + care type badge */}
-          <div className="flex items-start gap-3 mb-3">
-            {/* Avatar */}
+        {/* Seeker info — flat, no nested card */}
+        <div className="border-t border-gray-100 pt-5 mb-6">
+          <div className="flex items-center gap-3">
             {personImage ? (
-              <Image src={personImage} alt={personName} width={44} height={44} className="w-11 h-11 rounded-full object-cover shrink-0" />
+              <Image src={personImage} alt={personName} width={40} height={40} className="w-10 h-10 rounded-full object-cover shrink-0" />
             ) : (
-              <div className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
                 {getInitials(personName)}
               </div>
             )}
-
-            {/* Name, timestamp, location */}
             <div className="flex-1 min-w-0">
-              <p className="text-base font-semibold text-gray-900">{personName}</p>
-              <p className="text-sm text-gray-500">
-                {timeAgo}{location && ` · ${location}`}
-              </p>
+              <p className="text-[15px] font-semibold text-gray-900">{personName}</p>
+              {(location || careType) && (
+                <p className="text-sm text-gray-500">
+                  {[location, careType ? (CARE_TYPE_LABELS[careType] || careType) : null].filter(Boolean).join(" · ")}
+                </p>
+              )}
             </div>
-
-            {/* Care type badge */}
-            {careType && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-700 shrink-0">
-                {CARE_TYPE_LABELS[careType] || careType}
-              </span>
-            )}
           </div>
-
-          {/* Message preview */}
           {message && (
-            <p className="text-[15px] text-gray-700 leading-relaxed">
-              &ldquo;{message.length > 140 ? message.slice(0, 140) + "..." : message}&rdquo;
+            <p className="text-[15px] text-gray-500 mt-3 leading-relaxed italic">
+              &ldquo;{message}&rdquo;
             </p>
           )}
         </div>
 
-        {/* CTA based on auth state */}
-        <div className="text-center">
-          {isSignedIn ? (
-            <Link
-              href={`/provider/inbox?id=${notificationData.id}`}
-              className="block w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] text-center shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+        {/* CTA — always show "View full inquiry" when token-verified.
+            The provider proved identity via the email token. Browser session
+            is established in the background. No verify/claim UI. */}
+        {(isSignedIn || preVerifiedEmail) ? (
+          <Link
+            href={`/provider/connections?id=${notificationData.id}`}
+            className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+          >
+            See their message
+          </Link>
+        ) : (
+          <>
+            <button
+              onClick={() => setState("verify-form")}
+              className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
             >
-              View and respond
-            </Link>
-          ) : (
-            <>
-              <p className="text-[15px] text-gray-500 mb-4">Verify your email to respond to this lead</p>
-              <button
-                onClick={() => setState("verify-form")}
-                className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
-              >
-                Verify email to respond
-              </button>
-            </>
-          )}
-        </div>
+              Verify to respond
+            </button>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              Olera connects families with quality senior care providers.
+            </p>
+          </>
+        )}
       </div>
     );
   }
 
   if (state === "notification-question" && notificationData) {
-    const personName = notificationData.asker_name || "Someone";
-    const question = notificationData.question || "";
+    const rawName = notificationData.asker_name || "Someone";
+    const rawQuestion = notificationData.question || "";
     const timeAgo = formatTimeAgo(notificationData.created_at);
+
+    // Q&A is public data — no masking needed
+    const personName = rawName;
+    const question = rawQuestion;
 
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        {/* Header */}
-        <div className="text-center mb-5">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
-            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+        {/* Mascot + Header */}
+        <div className="flex items-start gap-4 mb-6">
+          <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+          <div>
+            <h3 className="text-lg font-display font-bold text-gray-900">
+              Someone has a question about your services
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
           </div>
-          <h3 className="text-xl font-display font-bold text-gray-900 inline-flex items-center gap-1.5">
-            New question
-            <InfoTooltip content={TOOLTIP_CONTENT["notification-question"].text} showTos={TOOLTIP_CONTENT["notification-question"].showTos} />
-          </h3>
         </div>
 
-        {/* Consolidated question card */}
-        <div className="bg-primary-50/40 border border-primary-100 rounded-xl p-4 mb-5">
-          {/* Top row: Avatar + name + timestamp */}
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
+        {/* Question info — flat */}
+        <div className="border-t border-gray-100 pt-5 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
               {getInitials(personName)}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-base font-semibold text-gray-900">{personName}</p>
-              <p className="text-sm text-gray-500">{timeAgo}</p>
-            </div>
+            <p className="text-[15px] font-semibold text-gray-900">{personName}</p>
           </div>
-
-          {/* Question preview */}
-          <p className="text-[15px] text-gray-700 leading-relaxed">
-            &ldquo;{question.length > 150 ? question.slice(0, 150) + "..." : question}&rdquo;
-          </p>
-        </div>
-
-        {/* CTA based on auth state */}
-        <div className="text-center">
-          {isSignedIn ? (
-            <Link
-              href={`/provider/qna?id=${notificationData.id}`}
-              className="block w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] text-center shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
-            >
-              Answer question
-            </Link>
-          ) : (
-            <>
-              <p className="text-[15px] text-gray-500 mb-4">Verify your email to answer this question</p>
-              <button
-                onClick={() => setState("verify-form")}
-                className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
-              >
-                Verify email to respond
-              </button>
-            </>
+          {question && (
+            <p className="text-[15px] text-gray-500 mt-3 leading-relaxed italic">
+              &ldquo;{question}&rdquo;
+            </p>
           )}
         </div>
+
+        {/* CTA */}
+        {(isSignedIn || preVerifiedEmail) ? (
+          <Link
+            href={`/provider/qna?id=${notificationData.id}`}
+            className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+          >
+            View and answer
+          </Link>
+        ) : (
+          <>
+            <button
+              onClick={() => setState("verify-form")}
+              className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
+            >
+              Verify to answer
+            </button>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              Olera connects families with quality senior care providers.
+            </p>
+          </>
+        )}
       </div>
     );
   }
 
   if (state === "notification-review" && notificationData) {
-    const personName = notificationData.reviewer_name || "Someone";
+    const rawName = notificationData.reviewer_name || "Someone";
     const rating = notificationData.rating || 5;
-    const comment = notificationData.comment || "";
+    const rawComment = notificationData.comment || "";
     const timeAgo = formatTimeAgo(notificationData.created_at);
+
+    // Reviews are public data — no masking needed
+    const personName = rawName;
+    const comment = rawComment;
 
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        {/* Header */}
-        <div className="text-center mb-5">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
-            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-            </svg>
+        {/* Mascot + Header */}
+        <div className="flex items-start gap-4 mb-6">
+          <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+          <div>
+            <h3 className="text-lg font-display font-bold text-gray-900">
+              Someone left a review on your listing
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
           </div>
-          <h3 className="text-xl font-display font-bold text-gray-900 inline-flex items-center gap-1.5">
-            New review
-            <InfoTooltip content={TOOLTIP_CONTENT["notification-review"].text} showTos={TOOLTIP_CONTENT["notification-review"].showTos} />
-          </h3>
         </div>
 
-        {/* Consolidated review card */}
-        <div className="bg-primary-50/40 border border-primary-100 rounded-xl p-4 mb-5">
-          {/* Top row: Avatar + name + timestamp + stars */}
-          <div className="flex items-start gap-3 mb-3">
-            <div className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
+        {/* Review info — flat */}
+        <div className="border-t border-gray-100 pt-5 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(personName) }}>
               {getInitials(personName)}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-base font-semibold text-gray-900">{personName}</p>
-              <p className="text-sm text-gray-500">{timeAgo}</p>
-            </div>
+            <p className="text-[15px] font-semibold text-gray-900 flex-1">{personName}</p>
             {/* Rating stars */}
             <div className="flex items-center gap-0.5 shrink-0">
               {[1, 2, 3, 4, 5].map((star) => (
                 <svg
                   key={star}
-                  className={`w-4 h-4 ${star <= rating ? "text-primary-500" : "text-gray-200"}`}
+                  className={`w-4 h-4 ${star <= rating ? "text-amber-400" : "text-gray-200"}`}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -891,36 +883,34 @@ export default function ActionCard({
               ))}
             </div>
           </div>
-
-          {/* Comment preview */}
           {comment && (
-            <p className="text-[15px] text-gray-700 leading-relaxed italic">
-              &ldquo;{comment.length > 150 ? comment.slice(0, 150) + "..." : comment}&rdquo;
+            <p className="text-[15px] text-gray-500 mt-3 leading-relaxed italic">
+              &ldquo;{comment}&rdquo;
             </p>
           )}
         </div>
 
-        {/* CTA based on auth state */}
-        <div className="text-center">
-          {isSignedIn ? (
-            <Link
-              href={`/provider/reviews?id=${notificationData.id}`}
-              className="block w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] text-center shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+        {/* CTA */}
+        {(isSignedIn || preVerifiedEmail) ? (
+          <Link
+            href={`/provider/reviews?id=${notificationData.id}`}
+            className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+          >
+            View review
+          </Link>
+        ) : (
+          <>
+            <button
+              onClick={() => setState("verify-form")}
+              className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
             >
-              See review
-            </Link>
-          ) : (
-            <>
-              <p className="text-[15px] text-gray-500 mb-4">Verify your email to manage your reviews</p>
-              <button
-                onClick={() => setState("verify-form")}
-                className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
-              >
-                Verify email to respond
-              </button>
-            </>
-          )}
-        </div>
+              Verify to respond
+            </button>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              Olera connects families with quality senior care providers.
+            </p>
+          </>
+        )}
       </div>
     );
   }
@@ -948,10 +938,10 @@ export default function ActionCard({
         </div>
 
         <button
-          onClick={onVerificationComplete}
+          onClick={() => onVerificationComplete(emailHint || preVerifiedEmail || undefined)}
           className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
         >
-          Continue to sign in
+          Claim this listing
         </button>
       </div>
     );

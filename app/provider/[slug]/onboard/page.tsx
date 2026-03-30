@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { createAuthClient } from "@/lib/supabase/auth-client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { Provider } from "@/lib/types/provider";
 import SmartDashboardShell from "@/components/provider-onboarding/SmartDashboardShell";
@@ -22,6 +23,26 @@ type OnboardStep =
   | "success"
   | "error";
 
+/** Shared action→destination mapping for email notification routing */
+function getActionRedirectUrl(
+  action: string | null,
+  actionId: string | null
+): string {
+  if (action && actionId) {
+    switch (action) {
+      case "lead":
+        return `/provider/connections?id=${actionId}`;
+      case "message":
+        return `/provider/inbox?id=${actionId}`;
+      case "question":
+        return `/provider/qna?id=${actionId}`;
+      case "review":
+        return `/provider/reviews?id=${actionId}`;
+    }
+  }
+  return "/provider";
+}
+
 export default function ProviderOnboardPage() {
   const { slug } = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
@@ -31,7 +52,9 @@ export default function ProviderOnboardPage() {
   const actionParam = searchParams.get("action") as NotificationType | "campaign" | null;
   const actionIdParam = searchParams.get("actionId");
   // Token param for marketing campaign emails (pre-verified flow)
-  const tokenParam = searchParams.get("token");
+  // Named "otk" (one-time key) instead of "token" to avoid Apple Mail's
+  // Link Tracking Protection which strips params named "token" from URLs
+  const tokenParam = searchParams.get("otk");
   const router = useRouter();
   const { user, account, openAuth, refreshAccountData, switchProfile } = useAuth();
 
@@ -129,18 +152,7 @@ export default function ProviderOnboardPage() {
         if (bp) {
           // For claimed providers, check if user owns it and redirect appropriately
           if (bp.claim_state === "claimed" && account && bp.account_id === account.id) {
-            // User owns this listing - redirect to appropriate section
-            if (actionParam === "lead" && actionIdParam) {
-              router.replace(`/provider/inbox?id=${actionIdParam}`);
-            } else if (actionParam === "message" && actionIdParam) {
-              router.replace(`/provider/inbox?id=${actionIdParam}`);
-            } else if (actionParam === "question" && actionIdParam) {
-              router.replace(`/provider/qna?id=${actionIdParam}`);
-            } else if (actionParam === "review" && actionIdParam) {
-              router.replace(`/provider/reviews?id=${actionIdParam}`);
-            } else {
-              router.replace("/provider");
-            }
+            router.replace(getActionRedirectUrl(actionParam, actionIdParam));
             return;
           }
 
@@ -179,6 +191,8 @@ export default function ProviderOnboardPage() {
       setProvider(foundProvider);
 
       // Fetch notification data if action params provided (lead/review/question from email)
+      // Track locally so we can use it later in this same function (state isn't readable until re-render)
+      let fetchedNotificationData: NotificationData | null = null;
       if (actionParam && actionIdParam) {
         try {
           if (actionParam === "lead") {
@@ -210,7 +224,7 @@ export default function ProviderOnboardPage() {
               const connMetadata = conn.metadata as Record<string, unknown> | null;
               const autoIntro = (connMetadata?.auto_intro as string) || null;
 
-              setNotificationData({
+              fetchedNotificationData = {
                 type: "lead",
                 id: conn.id,
                 created_at: conn.created_at,
@@ -220,7 +234,7 @@ export default function ProviderOnboardPage() {
                   auto_intro: autoIntro || undefined,
                 },
                 from_profile: conn.from_profile as NotificationData["from_profile"],
-              });
+              };
             }
           } else if (actionParam === "question") {
             // Fetch question data
@@ -230,13 +244,13 @@ export default function ProviderOnboardPage() {
               .eq("id", actionIdParam)
               .single();
             if (question) {
-              setNotificationData({
+              fetchedNotificationData = {
                 type: "question",
                 id: question.id,
                 created_at: question.created_at,
                 question: question.question,
                 asker_name: question.asker_name,
-              });
+              };
             }
           } else if (actionParam === "review") {
             // Fetch review data
@@ -246,18 +260,21 @@ export default function ProviderOnboardPage() {
               .eq("id", actionIdParam)
               .single();
             if (review) {
-              setNotificationData({
+              fetchedNotificationData = {
                 type: "review",
                 id: review.id,
                 created_at: review.created_at,
                 rating: review.rating,
                 comment: review.comment,
                 reviewer_name: review.reviewer_name,
-              });
+              };
             }
           }
         } catch (err) {
           console.error("[ProviderOnboard] Failed to fetch notification data:", err);
+        }
+        if (fetchedNotificationData) {
+          setNotificationData(fetchedNotificationData);
         }
       }
 
@@ -269,8 +286,9 @@ export default function ProviderOnboardPage() {
       );
       setSession(claimSessionData);
 
-      // Handle campaign token (marketing email pre-verification)
-      if (actionParam === "campaign" && tokenParam) {
+      // Handle signed claim token (from any email: lead, question, review, campaign)
+      // One-click flow: validate token → auto-sign-in → auto-claim → redirect
+      if (tokenParam) {
         try {
           const tokenRes = await fetch("/api/claim/validate-token", {
             method: "POST",
@@ -278,56 +296,202 @@ export default function ProviderOnboardPage() {
             body: JSON.stringify({
               token: tokenParam,
               claimSession: claimSessionData.sessionId,
+              action: actionParam,
+              actionId: actionIdParam,
             }),
           });
           const tokenResult = await tokenRes.json();
 
           if (tokenResult.valid) {
-            // Token is valid - user is pre-verified
-            setPreVerifiedEmail(tokenResult.emailHint);
-            setActionCardState("pre-verified");
+            const verifiedEmail = tokenResult.email || tokenResult.emailHint;
+
+            // For notification actions (lead/question/review):
+            // Show notification card + dashboard IMMEDIATELY, then
+            // run auto-sign-in in the background. The provider sees
+            // the lead while auth happens silently.
+            if (actionParam && actionParam !== "campaign") {
+              const notificationStateMap: Record<string, ActionCardState> = {
+                lead: "notification-lead", message: "notification-lead",
+                question: "notification-question", review: "notification-review",
+              };
+
+              // Use notification data from validate-token (fetched server-side
+              // with service role key — bypasses RLS that blocks the anon client)
+              if (tokenResult.notificationData) {
+                setNotificationData(tokenResult.notificationData as NotificationData);
+              }
+
+              // 1. Show notification card + dashboard NOW (no auth needed)
+              finalizeRef.current = true; // prevent useEffect auto-finalize race
+              setPreVerifiedEmail(verifiedEmail);
+              setActionCardState(notificationStateMap[actionParam] || "pre-verified");
+              setStep("dashboard");
+
+              // 2. Background auto-sign-in — invisible to the provider
+              (async () => {
+                try {
+                  // If already signed in and owns the listing, just switch profile
+                  if (user && account) {
+                    const { data: ownedProfile } = await createClient()
+                      .from("business_profiles")
+                      .select("id")
+                      .eq("slug", slug)
+                      .in("type", ["organization", "caregiver"])
+                      .eq("account_id", account.id)
+                      .maybeSingle();
+                    if (ownedProfile) {
+                      switchProfile(ownedProfile.id);
+                      console.log("[OneClick] Already signed in as owner");
+                      return;
+                    }
+                  }
+
+                  // Auto-sign-in with the verified email
+                  console.log("[OneClick] Starting auto-sign-in for", verifiedEmail);
+                  const signInRes = await fetch("/api/auth/auto-sign-in", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      email: verifiedEmail,
+                      claimSession: claimSessionData.sessionId,
+                    }),
+                  });
+                  const signInData = await signInRes.json();
+
+                  if (!signInRes.ok || !signInData.tokenHash) {
+                    console.warn("[OneClick] auto-sign-in failed:", signInData.error || signInRes.status);
+                    return;
+                  }
+
+                  // Establish session (implicit flow — no PKCE)
+                  const authClient = createAuthClient();
+                  const { data: otpData, error: otpError } = await authClient.auth.verifyOtp({
+                    token_hash: signInData.tokenHash,
+                    type: "magiclink",
+                  });
+
+                  if (otpError || !otpData?.session) {
+                    console.warn("[OneClick] verifyOtp failed:", otpError?.message);
+                    return;
+                  }
+
+                  // Transfer session to SSR client
+                  await createClient().auth.setSession({
+                    access_token: otpData.session.access_token,
+                    refresh_token: otpData.session.refresh_token,
+                  });
+                  console.log("[OneClick] Session established");
+
+                  // Finalize claim (creates account + links profile for first-time providers)
+                  if (!tokenResult.alreadyClaimed) {
+                    const finalizeRes = await fetch("/api/claim/finalize", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        providerId: foundProvider.provider_id,
+                        claimSession: claimSessionData.sessionId,
+                      }),
+                    });
+                    console.log("[OneClick] Finalize:", finalizeRes.ok ? "success" : finalizeRes.status);
+                  }
+
+                  // Refresh auth state + switch to provider profile
+                  await refreshAccountData();
+                  const { data: bp } = await createClient()
+                    .from("business_profiles")
+                    .select("id")
+                    .eq("slug", slug)
+                    .in("type", ["organization", "caregiver"])
+                    .maybeSingle();
+                  if (bp) switchProfile(bp.id);
+
+                  console.log("[OneClick] Background sign-in complete");
+
+                  // Log for observability
+                  fetch("/api/activity/track", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      provider_id: slug,
+                      event_type: "one_click_access",
+                      metadata: { action: actionParam, action_id: actionIdParam, email: verifiedEmail, source: "email_token" },
+                    }),
+                  }).catch(() => {});
+                } catch (err) {
+                  console.warn("[OneClick] Background sign-in error:", err);
+                }
+              })();
+
+              return; // notification card is already showing
+            }
+
+            // For campaign or fallback: show pre-verified state
+            setPreVerifiedEmail(verifiedEmail);
+            setActionCardState(actionParam && actionParam !== "campaign"
+              ? (({ lead: "notification-lead", message: "notification-lead", question: "notification-question", review: "notification-review" } as Record<string, ActionCardState>)[actionParam] || "pre-verified")
+              : "pre-verified"
+            );
             setStep("dashboard");
             return;
           } else if (tokenResult.alreadyClaimed) {
-            // Listing already claimed
+            // Token valid but already claimed — for notification actions,
+            // this is handled by the notification card path above (which
+            // fires background sign-in). For campaigns, show already-claimed.
             setActionCardState("already-claimed");
             setStep("dashboard");
             return;
           } else {
             // Token invalid/expired - fall through to normal flow
-            console.warn("[ProviderOnboard] Campaign token invalid:", tokenResult.error);
+            console.warn("[ProviderOnboard] Token invalid:", tokenResult.error);
           }
         } catch (err) {
-          console.error("[ProviderOnboard] Failed to validate campaign token:", err);
+          console.error("[ProviderOnboard] Failed to validate token:", err);
           // Fall through to normal flow
         }
       }
 
       // Check if already claimed via business_profiles
-      const { data: bp } = await supabase
+      // Query by source_provider_id first (olera-providers path), then by slug (BP-only path)
+      let bp: { claim_state: string | null; account_id: string | null } | null = null;
+      const { data: bpBySource } = await supabase
         .from("business_profiles")
         .select("claim_state, account_id")
         .eq("source_provider_id", foundProvider.provider_id)
         .maybeSingle();
+      bp = bpBySource;
+
+      if (!bp && foundProvider.slug) {
+        // BP-only provider: look up by slug directly
+        const { data: bpBySlug } = await supabase
+          .from("business_profiles")
+          .select("claim_state, account_id")
+          .eq("slug", foundProvider.slug)
+          .in("type", ["organization", "caregiver"])
+          .maybeSingle();
+        bp = bpBySlug;
+      }
 
       if (bp?.claim_state === "claimed") {
         // If the signed-in user owns this listing, redirect to the appropriate section
         if (account && bp.account_id && account.id === bp.account_id) {
-          // Route to specific section based on notification type
-          if (actionParam === "lead" && actionIdParam) {
-            router.replace(`/provider/inbox?id=${actionIdParam}`);
-          } else if (actionParam === "message" && actionIdParam) {
-            router.replace(`/provider/inbox?id=${actionIdParam}`);
-          } else if (actionParam === "question" && actionIdParam) {
-            router.replace(`/provider/qna?id=${actionIdParam}`);
-          } else if (actionParam === "review" && actionIdParam) {
-            router.replace(`/provider/reviews?id=${actionIdParam}`);
-          } else {
-            router.replace("/provider");
-          }
+          router.replace(getActionRedirectUrl(actionParam, actionIdParam));
           return;
         }
-        // Otherwise show dashboard with dispute form in ActionCard
+        // If they arrived from a notification email, show the contextual card
+        // (lead/question/review preview) instead of the generic "already claimed" dispute card.
+        // This lets the actual owner verify + sign in to respond.
+        if (actionParam && fetchedNotificationData) {
+          const notificationStateMap: Record<string, ActionCardState> = {
+            lead: "notification-lead",
+            message: "notification-lead",
+            question: "notification-question",
+            review: "notification-review",
+          };
+          setActionCardState(notificationStateMap[actionParam] || "verify-form");
+          setStep("dashboard");
+          return;
+        }
+        // No notification context — show dispute form
         setActionCardState("already-claimed");
         setStep("dashboard");
         return;
@@ -453,14 +617,81 @@ export default function ProviderOnboardPage() {
   };
 
   // Handle verification complete (called from ActionCard via SmartDashboardShell)
-  const handleVerificationComplete = useCallback(() => {
-    markSessionVerified();
-    setSession(prev => prev ? { ...prev, verified: true } : null);
+  const handleVerificationComplete = useCallback(async (verifiedEmail?: string) => {
+    markSessionVerified(verifiedEmail);
+    setSession(prev => prev ? { ...prev, verified: true, emailHint: verifiedEmail } : null);
 
     if (user) {
       setStep("finalizing");
       handleFinalize();
-    } else {
+      return;
+    }
+
+    // Auto-sign-in with the verified email — no auth modal needed
+    const email = verifiedEmail || session?.emailHint || preVerifiedEmail;
+    if (!email) {
+      // Fallback to auth modal if we somehow don't have the email
+      openAuth({
+        deferred: {
+          action: "claim",
+          returnUrl: `${window.location.pathname}?provider_id=${provider?.provider_id}`,
+        },
+      });
+      return;
+    }
+
+    setStep("finalizing");
+    try {
+      const res = await fetch("/api/auth/auto-sign-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          claimSession: session?.sessionId || "verified",
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.tokenHash) {
+        // Auto-sign-in failed — fall back to auth modal
+        openAuth({
+          deferred: {
+            action: "claim",
+            returnUrl: `${window.location.pathname}?provider_id=${provider?.provider_id}`,
+          },
+        });
+        return;
+      }
+
+      // Use implicit-flow client to avoid PKCE code_verifier mismatch
+      const authClient = createAuthClient();
+      const { data: otpData, error: otpError } = await authClient.auth.verifyOtp({
+        token_hash: data.tokenHash,
+        type: "magiclink",
+      });
+
+      if (otpError || !otpData?.session) {
+        console.error("Auto-sign-in OTP error:", otpError?.message);
+        openAuth({
+          deferred: {
+            action: "claim",
+            returnUrl: `${window.location.pathname}?provider_id=${provider?.provider_id}`,
+          },
+        });
+        return;
+      }
+
+      // Transfer session to SSR client
+      await createClient().auth.setSession({
+        access_token: otpData.session.access_token,
+        refresh_token: otpData.session.refresh_token,
+      });
+
+      // Session established — refresh auth state and finalize
+      await refreshAccountData();
+      handleFinalize();
+    } catch (err) {
+      console.error("Auto-sign-in failed:", err);
       openAuth({
         deferred: {
           action: "claim",
@@ -469,12 +700,12 @@ export default function ProviderOnboardPage() {
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, openAuth, provider?.provider_id]);
+  }, [user, openAuth, provider?.provider_id, session?.emailHint, session?.sessionId, preVerifiedEmail]);
 
   // Loading state
   if (step === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-vanilla-50 via-white to-white">
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F5F0]">
         <div className="text-center px-4">
           <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
           <p className="mt-4 text-gray-500">Loading...</p>
@@ -486,7 +717,7 @@ export default function ProviderOnboardPage() {
   // Error state
   if (step === "error") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-vanilla-50 via-white to-white">
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F5F0]">
         <div className="text-center max-w-md px-4">
           <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-6">
             <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -518,18 +749,8 @@ export default function ProviderOnboardPage() {
   }
 
   // Determine success redirect URL based on action type
-  const getSuccessRedirectUrl = () => {
-    if (actionParam === "lead" && actionIdParam) {
-      return `/provider/inbox?id=${actionIdParam}`;
-    } else if (actionParam === "message" && actionIdParam) {
-      return `/provider/inbox?id=${actionIdParam}`;
-    } else if (actionParam === "question" && actionIdParam) {
-      return `/provider/qna?id=${actionIdParam}`;
-    } else if (actionParam === "review" && actionIdParam) {
-      return `/provider/reviews?id=${actionIdParam}`;
-    }
-    return "/provider";
-  };
+  const getSuccessRedirectUrl = () =>
+    getActionRedirectUrl(actionParam, actionIdParam);
 
   // Get button text based on action type
   const getSuccessButtonText = () => {
@@ -546,7 +767,7 @@ export default function ProviderOnboardPage() {
   // Success state
   if (step === "success") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-vanilla-50 via-white to-white">
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F5F0]">
         <div className="text-center max-w-md px-4" style={{ animation: "card-enter 0.3s ease-out both" }}>
           <div className="relative inline-block mb-6">
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shadow-sm border border-primary-100/60">
@@ -580,7 +801,7 @@ export default function ProviderOnboardPage() {
   // Finalizing state
   if (step === "finalizing") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-vanilla-50 via-white to-white">
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F5F0]">
         <div className="text-center px-4">
           <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
           <p className="mt-4 text-gray-500">Setting up your account...</p>

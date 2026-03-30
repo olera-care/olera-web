@@ -8,6 +8,7 @@ import { useConnectionCard } from "@/components/providers/connection-card/use-co
 import PhoneButton from "@/components/providers/connection-card/PhoneButton";
 import Pill from "@/components/providers/connection-card/Pill";
 import StepIndicator from "@/components/providers/connection-card/StepIndicator";
+import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
 import {
   RECIPIENT_OPTIONS,
   URGENCY_OPTIONS,
@@ -223,6 +224,8 @@ export default function MobileStickyBottomCTA({
           : "When do you need care?";
       case "email_capture":
         return "How can we reach you?";
+      case "enrichment":
+        return undefined;
       case "connected":
         return undefined;
       case "returning":
@@ -248,6 +251,9 @@ export default function MobileStickyBottomCTA({
   const sheetFooter = (() => {
     switch (hook.cardState) {
       case "loading":
+        return undefined;
+
+      case "enrichment":
         return undefined;
 
       case "default":
@@ -502,6 +508,20 @@ export default function MobileStickyBottomCTA({
               onSubmit={hook.submitGuestRequest}
               submitting={hook.submitting}
               error={hook.error}
+            />
+          </div>
+        )}
+
+        {/* ── Enrichment: post-submission questions ── */}
+        {hook.cardState === "enrichment" && (
+          <div className="py-4 animate-step-in">
+            <EnrichmentState
+              providerName={providerName}
+              onSave={hook.saveEnrichment}
+              onSkip={hook.skipEnrichment}
+              saving={hook.submitting}
+              initialRecipient={hook.initialRecipient}
+              initialUrgency={hook.initialUrgency}
             />
           </div>
         )}

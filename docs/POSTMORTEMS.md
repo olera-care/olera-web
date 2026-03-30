@@ -94,6 +94,58 @@ The core error: **treating the plan as authoritative when the code told a differ
 
 ---
 
+### 2026-03-27: Notification card never rendered — 3 compounding root causes over 12+ rounds
+
+**Symptom**: Provider clicks notification email link. Expected: notification card hero ("A family is interested in your services") + dashboard. Actual: "Email verified / Claim this listing" every single time, across 12+ fix attempts over ~4 hours.
+
+**Root Causes (three, compounding):**
+
+1. **Apple Mail strips `token` param** — Link Tracking Protection removes URL params named "token" (both click and copy). The one-click flow never ran because the token never arrived. Fixed by renaming to `otk`.
+
+2. **Notification data blocked by RLS** — The connections table has Row Level Security. The browser client (anon key, unauthenticated user) can't read it. `notificationData` was always null. The ActionCard guard `if (state === "notification-lead" && notificationData)` failed silently. Fixed by fetching notification data server-side in `validate-token` using the service role key.
+
+3. **SmartDashboardShell overrode the state** — Line 257: `preVerifiedEmail ? "pre-verified" : initialActionState`. When `preVerifiedEmail` was set (always true in the token flow), this ternary forced the ActionCard state to `"pre-verified"` regardless of what the parent passed as `initialActionState`. Every upstream fix that set `"notification-lead"` was immediately overridden by this one line. Fixed with a priority check for notification states.
+
+**Time to Resolution**: ~4 hours, 12+ fix rounds, 12 commits. Each root cause masked the next — fixing #1 revealed #2, fixing #2 revealed #3.
+
+**Why Each Round Failed:**
+- Rounds 1-5: Fixed real but unreachable bugs (race conditions, PKCE, sequencing). The token wasn't arriving (root cause #1).
+- Rounds 6-7: Token arrived via `otk` rename. Set `actionCardState = "notification-lead"` in parent. But notification data was null (root cause #2) AND state was overridden by SmartDashboardShell (root cause #3). Same "pre-verified" screenshot.
+- Rounds 8-9: Fixed notification data fetch (server-side). But SmartDashboardShell still overrode the state (root cause #3). Same screenshot.
+- Round 10: Fixed the one-line ternary override. Notification card finally rendered.
+
+**Prevention:**
+- **Trace the full render chain before fixing.** State set in parent → prop passed to child → child's internal state init → render guard → actual render. If ANY link in this chain overrides or drops the value, the fix is DOA. I fixed the first link 10 times without checking the last three.
+- **When the same symptom persists across multiple fixes, the bug is downstream of where you're looking.** Move toward the render, not away from it.
+- **Read child component state initialization.** `useState(initialProp)` only uses the prop on FIRST render. If the child has its own state derivation logic (like the ternary override), the prop is meaningless.
+- **Verify fixes with console.log at the render site, not at the fix site.** A `console.log` inside ActionCard's notification-lead render block would have shown it was never reached — on the first attempt.
+
+**Lesson**: When you fix the same bug 10 times and it doesn't go away, you're fixing the wrong layer. Stop, trace the full chain from data source to pixel, and find where the value gets dropped. The most expensive debugging pattern is repeatedly fixing upstream code while a downstream override silently discards every fix.
+
+---
+
+### 2026-03-27: One-click provider onboarding never executed — Apple Mail strips `token` param
+
+**Symptom**: Provider clicks notification email link. Expected: onboard page with lead preview + dashboard. Actual: "This listing is claimed" error, skeleton loaders, or wrong page. Debugged across ~10 rounds, 2.5 hours, 7 commits — none of which fixed the user-facing problem.
+
+**Root Cause**: Apple Mail's Link Tracking Protection silently strips URL parameters named `token` from email links — both on click AND on copy-link. The `token` query parameter (a signed JWT for zero-friction auth) was removed before the browser ever loaded the page. `searchParams.get("token")` returned `null`, so the one-click flow never ran and the page fell through to the default claim-check path.
+
+Evidence that revealed it: comparing the URL in the email (`...&token=eyJ...&ref=email`) to the URL in the browser bar (`...&ref=email` — token gone, params reordered). TJ had been copying links from Apple Mail into Dia browser, unaware Apple was modifying the clipboard.
+
+**Fix**: Renamed query param from `token` to `otk` (one-time key) in `lib/claim-tokens.ts` and `app/provider/[slug]/onboard/page.tsx`. Apple doesn't strip `otk`.
+
+**Time to Resolution**: ~2.5 hours total. ~2 hours on real-but-unreachable downstream bugs. ~15 minutes to find the actual root cause once the right question was asked ("show me the URL you clicked vs the URL you landed on").
+
+**Prevention**:
+- **Never name URL params `token`, `session`, `key`, `auth` in email links.** Apple Mail, Outlook, Brave, and Firefox Enhanced Tracking Protection strip params that look like tracking/auth identifiers. Use abbreviations: `otk`, `sid`, `k`.
+- **Verify inputs before debugging processing.** When a feature "never works," check that the data reaches the code before tracing logic paths. A single `console.log("tokenParam:", tokenParam)` would have caught this in round 1.
+- **Ask for the actual URL early.** "Show me the URL in your browser bar" should be the first troubleshooting question, not the sixth.
+- Added to memory: `feedback_email_param_names.md` — never use `token` as a URL param name in emails.
+
+**Lesson**: When every code fix is correct but the bug persists, the problem is upstream of your code. Verify the inputs arrive before debugging how they're processed. The most expensive assumption in debugging is "the data reaches my code."
+
+---
+
 ### 2026-03-25: Admin image delete returned 500 — `hero_image_url` column doesn't exist
 
 **Symptom**: Clicking "Delete" on a provider photo in the admin dashboard did nothing. The image stayed in the grid and could be "deleted" infinitely. No error was shown to the user.
@@ -110,5 +162,38 @@ The core error: **treating the plan as authoritative when the code told a differ
 - First debugging step for "button doesn't work" = ask user to open DevTools Network tab and check the response body immediately
 
 **Lesson**: When a new feature silently fails, the first priority is making the failure loud — surface the actual error before attempting to fix the logic. Would have saved 60 minutes if the first commit had included error banners and console logging.
+
+---
+
+### 2026-03-27: /welcome page connection card disappears — 3 compounding root causes over 6 commits
+
+**Symptom**: After enrichment questions, the /welcome page either showed a blank white screen for 6 seconds, or the connection card with the provider photo flashed for one second and then disappeared, leaving an empty gap between the heading and step cards.
+
+**Root Causes (3, each masking the next)**:
+
+1. **Server-side blocking (6-second delay)**: `force-dynamic` server component ran `getUserCity()` which called `supabase.auth.getUser()` for guests with no session cookie — slow fail (2-3s). Then client-side AuthProvider's `fetchAccountData()` timed out at 5000ms waiting for an `accounts` row not yet created. Total: 5-8s before `loading=false`.
+
+2. **Missing Suspense boundary**: After converting to a static page (fixing #1), `useSearchParams()` in the client component needed a `<Suspense>` boundary to properly read URL params on a static page. Without it, `connectionIdParam` was empty on initial render.
+
+3. **Inquiry message counted as "user has messaged"**: `showConnectionCard` required `!hasUserMessaged`, but the initial inquiry form submission itself creates a thread message from the user's profile (not marked `is_auto_reply`). So `hasUserMessaged` was `true` immediately for EVERY fresh connection, causing `showConnectionCard = false`. The skeleton would flash (connection null -> shown), then the connection data would load (connection set, but `showConnectionCard` false -> card hidden, nothing replaces it).
+
+**Fix (3 commits)**:
+1. Removed `force-dynamic`, converted to static page, moved provider fetching to client-side, removed `loading` gate
+2. Wrapped `WelcomeClient` in `<Suspense fallback={<WelcomeLoading />}>`
+3. Changed `showConnectionCard` from `isConnected && !hasUserMessaged && isFreshConnection` to `isConnected && isFreshConnection` — fresh connections always show the card
+
+**Time to Resolution**: ~2 hours across 6 commits. First 2 issues were found via code analysis. Third issue required the user reporting "it flashed for a second" — that phrase was the critical clue that the skeleton rendered then disappeared, meaning `connection` was being set but `showConnectionCard` was evaluating to false.
+
+**Why I didn't catch this earlier**:
+- **Wrong assumption**: I assumed `hasUserMessaged` only captured deliberate follow-up messages. I didn't consider that the initial inquiry form message IS a thread message from the user's profile. The condition was logically correct for returning users but wrong for fresh connections.
+- **Surface-level fix pattern**: I shipped the server-blocking fix (correct), then the Suspense fix (correct), without verifying the FULL render chain end-to-end. Each fix addressed a real issue but didn't check whether the downstream logic would actually show the card.
+- **Debugged by hypothesis instead of tracing state**: I should have added the diagnostic `console.log` from the start — it would have immediately shown `hasUserMessaged: true` and pointed to the real issue.
+
+**Prevention**:
+- Added `[welcome-card]` diagnostic logging that traces all card state values on every render
+- `/troubleshoot` learning: when UI "flashes and disappears," the first question is "what state changed to HIDE it?" not "what state failed to SHOW it?"
+- The `showConnectionCard` condition now has a comment explaining why fresh connections skip the `hasUserMessaged` check
+
+**Lesson**: "Flashes then disappears" is a different bug class than "never shows." It means the data loaded successfully but a downstream condition rejected it. Always trace the full conditional chain (data fetch -> state set -> condition evaluation -> render) before shipping. The user describing the BEHAVIOR ("flashed for a second") was more diagnostic than any code analysis — listen to the symptom description precisely.
 
 ---

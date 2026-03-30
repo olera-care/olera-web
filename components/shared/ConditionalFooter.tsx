@@ -38,6 +38,8 @@ export default function ConditionalFooter() {
     return <SimpleFooter />;
   }
 
-  // Everything else — full marketing footer
-  return <Footer />;
+  // MedJobs pages — full footer but skip the senior care discovery zone
+  const hidePrefooter = pathname.startsWith("/medjobs");
+
+  return <Footer hideDiscoveryZone={hidePrefooter} />;
 }

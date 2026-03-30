@@ -100,11 +100,11 @@ function CityRow({ city }: { city: CityEntry }) {
 // Footer
 // ---------------------------------------------------------------------------
 
-export default function Footer() {
+export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZone?: boolean }) {
   return (
     <footer className="relative">
       {/* ── Discovery Zone — warm vanilla background ── */}
-      <div className="bg-vanilla-100">
+      {!hideDiscoveryZone && <div className="bg-vanilla-100">
         <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12 md:py-14">
           {/* Section header */}
           <h3 className="font-display text-display-xs md:text-xl font-semibold text-gray-900 mb-1.5">
@@ -160,7 +160,7 @@ export default function Footer() {
             </div>
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* ── Main Footer ── */}
       <div className="bg-gray-50 border-t border-gray-200/60">

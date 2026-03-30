@@ -7,6 +7,34 @@
 
 ## Current Focus
 
+- **Staging → Main Promotion** — IN PROGRESS
+  - Audited full staging diff: 253 commits, 225 files changed, ~31K lines across ~90 PRs
+  - Key areas: one-click onboarding, provider dashboard, MedJobs, reviews, activity center, email revamp, highlights waterfall, city expansion, admin improvements
+  - Caught missing PR #435 (funny-turing nav cleanup + 2-card PlatformShowcase) — rebased and merged
+  - Caught PR #438 (breadcrumb fix) would silently regress Navbar — rebased and merged clean
+  - **Next: Continue merging remaining open PRs, then promote staging → main**
+
+- **MedJobs Candidates Redesign** (branch: `keen-perlman`) — MERGED ✅ (PR #436)
+  - Dense scannable list rows, infinite scroll, shared CandidateRow/CandidateFilters
+  - **Next: Detail page taste pass, test auth flow end-to-end**
+
+- **Provider Onboard + Nav Cleanup** (branch: `funny-turing`) — MERGED ✅ (PR #433 + #435)
+  - Onboard: profile-editor → platform showcase with 2 cards (Families + Hire Staff)
+  - Nav: Home | Find Families | Hire Staff, conditional Inbox/Leads, Q&A/Reviews hidden
+  - MedJobs provider experience: photo cards + aspirational empty state
+
+- **SEO: Breadcrumb Fix** (branch: `helpful-mendel`) — MERGED ✅ (PR #438)
+  - Fixed 3,082 GSC errors: added `item` URL to final breadcrumb entry across 7 page types
+  - Need to trigger GSC validation after staging deploys
+
+- **SEO: City/Browse Page Optimization** (branch: `zen-perlman`) — ANALYSIS COMPLETE, IMPLEMENTATION NEXT
+  - GSC 7-day report analyzed (Mar 19-25): 690K impressions, 2.7K clicks, 0.4% CTR, avg position 26.7
+  - City pages ranking position 35-60 for "[care type] [city]" queries — massive impressions, near-zero clicks
+  - Root cause: content thinness + domain authority gap (DA ~5 vs competitors DA 60-75)
+  - Caregiver articles are SEO engine (positions 4-6) but authority doesn't flow to city pages
+  - Full analysis + action plan in Notion: https://www.notion.so/3305903a0ffe818bbd86e106f8dbfb26
+  - **Next: Implement Action 1 (city-specific content sections) + Action 2 (internal linking) + Action 3 (structured data)**
+
 - **DNS Cutover v1.0 → v2.0** (branch: `peaceful-wiles`) — DONE ✅
   - olera.care now serving v2.0 Next.js app via Vercel
   - Provider slug migration done (008 + 009): 477/500 top GSC pages passing
@@ -161,12 +189,28 @@
   - PR #398: Add Documents section to admin student detail page (driver's license + car insurance upload status)
   - Type fix: Added document fields to `StudentMetadata` in `lib/types.ts`
 
-- **Provider Activity Center** (branch: `fond-keller`, PR #404) — MERGED ✅
+- **Provider Activity Center** (branch: `fond-keller`) — DONE ✅
   - Plan: `plans/provider-activity-center-plan.md`
   - Notion: [Track provider activity in "Activity Center"](https://www.notion.so/Track-provider-activity-in-Activity-Center-32f5903a0ffe80c8ad21ebd8b3176a6f)
   - Track email click-throughs from provider notifications, surface in admin dashboard
   - 5 phases: DB table → instrument emails → capture clicks → API → admin UI
   - PRs #404 merged to staging, #405 promoted to main
+
+- **Provider Onboarding Routing Fix + UX + One-Click Flow** (branch: `loving-swartz`) — E2E WORKING, PR #428 OPEN
+  - Plan: `plans/provider-onboarding-routing-plan.md`
+  - Notion: [Task](https://www.notion.so/089aad975c5d4ba0930c8da33b8a6597)
+  - PRs: #421 merged, #427 merged, #428 open (all fixes from session 62)
+  - 5 routing bugs fixed + notification card UX redesign + privacy masking
+  - One-click flow fully working: email link → auto-sign-in → auto-claim → onboard page with notification card
+  - Root cause of all prior failures: Apple Mail Link Tracking Protection strips params named `token`
+  - Fix: renamed `token` to `otk` (one-time key) — Apple doesn't strip it
+
+- **Care Seeker Connection Flow De-Jank** (branch: `helpful-euler`) — IN PROGRESS
+  - Enrichment questions → /welcome page transition redesign
+  - Fixed 6-second blank white screen: removed force-dynamic from /welcome, moved to static page + client-side data fetching
+  - /welcome page taste pass: warm bg (#FAFAF8), side-by-side connection card, flat step cards, Airbnb Trips / Perena inspired
+  - `/dejank` slash command created for systematic jank removal methodology
+  - **Still TODO:** Test full enrichment → /welcome transition end-to-end, verify connection card skeleton works, continue design polish
 
 - **Family Activity Center** (branch: `logical-mahavira`) — IN PROGRESS
   - Plan: `plans/family-activity-center-plan.md`
@@ -175,39 +219,6 @@
   - New seeker_activity table, instrument 16 family email types with tracking, family engagement heat
   - Replaces Matches admin page (funnel metrics → per-person engagement view)
   - 5 phases: DB schema → instrument events → email tracking → admin API → admin UI
-
-- **80-City Batch Expansion** (branch: `vigilant-yalow`) — COMPLETE ✅
-  - 80 cities from map.olera.care priority list (44 missing + 36 thin coverage)
-  - Discovery: 14,917 providers found across 80 cities (~43 min, $86)
-  - Clean: AI classification + keyword filter + dedup against 33,589 existing
-  - Load: ~4,200 providers uploaded + geocoded ($91)
-  - Enrich: descriptions, reviews, trust signals, images ($447)
-  - Trust signals: 1,384 confirmed, 1,443 false positives soft-deleted (47% rejection rate)
-  - Post-expansion dedup: 960 cross-city duplicates soft-deleted
-  - Total cost: ~$535 (vs $2,000 estimate — 73% under budget)
-  - Fix: Added `fetchWithRetry` to `pipeline-batch.js` for ETIMEDOUT errors
-  - Supabase scaled to Small during load, can scale back to Micro now
-
-- **Pipeline Batch Optimization** (branch: `vigilant-yalow`) — DONE ✅
-  - Backup: `scripts/pipeline-batch.js.bak`
-  - 4 optimizations to `scripts/pipeline-batch.js`:
-    1. Within-batch place_id dedup: tracks place_id + name|state across cities during clean phase
-    2. Live Supabase dedup: queries live DB instead of stale 61MB CSV export
-    3. Merged reviews+photos: single Google Places call instead of two separate ones
-    4. Smart geocoding: skips re-geocode when discovery coords pass state bounds + city proximity
-  - Estimated savings: ~$62/batch + significant time reduction
-  - Also added `/dedup` slash command to worktree (was missing from `.claude/commands/`)
-  - Tested on 3-city batch (Arden-Arcade, Florence-Graham, Medford): all 4 optimizations verified
-
-- **Standalone `/enrich-city` Command** (branch: `dedup-cleanup` in main repo) — DONE ✅
-  - Script: `scripts/enrich-city.js` (rewritten from 423→340 lines)
-  - Slash command: `.claude/commands/enrich-city.md`
-  - Queries by `city`+`state` columns (case-insensitive), not provider_id prefix
-  - Catches ALL providers regardless of import source (CMS, manual, old pipeline)
-  - Dry-run by default: shows gap analysis + cost estimate
-  - 5 enrichment streams: desc, reviews, trust, snippets, images
-  - Supports `--stream` flag for single-stream execution
-  - Tested on Medford MA (23 providers) and West Jordan UT (13 providers)
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — DONE ✅
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
@@ -238,23 +249,59 @@
 
 ## Next Up
 
-1. **Scale Supabase back to Micro** — batch load is done, Small no longer needed
-2. **Spot-check new cities on live site** — verify provider cards, trust signals, map pins after ISR refresh
-3. **Test optimized pipeline on next batch** — verify all 4 optimizations work end-to-end
+1. **MedJobs candidates detail page taste pass** — Apply warm surface + Perena-inspired styling to `/medjobs/candidates/[slug]` and `/provider/medjobs/candidates/[slug]`
+2. **MedJobs provider onboarding flow** — Ensure MedJobs tab → browse → candidate detail → auth → contact is butter smooth end-to-end
+3. **Enrichment questions after connection** — Add follow-up questions after seeker submits connection to feed into their profile (separate workstream from onboard redesign)
+4. **De-jank provider transitions** — Airbnb-smooth state transitions across provider flows (notification → dashboard, claim → portal)
+5. **SEO Action 1: City-specific content sections** — Add cost snapshot, "Paying for Care" module (waiver library links), city stats, FAQ section to browse pages
+2. **SEO Action 2: Internal linking** — Link caregiver articles → city pages, waiver library → city pages, nearby city cross-links
+3. **SEO Action 3: Structured data + meta** — FAQ schema, AggregateRating schema, cost/review-enriched meta descriptions
+4. **SEO Action 4: More caregiver content** — 10-15 articles targeting financial/benefits queries (Medicare, Medicaid, cost guides)
+5. **Merge PR #219** (waiver library redesign) — waiting on Chantel to remove `package.json.tmp` + `.mcp.json`
+6. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
+7. **Debug auto-sign-in** — check `[OneClick]` console logs, fix background auth
+8. **Phase 2: Activity Center PII tracking** — log "viewed_lead_pii" events, Slack alerts for sensitive interactions
+9. **Unmask question/review content** on onboard notification cards (public data, no privacy concern)
+10. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
+11. **Run backfill script** for source_provider_id (dry-run first): `scripts/backfill-source-provider-id.js`
+12. **Add `CLAIM_TOKEN_SECRET` env var** to Vercel (currently falls back to SUPABASE_SERVICE_ROLE_KEY)
 
 ---
 
 ## Decisions Made
 
 | Date | Decision | Rationale |
-| 2026-03-26 | Add fetchWithRetry to pipeline-batch.js Google API calls | ETIMEDOUT crashes killed the pipeline twice during geocoding. 3 retries with exponential backoff (2s/4s/6s) handles transient network failures without manual restart |
-| 2026-03-26 | Scale Supabase to Small during batch load, back to Micro after | Disk IO Budget warning at Micro tier. Small ($0.02/hr) provides headroom for 4K+ concurrent inserts + geocoding. Temporary — scale down after batch |
-| 2026-03-26 | enrich-city queries by city+state columns, not provider_id prefix | provider_id prefix (`{city}-{state}-NNNN`) misses providers from CMS imports, manual adds, and older pipelines. `ilike('city', x).ilike('state', y)` catches everything regardless of how it was imported |
-| 2026-03-26 | Modify existing enrich-city.js rather than create new script | Avoids code divergence — two scripts doing the same enrichment with slightly different logic. Existing script had 5 of 6 streams already, only needed query pattern + CLI flags + dry-run |
-| 2026-03-26 | Live Supabase dedup replaces stale CSV export | The 61MB CSV was 5 days stale — missed 88-city expansion and any recent changes. Querying Supabase directly adds ~10s but gives 100% accurate dedup |
-| 2026-03-26 | Smart geocoding: skip when discovery coords pass bounds check | 88% of discovery coordinates were correct. Re-geocoding all of them cost $91 this run. Smart skip only geocodes missing/suspicious coords (~30%), saving ~$64/batch |
-| 2026-03-26 | Merge reviews+photos into single Google Places call | Two separate calls (reviews, photos) for the same place_id is wasteful. Single call with `fields=reviews,photos` halves API calls. Photo URI resolution still needs a second call |
-| 2026-03-26 | Keep clean-phase AI classification despite trust signals also classifying | Clean-phase batch-50 AI is 17x cheaper per provider ($0.0001 vs $0.0017). Catches 30% of false positives before they hit geocoding/enrichment. The two-pass approach costs slightly more in Perplexity but saves far more in wasted Google API calls on false positives |
+| 2026-03-28 | MedJobs candidates page is a search tool, not a gallery | Hiring is purposeful evaluation, not emotional discovery. Giant image blocks waste space when most students don't have photos. List rows let providers scan 8-10 candidates per screen vs 3. |
+| 2026-03-28 | Any authenticated user sees contact info (not just providers) | Provider profile creation is progressive profiling, not a prerequisite. Gating on "is provider" after auth creates a second wall that breaks the onboarding flow. |
+| 2026-03-28 | Infinite scroll over pagination buttons | Pagination feels dated and adds cognitive load. IntersectionObserver with 200px rootMargin pre-fetches the next batch before the user reaches bottom. Feels like Telegram. |
+| 2026-03-28 | Onboard page is a platform showcase, not a profile editor | Provider's first impression should be "here's what Olera can do" not "fill out these 7 forms." Profile completion is ONE compact card, not the entire page. |
+| 2026-03-28 | Platform cards use router.push, not Link elements | Avoids DOM swap when isSignedIn changes (div→Link remount re-triggers animations). Single div with onClick handler works for both auth states. |
+| 2026-03-28 | Guard isNotificationEntry on notificationData presence | ActionCard notification renders require data — without it, renders nothing. SmartDashboardShell must check `&& !!notificationData` before treating as notification entry. Falls back to verify-form. |
+| 2026-03-28 | No new API endpoints for v1 of onboard redesign | Value cards use aspirational copy + existing provider data (google_reviews_data). Live counts (lead count in area, Q&A pending) are a fast follow once design is validated. |
+| 2026-03-28 | Profile editing removed from onboard page | Wizard/inline editing moves to the portal Dashboard. Onboard page is the "lobby" — sells the vision. Portal is where they work. |
+| 2026-03-28 | MedJobs card on onboard is placeholder for now | Feature is early, will be refined in next work session with proper data + design |
+| 2026-03-27 | /welcome page must be static, not force-dynamic | Server component ran 3+ Supabase queries that always fail for guests (no session cookie). Blocked page render 2-3s + AuthProvider timeout 5s = 6-8s blank screen. Static page + client-side data fetching = instant render. |
+| 2026-03-27 | Never gate /welcome page render on auth state | Connection card, step cards, greeting all work without auth. Auth resolving in background upgrades the UI (profile %, live status) but shouldn't block first paint. Show skeleton for async data, not a loading spinner for the whole page. |
+| 2026-03-27 | Side-by-side card layout (square image) > landscape hero for provider cards | Landscape aspect ratio crops provider logos/photos badly — most provider images are logos or square portraits, not wide photos. Square image left + content right works for all image shapes. |
+| 2026-03-27 | City page SEO = content depth + authority, not technical fixes | Pages rank 35-60 because they're thin provider lists on a new domain (DA ~5). Competitors have DA 60-75 and editorial city guides. On-page fixes → position 20-25; page 1 requires 3-6mo authority building from article strategy |
+| 2026-03-27 | Waiver Library is the unique SEO weapon for city pages | Nobody else connects Medicaid waiver program data to city browse pages. "Paying for Care" module linking waiver library to city pages gives Google content it can't find elsewhere |
+| 2026-03-27 | Rename `token` query param to `otk` in email links | Apple Mail Link Tracking Protection strips params named "token" (both click and copy). `otk` (one-time key) is not on Apple's strip list. This was the root cause of ~10 failed debugging rounds. |
+| 2026-03-27 | One-click flow stays on onboard page, not redirect to Leads | The onboard page (notification card hero + dashboard) IS the intended landing. Redirecting to Leads table gives first-time providers nothing to trust. Trojan horse: lead hooks, dashboard sells. |
+| 2026-03-27 | Never name URL params `token`, `session`, `key` in email links | Email clients (Apple Mail, Outlook, privacy extensions) strip params that look like auth credentials. Use abbreviations: `otk`, `sid`, `k`. |
+| 2026-03-27 | Finalize claim BEFORE refreshAccountData in one-click flow | First-time providers have no account until finalize creates it. Refreshing before finalize returns empty profiles → downstream pages break. |
+| 2026-03-27 | Use createAuthClient() (implicit flow) for server-generated verifyOtp | SSR browser client forces PKCE. Server-generated magic link tokens don't have a code_challenge. Must use implicit flow + session transfer. Pattern documented in lib/supabase/auth-client.ts. |
+| 2026-03-27 | Fetch notification data server-side in validate-token | The connections table has RLS — unauthenticated browser client can't read it. Notification data must be fetched server-side (service role key) and returned with the token validation response. |
+| 2026-03-27 | Notification card display must never depend on auth state | The notification card is the hook — it must render for unauthenticated providers. All data it needs must come from server-side APIs (validate-token), not client-side queries that require auth. |
+| 2026-03-26 | Lead email is Trojan horse — dashboard is the product demo | Bare notification page would look like another lead-gen scam. Providers burned by APFM/Caring.com need to see the full platform (gallery, reviews, completeness) to believe Olera is real. Hero card hooks, dashboard below sells. |
+| 2026-03-26 | Always mask seeker info on onboard page | `isSignedIn` doesn't mean verified owner of this listing. Protect seekers in case email goes to wrong recipient. First name only, no photo, city only, message truncated. Full info after claiming. |
+| 2026-03-26 | Notification card overrides "already claimed" for email entry | Provider clicking email link and seeing "This listing is claimed — Dispute" is hostile. Show the lead/question/review preview instead, let them verify to respond. |
+| 2026-03-26 | BP-only providers need slug-based fallback in claim check | Second claim check queries by source_provider_id, which is NULL for BP-only providers. Fallback query by slug catches them. |
+| 2026-03-26 | Dark CTA buttons (bg-gray-900) for provider onboarding | Matches MedJobs aesthetic — calm confidence over teal SaaS template. Consistent across provider-facing surfaces. |
+| 2026-03-26 | One-click email tokens for provider onboarding (Phase 2) | Email IS the verification — asking for OTP after they clicked the email is proving the same thing twice. Signed JWT in email link = one click from email to full portal access. Zero friction. |
+| 2026-03-26 | Two tiers, not three: Full Access + Trusted | Full access via one-click token (everything including seeker PII). Trusted tier (phone call from Olera) only for destructive actions (delete listing, transfer ownership). Middle "Verified" tier was mud that solved a problem we don't have at current scale. |
+| 2026-03-26 | Observability over gates for PII protection | At 5-10 leads/day with ~10% provider engagement, manual oversight is feasible. Activity Center + Slack alerts when provider views seeker PII. Human review, not software gates. Gates only when volume demands it. |
+| 2026-03-26 | Phone call (not SMS OTP) for Trusted tier | Senior care providers are 60-70yo facility operators. SMS OTP = friction and confusion. Human phone call to business number = highest trust, zero tech friction, builds relationship. Rare actions only (~2-3/week). |
+| 2026-03-26 | Questions and reviews don't need privacy masking | Q&A and reviews are already public on the provider page. Only leads contain private seeker PII. Showing full question/review text on onboard page is fine and more compelling. |
 | 2026-03-25 | Full apply must retry account creation if apply-partial failed | Two-phase form (partial on step 1, full on step 4) means the full submit UPDATE path must check `account_id` and create auth+account if null. Silent try/catch in apply-partial hid the failure |
 | 2026-03-25 | `hero_image_url` column doesn't exist in `olera-providers` | The set_hero action wrote to it but it was never added to the table schema. All references must use `select("*")` and guard with `"hero_image_url" in provider` |
 | 2026-03-25 | Hover overlay > exposed pill buttons for image actions | Colored pills (yellow/red/green) below each image were visual noise. Dark gradient overlay with icon buttons on hover — images are content, buttons are tools |
@@ -340,46 +387,174 @@
 
 ## Session Log
 
-### 2026-03-26 (Session 61) — 80-City Batch + Pipeline Optimization + /enrich-city
+### 2026-03-27 (Session 62) — One-Click Flow: Root Cause Found + Full Fix
 
-**Branch:** `vigilant-yalow` (no code changes in worktree) | **No PR** (data-only pipeline run)
+**Branch:** `loving-swartz` | **PRs:** #427 merged, #428 open (7 commits)
 
-**What:** Largest batch expansion since the 88-city run. Processed 80 priority cities from map.olera.care gap analysis — 44 missing cities + 36 thin-coverage cities.
+**Root Cause:** Apple Mail's Link Tracking Protection silently strips URL parameters named `token` from email links — both on click AND on copy. The one-click flow never ran because `tokenParam` was always null. Every downstream fix (race conditions, PKCE, sequencing) was correct but unreachable.
 
-**Pipeline Results:**
-- Discovery: 14,917 raw providers (80 cities, 43 min, $86)
-- Clean: AI classification + keyword filter + dedup against 33,589 existing providers
-- Load: ~4,941 uploaded → ~4,217 active after geocoding ($91)
-- Enrich: 4,772 descriptions, 3,956 review snippets, 3,605 images, 1,384 trust signals confirmed ($447)
-- **1,443 false positives soft-deleted** by trust signal verification (47% rejection rate for non-CMS)
-- Total: **~$535** (73% under $2,000 estimate)
+**Fix:** Renamed query param from `token` to `otk` (one-time key). Apple doesn't strip it.
 
-**Issues & Fixes:**
-- Pipeline crashed twice on `ETIMEDOUT` during geocoding (Huber Heights OH, Linton Hall VA)
-- Root cause: `googleGeocode()` had no retry logic for transient network errors
-- Fix: Added `fetchWithRetry()` wrapper (3 retries, exponential backoff) to all Google API calls in `scripts/pipeline-batch.js`
-- Supabase Disk IO Budget warning → scaled Micro → Small during load phase
+**Additional bugs found and fixed (all in PR #428):**
+1. **Race condition:** `setStep("finalizing")` triggered a useEffect that called `handleFinalize()` concurrently with the one-click flow, causing an error flash. Fixed by setting `finalizeRef` before step change.
+2. **PKCE mismatch:** `verifyOtp` used `createBrowserClient` (forces PKCE) for server-generated tokens. Switched to `createAuthClient()` (implicit flow) with session transfer, matching UnifiedAuthModal pattern.
+3. **Provider ID mismatch:** `validate-token` stored slug in `claim_verification_codes`, but `finalize` queried by UUID. Introduced `canonicalProviderId` resolution.
+4. **Sequencing:** `refreshAccountData` ran before `finalize` — for first-time providers, no account existed yet → empty profiles → skeleton. Reordered: finalize → refresh → switchProfile.
+5. **Session swap for owners:** One-click flow replaced TJ's session with provider's email session, breaking Leads page. Added ownership check to skip auto-sign-in when current user owns the listing.
+6. **Eternal skeleton on Leads:** Added auth-loading check to prevent infinite skeleton when no provider profile exists.
+7. **Landing page:** One-click flow was redirecting to Leads tab instead of staying on onboard page with notification card hero + dashboard (the "Trojan horse" design).
 
-**Note:** Pipeline processed all 174 expansion directories (not just the 80 new ones) because `--resume` couldn't check Notion (no NOTION_TOKEN in env). Dedup correctly skipped existing providers. No harm, just slower clean phase.
+**Files Modified (4):**
+- `app/provider/[slug]/onboard/page.tsx` — all 7 fixes
+- `app/api/claim/validate-token/route.ts` — canonical provider ID resolution
+- `lib/claim-tokens.ts` — `token` → `otk` rename in URL generators
+- `app/provider/connections/page.tsx` — eternal skeleton safety net
 
-**Post-expansion:** Ran `dedup-database.js --delete` — 960 cross-city duplicates soft-deleted (1/3 of new providers were dupes from overlapping nearby cities).
+**Build:** Clean. E2E WORKING: email link → Apple Mail copy → Dia paste → notification card hero + dashboard renders correctly.
 
-**Pipeline Optimization (applied to main repo `scripts/pipeline-batch.js`):**
-- Backup: `scripts/pipeline-batch.js.bak`
-- Within-batch place_id dedup: tracks place_ids across cities, eliminates dupes before any API call
-- Live Supabase dedup: replaces stale 61MB CSV with live DB query
-- Merged reviews+photos: single `googlePlacesField(id, 'reviews,photos')` instead of 2 calls
-- Smart geocoding: skips re-geocode when discovery coords pass state bounds + city proximity check
-- Estimated savings: ~$62/batch (~12%) + faster execution
+**Three compounding root causes (each masked the next):**
+1. Apple Mail strips `token` param → renamed to `otk`
+2. Notification data blocked by RLS (anon client can't read connections) → fetched server-side in `validate-token`
+3. SmartDashboardShell line 257 overrode `initialActionState` to `"pre-verified"` when `preVerifiedEmail` was set → added priority for notification states
 
-**`/enrich-city` Standalone Command:**
-- Rewrote `scripts/enrich-city.js`: queries by city+state columns (not provider_id prefix)
-- Dry-run by default with gap analysis table + cost estimate
-- 5 streams: desc, reviews, trust, snippets, images — supports `--stream` for single-stream
-- Slash command: `.claude/commands/enrich-city.md` (city-pipeline-level rigor)
-- Tested on Medford MA (23 providers, 4 image gaps) and West Jordan UT (13 providers, 5 gaps)
+**Failure Pattern:** 12+ rounds of fixes, each addressing a real bug but not the one visible to the user. Every fix was correct at its layer but DOA because a downstream layer silently overrode it. Lesson: trace the full render chain (data source → parent state → prop → child state init → render guard → pixel) before fixing.
 
-**Build:** N/A (no app code changes; pipeline scripts + slash commands applied to main repo)
+**Files Modified (6):**
+- `app/provider/[slug]/onboard/page.tsx` — background auth, notification data from validate-token
+- `app/api/claim/validate-token/route.ts` — canonical provider ID + server-side notification data fetch
+- `lib/claim-tokens.ts` — `token` → `otk` rename
+- `components/provider-onboarding/SmartDashboardShell.tsx` — notification state priority over pre-verified
+- `components/provider-onboarding/ActionCard.tsx` — token-verified CTA always shows "View full inquiry"
+- `app/provider/connections/page.tsx` — eternal skeleton safety net
+
+**Postmortem:** Logged to `docs/POSTMORTEMS.md`. Memories saved: `feedback_email_param_names.md`, `feedback_one_click_ux_principles.md`.
+
+**Still TODO:**
+- Debug auto-sign-in (background auth) — check console `[OneClick]` logs
+- Verify "View full inquiry" button navigates correctly when clicked
+- Merge PR #428 to staging
+
+---
+
+### 2026-03-27 (Session 61b) — One-Click Token Validation Fix + E2E Testing
+
+**Branch:** `loving-swartz` | **PR:** #427 (open)
+
+**What:** PR #421 merged to staging. Tested one-click flow end-to-end. Token generation works (token IS in the email URL), but token validation failed for BP-only providers.
+
+**Root Cause:** `validate-token` endpoint only queried `olera-providers` by `provider_id`. The token contains the SLUG (not UUID), and BP-only providers don't exist in `olera-providers` at all. Query returned nothing → "Provider not found" → one-click flow failed silently → fell back to "This listing is claimed."
+
+**Fix (PR #427):**
+- Cascade lookup in validate-token: olera-providers by provider_id → by slug → business_profiles by slug
+- Already-claimed returns `valid: true` (owner clicking own email is expected)
+- Returns full email for auto-sign-in (was masked)
+- Skips claim finalization if already claimed
+
+**Known Edge Cases (flagged, not yet fixed):**
+1. Profile switching: one-click flow doesn't call `switchProfile()` — if provider has family + provider profiles, connections page might load with wrong active profile
+2. Account creation: first-time unclaimed providers hitting one-click need `ensure-account` before `claim/finalize`
+
+**Files Modified (2):**
+- `app/api/claim/validate-token/route.ts` — cascade provider lookup, handle already-claimed
+- `app/provider/[slug]/onboard/page.tsx` — use full email for auto-sign-in, skip finalize if claimed
+
+**Build:** Clean, zero errors.
+
+---
+
+### 2026-03-27 (Session 63) — /welcome Page De-Jank: Instant Transition + Design Taste Pass
+
+**Branch:** `helpful-euler` | **4 commits** | Continuing from session where enrichment optimistic UI was fixed
+
+**Problem 1: 6-second blank white screen after enrichment → /welcome**
+
+Root cause traced from console logs:
+1. `force-dynamic` server component ran `getUserCity()` → `supabase.auth.getUser()` → no session cookie for guest → slow fail (2-3s)
+2. AuthProvider `fetchAccountData()` → accounts query → TIMES OUT at 5000ms (account row not created yet)
+3. `loading` state gated entire page render until both completed serially
+
+**Fix:** Eliminated both bottlenecks:
+- Removed `force-dynamic` → page is now static (1906 static pages, was 1905)
+- Moved provider fetching to client-side (non-blocking, below the fold)
+- Removed `loading` gate — page renders immediately, auth resolves in background
+- Added skeleton for connection card while async data loads
+
+**Problem 2: Landscape hero photo crops provider logos badly**
+- Reverted to side-by-side layout (square image left, content right) — works for all image shapes
+
+**Design taste pass (Airbnb Trips + Perena inspired):**
+- Warm background `#FAFAF8` (off-white, Perena energy)
+- Narrower container `max-w-2xl` (more intimate)
+- Bold heading (28-32px) with small gray greeting label above
+- Flat step cards with thin borders, numbered circles / green checks, no timeline chrome
+- Returning user card: compact horizontal row (photo + name + Message button)
+- Provider section: lighter header, outline nav arrows, text "Browse all" link
+- Net: significant reduction in visual complexity (-400+ lines across commits)
+
+**Files Modified (4):**
+- `app/welcome/page.tsx` — static shell, removed all server-side data fetching
+- `app/welcome/loading.tsx` — NEW: skeleton matching page layout
+- `components/welcome/WelcomeClient.tsx` — removed loading gate, client-side provider fetch, design overhaul
+- `components/providers/connection-card/use-connection-card.ts` — added `router.prefetch("/welcome")`
+
+**Build:** Clean. Static page generation confirmed (1906 pages).
+
+**Still TODO:**
+- Test full enrichment → /welcome transition end-to-end (is it actually instant now?)
+- Verify connection card skeleton → real card swap works smoothly
+- Debug auto-sign-in (background auth) — check `[OneClick]` console logs
+- Continue design polish based on TJ feedback
+
+---
+
+### 2026-03-26 (Session 61) — Provider Onboarding Routing Fix + UX Redesign + Architecture
+
+**Branch:** `loving-swartz` | **9 commits** | PR #421
+
+**What:** Fixed 5 provider onboarding routing bugs from Esther's audit + redesigned notification card UX for email-driven provider acquisition.
+
+**Bugs Fixed:**
+1. **Double auth after OTP** — replaced `openAuth()` with auto-sign-in via `generateLink` + `verifyOtp` (new `/api/auth/auto-sign-in` endpoint)
+2. **Routing logic in 3 locations** — extracted `getActionRedirectUrl()` helper, fixed lead→`/provider/connections` (was `/inbox`)
+3. **Claimed provider flash** — added `claim_state` check to middleware; claimed providers skip onboard redirect entirely
+4. **`source_provider_id` NULL** — auto-link during fresh provider creation (name+city+state match) + backfill script
+5. **Review emails not sending** — fallback provider lookup in `reviews/public` endpoint (BP→olera-providers→BP via source_provider_id)
+
+**Additional Fixes (discovered during testing):**
+- BP-only providers (no olera-providers record) hit wrong code path — second claim check queried by `source_provider_id` which was NULL. Added fallback query by slug.
+- "This listing is claimed" shown to providers arriving from email notifications — now shows contextual notification card (New lead/question/review) instead
+
+**UX Redesign:**
+- Notification card elevated as full-width hero above dashboard grid (Trojan horse strategy: lead hooks, dashboard below sells the platform)
+- Card redesign: "A family is interested in your services", emerald icon, gray-50 seeker card, dark CTA
+- Trust line: "Olera is an NIH-backed platform..." below hero
+- "Your listing on Olera" divider before dashboard sections
+- Privacy masking: always mask seeker info on onboard page (first name only, no photo, city only, message truncated)
+- Header drops "Claiming:" for notification entries
+
+**Files Modified (7):**
+- `app/provider/[slug]/onboard/page.tsx` — routing helper, auto-sign-in, BP-only claim check fix, notification override
+- `components/provider-onboarding/ActionCard.tsx` — notification card redesign, privacy masking, callback signature
+- `components/provider-onboarding/SmartDashboardShell.tsx` — hero layout for notifications, header update
+- `lib/supabase/middleware.ts` — claim_state check for claimed providers
+- `app/api/auth/create-profile/route.ts` — auto-link source_provider_id
+- `app/api/reviews/public/route.ts` — fallback provider lookup
+
+**Files Created (3):**
+- `app/api/auth/auto-sign-in/route.ts` — lightweight auto-sign-in endpoint
+- `scripts/backfill-source-provider-id.js` — one-time backfill (dry-run by default)
+- `plans/provider-onboarding-routing-plan.md`
+
+**Build:** Clean, zero errors.
+
+**Session Continuation — Taste Pass + Architecture Discussion:**
+- Redesigned all 3 notification cards (lead/question/review): Olera chat mascot, left-aligned, flat layout (no nested cards), quiet border, generous padding
+- Unmasked question + review content (public data) — only leads need privacy masking
+- Agreed on Phase 2 architecture: one-click signed email tokens for zero-friction provider onboarding
+- Progressive trust model: Full Access (one-click token) → Trusted (phone call from Olera for destructive actions)
+- Observability over gates: Activity Center + Slack alerts for PII access, not software gates
+- Phone call (not SMS OTP) for Trusted tier — senior care providers aren't tech-savvy
+- Phase 2 implementation pending (signed token generation, token validation endpoint, Activity Center PII tracking, Slack alerts)
 
 ---
 

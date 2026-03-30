@@ -413,6 +413,12 @@ export interface StudentMetadata {
   course_schedule_grid?: string;      // JSON serialized ScheduleGrid (day-slot toggles)
   course_schedule_semester?: string;  // e.g. "Fall 2026"
 
+  // Availability Notes
+  availability_notes?: string;          // Free-text: finals, breaks, travel, constraints
+  schedule_update_date?: string;        // Next date schedule needs updating (ISO date)
+  summer_availability?: string;         // "full_time" | "part_time" | "unavailable" | notes
+  winter_availability?: string;         // same
+
   // Document Expiration
   drivers_license_expiration?: string;  // ISO date
   car_insurance_expiration?: string;    // ISO date

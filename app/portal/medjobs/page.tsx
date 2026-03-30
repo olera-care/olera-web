@@ -608,26 +608,25 @@ export default function StudentPortalPage() {
               </div>
             )}
 
-            {/* Verification Card */}
-            {!verificationDone && (
+            {/* Verification Card — always visible */}
               <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
                 <h2 className="text-base font-semibold text-gray-900 mb-1">Verification</h2>
                 <p className="text-sm text-gray-500 mb-5">
-                  We verify every student to protect the families you&apos;ll care for. Complete these to go live.
+                  {verificationDone ? "All verification documents submitted." : "We verify every student to protect the families you\u2019ll care for. Complete these to go live."}
                 </p>
                 <div className="space-y-3">
                   {verificationItems.map((item) => (
-                    <SectionCard key={item.key} label={item.label} done={item.done} defaultOpen={nextVerification?.key === item.key}>
-                      {item.done ? (
-                        <p className="text-sm text-emerald-600">Submitted</p>
-                      ) : item.key === "video" ? (
+                    <SectionCard key={item.key} label={item.label} done={item.done} defaultOpen={!item.done && nextVerification?.key === item.key}>
+                      {item.key === "video" ? (
                         <div>
-                          <p className="text-sm text-gray-500 mb-3">{item.desc}</p>
+                          {item.done && <p className="text-sm text-emerald-600 mb-3">Video submitted</p>}
+                          <p className="text-sm text-gray-500 mb-3">{item.done ? "Update your intro video:" : item.desc}</p>
                           <VideoSubmit slug={profile.slug} onComplete={refresh} />
                         </div>
                       ) : (
                         <div>
-                          <p className="text-sm text-gray-500 mb-3">{item.desc}</p>
+                          {item.done && <p className="text-sm text-emerald-600 mb-3">Document uploaded</p>}
+                          <p className="text-sm text-gray-500 mb-3">{item.done ? "Upload a new version:" : item.desc}</p>
                           <div className="mb-3">
                             <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Expiration date</label>
                             <MetadataEditor
@@ -641,11 +640,11 @@ export default function StudentPortalPage() {
                           <InlineUpload profileId={profile.id} documentType={item.key as "drivers_license" | "car_insurance"} onComplete={refresh} />
                         </div>
                       )}
+                      )}
                     </SectionCard>
                   ))}
                 </div>
               </div>
-            )}
 
             {/* Profile Sections Card */}
             <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
@@ -736,12 +735,49 @@ export default function StudentPortalPage() {
                   </dl>
                 </SectionCard>
 
-                {/* Availability */}
-                <SectionCard label="Availability" done={!!(meta.hours_per_week_range || meta.duration_commitment)}>
-                  <dl className="space-y-2 text-sm">
-                    {meta.hours_per_week_range && <div className="flex justify-between"><dt className="text-gray-500">Hours/week</dt><dd className="text-gray-900">{meta.hours_per_week_range} hrs</dd></div>}
-                    {meta.duration_commitment && <div className="flex justify-between"><dt className="text-gray-500">Commitment</dt><dd className="text-gray-900">{meta.duration_commitment.replace(/_/g, " ")}</dd></div>}
-                  </dl>
+                {/* Availability & Commitment */}
+                <SectionCard label="Availability & commitment" done={!!(meta.hours_per_week_range && meta.duration_commitment)}>
+                  <div className="space-y-5">
+                    <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50/60">
+                      <svg className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-xs text-blue-700 leading-relaxed">
+                        This is one of the most important sections for getting hired. Providers need to know you&apos;re available and committed. We&apos;ll message you regularly to keep this updated.
+                      </p>
+                    </div>
+
+                    <dl className="space-y-2 text-sm">
+                      {meta.hours_per_week_range && <div className="flex justify-between"><dt className="text-gray-500">Hours/week</dt><dd className="text-gray-900">{meta.hours_per_week_range} hrs</dd></div>}
+                      {meta.duration_commitment && <div className="flex justify-between"><dt className="text-gray-500">Commitment</dt><dd className="text-gray-900">{meta.duration_commitment.replace(/_/g, " ")}</dd></div>}
+                    </dl>
+
+                    <div>
+                      <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Summer availability</label>
+                      <MetadataEditor profileId={profile.id} field="summer_availability" value={meta.summer_availability || ""} onSave={refresh}
+                        placeholder="E.g. Full-time available, traveling June 1-15" />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Winter availability</label>
+                      <MetadataEditor profileId={profile.id} field="winter_availability" value={meta.winter_availability || ""} onSave={refresh}
+                        placeholder="E.g. Available full-time Dec 15 - Jan 10" />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Schedule update date</label>
+                      <p className="text-xs text-gray-400 mb-2">When does your current schedule end? We&apos;ll remind you to update it.</p>
+                      <MetadataEditor profileId={profile.id} field="schedule_update_date" value={meta.schedule_update_date || ""} onSave={refresh}
+                        placeholder="E.g. May 15, 2026" />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Availability notes</label>
+                      <p className="text-xs text-gray-400 mb-2">Finals weeks, spring break, known travel, anything providers should know about your schedule. The more accurate and wide your availability, the more likely you get hired.</p>
+                      <MetadataEditor profileId={profile.id} field="availability_notes" value={meta.availability_notes || ""} onSave={refresh}
+                        placeholder="E.g. Finals week May 5-12 (limited hours). Spring break Mar 10-17 (fully available). No travel planned." multiline />
+                    </div>
+                  </div>
                 </SectionCard>
               </div>
             </div>

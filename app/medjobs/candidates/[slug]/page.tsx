@@ -60,6 +60,38 @@ function formatLastUpdated(dateStr: string): string {
   return `Updated ${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
 }
 
+const SCHED_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+const SCHED_SLOTS = [
+  { key: "8am", label: "8-10a" }, { key: "10am", label: "10-12p" },
+  { key: "12pm", label: "12-2p" }, { key: "2pm", label: "2-4p" },
+  { key: "4pm", label: "4-6p" }, { key: "6pm", label: "6-8p" },
+  { key: "8pm", label: "8p+" },
+];
+
+function ScheduleBuilderReadOnly({ grid: gridStr }: { grid: string }) {
+  let grid: Record<string, boolean> = {};
+  try { grid = JSON.parse(gridStr); } catch { return null; }
+  return (
+    <div className="overflow-x-auto">
+      <div className="min-w-[340px]">
+        <div className="grid grid-cols-[50px_repeat(5,1fr)] gap-0.5 mb-0.5">
+          <div />
+          {SCHED_DAYS.map((d) => <div key={d} className="text-center text-[10px] font-medium text-gray-500 py-0.5">{d}</div>)}
+        </div>
+        {SCHED_SLOTS.map((slot) => (
+          <div key={slot.key} className="grid grid-cols-[50px_repeat(5,1fr)] gap-0.5 mb-0.5">
+            <div className="flex items-center justify-end pr-1"><span className="text-[10px] text-gray-400">{slot.label}</span></div>
+            {SCHED_DAYS.map((day) => {
+              const isClass = !!grid[`${day}-${slot.key}`];
+              return <div key={day} className={`h-6 rounded text-[9px] font-medium flex items-center justify-center ${isClass ? "bg-gray-800 text-white" : "bg-emerald-50 text-emerald-500"}`}>{isClass ? "Class" : ""}</div>;
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default async function StudentProfilePage({ params }: PageProps) {
   const { slug } = await params;
 
@@ -83,6 +115,13 @@ export default async function StudentProfilePage({ params }: PageProps) {
   const youtubeId = videoAvailable ? getYouTubeId(meta.video_intro_url!) : null;
   const firstName = profile.display_name?.split(" ")[0] || "This candidate";
   const lastUpdated = profile.updated_at ? formatLastUpdated(profile.updated_at) : null;
+
+  // Generate signed URL for resume if it's a storage path (not a full URL)
+  let resumeUrl = meta.resume_url || null;
+  if (resumeUrl && !resumeUrl.startsWith("http")) {
+    const { data: signedData } = await supabase.storage.from("student-documents").createSignedUrl(resumeUrl, 3600);
+    resumeUrl = signedData?.signedUrl || null;
+  }
 
   // Build quick facts
   const quickFacts: string[] = [];
@@ -251,9 +290,9 @@ export default async function StudentProfilePage({ params }: PageProps) {
           {/* Sidebar — resume, social, bio, CTA */}
           <div className="space-y-4">
             {/* Resume (prominent) */}
-            {meta.resume_url && (
+            {resumeUrl && (
               <a
-                href={meta.resume_url}
+                href={resumeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:border-primary-200 hover:bg-primary-25 transition-colors group"
@@ -355,13 +394,11 @@ export default async function StudentProfilePage({ params }: PageProps) {
               Availability
             </h2>
             <dl className="space-y-2.5">
-              {availLabel ? (
+              {meta.course_schedule_grid && (
                 <div>
-                  <dt className="text-xs text-gray-400 uppercase tracking-wide">Schedule</dt>
-                  <dd className="text-sm text-gray-900">{availLabel}</dd>
+                  <dt className="text-xs text-gray-400 uppercase tracking-wide mb-2">Class Schedule {meta.course_schedule_semester && `(${meta.course_schedule_semester})`}</dt>
+                  <dd><ScheduleBuilderReadOnly grid={meta.course_schedule_grid} /></dd>
                 </div>
-              ) : (
-                <p className="text-sm text-gray-400 italic">Schedule not specified</p>
               )}
               {hoursLabel && (
                 <div>
@@ -375,16 +412,22 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   <dd className="text-sm text-gray-900">{durationLabel}</dd>
                 </div>
               )}
-              {meta.seasonal_availability && meta.seasonal_availability.length > 0 && (
+              {meta.summer_availability && (
                 <div>
-                  <dt className="text-xs text-gray-400 uppercase tracking-wide">Seasonal</dt>
-                  <dd className="flex flex-wrap gap-1.5 mt-1">
-                    {meta.seasonal_availability.map((s) => (
-                      <span key={s} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs capitalize">
-                        {s.replace(/_/g, " ")}
-                      </span>
-                    ))}
-                  </dd>
+                  <dt className="text-xs text-gray-400 uppercase tracking-wide">Summer</dt>
+                  <dd className="text-sm text-gray-900">{meta.summer_availability}</dd>
+                </div>
+              )}
+              {meta.winter_availability && (
+                <div>
+                  <dt className="text-xs text-gray-400 uppercase tracking-wide">Winter</dt>
+                  <dd className="text-sm text-gray-900">{meta.winter_availability}</dd>
+                </div>
+              )}
+              {meta.availability_notes && (
+                <div className="pt-1 border-t border-gray-100">
+                  <dt className="text-xs text-gray-400 uppercase tracking-wide">Notes</dt>
+                  <dd className="text-sm text-gray-900 whitespace-pre-line mt-0.5">{meta.availability_notes}</dd>
                 </div>
               )}
               {meta.course_schedule_description && (
@@ -407,7 +450,6 @@ export default async function StudentProfilePage({ params }: PageProps) {
             <div className="space-y-2">
               <QualItem checked={!!meta.drivers_license_url} label="Driver&rsquo;s license on file" />
               <QualItem checked={!!meta.car_insurance_url} label="Car insurance on file" />
-              <QualItem checked={!!meta.transportation} label="Own transportation" />
               <QualItem checked={!!meta.acknowledgments_completed} label="Background check consent" />
               {(meta.certifications?.length ?? 0) > 0 && (
                 <div className="pt-1.5 flex flex-wrap gap-1.5">

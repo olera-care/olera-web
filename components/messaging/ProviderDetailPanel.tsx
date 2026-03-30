@@ -12,20 +12,8 @@ interface ProviderDetailPanelProps {
   className?: string;
 }
 
-function formatCategory(cat: string | null): string {
-  if (!cat) return "";
-  return cat
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
+// ── Label mappings ──
 
-function formatCareTypes(types: string[]): string[] {
-  return types.map((t) =>
-    t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-  );
-}
-
-// Label mappings for family metadata
 const TIMELINE_LABELS: Record<string, string> = {
   immediate: "Immediately",
   asap: "Immediately",
@@ -53,6 +41,149 @@ const CONTACT_LABELS: Record<string, string> = {
   email: "Email",
 };
 
+// ── Completeness calculation for families ──
+
+function calculateFamilyCompleteness(profile: Profile, meta: FamilyMetadata): number {
+  const checks = [
+    !!profile.image_url,
+    !!profile.display_name,
+    !!profile.city,
+    !!profile.email,
+    !!profile.phone,
+    !!meta.contact_preference,
+    !!meta.relationship_to_recipient,
+    !!meta.age,
+    !!profile.description || !!meta.about_situation,
+    (profile.care_types?.length ?? 0) > 0,
+    (meta.care_needs?.length ?? 0) > 0,
+    !!meta.timeline,
+    !!meta.schedule_preference,
+    (meta.payment_methods?.length ?? 0) > 0,
+  ];
+  const filled = checks.filter(Boolean).length;
+  return Math.round((filled / checks.length) * 100);
+}
+
+// ── Accordion component ──
+
+function Accordion({
+  icon,
+  title,
+  defaultOpen = false,
+  disabled = false,
+  comingSoon = false,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  defaultOpen?: boolean;
+  disabled?: boolean;
+  comingSoon?: boolean;
+  children?: React.ReactNode;
+}) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <div className="border-b border-gray-100 last:border-b-0">
+      <button
+        type="button"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
+        className={`w-full flex items-center gap-3 px-5 py-4 text-left transition-colors ${
+          disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+        }`}
+      >
+        <span className="text-gray-400">{icon}</span>
+        <span className="flex-1 text-[15px] font-medium text-gray-900">{title}</span>
+        {comingSoon && (
+          <span className="text-[11px] font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+            Soon
+          </span>
+        )}
+        {!disabled && (
+          <svg
+            className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+              isOpen ? "rotate-180" : ""
+            }`}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        )}
+      </button>
+      {isOpen && !disabled && children && (
+        <div className="px-5 pb-5">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Badge with tooltip ──
+
+function IncompleteBadge() {
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  return (
+    <div className="relative inline-flex">
+      <button
+        type="button"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        onClick={() => setShowTooltip(!showTooltip)}
+        className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium text-amber-700 bg-amber-50 rounded-full border border-amber-200 cursor-help"
+      >
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
+        </svg>
+        In progress
+      </button>
+      {showTooltip && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-52 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg z-50">
+          <p className="leading-relaxed">
+            Still completing their profile. More details may appear as they fill it in.
+          </p>
+          <div className="absolute left-1/2 -translate-x-1/2 -top-1.5 w-3 h-3 bg-gray-900 rotate-45" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Detail row component ──
+
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  if (!value) return null;
+  return (
+    <div className="py-2 first:pt-0 last:pb-0">
+      <p className="text-[12px] text-gray-400 font-medium uppercase tracking-wider mb-1">{label}</p>
+      <div className="text-[15px] text-gray-800">{value}</div>
+    </div>
+  );
+}
+
+// ── Chip/tag component ──
+
+function Chip({ children, variant = "default" }: { children: React.ReactNode; variant?: "default" | "primary" }) {
+  return (
+    <span
+      className={`inline-block text-sm font-medium px-2.5 py-1 rounded-full ${
+        variant === "primary"
+          ? "text-primary-700 bg-primary-50"
+          : "text-gray-600 bg-gray-100"
+      }`}
+    >
+      {children}
+    </span>
+  );
+}
+
+// ── Main component ──
+
 export default function ProviderDetailPanel({
   profile,
   onClose,
@@ -61,7 +192,7 @@ export default function ProviderDetailPanel({
   const [images, setImages] = useState<string[]>([]);
   const [currentImage, setCurrentImage] = useState(0);
 
-  // Determine if this is a family or provider profile
+  // Determine profile type
   const isFamily = profile.type === "family";
   const isProvider = profile.type === "organization" || profile.type === "caregiver";
   const profileHref = isProvider && profile.slug ? `/provider/${profile.slug}` : null;
@@ -69,7 +200,11 @@ export default function ProviderDetailPanel({
   // Extract family metadata
   const meta = (profile.metadata || {}) as FamilyMetadata;
 
-  // Fetch additional images from olera-providers if available (for providers only)
+  // Calculate completeness for families
+  const completeness = isFamily ? calculateFamilyCompleteness(profile, meta) : 100;
+  const isIncomplete = completeness < 70;
+
+  // Fetch additional images (for providers only)
   useEffect(() => {
     const existing = profile.image_url ? [profile.image_url] : [];
     setImages(existing);
@@ -99,31 +234,28 @@ export default function ProviderDetailPanel({
       });
   }, [profile.source_provider_id, profile.image_url]);
 
-  const category = formatCategory(profile.category);
-  const careTypes = formatCareTypes(profile.care_types || []);
+  // Derived values
   const location = [profile.city, profile.state].filter(Boolean).join(", ");
-
-  // Family-specific derived values
-  const careRecipient = meta.relationship_to_recipient;
-  const age = meta.age;
+  const careTypes = profile.care_types || [];
   const careNeeds = meta.care_needs || [];
   const timeline = meta.timeline ? TIMELINE_LABELS[meta.timeline] || meta.timeline : null;
   const schedule = meta.schedule_preference ? SCHEDULE_LABELS[meta.schedule_preference] || meta.schedule_preference : null;
   const contactPref = meta.contact_preference ? CONTACT_LABELS[meta.contact_preference] || meta.contact_preference : null;
   const paymentMethods = meta.payment_methods || [];
   const aboutSituation = meta.about_situation || profile.description;
+  const category = profile.category?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || null;
 
   return (
     <div className={`flex flex-col bg-white border-l border-gray-200 ${className}`}>
       {/* Header */}
-      <div className="shrink-0 px-6 h-[68px] border-b border-gray-200 flex items-center justify-between">
-        <h3 className="text-lg font-display font-semibold text-gray-900">Details</h3>
+      <div className="shrink-0 px-5 h-[60px] border-b border-gray-200 flex items-center justify-between">
+        <h3 className="text-[15px] font-semibold text-gray-900">Details</h3>
         <button
           onClick={onClose}
-          className="w-[44px] h-[44px] rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+          className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
           aria-label="Close details"
         >
-          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -131,262 +263,303 @@ export default function ProviderDetailPanel({
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto">
-        {/* Image carousel (for providers) or avatar (for families) */}
-        {images.length > 0 && (
-          <div className="relative px-6 pt-5">
-            <div className={`relative overflow-hidden ${isFamily ? "w-20 h-20 rounded-full mx-auto" : "rounded-2xl aspect-[4/3]"}`}>
-              <Image
-                src={images[currentImage]}
-                alt={profile.display_name}
-                fill
-                sizes="(max-width: 768px) 100vw, 400px"
-                className="object-cover"
-              />
+        {/* Profile header - Photo + Name + Location + Badge */}
+        <div className="px-5 py-6 text-center border-b border-gray-100">
+          {/* Photo */}
+          {images.length > 0 ? (
+            <div className="relative w-20 h-20 mx-auto mb-4">
+              <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-gray-100">
+                <Image
+                  src={images[currentImage]}
+                  alt={profile.display_name}
+                  fill
+                  sizes="80px"
+                  className="object-cover"
+                />
+              </div>
+              {/* Image carousel dots for providers */}
               {!isFamily && images.length > 1 && (
-                <>
-                  {currentImage > 0 && (
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1">
+                  {images.map((_, i) => (
                     <button
-                      onClick={() => setCurrentImage((p) => p - 1)}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-colors"
-                    >
-                      <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
-                    </button>
-                  )}
-                  {currentImage < images.length - 1 && (
-                    <button
-                      onClick={() => setCurrentImage((p) => p + 1)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-colors"
-                    >
-                      <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
-                  )}
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
-                    {images.map((_, i) => (
-                      <span
-                        key={i}
-                        className={`w-2 h-2 rounded-full transition-colors ${
-                          i === currentImage ? "bg-white" : "bg-white/50"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </>
+                      key={i}
+                      type="button"
+                      onClick={() => setCurrentImage(i)}
+                      className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                        i === currentImage ? "bg-gray-700" : "bg-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
               )}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center">
+              <span className="text-2xl font-bold text-primary-600">
+                {(profile.display_name || "?")[0].toUpperCase()}
+              </span>
+            </div>
+          )}
 
-        {/* Profile info */}
-        <div className="px-6 py-5">
-          <h2 className={`text-xl font-display font-bold text-gray-900 leading-tight ${isFamily ? "text-center" : ""}`}>
+          {/* Name */}
+          <h2 className="text-lg font-display font-bold text-gray-900">
             {profile.display_name}
           </h2>
-          {!isFamily && category && (
-            <p className="text-[15px] text-gray-500 mt-1">{category}</p>
+
+          {/* Subtitle - category for providers, location for families */}
+          {isProvider && category && (
+            <p className="text-[13px] text-gray-500 mt-0.5 flex items-center justify-center gap-1.5">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+              </svg>
+              {category}
+            </p>
           )}
+
           {location && (
-            <p className={`text-[15px] text-gray-500 mt-0.5 ${isFamily ? "text-center" : ""}`}>{location}</p>
+            <p className="text-[13px] text-gray-500 mt-0.5 flex items-center justify-center gap-1.5">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+              </svg>
+              {location}
+            </p>
           )}
 
-          {/* ===== FAMILY-SPECIFIC SECTIONS ===== */}
-          {isFamily && (
-            <>
-              {/* Care Recipient Info */}
-              {(careRecipient || age) && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Care Recipient</h4>
-                  <div className="space-y-1.5">
-                    {careRecipient && (
-                      <p className="text-[15px] text-gray-700">
-                        <span className="text-gray-500">Who:</span> {careRecipient}
-                      </p>
-                    )}
-                    {age && (
-                      <p className="text-[15px] text-gray-700">
-                        <span className="text-gray-500">Age:</span> {age} years old
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Care Types */}
-              {careTypes.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Looking For</h4>
-                  <div className="flex flex-wrap gap-1.5">
-                    {careTypes.map((ct) => (
-                      <span
-                        key={ct}
-                        className="text-sm font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full"
-                      >
-                        {ct}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Care Needs */}
-              {careNeeds.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Help Needed</h4>
-                  <div className="flex flex-wrap gap-1.5">
-                    {careNeeds.map((need) => (
-                      <span
-                        key={need}
-                        className="text-sm font-medium text-primary-700 bg-primary-50 px-2.5 py-1 rounded-full"
-                      >
-                        {need}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Timeline & Schedule */}
-              {(timeline || schedule) && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Timing</h4>
-                  <div className="space-y-1.5">
-                    {timeline && (
-                      <p className="text-[15px] text-gray-700">
-                        <span className="text-gray-500">When:</span> {timeline}
-                      </p>
-                    )}
-                    {schedule && (
-                      <p className="text-[15px] text-gray-700">
-                        <span className="text-gray-500">Schedule:</span> {schedule}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Payment Methods */}
-              {paymentMethods.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Payment</h4>
-                  <div className="flex flex-wrap gap-1.5">
-                    {paymentMethods.map((method) => (
-                      <span
-                        key={method}
-                        className="text-sm font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full"
-                      >
-                        {method}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* About Situation */}
-              {aboutSituation && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">About</h4>
-                  <p className="text-[15px] text-gray-600 leading-relaxed">
-                    {aboutSituation}
-                  </p>
-                </div>
-              )}
-
-              {/* Contact Preference */}
-              {contactPref && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Prefers</h4>
-                  <p className="text-[15px] text-gray-700">{contactPref}</p>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* ===== PROVIDER-SPECIFIC SECTIONS ===== */}
-          {!isFamily && (
-            <>
-              {/* Description */}
-              {profile.description && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <p className="text-[15px] text-gray-600 leading-relaxed line-clamp-4">
-                    {profile.description}
-                  </p>
-                </div>
-              )}
-
-              {/* Care types */}
-              {careTypes.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Services</h4>
-                  <div className="flex flex-wrap gap-1.5">
-                    {careTypes.map((ct) => (
-                      <span
-                        key={ct}
-                        className="text-sm font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full"
-                      >
-                        {ct}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Contact info - shown for both */}
-          {(profile.phone || profile.email || profile.website) && (
-            <div className="mt-4 pt-4 border-t border-gray-100 space-y-2.5">
-              <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Contact</h4>
-              {profile.phone && (
-                <div className="flex items-center gap-2.5 text-[15px] text-gray-600">
-                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  <span>{profile.phone}</span>
-                </div>
-              )}
-              {profile.email && (
-                <div className="flex items-center gap-2.5 text-[15px] text-gray-600">
-                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  <span className="truncate">{profile.email}</span>
-                </div>
-              )}
-              {profile.website && (
-                <div className="flex items-center gap-2.5 text-[15px] text-gray-600">
-                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" />
-                  </svg>
-                  <a
-                    href={profile.website.startsWith("http") ? profile.website : `https://${profile.website}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-primary-600 hover:underline truncate"
-                  >
-                    {profile.website.replace(/^https?:\/\//, "")}
-                    <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
-                  </a>
-                </div>
-              )}
+          {/* Incomplete badge for families */}
+          {isFamily && isIncomplete && (
+            <div className="mt-3">
+              <IncompleteBadge />
             </div>
           )}
         </div>
 
-        {/* View full profile link - only for providers */}
-        {profileHref && (
-          <div className="px-6 pb-6">
-            <Link
-              href={profileHref}
-              target="_blank"
-              className="block w-full text-center py-3 text-[15px] font-semibold text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-600 hover:text-white transition-colors"
-            >
-              View full profile
-            </Link>
-          </div>
-        )}
+        {/* Accordion sections */}
+        <div className="divide-y divide-gray-100">
+          {/* Profile accordion - default open */}
+          <Accordion
+            icon={
+              isFamily ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                </svg>
+              )
+            }
+            title={isFamily ? "Family Profile" : "Provider Profile"}
+            defaultOpen={true}
+          >
+            <div className="space-y-4">
+              {/* ===== FAMILY PROFILE CONTENT ===== */}
+              {isFamily && (
+                <>
+                  {/* Care Recipient */}
+                  {(meta.relationship_to_recipient || meta.age) && (
+                    <div>
+                      <DetailRow
+                        label="Care Recipient"
+                        value={
+                          <span>
+                            {meta.relationship_to_recipient || "Not specified"}
+                            {meta.age && `, ${meta.age} years old`}
+                          </span>
+                        }
+                      />
+                    </div>
+                  )}
+
+                  {/* Looking For (care types) */}
+                  {careTypes.length > 0 && (
+                    <div>
+                      <p className="text-[12px] text-gray-400 font-medium uppercase tracking-wider mb-2">Looking For</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {careTypes.map((ct) => (
+                          <Chip key={ct}>{ct}</Chip>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Help Needed (care needs) */}
+                  {careNeeds.length > 0 && (
+                    <div>
+                      <p className="text-[12px] text-gray-400 font-medium uppercase tracking-wider mb-2">Help Needed</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {careNeeds.map((need) => (
+                          <Chip key={need} variant="primary">{need}</Chip>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Timing */}
+                  {(timeline || schedule) && (
+                    <div className="space-y-2">
+                      <DetailRow label="When" value={timeline} />
+                      <DetailRow label="Schedule" value={schedule} />
+                    </div>
+                  )}
+
+                  {/* Payment */}
+                  {paymentMethods.length > 0 && (
+                    <div>
+                      <p className="text-[12px] text-gray-400 font-medium uppercase tracking-wider mb-2">Payment</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {paymentMethods.map((method) => (
+                          <Chip key={method}>{method}</Chip>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* About */}
+                  {aboutSituation && (
+                    <DetailRow
+                      label="About"
+                      value={<p className="leading-relaxed">{aboutSituation}</p>}
+                    />
+                  )}
+
+                  {/* Contact preference */}
+                  {contactPref && (
+                    <DetailRow label="Prefers" value={contactPref} />
+                  )}
+
+                  {/* Contact info */}
+                  {(profile.phone || profile.email) && (
+                    <div>
+                      <p className="text-[12px] text-gray-400 font-medium uppercase tracking-wider mb-2">Contact</p>
+                      <div className="space-y-1.5">
+                        {profile.phone && (
+                          <p className="text-[15px] text-gray-800 flex items-center gap-2">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                            </svg>
+                            {profile.phone}
+                          </p>
+                        )}
+                        {profile.email && (
+                          <p className="text-[15px] text-gray-800 flex items-center gap-2">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                            </svg>
+                            {profile.email}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* ===== PROVIDER PROFILE CONTENT ===== */}
+              {!isFamily && (
+                <>
+                  {/* About */}
+                  {profile.description && (
+                    <DetailRow
+                      label="About"
+                      value={<p className="leading-relaxed line-clamp-4">{profile.description}</p>}
+                    />
+                  )}
+
+                  {/* Services */}
+                  {careTypes.length > 0 && (
+                    <div>
+                      <p className="text-[12px] text-gray-400 font-medium uppercase tracking-wider mb-2">Services</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {careTypes.map((ct) => (
+                          <Chip key={ct}>{ct}</Chip>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Contact info */}
+                  {(profile.phone || profile.email || profile.website) && (
+                    <div>
+                      <p className="text-[12px] text-gray-400 font-medium uppercase tracking-wider mb-2">Contact</p>
+                      <div className="space-y-1.5">
+                        {profile.phone && (
+                          <p className="text-[15px] text-gray-800 flex items-center gap-2">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                            </svg>
+                            {profile.phone}
+                          </p>
+                        )}
+                        {profile.email && (
+                          <p className="text-[15px] text-gray-800 flex items-center gap-2">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                            </svg>
+                            {profile.email}
+                          </p>
+                        )}
+                        {profile.website && (
+                          <a
+                            href={profile.website.startsWith("http") ? profile.website : `https://${profile.website}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[15px] text-primary-600 hover:underline flex items-center gap-2"
+                          >
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+                            </svg>
+                            {profile.website.replace(/^https?:\/\//, "")}
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* View full profile link */}
+                  {profileHref && (
+                    <div className="pt-2">
+                      <Link
+                        href={profileHref}
+                        target="_blank"
+                        className="inline-flex items-center gap-1.5 text-[14px] font-medium text-primary-600 hover:text-primary-700"
+                      >
+                        View full profile
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                        </svg>
+                      </Link>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </Accordion>
+
+          {/* Search messages - future feature */}
+          <Accordion
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+            }
+            title="Search messages"
+            disabled={true}
+            comingSoon={true}
+          />
+
+          {/* Appointments - future feature */}
+          <Accordion
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+              </svg>
+            }
+            title="Appointments"
+            disabled={true}
+            comingSoon={true}
+          />
+        </div>
       </div>
     </div>
   );

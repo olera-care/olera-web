@@ -649,13 +649,13 @@ export default function MedJobsApplyPage() {
                 </label>
                 <SearchDropdown
                   options={[
-                    { value: "no_experience", label: "No experience yet, eager to learn" },
+                    { value: "0", label: "No experience yet, eager to learn" },
                     { value: "family", label: "Experience caring for family or friends" },
-                    { value: "1-2", label: "1\u20132 years (paid or volunteer)" },
-                    { value: "3+", label: "3+ years" },
+                    { value: "1", label: "1\u20132 years (paid or volunteer)" },
+                    { value: "3", label: "3+ years" },
                   ]}
                   value={yearsCaregiving} onSelect={setYearsCaregiving} placeholder="Select" />
-                <ReactiveHint show={yearsCaregiving === "no_experience"}>
+                <ReactiveHint show={yearsCaregiving === "0"}>
                   That&apos;s okay — explain your motivation in your personal statement. Many great caregivers start with zero experience.
                 </ReactiveHint>
               </div>

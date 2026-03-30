@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
 import { LifecycleProgress } from "@/components/medjobs/LifecycleProgress";
-import type { StudentMetadata, IntendedProfessionalSchool } from "@/lib/types";
+import type { StudentMetadata } from "@/lib/types";
 import { getTrackLabel, INTENDED_SCHOOL_LABELS } from "@/lib/medjobs-helpers";
 
 /* ─── Types ───────────────────────────────────────────────── */
@@ -154,13 +154,14 @@ function VideoSubmit({ slug, onComplete }: { slug: string; onComplete: () => voi
 
 /* ─── Metadata Editor ──────────────────────────────────────── */
 
-function MetadataEditor({ profileId, field, value, onSave, placeholder, multiline }: {
+function MetadataEditor({ profileId, field, value, onSave, placeholder, multiline, extraFields }: {
   profileId: string;
   field: string;
   value: string;
   onSave: () => void;
   placeholder?: string;
   multiline?: boolean;
+  extraFields?: Record<string, unknown>;
 }) {
   const [text, setText] = useState(value);
   const [saving, setSaving] = useState(false);
@@ -172,6 +173,7 @@ function MetadataEditor({ profileId, field, value, onSave, placeholder, multilin
       const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
       const meta = (current?.metadata || {}) as Record<string, unknown>;
       meta[field] = text.trim() || null;
+      if (extraFields) { Object.assign(meta, extraFields); }
       await sb.from("business_profiles").update({ metadata: meta }).eq("id", profileId);
       onSave();
     } catch { /* ignore */ }
@@ -469,6 +471,7 @@ export default function StudentPortalPage() {
                   onSave={refresh}
                   placeholder={`E.g. "MWF 8am-12pm, TTh 10am-2pm, free afternoons and weekends"`}
                   multiline
+                  extraFields={{ course_schedule_semester: currentSemester }}
                 />
               </div>
             </SectionCard>

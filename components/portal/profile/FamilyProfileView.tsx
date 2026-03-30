@@ -34,7 +34,7 @@ const SCHEDULE_LABELS: Record<string, string> = {
 };
 
 // Map section index to wizard step
-type WizardStep = 1 | 2 | 3 | 4;
+type WizardStep = 1 | 2 | 3 | 4 | 5;
 
 // ── Main Component ──
 
@@ -296,19 +296,15 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
           </div>
         </SectionCard>
 
-        {/* ── Care Preferences ── */}
+        {/* ── Care Recipient ── */}
         <SectionCard
-          title="Care Preferences"
+          title="Care Recipient"
           status={sectionStatus[2]}
           onEdit={() => openWizard(3)}
         >
           <div className="divide-y divide-gray-50">
             <ViewRow label="Who needs care" value={meta.relationship_to_recipient || null} />
             <ViewRow label="Age" value={ageDisplay} />
-            <ViewRow label="Type of care" value={careTypesDisplay} />
-            <ViewRow label="Help needed" value={careNeedsDisplay} />
-            <ViewRow label="Timeline" value={timelineDisplay} />
-            <ViewRow label="Schedule" value={scheduleDisplay} />
             {descriptionDisplay && (
               <div className="py-3">
                 <p className="text-[13px] font-medium text-gray-500">About the situation</p>
@@ -319,11 +315,25 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
           </div>
         </SectionCard>
 
+        {/* ── Care Needs ── */}
+        <SectionCard
+          title="Care Needs"
+          status={sectionStatus[3]}
+          onEdit={() => openWizard(4)}
+        >
+          <div className="divide-y divide-gray-50">
+            <ViewRow label="Type of care" value={careTypesDisplay} />
+            <ViewRow label="Help needed" value={careNeedsDisplay} />
+            <ViewRow label="Timeline" value={timelineDisplay} />
+            <ViewRow label="Schedule" value={scheduleDisplay} />
+          </div>
+        </SectionCard>
+
         {/* ── Payment & Benefits ── */}
         <SectionCard
           title="Payment & Benefits"
-          status={sectionStatus[3]}
-          onEdit={() => openWizard(4)}
+          status={sectionStatus[4]}
+          onEdit={() => openWizard(5)}
         >
           {meta.payment_methods && meta.payment_methods.length > 0 ? (
             <div className="flex flex-wrap gap-2 mb-4">

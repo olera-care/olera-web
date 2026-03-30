@@ -13,6 +13,7 @@ import {
 import EligibilityChecker from "@/components/article/EligibilityChecker";
 import ArticleFAQ from "@/components/article/ArticleFAQ";
 import SeniorCareFAQ from "@/components/article/SeniorCareFAQ";
+import StarPlusFAQ from "@/components/article/StarPlusFAQ";
 import ShareButton from "@/components/article/ShareButton";
 
 // ISR: revalidate every 60 seconds
@@ -303,7 +304,7 @@ export default async function TexasArticlePage({
           {contentHtml ? (() => {
             const MARKERS: Record<string, React.ReactNode> = {
               "<!-- eligibility-checker -->": <EligibilityChecker />,
-              "<!-- faq-accordion -->": slug === "how-to-pay-for-senior-care-in-texas" ? <SeniorCareFAQ /> : <ArticleFAQ />,
+              "<!-- faq-accordion -->": slug === "how-to-pay-for-senior-care-in-texas" ? <SeniorCareFAQ /> : slug === "star-plus-waiver-texas-complete-guide" ? <StarPlusFAQ /> : <ArticleFAQ />,
             };
             let segments: React.ReactNode[] = [processedHtml];
             for (const [marker, component] of Object.entries(MARKERS)) {

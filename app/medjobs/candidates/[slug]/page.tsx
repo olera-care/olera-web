@@ -172,9 +172,9 @@ export default async function StudentProfilePage({ params }: PageProps) {
               )}
             </div>
 
-            {/* Save button (desktop) */}
-            <div className="hidden sm:block flex-shrink-0">
-              <SaveButton provider={saveData} variant="pill" />
+            {/* Save button */}
+            <div className="flex-shrink-0">
+              <SaveButton provider={saveData} variant="icon" />
             </div>
           </div>
 
@@ -391,16 +391,6 @@ export default async function StudentProfilePage({ params }: PageProps) {
                 <div className="pt-1 border-t border-gray-100">
                   <dt className="text-xs text-gray-400 uppercase tracking-wide">Course Schedule</dt>
                   <dd className="text-sm text-gray-900 whitespace-pre-line mt-0.5">{meta.course_schedule_description}</dd>
-                </div>
-              )}
-              {meta.prn_willing && (
-                <div className="pt-1">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75" />
-                    </svg>
-                    Open to starting PRN
-                  </span>
                 </div>
               )}
             </dl>

@@ -403,9 +403,8 @@ export interface StudentMetadata {
   acknowledgments_completed?: boolean;
   acknowledgment_date?: string;
 
-  // Motivation & Personal Statement
+  // Motivation
   why_caregiving?: string;          // "Why I want to be a caregiver" free-text
-  personal_statement?: string;      // General personal statement / bio
 
   // Course Schedule
   course_schedule_description?: string;  // Free-text: "MWF 8am-12pm, TTh 10am-2pm"

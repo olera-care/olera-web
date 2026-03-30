@@ -244,9 +244,9 @@ export default async function StudentProfilePage({ params }: PageProps) {
         </div>
 
         {/* ── Video Hero + Sidebar ── */}
-        <div className="mt-5 grid lg:grid-cols-[1fr_280px] gap-5 items-start">
+        <div className="mt-5 flex flex-col lg:flex-row gap-5">
           {/* Video / Primary visual */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden self-start">
+          <div className="flex-1 min-w-0 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             {videoAvailable && youtubeId ? (
               <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
                 <iframe
@@ -299,7 +299,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
           </div>
 
           {/* Sidebar — resume, social, bio, CTA */}
-          <div className="space-y-4">
+          <div className="lg:w-[280px] lg:flex-shrink-0 space-y-4">
             {/* Resume (prominent) */}
             {resumeUrl && (
               <a

@@ -212,28 +212,43 @@ function MetadataEditor({ profileId, field, value, onSave, placeholder, multilin
   extraFields?: Record<string, unknown>;
 }) {
   const [text, setText] = useState(value);
-  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleSave = async () => {
-    setSaving(true);
+  const doSave = useCallback(async (val: string) => {
+    setStatus("saving");
     try {
       const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
       const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
       const meta = (current?.metadata || {}) as Record<string, unknown>;
-      meta[field] = text.trim() || null;
+      meta[field] = val.trim() || null;
       if (extraFields) { Object.assign(meta, extraFields); }
       await sb.from("business_profiles").update({ metadata: meta }).eq("id", profileId);
+      setStatus("saved");
       onSave();
-    } catch { /* ignore */ }
-    finally { setSaving(false); }
+      setTimeout(() => setStatus("idle"), 2000);
+    } catch { setStatus("idle"); }
+  }, [profileId, field, extraFields, onSave]);
+
+  const handleChange = (val: string) => {
+    setText(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => doSave(val), 1500);
+  };
+
+  // Save on blur immediately
+  const handleBlur = () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (text !== value) doSave(text);
   };
 
   return (
-    <div className="space-y-3">
+    <div className="relative">
       {multiline ? (
         <textarea
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
+          onBlur={handleBlur}
           placeholder={placeholder}
           rows={4}
           className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors resize-none"
@@ -242,12 +257,19 @@ function MetadataEditor({ profileId, field, value, onSave, placeholder, multilin
         <input
           type="text"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
+          onBlur={handleBlur}
           placeholder={placeholder}
           className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors"
         />
       )}
-      <SaveButton saving={saving} onClick={handleSave} />
+      {status !== "idle" && (
+        <span className={`absolute right-3 top-2.5 text-xs font-medium transition-opacity ${
+          status === "saving" ? "text-gray-400" : "text-emerald-500"
+        }`}>
+          {status === "saving" ? "Saving..." : "Saved"}
+        </span>
+      )}
     </div>
   );
 }
@@ -380,22 +402,32 @@ function WhyCaregivingSection({ profileId, value, onSave }: {
   profileId: string; value: string; onSave: () => void;
 }) {
   const [text, setText] = useState(value);
-  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const charCount = text.length;
   const isValid = charCount >= 100 && charCount <= 500;
 
-  const handleSave = async () => {
-    if (!isValid) return;
-    setSaving(true);
+  const doSave = useCallback(async (val: string) => {
+    if (val.length < 100 || val.length > 500) return;
+    setStatus("saving");
     try {
       const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
       const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
       const m = (current?.metadata || {}) as Record<string, unknown>;
-      m.why_caregiving = text.trim();
+      m.why_caregiving = val.trim();
       await sb.from("business_profiles").update({ metadata: m }).eq("id", profileId);
+      setStatus("saved");
       onSave();
-    } catch { /* ignore */ }
-    finally { setSaving(false); }
+      setTimeout(() => setStatus("idle"), 2000);
+    } catch { setStatus("idle"); }
+  }, [profileId, onSave]);
+
+  const handleChange = (val: string) => {
+    setText(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (val.length >= 100 && val.length <= 500) {
+      debounceRef.current = setTimeout(() => doSave(val), 1500);
+    }
   };
 
   return (
@@ -412,20 +444,24 @@ function WhyCaregivingSection({ profileId, value, onSave }: {
         </ul>
         <p className="mt-2 text-gray-300 italic">AI tools are fine for brainstorming, but write the final version in your own voice. Providers can tell when answers feel generic — your real story is what makes you stand out.</p>
       </div>
-      <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="I want to be a caregiver because..."
-        rows={5}
-        maxLength={500}
-        className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors resize-none"
-      />
-      <div className="flex items-center justify-between mt-1">
-        <span className={`text-xs ${charCount < 100 ? "text-amber-500" : charCount > 500 ? "text-red-500" : "text-gray-400"}`}>
-          {charCount}/500 {charCount < 100 && `(${100 - charCount} more needed)`}
-        </span>
-        <SaveButton saving={saving} onClick={handleSave} disabled={!isValid} />
+      <div className="relative">
+        <textarea
+          value={text}
+          onChange={(e) => handleChange(e.target.value)}
+          placeholder="I want to be a caregiver because..."
+          rows={5}
+          maxLength={500}
+          className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors resize-none"
+        />
+        {status !== "idle" && (
+          <span className={`absolute right-3 top-2.5 text-xs font-medium ${status === "saving" ? "text-gray-400" : "text-emerald-500"}`}>
+            {status === "saving" ? "Saving..." : "Saved"}
+          </span>
+        )}
       </div>
+      <span className={`text-xs mt-1 block ${charCount < 100 ? "text-amber-500" : "text-gray-400"}`}>
+        {charCount}/500 {charCount < 100 && `(${100 - charCount} more needed)`} {isValid && status === "idle" && "· Auto-saves as you type"}
+      </span>
     </div>
   );
 }
@@ -505,21 +541,29 @@ function CommitmentStatementSection({ profileId, value, onSave }: {
   profileId: string; value: string; onSave: () => void;
 }) {
   const [text, setText] = useState(value);
-  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const isValid = text.trim().length >= 50;
 
-  const handleSave = async () => {
-    if (!isValid) return;
-    setSaving(true);
+  const doSave = useCallback(async (val: string) => {
+    if (val.trim().length < 50) return;
+    setStatus("saving");
     try {
       const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
       const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
       const m = (current?.metadata || {}) as Record<string, unknown>;
-      m.commitment_statement = text.trim();
+      m.commitment_statement = val.trim();
       await sb.from("business_profiles").update({ metadata: m }).eq("id", profileId);
+      setStatus("saved");
       onSave();
-    } catch { /* ignore */ }
-    finally { setSaving(false); }
+      setTimeout(() => setStatus("idle"), 2000);
+    } catch { setStatus("idle"); }
+  }, [profileId, onSave]);
+
+  const handleChange = (val: string) => {
+    setText(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (val.trim().length >= 50) debounceRef.current = setTimeout(() => doSave(val), 1500);
   };
 
   return (
@@ -528,40 +572,54 @@ function CommitmentStatementSection({ profileId, value, onSave }: {
         Commitment statement <span className="text-red-400">*</span>
       </label>
       <p className="text-xs text-gray-400 mb-2">
-        Describe your commitment to taking caregiving shifts around your coursework for 6+ months. This is required and visible to providers.
+        Describe your commitment to taking caregiving shifts around your coursework for 6+ months. Visible to providers.
       </p>
       {!text && (
         <div className="mb-3 space-y-2">
           <p className="text-xs text-gray-400">Use a suggestion as a starting point:</p>
           {COMMITMENT_SUGGESTIONS.map((s, i) => (
-            <button key={i} type="button" onClick={() => setText(s)}
+            <button key={i} type="button" onClick={() => { setText(s); setTimeout(() => doSave(s), 100); }}
               className="w-full text-left px-3 py-2 border border-gray-200 hover:border-gray-400 rounded-lg text-xs text-gray-600 transition-colors leading-relaxed">
               {s.slice(0, 80)}...
             </button>
           ))}
         </div>
       )}
-      <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Describe your commitment to taking shifts, your availability outside of class, and how long you plan to work..."
-        rows={4}
-        className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors resize-none"
-      />
-      <div className="flex items-center justify-between mt-1">
-        <span className={`text-xs ${text.trim().length < 50 ? "text-amber-500" : "text-gray-400"}`}>
-          {text.trim().length} chars {text.trim().length < 50 && `(${50 - text.trim().length} more needed)`}
-        </span>
-        <SaveButton saving={saving} onClick={handleSave} disabled={!isValid} />
+      <div className="relative">
+        <textarea
+          value={text}
+          onChange={(e) => handleChange(e.target.value)}
+          placeholder="Describe your commitment to taking shifts, your availability outside of class, and how long you plan to work..."
+          rows={4}
+          className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors resize-none"
+        />
+        {status !== "idle" && (
+          <span className={`absolute right-3 top-2.5 text-xs font-medium ${status === "saving" ? "text-gray-400" : "text-emerald-500"}`}>
+            {status === "saving" ? "Saving..." : "Saved"}
+          </span>
+        )}
       </div>
+      <span className={`text-xs mt-1 block ${text.trim().length < 50 ? "text-amber-500" : "text-gray-400"}`}>
+        {text.trim().length} chars {text.trim().length < 50 && `(${50 - text.trim().length} more needed)`} {isValid && status === "idle" && "· Auto-saves as you type"}
+      </span>
     </div>
   );
 }
 
 /* ─── Availability & Commitment Section ───────────────────── */
 
-const SUMMER_OPTIONS = ["Full-time available all summer", "Available part-time", "Available except for travel dates", "Unavailable — taking summer classes"];
-const WINTER_OPTIONS = ["Full-time available during winter break", "Available part-time", "Traveling — limited availability", "Unavailable — taking winter classes"];
+const SUMMER_OPTIONS = [
+  "Full-time available all summer",
+  "Taking summer classes — will update schedule",
+  "Available except for planned travel",
+  "Will be out of town — will update when I return",
+];
+const WINTER_OPTIONS = [
+  "Full-time available during winter break",
+  "Available except for holiday travel",
+  "Taking winter classes — will update schedule",
+  "Will be out of town — will update when I return",
+];
 
 function AvailabilityCommitmentSection({ profileId, meta, onSave }: {
   profileId: string; meta: StudentMetadata; onSave: () => void;
@@ -698,23 +756,34 @@ function AvailabilityNotesSection({ profileId, value, onSave }: {
   profileId: string; value: string; onSave: () => void;
 }) {
   const [text, setText] = useState(value);
-  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const appendSnippet = (snippet: string) => {
-    setText((prev) => prev ? `${prev}\n${snippet}` : snippet);
+    const newText = text ? `${text}\n${snippet}` : snippet;
+    setText(newText);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => doSave(newText), 500);
   };
 
-  const handleSave = async () => {
-    setSaving(true);
+  const doSave = useCallback(async (val: string) => {
+    setStatus("saving");
     try {
       const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
       const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
       const m = (current?.metadata || {}) as Record<string, unknown>;
-      m.availability_notes = text.trim() || null;
+      m.availability_notes = val.trim() || null;
       await sb.from("business_profiles").update({ metadata: m }).eq("id", profileId);
+      setStatus("saved");
       onSave();
-    } catch { /* ignore */ }
-    finally { setSaving(false); }
+      setTimeout(() => setStatus("idle"), 2000);
+    } catch { setStatus("idle"); }
+  }, [profileId, onSave]);
+
+  const handleChange = (val: string) => {
+    setText(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => doSave(val), 1500);
   };
 
   return (
@@ -729,16 +798,21 @@ function AvailabilityNotesSection({ profileId, value, onSave }: {
           </button>
         ))}
       </div>
-      <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Build your availability notes using the suggestions above, or type your own..."
-        rows={4}
-        className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors resize-none"
-      />
-      <div className="flex justify-end mt-2">
-        <SaveButton saving={saving} onClick={handleSave} />
+      <div className="relative">
+        <textarea
+          value={text}
+          onChange={(e) => handleChange(e.target.value)}
+          placeholder="Build your availability notes using the suggestions above, or type your own..."
+          rows={4}
+          className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors resize-none"
+        />
+        {status !== "idle" && (
+          <span className={`absolute right-3 top-2.5 text-xs font-medium ${status === "saving" ? "text-gray-400" : "text-emerald-500"}`}>
+            {status === "saving" ? "Saving..." : "Saved"}
+          </span>
+        )}
       </div>
+      <span className="text-xs text-gray-400 mt-1 block">Auto-saves as you type</span>
     </div>
   );
 }

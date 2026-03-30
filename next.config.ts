@@ -115,7 +115,11 @@ const nextConfig: NextConfig = {
       // Tier 4: v1.0 sign-out
       { source: "/sign-out", destination: "/", permanent: true },
 
-      // Tier 5: Texas URL migration — /waiver-library/texas → /texas/benefits
+      // Tier 5: Portal matches → consolidated into inbox/profile
+      { source: "/portal/matches", destination: "/portal/profile", permanent: true },
+      { source: "/portal/matches/:id", destination: "/portal/inbox?id=:id", permanent: true },
+
+      // Tier 6: Texas URL migration — /waiver-library/texas → /texas/benefits
       { source: "/waiver-library/texas", destination: "/texas/benefits", permanent: true },
       { source: "/waiver-library/forms/texas", destination: "/texas/benefits", permanent: true },
       { source: "/waiver-library/texas/star-plus-home-and-community-based-services", destination: "/texas/benefits/star-plus", permanent: true },

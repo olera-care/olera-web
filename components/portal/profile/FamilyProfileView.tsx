@@ -7,7 +7,7 @@ import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { useProfileCompleteness, type SectionStatus } from "./completeness";
 import { BenefitsFinderBanner } from "./ProfileEditContent";
 import ProfileEditWizard from "./ProfileEditWizard";
-import CarePostSidebar from "@/components/portal/matches/CarePostSidebar";
+import CarePostSidebar from "@/components/portal/profile/CarePostSidebar";
 
 // ── Constants ──
 

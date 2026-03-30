@@ -341,26 +341,26 @@ function InboxContent() {
           .eq("type", "inquiry")
           .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
-        // Provider-initiated matches that user accepted (shown in inbox for messaging)
+        // Provider-initiated requests (pending = awaiting family response, accepted = active conversation)
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .eq("from_profile_id", activeProfileId)
           .eq("type", "request")
-          .eq("status", "accepted")
+          .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .eq("to_profile_id", activeProfileId)
           .eq("type", "request")
-          .eq("status", "accepted")
+          .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
       ]);
 
       // Merge and deduplicate — skip hidden and metadata-archived connections
       // (archive state lives in metadata.archived, not the status column)
-      // Include both inquiry connections and accepted provider-initiated matches
+      // Include inquiry connections and provider-initiated requests (pending + accepted)
       const allConns = [
         ...(outbound.data || []),
         ...(inbound.data || []),
@@ -530,6 +530,23 @@ function InboxContent() {
   useEffect(() => {
     fetchConnections();
   }, [fetchConnections]);
+
+  // Auto-switch to Requests tab when URL points to a pending provider-initiated request
+  // This handles old email links redirected via next.config.ts (/portal/matches/:id → /portal/inbox?id=:id)
+  useEffect(() => {
+    if (!urlConnectionId || !familyProfileId || loading) return;
+
+    const conn = connections.find((c) => c.id === urlConnectionId);
+    if (!conn) return;
+
+    // Check if this is a pending provider-initiated request
+    const isProviderInitiated = conn.to_profile_id === familyProfileId;
+    const isPending = conn.status === "pending";
+
+    if (isProviderInitiated && isPending && familyTab !== "requests") {
+      setFamilyTab("requests");
+    }
+  }, [urlConnectionId, familyProfileId, connections, loading, familyTab]);
 
   // Re-fetch when a new connection is created (e.g. user connected from browse/suggested)
   useEffect(() => {

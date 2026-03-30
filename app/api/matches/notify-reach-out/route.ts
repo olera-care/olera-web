@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { providerReachOutEmail } from "@/lib/email-templates";
@@ -10,6 +11,9 @@ import { sendSlackAlert } from "@/lib/slack";
  *
  * Fires email notification to family when a provider sends a reach-out.
  * Called after the client-side connection insert succeeds.
+ *
+ * Generates a magic link for authenticated families or includes claim token
+ * for guest families so they can access their inbox without signing in.
  *
  * Body: { toProfileId: string }
  */
@@ -44,6 +48,7 @@ export async function POST(request: Request) {
     }
 
     // Fetch provider and family profiles in parallel
+    // Include account_id and claim_token for family to determine auth method
     const [{ data: provider }, { data: family }] = await Promise.all([
       db
         .from("business_profiles")
@@ -52,7 +57,7 @@ export async function POST(request: Request) {
         .single(),
       db
         .from("business_profiles")
-        .select("display_name, email, city")
+        .select("display_name, email, city, account_id, claim_token")
         .eq("id", toProfileId)
         .single(),
     ]);
@@ -64,10 +69,10 @@ export async function POST(request: Request) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
     const providerCity = provider?.city || family?.city || "your area";
 
-    // Get the reach-out message from the most recent connection
+    // Get the reach-out connection (we need the ID for deep-linking)
     const { data: conn } = await db
       .from("connections")
-      .select("message")
+      .select("id, message")
       .eq("from_profile_id", account.active_profile_id)
       .eq("to_profile_id", toProfileId)
       .eq("type", "request")
@@ -83,6 +88,48 @@ export async function POST(request: Request) {
       providerId: account.active_profile_id,
     });
 
+    // Build the inbox URL with connection ID for auto-selection
+    const inboxPath = conn?.id ? `/portal/inbox?id=${conn.id}` : "/portal/inbox";
+    const trackedDest = appendTrackingParams(inboxPath, reachOutEmailLogId);
+    let inboxUrl = `${siteUrl}${trackedDest}`;
+
+    // Generate appropriate auth link based on family profile type
+    if (family.account_id) {
+      // Authenticated family: look up their email and generate magic link
+      const { data: familyAccount } = await db
+        .from("accounts")
+        .select("user_id")
+        .eq("id", family.account_id)
+        .single();
+
+      if (familyAccount?.user_id) {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        if (supabaseUrl && serviceKey) {
+          const authClient = createClient(supabaseUrl, serviceKey);
+          const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
+            type: "magiclink",
+            email: family.email,
+            options: {
+              redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(trackedDest)}`,
+            },
+          });
+
+          if (!linkError && linkData?.properties?.action_link) {
+            inboxUrl = linkData.properties.action_link;
+          } else if (linkError) {
+            console.warn("[notify-reach-out] Failed to generate magic link:", linkError);
+          }
+        }
+      }
+    } else if (family.claim_token) {
+      // Guest family: include claim token in URL for guest access
+      const separator = trackedDest.includes("?") ? "&" : "?";
+      inboxUrl = `${siteUrl}${trackedDest}${separator}token=${family.claim_token}`;
+    }
+    // If neither (edge case), fallback to plain URL - user will need to sign in
+
     await sendEmail({
       to: family.email,
       subject: `A provider in ${providerCity} is interested in your care needs`,
@@ -91,7 +138,7 @@ export async function POST(request: Request) {
         providerName: provider?.display_name || "A care provider",
         city: providerCity,
         message: conn?.message || null,
-        matchesUrl: appendTrackingParams(`${siteUrl}/portal/inbox`, reachOutEmailLogId),
+        matchesUrl: inboxUrl,
       }),
       emailType: "provider_reach_out",
       recipientType: "family",

@@ -400,6 +400,38 @@ export interface StudentMetadata {
   acknowledgments_completed?: boolean;
   acknowledgment_date?: string;
 
+  // Motivation & Personal Statement
+  why_caregiving?: string;
+  personal_statement?: string;
+
+  // Course Schedule
+  course_schedule_description?: string;
+  course_schedule_semester?: string;  // e.g. "Fall 2026"
+
+  // Commitments & Pledges
+  ncns_pledge?: boolean;
+  school_balance_pledge?: boolean;
+  advance_notice_pledge?: boolean;
+  prn_willing?: boolean;
+
+  // Scenario Responses
+  scenario_responses?: Array<{
+    question: string;
+    answer: string;
+  }>;
+
+  // References
+  references?: Array<{
+    name: string;
+    relationship: string;
+    note?: string;
+  }>;
+
+  // Social Links
+  instagram_url?: string;
+  facebook_url?: string;
+  tiktok_url?: string;
+
   // Status
   profile_completeness?: number;   // 0-100
   seeking_status?: "actively_looking" | "open" | "not_looking";

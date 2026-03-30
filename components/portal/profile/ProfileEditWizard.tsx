@@ -845,8 +845,7 @@ export default function ProfileEditWizard({
               {step === 4 && (
                 <div className="space-y-8">
                   <div>
-                    <SectionLabel>How do you plan to pay for care?</SectionLabel>
-                    <p className="text-sm text-gray-500 -mt-1 mb-4">
+                    <p className="text-sm text-gray-500 mb-4">
                       Select all that apply
                     </p>
                     <div className="flex flex-wrap gap-2">

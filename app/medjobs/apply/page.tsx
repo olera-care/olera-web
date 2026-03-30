@@ -4,6 +4,9 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { IntendedProfessionalSchool } from "@/lib/types";
 import { createBrowserClient } from "@supabase/ssr";
+import { useCitySearch } from "@/hooks/use-city-search";
+import { LifecycleProgress } from "@/components/medjobs/LifecycleProgress";
+import { Tooltip, ReactiveHint } from "@/components/medjobs/Tooltip";
 
 /* ─── Constants ────────────────────────────────────────────── */
 
@@ -51,8 +54,9 @@ const SEASONAL_OPTIONS = [
 ];
 
 const DURATION_OPTIONS = [
-  { value: "1_semester", label: "1 semester" },
-  { value: "multiple_semesters", label: "Multiple semesters" },
+  { value: "less_than_3_months", label: "Less than 3 months" },
+  { value: "3_to_6_months", label: "3\u20136 months" },
+  { value: "6_to_12_months", label: "6\u201312 months" },
   { value: "1_plus_year", label: "1+ year" },
 ];
 
@@ -63,27 +67,21 @@ const HOURS_OPTIONS = [
   { value: "20+", label: "20+ hours" },
 ];
 
-const US_STATES = [
-  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
-  "KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
-  "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT",
-  "VA","WA","WV","WI","WY",
-];
 
 type Step = 0 | 1 | 2 | 3 | 4; // about_you, experience, availability, confirm, success
 const TOTAL_STEPS = 4;
 
 const STEP_TITLES = [
   "Let\u2019s get to know you",
-  "Your caregiving background",
-  "When can you work?",
+  "Your background",
+  "When are you NOT available?",
   "One last thing",
 ];
 
 const STEP_SUBTITLES = [
   "We\u2019ll use this to set up your profile",
-  "No experience? No worries \u2014 we\u2019ll match you",
-  "Providers need to know your schedule",
+  "Tell us about your experience",
+  "We assume you\u2019re open \u2014 just tell us what doesn\u2019t work",
   "Confirm and you\u2019re done",
 ];
 
@@ -171,18 +169,21 @@ function MultiSelectCards({ options, selected, onToggle, hint = "Choose as many 
     <div>
       <p className="text-xs text-gray-400 mb-3 uppercase tracking-wide">{hint}</p>
       <div className="grid grid-cols-2 gap-2">
-        {options.map((opt, i) => {
-          const letter = String.fromCharCode(65 + i);
+        {options.map((opt) => {
           const isSelected = selected.includes(opt.value);
           return (
             <button key={opt.value} type="button" onClick={() => onToggle(opt.value)}
               className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all ${
                 isSelected ? "border-2 border-gray-900 bg-gray-50" : "border border-gray-200 hover:border-gray-300"
               }`}>
-              <span className={`inline-flex items-center justify-center w-5 h-5 rounded text-[10px] font-semibold shrink-0 ${
-                isSelected ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-400"
+              <span className={`inline-flex items-center justify-center w-4 h-4 rounded shrink-0 ${
+                isSelected ? "bg-gray-900" : "border border-gray-300"
               }`}>
-                {letter}
+                {isSelected && (
+                  <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
               </span>
               <span className="text-sm text-gray-700">{opt.label}</span>
             </button>
@@ -211,6 +212,10 @@ export default function MedJobsApplyPage() {
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
+  const [cityQuery, setCityQuery] = useState("");
+  const { results: cityResults, preload: preloadCities } = useCitySearch(cityQuery);
+  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
+  const cityRef = useRef<HTMLDivElement>(null);
   const [university, setUniversity] = useState("");
   const [universityId, setUniversityId] = useState("");
   const [universitySearch, setUniversitySearch] = useState("");
@@ -232,8 +237,9 @@ export default function MedJobsApplyPage() {
   const [durationCommitment, setDurationCommitment] = useState("");
   const [hoursPerWeekRange, setHoursPerWeekRange] = useState("");
 
-  // Confirm
-  const [acknowledged, setAcknowledged] = useState(false);
+  // Confirm — individual attestation checkboxes
+  const [attestations, setAttestations] = useState<boolean[]>([false, false, false, false, false]);
+  const allAcknowledged = attestations.every(Boolean);
   const [honeypot, setHoneypot] = useState("");
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -246,6 +252,15 @@ export default function MedJobsApplyPage() {
     );
     supabase.from("medjobs_universities").select("id, name").eq("is_active", true).order("name")
       .then(({ data }) => { if (data) setUniversityOptions(data); });
+  }, []);
+
+  // Close city dropdown on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (cityRef.current && !cityRef.current.contains(e.target as Node)) setCityDropdownOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const toggleItem = useCallback((setter: React.Dispatch<React.SetStateAction<string[]>>, item: string) => {
@@ -323,10 +338,10 @@ export default function MedJobsApplyPage() {
   }, [step, goTo]);
 
   const canAdvance = useCallback((): boolean => {
-    if (step === 0) return !!displayName.trim() && !!email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    if (step === 3) return acknowledged;
+    if (step === 0) return !!displayName.trim() && !!email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !!phone.trim();
+    if (step === 3) return allAcknowledged;
     return true;
-  }, [step, displayName, email, acknowledged]);
+  }, [step, displayName, email, phone, allAcknowledged]);
 
   /* ─── Submit ─────────────────────────────────────────────── */
 
@@ -396,32 +411,55 @@ export default function MedJobsApplyPage() {
   if (step === 4) {
     return (
       <main className="min-h-screen bg-white flex items-center justify-center px-4 py-16">
-        <div className="max-w-md w-full text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-50 mb-6">
-            <svg className="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              style={{ animation: "scale-in 0.4s ease-out" }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-            </svg>
+        <div className="max-w-md w-full">
+          {/* Lifecycle bar */}
+          <div className="mb-10">
+            <LifecycleProgress currentPhase="verify" />
           </div>
-          {isExisting ? (
-            <>
-              <h1 className="text-3xl font-semibold text-gray-900 mb-3">Welcome back!</h1>
-              <p className="text-gray-500 text-lg mb-8">Looks like you already have a profile. Pick up where you left off.</p>
-            </>
-          ) : (
-            <>
-              <h1 className="text-3xl font-semibold text-gray-900 mb-3">You&apos;re in, {displayName.split(" ")[0]}!</h1>
-              <p className="text-gray-500 text-lg mb-8">Your application has been submitted. Complete a few more steps to go live.</p>
-            </>
-          )}
+
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-50 mb-6">
+              <svg className="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                style={{ animation: "scale-in 0.4s ease-out" }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            {isExisting ? (
+              <>
+                <h1 className="text-3xl font-semibold text-gray-900 mb-3">Welcome back!</h1>
+                <p className="text-gray-500 text-lg mb-8">Pick up where you left off and complete your profile to get hired.</p>
+              </>
+            ) : (
+              <>
+                <h1 className="text-3xl font-semibold text-gray-900 mb-3">You&apos;re in, {displayName.split(" ")[0]}!</h1>
+                <p className="text-gray-500 text-lg mb-8">Your application has been submitted. Complete a few more steps to get hired.</p>
+              </>
+            )}
+          </div>
+
           <div className="text-left space-y-3 mb-10">
+            {/* Application — already done */}
+            <div className="flex items-start gap-4 p-4 rounded-xl bg-emerald-50/50">
+              <div className="flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 shrink-0">
+                <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-emerald-800">Application submitted</p>
+              </div>
+            </div>
+
+            {/* Remaining steps */}
             {[
-              { label: "Record a short intro video", desc: "2-3 min \u2014 helps providers get to know you" },
+              { label: "Record a short intro video", desc: "2\u20133 min \u2014 helps providers get to know you" },
               { label: "Upload driver\u2019s license", desc: "Required before your first assignment" },
               { label: "Upload car insurance", desc: "Proof of coverage for transportation" },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-gray-50">
-                <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white border-2 border-gray-200 text-xs font-semibold text-gray-400 shrink-0">{i + 1}</div>
+                <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white border-2 border-gray-200 shrink-0">
+                  <div className="w-2 h-2 rounded-full bg-gray-300" />
+                </div>
                 <div>
                   <p className="text-sm font-medium text-gray-900">{item.label}</p>
                   <p className="text-xs text-gray-500">{item.desc}</p>
@@ -429,11 +467,12 @@ export default function MedJobsApplyPage() {
               </div>
             ))}
           </div>
+
           <Link href="/portal/medjobs"
             className="inline-flex items-center justify-center w-full px-6 py-3.5 bg-gray-900 hover:bg-gray-800 rounded-lg text-sm font-semibold text-white transition-colors">
-            Go to your dashboard
+            Get Started
           </Link>
-          <p className="mt-4 text-sm text-gray-400">Check your email for a sign-in link</p>
+          <p className="mt-4 text-sm text-gray-400 text-center">Check your email for a sign-in link</p>
           <style>{`@keyframes scale-in { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }`}</style>
         </div>
       </main>
@@ -529,11 +568,9 @@ export default function MedJobsApplyPage() {
       </div>
 
       <div ref={containerRef} className="max-w-xl mx-auto px-4 sm:px-6 pt-14 pb-40">
-        {/* Header */}
-        <div className="mb-2">
-          <Link href="/medjobs" className="text-sm text-gray-300 hover:text-gray-500 transition-colors">
-            &larr; MedJobs
-          </Link>
+        {/* Lifecycle progress bar */}
+        <div className="mb-6">
+          <LifecycleProgress currentPhase="apply" />
         </div>
 
         {/* Animated content */}
@@ -565,20 +602,52 @@ export default function MedJobsApplyPage() {
                 <BottomLine value={email} onChange={setEmail} placeholder="sarah@university.edu" type="email" />
               </div>
               <div>
-                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Phone <span className="normal-case tracking-normal text-gray-300">(optional)</span></label>
+                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Phone *</label>
                 <BottomLine value={phone} onChange={setPhone} placeholder="(555) 123-4567" type="tel" />
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">City</label>
-                  <BottomLine value={city} onChange={setCity} placeholder="Austin" />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">State</label>
-                  <SearchDropdown
-                    options={US_STATES.map((s) => ({ value: s, label: s }))}
-                    value={state} onSelect={setState} placeholder="Select" />
+              <div>
+                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">City &amp; State</label>
+                <div ref={cityRef} className="relative">
+                  <div className="w-full flex items-center gap-3 border-0 border-b-2 border-gray-200 focus-within:border-gray-900 py-2 transition-colors">
+                    <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input
+                      type="text"
+                      value={city && state ? `${city}, ${state}` : cityQuery}
+                      onChange={(e) => {
+                        setCityQuery(e.target.value);
+                        setCity("");
+                        setState("");
+                        setCityDropdownOpen(true);
+                      }}
+                      onFocus={() => { preloadCities(); setCityDropdownOpen(true); }}
+                      placeholder="Search your city"
+                      className="w-full text-lg text-gray-900 placeholder:text-gray-300 bg-transparent outline-none"
+                    />
+                    {city && (
+                      <button type="button" onClick={() => { setCity(""); setState(""); setCityQuery(""); }}
+                        className="text-gray-300 hover:text-gray-500 shrink-0">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                  {cityDropdownOpen && cityQuery.length >= 2 && !city && (
+                    <div className="absolute z-20 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                      {cityResults.length > 0 ? cityResults.map((r) => (
+                        <button key={r.full} type="button"
+                          onClick={() => { setCity(r.city); setState(r.state); setCityQuery(""); setCityDropdownOpen(false); }}
+                          className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                          {r.full}
+                        </button>
+                      )) : (
+                        <p className="px-4 py-3 text-sm text-gray-400">No cities found</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -609,24 +678,32 @@ export default function MedJobsApplyPage() {
             </div>
           )}
 
-          {/* ── Step 1: Experience ── */}
+          {/* ── Step 1: Background ── */}
           {step === 1 && (
             <div className="space-y-8">
               <div>
-                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Years of experience</label>
+                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">
+                  Experience
+                  <Tooltip content="Experience includes family caregiving, volunteer work, and clinical exposure. No experience is OK — you can explain your motivation later." />
+                </label>
                 <SearchDropdown
                   options={[
-                    { value: "0", label: "No prior experience" },
-                    { value: "family", label: "Experience with family members" },
-                    { value: "1", label: "Less than 1 year" },
-                    { value: "2", label: "1-2 years" },
-                    { value: "3", label: "3+ years" },
+                    { value: "no_experience", label: "No experience yet, eager to learn" },
+                    { value: "family", label: "Experience caring for family or friends" },
+                    { value: "1-2", label: "1\u20132 years (paid or volunteer)" },
+                    { value: "3+", label: "3+ years" },
                   ]}
                   value={yearsCaregiving} onSelect={setYearsCaregiving} placeholder="Select" />
+                <ReactiveHint show={yearsCaregiving === "no_experience"}>
+                  That&apos;s okay — explain your motivation in your personal statement. Many great caregivers start with zero experience.
+                </ReactiveHint>
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-3">Certifications</label>
+                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-3">
+                  Certifications
+                  <Tooltip content="List any certifications you hold. Don't have any? That's fine — many students earn certifications during their first semester." />
+                </label>
                 <MultiSelectCards
                   options={CERTIFICATIONS.map((c) => ({ value: c, label: c }))}
                   selected={certifications}
@@ -654,28 +731,43 @@ export default function MedJobsApplyPage() {
           {/* ── Step 2: Availability ── */}
           {step === 2 && (
             <div className="space-y-8">
+              <div className="flex items-start gap-2.5 p-3.5 rounded-lg bg-blue-50/60 mb-2">
+                <svg className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-sm text-blue-700 leading-relaxed">
+                  More availability = higher likelihood of getting hired. Employers can work around class schedules — just give advance notice.
+                </p>
+              </div>
+
               <div>
-                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-3">When are you available?</label>
+                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-3">Times you can&apos;t work</label>
                 <MultiSelectCards
                   options={AVAILABILITY_TYPES}
                   selected={availabilityTypes}
                   onToggle={(v) => toggleItem(setAvailabilityTypes, v)}
-                  hint="Select all that fit your schedule" />
+                  hint="Select any that DON'T work for you" />
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-3">Seasonal availability</label>
+                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-3">Semesters or breaks you&apos;re unavailable</label>
                 <MultiSelectCards
                   options={SEASONAL_OPTIONS}
                   selected={seasonalAvailability}
                   onToggle={(v) => toggleItem(setSeasonalAvailability, v)}
-                  hint="Which semesters or breaks work?" />
+                  hint="Select any that DON'T work" />
               </div>
 
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">How long can you commit?</label>
+                  <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">
+                    How long can you commit?
+                    <Tooltip content="Commitments of 6+ months are strongly preferred by providers. Longer commitments lead to better placements." />
+                  </label>
                   <SearchDropdown options={DURATION_OPTIONS} value={durationCommitment} onSelect={setDurationCommitment} placeholder="Select" />
+                  <ReactiveHint show={durationCommitment === "less_than_3_months" || durationCommitment === "3_to_6_months"}>
+                    Commitments of 6+ months are strongly preferred by providers. Consider whether you can extend your availability.
+                  </ReactiveHint>
                 </div>
                 <div>
                   <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Hours per week</label>
@@ -683,48 +775,35 @@ export default function MedJobsApplyPage() {
                 </div>
               </div>
 
-              {hoursPerWeekRange && ["5-10", "10-15"].includes(hoursPerWeekRange) && (
-                <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-50/60">
-                  <svg className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-sm text-amber-700">
-                    Most providers prefer 15+ hours/week. Consider applying during a break or lighter semester for more opportunities.
-                  </p>
-                </div>
-              )}
+              <ReactiveHint show={!!hoursPerWeekRange && ["5-10", "10-15"].includes(hoursPerWeekRange)}>
+                Applicants with 10-20+ hrs/week are more competitive. You can strengthen your application in your personal statement.
+              </ReactiveHint>
             </div>
           )}
 
           {/* ── Step 3: Confirm ── */}
           {step === 3 && (
-            <div className="space-y-6">
-              <div className="space-y-3">
-                {[
-                  "I\u2019ll be on time, professional, and communicate schedule changes 24+ hours in advance",
-                  "I understand caregiving duties include personal care, meals, mobility, and companionship",
-                  "I have reliable transportation and accept responsibility for my transport costs",
-                  "I consent to background checks and will respond to interview requests within 48 hours",
-                  "All information in this application is accurate and Olera is not the employer of record",
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-2 shrink-0" />
-                    <p className="text-sm text-gray-500 leading-relaxed">{item}</p>
-                  </div>
-                ))}
-              </div>
-
-              <button type="button" onClick={() => setAcknowledged(!acknowledged)}
-                className={`w-full flex items-center gap-3 px-4 py-4 rounded-lg text-left transition-all ${
-                  acknowledged ? "border-2 border-gray-900 bg-gray-50" : "border border-gray-200 hover:border-gray-300"
-                }`}>
-                <span className={`inline-flex items-center justify-center w-5 h-5 rounded border-2 shrink-0 transition-colors ${
-                  acknowledged ? "bg-gray-900 border-gray-900 text-white" : "border-gray-300"
-                }`}>
-                  {acknowledged && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
-                </span>
-                <span className="text-sm font-medium text-gray-900">I&apos;ve read and agree to all of the above</span>
-              </button>
+            <div className="space-y-3">
+              {[
+                "I\u2019ll be on time, professional, and communicate schedule changes 24+ hours in advance",
+                "I understand caregiving duties include personal care, meals, mobility, and companionship",
+                "I have reliable transportation and accept responsibility for my transport costs",
+                "I consent to background checks and will respond to interview requests within 48 hours",
+                "All information in this application is accurate and Olera is not the employer of record",
+              ].map((item, i) => (
+                <button key={i} type="button"
+                  onClick={() => setAttestations((prev) => { const next = [...prev]; next[i] = !next[i]; return next; })}
+                  className={`w-full flex items-start gap-3 px-4 py-3.5 rounded-lg text-left transition-all ${
+                    attestations[i] ? "border-2 border-gray-900 bg-gray-50" : "border border-gray-200 hover:border-gray-300"
+                  }`}>
+                  <span className={`inline-flex items-center justify-center w-5 h-5 rounded border-2 shrink-0 mt-0.5 transition-colors ${
+                    attestations[i] ? "bg-gray-900 border-gray-900 text-white" : "border-gray-300"
+                  }`}>
+                    {attestations[i] && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                  </span>
+                  <span className="text-sm text-gray-700 leading-relaxed">{item}</span>
+                </button>
+              ))}
             </div>
           )}
 
@@ -738,7 +817,7 @@ export default function MedJobsApplyPage() {
 
             {step === 3 ? (
               <button type="button" onClick={handleSubmit}
-                disabled={loading || !acknowledged}
+                disabled={loading || !allAcknowledged}
                 className="inline-flex items-center gap-2 px-8 py-3 bg-gray-900 hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg text-sm font-semibold text-white transition-colors">
                 {loading ? "Submitting..." : "Submit application"}
               </button>

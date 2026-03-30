@@ -545,7 +545,7 @@ export default function Navbar() {
           role="menuitem"
           onClick={() => {
             setIsUserMenuOpen(false);
-            router.push("/provider/onboarding");
+            router.push("/medjobs/apply");
           }}
           className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
         >

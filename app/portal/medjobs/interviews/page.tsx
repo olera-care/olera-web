@@ -1,15 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { LifecycleProgress } from "@/components/medjobs/LifecycleProgress";
 
 export default function InterviewsPage() {
   return (
     <main className="min-h-screen bg-[#FAFAF8]">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        <LifecycleProgress currentPhase="interview" />
-
-        <div className="mt-8 mb-6">
+        <div className="mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">Interviews</h1>
           <p className="text-sm text-gray-500 mt-1">
             Scheduled interviews and preparation details will appear here.

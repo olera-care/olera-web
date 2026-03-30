@@ -319,120 +319,92 @@ export default function StudentPortalPage() {
   const nextVerification = verificationItems.find((v) => !v.done);
 
   return (
-    <main className="min-h-screen bg-[#FAFAF8]">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        {/* Lifecycle bar */}
-        <LifecycleProgress currentPhase={phase} />
+    <main className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* ── Grid: Main + Sidebar ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
-        {/* ── Profile Header ── */}
-        <div className="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6">
-          <div className="flex items-start gap-4">
-            {/* Avatar */}
-            <div className="flex-shrink-0">
-              {profile.image_url ? (
-                <img src={profile.image_url} alt="" className="w-14 h-14 rounded-full object-cover" />
-              ) : (
-                <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center">
-                  <span className="text-xl font-bold text-gray-400">
-                    {profile.display_name?.charAt(0)?.toUpperCase() || "?"}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-semibold text-gray-900 truncate">{profile.display_name}</h1>
-              <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-sm text-gray-500">
-                {meta.university && <span>{meta.university}</span>}
-                {trackLabel && (
-                  <>
-                    <span className="text-gray-300">&middot;</span>
-                    <span>{trackLabel}</span>
-                  </>
-                )}
-                {profile.city && profile.state && (
-                  <>
-                    <span className="text-gray-300">&middot;</span>
-                    <span>{profile.city}, {profile.state}</span>
-                  </>
-                )}
-              </div>
-              <div className="mt-2 flex items-center gap-3">
-                <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                  <div className="h-full bg-gray-900 rounded-full transition-all duration-500" style={{ width: `${completeness}%` }} />
-                </div>
-                <span className="text-xs text-gray-400 font-medium whitespace-nowrap">{completeness}%</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Status badge */}
-          <div className="mt-4 flex items-center gap-2">
-            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-              profile.is_active ? "bg-emerald-50 text-emerald-700" : verificationDone ? "bg-amber-50 text-amber-700" : "bg-gray-50 text-gray-500"
-            }`}>
-              <div className={`w-1.5 h-1.5 rounded-full ${
-                profile.is_active ? "bg-emerald-500" : verificationDone ? "bg-amber-500" : "bg-gray-300"
-              }`} />
-              {profile.is_active ? "Live — providers can find you" : verificationDone ? "Under review" : "Verification incomplete"}
-            </div>
-          </div>
-
-          {profile.is_active && (
-            <Link href={`/medjobs/candidates/${profile.slug}`}
-              className="mt-4 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-              View your public profile
-            </Link>
-          )}
-        </div>
-
-        {/* ── Verification Section ── */}
-        {!verificationDone && (
-          <div className="mt-6">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-gray-900">Verification</h2>
-              <span className="text-xs text-gray-400">{verificationItems.filter((v) => v.done).length}/{verificationItems.length}</span>
-            </div>
-            <p className="text-sm text-gray-500 mb-4">
-              We verify every student to protect the families you&apos;ll care for. Complete these to go live.
-            </p>
-            <div className="space-y-3">
-              {verificationItems.map((item) => (
-                <SectionCard key={item.key} label={item.label} done={item.done} defaultOpen={nextVerification?.key === item.key}>
-                  {item.done ? (
-                    <p className="text-sm text-emerald-600">Submitted</p>
-                  ) : item.key === "video" ? (
-                    <div>
-                      <p className="text-sm text-gray-500 mb-3">{item.desc}</p>
-                      <VideoSubmit slug={profile.slug} onComplete={refresh} />
-                    </div>
+          {/* ── Main Column (2/3) ── */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Profile Header Card */}
+            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  {profile.image_url ? (
+                    <img src={profile.image_url} alt="" className="w-16 h-16 rounded-full object-cover" />
                   ) : (
-                    <div>
-                      <p className="text-sm text-gray-500 mb-3">{item.desc}</p>
-                      <InlineUpload
-                        profileId={profile.id}
-                        documentType={item.key as "drivers_license" | "car_insurance"}
-                        onComplete={refresh}
-                      />
+                    <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center">
+                      <span className="text-2xl font-bold text-primary-600">
+                        {profile.display_name?.charAt(0)?.toUpperCase() || "?"}
+                      </span>
                     </div>
                   )}
-                </SectionCard>
-              ))}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <h1 className="text-xl font-semibold text-gray-900 truncate">{profile.display_name}</h1>
+                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      profile.is_active ? "bg-emerald-50 text-emerald-700" : verificationDone ? "bg-amber-50 text-amber-700" : "bg-gray-100 text-gray-500"
+                    }`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${
+                        profile.is_active ? "bg-emerald-500" : verificationDone ? "bg-amber-500" : "bg-gray-300"
+                      }`} />
+                      {profile.is_active ? "Live" : verificationDone ? "Under review" : "Not verified"}
+                    </div>
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-gray-500">
+                    {meta.university && <span>{meta.university}</span>}
+                    {trackLabel && <><span className="text-gray-300">&middot;</span><span>{trackLabel}</span></>}
+                    {profile.city && profile.state && <><span className="text-gray-300">&middot;</span><span>{profile.city}, {profile.state}</span></>}
+                  </div>
+                  {profile.is_active && (
+                    <Link href={`/medjobs/candidates/${profile.slug}`}
+                      className="mt-2 inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      View public profile
+                    </Link>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        )}
 
-        {/* ── Profile Sections ── */}
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-gray-900">Your profile</h2>
-            <span className="text-xs text-gray-400">{profileDoneCount}/{profileSections.length}</span>
-          </div>
-          <p className="text-sm text-gray-500 mb-4">
-            This is what providers see. A stronger profile means more interview requests.
-          </p>
+            {/* Verification Card */}
+            {!verificationDone && (
+              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+                <h2 className="text-base font-semibold text-gray-900 mb-1">Verification</h2>
+                <p className="text-sm text-gray-500 mb-5">
+                  We verify every student to protect the families you&apos;ll care for. Complete these to go live.
+                </p>
+                <div className="space-y-3">
+                  {verificationItems.map((item) => (
+                    <SectionCard key={item.key} label={item.label} done={item.done} defaultOpen={nextVerification?.key === item.key}>
+                      {item.done ? (
+                        <p className="text-sm text-emerald-600">Submitted</p>
+                      ) : item.key === "video" ? (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-3">{item.desc}</p>
+                          <VideoSubmit slug={profile.slug} onComplete={refresh} />
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-3">{item.desc}</p>
+                          <InlineUpload profileId={profile.id} documentType={item.key as "drivers_license" | "car_insurance"} onComplete={refresh} />
+                        </div>
+                      )}
+                    </SectionCard>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Profile Sections Card */}
+            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 mb-1">Your profile</h2>
+              <p className="text-sm text-gray-500 mb-5">
+                This is what providers see. A stronger profile means more interview requests.
+              </p>
 
           <div className="space-y-3">
             {/* Profile Photo */}
@@ -609,6 +581,79 @@ export default function StudentPortalPage() {
                 )}
               </dl>
             </SectionCard>
+          </div>
+            </div>
+          </div>
+
+          {/* ── Sidebar (1/3) ── */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Completeness */}
+            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Profile completeness</h3>
+              <div className="flex justify-center mb-4">
+                <div className="relative w-24 h-24">
+                  <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" strokeWidth="8" />
+                    <circle cx="50" cy="50" r="42" fill="none" stroke={completeness >= 80 ? "#10b981" : completeness >= 50 ? "#f59e0b" : "#d1d5db"}
+                      strokeWidth="8" strokeDasharray={`${completeness * 2.64} 264`} strokeLinecap="round" />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-xl font-bold text-gray-900">{completeness}%</span>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {verificationItems.map((v) => (
+                  <div key={v.key} className="flex items-center gap-2">
+                    {v.done ? (
+                      <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border border-gray-300 shrink-0" />
+                    )}
+                    <span className={`text-sm ${v.done ? "text-gray-400" : "text-gray-700"}`}>{v.label}</span>
+                  </div>
+                ))}
+                {profileSections.map((s) => (
+                  <div key={s.key} className="flex items-center gap-2">
+                    {s.done ? (
+                      <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border border-gray-300 shrink-0" />
+                    )}
+                    <span className={`text-sm ${s.done ? "text-gray-400" : "text-gray-700"}`}>{s.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick links */}
+            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick links</h3>
+              <div className="space-y-1">
+                <Link href="/portal/medjobs/jobs" className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0H8m8 0h2a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h2" />
+                  </svg>
+                  Browse open jobs
+                </Link>
+                <Link href="/portal/medjobs/interviews" className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Interviews
+                </Link>
+                <Link href="/medjobs" className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  About MedJobs
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>

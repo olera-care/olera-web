@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
-import { LifecycleProgress } from "@/components/medjobs/LifecycleProgress";
 
 interface JobProvider {
   id: string;
@@ -70,9 +69,7 @@ export default function OpenJobsPage() {
   return (
     <main className="min-h-screen bg-[#FAFAF8]">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        <LifecycleProgress currentPhase="interview" />
-
-        <div className="mt-8 mb-6">
+        <div className="mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">Open Jobs</h1>
           <p className="text-sm text-gray-500 mt-1">
             Browse providers hiring through MedJobs. Apply, then call to introduce yourself — students who follow up get interviewed faster.

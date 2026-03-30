@@ -46,14 +46,23 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || "all";
 
+    // Use service client to bypass RLS for question lookups
+    const db = getServiceClient();
+
     // Build list of possible provider_id values (questions may be stored with slug, source_provider_id, or UUID)
+    // Also check the olera-providers slug — the detail page may use the iOS slug when storing questions
     const providerIdVariants = [profile.slug, profile.id];
     if (profile.source_provider_id) {
       providerIdVariants.push(profile.source_provider_id);
+      const { data: iosProvider } = await db
+        .from("olera-providers")
+        .select("slug")
+        .eq("provider_id", profile.source_provider_id)
+        .single();
+      if (iosProvider?.slug && !providerIdVariants.includes(iosProvider.slug)) {
+        providerIdVariants.push(iosProvider.slug);
+      }
     }
-
-    // Use service client to bypass RLS for question lookups
-    const db = getServiceClient();
 
     // Build query - match any of the possible provider_id formats
     // Include metadata for read tracking
@@ -157,10 +166,18 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Question not found" }, { status: 404 });
     }
 
-    // Check if question's provider_id matches any of our possible identifiers (slug, UUID, or source_provider_id)
+    // Check if question's provider_id matches any of our possible identifiers (slug, UUID, source_provider_id, or iOS slug)
     const providerIdVariants = [profile.slug, profile.id];
     if (profile.source_provider_id) {
       providerIdVariants.push(profile.source_provider_id);
+      const { data: iosProvider } = await db
+        .from("olera-providers")
+        .select("slug")
+        .eq("provider_id", profile.source_provider_id)
+        .single();
+      if (iosProvider?.slug && !providerIdVariants.includes(iosProvider.slug)) {
+        providerIdVariants.push(iosProvider.slug);
+      }
     }
 
     if (!providerIdVariants.includes(question.provider_id)) {

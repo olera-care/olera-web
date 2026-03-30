@@ -97,7 +97,7 @@ function Accordion({
         <span className="flex-1 text-[15px] font-medium text-gray-900">{title}</span>
         {comingSoon && (
           <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
-            Soon
+            Coming soon
           </span>
         )}
         <svg

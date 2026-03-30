@@ -183,18 +183,27 @@ export default async function ResourceArticlePage({
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://olera.care/caregiver-support/${slug}`,
+      "@id": article.canonical_url || `https://olera.care/caregiver-support/${slug}`,
     },
   } : null;
+
+  const canonicalUrl = article?.canonical_url || `https://olera.care/caregiver-support/${slug}`;
+  const isTexasArticle = canonicalUrl.includes("/texas/");
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://olera.care" },
-      { "@type": "ListItem", position: 2, name: "Caregiver Support", item: "https://olera.care/caregiver-support" },
-      { "@type": "ListItem", position: 3, name: title },
-    ],
+    itemListElement: isTexasArticle
+      ? [
+          { "@type": "ListItem", position: 1, name: "Home", item: "https://olera.care" },
+          { "@type": "ListItem", position: 2, name: "Texas", item: "https://olera.care/texas" },
+          { "@type": "ListItem", position: 3, name: title },
+        ]
+      : [
+          { "@type": "ListItem", position: 1, name: "Home", item: "https://olera.care" },
+          { "@type": "ListItem", position: 2, name: "Caregiver Support", item: "https://olera.care/caregiver-support" },
+          { "@type": "ListItem", position: 3, name: title },
+        ],
   };
 
   return (

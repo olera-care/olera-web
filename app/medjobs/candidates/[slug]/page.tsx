@@ -424,6 +424,12 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   <dd className="text-sm text-gray-900">{meta.winter_availability}</dd>
                 </div>
               )}
+              {meta.commitment_statement && (
+                <div className="pt-1 border-t border-gray-100">
+                  <dt className="text-xs text-gray-400 uppercase tracking-wide">Commitment</dt>
+                  <dd className="text-sm text-gray-900 whitespace-pre-line mt-0.5">{meta.commitment_statement}</dd>
+                </div>
+              )}
               {meta.availability_notes && (
                 <div className="pt-1 border-t border-gray-100">
                   <dt className="text-xs text-gray-400 uppercase tracking-wide">Notes</dt>

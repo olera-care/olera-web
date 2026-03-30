@@ -67,7 +67,7 @@ function getProfileSections(meta: StudentMetadata, profile: StudentProfile) {
     { key: "scenarios", label: "Screening questions", done: scenarios.length >= SCENARIO_QUESTIONS.length && scenarios.every((s) => s.answer?.length >= 50) },
     { key: "basic", label: "Basic info", done: true },
     { key: "background", label: "Background", done: true },
-    { key: "availability", label: "Availability", done: !!(meta.hours_per_week_range || meta.duration_commitment) },
+    { key: "availability", label: "Availability & commitment", done: !!(meta.hours_per_week_range && meta.commitment_statement) },
   ];
 }
 
@@ -430,6 +430,74 @@ function ScenarioSection({ profileId, responses, onSave }: {
   );
 }
 
+/* ─── Commitment Statement Section ────────────────────────── */
+
+const COMMITMENT_SUGGESTIONS = [
+  "I am committed to working caregiving shifts around my class schedule for at least 6 months. Outside of class and exam periods, I am available for shifts including evenings, weekends, and overnights.",
+  "I plan to work as a caregiver for multiple semesters. I will keep my schedule updated and give at least 2 weeks notice before any changes. I understand reliability is critical for the families I serve.",
+  "Caregiving is part of my professional development plan. I am committed to 6-12 months of consistent availability, working all hours outside of my coursework, and communicating proactively about schedule changes.",
+];
+
+function CommitmentStatementSection({ profileId, value, onSave }: {
+  profileId: string; value: string; onSave: () => void;
+}) {
+  const [text, setText] = useState(value);
+  const [saving, setSaving] = useState(false);
+  const isValid = text.trim().length >= 50;
+
+  const handleSave = async () => {
+    if (!isValid) return;
+    setSaving(true);
+    try {
+      const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+      const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
+      const m = (current?.metadata || {}) as Record<string, unknown>;
+      m.commitment_statement = text.trim();
+      await sb.from("business_profiles").update({ metadata: m }).eq("id", profileId);
+      onSave();
+    } catch { /* ignore */ }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div>
+      <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">
+        Commitment statement <span className="text-red-400">*</span>
+      </label>
+      <p className="text-xs text-gray-400 mb-2">
+        Describe your commitment to taking caregiving shifts around your coursework for 6+ months. This is required and visible to providers.
+      </p>
+      {!text && (
+        <div className="mb-3 space-y-2">
+          <p className="text-xs text-gray-400">Use a suggestion as a starting point:</p>
+          {COMMITMENT_SUGGESTIONS.map((s, i) => (
+            <button key={i} type="button" onClick={() => setText(s)}
+              className="w-full text-left px-3 py-2 border border-gray-200 hover:border-gray-400 rounded-lg text-xs text-gray-600 transition-colors leading-relaxed">
+              {s.slice(0, 80)}...
+            </button>
+          ))}
+        </div>
+      )}
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Describe your commitment to taking shifts, your availability outside of class, and how long you plan to work..."
+        rows={4}
+        className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors resize-none"
+      />
+      <div className="flex items-center justify-between mt-1">
+        <span className={`text-xs ${text.trim().length < 50 ? "text-amber-500" : "text-gray-400"}`}>
+          {text.trim().length} chars {text.trim().length < 50 && `(${50 - text.trim().length} more needed)`}
+        </span>
+        <button type="button" disabled={saving || !isValid} onClick={handleSave}
+          className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 rounded-lg text-sm font-medium text-white transition-colors">
+          {saving ? "Saving..." : "Save"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Page ─────────────────────────────────────────────────── */
 
 export default function StudentPortalPage() {
@@ -736,21 +804,24 @@ export default function StudentPortalPage() {
                 </SectionCard>
 
                 {/* Availability & Commitment */}
-                <SectionCard label="Availability & commitment" done={!!(meta.hours_per_week_range && meta.duration_commitment)}>
+                <SectionCard label="Availability & commitment" done={!!(meta.hours_per_week_range && meta.commitment_statement)}>
                   <div className="space-y-5">
                     <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50/60">
                       <svg className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <p className="text-xs text-blue-700 leading-relaxed">
-                        This is one of the most important sections for getting hired. Providers need to know you&apos;re available and committed. We&apos;ll message you regularly to keep this updated.
+                        This is the #1 thing providers look at. They need to know you&apos;re committed to taking shifts around coursework for 6+ months. Be specific and honest — we&apos;ll message you regularly to keep this updated.
                       </p>
                     </div>
 
                     <dl className="space-y-2 text-sm">
                       {meta.hours_per_week_range && <div className="flex justify-between"><dt className="text-gray-500">Hours/week</dt><dd className="text-gray-900">{meta.hours_per_week_range} hrs</dd></div>}
-                      {meta.duration_commitment && <div className="flex justify-between"><dt className="text-gray-500">Commitment</dt><dd className="text-gray-900">{meta.duration_commitment.replace(/_/g, " ")}</dd></div>}
+                      {meta.duration_commitment && <div className="flex justify-between"><dt className="text-gray-500">Length of commitment</dt><dd className="text-gray-900">{meta.duration_commitment.replace(/_/g, " ")}</dd></div>}
                     </dl>
+
+                    {/* Commitment statement — required */}
+                    <CommitmentStatementSection profileId={profile.id} value={meta.commitment_statement || ""} onSave={refresh} />
 
                     <div>
                       <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Summer availability</label>
@@ -773,7 +844,7 @@ export default function StudentPortalPage() {
 
                     <div>
                       <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Availability notes</label>
-                      <p className="text-xs text-gray-400 mb-2">Finals weeks, spring break, known travel, anything providers should know about your schedule. The more accurate and wide your availability, the more likely you get hired.</p>
+                      <p className="text-xs text-gray-400 mb-2">Finals weeks, spring break, known travel — anything providers should know. The more accurate and wide your availability, the more likely you get hired.</p>
                       <MetadataEditor profileId={profile.id} field="availability_notes" value={meta.availability_notes || ""} onSave={refresh}
                         placeholder="E.g. Finals week May 5-12 (limited hours). Spring break Mar 10-17 (fully available). No travel planned." multiline />
                     </div>

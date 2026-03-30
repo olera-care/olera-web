@@ -9,31 +9,34 @@ interface FAQItem {
 
 const FAQS: FAQItem[] = [
   {
-    question: "How do I pay for a nursing home in Texas if I have no money?",
+    question: "What happens to my house if I go on Medicaid in Texas?",
     answer:
-      "If your loved one has limited income and assets, they may qualify for Texas Medicaid which covers nursing home care for eligible seniors. Apply through <a href='https://www.yourtexasbenefits.com' target='_blank' rel='noopener noreferrer' class='text-primary-600 underline'>YourTexasBenefits.com</a> or call <strong>211</strong> for help. If their income is too high, a spend-down strategy or Miller Trust may help them qualify.",
+      "Your home is generally <strong>exempt</strong> from Medicaid's asset count as long as you (or your spouse) intend to return to it or continue living there. However, after you pass away, Texas may seek repayment from your estate through <strong>Medicaid Estate Recovery</strong>. Proper planning, such as placing the home in a trust, can help protect it.",
   },
   {
-    question: "Does Medicare pay for home care in Texas?",
+    question: "Can I pay for nursing home care with just Social Security in Texas?",
     answer:
-      "Medicare covers home health care only when it is medically necessary and ordered by a doctor, for example after a hospital stay. It does <strong>not</strong> cover ongoing personal care like help with bathing, dressing, or meals. For long-term home care, Texas Medicaid through <strong>STAR+PLUS</strong> is the primary option.",
+      "In most cases, <strong>no</strong>. The average nursing home in Texas costs around $8,500 per month, while the average Social Security benefit is roughly $1,900. Most families use a combination of Medicaid, personal savings, and sometimes Veterans benefits to cover the gap.",
   },
   {
-    question:
-      "What is the income limit for Medicaid in Texas for seniors?",
+    question: "How much does Medicaid pay for assisted living in Texas?",
     answer:
-      "For STAR+PLUS and Medicaid waivers, the income limit for a single applicant in 2026 is <strong>$2,982 per month</strong>. The asset limit is <strong>$2,000</strong>. Your home does not count as a countable asset as long as you intend to return to it.",
+      "Texas Medicaid does not directly pay for room and board in assisted living facilities. However, the <strong>STAR+PLUS HCBS waiver</strong> can cover personal care services, nursing, and other supports delivered in an assisted living setting. The resident is responsible for room and board costs.",
   },
   {
-    question:
-      "How long will $100,000 last in a nursing home in Texas?",
+    question: "Is there a senior assistance program that covers $3,000 a month in Texas?",
     answer:
-      "At the average Texas nursing home cost of $8,500 per month, $100,000 will last approximately <strong>11 to 12 months</strong>. This is why exploring Medicaid eligibility early is so important. The STAR+PLUS waitlist alone can be 6 to 12 months.",
+      "Yes. The <strong>STAR+PLUS waiver</strong> can provide services valued at several thousand dollars per month, including personal attendant care, home modifications, and adult day care. The exact value depends on the care plan set by your service coordinator.",
   },
   {
-    question: "Can I get free home care in Texas?",
+    question: "Can a family member get paid to care for me in Texas?",
     answer:
-      "Yes. Through the <strong>STAR+PLUS Medicaid waiver</strong>, eligible seniors can receive personal care assistants, nursing services, adult day care, and other home-based supports at no cost. You must meet the income, asset, and care level requirements to qualify. Call <strong>211</strong> to get on the interest list.",
+      "Yes. Through <strong>Consumer Directed Services (CDS)</strong> under STAR+PLUS, you can hire a family member (except a spouse in most cases) as your paid caregiver. They must pass a background check and be managed through an FMSA.",
+  },
+  {
+    question: "How long is the waitlist for STAR+PLUS in Texas?",
+    answer:
+      "The STAR+PLUS interest list wait time varies by region but typically ranges from <strong>6 to 18 months</strong>. You can get on the list by calling <strong>211</strong> or applying through <a href='https://www.yourtexasbenefits.com' target='_blank' rel='noopener noreferrer' class='text-primary-600 underline'>YourTexasBenefits.com</a>. Getting on the list early is critical.",
   },
 ];
 

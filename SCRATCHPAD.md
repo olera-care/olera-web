@@ -7,27 +7,25 @@
 
 ## Current Focus
 
-- **MedJobs Candidates Redesign** (branch: `keen-perlman`) — IN PROGRESS
-  - Redesigned candidates browse from image-heavy card grid to dense, scannable list rows
-  - Shared `CandidateRow` + `CandidateFilters` components used by both `/medjobs/candidates` and `/provider/medjobs/candidates`
-  - Searchable state dropdown (all 50 + DC) via enhanced `Select` component with `searchable` prop
-  - Track, sort, and debounced name search filters
-  - Infinite scroll with IntersectionObserver (no pagination buttons)
-  - API switched from `count: "exact"` to `count: "estimated"` for speed
-  - Public page switched from browser→Supabase to API route (fixed ~7s load time)
-  - ContactSection simplified: 4 auth states → 3 (any authenticated user sees contact, no provider profile gate)
-  - Warm `bg-[#FAFAF8]` surface on all candidates pages
-  - Discovery zone prefooter hidden on `/medjobs` pages
-  - Bug fixes: API `image_url` missing, track filter legacy mapping, API checking wrong field, search debounce
-  - Fixed post-auth redirect: ContactSection now passes deferred `inquiry` action so users return to candidate page instead of `/welcome`
-  - Auth gate copy warmed: "Continue with Google" → "Get Started", method-agnostic
-  - **5 commits on `keen-perlman`, all pushed. Awaiting TJ visual review on Vercel preview.**
-  - **Next: Detail page taste pass, test auth flow end-to-end on preview**
+- **Staging → Main Promotion** — IN PROGRESS
+  - Audited full staging diff: 253 commits, 225 files changed, ~31K lines across ~90 PRs
+  - Key areas: one-click onboarding, provider dashboard, MedJobs, reviews, activity center, email revamp, highlights waterfall, city expansion, admin improvements
+  - Caught missing PR #435 (funny-turing nav cleanup + 2-card PlatformShowcase) — rebased and merged
+  - Caught PR #438 (breadcrumb fix) would silently regress Navbar — rebased and merged clean
+  - **Next: Continue merging remaining open PRs, then promote staging → main**
 
-- **Provider Onboard Page Redesign** (branch: `funny-turing`) — MERGED ✅ (PR #433)
-  - Redesigned onboard page from profile-editor to platform showcase
-  - Replaced 7 profile section cards with 4 platform value cards + 1 compact listing card
-  - Warm bg-[#F7F5F0] Perena/Airbnb-inspired styling
+- **MedJobs Candidates Redesign** (branch: `keen-perlman`) — MERGED ✅ (PR #436)
+  - Dense scannable list rows, infinite scroll, shared CandidateRow/CandidateFilters
+  - **Next: Detail page taste pass, test auth flow end-to-end**
+
+- **Provider Onboard + Nav Cleanup** (branch: `funny-turing`) — MERGED ✅ (PR #433 + #435)
+  - Onboard: profile-editor → platform showcase with 2 cards (Families + Hire Staff)
+  - Nav: Home | Find Families | Hire Staff, conditional Inbox/Leads, Q&A/Reviews hidden
+  - MedJobs provider experience: photo cards + aspirational empty state
+
+- **SEO: Breadcrumb Fix** (branch: `helpful-mendel`) — MERGED ✅ (PR #438)
+  - Fixed 3,082 GSC errors: added `item` URL to final breadcrumb entry across 7 page types
+  - Need to trigger GSC validation after staging deploys
 
 - **SEO: City/Browse Page Optimization** (branch: `zen-perlman`) — ANALYSIS COMPLETE, IMPLEMENTATION NEXT
   - GSC 7-day report analyzed (Mar 19-25): 690K impressions, 2.7K clicks, 0.4% CTR, avg position 26.7

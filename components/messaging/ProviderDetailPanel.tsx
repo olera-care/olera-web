@@ -244,9 +244,9 @@ export default function ProviderDetailPanel({
   const category = profile.category?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || null;
 
   return (
-    <div className={`flex flex-col bg-gray-50 border-l border-gray-200 ${className}`}>
+    <div className={`flex flex-col bg-white border-l border-gray-200 ${className}`}>
       {/* Header */}
-      <div className="shrink-0 px-5 h-14 bg-white border-b border-gray-100 flex items-center justify-end">
+      <div className="shrink-0 px-5 h-14 border-b border-gray-100 flex items-center justify-end">
         <button
           onClick={onClose}
           className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
@@ -261,7 +261,7 @@ export default function ProviderDetailPanel({
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto">
         {/* Profile header - Photo + Name + Location + Badge */}
-        <div className="px-5 pt-4 pb-5 text-center bg-white">
+        <div className="px-5 pt-4 pb-5 text-center">
           {/* Photo with optional online indicator */}
           <div className="relative w-[88px] h-[88px] mx-auto mb-3">
             {images.length > 0 ? (

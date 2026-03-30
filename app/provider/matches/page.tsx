@@ -147,18 +147,73 @@ const STATE_ABBREVIATIONS: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// Discovery Banner (with location selector)
+// Care Illustration SVG Component
 // ---------------------------------------------------------------------------
 
-function DiscoveryBanner({
-  familyCount,
+function CareIllustration({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 180 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Background circle */}
+      <circle cx="110" cy="80" r="70" fill="#d6cec4" fillOpacity="0.3" />
+
+      {/* Chair 1 (left) */}
+      <path d="M35 130 Q30 100 35 80 Q40 75 50 75 L55 130 Z" fill="#c4b8a8" />
+      <path d="M50 75 Q65 75 70 80 Q75 100 70 130 L55 130 Z" fill="#b8a898" />
+
+      {/* Chair 2 (right) */}
+      <path d="M110 130 Q105 100 110 80 Q115 75 125 75 L130 130 Z" fill="#c4b8a8" />
+      <path d="M125 75 Q140 75 145 80 Q150 100 145 130 L130 130 Z" fill="#b8a898" />
+
+      {/* Senior person (left) */}
+      {/* Head */}
+      <circle cx="52" cy="45" r="18" fill="#e8d5b7" />
+      {/* White hair */}
+      <ellipse cx="52" cy="38" rx="16" ry="12" fill="#f5f5f5" />
+      <path d="M36 42 Q36 30 52 28 Q68 30 68 42" fill="#f5f5f5" />
+      {/* Face */}
+      <circle cx="46" cy="46" r="2" fill="#4a4a4a" /> {/* Eye */}
+      <circle cx="58" cy="46" r="2" fill="#4a4a4a" /> {/* Eye */}
+      <path d="M48 54 Q52 57 56 54" stroke="#c4a882" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      {/* Body */}
+      <path d="M35 65 Q40 60 52 60 Q64 60 69 65 L72 110 L32 110 Z" fill="#f5f5f5" />
+      {/* Hands reaching out */}
+      <ellipse cx="78" cy="90" rx="8" ry="6" fill="#e8d5b7" />
+
+      {/* Caregiver (right) */}
+      {/* Head */}
+      <circle cx="128" cy="42" r="20" fill="#8b6f4e" />
+      {/* Hair */}
+      <ellipse cx="128" cy="32" rx="18" ry="14" fill="#3d2b1f" />
+      <path d="M110 38 Q110 22 128 20 Q146 22 146 38" fill="#3d2b1f" />
+      {/* Hair bun with accessory */}
+      <circle cx="140" cy="22" r="8" fill="#3d2b1f" />
+      <circle cx="144" cy="18" r="4" fill="#e8a0a0" /> {/* Pink accessory */}
+      {/* Face */}
+      <circle cx="122" cy="44" r="2.5" fill="#2d2d2d" /> {/* Eye */}
+      <circle cx="134" cy="44" r="2.5" fill="#2d2d2d" /> {/* Eye */}
+      <path d="M123 52 Q128 56 133 52" stroke="#6d5a4a" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      {/* Body - teal scrubs */}
+      <path d="M108 62 Q115 58 128 58 Q141 58 148 62 L152 115 L104 115 Z" fill="#199087" />
+      {/* Hands reaching to senior */}
+      <ellipse cx="98" cy="88" rx="8" ry="6" fill="#8b6f4e" />
+
+      {/* Connection heart between hands */}
+      <path d="M88 85 Q88 80 92 80 Q96 80 96 85 Q96 80 100 80 Q104 80 104 85 Q104 92 96 98 Q88 92 88 85 Z" fill="#199087" fillOpacity="0.3" />
+    </svg>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Location Selector Component (shared across banner variants)
+// ---------------------------------------------------------------------------
+
+function LocationSelector({
   currentLocation,
   providerLocation,
   onLocationChange,
 }: {
-  familyCount: number;
-  currentLocation: string | null; // current filter selection
-  providerLocation: string | null; // provider's default location
+  currentLocation: string | null;
+  providerLocation: string | null;
   onLocationChange: (location: string | null) => void;
 }) {
   const [locationOpen, setLocationOpen] = useState(false);
@@ -167,12 +222,10 @@ function DiscoveryBanner({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Use city search hook for autocomplete
   const { results: cityResults, preload: preloadCities } = useCitySearch(locationInput, {
     limit: 6,
   });
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     if (!locationOpen) return;
     const handleClickOutside = (e: MouseEvent) => {
@@ -184,7 +237,6 @@ function DiscoveryBanner({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [locationOpen]);
 
-  // Close on Escape
   useEffect(() => {
     if (!locationOpen) return;
     const handleEscape = (e: KeyboardEvent) => {
@@ -197,10 +249,8 @@ function DiscoveryBanner({
     return () => document.removeEventListener("keydown", handleEscape);
   }, [locationOpen]);
 
-  // Detect current location via browser geolocation
   const detectLocation = useCallback(() => {
     if (!navigator.geolocation) return;
-
     setIsGeolocating(true);
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -209,46 +259,30 @@ function DiscoveryBanner({
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&countrycodes=us`
           );
           const data = await response.json();
-
           const country = data.address?.country_code?.toUpperCase();
           if (country !== "US") {
             setIsGeolocating(false);
             return;
           }
-
-          const city =
-            data.address?.city ||
-            data.address?.town ||
-            data.address?.village ||
-            data.address?.county ||
-            "Unknown";
+          const city = data.address?.city || data.address?.town || data.address?.village || data.address?.county || "Unknown";
           const stateName = data.address?.state || "";
-          const stateAbbr =
-            STATE_ABBREVIATIONS[stateName] || stateName.substring(0, 2).toUpperCase();
-          const locationString = `${city}, ${stateAbbr}`;
-
-          onLocationChange(locationString);
+          const stateAbbr = STATE_ABBREVIATIONS[stateName] || stateName.substring(0, 2).toUpperCase();
+          onLocationChange(`${city}, ${stateAbbr}`);
           setLocationInput("");
           setLocationOpen(false);
-        } catch {
-          // Silently fail
-        }
+        } catch { /* Silently fail */ }
         setIsGeolocating(false);
       },
-      () => {
-        setIsGeolocating(false);
-      }
+      () => setIsGeolocating(false)
     );
   }, [onLocationChange]);
 
-  // Handle selecting a location from the dropdown
   const handleSelectLocation = useCallback((location: string | null) => {
     onLocationChange(location);
     setLocationInput("");
     setLocationOpen(false);
   }, [onLocationChange]);
 
-  // Handle keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" && cityResults.length > 0 && locationInput.trim()) {
       e.preventDefault();
@@ -259,239 +293,273 @@ function DiscoveryBanner({
   const displayLocation = currentLocation || providerLocation || "All locations";
 
   return (
-    <div className="relative rounded-2xl border border-warm-200/60">
-      {/* Background with warm gradient */}
-      <div
-        className="absolute inset-0 rounded-2xl overflow-hidden"
-        style={{
-          background: `linear-gradient(145deg, #fdfbf8 0%, #f9f6f2 40%, #f5f0ea 100%)`,
+    <div className="relative inline-block" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => {
+          setLocationOpen(!locationOpen);
+          if (!locationOpen) setTimeout(() => inputRef.current?.focus(), 50);
         }}
-      />
+        className="inline-flex items-center gap-2 px-3.5 py-2 bg-white/90 hover:bg-white rounded-full border border-gray-200/80 shadow-sm transition-all group"
+      >
+        <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+        </svg>
+        <span className="text-sm font-semibold text-primary-700">{displayLocation}</span>
+        <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${locationOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
 
-      {/* Subtle dot pattern for texture */}
-      <div
-        className="absolute inset-0 rounded-2xl overflow-hidden opacity-[0.025]"
-        style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, #417272 0.5px, transparent 0)`,
-          backgroundSize: '20px 20px',
-        }}
-      />
-
-      {/* Content */}
-      <div className="relative px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
-        {/* Location selector */}
-        <div className="relative inline-block mb-3" ref={dropdownRef}>
-          <button
-            type="button"
-            onClick={() => {
-              setLocationOpen(!locationOpen);
-              if (!locationOpen) {
-                setTimeout(() => inputRef.current?.focus(), 50);
-              }
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-50/80 hover:bg-primary-100/80 rounded-full border border-primary-100/60 transition-colors group"
-          >
-            <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-            </svg>
-            <span className="text-[12px] font-semibold text-primary-700 uppercase tracking-wide">
-              {displayLocation}
-            </span>
-            <svg
-              className={`w-3.5 h-3.5 text-primary-500 transition-transform duration-200 ${locationOpen ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-            </svg>
-          </button>
-
-          {/* Location dropdown with search */}
-          {locationOpen && (
-            <div className="absolute top-[calc(100%+6px)] left-0 w-72 bg-white rounded-xl shadow-lg border border-gray-200/80 overflow-hidden z-50 animate-fade-in">
-              {/* Search input */}
-              <div className="p-2 border-b border-gray-100">
-                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 focus-within:border-primary-300 focus-within:ring-2 focus-within:ring-primary-100 transition-all">
-                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+      {locationOpen && (
+        <div className="absolute top-[calc(100%+8px)] left-0 w-72 bg-white rounded-xl shadow-xl border border-gray-200/80 overflow-hidden z-50 animate-fade-in">
+          <div className="p-2.5 border-b border-gray-100">
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-lg border border-gray-200 focus-within:border-primary-300 focus-within:ring-2 focus-within:ring-primary-100 transition-all">
+              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+              </svg>
+              <input
+                ref={inputRef}
+                type="text"
+                value={locationInput}
+                onChange={(e) => setLocationInput(e.target.value)}
+                onFocus={preloadCities}
+                onKeyDown={handleKeyDown}
+                placeholder="City or ZIP code"
+                className="flex-1 bg-transparent border-none text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
+              />
+              {locationInput && (
+                <button type="button" onClick={() => setLocationInput("")} className="text-gray-400 hover:text-gray-600">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                   </svg>
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={locationInput}
-                    onChange={(e) => setLocationInput(e.target.value)}
-                    onFocus={preloadCities}
-                    onKeyDown={handleKeyDown}
-                    placeholder="City or ZIP code"
-                    className="flex-1 bg-transparent border-none text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
-                  />
-                  {locationInput && (
-                    <button
-                      type="button"
-                      onClick={() => setLocationInput("")}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Dropdown options */}
-              <div className="max-h-[280px] overflow-y-auto py-1">
-                {/* Use current location */}
-                <button
-                  type="button"
-                  onClick={detectLocation}
-                  disabled={isGeolocating}
-                  className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-left text-sm text-primary-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  {isGeolocating ? (
-                    <svg className="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" />
-                    </svg>
-                  )}
-                  <span className="font-medium">{isGeolocating ? "Detecting..." : "Use my current location"}</span>
                 </button>
-
-                {/* Divider */}
-                <div className="mx-3.5 my-1 h-px bg-gray-100" />
-
-                {/* All locations option */}
-                <button
-                  type="button"
-                  onClick={() => handleSelectLocation(null)}
-                  className={`flex items-center gap-2.5 w-full px-3.5 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors ${
-                    currentLocation === null ? "bg-primary-50 text-primary-700" : "text-gray-700"
-                  }`}
-                >
-                  {currentLocation === null ? (
-                    <svg className="w-4 h-4 text-primary-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                  ) : (
-                    <span className="w-4" />
-                  )}
-                  <span>All locations</span>
-                </button>
-
-                {/* Provider's location if different from current */}
-                {providerLocation && (
-                  <button
-                    type="button"
-                    onClick={() => handleSelectLocation(providerLocation)}
-                    className={`flex items-center gap-2.5 w-full px-3.5 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors ${
-                      currentLocation === providerLocation ? "bg-primary-50 text-primary-700" : "text-gray-700"
-                    }`}
-                  >
-                    {currentLocation === providerLocation ? (
-                      <svg className="w-4 h-4 text-primary-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                      </svg>
-                    )}
-                    <span>{providerLocation}</span>
-                    <span className="ml-auto text-xs text-gray-400">Your area</span>
-                  </button>
-                )}
-
-                {/* City search results */}
-                {locationInput.trim() && cityResults.length > 0 && (
-                  <>
-                    <div className="mx-3.5 my-1 h-px bg-gray-100" />
-                    {cityResults.map((city, index) => (
-                      <button
-                        key={city.full}
-                        type="button"
-                        onClick={() => handleSelectLocation(city.full)}
-                        className={`flex items-center gap-2.5 w-full px-3.5 py-2.5 text-left text-sm transition-colors ${
-                          currentLocation === city.full
-                            ? "bg-primary-50 text-primary-700"
-                            : index === 0
-                              ? "bg-gray-50 text-gray-900"
-                              : "text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                        </svg>
-                        <span>{city.full}</span>
-                        {index === 0 && (
-                          <span className="ml-auto text-xs text-gray-400">Enter</span>
-                        )}
-                      </button>
-                    ))}
-                  </>
-                )}
-
-                {/* Popular cities when no search input */}
-                {!locationInput.trim() && cityResults.length > 0 && (
-                  <>
-                    <div className="mx-3.5 my-1 h-px bg-gray-100" />
-                    <div className="px-3.5 pt-1.5 pb-1">
-                      <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Popular cities</span>
-                    </div>
-                    {cityResults.slice(0, 5).map((city) => (
-                      <button
-                        key={city.full}
-                        type="button"
-                        onClick={() => handleSelectLocation(city.full)}
-                        className={`flex items-center gap-2.5 w-full px-3.5 py-2 text-left text-sm transition-colors ${
-                          currentLocation === city.full
-                            ? "bg-primary-50 text-primary-700"
-                            : "text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                        </svg>
-                        <span>{city.full}</span>
-                      </button>
-                    ))}
-                  </>
-                )}
-
-                {/* No results message */}
-                {locationInput.trim() && cityResults.length === 0 && (
-                  <div className="px-3.5 py-4 text-center">
-                    <p className="text-sm text-gray-500">No locations found</p>
-                    <p className="text-xs text-gray-400 mt-1">Try a city name or ZIP code</p>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
-          )}
+          </div>
+          <div className="max-h-[280px] overflow-y-auto py-1">
+            <button type="button" onClick={detectLocation} disabled={isGeolocating} className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-left text-sm text-primary-600 hover:bg-gray-50 transition-colors disabled:opacity-50">
+              {isGeolocating ? (
+                <svg className="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" />
+                </svg>
+              )}
+              <span className="font-medium">{isGeolocating ? "Detecting..." : "Use my current location"}</span>
+            </button>
+            <div className="mx-3.5 my-1 h-px bg-gray-100" />
+            <button type="button" onClick={() => handleSelectLocation(null)} className={`flex items-center gap-2.5 w-full px-3.5 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors ${currentLocation === null ? "bg-primary-50 text-primary-700" : "text-gray-700"}`}>
+              {currentLocation === null ? (
+                <svg className="w-4 h-4 text-primary-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+              ) : <span className="w-4" />}
+              <span>All locations</span>
+            </button>
+            {providerLocation && (
+              <button type="button" onClick={() => handleSelectLocation(providerLocation)} className={`flex items-center gap-2.5 w-full px-3.5 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors ${currentLocation === providerLocation ? "bg-primary-50 text-primary-700" : "text-gray-700"}`}>
+                {currentLocation === providerLocation ? (
+                  <svg className="w-4 h-4 text-primary-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                  </svg>
+                )}
+                <span>{providerLocation}</span>
+                <span className="ml-auto text-xs text-gray-400">Your area</span>
+              </button>
+            )}
+            {locationInput.trim() && cityResults.length > 0 && (
+              <>
+                <div className="mx-3.5 my-1 h-px bg-gray-100" />
+                {cityResults.map((city, index) => (
+                  <button key={city.full} type="button" onClick={() => handleSelectLocation(city.full)} className={`flex items-center gap-2.5 w-full px-3.5 py-2.5 text-left text-sm transition-colors ${currentLocation === city.full ? "bg-primary-50 text-primary-700" : index === 0 ? "bg-gray-50 text-gray-900" : "text-gray-700 hover:bg-gray-50"}`}>
+                    <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                    </svg>
+                    <span>{city.full}</span>
+                    {index === 0 && <span className="ml-auto text-xs text-gray-400">Enter</span>}
+                  </button>
+                ))}
+              </>
+            )}
+            {!locationInput.trim() && cityResults.length > 0 && (
+              <>
+                <div className="mx-3.5 my-1 h-px bg-gray-100" />
+                <div className="px-3.5 pt-1.5 pb-1">
+                  <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Popular cities</span>
+                </div>
+                {cityResults.slice(0, 5).map((city) => (
+                  <button key={city.full} type="button" onClick={() => handleSelectLocation(city.full)} className={`flex items-center gap-2.5 w-full px-3.5 py-2 text-left text-sm transition-colors ${currentLocation === city.full ? "bg-primary-50 text-primary-700" : "text-gray-700 hover:bg-gray-50"}`}>
+                    <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                    </svg>
+                    <span>{city.full}</span>
+                  </button>
+                ))}
+              </>
+            )}
+            {locationInput.trim() && cityResults.length === 0 && (
+              <div className="px-3.5 py-4 text-center">
+                <p className="text-sm text-gray-500">No locations found</p>
+                <p className="text-xs text-gray-400 mt-1">Try a city name or ZIP code</p>
+              </div>
+            )}
+          </div>
         </div>
+      )}
+    </div>
+  );
+}
 
-        {/* Main headline */}
-        <h1 className="font-display text-[22px] sm:text-2xl lg:text-[28px] leading-snug tracking-tight text-gray-900">
-          <span className="text-primary-600 font-bold">{familyCount}</span>
-          <span className="text-gray-800"> {familyCount === 1 ? 'family is' : 'families are'} looking</span>
-          <br className="sm:hidden" />
-          <span className="text-gray-800"> for care near you</span>
-        </h1>
+// ---------------------------------------------------------------------------
+// Discovery Banner Variants
+// ---------------------------------------------------------------------------
 
-        {/* Divider + Supporting text */}
-        <div className="mt-4 pt-4 border-t border-warm-200/60">
-          <p className="text-sm text-gray-500 leading-relaxed">
-            First to reach out is <span className="font-semibold text-gray-700">3× more likely</span> to connect.
-          </p>
+type BannerVariant = "illustrated" | "editorial" | "minimal";
+
+function DiscoveryBanner({
+  familyCount,
+  currentLocation,
+  providerLocation,
+  onLocationChange,
+  variant = "illustrated",
+}: {
+  familyCount: number;
+  currentLocation: string | null;
+  providerLocation: string | null;
+  onLocationChange: (location: string | null) => void;
+  variant?: BannerVariant;
+}) {
+  // Variant 1: Illustrated (matches your reference image)
+  if (variant === "illustrated") {
+    return (
+      <div className="relative rounded-3xl overflow-hidden">
+        {/* Warm cream background */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #f5f1eb 0%, #ebe5dc 50%, #e5ded3 100%)' }} />
+
+        {/* Subtle organic shape accent */}
+        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full opacity-20" style={{ background: 'radial-gradient(circle, #c9bfb0 0%, transparent 70%)' }} />
+
+        <div className="relative flex items-center justify-between px-6 py-6 sm:px-8 sm:py-7 lg:px-10 lg:py-8">
+          {/* Left: Content */}
+          <div className="flex-1 max-w-xl">
+            {/* Location pill */}
+            <div className="mb-5">
+              <LocationSelector
+                currentLocation={currentLocation}
+                providerLocation={providerLocation}
+                onLocationChange={onLocationChange}
+              />
+            </div>
+
+            {/* Large serif headline */}
+            <h1 className="font-display text-[28px] sm:text-[34px] lg:text-[40px] font-bold leading-[1.15] tracking-tight text-gray-900">
+              <span className="text-gray-900">{familyCount} {familyCount === 1 ? 'family is' : 'families are'} looking</span>
+              <br />
+              <span className="text-gray-900">for care near you</span>
+            </h1>
+
+            {/* Subtitle with accent */}
+            <p className="mt-4 text-[15px] sm:text-base text-gray-600 leading-relaxed">
+              First to reach out is <span className="font-semibold text-primary-600">3× more likely</span> to connect.
+            </p>
+          </div>
+
+          {/* Right: Illustration (desktop) */}
+          <div className="hidden lg:block flex-shrink-0 ml-8">
+            <CareIllustration className="w-44 h-40" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Variant 2: Editorial (clean typography focus, no illustration)
+  if (variant === "editorial") {
+    return (
+      <div className="relative rounded-3xl overflow-hidden">
+        {/* Pure white with subtle warm tint */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-vanilla-50/50 to-vanilla-100/30" />
+
+        {/* Accent line */}
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 via-primary-500 to-primary-600" />
+
+        <div className="relative px-8 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12">
+          {/* Location - smaller, inline */}
+          <div className="flex items-center gap-3 mb-6">
+            <LocationSelector
+              currentLocation={currentLocation}
+              providerLocation={providerLocation}
+              onLocationChange={onLocationChange}
+            />
+            <span className="text-sm text-gray-400">•</span>
+            <span className="text-sm text-gray-500">Updated live</span>
+          </div>
+
+          {/* Large number + text split */}
+          <div className="flex items-baseline gap-4">
+            <span className="font-display text-[72px] sm:text-[88px] lg:text-[100px] font-bold leading-none tracking-tighter text-primary-600">
+              {familyCount}
+            </span>
+            <div className="pb-2">
+              <h1 className="font-display text-2xl sm:text-3xl lg:text-[34px] font-medium leading-snug tracking-tight text-gray-900">
+                {familyCount === 1 ? 'family is' : 'families are'} looking
+                <br />
+                for care near you
+              </h1>
+            </div>
+          </div>
+
+          {/* Subtle divider + CTA text */}
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <p className="text-[15px] text-gray-500">
+              Providers who respond first are <span className="font-semibold text-gray-800">3× more likely</span> to connect with families.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Variant 3: Minimal (compact, clean)
+  return (
+    <div className="relative rounded-2xl border border-gray-200/80 bg-white">
+      <div className="px-5 py-5 sm:px-6 sm:py-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          {/* Left side */}
+          <div className="flex items-center gap-5">
+            {/* Count badge */}
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/20">
+              <span className="font-display text-2xl font-bold text-white">{familyCount}</span>
+            </div>
+
+            <div>
+              <h1 className="font-display text-lg sm:text-xl font-semibold text-gray-900">
+                {familyCount === 1 ? 'Family' : 'Families'} looking for care
+              </h1>
+              <p className="text-sm text-gray-500 mt-0.5">
+                First to respond is <span className="font-medium text-primary-600">3× more likely</span> to connect
+              </p>
+            </div>
+          </div>
+
+          {/* Right side - location */}
+          <LocationSelector
+            currentLocation={currentLocation}
+            providerLocation={providerLocation}
+            onLocationChange={onLocationChange}
+          />
         </div>
       </div>
     </div>

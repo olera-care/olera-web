@@ -399,6 +399,7 @@ export interface StudentMetadata {
   hours_per_week_range?: string;        // "5-10", "10-15", "15-20", "20+"
   acknowledgments_completed?: boolean;
   acknowledgment_date?: string;
+  application_completed?: boolean;
 
   // Motivation & Personal Statement
   why_caregiving?: string;

@@ -111,6 +111,7 @@ export async function GET(request: Request) {
         for (const program of state.programs ?? []) {
           const programUrl = buildProgramUrl(state.id, program.id);
           entries.push(xmlEntry(`${SITE_URL}${programUrl}`, 0.5, "monthly"));
+          entries.push(xmlEntry(`${SITE_URL}${programUrl}/checklist`, 0.4, "monthly"));
           if (program.forms?.length > 0) {
             entries.push(xmlEntry(`${SITE_URL}${programUrl}/forms`, 0.4, "monthly"));
           }

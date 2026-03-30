@@ -165,7 +165,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
           Back to Candidates
         </Link>
 
-        {/* ── Identity Bar ── */}
+        {/* ── Identity Bar — optimized for provider scanning ── */}
         <div className="mt-4 bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6">
           <div className="flex items-start gap-4">
             {/* Avatar */}
@@ -196,7 +196,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                 {meta.seeking_status === "actively_looking" && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Actively Looking
+                    Ready to Start
                   </span>
                 )}
               </div>
@@ -217,9 +217,34 @@ export default async function StudentProfilePage({ params }: PageProps) {
                 )}
               </div>
 
-              {lastUpdated && (
-                <p className="mt-1 text-xs text-gray-400">{lastUpdated}</p>
-              )}
+              {/* Trust signals row */}
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
+                {lastUpdated && <span>{lastUpdated}</span>}
+                {meta.drivers_license_url && meta.car_insurance_url && (
+                  <span className="inline-flex items-center gap-1 text-emerald-600">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Verified
+                  </span>
+                )}
+                {meta.acknowledgments_completed && (
+                  <span className="inline-flex items-center gap-1 text-emerald-600">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Background check consent
+                  </span>
+                )}
+                {videoAvailable && (
+                  <span className="inline-flex items-center gap-1 text-emerald-600">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Video intro
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Save button */}

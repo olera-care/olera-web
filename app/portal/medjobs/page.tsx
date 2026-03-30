@@ -708,7 +708,6 @@ export default function StudentPortalPage() {
                           <InlineUpload profileId={profile.id} documentType={item.key as "drivers_license" | "car_insurance"} onComplete={refresh} />
                         </div>
                       )}
-                      )}
                     </SectionCard>
                   ))}
                 </div>

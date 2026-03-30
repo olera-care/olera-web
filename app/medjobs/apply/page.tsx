@@ -207,7 +207,6 @@ export default function MedJobsApplyPage() {
   const [seasonalAvailability, setSeasonalAvailability] = useState<string[]>([]);
   const [durationCommitment, setDurationCommitment] = useState("");
   const [hoursPerWeekRange, setHoursPerWeekRange] = useState("");
-  const [scheduleNotes, setScheduleNotes] = useState("");
 
   // Confirm — individual attestation checkboxes
   const [attestations, setAttestations] = useState<boolean[]>([false, false, false, false, false, false]);
@@ -337,7 +336,6 @@ export default function MedJobsApplyPage() {
           careExperienceTypes, languages, availabilityTypes, seasonalAvailability,
           durationCommitment: durationCommitment || undefined,
           hoursPerWeekRange: hoursPerWeekRange || undefined,
-          scheduleNotes: scheduleNotes || undefined,
           acknowledgmentsCompleted: true,
           website: honeypot,
         }),
@@ -376,7 +374,7 @@ export default function MedJobsApplyPage() {
     displayName, email, phone, university, universityId, universityOther, universitySearch,
     major, majorOther, intendedSchool, city, state, certifications, yearsCaregiving,
     careExperienceTypes, languages, availabilityTypes, seasonalAvailability,
-    durationCommitment, hoursPerWeekRange, scheduleNotes, honeypot,
+    durationCommitment, hoursPerWeekRange, honeypot,
   ]);
 
   /* ─── Success ────────────────────────────────────────────── */
@@ -717,19 +715,6 @@ export default function MedJobsApplyPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">
-                  Anything we should know about your schedule?
-                  <span className="normal-case tracking-normal text-gray-300 ml-1">(optional)</span>
-                </label>
-                <textarea
-                  value={scheduleNotes}
-                  onChange={(e) => setScheduleNotes(e.target.value)}
-                  placeholder="E.g. &quot;I have classes MWF mornings but am free all other times&quot;"
-                  rows={3}
-                  className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 bg-transparent transition-colors resize-none"
-                />
-              </div>
             </div>
           )}
 

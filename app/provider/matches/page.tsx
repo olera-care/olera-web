@@ -530,16 +530,18 @@ function DiscoveryBanner({
             </p>
           </div>
 
-          {/* Right: Banner image */}
-          <div className="hidden md:block flex-shrink-0 self-stretch">
-            <Image
-              src="/Matches-banner-image.png"
-              alt="Caregiver connecting with families"
-              width={320}
-              height={200}
-              className="h-full w-auto object-cover object-left rounded-r-[20px]"
-              priority
-            />
+          {/* Right: Floating image card */}
+          <div className="hidden md:flex items-center justify-center flex-shrink-0 pr-6 lg:pr-8 py-4">
+            <div className="relative rounded-2xl overflow-hidden shadow-lg shadow-black/10 ring-1 ring-black/5">
+              <Image
+                src="/Matches-banner-image.png"
+                alt="Caregiver connecting with families"
+                width={240}
+                height={160}
+                className="w-[200px] lg:w-[240px] h-auto object-cover"
+                priority
+              />
+            </div>
           </div>
         </div>
       </div>

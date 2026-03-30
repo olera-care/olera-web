@@ -7,7 +7,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { canEngage, getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT, isProfileShareable } from "@/lib/membership";
+import { canEngage, getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT, isProfileShareable, getProfileCompletionGaps } from "@/lib/membership";
 import type { Profile, FamilyMetadata } from "@/lib/types";
 import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
 import { calculateProfileCompleteness, type ExtendedMetadata } from "@/lib/profile-completeness";
@@ -1577,6 +1577,8 @@ export default function ProviderMatchesPage() {
   const [saveAsDefault, setSaveAsDefault] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [profileGapWarning, setProfileGapWarning] = useState<string[] | null>(null);
+  const gapWarningRef = useRef<HTMLDivElement>(null);
 
   // Reminder sending state
   const [sendingReminderId, setSendingReminderId] = useState<string | null>(null);
@@ -1615,7 +1617,13 @@ export default function ProviderMatchesPage() {
 
   const handleReachOut = useCallback(
     (family: Profile) => {
-      if (!isProfileShareable(providerProfile)) return;
+      if (!isProfileShareable(providerProfile)) {
+        const gaps = getProfileCompletionGaps(providerProfile);
+        setProfileGapWarning(gaps);
+        setTimeout(() => gapWarningRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+        return;
+      }
+      setProfileGapWarning(null);
       setSendError(null);
       try {
         const saved = localStorage.getItem(DEFAULT_NOTE_KEY);
@@ -2146,6 +2154,28 @@ export default function ProviderMatchesPage() {
                   </p>
                 </div>
               ) : (
+                <>
+                {profileGapWarning && (
+                  <div ref={gapWarningRef} className="mt-4 mb-2 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/60 px-4 py-3.5">
+                    <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                    </svg>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-amber-800">Complete your profile to reach out</p>
+                      <p className="text-sm text-amber-700 mt-0.5">
+                        Missing: {profileGapWarning.join(", ")}.{" "}
+                        <Link href="/provider" className="font-semibold underline underline-offset-2 hover:text-amber-900">
+                          Update profile →
+                        </Link>
+                      </p>
+                    </div>
+                    <button type="button" onClick={() => setProfileGapWarning(null)} className="text-amber-400 hover:text-amber-600 transition-colors">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
                 <div className="flex flex-col gap-2.5 mt-4">
                   {paginatedFamilies.map((family, index) => (
                     <FamilyMatchCard
@@ -2161,6 +2191,7 @@ export default function ProviderMatchesPage() {
                     />
                   ))}
                 </div>
+                </>
               )}
             </>
           )}

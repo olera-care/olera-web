@@ -406,7 +406,7 @@ function InboxContent() {
         const { data: profileData } = await supabase
           .from("business_profiles")
           .select(
-            "id, display_name, description, image_url, city, state, type, email, phone, website, slug, care_types, category, source_provider_id"
+            "id, display_name, description, image_url, city, state, type, email, phone, website, slug, care_types, category, source_provider_id, metadata"
           )
           .in("id", uncachedIds);
 
@@ -611,7 +611,7 @@ function InboxContent() {
 
       const { data: profileData } = await supabase
         .from("business_profiles")
-        .select("id, display_name, description, image_url, city, state, type, email, phone, website, slug, care_types, category, source_provider_id")
+        .select("id, display_name, description, image_url, city, state, type, email, phone, website, slug, care_types, category, source_provider_id, metadata")
         .in("id", Array.from(archiveProfileIds));
 
       const profileMap = new Map(((profileData as Profile[]) || []).map((p) => [p.id, p]));

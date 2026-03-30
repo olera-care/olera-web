@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import type { Profile } from "@/lib/types";
+import type { Profile, FamilyMetadata } from "@/lib/types";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 interface ProviderDetailPanelProps {
@@ -25,6 +25,34 @@ function formatCareTypes(types: string[]): string[] {
   );
 }
 
+// Label mappings for family metadata
+const TIMELINE_LABELS: Record<string, string> = {
+  immediate: "Immediately",
+  asap: "Immediately",
+  within_1_month: "Within a month",
+  within_month: "Within a month",
+  within_3_months: "In a few months",
+  few_months: "In a few months",
+  exploring: "Just exploring",
+  researching: "Just exploring",
+};
+
+const SCHEDULE_LABELS: Record<string, string> = {
+  mornings: "Mornings",
+  afternoons: "Afternoons",
+  evenings: "Evenings",
+  overnight: "Overnight",
+  full_time: "Full-time / Live-in",
+  flexible: "Flexible",
+};
+
+const CONTACT_LABELS: Record<string, string> = {
+  call: "Phone call",
+  phone: "Phone call",
+  text: "Text message",
+  email: "Email",
+};
+
 export default function ProviderDetailPanel({
   profile,
   onClose,
@@ -33,11 +61,15 @@ export default function ProviderDetailPanel({
   const [images, setImages] = useState<string[]>([]);
   const [currentImage, setCurrentImage] = useState(0);
 
-  // Only providers have public profile pages
+  // Determine if this is a family or provider profile
+  const isFamily = profile.type === "family";
   const isProvider = profile.type === "organization" || profile.type === "caregiver";
   const profileHref = isProvider && profile.slug ? `/provider/${profile.slug}` : null;
 
-  // Fetch additional images from olera-providers if available
+  // Extract family metadata
+  const meta = (profile.metadata || {}) as FamilyMetadata;
+
+  // Fetch additional images from olera-providers if available (for providers only)
   useEffect(() => {
     const existing = profile.image_url ? [profile.image_url] : [];
     setImages(existing);
@@ -59,7 +91,6 @@ export default function ProviderDetailPanel({
           const split = (data.provider_images as string).split(" | ").filter(Boolean);
           allImages.push(...split);
         }
-        // Dedupe
         const unique = [...new Set(allImages)].slice(0, 5);
         if (unique.length > 0) {
           setImages(unique);
@@ -72,10 +103,20 @@ export default function ProviderDetailPanel({
   const careTypes = formatCareTypes(profile.care_types || []);
   const location = [profile.city, profile.state].filter(Boolean).join(", ");
 
+  // Family-specific derived values
+  const careRecipient = meta.relationship_to_recipient;
+  const age = meta.age;
+  const careNeeds = meta.care_needs || [];
+  const timeline = meta.timeline ? TIMELINE_LABELS[meta.timeline] || meta.timeline : null;
+  const schedule = meta.schedule_preference ? SCHEDULE_LABELS[meta.schedule_preference] || meta.schedule_preference : null;
+  const contactPref = meta.contact_preference ? CONTACT_LABELS[meta.contact_preference] || meta.contact_preference : null;
+  const paymentMethods = meta.payment_methods || [];
+  const aboutSituation = meta.about_situation || profile.description;
+
   return (
     <div className={`flex flex-col bg-white border-l border-gray-200 ${className}`}>
       {/* Header */}
-      <div className="shrink-0 px-[44px] h-[68px] border-b border-gray-200 flex items-center justify-between">
+      <div className="shrink-0 px-6 h-[68px] border-b border-gray-200 flex items-center justify-between">
         <h3 className="text-lg font-display font-semibold text-gray-900">Details</h3>
         <button
           onClick={onClose}
@@ -90,95 +131,211 @@ export default function ProviderDetailPanel({
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto">
-        {/* Image carousel */}
+        {/* Image carousel (for providers) or avatar (for families) */}
         {images.length > 0 && (
-          <div className="relative px-[44px] pt-5">
-            <div className="relative rounded-2xl overflow-hidden aspect-[4/3]">
-            <Image
-              src={images[currentImage]}
-              alt={profile.display_name}
-              fill
-              sizes="(max-width: 768px) 100vw, 400px"
-              className="object-cover"
-            />
-            {images.length > 1 && (
-              <>
-                {currentImage > 0 && (
-                  <button
-                    onClick={() => setCurrentImage((p) => p - 1)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-colors"
-                  >
-                    <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                )}
-                {currentImage < images.length - 1 && (
-                  <button
-                    onClick={() => setCurrentImage((p) => p + 1)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-colors"
-                  >
-                    <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                )}
-                {/* Dots */}
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
-                  {images.map((_, i) => (
-                    <span
-                      key={i}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        i === currentImage ? "bg-white" : "bg-white/50"
-                      }`}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
+          <div className="relative px-6 pt-5">
+            <div className={`relative overflow-hidden ${isFamily ? "w-20 h-20 rounded-full mx-auto" : "rounded-2xl aspect-[4/3]"}`}>
+              <Image
+                src={images[currentImage]}
+                alt={profile.display_name}
+                fill
+                sizes="(max-width: 768px) 100vw, 400px"
+                className="object-cover"
+              />
+              {!isFamily && images.length > 1 && (
+                <>
+                  {currentImage > 0 && (
+                    <button
+                      onClick={() => setCurrentImage((p) => p - 1)}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-colors"
+                    >
+                      <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                  )}
+                  {currentImage < images.length - 1 && (
+                    <button
+                      onClick={() => setCurrentImage((p) => p + 1)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-sm hover:bg-white transition-colors"
+                    >
+                      <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  )}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+                    {images.map((_, i) => (
+                      <span
+                        key={i}
+                        className={`w-2 h-2 rounded-full transition-colors ${
+                          i === currentImage ? "bg-white" : "bg-white/50"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
 
-        {/* Provider info */}
-        <div className="px-[44px] py-5">
-          <h2 className="text-xl font-display font-bold text-gray-900 leading-tight">
+        {/* Profile info */}
+        <div className="px-6 py-5">
+          <h2 className={`text-xl font-display font-bold text-gray-900 leading-tight ${isFamily ? "text-center" : ""}`}>
             {profile.display_name}
           </h2>
-          {category && (
+          {!isFamily && category && (
             <p className="text-[15px] text-gray-500 mt-1">{category}</p>
           )}
           {location && (
-            <p className="text-[15px] text-gray-500 mt-0.5">{location}</p>
+            <p className={`text-[15px] text-gray-500 mt-0.5 ${isFamily ? "text-center" : ""}`}>{location}</p>
           )}
 
-          {/* Description */}
-          {profile.description && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-[15px] text-gray-600 leading-relaxed line-clamp-4">
-                {profile.description}
-              </p>
-            </div>
+          {/* ===== FAMILY-SPECIFIC SECTIONS ===== */}
+          {isFamily && (
+            <>
+              {/* Care Recipient Info */}
+              {(careRecipient || age) && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Care Recipient</h4>
+                  <div className="space-y-1.5">
+                    {careRecipient && (
+                      <p className="text-[15px] text-gray-700">
+                        <span className="text-gray-500">Who:</span> {careRecipient}
+                      </p>
+                    )}
+                    {age && (
+                      <p className="text-[15px] text-gray-700">
+                        <span className="text-gray-500">Age:</span> {age} years old
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Care Types */}
+              {careTypes.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Looking For</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {careTypes.map((ct) => (
+                      <span
+                        key={ct}
+                        className="text-sm font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full"
+                      >
+                        {ct}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Care Needs */}
+              {careNeeds.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Help Needed</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {careNeeds.map((need) => (
+                      <span
+                        key={need}
+                        className="text-sm font-medium text-primary-700 bg-primary-50 px-2.5 py-1 rounded-full"
+                      >
+                        {need}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Timeline & Schedule */}
+              {(timeline || schedule) && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Timing</h4>
+                  <div className="space-y-1.5">
+                    {timeline && (
+                      <p className="text-[15px] text-gray-700">
+                        <span className="text-gray-500">When:</span> {timeline}
+                      </p>
+                    )}
+                    {schedule && (
+                      <p className="text-[15px] text-gray-700">
+                        <span className="text-gray-500">Schedule:</span> {schedule}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Payment Methods */}
+              {paymentMethods.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Payment</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {paymentMethods.map((method) => (
+                      <span
+                        key={method}
+                        className="text-sm font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full"
+                      >
+                        {method}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* About Situation */}
+              {aboutSituation && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">About</h4>
+                  <p className="text-[15px] text-gray-600 leading-relaxed">
+                    {aboutSituation}
+                  </p>
+                </div>
+              )}
+
+              {/* Contact Preference */}
+              {contactPref && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Prefers</h4>
+                  <p className="text-[15px] text-gray-700">{contactPref}</p>
+                </div>
+              )}
+            </>
           )}
 
-          {/* Care types */}
-          {careTypes.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Services</h4>
-              <div className="flex flex-wrap gap-1.5">
-                {careTypes.map((ct) => (
-                  <span
-                    key={ct}
-                    className="text-sm font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full"
-                  >
-                    {ct}
-                  </span>
-                ))}
-              </div>
-            </div>
+          {/* ===== PROVIDER-SPECIFIC SECTIONS ===== */}
+          {!isFamily && (
+            <>
+              {/* Description */}
+              {profile.description && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <p className="text-[15px] text-gray-600 leading-relaxed line-clamp-4">
+                    {profile.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Care types */}
+              {careTypes.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Services</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {careTypes.map((ct) => (
+                      <span
+                        key={ct}
+                        className="text-sm font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full"
+                      >
+                        {ct}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
-          {/* Contact info */}
+          {/* Contact info - shown for both */}
           {(profile.phone || profile.email || profile.website) && (
             <div className="mt-4 pt-4 border-t border-gray-100 space-y-2.5">
               <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Contact</h4>
@@ -220,7 +377,7 @@ export default function ProviderDetailPanel({
 
         {/* View full profile link - only for providers */}
         {profileHref && (
-          <div className="px-[44px] pb-6">
+          <div className="px-6 pb-6">
             <Link
               href={profileHref}
               target="_blank"

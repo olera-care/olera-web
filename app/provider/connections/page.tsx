@@ -32,6 +32,7 @@ interface LeadDetail {
   contactPreference?: ContactMethod;
   careRecipient?: string;
   careRecipientName?: string;
+  careRecipientAge?: number;
   careType?: string[];
   careNeeds?: string[];
   livingSituation?: string;
@@ -39,6 +40,7 @@ interface LeadDetail {
   careLocation?: string;
   languagePreference?: string;
   insuranceType?: string;
+  paymentMethods?: string[];
   benefits?: string[];
   additionalNotes?: string;
   activity?: ActivityEvent[];
@@ -715,14 +717,28 @@ function LeadDetailDrawer({
             )}
           </CollapsibleSection>
 
-          {/* 4. Payment & Benefits — insurance type + benefit cards */}
+          {/* 4. Payment & Benefits — payment methods + benefit cards */}
           <CollapsibleSection title="Payment & Benefits">
-            {(lead.insuranceType || (lead.benefits && lead.benefits.length > 0)) ? (
+            {(lead.paymentMethods && lead.paymentMethods.length > 0) || lead.insuranceType || (lead.benefits && lead.benefits.length > 0) ? (
               <div className="space-y-5">
-                <div>
-                  <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Insurance</p>
-                  <p className="text-[15px] text-gray-800">{lead.insuranceType || <span className="text-gray-400 italic">Not provided</span>}</p>
-                </div>
+                {lead.paymentMethods && lead.paymentMethods.length > 0 && (
+                  <div>
+                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2.5">Payment methods</p>
+                    <div className="flex flex-wrap gap-2">
+                      {lead.paymentMethods.map((method) => (
+                        <span key={method} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700">
+                          {method}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {lead.insuranceType && (
+                  <div>
+                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Insurance</p>
+                    <p className="text-[15px] text-gray-800">{lead.insuranceType}</p>
+                  </div>
+                )}
                 {lead.benefits && lead.benefits.length > 0 && (
                   <div>
                     <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2.5">Saved benefits</p>
@@ -1074,6 +1090,9 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
   const schedulePreference = familyMeta.schedule_preference as string | undefined;
   const careLocation = familyMeta.care_location as string | undefined;
   const languagePreference = familyMeta.language_preference as string | undefined;
+  const careRecipientAge = familyMeta.age as number | undefined;
+  const paymentMethods = familyMeta.payment_methods as string[] | undefined;
+  const aboutSituation = familyMeta.about_situation as string | undefined;
 
   // Map contact preference to ContactMethod type
   const contactPrefMap: Record<string, ContactMethod> = {
@@ -1173,7 +1192,9 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
     connectionId: conn.id,
     name: fullName,
     initials: getInitials(fullName),
-    subtitle: `For ${careRecipient.toLowerCase()}`,
+    subtitle: careRecipientAge
+      ? `For ${careRecipient.toLowerCase()}, ${careRecipientAge} years old`
+      : `For ${careRecipient.toLowerCase()}`,
     location,
     urgency,
     status,
@@ -1182,6 +1203,7 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
     email,
     phone,
     careRecipient,
+    careRecipientAge,
     // Fresh profile data for enriched lead details
     careType: profileCareTypes.length > 0 ? profileCareTypes : (messageCareType ? [messageCareType] : undefined),
     careNeeds: profileCareNeeds.length > 0 ? profileCareNeeds : undefined,
@@ -1190,7 +1212,8 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
     careLocation,
     languagePreference,
     contactPreference,
-    additionalNotes: (careDetails.additional_notes as string) || (meta?.auto_intro as string) || undefined,
+    paymentMethods,
+    additionalNotes: aboutSituation || (careDetails.additional_notes as string) || (meta?.auto_intro as string) || undefined,
     activity,
   };
 }

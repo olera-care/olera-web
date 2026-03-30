@@ -433,19 +433,30 @@ function ScenarioSection({ profileId, responses, onSave }: {
 /* ─── Page ─────────────────────────────────────────────────── */
 
 export default function StudentPortalPage() {
-  const { account, profiles, isLoading: authLoading } = useAuth();
+  const { user, account, profiles, isLoading: authLoading } = useAuth();
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  const retryRef = useRef(false);
 
   useEffect(() => {
     if (authLoading) return;
     const studentProfile = profiles?.find((p) => p.type === "student");
     if (studentProfile) { fetchFullProfile(studentProfile.id); return; }
     if (account?.id) { fetchByAccount(account.id); return; }
+    // Fallback: if auth loaded but no account/profiles yet, try by email
+    if (user?.email) { fetchByEmail(user.email); return; }
+    // If nothing found and we haven't retried yet, wait and retry
+    // (handles race condition where auth session established but profiles not yet loaded)
+    if (!retryRef.current && user) {
+      retryRef.current = true;
+      setTimeout(() => setRefreshKey((k) => k + 1), 1500);
+      return;
+    }
     setLoading(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, account?.id, profiles, refreshKey]);
+  }, [authLoading, account?.id, profiles, refreshKey, user?.email]);
 
   const fetchFullProfile = useCallback(async (profileId: string) => {
     try {
@@ -460,6 +471,15 @@ export default function StudentPortalPage() {
     try {
       const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
       const { data } = await sb.from("business_profiles").select("id, slug, display_name, email, phone, is_active, image_url, city, state, metadata").eq("account_id", accountId).eq("type", "student").limit(1).maybeSingle();
+      if (data) setProfile(data as StudentProfile);
+    } catch { /* ignore */ }
+    finally { setLoading(false); }
+  }, []);
+
+  const fetchByEmail = useCallback(async (email: string) => {
+    try {
+      const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+      const { data } = await sb.from("business_profiles").select("id, slug, display_name, email, phone, is_active, image_url, city, state, metadata").eq("email", email).eq("type", "student").limit(1).maybeSingle();
       if (data) setProfile(data as StudentProfile);
     } catch { /* ignore */ }
     finally { setLoading(false); }

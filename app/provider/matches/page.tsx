@@ -147,58 +147,97 @@ const STATE_ABBREVIATIONS: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// Care Illustration SVG Component
+// Care Illustration SVG Component - Refined version matching reference
 // ---------------------------------------------------------------------------
 
 function CareIllustration({ className = "" }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 180 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Background circle */}
-      <circle cx="110" cy="80" r="70" fill="#d6cec4" fillOpacity="0.3" />
+    <svg className={className} viewBox="0 0 200 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Soft circular background */}
+      <ellipse cx="115" cy="100" rx="75" ry="70" fill="#c9c0b4" fillOpacity="0.25" />
 
-      {/* Chair 1 (left) */}
-      <path d="M35 130 Q30 100 35 80 Q40 75 50 75 L55 130 Z" fill="#c4b8a8" />
-      <path d="M50 75 Q65 75 70 80 Q75 100 70 130 L55 130 Z" fill="#b8a898" />
+      {/* === LEFT CHAIR (armchair for senior) === */}
+      {/* Chair back */}
+      <path d="M25 65 C25 50 35 45 50 45 C65 45 75 50 75 65 L75 130 L25 130 Z" fill="#c4b8aa" />
+      {/* Chair seat */}
+      <rect x="22" y="110" width="58" height="22" rx="4" fill="#b8aa98" />
+      {/* Chair arm left */}
+      <path d="M18 70 C12 70 10 75 10 85 L10 115 C10 120 14 122 20 122 L25 122 L25 70 Z" fill="#d4c8ba" />
+      {/* Chair arm right */}
+      <path d="M75 70 L80 70 C86 70 90 75 90 85 L90 115 C90 120 86 122 80 122 L75 122 Z" fill="#b8aa98" />
+      {/* Chair legs */}
+      <rect x="28" y="130" width="6" height="18" rx="2" fill="#a09080" />
+      <rect x="66" y="130" width="6" height="18" rx="2" fill="#a09080" />
 
-      {/* Chair 2 (right) */}
-      <path d="M110 130 Q105 100 110 80 Q115 75 125 75 L130 130 Z" fill="#c4b8a8" />
-      <path d="M125 75 Q140 75 145 80 Q150 100 145 130 L130 130 Z" fill="#b8a898" />
+      {/* === RIGHT CHAIR (for caregiver) === */}
+      {/* Chair back */}
+      <path d="M120 65 C120 50 130 45 145 45 C160 45 170 50 170 65 L170 130 L120 130 Z" fill="#c4b8aa" />
+      {/* Chair seat */}
+      <rect x="117" y="110" width="58" height="22" rx="4" fill="#b8aa98" />
+      {/* Chair arm left */}
+      <path d="M113 70 C107 70 105 75 105 85 L105 115 C105 120 109 122 115 122 L120 122 L120 70 Z" fill="#d4c8ba" />
+      {/* Chair arm right */}
+      <path d="M170 70 L175 70 C181 70 185 75 185 85 L185 115 C185 120 181 122 175 122 L170 122 Z" fill="#b8aa98" />
+      {/* Chair legs */}
+      <rect x="123" y="130" width="6" height="18" rx="2" fill="#a09080" />
+      <rect x="161" y="130" width="6" height="18" rx="2" fill="#a09080" />
 
-      {/* Senior person (left) */}
+      {/* === SENIOR PERSON (left) === */}
+      {/* Body - cream/white cardigan */}
+      <path d="M32 72 C38 65 48 62 50 62 C52 62 62 65 68 72 L72 108 L28 108 Z" fill="#f7f4f0" />
+      {/* Collar detail */}
+      <path d="M42 72 L50 78 L58 72" stroke="#e8e4de" strokeWidth="2" fill="none" />
+      {/* Neck */}
+      <rect x="46" y="55" width="8" height="10" rx="3" fill="#e8d5c4" />
       {/* Head */}
-      <circle cx="52" cy="45" r="18" fill="#e8d5b7" />
-      {/* White hair */}
-      <ellipse cx="52" cy="38" rx="16" ry="12" fill="#f5f5f5" />
-      <path d="M36 42 Q36 30 52 28 Q68 30 68 42" fill="#f5f5f5" />
-      {/* Face */}
-      <circle cx="46" cy="46" r="2" fill="#4a4a4a" /> {/* Eye */}
-      <circle cx="58" cy="46" r="2" fill="#4a4a4a" /> {/* Eye */}
-      <path d="M48 54 Q52 57 56 54" stroke="#c4a882" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-      {/* Body */}
-      <path d="M35 65 Q40 60 52 60 Q64 60 69 65 L72 110 L32 110 Z" fill="#f5f5f5" />
-      {/* Hands reaching out */}
-      <ellipse cx="78" cy="90" rx="8" ry="6" fill="#e8d5b7" />
+      <ellipse cx="50" cy="42" rx="16" ry="18" fill="#e8d5c4" />
+      {/* White/gray hair */}
+      <path d="M34 38 C34 25 42 18 50 18 C58 18 66 25 66 38 C66 42 64 44 62 44 L60 36 C60 30 55 26 50 26 C45 26 40 30 40 36 L38 44 C36 44 34 42 34 38 Z" fill="#e8e6e4" />
+      {/* Ear */}
+      <ellipse cx="34" cy="44" rx="3" ry="5" fill="#dcc8b8" />
+      {/* Eye */}
+      <circle cx="43" cy="42" r="2" fill="#4a4540" />
+      <circle cx="43" cy="41.5" r="0.7" fill="#ffffff" />
+      {/* Gentle smile */}
+      <path d="M44 50 Q50 54 56 50" stroke="#c4a890" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      {/* Cheek blush */}
+      <ellipse cx="40" cy="47" rx="3" ry="2" fill="#e8c8b8" fillOpacity="0.5" />
+      {/* Hand reaching toward caregiver */}
+      <ellipse cx="82" cy="92" rx="9" ry="7" fill="#e8d5c4" />
+      <path d="M78 92 L86 92 M79 89 L85 89 M79 95 L85 95" stroke="#dcc8b8" strokeWidth="0.8" strokeLinecap="round" />
 
-      {/* Caregiver (right) */}
-      {/* Head */}
-      <circle cx="128" cy="42" r="20" fill="#8b6f4e" />
-      {/* Hair */}
-      <ellipse cx="128" cy="32" rx="18" ry="14" fill="#3d2b1f" />
-      <path d="M110 38 Q110 22 128 20 Q146 22 146 38" fill="#3d2b1f" />
-      {/* Hair bun with accessory */}
-      <circle cx="140" cy="22" r="8" fill="#3d2b1f" />
-      <circle cx="144" cy="18" r="4" fill="#e8a0a0" /> {/* Pink accessory */}
-      {/* Face */}
-      <circle cx="122" cy="44" r="2.5" fill="#2d2d2d" /> {/* Eye */}
-      <circle cx="134" cy="44" r="2.5" fill="#2d2d2d" /> {/* Eye */}
-      <path d="M123 52 Q128 56 133 52" stroke="#6d5a4a" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      {/* === CAREGIVER (right) === */}
       {/* Body - teal scrubs */}
-      <path d="M108 62 Q115 58 128 58 Q141 58 148 62 L152 115 L104 115 Z" fill="#199087" />
-      {/* Hands reaching to senior */}
-      <ellipse cx="98" cy="88" rx="8" ry="6" fill="#8b6f4e" />
+      <path d="M127 72 C133 65 143 62 145 62 C147 62 157 65 163 72 L167 108 L123 108 Z" fill="#199087" />
+      {/* V-neck detail */}
+      <path d="M138 72 L145 82 L152 72" stroke="#147a72" strokeWidth="2" fill="none" />
+      {/* Neck */}
+      <rect x="141" y="55" width="8" height="10" rx="3" fill="#8b6f52" />
+      {/* Head */}
+      <ellipse cx="145" cy="40" rx="17" ry="19" fill="#8b6f52" />
+      {/* Hair - dark brown with volume */}
+      <path d="M128 36 C128 20 136 12 145 12 C154 12 162 20 162 36 C162 38 160 40 158 40 L157 32 C157 24 152 19 145 19 C138 19 133 24 133 32 L132 40 C130 40 128 38 128 36 Z" fill="#2d1f14" />
+      {/* Hair bun */}
+      <ellipse cx="158" cy="20" rx="10" ry="9" fill="#2d1f14" />
+      {/* Pink hair accessory */}
+      <circle cx="163" cy="16" r="5" fill="#e8a0a8" />
+      <circle cx="165" cy="14" r="2" fill="#d88090" />
+      {/* Ear */}
+      <ellipse cx="128" cy="42" rx="3" ry="5" fill="#7a6048" />
+      {/* Eye */}
+      <circle cx="138" cy="40" r="2.5" fill="#2d2520" />
+      <circle cx="138" cy="39.5" r="0.8" fill="#ffffff" />
+      {/* Warm smile */}
+      <path d="M138 49 Q145 54 152 49" stroke="#6d5844" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+      {/* Cheek */}
+      <ellipse cx="135" cy="46" rx="3" ry="2" fill="#9a7a62" fillOpacity="0.4" />
+      {/* Hand reaching toward senior - holding their hand */}
+      <ellipse cx="93" cy="90" rx="9" ry="7" fill="#8b6f52" />
+      <path d="M89 90 L97 90 M90 87 L96 87 M90 93 L96 93" stroke="#7a5f48" strokeWidth="0.8" strokeLinecap="round" />
 
-      {/* Connection heart between hands */}
-      <path d="M88 85 Q88 80 92 80 Q96 80 96 85 Q96 80 100 80 Q104 80 104 85 Q104 92 96 98 Q88 92 88 85 Z" fill="#199087" fillOpacity="0.3" />
+      {/* === CONNECTION ELEMENT === */}
+      {/* Soft glow where hands meet */}
+      <ellipse cx="88" cy="91" rx="14" ry="10" fill="#199087" fillOpacity="0.12" />
     </svg>
   );
 }
@@ -441,21 +480,34 @@ function DiscoveryBanner({
   onLocationChange: (location: string | null) => void;
   variant?: BannerVariant;
 }) {
-  // Variant 1: Illustrated (matches your reference image)
+  // ═══════════════════════════════════════════════════════════════════════════
+  // VARIANT 1: ILLUSTRATED
+  // Matches reference — warm background, large serif headline, illustration
+  // ═══════════════════════════════════════════════════════════════════════════
   if (variant === "illustrated") {
     return (
-      <div className="relative rounded-3xl overflow-hidden">
-        {/* Warm cream background */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #f5f1eb 0%, #ebe5dc 50%, #e5ded3 100%)' }} />
+      <div className="relative rounded-[20px] overflow-hidden">
+        {/* Warm cream background — exactly like reference */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(145deg, #f5f0e8 0%, #efe9e0 40%, #e9e2d8 100%)'
+          }}
+        />
 
-        {/* Subtle organic shape accent */}
-        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full opacity-20" style={{ background: 'radial-gradient(circle, #c9bfb0 0%, transparent 70%)' }} />
+        {/* Subtle background accent shape */}
+        <div
+          className="absolute right-0 top-0 bottom-0 w-1/2 opacity-30"
+          style={{
+            background: 'radial-gradient(ellipse 100% 120% at 100% 50%, #d8d0c4 0%, transparent 60%)'
+          }}
+        />
 
-        <div className="relative flex items-center justify-between px-6 py-6 sm:px-8 sm:py-7 lg:px-10 lg:py-8">
+        <div className="relative flex items-stretch min-h-[180px] sm:min-h-[200px]">
           {/* Left: Content */}
-          <div className="flex-1 max-w-xl">
+          <div className="flex-1 flex flex-col justify-center px-6 py-6 sm:px-8 sm:py-8 lg:px-10">
             {/* Location pill */}
-            <div className="mb-5">
+            <div className="mb-4">
               <LocationSelector
                 currentLocation={currentLocation}
                 providerLocation={providerLocation}
@@ -463,98 +515,138 @@ function DiscoveryBanner({
               />
             </div>
 
-            {/* Large serif headline */}
-            <h1 className="font-display text-[28px] sm:text-[34px] lg:text-[40px] font-bold leading-[1.15] tracking-tight text-gray-900">
-              <span className="text-gray-900">{familyCount} {familyCount === 1 ? 'family is' : 'families are'} looking</span>
+            {/* Headline — bold serif, tight leading */}
+            <h1 className="font-display text-[26px] sm:text-[32px] lg:text-[38px] font-bold leading-[1.12] tracking-[-0.02em] text-gray-900">
+              {familyCount} {familyCount === 1 ? 'family is' : 'families are'} looking
               <br />
-              <span className="text-gray-900">for care near you</span>
+              for care near you
             </h1>
 
-            {/* Subtitle with accent */}
-            <p className="mt-4 text-[15px] sm:text-base text-gray-600 leading-relaxed">
-              First to reach out is <span className="font-semibold text-primary-600">3× more likely</span> to connect.
+            {/* Subtitle with teal accent */}
+            <p className="mt-4 text-[15px] text-gray-500 leading-relaxed">
+              First to reach out is{' '}
+              <span className="font-semibold text-primary-600">3× more likely</span>
+              {' '}to connect.
             </p>
           </div>
 
-          {/* Right: Illustration (desktop) */}
-          <div className="hidden lg:block flex-shrink-0 ml-8">
-            <CareIllustration className="w-44 h-40" />
+          {/* Right: Illustration — positioned to bleed slightly */}
+          <div className="hidden md:flex items-center justify-center pr-4 lg:pr-8">
+            <CareIllustration className="w-[180px] h-[160px] lg:w-[200px] lg:h-[180px]" />
           </div>
         </div>
       </div>
     );
   }
 
-  // Variant 2: Editorial (clean typography focus, no illustration)
+  // ═══════════════════════════════════════════════════════════════════════════
+  // VARIANT 2: EDITORIAL
+  // Magazine-style with focus on typography hierarchy, soft illustration accent
+  // ═══════════════════════════════════════════════════════════════════════════
   if (variant === "editorial") {
     return (
-      <div className="relative rounded-3xl overflow-hidden">
-        {/* Pure white with subtle warm tint */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-vanilla-50/50 to-vanilla-100/30" />
+      <div className="relative rounded-[20px] overflow-hidden">
+        {/* Clean white with warm edge tint */}
+        <div className="absolute inset-0 bg-white" />
+        <div
+          className="absolute inset-0 opacity-40"
+          style={{
+            background: 'linear-gradient(135deg, transparent 50%, #f8f5f0 100%)'
+          }}
+        />
 
-        {/* Accent line */}
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 via-primary-500 to-primary-600" />
-
-        <div className="relative px-8 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12">
-          {/* Location - smaller, inline */}
-          <div className="flex items-center gap-3 mb-6">
+        <div className="relative px-6 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
+          {/* Top row: Location + live indicator */}
+          <div className="flex items-center justify-between mb-8">
             <LocationSelector
               currentLocation={currentLocation}
               providerLocation={providerLocation}
               onLocationChange={onLocationChange}
             />
-            <span className="text-sm text-gray-400">•</span>
-            <span className="text-sm text-gray-500">Updated live</span>
-          </div>
-
-          {/* Large number + text split */}
-          <div className="flex items-baseline gap-4">
-            <span className="font-display text-[72px] sm:text-[88px] lg:text-[100px] font-bold leading-none tracking-tighter text-primary-600">
-              {familyCount}
-            </span>
-            <div className="pb-2">
-              <h1 className="font-display text-2xl sm:text-3xl lg:text-[34px] font-medium leading-snug tracking-tight text-gray-900">
-                {familyCount === 1 ? 'family is' : 'families are'} looking
-                <br />
-                for care near you
-              </h1>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-sm text-gray-400 font-medium">Live</span>
             </div>
           </div>
 
-          {/* Subtle divider + CTA text */}
-          <div className="mt-6 pt-6 border-t border-gray-100">
-            <p className="text-[15px] text-gray-500">
-              Providers who respond first are <span className="font-semibold text-gray-800">3× more likely</span> to connect with families.
+          {/* Main headline — editorial style with number emphasis */}
+          <div className="max-w-lg">
+            <h1 className="font-display text-[42px] sm:text-[52px] lg:text-[60px] font-bold leading-[1.05] tracking-[-0.03em] text-gray-900">
+              {familyCount}
+            </h1>
+            <p className="font-display text-[22px] sm:text-[26px] lg:text-[30px] font-medium leading-[1.2] tracking-[-0.01em] text-gray-600 -mt-1">
+              {familyCount === 1 ? 'family is' : 'families are'} looking for care
             </p>
+          </div>
+
+          {/* Bottom row: CTA text with subtle separator */}
+          <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
+            <p className="text-[15px] text-gray-500">
+              Respond first —{' '}
+              <span className="font-semibold text-gray-700">3× more likely</span>
+              {' '}to connect.
+            </p>
+            {/* Small decorative illustration */}
+            <div className="hidden sm:block opacity-60">
+              <CareIllustration className="w-20 h-18" />
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  // Variant 3: Minimal (compact, clean)
+  // ═══════════════════════════════════════════════════════════════════════════
+  // VARIANT 3: MINIMAL
+  // Apple-style minimal — refined simplicity, every element intentional
+  // ═══════════════════════════════════════════════════════════════════════════
   return (
-    <div className="relative rounded-2xl border border-gray-200/80 bg-white">
-      <div className="px-5 py-5 sm:px-6 sm:py-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          {/* Left side */}
-          <div className="flex items-center gap-5">
-            {/* Count badge */}
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/20">
-              <span className="font-display text-2xl font-bold text-white">{familyCount}</span>
-            </div>
+    <div className="relative rounded-[20px] overflow-hidden border border-gray-100">
+      {/* Subtle warm gradient */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(180deg, #ffffff 0%, #fdfcfa 100%)'
+        }}
+      />
 
-            <div>
-              <h1 className="font-display text-lg sm:text-xl font-semibold text-gray-900">
-                {familyCount === 1 ? 'Family' : 'Families'} looking for care
-              </h1>
-              <p className="text-sm text-gray-500 mt-0.5">
-                First to respond is <span className="font-medium text-primary-600">3× more likely</span> to connect
-              </p>
-            </div>
+      <div className="relative px-6 py-6 sm:px-8 sm:py-7">
+        {/* Single row layout with perfect alignment */}
+        <div className="flex items-center gap-6">
+          {/* Number — large but restrained */}
+          <div className="flex-shrink-0">
+            <span className="font-display text-[48px] sm:text-[56px] font-bold leading-none tracking-[-0.03em] text-primary-600">
+              {familyCount}
+            </span>
           </div>
 
-          {/* Right side - location */}
+          {/* Divider line */}
+          <div className="w-px h-12 bg-gray-200 hidden sm:block" />
+
+          {/* Text content */}
+          <div className="flex-1 min-w-0">
+            <h1 className="font-display text-lg sm:text-xl font-semibold text-gray-900 leading-snug">
+              {familyCount === 1 ? 'Family' : 'Families'} looking for care near you
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              First to reach out is{' '}
+              <span className="font-medium text-primary-600">3× more likely</span>
+              {' '}to connect
+            </p>
+          </div>
+
+          {/* Location selector — right aligned */}
+          <div className="flex-shrink-0 hidden sm:block">
+            <LocationSelector
+              currentLocation={currentLocation}
+              providerLocation={providerLocation}
+              onLocationChange={onLocationChange}
+            />
+          </div>
+        </div>
+
+        {/* Mobile: Location below */}
+        <div className="mt-4 sm:hidden">
           <LocationSelector
             currentLocation={currentLocation}
             providerLocation={providerLocation}

@@ -233,7 +233,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
         </div>
 
         {/* ── Video Hero + Sidebar ── */}
-        <div className="mt-5 grid lg:grid-cols-[1fr_280px] gap-5">
+        <div className="mt-5 grid lg:grid-cols-[1fr_280px] gap-5 items-start">
           {/* Video / Primary visual */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden self-start">
             {videoAvailable && youtubeId ? (
@@ -369,6 +369,15 @@ export default async function StudentProfilePage({ params }: PageProps) {
                     </p>
                   </>
                 )}
+              </div>
+            )}
+
+            {/* Healthcare career context */}
+            {meta.intended_professional_school && (
+              <div className="bg-primary-50/50 rounded-2xl border border-primary-100 p-4">
+                <p className="text-xs text-primary-700 leading-relaxed">
+                  {firstName} is pursuing <strong>{INTENDED_SCHOOL_LABELS[meta.intended_professional_school]}</strong> and is using hands-on caregiving to build clinical empathy, patient communication skills, and real-world healthcare experience — the qualities that make strong hires and strong future clinicians.
+                </p>
               </div>
             )}
 
@@ -587,32 +596,45 @@ export default async function StudentProfilePage({ params }: PageProps) {
             </div>
           )}
 
-          {/* ── Commitments & Pledges (full-width) ── */}
-          {(meta.ncns_pledge || meta.school_balance_pledge || meta.advance_notice_pledge || meta.prn_willing) && (
-            <div className="sm:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-3">
-                <svg className="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.05 4.575a1.575 1.575 0 10-3.15 0v3m3.15-3v-1.5a1.575 1.575 0 013.15 0v1.5m-3.15 0l.075 5.925m3.075.75V4.575m0 0a1.575 1.575 0 013.15 0V15M6.9 7.575a1.575 1.575 0 10-3.15 0v8.175a6.75 6.75 0 006.75 6.75h2.018a5.25 5.25 0 003.712-1.538l1.732-1.732a5.25 5.25 0 001.538-3.712.75.75 0 00-.75-.75 2.25 2.25 0 01-.75-.128" />
-                </svg>
-                {firstName}&rsquo;s Commitments
-              </h2>
-              <p className="text-xs text-gray-400 mb-3">Signed pledges made by this candidate</p>
-              <div className="space-y-2">
-                {meta.ncns_pledge && (
-                  <PledgeItem label="I understand that a no-call no-show means a vulnerable person goes without care. I commit to never doing this." />
-                )}
-                {meta.school_balance_pledge && (
-                  <PledgeItem label="I will maintain my scheduled shifts even during midterms and finals — I will plan ahead and communicate early if I need coverage." />
-                )}
-                {meta.advance_notice_pledge && (
-                  <PledgeItem label="I will provide at least 2 weeks advance notice before any schedule changes." />
-                )}
-                {meta.prn_willing && (
-                  <PledgeItem label="I am open to starting PRN/as-needed until we find the right ongoing fit." />
-                )}
-              </div>
+          {/* ── Commitments & Pledges (full-width, always shown) ── */}
+          <div className="sm:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-3">
+              <svg className="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.05 4.575a1.575 1.575 0 10-3.15 0v3m3.15-3v-1.5a1.575 1.575 0 013.15 0v1.5m-3.15 0l.075 5.925m3.075.75V4.575m0 0a1.575 1.575 0 013.15 0V15M6.9 7.575a1.575 1.575 0 10-3.15 0v8.175a6.75 6.75 0 006.75 6.75h2.018a5.25 5.25 0 003.712-1.538l1.732-1.732a5.25 5.25 0 001.538-3.712.75.75 0 00-.75-.75 2.25 2.25 0 01-.75-.128" />
+              </svg>
+              {firstName}&rsquo;s Commitments
+            </h2>
+            <p className="text-xs text-gray-400 mb-3">Verified commitments this candidate has made</p>
+            <div className="space-y-2">
+              {/* Core attestations from onboarding */}
+              {meta.acknowledgments_completed && (
+                <>
+                  <PledgeItem label="I will be on time, professional, and communicate schedule changes 24+ hours in advance" />
+                  <PledgeItem label="I consent to a background check and drug test upon hire" />
+                  <PledgeItem label="I have reliable transportation and accept responsibility for transport costs" />
+                </>
+              )}
+              {/* Portal pledges */}
+              {meta.ncns_pledge && (
+                <PledgeItem label="I understand that a no-call no-show means a vulnerable person goes without care. I commit to never doing this." />
+              )}
+              {meta.school_balance_pledge && (
+                <PledgeItem label="I will maintain my scheduled shifts even during midterms and finals — I will plan ahead and communicate early if I need coverage." />
+              )}
+              {meta.advance_notice_pledge && (
+                <PledgeItem label="I will keep my availability and schedule updated regularly and work with office staff if anything changes." />
+              )}
+              {meta.prn_willing && (
+                <PledgeItem label="I am open to starting PRN/as-needed until we find the right ongoing fit." />
+              )}
+              {meta.commitment_statement && (
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">In their own words</p>
+                  <p className="text-sm text-gray-700 leading-relaxed italic">&ldquo;{meta.commitment_statement}&rdquo;</p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         {/* ── Scenario Responses ── */}

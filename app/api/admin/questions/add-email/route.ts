@@ -110,26 +110,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
     }
 
-    // Check existing email on whichever record we found
+    // Use submitted email, or fall back to existing email on file
     const existingEmail = provider?.email || iosProvider?.email;
-    if (existingEmail) {
-      return NextResponse.json({ error: "Provider already has an email" }, { status: 400 });
-    }
+    const effectiveEmail = email || existingEmail;
 
-    // Update email on business_profiles if we have one
-    if (provider) {
+    // Update email on whichever records we found (skip if unchanged)
+    if (provider && provider.email !== effectiveEmail) {
       await db
         .from("business_profiles")
-        .update({ email })
+        .update({ email: effectiveEmail })
         .eq("id", provider.id);
     }
 
-    // Update email on olera-providers (either via linked source_provider_id or direct iosProvider)
     const iosProviderId = provider?.source_provider_id || iosProvider?.provider_id;
-    if (iosProviderId) {
+    if (iosProviderId && iosProvider?.email !== effectiveEmail) {
       await db
         .from("olera-providers")
-        .update({ email })
+        .update({ email: effectiveEmail })
         .eq("provider_id", iosProviderId);
     }
 
@@ -137,7 +134,7 @@ export async function POST(request: NextRequest) {
     const displayName = provider?.display_name || iosProvider?.provider_name || providerSlug;
     const providerId = provider?.id || iosProviderId || providerSlug;
 
-    // Find flagged questions for this provider
+    // Find flagged questions for this provider (skip any already sent)
     const { data: flaggedQuestions } = await db
       .from("provider_questions")
       .select("id, question, asker_name, asker_email, metadata")
@@ -150,9 +147,17 @@ export async function POST(request: NextRequest) {
     if (flaggedQuestions && flaggedQuestions.length > 0) {
       for (const q of flaggedQuestions) {
         try {
+          // Skip if this question was already emailed (e.g. via leads add-email)
+          const meta = (q.metadata as Record<string, unknown>) || {};
+          if (meta.email_sent_at) {
+            delete meta.needs_provider_email;
+            await db.from("provider_questions").update({ metadata: meta }).eq("id", q.id);
+            continue;
+          }
+
           const emailSubject = `A family has a question about ${displayName}`;
           const emailLogId = await reserveEmailLogId({
-            to: email,
+            to: effectiveEmail,
             subject: emailSubject,
             emailType: "question_received",
             recipientType: "provider",
@@ -160,7 +165,7 @@ export async function POST(request: NextRequest) {
           });
 
           await sendEmail({
-            to: email,
+            to: effectiveEmail,
             subject: emailSubject,
             html: questionReceivedEmail({
               providerName: displayName,
@@ -176,7 +181,6 @@ export async function POST(request: NextRequest) {
           });
 
           // Clear the flag
-          const meta = (q.metadata as Record<string, unknown>) || {};
           delete meta.needs_provider_email;
           meta.email_sent_at = new Date().toISOString();
           await db
@@ -226,7 +230,8 @@ export async function POST(request: NextRequest) {
       details: {
         provider_name: displayName,
         provider_slug: providerSlug,
-        email,
+        email: effectiveEmail,
+        previous_email: existingEmail || null,
         question_emails_sent: emailsSent,
         lead_flags_cleared: flaggedLeads?.length ?? 0,
       },

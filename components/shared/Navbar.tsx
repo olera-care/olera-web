@@ -558,8 +558,9 @@ export default function Navbar() {
     </div>
   );
 
-  // Onboarding page has its own minimal nav
+  // Onboarding pages have their own minimal nav — don't render the main navbar at all
   if (pathname === "/provider/onboarding") return null;
+  if (pathname.startsWith("/provider/") && pathname.endsWith("/onboard")) return null;
 
   return (
     <>

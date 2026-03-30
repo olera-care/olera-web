@@ -11,6 +11,9 @@ import {
   DesktopTableOfContents,
   MobileTableOfContents,
 } from "@/components/article/TableOfContents";
+import ArticleFAQ from "@/components/article/ArticleFAQ";
+import SeniorCareFAQ from "@/components/article/SeniorCareFAQ";
+import EligibilityChecker from "@/components/article/EligibilityChecker";
 
 // ISR: revalidate every 60 seconds
 export const revalidate = 60;
@@ -299,11 +302,40 @@ export default async function ResourceArticlePage({
           {/* Mobile TOC */}
           {showToc && <MobileTableOfContents headings={headings} />}
 
-          {/* Content */}
-          <div
-            className="prose-editorial"
-            dangerouslySetInnerHTML={{ __html: processedHtml }}
-          />
+          {/* Content — split at widget placeholders to inject React components */}
+          {(() => {
+            const MARKERS: Record<string, React.ReactNode> = {
+              "<!-- eligibility-checker -->": <EligibilityChecker />,
+              "<!-- faq-accordion -->": slug === "how-to-pay-for-senior-care-in-texas" ? <SeniorCareFAQ /> : <ArticleFAQ />,
+            };
+            let segments: React.ReactNode[] = [processedHtml];
+            for (const [marker, component] of Object.entries(MARKERS)) {
+              const nextSegments: React.ReactNode[] = [];
+              for (const seg of segments) {
+                if (typeof seg === "string" && seg.includes(marker)) {
+                  const parts = seg.split(marker);
+                  parts.forEach((part, idx) => {
+                    if (idx > 0) nextSegments.push(component);
+                    nextSegments.push(part);
+                  });
+                } else {
+                  nextSegments.push(seg);
+                }
+              }
+              segments = nextSegments;
+            }
+            return (
+              <>
+                {segments.map((seg, i) =>
+                  typeof seg === "string" ? (
+                    seg.trim() ? <div key={i} className="prose-editorial" dangerouslySetInnerHTML={{ __html: seg }} /> : null
+                  ) : (
+                    <div key={i}>{seg}</div>
+                  )
+                )}
+              </>
+            );
+          })()}
 
           {/* Contextual CTA */}
           {primaryCareType && (

@@ -23,6 +23,13 @@ function getSupabase() {
   );
 }
 
+function getAdminSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
@@ -116,12 +123,16 @@ export default async function StudentProfilePage({ params }: PageProps) {
   const firstName = profile.display_name?.split(" ")[0] || "This candidate";
   const lastUpdated = profile.updated_at ? formatLastUpdated(profile.updated_at) : null;
 
-  // Generate signed URL for resume if it's a storage path (not a full URL)
-  let resumeUrl = meta.resume_url || null;
-  if (resumeUrl && !resumeUrl.startsWith("http")) {
-    const { data: signedData } = await supabase.storage.from("student-documents").createSignedUrl(resumeUrl, 3600);
-    resumeUrl = signedData?.signedUrl || null;
+  // Generate signed URLs for private documents (resume, license, insurance)
+  const adminSb = getAdminSupabase();
+  async function getSignedUrl(path: string | undefined): Promise<string | null> {
+    if (!path || path.startsWith("http")) return path || null;
+    const { data } = await adminSb.storage.from("student-documents").createSignedUrl(path, 3600);
+    return data?.signedUrl || null;
   }
+  const resumeUrl = await getSignedUrl(meta.resume_url);
+  const licenseUrl = await getSignedUrl(meta.drivers_license_url);
+  const insuranceUrl = await getSignedUrl(meta.car_insurance_url);
 
   // Build quick facts
   const quickFacts: string[] = [];
@@ -466,9 +477,9 @@ export default async function StudentProfilePage({ params }: PageProps) {
               Qualifications & Documents
             </h2>
             <div className="space-y-2">
-              <QualItem checked={!!meta.drivers_license_url} label="Driver&rsquo;s license on file" />
-              <QualItem checked={!!meta.car_insurance_url} label="Car insurance on file" />
-              <QualItem checked={!!resumeUrl} label={resumeUrl ? "Resume on file" : "No resume uploaded"} />
+              <DocItem url={licenseUrl} checked={!!meta.drivers_license_url} label="Driver&rsquo;s license" expiration={meta.drivers_license_expiration} />
+              <DocItem url={insuranceUrl} checked={!!meta.car_insurance_url} label="Car insurance" expiration={meta.car_insurance_expiration} />
+              <DocItem url={resumeUrl} checked={!!resumeUrl} label="Resume" />
               <QualItem checked={!!meta.acknowledgments_completed} label="Background check consent" />
               {(meta.certifications?.length ?? 0) > 0 && (
                 <div className="pt-1.5 flex flex-wrap gap-1.5">
@@ -729,6 +740,41 @@ function QualItem({ checked, label }: { checked: boolean; label: string }) {
       <span className={`text-sm ${checked ? "text-gray-700" : "text-gray-400"}`}>{label}</span>
     </div>
   );
+}
+
+function DocItem({ url, checked, label, expiration }: { url: string | null; checked: boolean; label: string; expiration?: string }) {
+  const inner = (
+    <div className="flex items-center gap-2">
+      {checked ? (
+        <svg className="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ) : (
+        <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+        </svg>
+      )}
+      <span className={`text-sm ${checked ? "text-gray-700" : "text-gray-400"}`}>
+        {label}{checked ? " on file" : " — not uploaded"}
+      </span>
+      {url && (
+        <svg className="w-3.5 h-3.5 text-gray-400 ml-auto flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+        </svg>
+      )}
+    </div>
+  );
+
+  if (url) {
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer" className="block hover:bg-gray-50 rounded-lg px-1 -mx-1 py-0.5 transition-colors">
+        {inner}
+        {expiration && <p className="text-[11px] text-gray-400 ml-6 mt-0.5">Expires {expiration}</p>}
+      </a>
+    );
+  }
+
+  return <div>{inner}</div>;
 }
 
 /* ── Pledge / commitment item ── */

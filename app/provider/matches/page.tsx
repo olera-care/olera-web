@@ -530,9 +530,16 @@ function DiscoveryBanner({
             </p>
           </div>
 
-          {/* Right: Illustration — positioned to bleed slightly */}
-          <div className="hidden md:flex items-center justify-center pr-4 lg:pr-8">
-            <CareIllustration className="w-[180px] h-[160px] lg:w-[200px] lg:h-[180px]" />
+          {/* Right: Banner image */}
+          <div className="hidden md:block flex-shrink-0 self-stretch">
+            <Image
+              src="/Matches-banner-image.png"
+              alt="Caregiver connecting with families"
+              width={320}
+              height={200}
+              className="h-full w-auto object-cover object-left rounded-r-[20px]"
+              priority
+            />
           </div>
         </div>
       </div>

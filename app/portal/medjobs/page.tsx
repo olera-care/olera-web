@@ -71,6 +71,47 @@ function getProfileSections(meta: StudentMetadata, profile: StudentProfile) {
   ];
 }
 
+/* ─── Save Button with Confirmation ────────────────────────── */
+
+function SaveButton({ saving, onClick, disabled, label = "Save" }: {
+  saving: boolean; onClick: () => void; disabled?: boolean; label?: string;
+}) {
+  const [saved, setSaved] = useState(false);
+  const prevSaving = useRef(saving);
+
+  useEffect(() => {
+    // Detect transition from saving → not saving = save completed
+    if (prevSaving.current && !saving) {
+      setSaved(true);
+      const timer = setTimeout(() => setSaved(false), 2000);
+      return () => clearTimeout(timer);
+    }
+    prevSaving.current = saving;
+  }, [saving]);
+
+  return (
+    <button type="button" disabled={saving || disabled} onClick={onClick}
+      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+        saved
+          ? "bg-emerald-600 text-white"
+          : "bg-gray-900 hover:bg-gray-800 disabled:opacity-40 text-white"
+      }`}>
+      {saving ? (
+        "Saving..."
+      ) : saved ? (
+        <span className="inline-flex items-center gap-1.5">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+          Saved
+        </span>
+      ) : (
+        label
+      )}
+    </button>
+  );
+}
+
 /* ─── Inline Upload ────────────────────────────────────────── */
 
 function InlineUpload({ profileId, documentType, onComplete, accept, label }: {
@@ -154,10 +195,7 @@ function VideoSubmit({ slug, onComplete }: { slug: string; onComplete: () => voi
         className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors"
       />
       {error && <p className="text-xs text-red-600">{error}</p>}
-      <button type="button" disabled={submitting || !url.trim()} onClick={handleSubmit}
-        className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 rounded-lg text-sm font-medium text-white transition-colors">
-        {submitting ? "Submitting..." : "Submit video"}
-      </button>
+      <SaveButton saving={submitting} onClick={handleSubmit} disabled={!url.trim()} label="Submit video" />
     </div>
   );
 }
@@ -209,10 +247,7 @@ function MetadataEditor({ profileId, field, value, onSave, placeholder, multilin
           className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors"
         />
       )}
-      <button type="button" disabled={saving} onClick={handleSave}
-        className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 rounded-lg text-sm font-medium text-white transition-colors">
-        {saving ? "Saving..." : "Save"}
-      </button>
+      <SaveButton saving={saving} onClick={handleSave} />
     </div>
   );
 }
@@ -332,10 +367,7 @@ function ScheduleSection({ profileId, meta, currentSemester, onSave }: {
         <p className="text-sm text-gray-500 mb-3">Tap to mark when you have class. Everything else = available for shifts. Update each semester.</p>
         <ScheduleBuilder value={grid} onChange={setGrid} />
         <div className="mt-4">
-          <button type="button" disabled={saving} onClick={handleSave}
-            className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 rounded-lg text-sm font-medium text-white transition-colors">
-            {saving ? "Saving..." : "Save schedule"}
-          </button>
+          <SaveButton saving={saving} onClick={handleSave} label="Save schedule" />
         </div>
       </div>
     </SectionCard>
@@ -392,10 +424,7 @@ function WhyCaregivingSection({ profileId, value, onSave }: {
         <span className={`text-xs ${charCount < 100 ? "text-amber-500" : charCount > 500 ? "text-red-500" : "text-gray-400"}`}>
           {charCount}/500 {charCount < 100 && `(${100 - charCount} more needed)`}
         </span>
-        <button type="button" disabled={saving || !isValid} onClick={handleSave}
-          className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 rounded-lg text-sm font-medium text-white transition-colors">
-          {saving ? "Saving..." : "Save"}
-        </button>
+        <SaveButton saving={saving} onClick={handleSave} disabled={!isValid} />
       </div>
     </div>
   );
@@ -457,10 +486,7 @@ function ScenarioSection({ profileId, responses, onSave }: {
         ))}
       </div>
       <div className="mt-4">
-        <button type="button" disabled={saving || !allValid} onClick={handleSave}
-          className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 rounded-lg text-sm font-medium text-white transition-colors">
-          {saving ? "Saving..." : "Save all answers"}
-        </button>
+        <SaveButton saving={saving} onClick={handleSave} disabled={!allValid} label="Save all answers" />
         {!allValid && <p className="text-xs text-amber-500 mt-2">All questions require at least 50 characters.</p>}
       </div>
     </div>
@@ -526,10 +552,7 @@ function CommitmentStatementSection({ profileId, value, onSave }: {
         <span className={`text-xs ${text.trim().length < 50 ? "text-amber-500" : "text-gray-400"}`}>
           {text.trim().length} chars {text.trim().length < 50 && `(${50 - text.trim().length} more needed)`}
         </span>
-        <button type="button" disabled={saving || !isValid} onClick={handleSave}
-          className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 rounded-lg text-sm font-medium text-white transition-colors">
-          {saving ? "Saving..." : "Save"}
-        </button>
+        <SaveButton saving={saving} onClick={handleSave} disabled={!isValid} />
       </div>
     </div>
   );
@@ -714,10 +737,7 @@ function AvailabilityNotesSection({ profileId, value, onSave }: {
         className="w-full border border-gray-200 focus:border-gray-900 outline-none rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 transition-colors resize-none"
       />
       <div className="flex justify-end mt-2">
-        <button type="button" disabled={saving} onClick={handleSave}
-          className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 rounded-lg text-sm font-medium text-white transition-colors">
-          {saving ? "Saving..." : "Save"}
-        </button>
+        <SaveButton saving={saving} onClick={handleSave} />
       </div>
     </div>
   );

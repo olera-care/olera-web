@@ -78,6 +78,25 @@ export function hasVideo(meta: StudentMetadata): boolean {
   return !!meta.video_intro_url;
 }
 
+/** Extract YouTube video ID from common URL formats.
+ *  Returns null for non-YouTube URLs. */
+export function getYouTubeId(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (u.hostname === "youtu.be") return u.pathname.slice(1).split("/")[0] || null;
+    if (u.hostname.includes("youtube.com")) {
+      // /watch?v=ID or /embed/ID or /shorts/ID
+      const vParam = u.searchParams.get("v");
+      if (vParam) return vParam;
+      const match = u.pathname.match(/\/(embed|shorts|v)\/([^/?]+)/);
+      if (match) return match[2];
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 /** Map legacy program_track values to intended_professional_school equivalents */
 const LEGACY_TRACK_TO_INTENDED: Record<string, string> = {
   pre_med: "medicine",

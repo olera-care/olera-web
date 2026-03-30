@@ -8,11 +8,13 @@ export default function ContactSection({
   studentEmail,
   studentPhone,
   studentSlug,
+  variant = "inline",
 }: {
   studentName: string;
   studentEmail: string | null;
   studentPhone: string | null;
   studentSlug: string;
+  variant?: "inline" | "sticky";
 }) {
   const { user, activeProfile, profiles, openAuth } = useAuth();
   const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
@@ -21,8 +23,74 @@ export default function ContactSection({
   );
   const firstName = studentName.split(" ")[0];
 
-  // ── State 1: Provider — full access + invite + schedule ──
+  // ── Sticky mobile bar ──
+  if (variant === "sticky") {
+    // Not signed in
+    if (!user) {
+      return (
+        <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
+          <button
+            onClick={() =>
+              openAuth({
+                defaultMode: "sign-in",
+                deferred: {
+                  action: "inquiry",
+                  returnUrl: `/medjobs/candidates/${studentSlug}`,
+                },
+              })
+            }
+            className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+            </svg>
+            Schedule Interview
+          </button>
+          <p className="mt-1.5 text-center text-xs text-gray-400">
+            Free account required &middot; Takes 30 seconds
+          </p>
+        </div>
+      );
+    }
+
+    // Signed in — show schedule interview
+    const providerName = activeProfile?.display_name || "";
+    const subject = isProvider
+      ? `Interview — ${providerName} × ${studentName}`
+      : `Interested in hiring — ${studentName}`;
+    const body = isProvider
+      ? `Hi ${firstName},\n\nWe'd like to schedule a brief interview to learn more about your availability and experience. Are you free this week for a 15-minute call?\n\nBest,\n${providerName}`
+      : `Hi ${firstName},\n\nI came across your profile on Olera MedJobs and I'm interested in learning more about your availability. Would you be free for a quick call this week?\n\nBest`;
+
+    return (
+      <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
+        {studentEmail ? (
+          <a
+            href={`mailto:${studentEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}
+            className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+            </svg>
+            Schedule Interview
+          </a>
+        ) : (
+          <Link
+            href={`/provider/medjobs/candidates/${studentSlug}`}
+            className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
+          >
+            View Full Profile
+          </Link>
+        )}
+      </div>
+    );
+  }
+
+  // ── Inline variant (desktop, inside hero card) ──
+
+  // ── State 1: Provider — full access ──
   if (isProvider) {
+    const providerName = activeProfile.display_name;
     return (
       <div className="mt-6 space-y-4">
         <div className="p-4 bg-primary-50/60 rounded-xl">
@@ -49,7 +117,7 @@ export default function ContactSection({
 
         {studentEmail && (
           <a
-            href={`mailto:${studentEmail}?subject=${encodeURIComponent(`Interview — ${activeProfile.display_name} × ${studentName}`)}&body=${encodeURIComponent(`Hi ${firstName},\n\nWe'd like to schedule a brief interview to learn more about your availability and experience. Are you free this week for a 15-minute call?\n\nBest,\n${activeProfile.display_name}`)}`}
+            href={`mailto:${studentEmail}?subject=${encodeURIComponent(`Interview — ${providerName} × ${studentName}`)}&body=${encodeURIComponent(`Hi ${firstName},\n\nWe'd like to schedule a brief interview to learn more about your availability and experience. Are you free this week for a 15-minute call?\n\nBest,\n${providerName}`)}`}
             className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,7 +137,7 @@ export default function ContactSection({
     );
   }
 
-  // ── State 2: Authenticated but not a provider — show contact, soft nudge ──
+  // ── State 2: Authenticated but not a provider ──
   if (user) {
     return (
       <div className="mt-6 space-y-4">
@@ -107,7 +175,6 @@ export default function ContactSection({
           </a>
         )}
 
-        {/* Soft nudge to create provider profile — not a gate */}
         {!hasProviderProfile && (
           <p className="text-center text-xs text-gray-400">
             <Link href="/for-providers/create" className="text-primary-500 hover:text-primary-600">
@@ -129,7 +196,7 @@ export default function ContactSection({
     );
   }
 
-  // ── State 3: Not signed in — warm, welcoming gate ──
+  // ── State 3: Not signed in — warm gate ──
   return (
     <div className="mt-6">
       <div className="p-5 bg-[#FAFAF8] rounded-xl border border-gray-100">
@@ -137,7 +204,7 @@ export default function ContactSection({
           Want to connect with {firstName}?
         </p>
         <p className="mt-1 text-sm text-gray-500">
-          Create a free account to see {firstName}&apos;s contact info and reach out directly.
+          Create a free account to see {firstName}&apos;s contact info and schedule an interview.
         </p>
         <button
           onClick={() =>
@@ -151,7 +218,10 @@ export default function ContactSection({
           }
           className="mt-4 w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
         >
-          Get Started
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+          </svg>
+          Schedule Interview
         </button>
         <p className="mt-2 text-center text-xs text-gray-400">
           Free. Takes 30 seconds.

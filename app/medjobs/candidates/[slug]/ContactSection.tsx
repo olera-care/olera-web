@@ -167,7 +167,7 @@ export default function ContactSection({
           <Link href="/for-providers/create" className="text-primary-500 hover:text-primary-600">
             Create a provider profile
           </Link>{" "}
-          to appear in our directory.
+          to hire caregivers.
         </p>
       )}
     </div>

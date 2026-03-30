@@ -235,7 +235,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
         {/* ── Video Hero + Sidebar ── */}
         <div className="mt-5 grid lg:grid-cols-[1fr_280px] gap-5">
           {/* Video / Primary visual */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden self-start">
             {videoAvailable && youtubeId ? (
               <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
                 <iframe
@@ -314,15 +314,18 @@ export default async function StudentProfilePage({ params }: PageProps) {
 
             {/* Social Links */}
             {(meta.linkedin_url || meta.instagram_url || meta.facebook_url || meta.tiktok_url) && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-                <div className="flex items-center gap-3">
-                  {meta.linkedin_url && (
-                    <a href={meta.linkedin_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-gray-50 hover:bg-blue-50 flex items-center justify-center transition-colors" title="LinkedIn">
-                      <svg className="w-4 h-4 text-gray-500 hover:text-[#0A66C2]" fill="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-2">
+                {meta.linkedin_url && (
+                  <a href={meta.linkedin_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 hover:text-[#0A66C2] transition-colors group">
+                    <div className="w-8 h-8 rounded-lg bg-gray-50 group-hover:bg-blue-50 flex items-center justify-center flex-shrink-0 transition-colors">
+                      <svg className="w-4 h-4 text-gray-500 group-hover:text-[#0A66C2]" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
                       </svg>
-                    </a>
-                  )}
+                    </div>
+                    <span className="text-sm text-gray-600 group-hover:text-[#0A66C2] truncate">LinkedIn Profile</span>
+                  </a>
+                )}
+                <div className="flex items-center gap-3">
                   {meta.instagram_url && (
                     <a href={meta.instagram_url} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-gray-50 hover:bg-pink-50 flex items-center justify-center transition-colors" title="Instagram">
                       <svg className="w-4 h-4 text-gray-500 hover:text-[#E4405F]" fill="currentColor" viewBox="0 0 24 24">
@@ -456,6 +459,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
             <div className="space-y-2">
               <QualItem checked={!!meta.drivers_license_url} label="Driver&rsquo;s license on file" />
               <QualItem checked={!!meta.car_insurance_url} label="Car insurance on file" />
+              <QualItem checked={!!resumeUrl} label={resumeUrl ? "Resume on file" : "No resume uploaded"} />
               <QualItem checked={!!meta.acknowledgments_completed} label="Background check consent" />
               {(meta.certifications?.length ?? 0) > 0 && (
                 <div className="pt-1.5 flex flex-wrap gap-1.5">

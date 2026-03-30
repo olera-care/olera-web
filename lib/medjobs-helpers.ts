@@ -69,8 +69,11 @@ export function formatDuration(meta: StudentMetadata): string | null {
     "1_semester": "1 semester",
     "multiple_semesters": "Multiple semesters",
     "1_plus_year": "1+ year",
+    "less_than_3_months": "Less than 3 months",
+    "3_to_6_months": "3–6 months",
+    "6_to_12_months": "6–12 months",
   };
-  return labels[meta.duration_commitment] || meta.duration_commitment;
+  return labels[meta.duration_commitment] || meta.duration_commitment.replace(/_/g, " ");
 }
 
 /** Check if student has submitted intro video */

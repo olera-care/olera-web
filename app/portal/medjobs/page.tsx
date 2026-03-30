@@ -498,6 +498,139 @@ function CommitmentStatementSection({ profileId, value, onSave }: {
   );
 }
 
+/* ─── Availability & Commitment Section ───────────────────── */
+
+const SUMMER_OPTIONS = ["Full-time available all summer", "Available part-time", "Available except for travel dates", "Unavailable — taking summer classes"];
+const WINTER_OPTIONS = ["Full-time available during winter break", "Available part-time", "Traveling — limited availability", "Unavailable — taking winter classes"];
+
+function AvailabilityCommitmentSection({ profileId, meta, onSave }: {
+  profileId: string; meta: StudentMetadata; onSave: () => void;
+}) {
+  const [prnWilling, setPrnWilling] = useState(!!meta.prn_willing);
+  const [scheduleAttestation, setScheduleAttestation] = useState(!!meta.advance_notice_pledge);
+  const [saving, setSaving] = useState(false);
+
+  const saveToggle = async (field: string, value: boolean) => {
+    setSaving(true);
+    try {
+      const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+      const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
+      const m = (current?.metadata || {}) as Record<string, unknown>;
+      m[field] = value;
+      await sb.from("business_profiles").update({ metadata: m }).eq("id", profileId);
+      onSave();
+    } catch { /* ignore */ }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <SectionCard label="Availability & commitment" done={!!(meta.hours_per_week_range && meta.commitment_statement)}>
+      <div className="space-y-5">
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50/60">
+          <svg className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-xs text-blue-700 leading-relaxed">
+            This is the #1 thing providers look at. They need to know you&apos;re committed to taking shifts around coursework for 6+ months.
+          </p>
+        </div>
+
+        <dl className="space-y-2 text-sm">
+          {meta.hours_per_week_range && <div className="flex justify-between"><dt className="text-gray-500">Hours/week</dt><dd className="text-gray-900">{meta.hours_per_week_range} hrs</dd></div>}
+          {meta.duration_commitment && <div className="flex justify-between"><dt className="text-gray-500">Length of commitment</dt><dd className="text-gray-900">{meta.duration_commitment.replace(/_/g, " ").replace(/less_than/, "< ").replace(/to/g, "–")}</dd></div>}
+        </dl>
+
+        <CommitmentStatementSection profileId={profileId} value={meta.commitment_statement || ""} onSave={onSave} />
+
+        {/* PRN willingness */}
+        <button type="button" disabled={saving}
+          onClick={() => { const next = !prnWilling; setPrnWilling(next); saveToggle("prn_willing", next); }}
+          className={`w-full flex items-start gap-3 px-4 py-3 rounded-lg text-left transition-all ${
+            prnWilling ? "border-2 border-gray-900 bg-gray-50" : "border border-gray-200 hover:border-gray-300"
+          }`}>
+          <span className={`inline-flex items-center justify-center w-5 h-5 rounded border-2 shrink-0 mt-0.5 transition-colors ${
+            prnWilling ? "bg-gray-900 border-gray-900 text-white" : "border-gray-300"
+          }`}>
+            {prnWilling && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+          </span>
+          <span className="text-sm text-gray-700">I am okay to be on-call / PRN until a client needs shifts that fit my schedule</span>
+        </button>
+
+        {/* Schedule update attestation */}
+        <button type="button" disabled={saving}
+          onClick={() => { const next = !scheduleAttestation; setScheduleAttestation(next); saveToggle("advance_notice_pledge", next); }}
+          className={`w-full flex items-start gap-3 px-4 py-3 rounded-lg text-left transition-all ${
+            scheduleAttestation ? "border-2 border-gray-900 bg-gray-50" : "border border-gray-200 hover:border-gray-300"
+          }`}>
+          <span className={`inline-flex items-center justify-center w-5 h-5 rounded border-2 shrink-0 mt-0.5 transition-colors ${
+            scheduleAttestation ? "bg-gray-900 border-gray-900 text-white" : "border-gray-300"
+          }`}>
+            {scheduleAttestation && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+          </span>
+          <span className="text-sm text-gray-700">I commit to keeping my availability and course schedule updated regularly and will work with office staff if anything changes</span>
+        </button>
+
+        {/* Summer availability with suggestions */}
+        <div>
+          <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Summer availability</label>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {SUMMER_OPTIONS.map((opt) => (
+              <SuggestionButton key={opt} text={opt} profileId={profileId} field="summer_availability" currentValue={meta.summer_availability || ""} onSave={onSave} />
+            ))}
+          </div>
+          <MetadataEditor profileId={profileId} field="summer_availability" value={meta.summer_availability || ""} onSave={onSave} placeholder="Or type your own..." />
+        </div>
+
+        {/* Winter availability with suggestions */}
+        <div>
+          <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Winter availability</label>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {WINTER_OPTIONS.map((opt) => (
+              <SuggestionButton key={opt} text={opt} profileId={profileId} field="winter_availability" currentValue={meta.winter_availability || ""} onSave={onSave} />
+            ))}
+          </div>
+          <MetadataEditor profileId={profileId} field="winter_availability" value={meta.winter_availability || ""} onSave={onSave} placeholder="Or type your own..." />
+        </div>
+
+        <div>
+          <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Schedule update date</label>
+          <p className="text-xs text-gray-400 mb-2">When does your current schedule end? We&apos;ll remind you to update.</p>
+          <MetadataEditor profileId={profileId} field="schedule_update_date" value={meta.schedule_update_date || ""} onSave={onSave} placeholder="E.g. May 15, 2026" />
+        </div>
+
+        <div>
+          <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Availability notes</label>
+          <p className="text-xs text-gray-400 mb-2">Finals, spring break, known travel — the more detail, the better your chances.</p>
+          <MetadataEditor profileId={profileId} field="availability_notes" value={meta.availability_notes || ""} onSave={onSave}
+            placeholder="E.g. Finals week May 5-12 (limited). Spring break Mar 10-17 (fully available)." multiline />
+        </div>
+      </div>
+    </SectionCard>
+  );
+}
+
+function SuggestionButton({ text, profileId, field, currentValue, onSave }: {
+  text: string; profileId: string; field: string; currentValue: string; onSave: () => void;
+}) {
+  const isSelected = currentValue === text;
+  const handleClick = async () => {
+    const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+    const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
+    const m = (current?.metadata || {}) as Record<string, unknown>;
+    m[field] = text;
+    await sb.from("business_profiles").update({ metadata: m }).eq("id", profileId);
+    onSave();
+  };
+  return (
+    <button type="button" onClick={handleClick}
+      className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
+        isSelected ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+      }`}>
+      {text}
+    </button>
+  );
+}
+
 /* ─── Page ─────────────────────────────────────────────────── */
 
 export default function StudentPortalPage() {
@@ -724,6 +857,9 @@ export default function StudentPortalPage() {
                 {/* Semester Schedule — visual builder */}
                 <ScheduleSection profileId={profile.id} meta={meta} currentSemester={currentSemester} onSave={refresh} />
 
+                {/* Availability & Commitment — right after schedule */}
+                <AvailabilityCommitmentSection profileId={profile.id} meta={meta} onSave={refresh} />
+
                 {/* Resume */}
                 <SectionCard label="Resume" done={!!meta.resume_url}>
                   <div>
@@ -802,53 +938,6 @@ export default function StudentPortalPage() {
                   </dl>
                 </SectionCard>
 
-                {/* Availability & Commitment */}
-                <SectionCard label="Availability & commitment" done={!!(meta.hours_per_week_range && meta.commitment_statement)}>
-                  <div className="space-y-5">
-                    <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50/60">
-                      <svg className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <p className="text-xs text-blue-700 leading-relaxed">
-                        This is the #1 thing providers look at. They need to know you&apos;re committed to taking shifts around coursework for 6+ months. Be specific and honest — we&apos;ll message you regularly to keep this updated.
-                      </p>
-                    </div>
-
-                    <dl className="space-y-2 text-sm">
-                      {meta.hours_per_week_range && <div className="flex justify-between"><dt className="text-gray-500">Hours/week</dt><dd className="text-gray-900">{meta.hours_per_week_range} hrs</dd></div>}
-                      {meta.duration_commitment && <div className="flex justify-between"><dt className="text-gray-500">Length of commitment</dt><dd className="text-gray-900">{meta.duration_commitment.replace(/_/g, " ")}</dd></div>}
-                    </dl>
-
-                    {/* Commitment statement — required */}
-                    <CommitmentStatementSection profileId={profile.id} value={meta.commitment_statement || ""} onSave={refresh} />
-
-                    <div>
-                      <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Summer availability</label>
-                      <MetadataEditor profileId={profile.id} field="summer_availability" value={meta.summer_availability || ""} onSave={refresh}
-                        placeholder="E.g. Full-time available, traveling June 1-15" />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Winter availability</label>
-                      <MetadataEditor profileId={profile.id} field="winter_availability" value={meta.winter_availability || ""} onSave={refresh}
-                        placeholder="E.g. Available full-time Dec 15 - Jan 10" />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Schedule update date</label>
-                      <p className="text-xs text-gray-400 mb-2">When does your current schedule end? We&apos;ll remind you to update it.</p>
-                      <MetadataEditor profileId={profile.id} field="schedule_update_date" value={meta.schedule_update_date || ""} onSave={refresh}
-                        placeholder="E.g. May 15, 2026" />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">Availability notes</label>
-                      <p className="text-xs text-gray-400 mb-2">Finals weeks, spring break, known travel — anything providers should know. The more accurate and wide your availability, the more likely you get hired.</p>
-                      <MetadataEditor profileId={profile.id} field="availability_notes" value={meta.availability_notes || ""} onSave={refresh}
-                        placeholder="E.g. Finals week May 5-12 (limited hours). Spring break Mar 10-17 (fully available). No travel planned." multiline />
-                    </div>
-                  </div>
-                </SectionCard>
               </div>
             </div>
           </div>

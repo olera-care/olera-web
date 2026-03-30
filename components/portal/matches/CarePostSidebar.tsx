@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
-import EditCarePostModal from "./EditCarePostModal";
 
 const DELETE_REASONS = [
   "Found care",
@@ -27,20 +26,25 @@ interface CarePostSidebarProps {
   onGoLive?: () => Promise<void>;
   /** Show loading state for Go Live button */
   activating?: boolean;
+  /** Called when user clicks "Edit profile" - opens the profile wizard */
+  onEdit?: () => void;
 }
 
 export default function CarePostSidebar({
   activeProfile,
   interestedCount,
-  userEmail,
+  userEmail: _userEmail,
   onPublish,
   onDeactivate,
   onDelete,
-  onProfileUpdated,
+  onProfileUpdated: _onProfileUpdated,
   canGoLive = true,
   onGoLive,
   activating = false,
+  onEdit,
 }: CarePostSidebarProps) {
+  void _userEmail;
+  void _onProfileUpdated;
   const meta = (activeProfile.metadata || {}) as FamilyMetadata;
   const carePost = meta.care_post;
   const isActive = carePost?.status === "active";
@@ -54,7 +58,6 @@ export default function CarePostSidebar({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedDeleteReasons, setSelectedDeleteReasons] = useState<string[]>([]);
   const [deleting, setDeleting] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
   // Sync acceptingMatches with external isActive changes
@@ -278,7 +281,7 @@ export default function CarePostSidebar({
             {/* Edit profile link - always available */}
             <button
               type="button"
-              onClick={() => setEditModalOpen(true)}
+              onClick={onEdit}
               className="w-full mt-3 min-h-[44px] py-2.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors flex items-center justify-center gap-1.5"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -288,19 +291,6 @@ export default function CarePostSidebar({
             </button>
           </div>
         </div>
-
-        {/* Edit modal for Not Live state */}
-        {editModalOpen && (
-          <EditCarePostModal
-            profile={activeProfile}
-            userEmail={userEmail}
-            onClose={() => setEditModalOpen(false)}
-            onSaved={() => {
-              setEditModalOpen(false);
-              onProfileUpdated?.();
-            }}
-          />
-        )}
       </div>
     );
   }
@@ -330,7 +320,7 @@ export default function CarePostSidebar({
             </div>
             <button
               type="button"
-              onClick={() => setEditModalOpen(true)}
+              onClick={onEdit}
               className="min-h-[44px] px-2 -mr-2 text-[12px] font-medium text-primary-600 hover:text-primary-700 transition-colors flex items-center gap-1"
             >
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -570,19 +560,6 @@ export default function CarePostSidebar({
           }
         </p>
       </div>
-
-      {/* Edit care profile modal */}
-      {editModalOpen && (
-        <EditCarePostModal
-          profile={activeProfile}
-          userEmail={userEmail}
-          onClose={() => setEditModalOpen(false)}
-          onSaved={() => {
-            setEditModalOpen(false);
-            onProfileUpdated?.();
-          }}
-        />
-      )}
     </div>
   );
 }

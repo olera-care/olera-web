@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { useProfileCompleteness, type SectionStatus } from "./completeness";
 import { BenefitsFinderBanner } from "./ProfileEditContent";
 import ProfileEditWizard from "./ProfileEditWizard";
+import CarePostSidebar from "@/components/portal/matches/CarePostSidebar";
 
 // ── Constants ──
 
@@ -23,6 +24,15 @@ const CONTACT_PREF_LABELS: Record<string, string> = {
   email: "Email",
 };
 
+const SCHEDULE_LABELS: Record<string, string> = {
+  mornings: "Mornings",
+  afternoons: "Afternoons",
+  evenings: "Evenings",
+  overnight: "Overnight",
+  full_time: "Full-time / Live-in",
+  flexible: "Flexible",
+};
+
 // Map section index to wizard step
 type WizardStep = 1 | 2 | 3 | 4;
 
@@ -37,6 +47,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
   const { user, activeProfile, refreshAccountData } = useAuth();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [wizardInitialStep, setWizardInitialStep] = useState<WizardStep>(1);
+  const [activatingProfile, setActivatingProfile] = useState(false);
 
   const profile = (profileProp ?? activeProfile) as BusinessProfile;
   const meta = (profile?.metadata || {}) as FamilyMetadata;
@@ -58,16 +69,78 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
     refreshAccountData();
   };
 
+  // ── Care Profile (Matches) handlers ──
+  const handlePublish = useCallback(async () => {
+    const res = await fetch("/api/care-post/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "publish" }),
+    });
+    if (!res.ok) throw new Error("Failed to publish");
+    await refreshAccountData();
+  }, [refreshAccountData]);
+
+  const handleDeactivate = useCallback(async () => {
+    const res = await fetch("/api/care-post/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "deactivate" }),
+    });
+    if (!res.ok) throw new Error("Failed to deactivate");
+    await refreshAccountData();
+  }, [refreshAccountData]);
+
+  const handleDelete = useCallback(async (reasons: string[]) => {
+    const res = await fetch("/api/care-post/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete", reasons }),
+    });
+    if (!res.ok) throw new Error("Failed to delete");
+    await refreshAccountData();
+  }, [refreshAccountData]);
+
+  // Check if profile has minimum data to go live
+  const hasLocation = Boolean(profile?.city && profile?.state);
+  const hasCareTypes = Boolean(profile?.care_types && profile.care_types.length > 0);
+  const canGoLive = hasLocation && hasCareTypes;
+
+  const handleQuickGoLive = useCallback(async () => {
+    if (!canGoLive) return;
+    setActivatingProfile(true);
+    try {
+      const res = await fetch("/api/care-post/activate-matches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          city: profile?.city,
+          state: profile?.state,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to activate");
+      await refreshAccountData();
+    } finally {
+      setActivatingProfile(false);
+    }
+  }, [canGoLive, profile?.city, profile?.state, refreshAccountData]);
+
   if (!profile) return null;
 
   // ── Derived display values ──
   const location = [profile.city, profile.state].filter(Boolean).join(", ");
   const careTypesDisplay = profile.care_types?.length ? profile.care_types.join(", ") : null;
+  const careNeedsDisplay = meta.care_needs?.length ? meta.care_needs.join(", ") : null;
   const timelineDisplay = meta.timeline ? TIMELINE_LABELS[meta.timeline] || meta.timeline : null;
+  const scheduleDisplay = meta.schedule_preference ? SCHEDULE_LABELS[meta.schedule_preference] || meta.schedule_preference : null;
   const contactPrefDisplay = meta.contact_preference ? CONTACT_PREF_LABELS[meta.contact_preference] || meta.contact_preference : null;
+  const descriptionDisplay = meta.about_situation || profile.description || null;
+  const ageDisplay = meta.age ? `${meta.age} years old` : null;
+
+  // Count interested providers (for sidebar display)
+  const interestedCount = 0; // We don't have this data here, sidebar will show 0
 
   return (
-    <div className="max-w-2xl">
+    <div className="flex flex-col lg:flex-row lg:gap-8">
       {/* Profile Edit Wizard Modal */}
       {wizardOpen && (
         <ProfileEditWizard
@@ -79,7 +152,9 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         />
       )}
 
-      <div className="rounded-2xl bg-white border border-gray-200/80 shadow-sm divide-y divide-gray-100">
+      {/* Left column - Profile card */}
+      <div className="flex-1">
+        <div className="rounded-2xl bg-white border border-gray-200/80 shadow-sm divide-y divide-gray-100">
         {/* ── Profile Header ── */}
         <div className="p-5 sm:p-6">
           {/* Mobile: Stacked layout */}
@@ -229,8 +304,18 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         >
           <div className="divide-y divide-gray-50">
             <ViewRow label="Who needs care" value={meta.relationship_to_recipient || null} />
+            <ViewRow label="Age" value={ageDisplay} />
             <ViewRow label="Type of care" value={careTypesDisplay} />
+            <ViewRow label="Help needed" value={careNeedsDisplay} />
             <ViewRow label="Timeline" value={timelineDisplay} />
+            <ViewRow label="Schedule" value={scheduleDisplay} />
+            {descriptionDisplay && (
+              <div className="py-3">
+                <p className="text-[13px] font-medium text-gray-500">About the situation</p>
+                <p className="text-[15px] text-gray-900 mt-0.5 whitespace-pre-wrap">{descriptionDisplay}</p>
+              </div>
+            )}
+            {!descriptionDisplay && <ViewRow label="About the situation" value={null} />}
           </div>
         </SectionCard>
 
@@ -265,6 +350,24 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
           )}
           <BenefitsFinderBanner />
         </SectionCard>
+        </div>
+      </div>
+
+      {/* Right column - Matches control sidebar (desktop only) */}
+      <div className="hidden lg:block lg:w-[360px] lg:shrink-0 mt-6 lg:mt-0">
+        <CarePostSidebar
+          activeProfile={profile}
+          interestedCount={interestedCount}
+          userEmail={userEmail}
+          onPublish={handlePublish}
+          onDeactivate={handleDeactivate}
+          onDelete={handleDelete}
+          onProfileUpdated={refreshAccountData}
+          canGoLive={canGoLive}
+          onGoLive={handleQuickGoLive}
+          activating={activatingProfile}
+          onEdit={() => openWizard(1)}
+        />
       </div>
     </div>
   );

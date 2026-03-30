@@ -12,7 +12,7 @@ import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 // Types
 // ============================================================
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 interface ProfileEditWizardProps {
   profile: BusinessProfile;
@@ -30,15 +30,17 @@ interface ProfileEditWizardProps {
 const STEP_TITLES: Record<Step, string> = {
   1: "Basic Information",
   2: "Contact Details",
-  3: "Care Preferences",
-  4: "Payment & Benefits",
+  3: "Care Recipient",
+  4: "Care Needs",
+  5: "Payment & Benefits",
 };
 
 const STEP_SUBTITLES: Record<Step, string> = {
   1: "Tell us about yourself",
   2: "How can providers reach you?",
-  3: "What kind of care do you need?",
-  4: "How will you pay for care?",
+  3: "Who needs care?",
+  4: "What kind of care do you need?",
+  5: "How will you pay for care?",
 };
 
 const WHO_OPTIONS = [
@@ -542,8 +544,9 @@ export default function ProfileEditWizard({
               steps={[
                 { num: 1, label: "Info" },
                 { num: 2, label: "Contact" },
-                { num: 3, label: "Care" },
-                { num: 4, label: "Payment" },
+                { num: 3, label: "Recipient" },
+                { num: 4, label: "Needs" },
+                { num: 5, label: "Payment" },
               ]}
               current={step}
               onSelect={setStep}
@@ -725,7 +728,7 @@ export default function ProfileEditWizard({
                 </div>
               )}
 
-              {/* Step 3: Care Preferences */}
+              {/* Step 3: Care Recipient */}
               {step === 3 && (
                 <div className="space-y-8">
                   {/* Who needs care */}
@@ -745,7 +748,7 @@ export default function ProfileEditWizard({
                     </div>
                   </div>
 
-                  {/* Age - inline with label */}
+                  {/* Age */}
                   <div>
                     <SectionLabel>Age of person needing care</SectionLabel>
                     <input
@@ -759,6 +762,23 @@ export default function ProfileEditWizard({
                     />
                   </div>
 
+                  {/* Description / About situation */}
+                  <div>
+                    <SectionLabel>Tell us about your situation</SectionLabel>
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Share any details that would help providers understand your needs..."
+                      rows={4}
+                      className="w-full px-4 py-3.5 rounded-xl bg-gray-100 border-0 focus:bg-white focus:ring-2 focus:ring-primary-500/20 outline-none transition-all text-gray-900 placeholder:text-gray-400 resize-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Step 4: Care Needs */}
+              {step === 4 && (
+                <div className="space-y-8">
                   {/* Care types */}
                   <div>
                     <SectionLabel>Type of care setting</SectionLabel>
@@ -826,23 +846,11 @@ export default function ProfileEditWizard({
                       ))}
                     </div>
                   </div>
-
-                  {/* Description / About situation */}
-                  <div>
-                    <SectionLabel>Tell us about your situation</SectionLabel>
-                    <textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Share any details that would help providers understand your needs..."
-                      rows={4}
-                      className="w-full px-4 py-3.5 rounded-xl bg-gray-100 border-0 focus:bg-white focus:ring-2 focus:ring-primary-500/20 outline-none transition-all text-gray-900 placeholder:text-gray-400 resize-none"
-                    />
-                  </div>
                 </div>
               )}
 
-              {/* Step 4: Payment & Benefits */}
-              {step === 4 && (
+              {/* Step 5: Payment & Benefits */}
+              {step === 5 && (
                 <div className="space-y-8">
                   <div>
                     <p className="text-sm text-gray-500 mb-4">
@@ -885,7 +893,7 @@ export default function ProfileEditWizard({
 
           {/* Center: Progress + save status */}
           <div className="flex flex-col items-center gap-2">
-            <ProgressDots current={step - 1} total={4} />
+            <ProgressDots current={step - 1} total={5} />
             {hasChanges && (
               <div className="flex items-center gap-1.5 text-xs text-gray-400 h-4">
                 {saving ? (
@@ -907,7 +915,7 @@ export default function ProfileEditWizard({
 
           {/* Right: Next or Done button */}
           <div className="w-20 flex justify-end">
-            {step < 4 ? (
+            {step < 5 ? (
               <button
                 type="button"
                 onClick={() => setStep((step + 1) as Step)}

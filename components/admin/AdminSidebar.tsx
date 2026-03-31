@@ -162,14 +162,10 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
                           ? "px-3 py-2 text-[13px] font-medium"
                           : "px-3 py-[6px] text-[13px]",
                         active
-                          ? item.prominent
-                            ? "text-gray-900 bg-gray-100"
-                            : "text-gray-900 font-medium bg-gray-50"
-                          : item.prominent
-                            ? "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                            : section.primary
-                              ? "text-gray-500 hover:text-gray-900 hover:bg-gray-50/80"
-                              : "text-gray-400 hover:text-gray-600 hover:bg-gray-50/60",
+                          ? "text-gray-900 font-medium bg-gray-100"
+                          : section.primary
+                            ? "text-gray-500 hover:text-gray-900 hover:bg-gray-50/80"
+                            : "text-gray-400 hover:text-gray-600 hover:bg-gray-50/60",
                       ].join(" ")}
                     >
                       {item.label}

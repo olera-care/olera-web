@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import CandidateRow from "@/components/medjobs/CandidateRow";
+import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import CandidateFilters from "@/components/medjobs/CandidateFilters";
 import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilters";
@@ -108,32 +108,45 @@ export default function CandidateBrowsePage() {
   );
 
   return (
-    <main className="min-h-screen bg-[#FAFAF8] py-8 sm:py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
-          <div>
+    <main className="min-h-screen bg-[#FAFAF8]">
+      {/* Hero header */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-8 sm:pt-8 sm:pb-10">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-4">
             <Link
               href="/medjobs"
-              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+              className="hover:text-primary-600 transition-colors"
             >
-              &larr; MedJobs
+              MedJobs
             </Link>
-            <h1 className="mt-2 text-2xl font-bold text-gray-900">
-              Student Candidates
-            </h1>
-            <p className="mt-1 text-sm text-gray-500">
-              {total > 0 && `${total} student${total !== 1 ? "s" : ""} available`}
-            </p>
-          </div>
-          <Link
-            href="/medjobs/apply"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
-          >
-            Apply Now
-          </Link>
-        </div>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+            <span className="text-gray-600">Caregivers</span>
+          </nav>
 
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 font-display">
+            Hire Local Caregivers
+          </h1>
+          <p className="mt-2 text-base sm:text-lg text-gray-500 max-w-2xl">
+            Pre-vetted students pursuing careers in healthcare — ready to
+            provide quality care in your area.
+          </p>
+
+          {/* Stats bar */}
+          {total > 0 && (
+            <div className="mt-4 flex items-center gap-4">
+              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1 rounded-full">
+                <span className="w-2 h-2 bg-primary-500 rounded-full animate-pulse" />
+                {total} caregiver{total !== 1 ? "s" : ""} available
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Filters */}
         <CandidateFilters
           filters={filters}
@@ -143,32 +156,52 @@ export default function CandidateBrowsePage() {
 
         {/* Results */}
         {loading ? (
-          <div className="bg-white rounded-xl border border-gray-100">
-            {Array.from({ length: 6 }).map((_, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 9 }).map((_, i) => (
               <div
                 key={i}
-                className="flex items-start gap-4 px-5 py-5 border-b border-gray-100 last:border-b-0 animate-pulse"
+                className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse"
               >
-                <div className="w-11 h-11 rounded-full bg-gray-200 shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-1/3" />
-                  <div className="h-3 bg-gray-100 rounded w-2/3" />
-                  <div className="h-3 bg-gray-100 rounded w-1/2" />
+                <div className="h-1 bg-gray-100" />
+                <div className="p-5 pt-4">
+                  <div className="flex items-center gap-3.5 mb-3">
+                    <div className="w-14 h-14 rounded-full bg-gray-200 shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-2/3" />
+                      <div className="h-3 bg-gray-100 rounded w-4/5" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mb-3">
+                    <div className="h-6 bg-gray-100 rounded-full w-20" />
+                    <div className="h-6 bg-gray-100 rounded-full w-24" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-3 bg-gray-100 rounded w-3/4" />
+                    <div className="h-3 bg-gray-100 rounded w-1/2" />
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         ) : candidates.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-gray-500 text-sm">
-              No candidates found matching your filters.
+          <div className="text-center py-20">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+            </div>
+            <p className="text-gray-500 text-sm font-medium">
+              No caregivers found matching your filters.
+            </p>
+            <p className="text-gray-400 text-sm mt-1">
+              Try broadening your search or removing some filters.
             </p>
           </div>
         ) : (
           <>
-            <div className="bg-white rounded-xl border border-gray-100">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {candidates.map((candidate) => (
-                <CandidateRow
+                <CandidateCard
                   key={candidate.id}
                   candidate={candidate}
                   basePath="/medjobs/candidates"
@@ -178,8 +211,8 @@ export default function CandidateBrowsePage() {
 
             {/* Loading more indicator */}
             {loadingMore && (
-              <div className="flex justify-center py-6">
-                <div className="w-5 h-5 border-2 border-gray-300 border-t-primary-600 rounded-full animate-spin" />
+              <div className="flex justify-center py-8">
+                <div className="w-6 h-6 border-2 border-gray-300 border-t-primary-600 rounded-full animate-spin" />
               </div>
             )}
 
@@ -188,16 +221,21 @@ export default function CandidateBrowsePage() {
 
             {/* End of list */}
             {!hasMore && candidates.length > 0 && (
-              <div className="mt-4 text-center">
-                <p className="text-sm text-gray-400">
+              <div className="mt-8 text-center">
+                <div className="inline-flex flex-col items-center gap-2 px-6 py-4 bg-white rounded-2xl border border-gray-100">
+                  <p className="text-sm text-gray-500">
+                    Want to see contact details and reach out directly?
+                  </p>
                   <Link
                     href="/provider/medjobs/candidates"
-                    className="text-primary-600 hover:text-primary-700 font-medium"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
                   >
-                    Sign in as a provider
-                  </Link>{" "}
-                  to see contact details and reach out directly.
-                </p>
+                    Sign in as a Provider
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </Link>
+                </div>
               </div>
             )}
           </>

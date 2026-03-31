@@ -62,11 +62,12 @@ export async function GET(request: NextRequest) {
     const slugs = [...new Set((questions ?? []).map((q) => q.provider_id).filter(Boolean))];
     let providerNames: Record<string, string> = {};
     let providerEditorIds: Record<string, string> = {};
+    let providerEmails: Record<string, string> = {};
     if (slugs.length > 0) {
       // Try business_profiles first
       const { data: bpProviders } = await db
         .from("business_profiles")
-        .select("slug, display_name, source_provider_id")
+        .select("slug, display_name, source_provider_id, email")
         .in("slug", slugs);
       providerNames = Object.fromEntries(
         (bpProviders ?? []).map((p) => [p.slug, p.display_name])
@@ -74,18 +75,22 @@ export async function GET(request: NextRequest) {
       providerEditorIds = Object.fromEntries(
         (bpProviders ?? []).filter((p) => p.source_provider_id).map((p) => [p.slug, p.source_provider_id])
       );
+      for (const p of bpProviders ?? []) {
+        if (p.slug && p.email) providerEmails[p.slug] = p.email;
+      }
 
       // For slugs not found in business_profiles, try olera-providers
       const missingSlugs = slugs.filter((s) => !providerNames[s]);
       if (missingSlugs.length > 0) {
         const { data: iosProviders } = await db
           .from("olera-providers")
-          .select("slug, provider_id, provider_name")
+          .select("slug, provider_id, provider_name, email")
           .in("slug", missingSlugs)
           .not("deleted", "is", true);
         for (const p of iosProviders ?? []) {
           if (p.slug && p.provider_name) providerNames[p.slug] = p.provider_name;
           if (p.slug && p.provider_id) providerEditorIds[p.slug] = p.provider_id;
+          if (p.slug && p.email && !providerEmails[p.slug]) providerEmails[p.slug] = p.email;
         }
 
         // Also try by provider_id for legacy slugs
@@ -134,6 +139,7 @@ export async function GET(request: NextRequest) {
       ...q,
       provider_name: providerNames[q.provider_id] || null,
       provider_editor_id: providerEditorIds[q.provider_id] || null,
+      provider_email: providerEmails[q.provider_id] || null,
     }));
 
     // Fetch tab counts for pending and needs_email

@@ -387,6 +387,26 @@
 
 ## Session Log
 
+### 2026-03-30 (Session 64) — Fix Orphaned Question/Lead Notifications
+
+**Branch:** `fancy-lamarr` | **1 commit** | `cd60db73`
+
+**Problem:** Graize reported "Provider already has an email" error on admin Questions > Needs Email tab. Root cause: deferred notification system tightly coupled "save email" and "send notifications" — if email arrived through any other path (leads add-email, profile claim, etc.), questions were permanently orphaned with `needs_provider_email: true` flag never cleared.
+
+**Fix (4 files):**
+- `app/api/admin/questions/add-email/route.ts` — Removed hard block on existing email. Now saves/overwrites email and always sends deferred notifications. Added `email_sent_at` duplicate-send guard.
+- `app/api/admin/leads/add-email/route.ts` — Same fix + added bidirectional cross-clearing (sends deferred question notifications when email added via leads, not just lead notifications).
+- `app/api/admin/questions/route.ts` (GET) — Enriches response with `provider_email` from business_profiles/olera-providers.
+- `app/admin/questions/page.tsx` — Pre-fills email input when provider has email on file. Button: "Send" vs "Add & Send". Success: "Question forwarded" vs "Email saved — question forwarded". Amber "Email on file" indicator.
+
+**Self-review caught 2 issues before testing:**
+1. Success message said "Email saved" even when email was pre-existing — fixed to show "Question forwarded" instead
+2. Dynamic import inside loop in leads endpoint — moved outside
+
+**Testing:** TJ verified Test 1 (orphaned questions with pre-filled emails) — Send button, Email on file badge, and forwarding all working.
+
+---
+
 ### 2026-03-27 (Session 62) — One-Click Flow: Root Cause Found + Full Fix
 
 **Branch:** `loving-swartz` | **PRs:** #427 merged, #428 open (7 commits)

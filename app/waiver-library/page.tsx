@@ -87,22 +87,16 @@ export default function WaiverLibraryPage() {
           </div>
         </div>
 
-        {/* NIH badge — bottom of hero */}
-        <div className="absolute bottom-0 right-0 z-10 pointer-events-none">
-          <div className="pr-4 sm:pr-6 lg:pr-8 pb-6">
-            <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl px-5 py-3 pointer-events-auto">
-              {/* NIH logo */}
-              <div className="flex items-center justify-center w-12 h-12 border-2 border-white rounded-md">
-                <span className="text-white font-bold text-sm tracking-wide">NIH</span>
-                <svg className="w-3 h-3 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M10 17l6-5-6-5v10z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-white/70 text-xs">Proudly supported by</p>
-                <p className="text-white font-semibold text-sm">National Institute on Aging</p>
-              </div>
-            </div>
+        {/* NIH badge — bottom-right of hero */}
+        <div className="absolute bottom-2 right-4 sm:right-6 lg:right-8 z-10 hidden sm:flex items-center gap-2">
+          <img
+            src="/images/nia-logo.png"
+            alt="NIH"
+            className="h-8 w-auto brightness-0 invert opacity-90"
+          />
+          <div className="text-white/90 leading-[1.2]">
+            <span className="block text-white/50 text-[10px]">Proudly supported by</span>
+            <span className="text-[11px] font-medium">National Institute on Aging</span>
           </div>
         </div>
       </section>

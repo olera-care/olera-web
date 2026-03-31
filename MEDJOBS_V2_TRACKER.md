@@ -23,16 +23,16 @@
 
 ## Phase 3: Interview Scheduling System (Week 3-5)
 
-- [ ] **3A** Create interviews table migration (SQL + RLS policies)
-- [ ] **3B** Build scheduling API routes (CRUD for interviews)
-- [ ] **3C** Build provider scheduling modal (type, time, alt time, notes)
-- [ ] **3D** Build student confirm/reschedule flow
-- [ ] **3E** Build .ics generator (`lib/ics-generator.ts`)
-- [ ] **3F** Upgrade caregiver interview tab (pending/upcoming/past)
-- [ ] **3G** Add interview section to provider portal
-- [ ] **3H** Build notification emails (proposed, confirmed, reminder, cancel)
-- [ ] **3I** Add light gamification (interview count badges)
-- [ ] **3** Type-check, self-review, commit, push
+- [x] **3A** Create interviews table migration (SQL + RLS policies)
+- [x] **3B** Build scheduling API routes (CRUD for interviews)
+- [x] **3C** Build provider scheduling modal (type, time, alt time, notes)
+- [x] **3D** Build student confirm/reschedule flow (interview tab)
+- [x] **3E** Build .ics generator (`lib/ics-generator.ts`)
+- [x] **3F** Upgrade caregiver interview tab (pending/upcoming/past)
+- [x] **3G** Email attachments support for .ics files
+- [x] **3H** Notification emails (proposed, confirmed, cancelled)
+- [x] **3I** Light gamification (interview count in header)
+- [x] **3** Type-check, self-review, commit, push
 
 ## Phase 4: Monetization + Access Gating (Week 4-6)
 

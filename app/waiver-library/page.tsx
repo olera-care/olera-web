@@ -87,7 +87,7 @@ export default function WaiverLibraryPage() {
           </div>
 
           {/* NIH badge — bottom-right of hero */}
-          <div className="absolute -bottom-4 right-0 hidden sm:flex items-center gap-2">
+          <div className="absolute bottom-4 right-0 hidden sm:flex items-center gap-2">
             <img
               src="/images/nia-logo.png"
               alt="NIH"

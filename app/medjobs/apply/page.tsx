@@ -649,6 +649,7 @@ export default function MedJobsApplyPage() {
               <ReactiveHint show={allAcknowledged}>
                 You&apos;re ready. Students who meet these standards are highly sought after by providers and gain clinical experience that strengthens professional school applications.
               </ReactiveHint>
+              </div>
             </div>
           )}
 

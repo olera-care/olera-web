@@ -48,7 +48,6 @@ const navSections: NavSection[] = [
     label: "Manage",
     key: "manage",
     items: [
-      { label: "Images", href: "/admin/images" },
       { label: "Verification", href: "/admin/verification" },
       { label: "Removals", href: "/admin/removal-requests" },
     ],

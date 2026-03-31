@@ -11,11 +11,13 @@ interface AdminSidebarProps {
 interface NavItem {
   label: string;
   href: string;
+  prominent?: boolean;
 }
 
 interface NavSection {
   label?: string;
   items: NavItem[];
+  primary?: boolean;
 }
 
 const navSections: NavSection[] = [
@@ -24,8 +26,9 @@ const navSections: NavSection[] = [
   },
   {
     label: "Activity",
+    primary: true,
     items: [
-      { label: "Activity Center", href: "/admin/activity" },
+      { label: "Activity Center", href: "/admin/activity", prominent: true },
       { label: "Leads", href: "/admin/leads" },
       { label: "Questions", href: "/admin/questions" },
       { label: "Reviews", href: "/admin/reviews" },
@@ -119,15 +122,25 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
     <>
       {/* Desktop sidebar */}
       <aside className="hidden md:flex md:flex-col md:w-52 bg-white border-r border-gray-100 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
-        <nav className="flex-1 px-3 pt-5 pb-3">
+        <nav className="flex-1 px-3 pt-4 pb-3">
           {navSections.map((section, sectionIdx) => (
-            <div key={section.label ?? "home"} className={sectionIdx > 0 ? "mt-5" : ""}>
+            <div
+              key={section.label ?? "home"}
+              className={[
+                sectionIdx > 0 ? section.primary ? "mt-4" : "mt-6" : "",
+              ].join(" ")}
+            >
               {section.label && (
-                <p className="px-3 mb-1.5 text-[11px] uppercase tracking-widest text-gray-400 font-medium select-none">
+                <p className={[
+                  "px-3 mb-1 select-none",
+                  section.primary
+                    ? "text-[11px] font-semibold text-gray-900 uppercase tracking-wider"
+                    : "text-[10px] font-medium text-gray-300 uppercase tracking-widest",
+                ].join(" ")}>
                   {section.label}
                 </p>
               )}
-              <div className="space-y-0.5">
+              <div className="space-y-px">
                 {section.items.map((item) => {
                   const active = isActive(item.href);
                   return (
@@ -135,10 +148,19 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
                       key={item.href}
                       href={item.href}
                       className={[
-                        "block px-3 py-[7px] rounded-md text-[13px] transition-colors duration-150",
+                        "block rounded-md transition-colors duration-150",
+                        item.prominent
+                          ? "px-3 py-2 text-[13px] font-medium"
+                          : "px-3 py-[6px] text-[13px]",
                         active
-                          ? "text-gray-900 font-medium border-l-2 border-gray-900 pl-[10px]"
-                          : "text-gray-500 hover:text-gray-900 hover:bg-gray-50/80",
+                          ? item.prominent
+                            ? "text-gray-900 bg-gray-100"
+                            : "text-gray-900 font-medium bg-gray-50"
+                          : item.prominent
+                            ? "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                            : section.primary
+                              ? "text-gray-500 hover:text-gray-900 hover:bg-gray-50/80"
+                              : "text-gray-400 hover:text-gray-600 hover:bg-gray-50/60",
                       ].join(" ")}
                     >
                       {item.label}
@@ -152,12 +174,12 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
 
         <div className="border-t border-gray-100 px-3 py-3">
           <div className="flex items-center gap-3 px-3">
-            <div className="w-7 h-7 rounded-full bg-gray-100 text-[11px] font-medium text-gray-500 flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded-full bg-gray-100 text-[10px] font-medium text-gray-400 flex items-center justify-center shrink-0">
               {getInitials(adminUser.email)}
             </div>
             <Link
               href="/"
-              className="text-[13px] text-gray-400 hover:text-gray-600 transition-colors duration-150"
+              className="text-[12px] text-gray-300 hover:text-gray-500 transition-colors duration-150"
             >
               Exit Admin
             </Link>

@@ -99,6 +99,91 @@ export function studentWelcomeEmail({
   `);
 }
 
+/**
+ * Sent immediately when Step 1 of onboarding creates an account (partial creation).
+ * Purpose: orient the user, explain MedJobs, drive them back to complete their profile.
+ */
+export function studentAccountCreatedEmail({
+  studentName,
+  city,
+}: {
+  studentName: string;
+  city?: string;
+}): string {
+  const firstName = studentName.split(" ")[0];
+  const locationLine = city ? ` in ${city}` : "";
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to MedJobs, ${firstName}!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Your account has been created. You&rsquo;re one step closer to connecting with healthcare providers${locationLine} who are actively hiring student caregivers.
+    </p>
+    <table cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#111827;margin:0 0 8px;">What is MedJobs?</p>
+        <p style="font-size:13px;color:#6b7280;margin:0;line-height:1.6;">
+          MedJobs connects pre-health students with home care agencies and healthcare providers who need reliable caregivers. A complete, verified profile is how providers find and reach out to you.
+        </p>
+      </td></tr>
+    </table>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.6;">
+      <strong>Complete your profile to get started.</strong> It takes about 10 minutes and includes a short video, availability, and a few questions that show providers you&rsquo;re serious.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.6;">
+      Providers reviewing candidates prioritize complete profiles. The more thorough your profile, the more likely you are to hear from hiring providers.
+    </p>
+    <p style="margin:0 0 16px;">
+      ${button("Complete My Profile", `${BASE_URL}/portal/medjobs`)}
+    </p>
+  `);
+}
+
+/**
+ * Sent when a student's profile reaches 100% completeness.
+ * Celebrates, tells them they're live, encourages proactive outreach.
+ */
+export function studentActivationEmail({
+  studentName,
+  city,
+  profileUrl,
+}: {
+  studentName: string;
+  city?: string;
+  profileUrl: string;
+}): string {
+  const firstName = studentName.split(" ")[0];
+  const locationLine = city ? ` in ${city}` : "";
+
+  return layout(`
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Your profile is live, ${firstName}!</h2>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
+      Congratulations — your MedJobs profile is 100% complete and verified. Providers${locationLine} can now find you and reach out via the platform, email, or phone.
+    </p>
+    <table cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
+      <tr><td>
+        <p style="font-size:13px;font-weight:600;color:#166534;margin:0 0 8px;">What happens now?</p>
+        <ol style="font-size:13px;color:#166534;margin:0;padding-left:16px;line-height:1.8;">
+          <li>Providers can view your profile and reach out to you</li>
+          <li>You can browse open positions and apply directly</li>
+          <li>Reaching out to providers directly often leads to conversations faster</li>
+        </ol>
+      </td></tr>
+    </table>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.6;">
+      <strong>Your profile link:</strong>
+    </p>
+    <p style="font-size:13px;margin:0 0 20px;">
+      <a href="${profileUrl}" style="color:${BRAND_COLOR};">${profileUrl}</a>
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.6;">
+      Share this link when reaching out to providers — it shows your video, availability, and background at a glance.
+    </p>
+    <p style="margin:0 0 16px;">
+      ${button("Browse Open Jobs", `${BASE_URL}/portal/medjobs/jobs`)}
+    </p>
+  `);
+}
+
 export function studentReturningEmail({
   studentName,
   profileSlug,

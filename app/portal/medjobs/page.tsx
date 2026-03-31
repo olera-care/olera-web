@@ -7,6 +7,12 @@ import { createBrowserClient } from "@supabase/ssr";
 import type { StudentMetadata } from "@/lib/types";
 import { getTrackLabel, INTENDED_SCHOOL_LABELS } from "@/lib/medjobs-helpers";
 import { ScheduleBuilder, parseSchedule, serializeSchedule } from "@/components/medjobs/ScheduleBuilder";
+import {
+  SCENARIO_QUESTIONS,
+  getVerificationItems,
+  getProfileItems,
+  calculateCompleteness,
+} from "@/lib/medjobs-completeness";
 
 /* ─── Types ───────────────────────────────────────────────── */
 
@@ -27,48 +33,11 @@ interface StudentProfile {
 
 function getCurrentSemester(): string {
   const now = new Date();
-  const month = now.getMonth(); // 0-indexed
+  const month = now.getMonth();
   const year = now.getFullYear();
   if (month >= 0 && month <= 4) return `Spring ${year}`;
   if (month >= 5 && month <= 7) return `Summer ${year}`;
   return `Fall ${year}`;
-}
-
-function getVerificationItems(meta: StudentMetadata) {
-  return [
-    { key: "video", label: "Intro video", desc: "2\u20133 min — providers want to see who they\u2019re hiring", done: !!meta.video_intro_url },
-    { key: "drivers_license", label: "Driver\u2019s license", desc: "Verifies your identity", done: !!meta.drivers_license_url },
-    { key: "car_insurance", label: "Car insurance", desc: "Confirms you can get to assignments safely", done: !!meta.car_insurance_url },
-  ];
-}
-
-const SCENARIO_QUESTIONS = [
-  {
-    key: "scenario_reliability",
-    question: "You have an exam tomorrow but your client's family is counting on you for a shift tonight. What do you do?",
-  },
-  {
-    key: "scenario_judgement",
-    question: "You arrive at a client's home and notice they seem confused and have a bruise they can't explain. What steps do you take?",
-  },
-  {
-    key: "scenario_commitment",
-    question: "Why do you want to commit to caregiving for multiple semesters, and how will this experience help your career in healthcare?",
-  },
-];
-
-function getProfileSections(meta: StudentMetadata, profile: StudentProfile) {
-  const scenarios = meta.scenario_responses || [];
-  return [
-    { key: "schedule", label: "Semester schedule", done: !!meta.course_schedule_grid },
-    { key: "resume", label: "Resume", done: !!meta.resume_url },
-    { key: "linkedin", label: "LinkedIn", done: !!meta.linkedin_url },
-    { key: "why", label: "Why I want to be a caregiver", done: !!(meta.why_caregiving && meta.why_caregiving.length >= 100) },
-    { key: "scenarios", label: "Screening questions", done: scenarios.length >= SCENARIO_QUESTIONS.length && scenarios.every((s) => s.answer?.length >= 50) },
-    { key: "basic", label: "Basic info", done: true },
-    { key: "background", label: "Background", done: true },
-    { key: "availability", label: "Availability & commitment", done: !!(meta.hours_per_week_range && meta.commitment_statement) },
-  ];
 }
 
 /* ─── Save Button with Confirmation ────────────────────────── */
@@ -866,6 +835,107 @@ function AvailabilityNotesSection({ profileId, value, onSave }: {
   );
 }
 
+/* ─── Background Section ──────────────────────────────────── */
+
+const EXPERIENCE_OPTIONS = [
+  { value: "0", label: "No experience yet, eager to learn" },
+  { value: "family", label: "Experience caring for family or friends" },
+  { value: "1", label: "1\u20132 years (paid or volunteer)" },
+  { value: "3", label: "3+ years" },
+];
+const CERTIFICATION_OPTIONS = ["CNA", "BLS", "CPR / First Aid", "HHA", "Medication Aide", "Phlebotomy"];
+const CARE_TYPE_OPTIONS = [
+  "Dementia / Alzheimer's", "Post-Surgical Care", "Mobility Assistance",
+  "Medication Management", "Personal Care", "Companionship",
+  "Meal Preparation", "Hospice / End-of-Life", "Family member care",
+];
+const LANGUAGE_OPTIONS = ["English", "Spanish", "Mandarin", "Vietnamese", "Hindi", "Tagalog", "Arabic", "Korean", "French", "Other"];
+
+function BackgroundSection({ profileId, meta, onSave }: {
+  profileId: string; meta: StudentMetadata; onSave: () => void;
+}) {
+  const [saving, setSaving] = useState(false);
+
+  const saveField = async (field: string, value: unknown) => {
+    setSaving(true);
+    try {
+      const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+      const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
+      const m = (current?.metadata || {}) as Record<string, unknown>;
+      m[field] = value;
+      await sb.from("business_profiles").update({ metadata: m }).eq("id", profileId);
+      onSave();
+    } catch { /* ignore */ }
+    finally { setSaving(false); }
+  };
+
+  const toggleArrayItem = (field: string, current: string[], item: string) => {
+    const next = current.includes(item) ? current.filter((i) => i !== item) : [...current, item];
+    saveField(field, next);
+  };
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Experience level</label>
+        <div className="flex flex-wrap gap-1.5">
+          {EXPERIENCE_OPTIONS.map((opt) => (
+            <button key={opt.value} type="button" onClick={() => saveField("years_caregiving", opt.value === "family" ? 0 : Number(opt.value))} disabled={saving}
+              className={`px-3 py-1.5 rounded-full text-xs transition-colors ${
+                String(meta.years_caregiving) === opt.value || (opt.value === "family" && meta.years_caregiving === 0)
+                  ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Certifications</label>
+        <div className="flex flex-wrap gap-1.5">
+          {CERTIFICATION_OPTIONS.map((c) => (
+            <button key={c} type="button" onClick={() => toggleArrayItem("certifications", meta.certifications || [], c)} disabled={saving}
+              className={`px-3 py-1.5 rounded-full text-xs transition-colors ${
+                (meta.certifications || []).includes(c) ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}>
+              {c}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Types of care you can provide</label>
+        <div className="flex flex-wrap gap-1.5">
+          {CARE_TYPE_OPTIONS.map((c) => (
+            <button key={c} type="button" onClick={() => toggleArrayItem("care_experience_types", meta.care_experience_types || [], c)} disabled={saving}
+              className={`px-3 py-1.5 rounded-full text-xs transition-colors ${
+                (meta.care_experience_types || []).includes(c) ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}>
+              {c}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Languages</label>
+        <div className="flex flex-wrap gap-1.5">
+          {LANGUAGE_OPTIONS.map((l) => (
+            <button key={l} type="button" onClick={() => toggleArrayItem("languages", meta.languages || [], l)} disabled={saving}
+              className={`px-3 py-1.5 rounded-full text-xs transition-colors ${
+                (meta.languages || []).includes(l) ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}>
+              {l}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Page ─────────────────────────────────────────────────── */
 
 export default function StudentPortalPage() {
@@ -944,11 +1014,11 @@ export default function StudentPortalPage() {
   }
 
   const meta = profile.metadata || {} as StudentMetadata;
+  const hasPhoto = !!profile.image_url;
   const verificationItems = getVerificationItems(meta);
   const verificationDone = verificationItems.every((v) => v.done);
-  const profileSections = getProfileSections(meta, profile);
-  const profileDoneCount = profileSections.filter((s) => s.done).length;
-  const completeness = Math.round(((verificationItems.filter((v) => v.done).length + profileDoneCount) / (verificationItems.length + profileSections.length)) * 100);
+  const profileSections = getProfileItems(meta, hasPhoto);
+  const completeness = calculateCompleteness(meta, hasPhoto);
   const firstName = profile.display_name?.split(" ")[0] || "there";
   const trackLabel = getTrackLabel(meta);
   const currentSemester = getCurrentSemester();
@@ -1152,24 +1222,9 @@ export default function StudentPortalPage() {
                   </dl>
                 </SectionCard>
 
-                {/* Background */}
-                <SectionCard label="Background" done={true}>
-                  <dl className="space-y-2 text-sm">
-                    {meta.years_caregiving != null && <div className="flex justify-between"><dt className="text-gray-500">Experience</dt><dd className="text-gray-900">{meta.years_caregiving}</dd></div>}
-                    {(meta.certifications?.length ?? 0) > 0 && (
-                      <div>
-                        <dt className="text-gray-500 mb-1">Certifications</dt>
-                        <dd className="flex flex-wrap gap-1.5">{meta.certifications!.map((c) => <span key={c} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs">{c}</span>)}</dd>
-                      </div>
-                    )}
-                    {(meta.care_experience_types?.length ?? 0) > 0 && (
-                      <div>
-                        <dt className="text-gray-500 mb-1">Care types</dt>
-                        <dd className="flex flex-wrap gap-1.5">{meta.care_experience_types!.map((c) => <span key={c} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs">{c}</span>)}</dd>
-                      </div>
-                    )}
-                    {(meta.languages?.length ?? 0) > 0 && <div className="flex justify-between"><dt className="text-gray-500">Languages</dt><dd className="text-gray-900">{meta.languages!.join(", ")}</dd></div>}
-                  </dl>
+                {/* Experience & Background */}
+                <SectionCard label="Experience & background" done={meta.years_caregiving != null && (meta.care_experience_types?.length ?? 0) > 0 && (meta.languages?.length ?? 0) > 0}>
+                  <BackgroundSection profileId={profile.id} meta={meta} onSave={refresh} />
                 </SectionCard>
 
               </div>

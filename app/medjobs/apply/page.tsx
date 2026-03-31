@@ -6,7 +6,7 @@ import type { IntendedProfessionalSchool } from "@/lib/types";
 import { createBrowserClient } from "@supabase/ssr";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { LifecycleProgress } from "@/components/medjobs/LifecycleProgress";
-import { Tooltip, ReactiveHint } from "@/components/medjobs/Tooltip";
+import { ReactiveHint } from "@/components/medjobs/Tooltip";
 
 /* ─── Constants ────────────────────────────────────────────── */
 
@@ -24,20 +24,6 @@ const MAJORS = [
   "Psychology", "Health Sciences", "Pre-Med", "Other",
 ];
 
-const CERTIFICATIONS = [
-  "CNA", "BLS", "CPR / First Aid", "HHA", "Medication Aide", "Phlebotomy",
-];
-
-const CARE_EXPERIENCE_TYPES = [
-  "Dementia / Alzheimer's", "Post-Surgical Care", "Mobility Assistance",
-  "Medication Management", "Personal Care", "Companionship",
-  "Meal Preparation", "Hospice / End-of-Life", "Family member care",
-];
-
-const LANGUAGES = [
-  "English", "Spanish", "Mandarin", "Vietnamese", "Hindi",
-  "Tagalog", "Arabic", "Korean", "French", "Other",
-];
 
 
 const DURATION_OPTIONS = [
@@ -55,14 +41,12 @@ const HOURS_OPTIONS = [
 ];
 
 
-type Step = 0 | 1 | 2 | 3 | 4; // about_you, experience, availability, confirm, success
-const TOTAL_STEPS = 4;
+type Step = 0 | 1 | 2; // basic_info, availability_commitments, success
+const TOTAL_STEPS = 2;
 
 const STEP_TITLES = [
   "Let\u2019s get to know you",
-  "Your background",
-  "Your availability",
-  "Your commitments",
+  "Availability & commitments",
 ];
 
 /* ─── Reusable Components ──────────────────────────────────── */
@@ -141,29 +125,6 @@ function SearchDropdown({ options, value, onSelect, placeholder = "Type or selec
   );
 }
 
-function MultiSelectCards({ options, selected, onToggle, hint = "Choose as many as you like" }: {
-  options: { value: string; label: string }[];
-  selected: string[]; onToggle: (value: string) => void; hint?: string;
-}) {
-  return (
-    <div>
-      <p className="text-xs text-gray-400 mb-3 uppercase tracking-wide">{hint}</p>
-      <div className="grid grid-cols-2 gap-2">
-        {options.map((opt) => {
-          const isSelected = selected.includes(opt.value);
-          return (
-            <button key={opt.value} type="button" onClick={() => onToggle(opt.value)}
-              className={`px-3 py-2.5 rounded-lg text-left text-sm transition-all ${
-                isSelected ? "border-2 border-gray-900 bg-gray-50 font-medium text-gray-900" : "border border-gray-200 hover:border-gray-300 text-gray-700"
-              }`}>
-              {opt.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 /* ─── Main Page ────────────────────────────────────────────── */
 
@@ -232,10 +193,6 @@ export default function MedJobsApplyPage() {
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const toggleItem = useCallback((setter: React.Dispatch<React.SetStateAction<string[]>>, item: string) => {
-    setter((prev) => prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]);
   }, []);
 
   /* ─── Navigation ─────────────────────────────────────────── */
@@ -310,7 +267,7 @@ export default function MedJobsApplyPage() {
 
   const canAdvance = useCallback((): boolean => {
     if (step === 0) return !!displayName.trim() && !!email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !!phone.trim();
-    if (step === 3) return allAcknowledged;
+    if (step === 1) return allAcknowledged;
     return true;
   }, [step, displayName, email, phone, allAcknowledged]);
 
@@ -367,7 +324,7 @@ export default function MedJobsApplyPage() {
         }
       }
 
-      setStep(4 as Step);
+      setStep(2 as Step);
     } catch { setError("Network error. Please try again."); }
     finally { setLoading(false); }
   }, [
@@ -379,7 +336,7 @@ export default function MedJobsApplyPage() {
 
   /* ─── Success ────────────────────────────────────────────── */
 
-  if (step === 4) {
+  if (step === 2) {
     return (
       <main className="min-h-screen bg-white flex items-center justify-center px-4 py-16">
         <div className="max-w-md w-full">
@@ -448,7 +405,6 @@ export default function MedJobsApplyPage() {
             className="inline-flex items-center justify-center w-full px-6 py-3.5 bg-gray-900 hover:bg-gray-800 rounded-lg text-sm font-semibold text-white transition-colors">
             Start Verification
           </Link>
-          <p className="mt-4 text-sm text-gray-400 text-center">Check your email for a sign-in link</p>
           <style>{`@keyframes scale-in { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }`}</style>
         </div>
       </main>
@@ -639,61 +595,11 @@ export default function MedJobsApplyPage() {
             </div>
           )}
 
-          {/* ── Step 1: Background ── */}
+          {/* ── Step 1: Availability & Commitments ── */}
           {step === 1 && (
-            <div className="space-y-8">
-              <div>
-                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">
-                  Experience
-                  <Tooltip content="Experience includes family caregiving, volunteer work, and clinical exposure. No experience is OK — you can explain your motivation later." />
-                </label>
-                <SearchDropdown
-                  options={[
-                    { value: "0", label: "No experience yet, eager to learn" },
-                    { value: "family", label: "Experience caring for family or friends" },
-                    { value: "1", label: "1\u20132 years (paid or volunteer)" },
-                    { value: "3", label: "3+ years" },
-                  ]}
-                  value={yearsCaregiving} onSelect={setYearsCaregiving} placeholder="Select" />
-                <ReactiveHint show={yearsCaregiving === "0"}>
-                  That&apos;s okay — explain your motivation in your personal statement. Many great caregivers start with zero experience.
-                </ReactiveHint>
-              </div>
-
-              <div>
-                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-3">
-                  Certifications
-                  <Tooltip content="List any certifications you hold. Don't have any? That's fine — many students earn certifications during their first semester." />
-                </label>
-                <MultiSelectCards
-                  options={CERTIFICATIONS.map((c) => ({ value: c, label: c }))}
-                  selected={certifications}
-                  onToggle={(v) => toggleItem(setCertifications, v)} />
-              </div>
-
-              <div>
-                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-3">Types of care provided</label>
-                <MultiSelectCards
-                  options={CARE_EXPERIENCE_TYPES.map((c) => ({ value: c, label: c }))}
-                  selected={careExperienceTypes}
-                  onToggle={(v) => toggleItem(setCareExperienceTypes, v)} />
-              </div>
-
-              <div>
-                <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-3">Languages</label>
-                <MultiSelectCards
-                  options={LANGUAGES.map((l) => ({ value: l, label: l }))}
-                  selected={languages}
-                  onToggle={(v) => toggleItem(setLanguages, v)} />
-              </div>
-            </div>
-          )}
-
-          {/* ── Step 2: Availability ── */}
-          {step === 2 && (
-            <div className="space-y-8">
+            <div className="space-y-6">
               <p className="text-sm text-gray-500 leading-relaxed">
-                Students in this program are expected to be available for shifts between classes, evenings, weekends, and overnights. We work around your class schedule and exam periods — but outside of that, the more available you are, the faster you get matched.
+                Students in this program are expected to be available for shifts between classes, evenings, weekends, and overnights. We work around your class schedule and exam periods.
               </p>
 
               <div className="grid grid-cols-2 gap-6">
@@ -701,28 +607,21 @@ export default function MedJobsApplyPage() {
                   <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Hours per week</label>
                   <SearchDropdown options={HOURS_OPTIONS} value={hoursPerWeekRange} onSelect={setHoursPerWeekRange} placeholder="Select" />
                   <ReactiveHint show={!!hoursPerWeekRange && ["5-10", "10-15"].includes(hoursPerWeekRange)}>
-                    Students who commit 15+ hrs/week get placed with providers significantly faster.
+                    Students who commit 15+ hrs/week are more competitive with providers.
                   </ReactiveHint>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">
-                    How long can you commit?
-                  </label>
+                  <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">How long can you commit?</label>
                   <SearchDropdown options={DURATION_OPTIONS} value={durationCommitment} onSelect={setDurationCommitment} placeholder="Select" />
                   <ReactiveHint show={durationCommitment === "less_than_3_months" || durationCommitment === "3_to_6_months"}>
-                    Providers strongly prefer 6+ month commitments. Longer commitment = better placement and stronger references.
+                    Providers strongly prefer 6+ month commitments.
                   </ReactiveHint>
                 </div>
               </div>
 
-            </div>
-          )}
-
-          {/* ── Step 3: Commitments ── */}
-          {step === 3 && (
-            <div className="space-y-4">
-              <p className="text-sm text-gray-500 leading-relaxed mb-2">
-                These standards are why providers trust MedJobs students. If these feel right to you, you&apos;re exactly who we&apos;re looking for.
+              <div className="border-t border-gray-100 pt-5">
+                <p className="text-sm text-gray-500 leading-relaxed mb-3">
+                  These standards are why providers trust MedJobs students. If these feel right to you, you&apos;re exactly who we&apos;re looking for.
               </p>
 
               {[
@@ -761,7 +660,7 @@ export default function MedJobsApplyPage() {
               </button>
             ) : <div />}
 
-            {step === 3 ? (
+            {step === 1 ? (
               <button type="button" onClick={handleSubmit}
                 disabled={loading || !allAcknowledged}
                 className="inline-flex items-center gap-2 px-8 py-3 bg-gray-900 hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg text-sm font-semibold text-white transition-colors">

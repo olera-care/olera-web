@@ -2,16 +2,16 @@
 
 ## Phase 1: Onboarding Streamline + Email Engine (Week 1-2)
 
-- [ ] **1F** Build server-side completeness function (`lib/medjobs-completeness.ts`)
-- [ ] **1F** Refactor portal to import from shared completeness function
-- [ ] **1A** Audit all step number references in apply page
-- [ ] **1A** Remove Step 2 (background) from onboarding, renumber to 3 steps
-- [ ] **1A** Add experience/certifications/care types/languages sections to portal
-- [ ] **1B** Check what email apply-partial sends, rewrite welcome email
-- [ ] **1C** Remove sign-in subtext from success page
-- [ ] **1D** Upgrade nudge cron — threshold <100%, cadence, nudge_count
-- [ ] **1E** Add activation email trigger + template (simplified, no provider list)
-- [ ] **1** Type-check, self-review, commit, push
+- [x] **1F** Build server-side completeness function (`lib/medjobs-completeness.ts`)
+- [x] **1F** Refactor portal to import from shared completeness function
+- [x] **1A** Audit all step number references in apply page
+- [x] **1A** Remove Step 2 (background) from onboarding, renumber to 3 steps
+- [x] **1A** Add experience/certifications/care types/languages sections to portal
+- [x] **1B** New account creation email + send from apply-partial API
+- [x] **1C** Remove sign-in subtext from success page
+- [x] **1D** Upgrade nudge cron — threshold <100%, cadence, nudge_count
+- [x] **1E** Activation email trigger + template (in nudge cron)
+- [x] **1** Type-check, self-review, commit, push
 
 ## Phase 2: Year-Round Availability Model (Week 2-3)
 

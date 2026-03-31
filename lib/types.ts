@@ -417,8 +417,16 @@ export interface StudentMetadata {
   commitment_statement?: string;        // Required free-text on commitment to shifts
   availability_notes?: string;          // Free-text: finals, breaks, travel, constraints
   schedule_update_date?: string;        // Next date schedule needs updating (ISO date)
-  summer_availability?: string;         // "full_time" | "part_time" | "unavailable" | notes
-  winter_availability?: string;         // same
+  summer_availability?: string;         // Legacy — migrated to year_round_availability
+  winter_availability?: string;         // Legacy — migrated to year_round_availability
+
+  // Year-round availability (structured)
+  year_round_availability?: {
+    spring?: { status: string; year: number; notes?: string };
+    summer?: { status: string; year: number; notes?: string };
+    fall?: { status: string; year: number; notes?: string };
+    winter?: { status: string; year: number; notes?: string };
+  };
 
   // Document Expiration
   drivers_license_expiration?: string;  // ISO date

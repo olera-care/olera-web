@@ -9,6 +9,8 @@ import {
   formatAvailability,
   formatHoursPerWeek,
   formatDuration,
+  SEASON_LABELS,
+  getSeasonalStatusLabel,
   hasVideo,
   getYouTubeId,
   INTENDED_SCHOOL_LABELS,
@@ -342,8 +344,26 @@ export default async function StudentProfilePage({ params }: PageProps) {
                 )}
                 {hoursLabel && <div><dt className="text-xs text-gray-400 uppercase tracking-wide">Hours/Week</dt><dd className="text-sm text-gray-900">{hoursLabel}</dd></div>}
                 {durationLabel && <div><dt className="text-xs text-gray-400 uppercase tracking-wide">Commitment</dt><dd className="text-sm text-gray-900">{durationLabel}</dd></div>}
-                {meta.summer_availability && <div><dt className="text-xs text-gray-400 uppercase tracking-wide">Summer</dt><dd className="text-sm text-gray-900">{meta.summer_availability}</dd></div>}
-                {meta.winter_availability && <div><dt className="text-xs text-gray-400 uppercase tracking-wide">Winter</dt><dd className="text-sm text-gray-900">{meta.winter_availability}</dd></div>}
+                {meta.year_round_availability && Object.keys(meta.year_round_availability).length > 0 && (
+                  <div>
+                    <dt className="text-xs text-gray-400 uppercase tracking-wide mb-1.5">Year-Round</dt>
+                    <dd className="space-y-1">
+                      {(["spring", "summer", "fall", "winter"] as const).map((s) => {
+                        const data = meta.year_round_availability?.[s];
+                        if (!data) return null;
+                        return (
+                          <div key={s} className="flex items-center gap-2 text-sm">
+                            <span className="text-gray-500 w-14">{SEASON_LABELS[s]}</span>
+                            <span className="text-gray-900">{getSeasonalStatusLabel(data.status)}</span>
+                          </div>
+                        );
+                      })}
+                    </dd>
+                  </div>
+                )}
+                {/* Legacy fallback for old summer/winter fields */}
+                {!meta.year_round_availability && meta.summer_availability && <div><dt className="text-xs text-gray-400 uppercase tracking-wide">Summer</dt><dd className="text-sm text-gray-900">{meta.summer_availability}</dd></div>}
+                {!meta.year_round_availability && meta.winter_availability && <div><dt className="text-xs text-gray-400 uppercase tracking-wide">Winter</dt><dd className="text-sm text-gray-900">{meta.winter_availability}</dd></div>}
                 {meta.commitment_statement && (
                   <div className="pt-1 border-t border-gray-100">
                     <dt className="text-xs text-gray-400 uppercase tracking-wide">Commitment Statement</dt>

@@ -1,5 +1,37 @@
 import type { StudentMetadata, StudentProgramTrack, IntendedProfessionalSchool } from "./types";
 
+/** Seasonal availability status options */
+export const SEASONAL_STATUS_OPTIONS = [
+  { value: "full_time", label: "Full-time available" },
+  { value: "classes_see_schedule", label: "Taking classes — see schedule" },
+  { value: "part_time", label: "Part-time — limited hours" },
+  { value: "planning_classes", label: "Planning to take classes — will update" },
+  { value: "out_of_town", label: "Will be out of town" },
+  { value: "graduating", label: "Graduating" },
+  { value: "pending", label: "Pending — will update soon" },
+] as const;
+
+export const SEASON_LABELS: Record<string, string> = {
+  spring: "Spring",
+  summer: "Summer",
+  fall: "Fall",
+  winter: "Winter",
+};
+
+/** Get display label for a seasonal status value */
+export function getSeasonalStatusLabel(status: string): string {
+  return SEASONAL_STATUS_OPTIONS.find((o) => o.value === status)?.label || status;
+}
+
+/** Get the current season key */
+export function getCurrentSeasonKey(): "spring" | "summer" | "fall" | "winter" {
+  const month = new Date().getMonth();
+  if (month >= 0 && month <= 4) return "spring";
+  if (month >= 5 && month <= 7) return "summer";
+  if (month >= 8 && month <= 10) return "fall";
+  return "winter";
+}
+
 /** Display labels for IntendedProfessionalSchool */
 export const INTENDED_SCHOOL_LABELS: Record<IntendedProfessionalSchool, string> = {
   medicine: "Medicine",

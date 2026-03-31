@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
 import type { StudentMetadata } from "@/lib/types";
-import { getTrackLabel, INTENDED_SCHOOL_LABELS } from "@/lib/medjobs-helpers";
+import { getTrackLabel, INTENDED_SCHOOL_LABELS, SEASONAL_STATUS_OPTIONS, SEASON_LABELS, getCurrentSeasonKey, getSeasonalStatusLabel } from "@/lib/medjobs-helpers";
 import { ScheduleBuilder, parseSchedule, serializeSchedule } from "@/components/medjobs/ScheduleBuilder";
 import {
   SCENARIO_QUESTIONS,
@@ -575,20 +575,72 @@ function CommitmentStatementSection({ profileId, value, onSave }: {
   );
 }
 
+/* ─── Seasonal Availability Editor ─────────────────────────── */
+
+const SEASONS = ["spring", "summer", "fall", "winter"] as const;
+
+function SeasonalAvailabilityEditor({ profileId, meta, onSave }: {
+  profileId: string; meta: StudentMetadata; onSave: () => void;
+}) {
+  const currentSeason = getCurrentSeasonKey();
+  const currentYear = new Date().getFullYear();
+  const yra = meta.year_round_availability || {};
+
+  const saveSeason = async (season: string, status: string, notes?: string) => {
+    const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+    const { data: current } = await sb.from("business_profiles").select("metadata").eq("id", profileId).single();
+    const m = (current?.metadata || {}) as Record<string, unknown>;
+    const existing = (m.year_round_availability || {}) as Record<string, unknown>;
+    existing[season] = { status, year: currentYear, notes: notes || undefined };
+    m.year_round_availability = existing;
+    await sb.from("business_profiles").update({ metadata: m }).eq("id", profileId);
+    onSave();
+  };
+
+  return (
+    <div>
+      <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-3">Year-round availability</label>
+      <div className="space-y-2">
+        {SEASONS.map((season) => {
+          const data = yra[season];
+          const isCurrent = season === currentSeason;
+          return (
+            <div key={season} className={`rounded-lg border p-3 ${isCurrent ? "border-primary-200 bg-primary-50/30" : "border-gray-100"}`}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-900">
+                  {SEASON_LABELS[season]} {isCurrent ? currentYear : season === "winter" ? `${currentYear}–${currentYear + 1}` : currentYear}
+                  {isCurrent && <span className="ml-2 text-xs text-primary-600 font-normal">(current)</span>}
+                </span>
+                {isCurrent && meta.course_schedule_grid && (
+                  <span className="text-xs text-primary-600">See class schedule above</span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {SEASONAL_STATUS_OPTIONS
+                  .filter((o) => !(isCurrent && meta.course_schedule_grid && o.value !== "classes_see_schedule"))
+                  .map((opt) => (
+                    <button key={opt.value} type="button"
+                      onClick={() => saveSeason(season, opt.value)}
+                      className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
+                        data?.status === opt.value ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}>
+                      {opt.label}
+                    </button>
+                  ))}
+              </div>
+              {data?.notes && (
+                <p className="text-xs text-gray-500 mt-2">{data.notes}</p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Availability & Commitment Section ───────────────────── */
 
-const SUMMER_OPTIONS = [
-  "Full-time available all summer",
-  "Taking summer classes — will update schedule",
-  "Available except for planned travel",
-  "Will be out of town — will update when I return",
-];
-const WINTER_OPTIONS = [
-  "Full-time available during winter break",
-  "Available except for holiday travel",
-  "Taking winter classes — will update schedule",
-  "Will be out of town — will update when I return",
-];
 
 function AvailabilityCommitmentSection({ profileId, meta, onSave }: {
   profileId: string; meta: StudentMetadata; onSave: () => void;
@@ -662,27 +714,8 @@ function AvailabilityCommitmentSection({ profileId, meta, onSave }: {
           </div>
         </div>
 
-        {/* Summer availability */}
-        <SuggestedTextEditor
-          label="Summer availability"
-          profileId={profileId}
-          field="summer_availability"
-          value={meta.summer_availability || ""}
-          suggestions={SUMMER_OPTIONS}
-          placeholder="Describe your summer availability or select above..."
-          onSave={onSave}
-        />
-
-        {/* Winter availability */}
-        <SuggestedTextEditor
-          label="Winter availability"
-          profileId={profileId}
-          field="winter_availability"
-          value={meta.winter_availability || ""}
-          suggestions={WINTER_OPTIONS}
-          placeholder="Describe your winter availability or select above..."
-          onSave={onSave}
-        />
+        {/* Year-round availability */}
+        <SeasonalAvailabilityEditor profileId={profileId} meta={meta} onSave={onSave} />
 
         <DateFieldEditor profileId={profileId} field="schedule_update_date" value={meta.schedule_update_date || ""} onSave={onSave}
           label="Schedule update date" hint="When does your current schedule end? We'll remind you to update." />

@@ -5,7 +5,7 @@ const links = [
   {
     title: "Young Caregivers Discord",
     description: "Connect with other young adults navigating caregiving",
-    href: "https://discord.gg/olera",
+    href: "https://discord.gg/R8Mkj5VJsk",
     external: true,
     icon: (
       <Image src="/images/discord.png" alt="" width={20} height={20} className="object-contain opacity-40" />

@@ -7,10 +7,15 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { FamilyMetadata } from "@/lib/types";
 import Modal from "@/components/ui/Modal";
 
+type SettingsTab = "account" | "notifications";
+
 export default function SettingsPage() {
   const router = useRouter();
   const { user, activeProfile, profiles, refreshAccountData } =
     useAuth();
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<SettingsTab>("account");
 
   // Notification prefs — optimistic overrides for instant toggle response
   const meta = (activeProfile?.metadata || {}) as FamilyMetadata;
@@ -255,163 +260,203 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-2xl">
-      <div className="rounded-2xl bg-white border border-gray-200/80 shadow-sm divide-y divide-gray-100">
-      {/* ── Notifications ── */}
-      <div className="p-6">
-        <h3 className="text-lg font-display font-bold text-gray-900 mb-5">Notifications</h3>
-        {notifError && (
-          <div className="mb-4 px-3 py-2 rounded-lg bg-rose-50/80 border border-rose-100/60">
-            <p className="text-[13px] text-rose-600 font-medium">{notifError}</p>
-          </div>
-        )}
-        <div className="divide-y divide-gray-50">
-          <NotificationRow
-            title="Connection updates"
-            description="When a provider responds or messages you"
-            emailOn={getNotifOn("connection_updates", "email")}
-            smsOn={getNotifOn("connection_updates", "sms")}
-            onToggle={(channel) =>
-              handleNotifToggle("connection_updates", channel)
-            }
-          />
-          <NotificationRow
-            title="Saved provider alerts"
-            description="When a saved provider becomes available"
-            emailOn={getNotifOn("saved_provider_alerts", "email")}
-            smsOn={getNotifOn("saved_provider_alerts", "sms")}
-            onToggle={(channel) =>
-              handleNotifToggle("saved_provider_alerts", channel)
-            }
-          />
-          <NotificationRow
-            title="Match updates"
-            description="New provider matches and care profile responses"
-            emailOn={getNotifOn("match_updates", "email")}
-            smsOn={getNotifOn("match_updates", "sms")}
-            onToggle={(channel) =>
-              handleNotifToggle("match_updates", channel)
-            }
-          />
-          <NotificationRow
-            title="Profile reminders"
-            description="Tips to complete your care profile"
-            emailOn={getNotifOn("profile_reminders", "email")}
-            smsOn={getNotifOn("profile_reminders", "sms")}
-            onToggle={(channel) =>
-              handleNotifToggle("profile_reminders", channel)
-            }
-          />
+    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-6">
+        <div className="mb-5">
+          <h2 className="text-2xl font-display font-bold text-gray-900">
+            Account Settings
+          </h2>
+          <p className="text-[15px] text-gray-500 mt-1">
+            Manage your account, login, and notification preferences.
+          </p>
         </div>
-      </div>
 
-      {/* ── Account ── */}
-      <div className="p-6">
-        <h3 className="text-lg font-display font-bold text-gray-900 mb-5">Account</h3>
-        <div className="divide-y divide-gray-100">
-          <AccountRow
-            label="Email"
-            value={user?.email || "Not set"}
-            verified={!!user?.email_confirmed_at}
-            onVerify={sendVerificationEmail}
-            verifying={sendingVerification}
-            verificationSent={verificationSent}
-            isEditing={editingField === "email"}
-            editValue={fieldValue}
-            onEditChange={setFieldValue}
-            onStartEdit={() => startEdit("email")}
-            onSave={saveField}
-            onCancel={() => setEditingField(null)}
-            saving={fieldSaving}
-            error={editingField === "email" ? fieldError : ""}
-            success={editingField === "email" ? fieldSuccess : ""}
-            inputType="email"
-          />
-          <AccountRow
-            label="Phone"
-            value={activeProfile?.phone || "Not set"}
-            isEditing={editingField === "phone"}
-            editValue={fieldValue}
-            onEditChange={setFieldValue}
-            onStartEdit={() => startEdit("phone")}
-            onSave={saveField}
-            onCancel={() => setEditingField(null)}
-            saving={fieldSaving}
-            error={editingField === "phone" ? fieldError : ""}
-            success={editingField === "phone" ? fieldSuccess : ""}
-            inputType="tel"
-            placeholder="(555) 123-4567"
-          />
-          <AccountRow
-            label="Password"
-            value={"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"}
-            isEditing={editingField === "password"}
-            editValue=""
-            onEditChange={() => {}}
-            onStartEdit={() => startEdit("password")}
-            onSave={saveField}
-            onCancel={() => setEditingField(null)}
-            saving={fieldSaving}
-            error={editingField === "password" ? fieldError : ""}
-            success={editingField === "password" ? fieldSuccess : ""}
-            isPassword
-          />
-        </div>
-      </div>
-
-      {/* ── Remove this profile ── */}
-      <div className="p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-[15px] font-semibold text-gray-900">
-              Remove this profile
-            </p>
-            <p className="text-sm text-gray-500 mt-0.5">
-              Remove your{" "}
-              <span className="font-medium text-gray-700">
-                {activeProfile?.display_name}
-              </span>{" "}
-              profile. Your account and other profiles will not be affected.
-            </p>
+        <div className="max-w-2xl">
+          {/* Tabs - segmented control style */}
+          <div className="mb-6">
+            <div className="inline-flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl">
+              <button
+                onClick={() => setActiveTab("account")}
+                className={`px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all duration-150 min-h-[44px] ${
+                  activeTab === "account"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Account
+              </button>
+              <button
+                onClick={() => setActiveTab("notifications")}
+                className={`px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all duration-150 min-h-[44px] ${
+                  activeTab === "notifications"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Notifications
+              </button>
+            </div>
           </div>
-          {profiles.length > 1 ? (
-            <button
-              type="button"
-              onClick={() => setShowDeleteProfileModal(true)}
-              className="text-[14px] font-medium text-red-500 hover:text-red-600 transition-colors shrink-0 ml-4"
-            >
-              Remove
-            </button>
-          ) : (
-            <span className="text-xs text-gray-400 shrink-0 ml-4 max-w-[140px] text-right leading-snug">
-              Only profile — use &ldquo;Delete account&rdquo; below
-            </span>
-          )}
-        </div>
-      </div>
 
-      {/* ── Delete Account ── */}
-      <div className="p-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-[15px] font-semibold text-gray-900">
-              Delete account
-            </p>
-            <p className="text-sm text-gray-500 mt-0.5">
-              Permanently delete your account, all profiles, and all connection
-              history.
-            </p>
+          {/* Tab Content */}
+          <div className="rounded-2xl bg-white border border-gray-200/80 shadow-sm divide-y divide-gray-100">
+            {activeTab === "account" ? (
+              <>
+                {/* ── Account Info ── */}
+                <div className="p-6">
+                  <div className="divide-y divide-gray-100">
+                    <AccountRow
+                      label="Email"
+                      value={user?.email || "Not set"}
+                      verified={!!user?.email_confirmed_at}
+                      onVerify={sendVerificationEmail}
+                      verifying={sendingVerification}
+                      verificationSent={verificationSent}
+                      isEditing={editingField === "email"}
+                      editValue={fieldValue}
+                      onEditChange={setFieldValue}
+                      onStartEdit={() => startEdit("email")}
+                      onSave={saveField}
+                      onCancel={() => setEditingField(null)}
+                      saving={fieldSaving}
+                      error={editingField === "email" ? fieldError : ""}
+                      success={editingField === "email" ? fieldSuccess : ""}
+                      inputType="email"
+                    />
+                    <AccountRow
+                      label="Phone"
+                      value={activeProfile?.phone || "Not set"}
+                      isEditing={editingField === "phone"}
+                      editValue={fieldValue}
+                      onEditChange={setFieldValue}
+                      onStartEdit={() => startEdit("phone")}
+                      onSave={saveField}
+                      onCancel={() => setEditingField(null)}
+                      saving={fieldSaving}
+                      error={editingField === "phone" ? fieldError : ""}
+                      success={editingField === "phone" ? fieldSuccess : ""}
+                      inputType="tel"
+                      placeholder="(555) 123-4567"
+                    />
+                    <AccountRow
+                      label="Password"
+                      value={"\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"}
+                      isEditing={editingField === "password"}
+                      editValue=""
+                      onEditChange={() => {}}
+                      onStartEdit={() => startEdit("password")}
+                      onSave={saveField}
+                      onCancel={() => setEditingField(null)}
+                      saving={fieldSaving}
+                      error={editingField === "password" ? fieldError : ""}
+                      success={editingField === "password" ? fieldSuccess : ""}
+                      isPassword
+                    />
+                  </div>
+                </div>
+
+                {/* ── Remove this profile ── */}
+                <div className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-[15px] font-semibold text-gray-900">
+                        Remove this profile
+                      </p>
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        Remove your{" "}
+                        <span className="font-medium text-gray-700">
+                          {activeProfile?.display_name}
+                        </span>{" "}
+                        profile. Your account and other profiles will not be affected.
+                      </p>
+                    </div>
+                    {profiles.length > 1 ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowDeleteProfileModal(true)}
+                        className="text-[14px] font-medium text-red-500 hover:text-red-600 transition-colors shrink-0 ml-4"
+                      >
+                        Remove
+                      </button>
+                    ) : (
+                      <span className="text-xs text-gray-400 shrink-0 ml-4 max-w-[140px] text-right leading-snug">
+                        Only profile — use &ldquo;Delete account&rdquo; below
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* ── Delete Account ── */}
+                <div className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-[15px] font-semibold text-gray-900">
+                        Delete account
+                      </p>
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        Permanently delete your account, all profiles, and all connection
+                        history.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteModal(true)}
+                      className="text-[14px] font-medium text-red-500 hover:text-red-600 transition-colors shrink-0 ml-4"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* ── Notifications Tab ── */
+              <div className="p-6">
+                {notifError && (
+                  <div className="mb-4 px-3 py-2 rounded-lg bg-rose-50/80 border border-rose-100/60">
+                    <p className="text-[13px] text-rose-600 font-medium">{notifError}</p>
+                  </div>
+                )}
+                <div className="divide-y divide-gray-50">
+                  <NotificationRow
+                    title="Connection updates"
+                    description="When a provider responds or messages you"
+                    emailOn={getNotifOn("connection_updates", "email")}
+                    smsOn={getNotifOn("connection_updates", "sms")}
+                    onToggle={(channel) =>
+                      handleNotifToggle("connection_updates", channel)
+                    }
+                  />
+                  <NotificationRow
+                    title="Saved provider alerts"
+                    description="When a saved provider becomes available"
+                    emailOn={getNotifOn("saved_provider_alerts", "email")}
+                    smsOn={getNotifOn("saved_provider_alerts", "sms")}
+                    onToggle={(channel) =>
+                      handleNotifToggle("saved_provider_alerts", channel)
+                    }
+                  />
+                  <NotificationRow
+                    title="Match updates"
+                    description="New provider matches and care profile responses"
+                    emailOn={getNotifOn("match_updates", "email")}
+                    smsOn={getNotifOn("match_updates", "sms")}
+                    onToggle={(channel) =>
+                      handleNotifToggle("match_updates", channel)
+                    }
+                  />
+                  <NotificationRow
+                    title="Profile reminders"
+                    description="Tips to complete your care profile"
+                    emailOn={getNotifOn("profile_reminders", "email")}
+                    smsOn={getNotifOn("profile_reminders", "sms")}
+                    onToggle={(channel) =>
+                      handleNotifToggle("profile_reminders", channel)
+                    }
+                  />
+                </div>
+              </div>
+            )}
           </div>
-          <button
-            type="button"
-            onClick={() => setShowDeleteModal(true)}
-            className="text-[14px] font-medium text-red-500 hover:text-red-600 transition-colors shrink-0 ml-4"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-      </div>
 
       {/* Delete Confirmation Modal */}
       <Modal
@@ -580,6 +625,8 @@ export default function SettingsPage() {
           </div>
         </div>
       </Modal>
+        </div>
+      </div>
     </div>
   );
 }

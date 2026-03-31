@@ -419,10 +419,10 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
                   Providers in your area can now find you. We&apos;ll email you the moment someone reaches out.
                 </p>
                 <Link
-                  href="/portal/matches"
+                  href="/portal/profile"
                   className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors mb-2"
                 >
-                  View your Matches profile &rarr;
+                  View your care profile &rarr;
                 </Link>
                 <button
                   onClick={() => { setMatchesCardDismissed(true); setMatchesCardConfirmed(false); }}
@@ -442,8 +442,8 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
                 {matchesError && (
                   <div className="mt-3">
                     <p className="text-sm text-gray-600">We couldn&apos;t set up your profile right now.</p>
-                    <Link href="/portal/matches" className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors">
-                      Visit your Matches tab to complete setup.
+                    <Link href="/portal/profile" className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors">
+                      Visit your profile to complete setup.
                     </Link>
                   </div>
                 )}

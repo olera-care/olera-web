@@ -8,6 +8,7 @@ interface Question {
   provider_id: string;
   provider_name: string | null;
   provider_editor_id: string | null;
+  provider_email: string | null;
   asker_name: string;
   asker_email: string | null;
   question: string;
@@ -45,15 +46,18 @@ const STATUS_COLORS: Record<string, string> = {
 
 function InlineEmailInput({
   providerSlug,
+  existingEmail,
   onEmailAdded,
 }: {
   providerSlug: string;
+  existingEmail?: string | null;
   onEmailAdded: () => void;
 }) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(existingEmail || "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const hasExistingEmail = !!existingEmail;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -88,7 +92,7 @@ function InlineEmailInput({
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
-        Email saved — question forwarded
+        {hasExistingEmail ? "Question forwarded" : "Email saved — question forwarded"}
       </div>
     );
   }
@@ -109,8 +113,11 @@ function InlineEmailInput({
         disabled={saving || !email.trim()}
         className="px-4 py-1.5 rounded-lg text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition-colors disabled:opacity-40"
       >
-        {saving ? "Saving..." : "Add & Send"}
+        {saving ? "Sending..." : hasExistingEmail ? "Send" : "Add & Send"}
       </button>
+      {hasExistingEmail && !error && !saving && email === existingEmail && (
+        <span className="text-xs text-amber-600">Email on file</span>
+      )}
       {error && <span className="text-xs text-red-500">{error}</span>}
     </form>
   );
@@ -356,6 +363,7 @@ export default function AdminQuestionsPage() {
                   <div className="mt-3">
                     <InlineEmailInput
                       providerSlug={q.provider_id}
+                      existingEmail={q.provider_email}
                       onEmailAdded={fetchQuestions}
                     />
                   </div>

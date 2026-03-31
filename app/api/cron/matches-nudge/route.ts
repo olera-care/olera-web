@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
             html: matchesNudgeEmail({
               familyName: fp.display_name || "there",
               unansweredCount: stats?.total || 2,
-              matchesUrl: appendTrackingParams(`${siteUrl}/portal/matches`, mnLogId),
+              matchesUrl: appendTrackingParams(`${siteUrl}/portal/profile`, mnLogId),
             }),
             emailType: "matches_nudge",
             recipientType: "family",

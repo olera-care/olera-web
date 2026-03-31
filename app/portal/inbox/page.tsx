@@ -6,8 +6,9 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Connection, ConnectionStatus, Profile } from "@/lib/types";
 import ConversationList from "@/components/messaging/ConversationList";
-import type { ConnectionWithProfile } from "@/components/messaging/ConversationList";
+import type { ConnectionWithProfile, FamilyTab } from "@/components/messaging/ConversationList";
 import ConversationPanel from "@/components/messaging/ConversationPanel";
+import RequestDetailPanel from "@/components/messaging/RequestDetailPanel";
 import ProviderDetailPanel from "@/components/messaging/ProviderDetailPanel";
 import ReportConnectionModal from "@/components/messaging/ReportConnectionModal";
 
@@ -70,10 +71,11 @@ function InboxContent() {
   }, [searchParams, activeProfile]);
 
   // Compute provider profile IDs and whether user has both account types
-  const { providerProfileIds, hasProviderProfile, hasFamilyProfile } = useMemo(() => {
+  const { providerProfileIds, hasProviderProfile, hasFamilyProfile, familyProfileId } = useMemo(() => {
     const providerIds = new Set<string>();
     let hasProvider = false;
     let hasFamily = false;
+    let familyId: string | null = null;
 
     for (const p of profiles) {
       if (p.type === "organization" || p.type === "caregiver") {
@@ -81,6 +83,7 @@ function InboxContent() {
         hasProvider = true;
       } else {
         hasFamily = true;
+        familyId = p.id;
       }
     }
 
@@ -88,17 +91,56 @@ function InboxContent() {
       providerProfileIds: providerIds,
       hasProviderProfile: hasProvider,
       hasFamilyProfile: hasFamily,
+      familyProfileId: familyId,
     };
   }, [profiles]);
+
+  // Check if family profile's care post is live
+  const [isProfileLive, setIsProfileLive] = useState(false);
+
+  useEffect(() => {
+    if (!familyProfileId || !isSupabaseConfigured()) return;
+
+    const checkCarePostStatus = async () => {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase
+          .from("care_posts")
+          .select("status")
+          .eq("profile_id", familyProfileId)
+          .single();
+
+        setIsProfileLive(data?.status === "active");
+      } catch {
+        // No care post or error — treat as not live
+        setIsProfileLive(false);
+      }
+    };
+
+    checkCarePostStatus();
+  }, [familyProfileId]);
 
   // Only show role filters for users with both family AND provider profiles
   const showRoleFilters = hasProviderProfile && hasFamilyProfile;
 
-  // Role filter state — default from URL param, or "all"
+  // Role filter state — default from URL param, or will be set by effect below
   const [roleFilter, setRoleFilter] = useState<RoleFilter>(() => {
     if (urlRole === "family" || urlRole === "provider") return urlRole;
-    return "all";
+    return "family"; // Temporary default, will be corrected by effect
   });
+
+  // Set smart default once profiles are loaded: provider-only users should see provider mode
+  const initialRoleSet = useRef(false);
+  useEffect(() => {
+    if (initialRoleSet.current || urlRole) return; // Don't override URL param or re-run
+    if (profiles.length === 0) return; // Wait for profiles to load
+
+    // If user only has provider profile(s), default to provider mode
+    if (hasProviderProfile && !hasFamilyProfile) {
+      setRoleFilter("provider");
+    }
+    initialRoleSet.current = true;
+  }, [profiles.length, hasProviderProfile, hasFamilyProfile, urlRole]);
 
   // Update URL when role filter changes (without full navigation)
   const handleRoleFilterChange = useCallback((filter: RoleFilter) => {
@@ -123,6 +165,7 @@ function InboxContent() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [reportingConnectionId, setReportingConnectionId] = useState<string | null>(null);
   const [archivedCount, setArchivedCount] = useState(0);
+  const [familyTab, setFamilyTab] = useState<FamilyTab>("messages");
 
   // Guest claim token support — used when not authenticated
   const [guestProfileId, setGuestProfileId] = useState<string | null>(null);
@@ -298,7 +341,8 @@ function InboxContent() {
           .eq("type", "inquiry")
           .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
-        // Provider-initiated matches that user accepted (shown in inbox for messaging)
+        // Provider-sent requests: only show accepted (pending reach-outs stay in /provider/matches)
+        // This prevents providers from seeing "conversations" before family accepts
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
@@ -306,18 +350,19 @@ function InboxContent() {
           .eq("type", "request")
           .eq("status", "accepted")
           .order("updated_at", { ascending: false }),
+        // Family-received requests: show both pending (for accept/decline) and accepted
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .eq("to_profile_id", activeProfileId)
           .eq("type", "request")
-          .eq("status", "accepted")
+          .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
       ]);
 
       // Merge and deduplicate — skip hidden and metadata-archived connections
       // (archive state lives in metadata.archived, not the status column)
-      // Include both inquiry connections and accepted provider-initiated matches
+      // Includes: inquiries, accepted provider-sent requests, pending/accepted family-received requests
       const allConns = [
         ...(outbound.data || []),
         ...(inbound.data || []),
@@ -361,7 +406,7 @@ function InboxContent() {
         const { data: profileData } = await supabase
           .from("business_profiles")
           .select(
-            "id, display_name, description, image_url, city, state, type, email, phone, website, slug, care_types, category, source_provider_id"
+            "id, display_name, description, image_url, city, state, type, email, phone, website, slug, care_types, category, source_provider_id, metadata"
           )
           .in("id", uncachedIds);
 
@@ -488,6 +533,23 @@ function InboxContent() {
     fetchConnections();
   }, [fetchConnections]);
 
+  // Auto-switch to Requests tab when URL points to a pending provider-initiated request
+  // This handles old email links redirected via next.config.ts (/portal/matches/:id → /portal/inbox?id=:id)
+  useEffect(() => {
+    if (!urlConnectionId || !familyProfileId || loading) return;
+
+    const conn = connections.find((c) => c.id === urlConnectionId);
+    if (!conn) return;
+
+    // Check if this is a pending provider-initiated request
+    const isProviderInitiated = conn.to_profile_id === familyProfileId;
+    const isPending = conn.status === "pending";
+
+    if (isProviderInitiated && isPending && familyTab !== "requests") {
+      setFamilyTab("requests");
+    }
+  }, [urlConnectionId, familyProfileId, connections, loading, familyTab]);
+
   // Re-fetch when a new connection is created (e.g. user connected from browse/suggested)
   useEffect(() => {
     const handler = () => fetchConnections();
@@ -549,7 +611,7 @@ function InboxContent() {
 
       const { data: profileData } = await supabase
         .from("business_profiles")
-        .select("id, display_name, description, image_url, city, state, type, email, phone, website, slug, care_types, category, source_provider_id")
+        .select("id, display_name, description, image_url, city, state, type, email, phone, website, slug, care_types, category, source_provider_id, metadata")
         .in("id", Array.from(archiveProfileIds));
 
       const profileMap = new Map(((profileData as Profile[]) || []).map((p) => [p.id, p]));
@@ -600,8 +662,21 @@ function InboxContent() {
     ? isInbound ? selectedConnection.fromProfile : selectedConnection.toProfile
     : null;
 
+  // Determine if we're viewing a pending request (provider-initiated, family is recipient)
+  // This determines whether to show RequestDetailPanel or ConversationPanel
+  const isViewingPendingRequest = useMemo(() => {
+    if (!selectedConnection || !familyProfileId) return false;
+    // Provider-initiated means family is the to_profile_id
+    const isProviderInitiated = selectedConnection.to_profile_id === familyProfileId;
+    // Check if it's a pending request (not yet accepted)
+    const isPending = selectedConnection.status === "pending";
+    // Only show request panel when on Requests tab
+    const isOnRequestsTab = familyTab === "requests";
+    return isProviderInitiated && isPending && isOnRequestsTab;
+  }, [selectedConnection, familyProfileId, familyTab]);
+
   // Close detail panel when switching conversations
-  const handleSelect = useCallback((id: string) => {
+  const handleSelect = useCallback((id: string | null) => {
     setSelectedId(id);
   }, []);
 
@@ -626,6 +701,38 @@ function InboxContent() {
     },
     []
   );
+
+  // Handle connecting with a provider (accepting their request)
+  const handleConnectRequest = useCallback(async (connectionId: string) => {
+    try {
+      await manageConnection({ connectionId, action: "accept" });
+
+      // Update local state to reflect acceptance
+      setConnections((prev) =>
+        prev.map((c) =>
+          c.id === connectionId ? { ...c, status: "accepted" as ConnectionStatus } : c
+        )
+      );
+
+      // Switch to Messages tab and keep the conversation selected
+      setFamilyTab("messages");
+    } catch (err) {
+      console.error("[inbox] connect request failed:", err);
+    }
+  }, [manageConnection]);
+
+  // Handle declining a provider's request
+  const handleDeclineRequest = useCallback(async (connectionId: string) => {
+    try {
+      await manageConnection({ connectionId, action: "decline" });
+
+      // Remove from local state
+      setConnections((prev) => prev.filter((c) => c.id !== connectionId));
+      setSelectedId(null);
+    } catch (err) {
+      console.error("[inbox] decline request failed:", err);
+    }
+  }, [manageConnection]);
 
   // Submit report — pessimistic: wait for API confirmation before updating state.
   // No optimistic update = no revert = no bounce.
@@ -765,20 +872,34 @@ function InboxContent() {
         onRoleFilterChange={handleRoleFilterChange}
         providerProfileIds={providerProfileIds}
         showRoleFilters={showRoleFilters}
+        isProfileLive={isProfileLive}
+        familyProfileId={familyProfileId || undefined}
+        familyTab={familyTab}
+        onFamilyTabChange={setFamilyTab}
       />
 
-      {/* Middle panel — conversation detail */}
-      <ConversationPanel
-        connection={selectedConnection}
-        activeProfile={activeProfile ?? null}
-        onMessageSent={handleMessageSent}
-        onBack={() => setSelectedId(null)}
-        detailOpen={detailOpen}
-        onToggleDetail={() => setDetailOpen((p) => !p)}
-        className={`w-full lg:flex-1 ${selectedId ? "flex" : "hidden lg:flex"}`}
-        claimToken={!user && !activeProfile ? (urlToken || localStorage.getItem(CLAIM_TOKEN_KEY)) : null}
-        guestProfileId={guestProfileId}
-      />
+      {/* Middle panel — request detail OR conversation */}
+      {isViewingPendingRequest && selectedConnection ? (
+        <RequestDetailPanel
+          connection={selectedConnection}
+          onConnect={handleConnectRequest}
+          onDecline={handleDeclineRequest}
+          onBack={() => setSelectedId(null)}
+          className={`w-full lg:flex-1 ${selectedId ? "flex" : "hidden lg:flex"}`}
+        />
+      ) : (
+        <ConversationPanel
+          connection={selectedConnection}
+          activeProfile={activeProfile ?? null}
+          onMessageSent={handleMessageSent}
+          onBack={() => setSelectedId(null)}
+          detailOpen={detailOpen}
+          onToggleDetail={() => setDetailOpen((p) => !p)}
+          className={`w-full lg:flex-1 ${selectedId ? "flex" : "hidden lg:flex"}`}
+          claimToken={!user && !activeProfile ? (urlToken || localStorage.getItem(CLAIM_TOKEN_KEY)) : null}
+          guestProfileId={guestProfileId}
+        />
+      )}
 
       {/* Right panel — provider details (animated width) */}
       {otherProfile && (

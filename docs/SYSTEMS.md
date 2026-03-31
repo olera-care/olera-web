@@ -401,4 +401,148 @@ Alias expansion runs in **3 query paths** — every way a user can search by cit
 
 ---
 
-*Last updated: 2026-03-24*
+## URL & Breadcrumb Strategy
+
+### Core URL Patterns
+
+**Power Pages (SEO backbone):**
+
+| Pattern | Example |
+|---------|---------|
+| `/{category}` | `/assisted-living` |
+| `/{category}/{state}` | `/assisted-living/texas` |
+| `/{category}/{state}/{city}` | `/assisted-living/texas/austin` |
+
+**Provider Detail Pages:**
+
+| Pattern | Example |
+|---------|---------|
+| `/provider/{slug}` | `/provider/accel-at-college-station-tx` |
+
+**Content Pages:**
+
+| Pattern | Example |
+|---------|---------|
+| `/caregiver-support/{slug}` | Articles |
+| `/research-and-press/{slug}` | Blog/press |
+| `/author/{slug}` | Author profiles |
+
+### Slug Conventions
+
+| Segment | Format | Source | Example |
+|---------|--------|--------|---------|
+| Category | 6 fixed values, hardcoded | `CATEGORY_CONFIGS` in `lib/power-pages.ts` | `assisted-living`, `memory-care`, `nursing-home`, `home-care`, `home-health-care`, `independent-living` |
+| State | Full name, lowercased, hyphenated | `stateAbbrevToSlug()` in `lib/power-pages.ts` | `new-york`, `south-carolina` |
+| City | Lowercased, hyphenated | `cityToSlug()` in `lib/power-pages.ts` | `san-francisco`, `austin` |
+| Provider | `{slugified-name}-{state-abbrev}` | `generateProviderSlug()` in `lib/slugify.ts` | `accel-at-college-station-tx` |
+| Article | `slugify(title)` | `lib/slugify.ts` | `complete-guide-to-home-health` |
+| Business Profile | Unique slug with 4-char random suffix | `generateUniqueSlug()` in `lib/slug.ts` | `my-facility-abc3` |
+
+### Category Slug Aliases (301 redirects in `middleware.ts`)
+
+| Alias | Canonical |
+|-------|-----------|
+| `home-care-non-medical` | `home-care` |
+| `home-health` | `home-health-care` |
+| `nursing-homes` | `nursing-home` |
+| `senior-communities` | `assisted-living` |
+
+### Specialized Routes
+
+- `/waiver-library/{state}/{benefit}` — Non-TX benefit programs
+- `/texas/benefits/{slug}` — TX benefits (SEO-friendly slugs via `lib/texas-slug-map.ts`)
+- `/browse?type={careType}&q={location}` — Legacy browse (query-param based, being superseded by power pages)
+- `/portal/*` — User/family dashboard (authenticated)
+- `/provider/{slug}/*` — Provider dashboard (authenticated)
+- `/admin/*` — Admin panel
+- `/medjobs/*` — Medical jobs marketplace
+- `/for-providers/*` — Provider marketing/claim/create
+- `/benefits/finder` — Benefit eligibility tool
+
+### City Aliases
+
+Defined in `lib/city-aliases.ts`. `/assisted-living/new-york/new-york` queries all 5 NYC boroughs (Manhattan, Brooklyn, Bronx, Queens, Staten Island).
+
+### Breadcrumb Strategy
+
+Two breadcrumb components exist:
+
+1. **`components/providers/Breadcrumbs.tsx`** — Provider detail pages
+   - Pattern: Home / {Category} / {City, State} / {Provider Name}
+   - Links to `/browse?type={category}` (not power pages — known inconsistency)
+   - Hidden on mobile
+
+2. **`components/waiver-library/Breadcrumb.tsx`** — Generic reusable component
+   - Takes array of `{label, href?, current?}` items
+   - Used in waiver library pages
+
+Power pages build breadcrumbs inline (not via shared component):
+- City page: Home > {Category} > {State} > {City}
+- State page: Home > {Category} > {State}
+- Category page: Home > {Category}
+
+JSON-LD `BreadcrumbList` schema is emitted on all power pages for SEO.
+
+**Segment resolution:**
+- Category label: `getCategoryBySlug(catSlug).displayName`
+- State name: `stateSlugToAbbrev()` → `stateAbbrevToName()`
+- City name: `citySlugToDisplay()` (split on hyphens, capitalize)
+
+### Redirect & Rewrite Layer
+
+**Middleware (`middleware.ts`):**
+- v1.0 provider URLs: `/{cat}/{state}/{city}/{provider-slug}` → `/provider/{provider-slug}` (301)
+- State abbreviation normalization: `/{cat}/TX` → `/{cat}/texas` (301)
+- Old pagination: `/{cat}/{state}/{city}/page/2` → strip page suffix (301)
+- Scoped articles: `/{cat}/caregiver-support/{slug}` → `/caregiver-support/{slug}` (301)
+
+**`next.config.ts` redirects:**
+- Portal renames (`/provider-portal` → `/portal`)
+- Legal page consolidation (`/terms-and-conditions` → `/terms`)
+- 15+ Texas benefit URL migrations to shorter SEO slugs
+- Deprecated pages → homepage
+
+**`next.config.ts` rewrites:**
+- `/sitemap.xml` → `/api/sitemap` (because `[category]` catch-all shadows it)
+- `/sitemap-index.xml` → `/api/sitemap`
+
+### Sitemap (`/api/sitemap`)
+
+Sharded: shard 0 = static + power pages + articles, shards 1+ = providers (10K per shard). Builds power page URLs by querying distinct state/city combos from `olera-providers` per category. All pages set `alternates.canonical` in metadata.
+
+### Link Generation
+
+No centralized URL builder. Links constructed ad-hoc:
+- Navigation: hardcoded `categoryToPowerPage` maps in `BrowseByCareTypeSection.tsx` and `FindCareMegaMenu.tsx`
+- Power page links: template literals `` `/${catSlug}/${stateSlug}/${citySlug}` ``
+- Provider links: `` `/provider/${provider.slug}` `` (fallback to `provider_id`)
+
+### Known Issues
+
+1. Provider breadcrumbs link to `/browse?type=` not power pages — inconsistency with SEO strategy
+2. No shared URL builder — slug logic spread across `lib/power-pages.ts`, `lib/slugify.ts`, `lib/slug.ts`, `lib/texas-slug-map.ts`, and inline in components
+3. `[category]` catch-all shadows top-level routes — any new top-level route must not collide with category slugs; sitemap needs explicit rewrite
+4. Power pages use 3 separate inline breadcrumb implementations instead of one shared component
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `lib/power-pages.ts` | Category/state/city slug configs, data fetching, conversion utilities |
+| `lib/slugify.ts` | Provider slug generation |
+| `lib/slug.ts` | Business profile unique slug generation |
+| `lib/city-aliases.ts` | City name → DB alias expansion |
+| `lib/texas-slug-map.ts` | Texas program ID ↔ slug mapping |
+| `middleware.ts` | v1.0 URL redirects, state abbreviation normalization |
+| `next.config.ts` | Programmatic redirects, rewrites |
+| `app/[category]/page.tsx` | Category landing page |
+| `app/[category]/[state]/page.tsx` | State listing page |
+| `app/[category]/[state]/[city]/page.tsx` | City provider browse |
+| `app/provider/[slug]/page.tsx` | Provider detail page |
+| `app/api/sitemap/route.ts` | Dynamic XML sitemap generation |
+| `components/providers/Breadcrumbs.tsx` | Provider breadcrumb nav |
+| `components/waiver-library/Breadcrumb.tsx` | Generic reusable breadcrumb |
+
+---
+
+*Last updated: 2026-03-31*

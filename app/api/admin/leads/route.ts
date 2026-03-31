@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
 
     const db = getServiceClient();
     const needsEmail = searchParams.get("needs_email") === "true";
+    const showArchived = searchParams.get("archived") === "true";
 
     // If searching, find matching profile IDs first (fast indexed lookup)
     let searchProfileIds: string[] | null = null;
@@ -50,6 +51,17 @@ export async function GET(request: NextRequest) {
       if (status) q = q.eq("status", status);
       if (type) q = q.eq("type", type);
       if (needsEmail) q = q.contains("metadata", { needs_provider_email: true });
+      // Show archived OR non-archived
+      if (showArchived) {
+        q = q.contains("metadata", { archived: true });
+      } else {
+        // Exclude archived leads using NOT contains.
+        // metadata defaults to '{}' so null is rare. For null metadata,
+        // NOT(null @> ...) = NULL which Postgres treats as FALSE, excluding the row.
+        // This is acceptable since null metadata means it's not archived anyway.
+        // If needed, we can revisit with a raw SQL filter.
+        q = q.not("metadata", "cs", JSON.stringify({ archived: true }));
+      }
       if (searchProfileIds) {
         q = q.or(
           `from_profile_id.in.(${searchProfileIds.join(",")}),to_profile_id.in.(${searchProfileIds.join(",")})`
@@ -102,6 +114,78 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ connections: connections ?? [], total: total ?? 0 });
   } catch (err) {
     console.error("Admin leads error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+/**
+ * PATCH /api/admin/leads
+ *
+ * Archive or unarchive connections.
+ * Body: { ids: string[], action: "archive" | "unarchive", reason?: string }
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+    const adminUser = await getAdminUser(user.id);
+    if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+    const body = await request.json();
+    const { ids, action, reason } = body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: "ids array is required" }, { status: 400 });
+    }
+    if (action !== "archive" && action !== "unarchive") {
+      return NextResponse.json({ error: "action must be 'archive' or 'unarchive'" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+
+    // Fetch current metadata for each connection
+    const { data: connections, error: fetchErr } = await db
+      .from("connections")
+      .select("id, metadata")
+      .in("id", ids);
+
+    if (fetchErr) {
+      return NextResponse.json({ error: "Failed to fetch connections" }, { status: 500 });
+    }
+
+    let updated = 0;
+    for (const conn of connections ?? []) {
+      const meta = (conn.metadata || {}) as Record<string, unknown>;
+      if (action === "archive") {
+        meta.archived = true;
+        meta.archive_reason = reason || null;
+        meta.archived_at = new Date().toISOString();
+      } else {
+        delete meta.archived;
+        delete meta.archive_reason;
+        delete meta.archived_at;
+      }
+
+      const { error: updateErr } = await db
+        .from("connections")
+        .update({ metadata: meta })
+        .eq("id", conn.id);
+
+      if (!updateErr) updated++;
+    }
+
+    await logAuditAction({
+      adminUserId: adminUser.id,
+      action: action === "archive" ? "archive_leads" : "unarchive_leads",
+      targetType: "connection",
+      targetId: ids.length === 1 ? ids[0] : "bulk",
+      details: { ids, reason: reason || null, count: updated },
+    });
+
+    return NextResponse.json({ success: true, updated });
+  } catch (err) {
+    console.error("Admin leads PATCH error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

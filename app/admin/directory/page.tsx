@@ -38,6 +38,9 @@ export default function AdminDirectoryPage() {
   const [newCategory, setNewCategory] = useState("");
   const [creating, setCreating] = useState(false);
 
+  // Export state
+  const [exporting, setExporting] = useState(false);
+
   // Toast state
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const toastRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -46,6 +49,38 @@ export default function AdminDirectoryPage() {
     clearTimeout(toastRef.current);
     setToast({ message, type });
     toastRef.current = setTimeout(() => setToast(null), 3000);
+  }
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const params = new URLSearchParams({ tab });
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      if (category) params.set("category", category);
+      if (stateFilter) params.set("state", stateFilter);
+
+      const res = await fetch(`/api/admin/directory/export?${params}`);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        showToast(errData.error || "Export failed", "error");
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.headers.get("Content-Disposition")?.match(/filename="(.+)"/)?.[1] || "olera-providers.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast(`Exported ${total.toLocaleString()} providers`);
+    } catch {
+      showToast("Export failed. Please try again.", "error");
+    } finally {
+      setExporting(false);
+    }
   }
 
   // Debounce search input
@@ -135,10 +170,27 @@ export default function AdminDirectoryPage() {
     }
   }
 
-  // Soft-delete or restore a provider
-  async function handleToggleDelete(providerId: string, providerName: string, currentlyDeleted: boolean) {
-    const action = currentlyDeleted ? "restore" : "delete";
-    if (!confirm(`Are you sure you want to ${action} "${providerName}"?`)) return;
+  // Delete/restore modal state
+  const [deleteModal, setDeleteModal] = useState<{
+    providerId: string;
+    providerName: string;
+    currentlyDeleted: boolean;
+  } | null>(null);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+
+  function requestToggleDelete(providerId: string, providerName: string, currentlyDeleted: boolean) {
+    if (currentlyDeleted) {
+      // Restore doesn't need a reason
+      executeToggleDelete(providerId, providerName, true, "");
+    } else {
+      setDeleteReason("");
+      setDeleteModal({ providerId, providerName, currentlyDeleted });
+    }
+  }
+
+  async function executeToggleDelete(providerId: string, providerName: string, currentlyDeleted: boolean, reason: string) {
+    setDeleteSubmitting(true);
 
     // Optimistic update
     setProviders((prev) =>
@@ -151,11 +203,13 @@ export default function AdminDirectoryPage() {
       const res = await fetch(`/api/admin/directory/${providerId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ deleted: !currentlyDeleted }),
+        body: JSON.stringify({
+          deleted: !currentlyDeleted,
+          ...(reason ? { _delete_reason: reason } : {}),
+        }),
       });
       if (res.ok) {
         showToast(currentlyDeleted ? "Provider restored" : "Provider deleted");
-        // Refresh to get accurate counts
         fetchProviders();
       } else {
         // Revert optimistic update
@@ -165,7 +219,7 @@ export default function AdminDirectoryPage() {
           )
         );
         const errData = await res.json().catch(() => ({}));
-        showToast(errData.error || `Failed to ${action} provider`, "error");
+        showToast(errData.error || `Failed to ${currentlyDeleted ? "restore" : "delete"} provider`, "error");
       }
     } catch {
       // Revert optimistic update
@@ -175,6 +229,9 @@ export default function AdminDirectoryPage() {
         )
       );
       showToast("Network error. Please try again.", "error");
+    } finally {
+      setDeleteSubmitting(false);
+      setDeleteModal(null);
     }
   }
 
@@ -208,16 +265,25 @@ export default function AdminDirectoryPage() {
             {total.toLocaleString()} providers in directory
           </p>
         </div>
-        <button
-          onClick={() => {
-            setNewName("");
-            setNewCategory("");
-            setShowAddModal(true);
-          }}
-          className="px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
-        >
-          + Add Provider
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExport}
+            disabled={exporting || loading}
+            className="px-4 py-2.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            {exporting ? "Exporting..." : "Export CSV"}
+          </button>
+          <button
+            onClick={() => {
+              setNewName("");
+              setNewCategory("");
+              setShowAddModal(true);
+            }}
+            className="px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            + Add Provider
+          </button>
+        </div>
       </div>
 
       {/* Add Provider Modal */}
@@ -394,7 +460,7 @@ export default function AdminDirectoryPage() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleToggleDelete(provider.provider_id, provider.provider_name, provider.deleted);
+                            requestToggleDelete(provider.provider_id, provider.provider_name, provider.deleted);
                           }}
                           className={[
                             "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
@@ -422,6 +488,53 @@ export default function AdminDirectoryPage() {
             itemLabel="providers"
           />
         </>
+      )}
+
+      {/* Delete reason modal */}
+      {deleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Delete &ldquo;{deleteModal.providerName}&rdquo;
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Please provide a reason for deleting this provider. This will be logged for audit purposes.
+            </p>
+
+            <textarea
+              value={deleteReason}
+              onChange={(e) => setDeleteReason(e.target.value)}
+              placeholder="e.g. Duplicate listing, closed business, doesn't fit service model..."
+              className="w-full mt-4 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none"
+              rows={3}
+              autoFocus
+            />
+
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={() => setDeleteModal(null)}
+                disabled={deleteSubmitting}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() =>
+                  executeToggleDelete(
+                    deleteModal.providerId,
+                    deleteModal.providerName,
+                    deleteModal.currentlyDeleted,
+                    deleteReason.trim()
+                  )
+                }
+                disabled={deleteSubmitting || !deleteReason.trim()}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {deleteSubmitting ? "Deleting..." : "Delete Provider"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

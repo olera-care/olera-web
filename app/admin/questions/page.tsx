@@ -20,13 +20,14 @@ interface Question {
   metadata?: Record<string, unknown> | null;
 }
 
-type TabValue = "unanswered" | "needs_email" | "answered" | "removed" | "";
+type TabValue = "unanswered" | "needs_email" | "answered" | "removed" | "archived" | "";
 
 const TABS: { label: string; value: TabValue; showCount?: boolean }[] = [
   { label: "Needs Email", value: "needs_email", showCount: true },
   { label: "Unanswered", value: "unanswered", showCount: true },
   { label: "Answered", value: "answered" },
   { label: "Removed", value: "removed" },
+  { label: "Archived", value: "archived", showCount: true },
   { label: "All", value: "" },
 ];
 
@@ -133,9 +134,11 @@ export default function AdminQuestionsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabValue>("needs_email");
   const [count, setCount] = useState(0);
-  const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number }>({ pending: 0, needs_email: 0 });
+  const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; archived: number }>({ pending: 0, needs_email: 0, archived: 0 });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [archiveTarget, setArchiveTarget] = useState<string | null>(null);
+  const [archiveReason, setArchiveReason] = useState("");
 
   const fetchQuestions = useCallback(async () => {
     setLoading(true);
@@ -148,6 +151,8 @@ export default function AdminQuestionsPage() {
         params.set("status", "pending");
       } else if (activeTab === "removed") {
         params.set("status", "rejected");
+      } else if (activeTab === "archived") {
+        params.set("status", "archived");
       } else if (activeTab) {
         params.set("status", activeTab);
       }
@@ -202,6 +207,25 @@ export default function AdminQuestionsPage() {
     }
   };
 
+  const handleArchive = async (id: string, reason: string) => {
+    setActionLoading(id);
+    try {
+      const res = await fetch("/api/admin/questions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: "archived", archive_reason: reason }),
+      });
+      if (!res.ok) throw new Error("Failed to archive");
+      setArchiveTarget(null);
+      setArchiveReason("");
+      await fetchQuestions();
+    } catch {
+      setError("Failed to archive question");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   return (
     <div>
       {/* Header */}
@@ -223,6 +247,7 @@ export default function AdminQuestionsPage() {
         {TABS.map((tab) => {
           const tabCount = tab.value === "unanswered" ? tabCounts.pending
             : tab.value === "needs_email" ? tabCounts.needs_email
+            : tab.value === "archived" ? tabCounts.archived
             : null;
 
           return (
@@ -274,14 +299,15 @@ export default function AdminQuestionsPage() {
             const needsEmail = q.metadata?.needs_provider_email === true;
             const providerLabel = q.provider_name || q.provider_id;
             const isRemoved = q.status === "rejected";
+            const isArchived = q.status === "archived";
             const isLive = q.status === "pending" || q.status === "approved";
-            const showEmailInput = needsEmail && !isRemoved;
+            const showEmailInput = needsEmail && !isRemoved && !isArchived;
 
             return (
               <div
                 key={q.id}
                 className={`group rounded-lg px-5 py-4 transition-colors ${
-                  isRemoved ? "opacity-40" : "hover:bg-gray-50"
+                  isRemoved || isArchived ? "opacity-40" : "hover:bg-gray-50"
                 }`}
               >
                 {/* Main row */}
@@ -328,12 +354,30 @@ export default function AdminQuestionsPage() {
 
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {isLive && (
+                      <>
+                        <button
+                          onClick={() => { setArchiveTarget(q.id); setArchiveReason(""); }}
+                          disabled={actionLoading === q.id}
+                          className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-amber-600 transition-all disabled:opacity-40"
+                        >
+                          Archive
+                        </button>
+                        <button
+                          onClick={() => handleRemove(q.id)}
+                          disabled={actionLoading === q.id}
+                          className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-red-500 transition-all disabled:opacity-40"
+                        >
+                          Remove
+                        </button>
+                      </>
+                    )}
+                    {isArchived && (
                       <button
-                        onClick={() => handleRemove(q.id)}
+                        onClick={() => handleRestore(q.id)}
                         disabled={actionLoading === q.id}
-                        className="opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-red-500 transition-all disabled:opacity-40"
+                        className="text-xs text-gray-400 hover:text-gray-900 transition-colors disabled:opacity-40"
                       >
-                        Remove
+                        Unarchive
                       </button>
                     )}
                     {isRemoved && (
@@ -345,7 +389,7 @@ export default function AdminQuestionsPage() {
                         Restore
                       </button>
                     )}
-                    {!isLive && !isRemoved && (
+                    {!isLive && !isRemoved && !isArchived && (
                       <span className={`px-2 py-0.5 text-[11px] font-medium rounded ${STATUS_COLORS[q.status] || "bg-gray-50 text-gray-400"}`}>
                         {STATUS_LABELS[q.status] || q.status}
                       </span>
@@ -376,7 +420,43 @@ export default function AdminQuestionsPage() {
 
       {!loading && questions.length > 0 && (
         <div className="mt-6 text-xs text-gray-300 text-right">
-          {count} {activeTab === "needs_email" ? "needing email" : activeTab === "unanswered" ? "unanswered" : activeTab === "removed" ? "removed" : "total"}
+          {count} {activeTab === "needs_email" ? "needing email" : activeTab === "unanswered" ? "unanswered" : activeTab === "removed" ? "removed" : activeTab === "archived" ? "archived" : "total"}
+        </div>
+      )}
+
+      {/* Archive dialog */}
+      {archiveTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900">Archive question</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Archived questions are hidden from the public page but can be restored later.
+            </p>
+            <textarea
+              value={archiveReason}
+              onChange={(e) => setArchiveReason(e.target.value)}
+              placeholder="Reason (e.g. provider unreachable after 2 attempts)..."
+              className="w-full mt-3 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none resize-none"
+              rows={3}
+              autoFocus
+            />
+            <div className="mt-4 flex justify-end gap-3">
+              <button
+                onClick={() => { setArchiveTarget(null); setArchiveReason(""); }}
+                disabled={actionLoading === archiveTarget}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleArchive(archiveTarget, archiveReason.trim())}
+                disabled={actionLoading === archiveTarget || !archiveReason.trim()}
+                className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+              >
+                {actionLoading === archiveTarget ? "Archiving..." : "Archive"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

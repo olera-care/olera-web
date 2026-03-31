@@ -200,7 +200,8 @@ export async function sendEmail(
       metadata,
     }));
 
-  const sendPayload: Record<string, unknown> = { from, to, subject, html };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sendPayload: any = { from, to, subject, html };
   if (options.attachments?.length) {
     sendPayload.attachments = options.attachments.map((a) => ({
       filename: a.filename,
@@ -208,7 +209,7 @@ export async function sendEmail(
       contentType: a.type,
     }));
   }
-  const { data, error } = await resend.emails.send(sendPayload as Parameters<typeof resend.emails.send>[0]);
+  const { data, error } = await resend.emails.send(sendPayload);
 
   // Update the log row with send result
   if (logId) {

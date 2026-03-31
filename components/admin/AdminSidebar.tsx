@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { AdminUser } from "@/lib/types";
@@ -11,33 +12,31 @@ interface AdminSidebarProps {
 interface NavItem {
   label: string;
   href: string;
-  prominent?: boolean;
 }
 
 interface NavSection {
-  label?: string;
+  label: string;
+  key: string;
   items: NavItem[];
-  primary?: boolean;
+  defaultOpen?: boolean;
 }
 
 const navSections: NavSection[] = [
   {
-    items: [{ label: "Overview", href: "/admin" }],
-  },
-  {
-    // Daily action queue — things that need attention
     label: "Inbox",
-    primary: true,
+    key: "inbox",
+    defaultOpen: true,
     items: [
-      { label: "Activity Center", href: "/admin/activity", prominent: true },
+      { label: "Activity Center", href: "/admin/activity" },
       { label: "Leads", href: "/admin/leads" },
       { label: "Questions", href: "/admin/questions" },
       { label: "Claims", href: "/admin/providers" },
     ],
   },
   {
-    // Lookup and reference
     label: "Records",
+    key: "records",
+    defaultOpen: true,
     items: [
       { label: "Directory", href: "/admin/directory" },
       { label: "Care Seekers", href: "/admin/care-seekers" },
@@ -46,8 +45,8 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    // Less frequent provider management
     label: "Manage",
+    key: "manage",
     items: [
       { label: "Images", href: "/admin/images" },
       { label: "Verification", href: "/admin/verification" },
@@ -55,8 +54,8 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    // Internal / TJ-only
     label: "Operations",
+    key: "operations",
     items: [
       { label: "Content", href: "/admin/content" },
       { label: "MedJobs", href: "/admin/medjobs" },
@@ -114,65 +113,129 @@ const mobileNavItems: (NavItem & { icon: React.ReactNode })[] = [
   },
 ];
 
+const STORAGE_KEY = "admin-sidebar-collapsed";
+
 function getInitials(email: string): string {
   const local = email.split("@")[0];
   if (!local) return "?";
-  // Try to get two chars from the local part (e.g., "tfalohun" → "TF")
   return local.slice(0, 2).toUpperCase();
+}
+
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-150 ${open ? "rotate-90" : ""}`}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+    </svg>
+  );
 }
 
 export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
   const pathname = usePathname();
 
+  // Initialize collapsed state — sections without defaultOpen start collapsed
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    for (const s of navSections) {
+      initial[s.key] = !s.defaultOpen;
+    }
+    return initial;
+  });
+
+  // Hydrate from localStorage after mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) setCollapsed(JSON.parse(saved));
+    } catch { /* ignore */ }
+  }, []);
+
+  function toggle(key: string) {
+    setCollapsed((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }
+
   const isActive = (href: string) =>
     href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
+
+  // Auto-expand section if it contains the active item
+  const activeSectionKey = navSections.find((s) =>
+    s.items.some((item) => isActive(item.href))
+  )?.key;
 
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:flex-col md:w-48 bg-white border-r border-gray-100 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
-        <nav className="flex-1 px-2 pt-4 pb-3">
-          {navSections.map((section, sectionIdx) => (
-            <div
-              key={section.label ?? "home"}
-              className={sectionIdx > 0 ? "mt-5" : ""}
-            >
-              {section.label && (
-                <p className="px-2.5 mb-0.5 text-[11px] font-medium text-gray-400 select-none">
+      <aside className="hidden md:flex md:flex-col md:w-52 bg-white border-r border-gray-100 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+        <nav className="flex-1 px-3 pt-3 pb-3">
+          {/* Overview — standalone top link */}
+          <Link
+            href="/admin"
+            className={[
+              "block px-2.5 py-1.5 rounded-md text-sm transition-colors duration-100 mb-3",
+              isActive("/admin")
+                ? "text-gray-900 font-semibold bg-gray-100"
+                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+            ].join(" ")}
+          >
+            Overview
+          </Link>
+
+          {/* Collapsible sections */}
+          {navSections.map((section) => {
+            const isOpen = !collapsed[section.key] || activeSectionKey === section.key;
+
+            return (
+              <div key={section.key} className="mt-1">
+                <button
+                  onClick={() => toggle(section.key)}
+                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors duration-100"
+                >
                   {section.label}
-                </p>
-              )}
-              <div className="space-y-px">
-                {section.items.map((item) => {
-                  const active = isActive(item.href);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={[
-                        "block px-2.5 py-[5px] rounded-md text-[13px] transition-colors duration-100",
-                        active
-                          ? "text-gray-900 font-medium bg-gray-100/80"
-                          : "text-gray-500 hover:text-gray-900 hover:bg-gray-50",
-                      ].join(" ")}
-                    >
-                      {item.label}
-                    </Link>
-                  );
-                })}
+                  <Chevron open={isOpen} />
+                </button>
+
+                {isOpen && (
+                  <div className="mt-0.5 space-y-px">
+                    {section.items.map((item) => {
+                      const active = isActive(item.href);
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={[
+                            "block pl-5 pr-2.5 py-1.5 rounded-md text-[13px] transition-colors duration-100",
+                            active
+                              ? "text-gray-900 font-medium bg-gray-100"
+                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                          ].join(" ")}
+                        >
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </nav>
 
-        <div className="border-t border-gray-100 px-2 py-3">
+        <div className="border-t border-gray-100 px-3 py-3">
           <div className="flex items-center gap-2.5 px-2.5">
-            <div className="w-6 h-6 rounded-full bg-gray-100 text-[10px] font-medium text-gray-400 flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded-full bg-gray-100 text-[10px] font-semibold text-gray-500 flex items-center justify-center shrink-0">
               {getInitials(adminUser.email)}
             </div>
             <Link
               href="/"
-              className="text-[12px] text-gray-400 hover:text-gray-600 transition-colors duration-100"
+              className="text-[13px] text-gray-500 hover:text-gray-700 transition-colors duration-100"
             >
               Exit Admin
             </Link>

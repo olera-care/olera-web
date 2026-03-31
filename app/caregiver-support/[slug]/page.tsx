@@ -14,6 +14,7 @@ import {
 import ArticleFAQ from "@/components/article/ArticleFAQ";
 import SeniorCareFAQ from "@/components/article/SeniorCareFAQ";
 import StarPlusFAQ from "@/components/article/StarPlusFAQ";
+import StarPlusServiceMap from "@/components/article/StarPlusServiceMap";
 import EligibilityChecker from "@/components/article/EligibilityChecker";
 
 // ISR: revalidate every 60 seconds
@@ -307,6 +308,7 @@ export default async function ResourceArticlePage({
           {(() => {
             const MARKERS: Record<string, React.ReactNode> = {
               "<!-- eligibility-checker -->": <EligibilityChecker />,
+              "<!-- service-map -->": <StarPlusServiceMap />,
               "<!-- faq-accordion -->": slug === "how-to-pay-for-senior-care-in-texas" ? <SeniorCareFAQ /> : slug === "star-plus-waiver-texas-complete-guide" ? <StarPlusFAQ /> : <ArticleFAQ />,
             };
             let segments: React.ReactNode[] = [processedHtml];

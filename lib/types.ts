@@ -461,6 +461,29 @@ export interface StudentMetadata {
   seeking_status?: "actively_looking" | "open" | "not_looking";
 }
 
+// ── Interview Scheduling ──
+
+export type InterviewStatus = "proposed" | "confirmed" | "completed" | "cancelled" | "no_show" | "rescheduled";
+export type InterviewType = "video" | "in_person" | "phone";
+
+export interface Interview {
+  id: string;
+  provider_profile_id: string;
+  student_profile_id: string;
+  connection_id: string | null;
+  status: InterviewStatus;
+  type: InterviewType;
+  proposed_time: string;
+  alternative_time: string | null;
+  confirmed_time: string | null;
+  duration_minutes: number;
+  location: string | null;
+  notes: string | null;
+  proposed_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export type ExperienceLogStatus = "pending" | "confirmed" | "disputed";
 
 export interface ExperienceLog {

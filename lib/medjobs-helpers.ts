@@ -1,5 +1,37 @@
 import type { StudentMetadata, StudentProgramTrack, IntendedProfessionalSchool } from "./types";
 
+/** Seasonal availability status options */
+export const SEASONAL_STATUS_OPTIONS = [
+  { value: "full_time", label: "Full-time available" },
+  { value: "classes_see_schedule", label: "Taking classes — see schedule" },
+  { value: "part_time", label: "Part-time — limited hours" },
+  { value: "planning_classes", label: "Planning to take classes — will update" },
+  { value: "out_of_town", label: "Will be out of town" },
+  { value: "graduating", label: "Graduating" },
+  { value: "pending", label: "Pending — will update soon" },
+] as const;
+
+export const SEASON_LABELS: Record<string, string> = {
+  spring: "Spring",
+  summer: "Summer",
+  fall: "Fall",
+  winter: "Winter",
+};
+
+/** Get display label for a seasonal status value */
+export function getSeasonalStatusLabel(status: string): string {
+  return SEASONAL_STATUS_OPTIONS.find((o) => o.value === status)?.label || status;
+}
+
+/** Get the current season key */
+export function getCurrentSeasonKey(): "spring" | "summer" | "fall" | "winter" {
+  const month = new Date().getMonth();
+  if (month >= 0 && month <= 4) return "spring";
+  if (month >= 5 && month <= 7) return "summer";
+  if (month >= 8 && month <= 10) return "fall";
+  return "winter";
+}
+
 /** Display labels for IntendedProfessionalSchool */
 export const INTENDED_SCHOOL_LABELS: Record<IntendedProfessionalSchool, string> = {
   medicine: "Medicine",
@@ -69,13 +101,35 @@ export function formatDuration(meta: StudentMetadata): string | null {
     "1_semester": "1 semester",
     "multiple_semesters": "Multiple semesters",
     "1_plus_year": "1+ year",
+    "less_than_3_months": "Less than 3 months",
+    "3_to_6_months": "3–6 months",
+    "6_to_12_months": "6–12 months",
   };
-  return labels[meta.duration_commitment] || meta.duration_commitment;
+  return labels[meta.duration_commitment] || meta.duration_commitment.replace(/_/g, " ");
 }
 
 /** Check if student has submitted intro video */
 export function hasVideo(meta: StudentMetadata): boolean {
   return !!meta.video_intro_url;
+}
+
+/** Extract YouTube video ID from common URL formats.
+ *  Returns null for non-YouTube URLs. */
+export function getYouTubeId(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (u.hostname === "youtu.be") return u.pathname.slice(1).split("/")[0] || null;
+    if (u.hostname.includes("youtube.com")) {
+      // /watch?v=ID or /embed/ID or /shorts/ID
+      const vParam = u.searchParams.get("v");
+      if (vParam) return vParam;
+      const match = u.pathname.match(/\/(embed|shorts|v)\/([^/?]+)/);
+      if (match) return match[2];
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 /** Map legacy program_track values to intended_professional_school equivalents */

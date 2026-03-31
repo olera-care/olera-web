@@ -10,7 +10,7 @@ const ALLOWED_TYPES = [
   "image/webp",
   "application/pdf",
 ];
-const VALID_DOCUMENT_TYPES = ["drivers_license", "car_insurance"] as const;
+const VALID_DOCUMENT_TYPES = ["drivers_license", "car_insurance", "resume"] as const;
 type DocumentType = (typeof VALID_DOCUMENT_TYPES)[number];
 
 function getAdminClient() {

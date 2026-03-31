@@ -1,15 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
-import { profileIncompleteNudgeEmail } from "@/lib/medjobs-email-templates";
+import { profileIncompleteNudgeEmail, studentActivationEmail } from "@/lib/medjobs-email-templates";
+import { calculateCompleteness, getIncompleteItems } from "@/lib/medjobs-completeness";
+import type { StudentMetadata } from "@/lib/types";
 
 /**
  * GET /api/cron/medjobs-nudge
  *
  * Runs daily at 10 AM CT (15:00 UTC).
- * Nudges students with incomplete profiles (< 70%) who signed up 48h+ ago
- * and haven't been nudged in the last 7 days.
+ *
+ * Nudge cadence:
+ *   Nudge 1: Day 1 (24hrs after signup)
+ *   Nudge 2: Day 3
+ *   Nudge 3: Day 5
+ *   Nudge 4: Day 7
+ *   Nudge 5-8: Every 2 weeks
+ *   Stop after nudge 8 (~6 weeks)
+ *
+ * Anyone with < 100% completeness gets nudged.
  */
+
+const NUDGE_CADENCE_DAYS = [1, 3, 5, 7, 21, 35, 49, 63]; // Day thresholds for nudges 1-8
+const MAX_NUDGES = 8;
+
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -18,15 +32,12 @@ export async function GET(request: NextRequest) {
 
   try {
     const db = getServiceClient();
-    const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
 
-    // Find incomplete student profiles created > 48h ago
-    // Include inactive profiles — students who haven't submitted video yet need nudging most
+    // Fetch all student profiles (we recalculate completeness fresh)
     const { data: students, error } = await db
       .from("business_profiles")
-      .select("id, slug, display_name, email, metadata, is_active")
+      .select("id, slug, display_name, email, city, image_url, metadata, created_at")
       .eq("type", "student")
-      .lte("created_at", twoDaysAgo)
       .not("email", "is", null);
 
     if (error) {
@@ -35,54 +46,85 @@ export async function GET(request: NextRequest) {
     }
 
     let nudged = 0;
+    let skipped = 0;
+    const now = Date.now();
 
     for (const student of (students || [])) {
-      const meta = student.metadata as Record<string, unknown>;
-      const completeness = (meta.profile_completeness as number) ?? 0;
+      const meta = (student.metadata || {}) as StudentMetadata;
+      const hasPhoto = !!student.image_url;
 
-      // Skip if profile is already >= 70% complete
-      if (completeness >= 70) continue;
+      // Recalculate completeness fresh (single source of truth)
+      const completeness = calculateCompleteness(meta, hasPhoto);
 
-      // Skip if nudged in last 7 days
-      const lastNudge = meta.last_nudge_sent_at as string | undefined;
-      if (lastNudge) {
-        const daysSinceNudge = (Date.now() - new Date(lastNudge).getTime()) / (1000 * 60 * 60 * 24);
-        if (daysSinceNudge < 7) continue;
+      // If 100% complete — check if activation email needs to be sent
+      if (completeness >= 100) {
+        const activationSent = (meta as Record<string, unknown>).activation_email_sent as boolean;
+        if (!activationSent) {
+          try {
+            const profileUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/medjobs/candidates/${student.slug}`;
+            await sendEmail({
+              to: student.email!,
+              subject: "Your MedJobs profile is live!",
+              html: studentActivationEmail({
+                studentName: student.display_name,
+                city: student.city || undefined,
+                profileUrl,
+              }),
+              emailType: "student_activation",
+              recipientType: "student",
+            });
+            await db.from("business_profiles").update({
+              metadata: { ...(meta as Record<string, unknown>), activation_email_sent: true },
+            }).eq("id", student.id);
+          } catch (err) {
+            console.error(`[medjobs-nudge] activation email error for ${student.email}:`, err);
+          }
+        }
+        skipped++;
+        continue;
       }
 
-      // Determine what's missing (required items first)
-      const missingItems: string[] = [];
-      if (meta.application_completed === false) missingItems.push("Finish your application");
-      if (!meta.video_intro_url) missingItems.push("Submit your intro video (required)");
-      if (!meta.drivers_license_url) missingItems.push("Upload driver's license (required)");
-      if (!meta.car_insurance_url) missingItems.push("Upload car insurance (required)");
-      if (!meta.resume_url) missingItems.push("Upload your resume");
-      if (!meta.certifications || (meta.certifications as string[]).length === 0) missingItems.push("Add certifications (CNA, BLS, etc.)");
-      if (!meta.availability_types || (meta.availability_types as string[]).length === 0) missingItems.push("Specify your availability");
-      if (!meta.major) missingItems.push("Add your major");
+      // Check nudge count
+      const nudgeCount = (meta as Record<string, unknown>).nudge_count as number || 0;
+      if (nudgeCount >= MAX_NUDGES) { skipped++; continue; }
 
-      if (missingItems.length === 0) continue;
+      // Check if enough time has passed for the next nudge
+      const daysSinceCreation = (now - new Date(student.created_at).getTime()) / (1000 * 60 * 60 * 24);
+      const nextNudgeDay = NUDGE_CADENCE_DAYS[nudgeCount] || Infinity;
+      if (daysSinceCreation < nextNudgeDay) { skipped++; continue; }
+
+      // Check we haven't sent today (safety — cron might run multiple times)
+      const lastNudge = (meta as Record<string, unknown>).last_nudge_sent_at as string | undefined;
+      if (lastNudge) {
+        const hoursSinceLastNudge = (now - new Date(lastNudge).getTime()) / (1000 * 60 * 60);
+        if (hoursSinceLastNudge < 20) { skipped++; continue; }
+      }
+
+      // Get incomplete items for the email
+      const incompleteItems = getIncompleteItems(meta, hasPhoto);
+      if (incompleteItems.length === 0) { skipped++; continue; }
 
       try {
         await sendEmail({
           to: student.email!,
-          subject: "Complete your MedJobs profile to get noticed",
+          subject: `Your MedJobs profile is ${completeness}% complete`,
           html: profileIncompleteNudgeEmail({
             studentName: student.display_name,
             completeness,
-            missingItems: missingItems.slice(0, 4),
+            missingItems: incompleteItems.slice(0, 5),
           }),
           emailType: "profile_incomplete_nudge",
           recipientType: "student",
         });
 
-        // Update last_nudge_sent_at
+        // Update nudge tracking
         await db
           .from("business_profiles")
           .update({
             metadata: {
-              ...meta,
+              ...(meta as Record<string, unknown>),
               last_nudge_sent_at: new Date().toISOString(),
+              nudge_count: nudgeCount + 1,
             },
           })
           .eq("id", student.id);
@@ -93,7 +135,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ nudged });
+    return NextResponse.json({ nudged, skipped });
   } catch (err) {
     console.error("[medjobs-nudge] unexpected error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

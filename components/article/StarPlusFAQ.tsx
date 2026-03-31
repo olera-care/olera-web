@@ -9,9 +9,9 @@ interface FAQItem {
 
 const FAQS: FAQItem[] = [
   {
-    question: "What is the difference between STAR+PLUS and regular Medicaid?",
+    question: "What does STAR+PLUS cover in Texas?",
     answer:
-      "Regular Texas Medicaid covers basic health care like doctor visits and prescriptions. <strong>STAR+PLUS</strong> adds long-term services and supports (LTSS) on top of that, including personal attendant care, home modifications, adult day care, and the option to hire family members as caregivers through Consumer Directed Services.",
+      "STAR+PLUS covers personal attendant services, home modifications (ramps, grab bars), adaptive aids, adult day care, respite care, skilled nursing, physical and occupational therapy, prescription drugs, and more. The <strong>HCBS waiver</strong> specifically covers services delivered at home or in the community instead of a nursing facility.",
   },
   {
     question: "How long is the STAR+PLUS waitlist in Texas?",
@@ -19,24 +19,19 @@ const FAQS: FAQItem[] = [
       "The HCBS waiver interest list typically ranges from <strong>6 to 18 months</strong> depending on your region. Rural areas tend to have shorter waits (3 to 8 months), while major metros like Dallas and Austin can be 8 to 16 months. Getting on the list early is the most important step.",
   },
   {
-    question: "Can I keep my house if I go on STAR+PLUS?",
+    question: "Can a family member be a paid caregiver under STAR+PLUS?",
     answer:
-      "Yes. Your primary home is <strong>exempt</strong> from the Medicaid asset count as long as you (or your spouse) live in it or intend to return to it. One vehicle is also exempt. However, Texas may seek estate recovery after you pass away.",
+      "<strong>Yes.</strong> Through Consumer Directed Services (CDS), family members including adult children, siblings, and close friends can be hired as paid caregivers. They must be 18 or older and pass a background check. Spouses and legal guardians are generally not eligible. Pay ranges from $10 to $17 per hour.",
   },
   {
-    question: "What if my income is over the $2,982 limit?",
+    question: "What is the income limit for STAR+PLUS in Texas?",
     answer:
-      "You can use a <strong>Qualified Income Trust</strong> (also called a Miller Trust) to bring your countable income below the limit. Excess income goes into the trust each month and is used for approved expenses. Your managed care organization or a Medicaid planner can help set one up.",
+      "For 2026, the income limit is <strong>$2,982 per month</strong> and the asset limit is <strong>$2,000</strong> for an individual. Your home and one vehicle are exempt. If income exceeds the limit, a <strong>Qualified Income Trust</strong> (Miller Trust) can bring countable income below the threshold.",
   },
   {
-    question: "Can my daughter get paid to take care of me through STAR+PLUS?",
+    question: "How do I apply for STAR+PLUS in Texas?",
     answer:
-      "<strong>Yes.</strong> Through Consumer Directed Services (CDS), adult children can be hired as paid caregivers. They must be 18 or older and pass a background check. Pay rates range from $10 to $17 per hour depending on the MCO and region.",
-  },
-  {
-    question: "What services does the STAR+PLUS waiver cover?",
-    answer:
-      "The HCBS waiver covers personal attendant services, home modifications (ramps, grab bars), adaptive aids, adult day care, respite care, skilled nursing, therapy, and more. Services are determined by your individualized care plan created with your service coordinator.",
+      "Start by calling <strong>211</strong> or visiting <a href='https://www.yourtexasbenefits.com' target='_blank' rel='noopener noreferrer' class='text-primary-600 underline'>YourTexasBenefits.com</a> to get on the interest list. Then apply for Medicaid if not already enrolled, complete a medical assessment, choose a managed care organization, and work with a service coordinator to create your care plan. The full process typically takes 30 to 90 days.",
   },
 ];
 
@@ -47,43 +42,62 @@ export default function StarPlusFAQ() {
     setOpenIndex(openIndex === index ? null : index);
   }
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQS.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer.replace(/<[^>]*>/g, ""),
+      },
+    })),
+  };
+
   return (
-    <div className="my-8 not-prose">
-      <div className="flex items-center gap-2 mb-4">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-primary-600"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-          <line x1="12" y1="17" x2="12.01" y2="17" />
-        </svg>
-        <h2 className="text-lg font-semibold text-gray-900">
+    <div className="my-12 not-prose rounded-2xl bg-primary-25 border border-primary-100 p-6 sm:p-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <div className="flex items-center gap-3 mb-6">
+        <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 flex-shrink-0">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-primary-600"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        </span>
+        <h2 className="text-xl font-bold text-gray-900">
           Frequently Asked Questions
         </h2>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {FAQS.map((faq, i) => (
-          <div key={i} className="rounded-xl bg-primary-25 border border-primary-100 overflow-hidden">
+          <div key={i} className="rounded-xl bg-white border border-primary-100 overflow-hidden shadow-sm">
             <button
               type="button"
               onClick={() => toggle(i)}
-              className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left cursor-pointer"
+              className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left cursor-pointer"
             >
-              <span className="text-sm font-semibold text-gray-900">
+              <span className="text-base font-semibold text-gray-900">
                 {faq.question}
               </span>
               <svg
-                width="18"
-                height="18"
+                width="20"
+                height="20"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -106,7 +120,7 @@ export default function StarPlusFAQ() {
             >
               <div className="overflow-hidden">
                 <div
-                  className="px-5 pb-4 text-sm text-gray-600 leading-relaxed"
+                  className="px-6 pb-5 text-sm text-gray-600 leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: faq.answer }}
                 />
               </div>

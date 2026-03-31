@@ -15,11 +15,11 @@
 
 ## Phase 2: Year-Round Availability Model (Week 2-3)
 
-- [ ] **2A** Define seasonal_availability metadata structure
-- [ ] **2B** Build seasonal availability UI in portal (4-season card)
-- [ ] **2C** Update candidate detail page with seasonal availability display
-- [ ] **2D** Migrate existing summer/winter fields to new structure
-- [ ] **2** Type-check, self-review, commit, push
+- [x] **2A** Define seasonal_availability metadata structure
+- [x] **2B** Build seasonal availability UI in portal (4-season card)
+- [x] **2C** Update candidate detail page with seasonal availability display
+- [x] **2D** Legacy fallback — no migration needed, backward compatible
+- [x] **2** Type-check, self-review, commit, push
 
 ## Phase 3: Interview Scheduling System (Week 3-5)
 

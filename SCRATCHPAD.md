@@ -387,6 +387,18 @@
 
 ## Session Log
 
+### 2026-03-31 (Session 65) — Worktree Cleanup + URL/Breadcrumb System Docs
+
+**Branch:** `speedy-jemison` | **1 commit**
+
+**Cleanup:**
+- Removed 174 local worktree folders from `~/.claude-worktrees/olera-web/` (175 → 1)
+- Deleted ~185 stale remote branches from GitHub (kept `main`, `staging`, + 4 branches with open PRs)
+- Pruned all stale git worktree references
+
+**Documentation:**
+- Added URL & Breadcrumb Strategy section to `docs/SYSTEMS.md` — covers core URL patterns, slug conventions, category aliases, specialized routes, breadcrumb implementations, redirect/rewrite layer, sitemap sharding, link generation patterns, and known issues
+
 ### 2026-03-30 (Session 64) — Fix Orphaned Question/Lead Notifications
 
 **Branch:** `fancy-lamarr` | **1 commit** | `cd60db73`

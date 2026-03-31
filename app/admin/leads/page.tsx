@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 
-type TypeFilter = "all" | "inquiry" | "application" | "invitation" | "needs_email";
+type TypeFilter = "all" | "inquiry" | "application" | "invitation" | "needs_email" | "archived";
 
 /* ── Confirmation Dialog ────────────────────────────────────── */
 
@@ -41,6 +41,56 @@ function ConfirmDeleteDialog({
             className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
           >
             {deleting ? "Deleting..." : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ArchiveDialog({
+  count,
+  onConfirm,
+  onCancel,
+  archiving,
+}: {
+  count: number;
+  onConfirm: (reason: string) => void;
+  onCancel: () => void;
+  archiving: boolean;
+}) {
+  const [reason, setReason] = useState("");
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+        <h3 className="text-lg font-semibold text-gray-900">
+          Archive {count === 1 ? "lead" : `${count} leads`}
+        </h3>
+        <p className="mt-2 text-sm text-gray-600">
+          Archived leads are hidden from the main view but can be restored later.
+        </p>
+        <textarea
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Reason for archiving (e.g. provider unreachable after 2 attempts)..."
+          className="w-full mt-3 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none resize-none"
+          rows={3}
+          autoFocus
+        />
+        <div className="mt-4 flex justify-end gap-3">
+          <button
+            onClick={onCancel}
+            disabled={archiving}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onConfirm(reason.trim())}
+            disabled={archiving || !reason.trim()}
+            className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+          >
+            {archiving ? "Archiving..." : "Archive"}
           </button>
         </div>
       </div>
@@ -192,6 +242,59 @@ export default function AdminLeadsPage() {
   const [deleting, setDeleting] = useState(false);
   const leadsBeforeDelete = useRef<Lead[]>([]);
 
+  // Archive state
+  const [archiveDialog, setArchiveDialog] = useState<{ ids: string[] } | null>(null);
+  const [archiving, setArchiving] = useState(false);
+
+  const requestArchiveSingle = (lead: Lead) => {
+    setArchiveDialog({ ids: [lead.id] });
+  };
+
+  const requestArchiveBulk = () => {
+    setArchiveDialog({ ids: Array.from(selectedIds) });
+  };
+
+  const executeArchive = async (reason: string) => {
+    if (!archiveDialog) return;
+    setArchiving(true);
+    try {
+      const res = await fetch("/api/admin/leads", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: archiveDialog.ids, action: "archive", reason }),
+      });
+      if (res.ok) {
+        setSelectedIds(new Set());
+        fetchLeads();
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to archive leads");
+      }
+    } catch {
+      setError("Network error while archiving");
+    } finally {
+      setArchiving(false);
+      setArchiveDialog(null);
+    }
+  };
+
+  const executeUnarchive = async (ids: string[]) => {
+    try {
+      const res = await fetch("/api/admin/leads", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, action: "unarchive" }),
+      });
+      if (res.ok) {
+        fetchLeads();
+      } else {
+        setError("Failed to unarchive");
+      }
+    } catch {
+      setError("Network error");
+    }
+  };
+
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -266,8 +369,12 @@ export default function AdminLeadsPage() {
       const params = new URLSearchParams();
       params.set("limit", String(PAGE_SIZE));
       params.set("offset", String(page * PAGE_SIZE));
-      if (filter !== "all" && filter !== "needs_email") params.set("type", filter);
-      if (filter === "needs_email") params.set("needs_email", "true");
+      if (filter === "archived") {
+        params.set("archived", "true");
+      } else {
+        if (filter !== "all" && filter !== "needs_email") params.set("type", filter);
+        if (filter === "needs_email") params.set("needs_email", "true");
+      }
       if (debouncedSearch) params.set("search", debouncedSearch);
 
       const res = await fetch(`/api/admin/leads?${params}`);
@@ -313,6 +420,7 @@ export default function AdminLeadsPage() {
     { label: "Inquiries", value: "inquiry" },
     { label: "Applications", value: "application" },
     { label: "Invitations", value: "invitation" },
+    { label: "Archived", value: "archived" },
   ];
 
   return (
@@ -386,13 +494,28 @@ export default function AdminLeadsPage() {
 
       {/* Bulk delete bar */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-4 mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
-          <span className="text-sm font-medium text-red-800">
+        <div className="flex items-center gap-4 mb-4 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
+          <span className="text-sm font-medium text-gray-800">
             {selectedIds.size} selected
           </span>
+          {filter === "archived" ? (
+            <button
+              onClick={() => executeUnarchive(Array.from(selectedIds))}
+              className="px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Unarchive selected
+            </button>
+          ) : (
+            <button
+              onClick={requestArchiveBulk}
+              className="px-3 py-1.5 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors"
+            >
+              Archive selected
+            </button>
+          )}
           <button
             onClick={requestDeleteBulk}
-            className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+            className="px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
           >
             Delete selected
           </button>
@@ -559,6 +682,26 @@ export default function AdminLeadsPage() {
                         {needsEmail && (
                           <InlineEmailInput lead={lead} onEmailAdded={fetchLeads} />
                         )}
+                        {lead.metadata?.archived ? (
+                          <button
+                            onClick={() => executeUnarchive([lead.id])}
+                            title="Unarchive lead"
+                            className="px-2.5 py-1 rounded-md text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 transition-colors"
+                          >
+                            Unarchive
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => requestArchiveSingle(lead)}
+                            title="Archive lead"
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
+                              <path fillRule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        )}
                         <button
                           onClick={() => requestDeleteSingle(lead)}
                           title="Delete lead"
@@ -612,6 +755,16 @@ export default function AdminLeadsPage() {
           onConfirm={executeDelete}
           onCancel={() => setConfirmDelete(null)}
           deleting={deleting}
+        />
+      )}
+
+      {/* Archive dialog */}
+      {archiveDialog && (
+        <ArchiveDialog
+          count={archiveDialog.ids.length}
+          onConfirm={executeArchive}
+          onCancel={() => setArchiveDialog(null)}
+          archiving={archiving}
         />
       )}
     </div>

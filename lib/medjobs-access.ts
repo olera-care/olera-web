@@ -37,7 +37,7 @@ export function getAccessTier(
   }
 
   const isPaid = !!(providerMeta.medjobs_subscription_active as boolean);
-  const count = interviewCount ?? (providerMeta.medjobs_interview_count as number) || 0;
+  const count = interviewCount ?? ((providerMeta.medjobs_interview_count as number) || 0);
 
   if (isPaid) {
     return { tier: "paid", interviewsUsed: count, interviewsRemaining: Infinity, isPaid: true };

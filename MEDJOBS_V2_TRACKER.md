@@ -36,16 +36,21 @@
 
 ## Phase 4: Monetization + Access Gating (Week 4-6)
 
-- [ ] **4A** Build four-tier access function (anonymous/free-active/free-exhausted/paid)
-- [ ] **4B** Extend candidates API with tier-based redaction (name, contact, resume, LinkedIn)
-- [ ] **4C** Update candidate detail page for conditional rendering by tier
-- [ ] **4D** Update browse page — 6-card limit for anonymous, banners for exhausted
-- [ ] **4E** Audit existing Stripe setup in codebase
-- [ ] **4F** Build Stripe checkout flow ($50/mo) + webhook handlers
-- [ ] **4G** Build upgrade modal component (reusable across touchpoints)
-- [ ] **4H** Wire upgrade CTAs into detail page, browse page, interview tab, emails
-- [ ] **4I** Implement anti-de-platforming measures (last-initial names, LinkedIn gating)
-- [ ] **4** Type-check, self-review, commit, push
+- [x] **4A** Build four-tier access function (lib/medjobs-access.ts)
+- [ ] **4B** Extend candidates API with tier-based redaction (ready to wire)
+- [ ] **4C** Update candidate detail page for conditional rendering (ready to wire)
+- [ ] **4D** Update browse page — 6-card limit, banners (ready to wire)
+- [x] **4E** Audit existing Stripe setup — found checkout + webhook already built
+- [x] **4F** Build MedJobs Stripe checkout ($50/mo) + webhook handlers
+- [x] **4G** Build upgrade modal component (UpgradeModal.tsx)
+- [ ] **4H** Wire upgrade CTAs into detail page, browse page, interview tab
+- [x] **4I** Anti-de-platforming: formatCandidateName, canSeeLinkedIn, canSeeResume built
+- [x] **4** Core infrastructure committed and pushed
+
+**Note:** Frontend gating (4B-4D, 4H) requires wiring the access tier into existing
+candidate browse/detail pages and ContactSection. The functions and components are
+built — they need to be integrated into the page rendering logic. This should be
+done carefully in a follow-up to avoid breaking existing functionality.
 
 ## Fast Follow (After Phase 1)
 

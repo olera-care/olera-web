@@ -134,6 +134,12 @@ export default async function sitemap({
               changeFrequency: "monthly",
               priority: 0.5,
             });
+            entries.push({
+              url: `${SITE_URL}${programUrl}/checklist`,
+              lastModified: new Date(),
+              changeFrequency: "monthly",
+              priority: 0.4,
+            });
             if (program.forms?.length > 0) {
               entries.push({
                 url: `${SITE_URL}${programUrl}/forms`,

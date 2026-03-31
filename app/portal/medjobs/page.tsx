@@ -1126,13 +1126,13 @@ export default function StudentPortalPage() {
                       {item.key === "video" ? (
                         <div>
                           {item.done && <p className="text-sm text-emerald-600 mb-3">Video submitted</p>}
-                          <p className="text-sm text-gray-500 mb-3">{item.done ? "Update your intro video:" : item.desc}</p>
+                          <p className="text-sm text-gray-500 mb-3">{item.done ? "Update your intro video:" : "2\u20133 min \u2014 providers want to see who they\u2019re hiring"}</p>
                           <VideoSubmit slug={profile.slug} onComplete={refresh} />
                         </div>
                       ) : (
                         <div>
                           {item.done && <p className="text-sm text-emerald-600 mb-3">Document uploaded</p>}
-                          <p className="text-sm text-gray-500 mb-3">{item.done ? "Upload a new version:" : item.desc}</p>
+                          <p className="text-sm text-gray-500 mb-3">{item.done ? "Upload a new version:" : item.key === "drivers_license" ? "Verifies your identity" : "Confirms you can get to assignments safely"}</p>
                           <div className="mb-3">
                             <DateFieldEditor
                               profileId={profile.id}

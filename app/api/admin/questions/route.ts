@@ -142,10 +142,11 @@ export async function GET(request: NextRequest) {
       provider_email: providerEmails[q.provider_id] || null,
     }));
 
-    // Fetch tab counts for pending and needs_email
-    const [pendingCount, needsEmailCount] = await Promise.all([
+    // Fetch tab counts for pending, needs_email, and archived
+    const [pendingCount, needsEmailCount, archivedCount] = await Promise.all([
       db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "pending"),
       db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }),
+      db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "archived"),
     ]);
 
     return NextResponse.json({
@@ -154,6 +155,7 @@ export async function GET(request: NextRequest) {
       tabCounts: {
         pending: pendingCount.count ?? 0,
         needs_email: needsEmailCount.count ?? 0,
+        archived: archivedCount.count ?? 0,
       },
     });
   } catch (err) {
@@ -176,7 +178,7 @@ export async function PATCH(request: NextRequest) {
     if (!admin) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
     const body = await request.json();
-    const { id, status, answer, is_public } = body;
+    const { id, status, answer, is_public, archive_reason } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Question id required" }, { status: 400 });
@@ -187,6 +189,16 @@ export async function PATCH(request: NextRequest) {
 
     if (status) updates.status = status;
     if (is_public !== undefined) updates.is_public = is_public;
+
+    // When archiving, store the reason in metadata
+    if (status === "archived" && archive_reason) {
+      const { data: existing } = await db.from("provider_questions").select("metadata").eq("id", id).single();
+      const meta = (existing?.metadata || {}) as Record<string, unknown>;
+      meta.archive_reason = archive_reason;
+      meta.archived_at = new Date().toISOString();
+      updates.metadata = meta;
+      updates.is_public = false;
+    }
     if (answer !== undefined) {
       updates.answer = answer;
       updates.answered_at = new Date().toISOString();

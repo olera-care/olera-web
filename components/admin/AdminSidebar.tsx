@@ -23,16 +23,6 @@ const navSections: NavSection[] = [
     items: [{ label: "Overview", href: "/admin" }],
   },
   {
-    label: "Providers",
-    items: [
-      { label: "Claims", href: "/admin/providers" },
-      { label: "Verification", href: "/admin/verification" },
-      { label: "Directory", href: "/admin/directory" },
-      { label: "Images", href: "/admin/images" },
-      { label: "Removals", href: "/admin/removal-requests" },
-    ],
-  },
-  {
     label: "Activity",
     items: [
       { label: "Activity Center", href: "/admin/activity" },
@@ -41,6 +31,16 @@ const navSections: NavSection[] = [
       { label: "Reviews", href: "/admin/reviews" },
       { label: "Emails", href: "/admin/emails" },
       { label: "Care Seekers", href: "/admin/care-seekers" },
+    ],
+  },
+  {
+    label: "Providers",
+    items: [
+      { label: "Claims", href: "/admin/providers" },
+      { label: "Verification", href: "/admin/verification" },
+      { label: "Directory", href: "/admin/directory" },
+      { label: "Images", href: "/admin/images" },
+      { label: "Removals", href: "/admin/removal-requests" },
     ],
   },
   {

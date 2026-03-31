@@ -606,10 +606,10 @@ const FAMILY_EVENT_FILTER_OPTIONS = [
 
 export default function ActivityCenterPage() {
   const urlParams = useSearchParams();
-  const initialActor = (urlParams.get("actor") as Actor) || "providers";
+  const initialActor = (urlParams.get("actor") as Actor) || "families";
 
   const [actor, setActor] = useState<Actor>(initialActor);
-  const [subView, setSubView] = useState<SubView>("people");
+  const [subView, setSubView] = useState<SubView>("feed");
   const [timeWindow, setTimeWindow] = useState<TimeWindow>("30");
   const [eventFilter, setEventFilter] = useState("");
   const [search, setSearch] = useState("");
@@ -840,8 +840,8 @@ export default function ActivityCenterPage() {
       <div className="flex flex-wrap items-center gap-3">
         <SegmentedControl
           options={[
-            { label: "Providers", value: "providers" as Actor },
             { label: "Families", value: "families" as Actor },
+            { label: "Providers", value: "providers" as Actor },
           ]}
           value={actor}
           onChange={setActor}
@@ -851,8 +851,8 @@ export default function ActivityCenterPage() {
 
         <SegmentedControl
           options={[
-            { label: "People", value: "people" as SubView },
             { label: "Feed", value: "feed" as SubView },
+            { label: "People", value: "people" as SubView },
           ]}
           value={subView}
           onChange={setSubView}

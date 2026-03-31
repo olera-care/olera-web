@@ -236,6 +236,9 @@ export async function PATCH(
       return NextResponse.json({ success: true });
     }
 
+    // Extract delete reason (not a DB field, used for audit only)
+    const deleteReason = typeof body._delete_reason === "string" ? body._delete_reason.trim() : null;
+
     // Filter to only allowed fields
     const updates: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(body)) {
@@ -297,6 +300,7 @@ export async function PATCH(
         details: {
           provider_name: current.provider_name,
           changed_fields: changedFields,
+          ...(deleteReason ? { delete_reason: deleteReason } : {}),
         },
       });
     }

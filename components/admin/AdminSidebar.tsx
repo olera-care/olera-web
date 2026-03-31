@@ -130,22 +130,15 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:flex-col md:w-52 bg-white border-r border-gray-100 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
-        <nav className="flex-1 px-3 pt-4 pb-3">
+      <aside className="hidden md:flex md:flex-col md:w-48 bg-white border-r border-gray-100 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+        <nav className="flex-1 px-2 pt-4 pb-3">
           {navSections.map((section, sectionIdx) => (
             <div
               key={section.label ?? "home"}
-              className={[
-                sectionIdx > 0 ? section.primary ? "mt-4" : "mt-6" : "",
-              ].join(" ")}
+              className={sectionIdx > 0 ? "mt-5" : ""}
             >
               {section.label && (
-                <p className={[
-                  "px-3 mb-1 select-none",
-                  section.primary
-                    ? "text-[11px] font-semibold text-gray-900 uppercase tracking-wider"
-                    : "text-[10px] font-medium text-gray-300 uppercase tracking-widest",
-                ].join(" ")}>
+                <p className="px-2.5 mb-0.5 text-[11px] font-medium text-gray-400 select-none">
                   {section.label}
                 </p>
               )}
@@ -157,15 +150,10 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
                       key={item.href}
                       href={item.href}
                       className={[
-                        "block rounded-md transition-colors duration-150",
-                        item.prominent
-                          ? "px-3 py-2 text-[13px] font-medium"
-                          : "px-3 py-[6px] text-[13px]",
+                        "block px-2.5 py-[5px] rounded-md text-[13px] transition-colors duration-100",
                         active
-                          ? "text-gray-900 font-medium bg-gray-100"
-                          : section.primary
-                            ? "text-gray-500 hover:text-gray-900 hover:bg-gray-50/80"
-                            : "text-gray-400 hover:text-gray-600 hover:bg-gray-50/60",
+                          ? "text-gray-900 font-medium bg-gray-100/80"
+                          : "text-gray-500 hover:text-gray-900 hover:bg-gray-50",
                       ].join(" ")}
                     >
                       {item.label}
@@ -177,14 +165,14 @@ export default function AdminSidebar({ adminUser }: AdminSidebarProps) {
           ))}
         </nav>
 
-        <div className="border-t border-gray-100 px-3 py-3">
-          <div className="flex items-center gap-3 px-3">
+        <div className="border-t border-gray-100 px-2 py-3">
+          <div className="flex items-center gap-2.5 px-2.5">
             <div className="w-6 h-6 rounded-full bg-gray-100 text-[10px] font-medium text-gray-400 flex items-center justify-center shrink-0">
               {getInitials(adminUser.email)}
             </div>
             <Link
               href="/"
-              className="text-[12px] text-gray-300 hover:text-gray-500 transition-colors duration-150"
+              className="text-[12px] text-gray-400 hover:text-gray-600 transition-colors duration-100"
             >
               Exit Admin
             </Link>

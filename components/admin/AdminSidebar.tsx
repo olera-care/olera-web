@@ -25,28 +25,37 @@ const navSections: NavSection[] = [
     items: [{ label: "Overview", href: "/admin" }],
   },
   {
-    label: "Activity",
+    // Daily action queue — things that need attention
+    label: "Inbox",
     primary: true,
     items: [
       { label: "Activity Center", href: "/admin/activity", prominent: true },
       { label: "Leads", href: "/admin/leads" },
       { label: "Questions", href: "/admin/questions" },
-      { label: "Reviews", href: "/admin/reviews" },
-      { label: "Emails", href: "/admin/emails" },
-      { label: "Care Seekers", href: "/admin/care-seekers" },
+      { label: "Claims", href: "/admin/providers" },
     ],
   },
   {
-    label: "Providers",
+    // Lookup and reference
+    label: "Records",
     items: [
-      { label: "Claims", href: "/admin/providers" },
-      { label: "Verification", href: "/admin/verification" },
       { label: "Directory", href: "/admin/directory" },
+      { label: "Care Seekers", href: "/admin/care-seekers" },
+      { label: "Reviews", href: "/admin/reviews" },
+      { label: "Emails", href: "/admin/emails" },
+    ],
+  },
+  {
+    // Less frequent provider management
+    label: "Manage",
+    items: [
       { label: "Images", href: "/admin/images" },
+      { label: "Verification", href: "/admin/verification" },
       { label: "Removals", href: "/admin/removal-requests" },
     ],
   },
   {
+    // Internal / TJ-only
     label: "Operations",
     items: [
       { label: "Content", href: "/admin/content" },

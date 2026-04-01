@@ -63,12 +63,13 @@ export default function AccountSettingsPage() {
 
   /** Returns the display value for a notification toggle (optimistic → server → default) */
   const getNotifOn = useCallback(
-    (key: string, channel: "email" | "sms"): boolean => {
+    (key: string, channel: "email" | "sms" | "whatsapp"): boolean => {
       const oKey = `${key}_${channel}`;
       if (oKey in optimisticNotifs) return optimisticNotifs[oKey];
+      if (channel === "whatsapp") return notifPrefs[key]?.[channel] ?? ((meta.whatsapp_opted_in as boolean) ?? false);
       return notifPrefs[key]?.[channel] ?? (channel === "email");
     },
-    [optimisticNotifs, notifPrefs]
+    [optimisticNotifs, notifPrefs, meta.whatsapp_opted_in]
   );
 
   // Account editing
@@ -91,7 +92,7 @@ export default function AccountSettingsPage() {
 
   // ── Notification toggle (optimistic — flips instantly, persists in background) ──
   const handleNotifToggle = useCallback(
-    (key: NotificationKey, channel: "email" | "sms") => {
+    (key: NotificationKey, channel: "email" | "sms" | "whatsapp") => {
       if (!activeProfile || !isSupabaseConfigured()) return;
 
       const oKey = `${key}_${channel}`;
@@ -380,6 +381,41 @@ export default function AccountSettingsPage() {
                     <p className="text-[13px] text-rose-600 font-medium">{notifError}</p>
                   </div>
                 )}
+                {/* WhatsApp opt-in prompt (if not yet opted in and has phone) */}
+                {!meta.whatsapp_opted_in && activeProfile?.phone && (
+                  <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-emerald-900">Enable WhatsApp notifications</p>
+                      <p className="text-xs text-emerald-700 mt-0.5">Get instant alerts when providers respond — right on WhatsApp.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!activeProfile || !isSupabaseConfigured()) return;
+                        try {
+                          const supabase = createClient();
+                          const currentMeta = (activeProfile.metadata || {}) as Record<string, unknown>;
+                          await supabase
+                            .from("business_profiles")
+                            .update({
+                              metadata: {
+                                ...currentMeta,
+                                whatsapp_opted_in: true,
+                                whatsapp_opted_in_at: new Date().toISOString(),
+                              },
+                            })
+                            .eq("id", activeProfile.id);
+                          await refreshAccountData();
+                        } catch {
+                          setNotifError("Couldn't enable WhatsApp. Please try again.");
+                        }
+                      }}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-colors shrink-0"
+                    >
+                      Enable
+                    </button>
+                  </div>
+                )}
                 <div className="divide-y divide-gray-50">
                   {notifications.map((notif) => (
                     <NotificationRow
@@ -388,6 +424,7 @@ export default function AccountSettingsPage() {
                       description={notif.description}
                       emailOn={getNotifOn(notif.key, "email")}
                       smsOn={getNotifOn(notif.key, "sms")}
+                      whatsappOn={meta.whatsapp_opted_in && activeProfile?.phone ? getNotifOn(notif.key, "whatsapp") : undefined}
                       onToggle={(channel) => handleNotifToggle(notif.key, channel)}
                     />
                   ))}
@@ -491,13 +528,15 @@ function NotificationRow({
   description,
   emailOn,
   smsOn,
+  whatsappOn,
   onToggle,
 }: {
   title: string;
   description: string;
   emailOn: boolean;
   smsOn: boolean;
-  onToggle: (channel: "email" | "sms") => void;
+  whatsappOn?: boolean;
+  onToggle: (channel: "email" | "sms" | "whatsapp") => void;
 }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-4 first:pt-0 last:pb-0">
@@ -514,6 +553,12 @@ function NotificationRow({
           <span className="text-sm font-medium text-gray-500">SMS</span>
           <Toggle on={smsOn} onToggle={() => onToggle("sms")} />
         </div>
+        {whatsappOn !== undefined && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-500">WhatsApp</span>
+            <Toggle on={whatsappOn} onToggle={() => onToggle("whatsapp")} />
+          </div>
+        )}
       </div>
     </div>
   );

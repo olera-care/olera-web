@@ -12,7 +12,7 @@ export default function BenefitsFinderLayout({
   return (
     <CareProfileProvider>
       <div className="min-h-[calc(100vh-4rem)] bg-vanilla-50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16">
           <div className="flex gap-12 lg:gap-20">
             {/* Desktop sidebar */}
             <aside

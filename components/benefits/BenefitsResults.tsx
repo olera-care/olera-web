@@ -20,6 +20,7 @@ import ProgramCard from "./ProgramCard";
 import BenefitsReportHeader from "./BenefitsReportHeader";
 import RecommendedFirstStep from "./RecommendedFirstStep";
 import DocumentChecklist from "./DocumentChecklist";
+import BenefitsPackageFAQ from "./BenefitsPackageFAQ";
 
 // ── Success illustration for confirmation state ──
 function MatchesSuccessIllustration({ className = "w-12 h-12" }: { className?: string }) {
@@ -289,7 +290,12 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
         userName={account?.display_name?.split(" ")[0] ?? null}
         onShare={handleShare}
         shareLabel={shareLabel}
+        onEditAnswers={reset}
+        localAAA={localAAA}
       />
+
+      {/* FAQ */}
+      <BenefitsPackageFAQ stateCode={answers.stateCode} />
 
       {/* Recommended first step — single program, with call script */}
       {matchedPrograms.length > 0 && (
@@ -419,10 +425,10 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
                   Providers in your area can now find you. We&apos;ll email you the moment someone reaches out.
                 </p>
                 <Link
-                  href="/portal/profile"
+                  href="/portal/matches"
                   className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors mb-2"
                 >
-                  View your care profile &rarr;
+                  View your Matches profile &rarr;
                 </Link>
                 <button
                   onClick={() => { setMatchesCardDismissed(true); setMatchesCardConfirmed(false); }}
@@ -442,8 +448,8 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
                 {matchesError && (
                   <div className="mt-3">
                     <p className="text-sm text-gray-600">We couldn&apos;t set up your profile right now.</p>
-                    <Link href="/portal/profile" className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors">
-                      Visit your profile to complete setup.
+                    <Link href="/portal/matches" className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors">
+                      Visit your Matches tab to complete setup.
                     </Link>
                   </div>
                 )}

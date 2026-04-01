@@ -200,12 +200,17 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
     setPageState("loading");
     setErrorMsg(null);
 
+    const minDelay = new Promise((r) => setTimeout(r, 6000));
+
     try {
-      const res = await fetch("/api/benefits/match", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(answers),
-      });
+      const [res] = await Promise.all([
+        fetch("/api/benefits/match", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(answers),
+        }),
+        minDelay,
+      ]);
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));

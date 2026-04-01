@@ -56,6 +56,7 @@ function evaluateEligibility(
   // Normalize base score to 0-50 range to leave room for bonuses
   let score = Math.round(program.priority_score * 0.5);
   const reasons: string[] = [];
+  let spendDown = false;
 
   // Hard disqualify: age below minimum
   if (program.min_age != null && answers.age != null) {
@@ -71,7 +72,9 @@ function evaluateEligibility(
       score += 12;
       reasons.push("Within income guidelines");
     } else {
-      return null; // Hard disqualify — income exceeds program threshold
+      // Income over limit — may qualify via spend-down
+      spendDown = true;
+      reasons.push("May qualify with spend-down");
     }
   }
 
@@ -138,6 +141,7 @@ function evaluateEligibility(
     matchScore: score,
     matchReasons: reasons.length > 0 ? reasons : ["May be eligible"],
     tierLabel: getTierLabel(score),
+    spendDown,
   };
 }
 

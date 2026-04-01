@@ -255,6 +255,8 @@ export interface BenefitMatch {
   matchScore: number; // 0-100
   matchReasons: string[];
   tierLabel: "Strong Match" | "Likely Match" | "May Qualify";
+  /** True when user's income exceeds the program limit but may qualify via spend-down */
+  spendDown?: boolean;
 }
 
 export interface BenefitsSearchResult {
@@ -333,6 +335,35 @@ export function getSavingsRange(
   if (!partial) return null;
   return { low: partial[1].monthlyLow, high: partial[1].monthlyHigh };
 }
+
+// ─── Effort Levels ───────────────────────────────────────────────────────────
+
+export type EffortLevel = "quick" | "plan";
+
+const PLAN_AHEAD_PROGRAMS: string[] = [
+  "Medicaid",
+  "Medicaid Home and Community-Based Services (HCBS)",
+  "Aid & Attendance (A&A)",
+  "Veterans Directed Care",
+  "Social Security Disability Insurance (SSDI)",
+  "PACE (Program of All-Inclusive Care for the Elderly)",
+  "Section 8 Housing Choice Voucher",
+  "Section 202 Supportive Housing for the Elderly",
+  "Supplemental Security Income (SSI)",
+];
+
+export function getProgramEffort(programName: string): EffortLevel {
+  const key = programName.trim().toLowerCase();
+  for (const name of PLAN_AHEAD_PROGRAMS) {
+    if (key.includes(name.toLowerCase()) || name.toLowerCase().includes(key)) return "plan";
+  }
+  return "quick";
+}
+
+export const EFFORT_CONFIG: Record<EffortLevel, { label: string; color: string; bg: string; border: string; sortOrder: number; groupLabel: string }> = {
+  quick: { label: "Quick Apply", color: "text-success-700", bg: "bg-success-50", border: "border-success-200", sortOrder: 0, groupLabel: "Quick Apply" },
+  plan: { label: "Plan Ahead", color: "text-orange-700", bg: "bg-orange-50", border: "border-orange-200", sortOrder: 1, groupLabel: "Plan Ahead" },
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

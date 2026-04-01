@@ -7,6 +7,16 @@
 
 ## Current Focus
 
+- **Demand Map + Public Profile Tracking** (branch: `tidy-wiles`) — TESTED ✅, PR OPEN
+  - New `/admin/demand` page: city-grouped table of public care seeker profiles
+  - Sortable on 5 columns (count, new this week, latest go-live, city, state), city search
+  - Extended `/admin/care-seekers` with Public tab, city filter, City column, deep-linking
+  - Overview: added Public Profiles card, demoted Reviews behind "See all stats" toggle
+  - Sidebar: added Demand link under Inbox
+  - Self-review caught 4 bugs before testing: Phone column regression, SortHeader remount, null-city drill-through, is_active filter mismatch
+  - Plan: `plans/demand-map-plan.md`
+  - **Known limitation**: stats computed from first 100 rows (pre-existing), fix with dedicated stats endpoint later
+
 - **Staging → Main Promotion** — IN PROGRESS
   - Audited full staging diff: 253 commits, 225 files changed, ~31K lines across ~90 PRs
   - Key areas: one-click onboarding, provider dashboard, MedJobs, reviews, activity center, email revamp, highlights waterfall, city expansion, admin improvements

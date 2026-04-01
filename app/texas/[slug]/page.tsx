@@ -16,6 +16,7 @@ import SeniorCareFAQ from "@/components/article/SeniorCareFAQ";
 import StarPlusFAQ from "@/components/article/StarPlusFAQ";
 import MedicaidEligibilityFAQ from "@/components/article/MedicaidEligibilityFAQ";
 import ShareButton from "@/components/article/ShareButton";
+import SpendDownWidget from "@/components/article/SpendDownWidget";
 
 // ISR: revalidate every 60 seconds
 export const revalidate = 60;
@@ -305,6 +306,7 @@ export default async function TexasArticlePage({
           {contentHtml ? (() => {
             const MARKERS: Record<string, React.ReactNode> = {
               "<!-- eligibility-checker -->": <EligibilityChecker />,
+              "<!-- spend-down-calculator -->": <SpendDownWidget initialStateCode="TX" />,
               "<!-- faq-accordion -->": slug === "how-to-pay-for-senior-care-in-texas" ? <SeniorCareFAQ /> : slug === "star-plus-waiver-texas-complete-guide" ? <StarPlusFAQ /> : slug === "texas-medicaid-eligibility-seniors-2026" ? <MedicaidEligibilityFAQ /> : <ArticleFAQ />,
             };
             let segments: React.ReactNode[] = [processedHtml];

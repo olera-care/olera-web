@@ -21,6 +21,59 @@ interface DemandData {
   new_this_week: number;
 }
 
+function SortHeader({
+  field,
+  label,
+  align = "left",
+  activeField,
+  activeDir,
+  onSort,
+}: {
+  field: SortField;
+  label: string;
+  align?: "left" | "right";
+  activeField: SortField;
+  activeDir: SortDir;
+  onSort: (field: SortField) => void;
+}) {
+  const active = activeField === field;
+  return (
+    <th
+      className={`px-4 py-3 font-medium text-gray-500 cursor-pointer select-none hover:text-gray-700 transition-colors ${
+        align === "right" ? "text-right" : "text-left"
+      }`}
+      onClick={() => onSort(field)}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        {active ? (
+          <svg
+            className="w-3.5 h-3.5 text-gray-900"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            {activeDir === "desc" ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+            )}
+          </svg>
+        ) : (
+          <svg
+            className="w-3.5 h-3.5 text-gray-300"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+          </svg>
+        )}
+      </span>
+    </th>
+  );
+}
+
 export default function AdminDemandPage() {
   const router = useRouter();
   const [data, setData] = useState<DemandData | null>(null);
@@ -100,7 +153,9 @@ export default function AdminDemandPage() {
 
   function handleRowClick(row: CityRow) {
     const params = new URLSearchParams({ filter: "public" });
-    if (row.city !== "Location not set") {
+    if (row.city === "Location not set") {
+      params.set("city", "__null__");
+    } else {
       params.set("city", row.city);
     }
     if (row.state) {
@@ -108,53 +163,6 @@ export default function AdminDemandPage() {
     }
     router.push(`/admin/care-seekers?${params}`);
   }
-
-  const SortHeader = ({
-    field,
-    label,
-    align = "left",
-  }: {
-    field: SortField;
-    label: string;
-    align?: "left" | "right";
-  }) => {
-    const active = sortField === field;
-    return (
-      <th
-        className={`px-4 py-3 font-medium text-gray-500 cursor-pointer select-none hover:text-gray-700 transition-colors ${
-          align === "right" ? "text-right" : "text-left"
-        }`}
-        onClick={() => handleSort(field)}
-      >
-        <span className="inline-flex items-center gap-1">
-          {label}
-          {active ? (
-            <svg
-              className="w-3.5 h-3.5 text-gray-900"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              {sortDir === "desc" ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-              )}
-            </svg>
-          ) : (
-            <svg
-              className="w-3.5 h-3.5 text-gray-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-            </svg>
-          )}
-        </span>
-      </th>
-    );
-  };
 
   return (
     <div>
@@ -220,11 +228,11 @@ export default function AdminDemandPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <SortHeader field="city" label="City" />
-                  <SortHeader field="state" label="State" />
-                  <SortHeader field="count" label="Public Profiles" align="right" />
-                  <SortHeader field="new_this_week" label="New This Week" align="right" />
-                  <SortHeader field="latest_published" label="Latest Go-Live" align="right" />
+                  <SortHeader field="city" label="City" activeField={sortField} activeDir={sortDir} onSort={handleSort} />
+                  <SortHeader field="state" label="State" activeField={sortField} activeDir={sortDir} onSort={handleSort} />
+                  <SortHeader field="count" label="Public Profiles" align="right" activeField={sortField} activeDir={sortDir} onSort={handleSort} />
+                  <SortHeader field="new_this_week" label="New This Week" align="right" activeField={sortField} activeDir={sortDir} onSort={handleSort} />
+                  <SortHeader field="latest_published" label="Latest Go-Live" align="right" activeField={sortField} activeDir={sortDir} onSort={handleSort} />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

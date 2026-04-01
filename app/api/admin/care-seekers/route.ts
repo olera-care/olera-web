@@ -43,10 +43,14 @@ export async function GET(request: NextRequest) {
     }
 
     if (publicOnly) {
-      query = query.contains("metadata", { care_post: { status: "active" } });
+      query = query
+        .eq("is_active", true)
+        .contains("metadata", { care_post: { status: "active" } });
     }
 
-    if (cityFilter) {
+    if (cityFilter === "__null__") {
+      query = query.is("city", null);
+    } else if (cityFilter) {
       query = query.eq("city", cityFilter);
     }
 

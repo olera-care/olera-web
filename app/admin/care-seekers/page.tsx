@@ -307,6 +307,7 @@ export default function AdminCareSeekersPage() {
                 <tr>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Name</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Email</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500">Phone</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">City</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Care Type</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Timeline</th>
@@ -332,6 +333,7 @@ export default function AdminCareSeekersPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-600 truncate max-w-[180px]">{seeker.email || "—"}</td>
+                      <td className="px-4 py-3 text-gray-600">{seeker.phone || "—"}</td>
                       <td className="px-4 py-3 text-gray-600 text-xs">
                         {seeker.city ? (
                           <span>{seeker.city}{seeker.state ? `, ${seeker.state}` : ""}</span>

@@ -272,7 +272,11 @@ export async function POST(request: Request) {
                   "1": senderLabel,
                   "2": waPreview,
                 },
-                fallbackBody: `New message from ${senderLabel} on Olera:\n\n"${waPreview}"\n\nReply now: ${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/connections`,
+                fallbackBody: `New message from ${senderLabel} on Olera:\n\n"${waPreview}"\n\nReply now: ${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}${
+                  recipientProfile?.type === "family"
+                    ? "/portal/inbox"
+                    : `/provider/${recipientProfile?.slug || recipientProfile?.source_provider_id || recipientProfileId}/onboard?action=message&actionId=${connectionId}`
+                }`,
                 messageType: "new_message",
                 recipientType: recipientProfile?.type === "family" ? "family" : "provider",
                 profileId: recipientProfileId,

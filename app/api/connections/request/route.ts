@@ -801,7 +801,7 @@ async function handleGuestConnection({
     const providerMeta = (waBp?.metadata || {}) as Record<string, unknown>;
     if (waPhone && providerMeta.whatsapp_opted_in) {
       const waNormalized = normalizeUSPhone(waPhone);
-      if (waNormalized && process.env.TWILIO_WA_TEMPLATE_NEW_LEAD) {
+      if (waNormalized) {
         const familyLabel = firstName || "A family";
         const providerLabel = providerDisplayName || providerName;
         await sendWhatsApp({

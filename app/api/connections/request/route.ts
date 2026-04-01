@@ -6,6 +6,7 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail, verifyEmailEmail } from "@/lib/email-templates";
 import { sendSlackAlert, slackNewLead, slackMissingEmail } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
+import { sendWhatsApp } from "@/lib/whatsapp";
 import { sendLoopsEvent } from "@/lib/loops";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
@@ -776,6 +777,49 @@ async function handleGuestConnection({
     }
   } catch (smsErr) {
     console.error("[sms] Guest connection error:", smsErr);
+  }
+
+  // WhatsApp notification to provider (fire-and-forget)
+  try {
+    let waPhone: string | null = null;
+    const { data: waBp } = await db
+      .from("business_profiles")
+      .select("phone, metadata")
+      .eq("id", toProfileId)
+      .single();
+    waPhone = waBp?.phone || null;
+
+    if (!waPhone) {
+      const { data: waIos } = await db
+        .from("olera-providers")
+        .select("phone")
+        .eq("provider_id", providerId)
+        .single();
+      waPhone = waIos?.phone || null;
+    }
+
+    const providerMeta = (waBp?.metadata || {}) as Record<string, unknown>;
+    if (waPhone && providerMeta.whatsapp_opted_in) {
+      const waNormalized = normalizeUSPhone(waPhone);
+      if (waNormalized && process.env.TWILIO_WA_TEMPLATE_NEW_LEAD) {
+        const familyLabel = firstName || "A family";
+        const providerLabel = providerDisplayName || providerName;
+        await sendWhatsApp({
+          to: waNormalized,
+          contentSid: process.env.TWILIO_WA_TEMPLATE_NEW_LEAD || "sandbox",
+          contentVariables: {
+            "1": familyLabel,
+            "2": providerLabel,
+          },
+          fallbackBody: `${familyLabel} is looking for care from ${providerLabel}.\n\nThey reached out through Olera and are waiting for your response.\n\nView inquiry: ${getSiteUrl()}/provider/connections`,
+          messageType: "connection_request",
+          recipientType: "provider",
+          profileId: toProfileId,
+        });
+      }
+    }
+  } catch (waErr) {
+    console.error("[whatsapp] Connection request notification failed:", waErr);
   }
 
   // Slack alert

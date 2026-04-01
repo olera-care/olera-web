@@ -32,13 +32,14 @@ export default function SettingsPage() {
 
   /** Returns the display value for a notification toggle (optimistic → server → default) */
   const getNotifOn = useCallback(
-    (key: string, channel: "email" | "sms"): boolean => {
+    (key: string, channel: "email" | "sms" | "whatsapp"): boolean => {
       const oKey = `${key}_${channel}`;
       if (oKey in optimisticNotifs) return optimisticNotifs[oKey];
       const prefs = notifPrefs as Record<string, Record<string, boolean> | undefined>;
+      if (channel === "whatsapp") return prefs[key]?.[channel] ?? (meta.whatsapp_opted_in ?? false);
       return prefs[key]?.[channel] ?? (channel === "email");
     },
-    [optimisticNotifs, notifPrefs]
+    [optimisticNotifs, notifPrefs, meta.whatsapp_opted_in]
   );
 
   // Account editing
@@ -70,7 +71,7 @@ export default function SettingsPage() {
   const handleNotifToggle = useCallback(
     (
       key: "connection_updates" | "saved_provider_alerts" | "match_updates" | "profile_reminders",
-      channel: "email" | "sms"
+      channel: "email" | "sms" | "whatsapp"
     ) => {
       if (!activeProfile || !isSupabaseConfigured()) return;
 
@@ -416,12 +417,49 @@ export default function SettingsPage() {
                     <p className="text-[13px] text-rose-600 font-medium">{notifError}</p>
                   </div>
                 )}
+                {/* WhatsApp opt-in prompt (if not yet opted in and has phone) */}
+                {!meta.whatsapp_opted_in && activeProfile?.phone && (
+                  <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-emerald-900">Enable WhatsApp notifications</p>
+                      <p className="text-xs text-emerald-700 mt-0.5">Get instant alerts when providers respond — right on WhatsApp.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!activeProfile || !isSupabaseConfigured()) return;
+                        try {
+                          const supabase = createClient();
+                          const currentMeta = (activeProfile.metadata || {}) as Record<string, unknown>;
+                          await supabase
+                            .from("business_profiles")
+                            .update({
+                              metadata: {
+                                ...currentMeta,
+                                whatsapp_opted_in: true,
+                                whatsapp_opted_in_at: new Date().toISOString(),
+                              },
+                            })
+                            .eq("id", activeProfile.id);
+                          await refreshAccountData();
+                        } catch {
+                          setNotifError("Couldn't enable WhatsApp. Please try again.");
+                        }
+                      }}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-colors shrink-0"
+                    >
+                      Enable
+                    </button>
+                  </div>
+                )}
+
                 <div className="divide-y divide-gray-50">
                   <NotificationRow
                     title="Connection updates"
                     description="When a provider responds or messages you"
                     emailOn={getNotifOn("connection_updates", "email")}
                     smsOn={getNotifOn("connection_updates", "sms")}
+                    whatsappOn={meta.whatsapp_opted_in && activeProfile?.phone ? getNotifOn("connection_updates", "whatsapp") : undefined}
                     onToggle={(channel) =>
                       handleNotifToggle("connection_updates", channel)
                     }
@@ -431,6 +469,7 @@ export default function SettingsPage() {
                     description="When a saved provider becomes available"
                     emailOn={getNotifOn("saved_provider_alerts", "email")}
                     smsOn={getNotifOn("saved_provider_alerts", "sms")}
+                    whatsappOn={meta.whatsapp_opted_in && activeProfile?.phone ? getNotifOn("saved_provider_alerts", "whatsapp") : undefined}
                     onToggle={(channel) =>
                       handleNotifToggle("saved_provider_alerts", channel)
                     }
@@ -440,6 +479,7 @@ export default function SettingsPage() {
                     description="New provider matches and care profile responses"
                     emailOn={getNotifOn("match_updates", "email")}
                     smsOn={getNotifOn("match_updates", "sms")}
+                    whatsappOn={meta.whatsapp_opted_in && activeProfile?.phone ? getNotifOn("match_updates", "whatsapp") : undefined}
                     onToggle={(channel) =>
                       handleNotifToggle("match_updates", channel)
                     }
@@ -449,6 +489,7 @@ export default function SettingsPage() {
                     description="Tips to complete your care profile"
                     emailOn={getNotifOn("profile_reminders", "email")}
                     smsOn={getNotifOn("profile_reminders", "sms")}
+                    whatsappOn={meta.whatsapp_opted_in && activeProfile?.phone ? getNotifOn("profile_reminders", "whatsapp") : undefined}
                     onToggle={(channel) =>
                       handleNotifToggle("profile_reminders", channel)
                     }
@@ -638,13 +679,15 @@ function NotificationRow({
   description,
   emailOn,
   smsOn,
+  whatsappOn,
   onToggle,
 }: {
   title: string;
   description: string;
   emailOn: boolean;
   smsOn: boolean;
-  onToggle: (channel: "email" | "sms") => void;
+  whatsappOn?: boolean;
+  onToggle: (channel: "email" | "sms" | "whatsapp") => void;
 }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-4 first:pt-0 last:pb-0">
@@ -661,6 +704,12 @@ function NotificationRow({
           <span className="text-sm font-medium text-gray-500">SMS</span>
           <Toggle on={smsOn} onToggle={() => onToggle("sms")} />
         </div>
+        {whatsappOn !== undefined && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-500">WhatsApp</span>
+            <Toggle on={whatsappOn} onToggle={() => onToggle("whatsapp")} />
+          </div>
+        )}
       </div>
     </div>
   );

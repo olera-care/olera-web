@@ -321,11 +321,13 @@ export interface FamilyMetadata {
   // Benefits intake fields
   income_range?: string;
   medicaid_status?: string;
+  whatsapp_opted_in?: boolean;
+  whatsapp_opted_in_at?: string;
   notification_prefs?: {
-    connection_updates?: { email?: boolean; sms?: boolean };
-    saved_provider_alerts?: { email?: boolean; sms?: boolean };
-    match_updates?: { email?: boolean; sms?: boolean };
-    profile_reminders?: { email?: boolean; sms?: boolean };
+    connection_updates?: { email?: boolean; sms?: boolean; whatsapp?: boolean };
+    saved_provider_alerts?: { email?: boolean; sms?: boolean; whatsapp?: boolean };
+    match_updates?: { email?: boolean; sms?: boolean; whatsapp?: boolean };
+    profile_reminders?: { email?: boolean; sms?: boolean; whatsapp?: boolean };
   };
   care_post?: {
     status: "draft" | "active" | "paused";

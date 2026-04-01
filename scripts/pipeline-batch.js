@@ -577,7 +577,13 @@ async function phaseClean(cities, opts) {
 
     // Load discovery CSV
     const raw = fs.readFileSync(csvPath);
-    let providers = csvParse.parse(raw, { columns: true });
+    let providers;
+    try {
+      providers = csvParse.parse(raw, { columns: true, relax_column_count: true, relax_quotes: true });
+    } catch (csvErr) {
+      console.log(`    WARN: CSV parse error for ${c.city}, ${c.state}: ${csvErr.message} — skipping`);
+      continue;
+    }
     const discovered = providers.length;
 
     // 2a: Keyword filter + business status
@@ -916,7 +922,7 @@ async function phaseEnrich(cities, opts) {
   for (const c of cities) {
     const csvPath = c.csvPath || discoveryCsvForCity(opts.expansionDir, c.city, c.state);
     if (csvPath && fs.existsSync(csvPath)) {
-      const rows = csvParse.parse(fs.readFileSync(csvPath), { columns: true });
+      const rows = csvParse.parse(fs.readFileSync(csvPath), { columns: true, relax_column_count: true, relax_quotes: true });
       for (const row of rows) {
         if (row.place_id) csvReviewMap[row.place_id] = row;
       }

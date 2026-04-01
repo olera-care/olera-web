@@ -28,6 +28,8 @@ export interface ContentArticle {
   author_name: string;
   author_role: string;
   author_avatar: string | null;
+  reviewer_name: string | null;
+  reviewer_role: string | null;
   status: ContentStatus;
   featured: boolean;
   tags: string[];

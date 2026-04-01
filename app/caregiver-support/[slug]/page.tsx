@@ -137,8 +137,13 @@ export default async function ResourceArticlePage({
   const tags = article?.tags ?? mockResource!.tags ?? [];
   const primaryCareType = careTypes[0] as CareTypeId | undefined;
   const careTypeLabel = primaryCareType ? CARE_TYPE_CONFIG[primaryCareType]?.label : null;
+  const reviewerName = article?.reviewer_name ?? null;
+  const reviewerRole = article?.reviewer_role ?? null;
   const showAuthorCard = authorName !== "Olera Team";
   const knownAuthor = getAuthorByName(authorName);
+  const knownReviewer = reviewerName ? getAuthorByName(reviewerName) : null;
+  const reviewerSlug = knownReviewer?.slug;
+  const reviewerAvatar = knownReviewer?.avatar ?? null;
   const authorSlug = knownAuthor?.slug;
   // Fall back to static author avatar when DB value is missing
   if (!authorAvatar && knownAuthor?.avatar) {
@@ -176,6 +181,13 @@ export default async function ResourceArticlePage({
       name: authorName,
       ...(authorRole && { jobTitle: authorRole }),
     },
+    ...(article.reviewer_name && {
+      reviewedBy: {
+        "@type": "Person",
+        name: article.reviewer_name,
+        ...(article.reviewer_role && { jobTitle: article.reviewer_role }),
+      },
+    }),
     publisher: {
       "@type": "Organization",
       name: "Olera",
@@ -277,6 +289,20 @@ export default async function ResourceArticlePage({
                   <span className="text-gray-300 mx-1.5">&middot;</span>
                 </>
               )}
+              {reviewerName && (
+                <>
+                  <span className="text-gray-400">Verified by{" "}
+                    {reviewerSlug ? (
+                      <Link href={`/author/${reviewerSlug}`} className="text-gray-600 font-medium hover:text-primary-600 transition-colors">
+                        {reviewerName}
+                      </Link>
+                    ) : (
+                      <span className="text-gray-600 font-medium">{reviewerName}</span>
+                    )}
+                  </span>
+                  <span className="text-gray-300 mx-1.5">&middot;</span>
+                </>
+              )}
               <span>{formatDate(publishedAt)}</span>
               <span className="text-gray-300 mx-1.5">&middot;</span>
               <span>{readingTime}</span>
@@ -350,6 +376,38 @@ export default async function ResourceArticlePage({
                   )}
                   {authorRole && (
                     <p className="text-sm text-gray-500">{authorRole}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Reviewer */}
+            {reviewerName && (
+              <div className="flex items-center gap-3 mb-6">
+                {reviewerAvatar ? (
+                  <img
+                    src={reviewerAvatar}
+                    alt={reviewerName}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-sm font-medium">
+                      {reviewerName.split(" ").map((n) => n[0]).join("")}
+                    </span>
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wider text-gray-400 mb-0.5">Verified by</p>
+                  {reviewerSlug ? (
+                    <Link href={`/author/${reviewerSlug}`} className="text-sm font-semibold text-gray-900 hover:text-primary-600 transition-colors">
+                      {reviewerName}
+                    </Link>
+                  ) : (
+                    <p className="text-sm font-semibold text-gray-900">{reviewerName}</p>
+                  )}
+                  {reviewerRole && (
+                    <p className="text-sm text-gray-500">{reviewerRole}</p>
                   )}
                 </div>
               </div>

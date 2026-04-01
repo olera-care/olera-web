@@ -58,6 +58,7 @@ const navSections: NavSection[] = [
     key: "operations",
     items: [
       { label: "Content", href: "/admin/content" },
+      { label: "Content Audit", href: "/admin/content-audit" },
       { label: "MedJobs", href: "/admin/medjobs" },
       { label: "Team", href: "/admin/team" },
     ],

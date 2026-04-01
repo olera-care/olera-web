@@ -7,16 +7,6 @@
 
 ## Current Focus
 
-- **Demand Map + Public Profile Tracking** (branch: `tidy-wiles`) — TESTED ✅, PR OPEN
-  - New `/admin/demand` page: city-grouped table of public care seeker profiles
-  - Sortable on 5 columns (count, new this week, latest go-live, city, state), city search
-  - Extended `/admin/care-seekers` with Public tab, city filter, City column, deep-linking
-  - Overview: added Public Profiles card, demoted Reviews behind "See all stats" toggle
-  - Sidebar: added Demand link under Inbox
-  - Self-review caught 4 bugs before testing: Phone column regression, SortHeader remount, null-city drill-through, is_active filter mismatch
-  - Plan: `plans/demand-map-plan.md`
-  - **Known limitation**: stats computed from first 100 rows (pre-existing), fix with dedicated stats endpoint later
-
 - **Staging → Main Promotion** — IN PROGRESS
   - Audited full staging diff: 253 commits, 225 files changed, ~31K lines across ~90 PRs
   - Key areas: one-click onboarding, provider dashboard, MedJobs, reviews, activity center, email revamp, highlights waterfall, city expansion, admin improvements
@@ -24,9 +14,16 @@
   - Caught PR #438 (breadcrumb fix) would silently regress Navbar — rebased and merged clean
   - **Next: Continue merging remaining open PRs, then promote staging → main**
 
+- **Demand Map + Public Profile Tracking** — MERGED ✅ (PR #465)
+
 - **MedJobs Candidates Redesign** (branch: `keen-perlman`) — MERGED ✅ (PR #436)
-  - Dense scannable list rows, infinite scroll, shared CandidateRow/CandidateFilters
   - **Next: Detail page taste pass, test auth flow end-to-end**
+
+- **PR Triage Session (2026-04-01)** — DONE ✅
+  - Split PR #464 → PR #467 (Texas Medicaid article + FAQ) merged, Content Audit deferred to `content-audit-v2`
+  - Split PR #391 → PR #468 (Texas articles, waiver library, spend-down calculator) merged, Benefits Finder UX deferred to `benefits-finder-ux-save`
+  - Prevented 3 regressions in PR #391: StarPlusFAQ/MedicaidEligibilityFAQ imports, EligibilityChecker, breadcrumb SEO fix
+  - Seeded + published both Texas articles (STAR+PLUS guide + Medicaid Eligibility) in Supabase
 
 - **Provider Onboard + Nav Cleanup** (branch: `funny-turing`) — MERGED ✅ (PR #433 + #435)
   - Onboard: profile-editor → platform showcase with 2 cards (Families + Hire Staff)
@@ -259,7 +256,9 @@
 
 ## Next Up
 
-1. **MedJobs candidates detail page taste pass** — Apply warm surface + Perena-inspired styling to `/medjobs/candidates/[slug]` and `/provider/medjobs/candidates/[slug]`
+1. **Content Audit admin page** — branch `content-audit-v2` ready, needs PR when ready to ship
+2. **Benefits Finder UX + Save/Bookmark** — branch `benefits-finder-ux-save` ready, needs PR + testing (238 commits of drift from original PR #391)
+3. **MedJobs candidates detail page taste pass** — Apply warm surface + Perena-inspired styling to `/medjobs/candidates/[slug]` and `/provider/medjobs/candidates/[slug]`
 2. **MedJobs provider onboarding flow** — Ensure MedJobs tab → browse → candidate detail → auth → contact is butter smooth end-to-end
 3. **Enrichment questions after connection** — Add follow-up questions after seeker submits connection to feed into their profile (separate workstream from onboard redesign)
 4. **De-jank provider transitions** — Airbnb-smooth state transitions across provider flows (notification → dashboard, claim → portal)

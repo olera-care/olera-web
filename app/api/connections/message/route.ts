@@ -259,7 +259,7 @@ export async function POST(request: Request) {
           const recipientMeta = (recipientProfile?.metadata || {}) as Record<string, unknown>;
           if (recipientProfile?.phone && recipientMeta.whatsapp_opted_in) {
             const waNormalized = normalizeUSPhone(recipientProfile.phone);
-            if (waNormalized && process.env.TWILIO_WA_TEMPLATE_NEW_MESSAGE) {
+            if (waNormalized) {
               const waPreview = text.trim().length > 100
                 ? text.trim().slice(0, 100) + "..."
                 : text.trim();

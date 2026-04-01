@@ -143,6 +143,7 @@ export default function ProfileWizard({
   const [email, setEmail] = useState(profile.email || userEmail || "");
   const [phone, setPhone] = useState(profile.phone || "");
   const [contactPref, setContactPref] = useState<string>(meta.contact_preference || "");
+  const [whatsappOptIn, setWhatsappOptIn] = useState(meta.whatsapp_opted_in || false);
 
   // Care fields
   const [careRecipient, setCareRecipient] = useState(meta.relationship_to_recipient || "");
@@ -260,6 +261,9 @@ export default function ProfileWizard({
           };
           metaUpdates = {
             contact_preference: contactPref || undefined,
+            ...(whatsappOptIn && phone
+              ? { whatsapp_opted_in: true, whatsapp_opted_in_at: new Date().toISOString() }
+              : {}),
           };
           break;
 
@@ -530,6 +534,26 @@ export default function ProfileWizard({
                   )}
                 </div>
               </div>
+
+              {/* WhatsApp opt-in (only show when phone is entered) */}
+              {phone.trim().length > 0 && (
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={whatsappOptIn}
+                    onChange={(e) => setWhatsappOptIn(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <div>
+                    <span className="text-sm font-medium text-gray-900 group-hover:text-primary-700 transition-colors">
+                      Send me WhatsApp notifications
+                    </span>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Get instant alerts when providers respond — right on WhatsApp.
+                    </p>
+                  </div>
+                </label>
+              )}
             </div>
           )}
 

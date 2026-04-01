@@ -1526,7 +1526,50 @@ export async function POST(request: Request) {
       console.error("[sms] Unexpected error:", smsErr);
     }
 
-    // 9d. Slack alert for new lead (fire-and-forget)
+    // 9d. WhatsApp notification to provider (fire-and-forget)
+    try {
+      let waPhone: string | null = null;
+      const { data: waBp2 } = await db
+        .from("business_profiles")
+        .select("phone, metadata")
+        .eq("id", toProfileId)
+        .single();
+      waPhone = waBp2?.phone || null;
+
+      if (!waPhone) {
+        const { data: waIos2 } = await db
+          .from("olera-providers")
+          .select("phone")
+          .eq("provider_id", providerId)
+          .single();
+        waPhone = waIos2?.phone || null;
+      }
+
+      const provMeta = (waBp2?.metadata || {}) as Record<string, unknown>;
+      if (waPhone && provMeta.whatsapp_opted_in) {
+        const waNormalized = normalizeUSPhone(waPhone);
+        if (waNormalized) {
+          const familyLabel = account.display_name || "A family";
+          const providerLabel = providerDisplayName || providerName;
+          await sendWhatsApp({
+            to: waNormalized,
+            contentSid: process.env.TWILIO_WA_TEMPLATE_NEW_LEAD || "sandbox",
+            contentVariables: {
+              "1": familyLabel,
+              "2": providerLabel,
+            },
+            fallbackBody: `${familyLabel} is looking for care from ${providerLabel}.\n\nThey reached out through Olera and are waiting for your response.\n\nView inquiry: ${getSiteUrl()}/provider/connections`,
+            messageType: "connection_request",
+            recipientType: "provider",
+            profileId: toProfileId,
+          });
+        }
+      }
+    } catch (waErr) {
+      console.error("[whatsapp] Connection request notification failed:", waErr);
+    }
+
+    // 9e. Slack alert for new lead (fire-and-forget)
     try {
       const careTypeMap2: Record<string, string> = {
         home_care: "Home Care",
@@ -1544,7 +1587,7 @@ export async function POST(request: Request) {
       // Non-blocking
     }
 
-    // 9e. Slack alert for missing provider email (fire-and-forget)
+    // 9f. Slack alert for missing provider email (fire-and-forget)
     if (!providerEmail) {
       try {
         const careTypeMap3: Record<string, string> = {

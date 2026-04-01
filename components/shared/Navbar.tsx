@@ -7,7 +7,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { useAuth } from "@/components/auth/AuthProvider";
-import ProfileSwitcher from "@/components/shared/ProfileSwitcher";
 import FindCareMegaMenu from "@/components/shared/FindCareMegaMenu";
 import { CARE_CATEGORIES, NAV_LINKS } from "@/components/shared/NavMenuData";
 import { useNavbar } from "@/components/shared/NavbarContext";
@@ -40,20 +39,16 @@ export default function Navbar() {
   const unreadInboxCount = useUnreadInboxCount(activeProfile ? [activeProfile.id] : []);
   // For provider inbox badge: only count unread for the ACTIVE provider profile, not all providers
   // This ensures proper data isolation when users have multiple provider profiles
-  const activeProviderProfileId = activeProfile && (activeProfile.type === "organization" || activeProfile.type === "caregiver")
-    ? activeProfile.id
-    : null;
+  const activeProviderProfileId = activeProfile?.type === "organization" ? activeProfile.id : null;
   const providerInboxCount = useUnreadInboxCount(activeProviderProfileId ? [activeProviderProfileId] : []);
   // Provider profile ID for badge counts
-  const activeProviderId =
-    activeProfile && (activeProfile.type === "organization" || activeProfile.type === "caregiver")
-      ? activeProfile.id
-      : (profiles || []).find((p) => p.type === "organization" || p.type === "caregiver")?.id ?? null;
+  const activeProviderId = activeProfile?.type === "organization"
+    ? activeProfile.id
+    : (profiles || []).find((p) => p.type === "organization")?.id ?? null;
   // Use activeProfile slug if it's a provider, otherwise fall back to first provider
-  const activeProviderSlug =
-    activeProfile && (activeProfile.type === "organization" || activeProfile.type === "caregiver")
-      ? activeProfile.slug
-      : (profiles || []).find((p) => p.type === "organization" || p.type === "caregiver")?.slug ?? null;
+  const activeProviderSlug = activeProfile?.type === "organization"
+    ? activeProfile.slug
+    : (profiles || []).find((p) => p.type === "organization")?.slug ?? null;
   const qnaCount = useUnreadQnACount(activeProviderSlug, activeProviderId);
   const familyProfileForMatches = (profiles || []).find((p) => p.type === "family");
   const { pendingCount: matchesPendingCount } = useInterestedProviders(
@@ -63,24 +58,12 @@ export default function Navbar() {
   const newLeadsCount = useUnreadLeadsCount(activeProviderId);
   // Reviews count
   const reviewsCount = useUnreadReviewsCount(activeProviderId);
-  // Check localStorage synchronously on client (SSR-safe with typeof check)
-  // Only show "Provider Hub" if user has progressed past step 1 (actually started filling out profile)
-  // This prevents showing it to users who just peeked at provider onboarding
-  const [hasAttemptedOnboarding, setHasAttemptedOnboarding] = useState(() => {
-    if (typeof window !== "undefined") {
-      // olera_provider_wizard_data is only set when user starts filling out the profile form (step 2+)
-      return !!localStorage.getItem("olera_provider_wizard_data");
-    }
-    return false;
-  });
   const [isAdmin, setIsAdmin] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   // Track client-side mount for createPortal (SSR-safe)
   useEffect(() => {
     setMounted(true);
-    // Re-check in case SSR hydration missed it
-    setHasAttemptedOnboarding(!!localStorage.getItem("olera_onboarding_provider_type"));
   }, []);
 
   // Lightweight admin check
@@ -107,7 +90,8 @@ export default function Navbar() {
     pathname.startsWith("/provider/medjobs") ||
     // Claim/onboard flow shows provider portal nav
     (pathname.startsWith("/provider/") && pathname.endsWith("/onboard"));
-  const isMinimalNav = pathname.startsWith("/portal/inbox") || pathname.startsWith("/welcome") || pathname.startsWith("/provider/welcome");
+  const isInboxPage = pathname.startsWith("/portal/inbox");
+  const isMinimalNav = pathname.startsWith("/welcome") || pathname.startsWith("/provider/welcome");
   // Auth-gated provider hub routes — the layout gate guarantees the user is signed in,
   // so we can safely render signed-in UI without waiting for hasSession
   const isProviderHub = pathname === "/provider" ||
@@ -125,16 +109,12 @@ export default function Navbar() {
   const hasSession = !!user;
   // Mode switcher — shown when user has both a family and a provider profile
   const hasFamilyProfile = (profiles || []).some((p) => p.type === "family");
-  const hasProviderProfile = (profiles || []).some(
-    (p) => p.type === "organization" || p.type === "caregiver"
-  );
+  const hasProviderProfile = (profiles || []).some((p) => p.type === "organization");
   const showModeSwitcher = hasSession && hasFamilyProfile && hasProviderProfile;
 
   // Profile IDs for hub switching — used by the mode switcher to also switch activeProfile
   const familyProfileId = (profiles || []).find((p) => p.type === "family")?.id;
-  const providerProfileId = (profiles || []).find(
-    (p) => p.type === "organization" || p.type === "caregiver"
-  )?.id;
+  const providerProfileId = (profiles || []).find((p) => p.type === "organization")?.id;
 
   // Show user's actual name in the dropdown, not the org/profile name
   const displayName = account?.display_name || user?.email || "";
@@ -142,9 +122,9 @@ export default function Navbar() {
 
   // Show the contextual profile type based on which portal the user is in,
   // not the database-stored activeProfile (which may be stale).
-  const hasStudentProfile = (profiles || []).some((p) => p.type === "student");
+  const hasStudentProfile = (profiles || []).some((p) => p.type === "student" || p.type === "caregiver");
   const contextProfileType = isProviderPortal
-    ? (profiles || []).find((p) => p.type === "organization" || p.type === "caregiver")?.type
+    ? (profiles || []).find((p) => p.type === "organization")?.type
     : hasStudentProfile
     ? "caregiver"
     : hasFamilyProfile ? "family" : activeProfile?.type;
@@ -159,7 +139,7 @@ export default function Navbar() {
   // "For Providers" click handler
   const handleForProviders = useCallback(() => {
     const hasProviderProfile = profiles.some(
-      (p) => p.type === "organization" || p.type === "caregiver"
+      (p) => p.type === "organization"
     );
     if (hasProviderProfile) {
       router.push("/provider");
@@ -209,10 +189,26 @@ export default function Navbar() {
   }, [pathname]);
 
   // Reset mobile menu state when menu opens
+  // Provider-only accounts (no family profile) should always see provider mode
+  const isProviderOnlyAccount = hasProviderProfile && !hasFamilyProfile && !hasStudentProfile;
+
+  // Logo href based on account type — each user type goes to their dashboard
+  // Family or not logged in → main site
+  // Provider (organization) → Provider dashboard
+  // MedJobs caregiver (student or legacy caregiver) → MedJobs portal
+  // Logo destination based on profile type (use has* checks for faster detection after login)
+  // Priority: Provider > Student > Family/logged-out
+  // If user has multiple profile types, provider takes precedence (they can use mode switcher)
+  const logoHref = hasProviderProfile
+    ? "/provider"
+    : hasStudentProfile
+    ? "/portal/medjobs"
+    : "/";
+
   useEffect(() => {
     if (isMobileMenuOpen && hasSession) {
-      // Set mode based on current URL context
-      const mode = isProviderPortal ? "provider" : "family";
+      // Set mode based on profile type first, then URL context
+      const mode = (isProviderPortal || isProviderOnlyAccount) ? "provider" : "family";
       setMobileMenuMode(mode);
       // Set default accordion based on mode
       setMobileAccordion(mode === "provider" ? "hub" : "account");
@@ -220,7 +216,7 @@ export default function Navbar() {
       setMobileAccordion(null);
       setIsMobileCareOpen(false);
     }
-  }, [isMobileMenuOpen, hasSession, isProviderPortal]);
+  }, [isMobileMenuOpen, hasSession, isProviderPortal, isProviderOnlyAccount]);
 
   // NOTE: /for-providers used to return null here, but we want the full navbar
   // to show on the provider landing page for navigation consistency.
@@ -250,8 +246,8 @@ export default function Navbar() {
 
       <div className="mx-4 border-t border-gray-100" />
 
-      {/* Mode switcher — shown when both profiles exist OR user has started provider onboarding */}
-      {(showModeSwitcher || hasAttemptedOnboarding) && (
+      {/* Mode switcher — only shown when user has BOTH family and provider profiles */}
+      {showModeSwitcher && (
         <>
           <div className="px-3 pt-2 pb-1">
             <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
@@ -278,9 +274,6 @@ export default function Navbar() {
                     switchProfile(providerProfileId);
                     setIsUserMenuOpen(false);
                     router.push("/provider");
-                  } else if (hasAttemptedOnboarding) {
-                    setIsUserMenuOpen(false);
-                    router.push("/provider/onboarding");
                   }
                 }}
                 className={[
@@ -298,9 +291,10 @@ export default function Navbar() {
         </>
       )}
 
-      {/* Hub-specific links */}
+      {/* Hub-specific links — based on profile type, not URL */}
       <div className="px-2 py-1.5">
-          {isProviderPortal ? (
+          {/* Provider-only accounts (no family profile) always see provider dropdown */}
+          {(isProviderPortal || (hasProviderProfile && !hasFamilyProfile && !hasStudentProfile)) ? (
             <>
               {/* Provider Hub engagement links — Inbox, Q&A, Leads */}
               {([
@@ -347,6 +341,62 @@ export default function Navbar() {
                   <polyline points="9 12 11 14 15 10" />
                 </svg>
                 Identity Verification
+              </Link>
+              <Link
+                href="/account/settings"
+                className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                Account Settings
+              </Link>
+            </>
+          ) : hasStudentProfile ? (
+            <>
+              {/* Caregiver (Student) links */}
+              <Link
+                href="/portal/medjobs"
+                className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                  <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Application
+              </Link>
+              <Link
+                href="/portal/medjobs/jobs"
+                className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                  <path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0H8m8 0h2a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h2" />
+                </svg>
+                Open Jobs
+              </Link>
+              <Link
+                href="/portal/medjobs/interviews"
+                className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                  <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Interviews
+              </Link>
+              <Link
+                href="/account/settings"
+                className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                Account Settings
               </Link>
             </>
           ) : hasStudentProfile ? (
@@ -414,7 +464,7 @@ export default function Navbar() {
                 Profile
               </Link>
               <Link
-                href="/portal/settings"
+                href="/account/settings"
                 className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 onClick={() => setIsUserMenuOpen(false)}
               >
@@ -424,36 +474,11 @@ export default function Navbar() {
                 </svg>
                 Account Settings
               </Link>
-              {hasFamilyProfile && (
-                <Link
-                  href="/medjobs/apply"
-                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                  onClick={() => setIsUserMenuOpen(false)}
-                >
-                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                    <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                  Become a Caregiver
-                </Link>
-              )}
+              {/* "Become a Caregiver" removed - with strict account separation,
+                  family users would need a new account to become a caregiver */}
             </>
           )}
         </div>
-
-      {/* Profile switcher - only show on provider side where switching between org profiles is useful */}
-      {isProviderPortal && (
-        <>
-          <div className="mx-4 border-t border-gray-100" />
-          <div className="px-2 py-1">
-            <ProfileSwitcher
-              onSwitch={() => setIsUserMenuOpen(false)}
-              variant="dropdown"
-              allowedTypes={["organization", "caregiver"]}
-              navigateTo="/provider"
-            />
-          </div>
-        </>
-      )}
 
       {isAdmin && (
         <>
@@ -591,7 +616,7 @@ export default function Navbar() {
           transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"
         }}
       >
-        <div className={isMinimalNav ? "px-[44px]" : "max-w-7xl mx-auto px-5 sm:px-6 lg:px-8"}>
+        <div className={(isInboxPage || isMinimalNav) ? "px-[44px]" : "max-w-7xl mx-auto px-5 sm:px-6 lg:px-8"}>
           {/*
            * 3-column layout: Left | Center Nav | Right
            *
@@ -604,7 +629,7 @@ export default function Navbar() {
 
             {/* ── LEFT COLUMN — always Olera logo ── */}
             <div className="flex-1 flex items-center">
-              <Link href="/" className="flex items-center space-x-2">
+              <Link href={logoHref} className="flex items-center space-x-2">
                 <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" priority />
                 <span className="text-xl font-bold text-gray-900">Olera</span>
               </Link>
@@ -613,8 +638,42 @@ export default function Navbar() {
             {/* ── CENTER — Primary navigation (page-centered, hidden on mobile + inbox) ── */}
             {!isMinimalNav && (
               <div className="hidden lg:flex items-center gap-1">
-                {isProviderPortal ? (
-                  /* Provider Hub nav links */
+                {hasStudentProfile ? (
+                  /* Caregiver (MedJobs) nav links - use hasStudentProfile for faster detection after login */
+                  <>
+                    <Link
+                      href="/portal/medjobs"
+                      className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
+                        pathname === "/portal/medjobs"
+                          ? "text-primary-600"
+                          : "text-gray-700 hover:text-gray-900"
+                      }`}
+                    >
+                      Application
+                    </Link>
+                    <Link
+                      href="/portal/medjobs/jobs"
+                      className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
+                        pathname.startsWith("/portal/medjobs/jobs")
+                          ? "text-primary-600"
+                          : "text-gray-700 hover:text-gray-900"
+                      }`}
+                    >
+                      Open Jobs
+                    </Link>
+                    <Link
+                      href="/portal/medjobs/interviews"
+                      className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
+                        pathname.startsWith("/portal/medjobs/interviews")
+                          ? "text-primary-600"
+                          : "text-gray-700 hover:text-gray-900"
+                      }`}
+                    >
+                      Interviews
+                    </Link>
+                  </>
+                ) : (isProviderPortal || activeProfile?.type === "organization") ? (
+                  /* Provider Hub nav links - shown on /provider/* URLs or for organization users (e.g., in inbox) */
                   <>
                     {/* Home */}
                     <Link
@@ -657,57 +716,68 @@ export default function Navbar() {
                 ) : (
                   /* Family / public nav links */
                   <>
-                    {/* Find Care trigger */}
-                    <div onMouseEnter={() => setIsFindCareOpen(true)}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsFindCareOpen(false);
-                          router.push("/browse");
-                        }}
-                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[15px] font-medium transition-colors ${
-                          isFindCareOpen
-                            ? "bg-gray-100 text-gray-900"
-                            : "text-gray-700 hover:bg-gray-50"
-                        }`}
-                        aria-expanded={isFindCareOpen}
-                        aria-haspopup="true"
+                    {/* Find Care - simple link in inbox, mega menu elsewhere */}
+                    {isInboxPage ? (
+                      <Link
+                        href="/browse"
+                        className="px-4 py-2 rounded-full text-[15px] font-medium transition-colors text-gray-700 hover:bg-gray-50"
                       >
                         Find Care
-                        <svg
-                          className={`w-3.5 h-3.5 text-gray-500 transition-transform duration-200 ${
-                            isFindCareOpen ? "rotate-180" : ""
-                          }`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 9l-7 7-7-7"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-
-                    {/* Simple nav links */}
-                    {NAV_LINKS.map((link) => {
-                      const isActive = pathname.startsWith(link.href);
-                      return (
-                      <Link
-                        key={link.label}
-                        href={link.href}
-                        className={`px-4 py-2 text-[15px] font-medium rounded-full transition-colors ${
-                          isActive
-                            ? "bg-gray-100 text-gray-900"
-                            : "text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        {link.label}
                       </Link>
-                    );
+                    ) : (
+                      <div onMouseEnter={() => setIsFindCareOpen(true)}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsFindCareOpen(false);
+                            router.push("/browse");
+                          }}
+                          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[15px] font-medium transition-colors ${
+                            isFindCareOpen
+                              ? "bg-gray-100 text-gray-900"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                          aria-expanded={isFindCareOpen}
+                          aria-haspopup="true"
+                        >
+                          Find Care
+                          <svg
+                            className={`w-3.5 h-3.5 text-gray-500 transition-transform duration-200 ${
+                              isFindCareOpen ? "rotate-180" : ""
+                            }`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Simple nav links - filter out MedJobs for families (students handled above) */}
+                    {NAV_LINKS
+                      .filter((link) => !(link.href === "/medjobs" && hasFamilyProfile))
+                      .map((link) => {
+                        const isActive = pathname.startsWith(link.href);
+                        return (
+                        <Link
+                          key={link.label}
+                          href={link.href}
+                          className={`px-4 py-2 text-[15px] font-medium rounded-full transition-colors ${
+                            isActive
+                              ? "bg-gray-100 text-gray-900"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          {link.label}
+                        </Link>
+                      );
                     })}
                   </>
                 )}
@@ -724,12 +794,12 @@ export default function Navbar() {
                    * flipping between signed-out/signed-in hamburger during auth churn.
                    * On public provider pages (onboard, detail), respect hasSession. */
                   <>
-                    {/* Switch to family — only when signed in */}
-                    {(hasSession || isProviderHub) && (
+                    {/* Switch to family — only when signed in AND has family profile */}
+                    {(hasSession || isProviderHub) && hasFamilyProfile && (
                       <button
                         type="button"
                         onClick={() => {
-                          if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
+                          if (familyProfileId) switchProfile(familyProfileId);
                           router.push("/");
                         }}
                         className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
@@ -788,8 +858,8 @@ export default function Navbar() {
                 ) : (
                   /* Family mode: For Providers + heart + user menu */
                   <>
-                    {/* For Providers link — hidden on minimal nav pages */}
-                    {!isMinimalNav && (
+                    {/* For Providers link — hidden for logged-in users (they don't need marketing page) */}
+                    {!isMinimalNav && !hasFamilyProfile && !hasProviderProfile && !hasStudentProfile && (
                       <button
                         onClick={handleForProviders}
                         className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
@@ -798,8 +868,8 @@ export default function Navbar() {
                       </button>
                     )}
 
-                    {/* Saved providers heart — hidden on provider welcome */}
-                    {!isProviderWelcome && (
+                    {/* Saved providers heart — hidden on provider welcome and for non-family profiles */}
+                    {!isProviderWelcome && (!hasSession || hasFamilyProfile) && (
                       <Link
                         href="/saved"
                         className="relative flex items-center justify-center w-[44px] min-h-[44px] border border-gray-200 rounded-full text-gray-500 hover:text-red-500 hover:shadow-md transition-all"
@@ -897,7 +967,7 @@ export default function Navbar() {
           {/* Header — matches navbar height and padding */}
           <div className="flex items-center justify-between h-16 px-5 shrink-0">
             <Link
-              href="/"
+              href={logoHref}
               className="flex items-center space-x-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
@@ -943,22 +1013,16 @@ export default function Navbar() {
                     </div>
                   </div>
 
-                  {/* Mode switcher — if user has BOTH profiles, just switch menu; otherwise navigate */}
-                  {(showModeSwitcher || hasAttemptedOnboarding) && (
+                  {/* Mode switcher — only shown when user has BOTH family and provider profiles */}
+                  {showModeSwitcher && (
                     <div className="py-2 mb-2">
                       <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
                         <button
                           type="button"
                           onClick={() => {
-                            if (showModeSwitcher && familyProfileId) {
-                              // Has both profiles — just switch menu view
+                            if (familyProfileId) {
                               switchProfile(familyProfileId);
                               setMobileMenuMode("family");
-                            } else {
-                              // Only one profile — navigate to landing
-                              if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
-                              setIsMobileMenuOpen(false);
-                              router.push("/");
                             }
                           }}
                           className={[
@@ -971,26 +1035,14 @@ export default function Navbar() {
                         <button
                           type="button"
                           onClick={() => {
-                            if (showModeSwitcher && providerProfileId) {
-                              // Has both profiles — just switch menu view
+                            if (providerProfileId) {
                               switchProfile(providerProfileId);
                               setMobileMenuMode("provider");
-                            } else if (hasProviderProfile && providerProfileId) {
-                              // Only provider profile — navigate to provider home
-                              switchProfile(providerProfileId);
-                              setIsMobileMenuOpen(false);
-                              router.push("/provider");
-                            } else if (hasAttemptedOnboarding) {
-                              // Onboarding in progress — navigate to onboarding
-                              setIsMobileMenuOpen(false);
-                              router.push("/provider/onboarding");
                             }
                           }}
-                          disabled={!hasProviderProfile && !hasAttemptedOnboarding}
                           className={[
                             "flex-1 text-center px-3 py-2 rounded-lg text-sm font-semibold transition-all min-h-[44px]",
                             mobileMenuMode === "provider" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700",
-                            !hasProviderProfile && !hasAttemptedOnboarding ? "opacity-50 cursor-not-allowed" : "",
                           ].join(" ")}
                         >
                           Provider Hub
@@ -1093,17 +1145,6 @@ export default function Navbar() {
                         )}
                       </div>
 
-                      {/* Provider profile switcher */}
-                      <div className="my-3 border-t border-gray-100" />
-                      <div className="px-3">
-                        <ProfileSwitcher
-                          onSwitch={() => setIsMobileMenuOpen(false)}
-                          variant="dropdown"
-                          allowedTypes={["organization", "caregiver"]}
-                          navigateTo="/provider"
-                        />
-                      </div>
-
                       {/* Switch to Family */}
                       {hasFamilyProfile && (
                         <>
@@ -1152,7 +1193,8 @@ export default function Navbar() {
                           <div className="mt-1 space-y-0.5">
                             {([
                               { label: "Inbox", href: "/portal/inbox", badge: unreadInboxCount, icon: "M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" },
-                              { label: "Saved", href: "/saved", badge: 0, icon: "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" },
+                              // Saved link only shown for family profiles
+                              ...(hasFamilyProfile ? [{ label: "Saved", href: "/saved", badge: 0, icon: "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" }] : []),
                               { label: "Profile", href: "/portal/profile", badge: 0, icon: "M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" },
                               { label: "Account Settings", href: "/portal/settings", badge: 0, icon: "M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28zM15 12a3 3 0 11-6 0 3 3 0 016 0z" },
                             ] as const).map((item) => {
@@ -1238,34 +1280,31 @@ export default function Navbar() {
                         )}
                       </div>
 
-                      {/* Switch to Provider - show when user has provider access */}
-                      <div className="my-3 border-t border-gray-100" />
-                      {(hasProviderProfile || hasAttemptedOnboarding) && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (showModeSwitcher && providerProfileId) {
-                              // Has both profiles — just switch menu view
-                              switchProfile(providerProfileId);
-                              setMobileMenuMode("provider");
-                            } else if (hasProviderProfile && providerProfileId) {
-                              // Only provider profile — navigate to provider home
-                              switchProfile(providerProfileId);
-                              setIsMobileMenuOpen(false);
-                              router.push("/provider");
-                            } else if (hasAttemptedOnboarding) {
-                              // Onboarding in progress — navigate to onboarding
-                              setIsMobileMenuOpen(false);
-                              router.push("/provider/onboarding");
-                            }
-                          }}
-                          className="flex items-center gap-3 px-3 py-3 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-xl transition-colors text-left w-full"
-                        >
-                          <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
-                          </svg>
-                          <span className="text-[15px]">Switch to Provider Hub</span>
-                        </button>
+                      {/* Switch to Provider - only show when user has a provider profile */}
+                      {hasProviderProfile && (
+                        <>
+                          <div className="my-3 border-t border-gray-100" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (providerProfileId) {
+                                switchProfile(providerProfileId);
+                                if (showModeSwitcher) {
+                                  setMobileMenuMode("provider");
+                                } else {
+                                  setIsMobileMenuOpen(false);
+                                  router.push("/provider");
+                                }
+                              }
+                            }}
+                            className="flex items-center gap-3 px-3 py-3 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-xl transition-colors text-left w-full"
+                          >
+                            <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                            </svg>
+                            <span className="text-[15px]">Switch to Provider Hub</span>
+                          </button>
+                        </>
                       )}
 
                       {isAdmin && (
@@ -1337,44 +1376,53 @@ export default function Navbar() {
                     Find Benefits
                   </Link>
 
-                  {/* Saved */}
-                  <Link
-                    href="/saved"
-                    className={`flex items-center gap-3 py-3 font-medium ${pathname === "/saved" ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <svg className={`w-5 h-5 shrink-0 ${pathname === "/saved" ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                    </svg>
-                    Saved
-                  </Link>
+                  {/* Saved — hidden for non-family profiles */}
+                  {(!hasSession || hasFamilyProfile) && (
+                    <Link
+                      href="/saved"
+                      className={`flex items-center gap-3 py-3 font-medium ${pathname === "/saved" ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <svg className={`w-5 h-5 shrink-0 ${pathname === "/saved" ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                      </svg>
+                      Saved
+                    </Link>
+                  )}
 
-                  {/* Divider before provider section */}
-                  <div className="my-3 border-t border-gray-100" />
+                  {/* MedJobs — hidden for families and caregivers (they're already one) */}
+                  {activeProfile?.type !== "family" && activeProfile?.type !== "student" && (
+                    <>
+                      <div className="my-3 border-t border-gray-100" />
+                      <Link
+                        href="/medjobs"
+                        className={`flex items-center gap-3 py-3 font-medium ${pathname.startsWith("/medjobs") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/medjobs") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                        </svg>
+                        MedJobs
+                      </Link>
+                    </>
+                  )}
 
-                  {/* MedJobs */}
-                  <Link
-                    href="/medjobs"
-                    className={`flex items-center gap-3 py-3 font-medium ${pathname.startsWith("/medjobs") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/medjobs") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
-                    </svg>
-                    MedJobs
-                  </Link>
-
-                  {/* For Providers */}
-                  <Link
-                    href="/for-providers"
-                    className={`flex items-center gap-3 py-3 font-medium ${pathname.startsWith("/for-providers") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/for-providers") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
-                    </svg>
-                    For Providers
-                  </Link>
+                  {/* For Providers — hidden for logged-in users (they don't need marketing page) */}
+                  {!hasFamilyProfile && !hasProviderProfile && !hasStudentProfile && (
+                    <>
+                      <div className="my-3 border-t border-gray-100" />
+                      <Link
+                        href="/for-providers"
+                        className={`flex items-center gap-3 py-3 font-medium ${pathname.startsWith("/for-providers") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/for-providers") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                        </svg>
+                        For Providers
+                      </Link>
+                    </>
+                  )}
                 </>
               )}
             </div>

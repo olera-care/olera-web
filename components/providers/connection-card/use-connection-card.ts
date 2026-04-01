@@ -81,6 +81,11 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const { user, account, activeProfile, profiles, isLoading: authLoading, openAuth, refreshAccountData } =
     useAuth();
   const savedProviders = useSavedProviders();
+
+  // ── Non-family profile guard ──
+  // Provider, caregiver, and student accounts cannot send care inquiries
+  const isNonFamilyProfile = activeProfile &&
+    (activeProfile.type === "organization" || activeProfile.type === "caregiver" || activeProfile.type === "student");
   const phoneRevealTriggered = useRef(false);
   const connectionAuthTriggered = useRef(false);
 
@@ -99,6 +104,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const [previousIntent, setPreviousIntent] = useState<IntentData | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [connectionId, setConnectionId] = useState<string | null>(null);
+  const [blockedEmail, setBlockedEmail] = useState<string | null>(null);
 
   // Track where to redirect after enrichment save/skip
   const postEnrichmentRedirect = useRef<string | null>(null);
@@ -374,6 +380,13 @@ export function useConnectionCard(props: ConnectionCardProps) {
     setError("");
   }, []);
 
+  // ── Reset from provider email block (use different email) ──
+  const resetFromProviderEmailBlock = useCallback(() => {
+    setBlockedEmail(null);
+    setCardState("default");
+    setError("");
+  }, []);
+
   // ── Auto-advancing field setters (for intent steps) ──
   const selectRecipient = useCallback((val: CareRecipient) => {
     setIntentData((prev) => ({ ...prev, careRecipient: val }));
@@ -576,6 +589,16 @@ export function useConnectionCard(props: ConnectionCardProps) {
         });
 
         const data = await res.json();
+
+        // Check for provider email block — show blocking UI instead of error
+        if (!res.ok && data.code === "PROVIDER_EMAIL") {
+          enrichmentLock.current = false;
+          postEnrichmentRedirect.current = null;
+          setBlockedEmail(formData.email);
+          setCardState("provider_email_block");
+          return;
+        }
+
         if (!res.ok) throw new Error(data.error || "Failed to send request.");
 
         window.dispatchEvent(new CustomEvent("olera:connection-created"));
@@ -734,5 +757,18 @@ export function useConnectionCard(props: ConnectionCardProps) {
     hasProfileCareDetails,
     initialRecipient,
     initialUrgency,
+
+    // Non-family profile guard
+    isNonFamilyProfile,
+    accountTypeLabel: activeProfile?.type === "organization"
+      ? "provider"
+      : (activeProfile?.type === "caregiver" || activeProfile?.type === "student")
+      ? "caregiver"
+      : "current",
+    openAuth,
+
+    // Provider email block (guest flow)
+    blockedEmail,
+    resetFromProviderEmailBlock,
   };
 }

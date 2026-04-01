@@ -189,12 +189,12 @@ export default function ConnectButton({
     }
     if (alreadySent) return;
 
-    // Provider-to-provider care inquiry guard:
-    // Orgs/caregivers can't send care consultation inquiries to other providers.
-    // They must switch to a family profile for care requests.
-    const isProviderProfile =
-      activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
-    if (isProviderProfile && connectionType === "inquiry") {
+    // Provider/caregiver care inquiry guard:
+    // Orgs, caregivers, and students can't send care consultation inquiries.
+    // Only family accounts can request care from providers.
+    const isNonFamilyProfile =
+      activeProfile?.type === "organization" || activeProfile?.type === "caregiver" || activeProfile?.type === "student";
+    if (isNonFamilyProfile && connectionType === "inquiry") {
       setModal({ kind: "wrong-profile-type" });
       return;
     }
@@ -399,13 +399,13 @@ export default function ConnectButton({
         <Modal
           isOpen
           onClose={closeModal}
-          title="Switch to a family profile"
+          title="Family account required"
           size="sm"
         >
           <div className="py-2">
             <p className="text-base text-gray-600 mb-4">
-              Care consultation requests can only be sent from a family profile.
-              Switch to your family profile to request care from this provider.
+              Care consultation requests can only be sent from a family account.
+              Provider and caregiver accounts cannot request care from other providers.
             </p>
             <p className="text-sm text-gray-500 mb-6">
               If you&apos;re looking to hire a caregiver for your organization,

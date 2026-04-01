@@ -7,6 +7,17 @@
 
 ## Current Focus
 
+- **City Expansion Batch — 2026-04-01** — DONE ✅
+  - 90 new cities processed end-to-end via batch pipeline
+  - Discovery: 18,191 raw providers (45 min, ~$102 Google Places)
+  - Pipeline: cleaned → uploaded → enriched across all 343 cities (6h 21m, ~$323)
+  - 13,814 total providers in DB after dedup + AI verification
+  - Fixed `pipeline-batch.js`: added `relax_quotes: true` + `relax_column_count: true` + try-catch for malformed CSVs
+  - 90 Notion pages created, all marked Complete
+  - Live site verified: providers rendering with ratings/reviews on olera.care
+  - Total cost: ~$425
+  - **Notion board: 283 Complete cities (193 prior + 90 new), 7 Planning remain**
+
 - **Strict User Account Type Separation** (branch: `feature/user-accounts-separation-logic`) — READY FOR MERGE (PR #463)
   - **22 commits**, clean fast-forward from staging, no conflicts
   - **Phase 1**: Fix broken provider experience (stop auto-creating family profiles, fix menus/dropdowns, account settings by type)

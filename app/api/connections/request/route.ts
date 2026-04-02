@@ -3,7 +3,8 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail, verifyEmailEmail } from "@/lib/email-templates";
+import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail, verifyEmailEmail, careReportEmail } from "@/lib/email-templates";
+import { getPricingForProviderSync, formatPricingRange, getFundingOptions } from "@/lib/pricing-ranges";
 import { sendSlackAlert, slackNewLead, slackMissingEmail } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { sendWhatsApp } from "@/lib/whatsapp";
@@ -144,7 +145,7 @@ async function handleGuestConnection({
   let accessToken: string | null = null;
   let refreshToken: string | null = null;
   let isNewUser = false;
-  const displayName = guestFullName?.trim() || normalizedEmail.split("@")[0] || "Guest";
+  const displayName = guestFullName?.trim() || "Care Seeker";
 
   // Try to create user — if already exists, we'll handle that case
   const { data: newUser, error: createUserErr } = await authClient.auth.admin.createUser({
@@ -608,8 +609,8 @@ async function handleGuestConnection({
   // Build message payload with all available seeker info
   const seekerName = guestFullName?.trim() || displayName;
   const nameParts = seekerName.split(/\s+/);
-  const firstName = nameParts[0] || normalizedEmail.split("@")[0] || "";
-  const lastName = nameParts.slice(1).join(" ") || "";
+  const firstName = (guestFullName?.trim()) ? nameParts[0] : "";
+  const lastName = (guestFullName?.trim()) ? nameParts.slice(1).join(" ") : "";
   const normalizedPhone = guestPhone ? normalizeUSPhone(guestPhone) : null;
 
   // Build location string for summary
@@ -644,10 +645,12 @@ async function handleGuestConnection({
     autoIntro = intentData.additionalNotes;
   } else if (locationStr) {
     // No custom message - generate based on location
-    autoIntro = `${firstName} is interested in care services in ${locationStr}.`;
+    const introName = firstName || "A family";
+    autoIntro = `${introName} is interested in care services in ${locationStr}.`;
   } else {
     // Fallback
-    autoIntro = `${firstName} is interested in learning more about your services.`;
+    const introName = firstName || "A family";
+    autoIntro = `${introName} is interested in learning more about your services.`;
   }
 
   // Build connection metadata
@@ -659,7 +662,7 @@ async function handleGuestConnection({
   connectionMetadata.thread = [
     {
       from_profile_id: toProfileId,
-      text: `Hello ${firstName || "there"}, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
+      text: `Hello${firstName ? ` ${firstName}` : ""}, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
       created_at: new Date().toISOString(),
       is_auto_reply: true,
     },
@@ -727,7 +730,7 @@ async function handleGuestConnection({
           to: normalizedEmail,
           subject: `Verify your email — Olera`,
           html: verifyEmailEmail({
-            familyName: firstName || "there",
+            familyName: firstName || "there",  // "there" is fine for "Hello there"
             providerName,
             verifyUrl: verifyLinkData.properties.action_link,
           }),
@@ -917,7 +920,7 @@ async function handleGuestConnection({
       memory_care: "Memory Care",
     };
     const alert = slackNewLead({
-      familyName: `${firstName || "Guest"} (guest)`,
+      familyName: `${firstName || "A family"} (guest)`,
       providerName,
       careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
     });
@@ -936,7 +939,7 @@ async function handleGuestConnection({
         memory_care: "Memory Care",
       };
       const missingAlert = slackMissingEmail({
-        familyName: `${firstName || "Guest"} (guest)`,
+        familyName: `${firstName || "A family"} (guest)`,
         providerName,
         providerId,
         careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
@@ -945,6 +948,65 @@ async function handleGuestConnection({
     } catch {
       // Non-blocking
     }
+  }
+
+  // Care report email — the value delivery that differentiates Olera from APFM/Caring.com
+  try {
+    const providerCareTypes = (await db
+      .from("business_profiles")
+      .select("care_types")
+      .eq("id", toProfileId)
+      .single()
+    ).data?.care_types as string[] || [];
+
+    // Resolve pricing from care types (sync — national baselines)
+    const pricing = getPricingForProviderSync(providerCareTypes.length > 0 ? providerCareTypes : [providerName]);
+    const pricingRange = pricing.range ? formatPricingRange(pricing.range) : null;
+
+    // Get funding options with savings ranges
+    const fundingOpts = getFundingOptions().map((f) => ({
+      label: f.label,
+      savings: f.monthlySavings ? `$${f.monthlySavings.low.toLocaleString()}–$${f.monthlySavings.high.toLocaleString()}` : null,
+    }));
+
+    // Find 3 similar providers in the same city
+    const { data: similarRaw } = await db
+      .from("business_profiles")
+      .select("display_name, slug, metadata")
+      .eq("city", providerCity)
+      .eq("state", providerState)
+      .eq("type", "organization")
+      .eq("is_active", true)
+      .neq("id", toProfileId)
+      .limit(3);
+
+    const similarProviders = (similarRaw || []).map((p: { display_name: string; slug: string; metadata: Record<string, unknown> | null }) => ({
+      name: p.display_name,
+      slug: p.slug,
+      priceRange: (p.metadata?.price_range as string) || null,
+    }));
+
+    await sendEmail({
+      to: normalizedEmail,
+      subject: `Care costs for ${providerName}${locationStr ? ` in ${locationStr}` : ""}`,
+      html: careReportEmail({
+        seekerFirstName: firstName || "",
+        providerName,
+        providerSlug: providerSlug || toProfileId,
+        careTypeLabel: pricing.careTypeLabel,
+        pricingRange,
+        pricingDescription: pricing.range?.description || null,
+        city: providerCity,
+        state: providerState,
+        fundingOptions: fundingOpts,
+        similarProviders,
+      }),
+      emailType: "care_report",
+      recipientType: "family",
+    });
+  } catch (err) {
+    console.error("[care-report-email] error:", err);
+    // Non-blocking — connection still created successfully
   }
 
   // Loops event
@@ -1448,7 +1510,7 @@ export async function POST(request: Request) {
     connectionMetadata.thread = [
       {
         from_profile_id: toProfileId,
-        text: `Hello ${firstName || "there"}, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
+        text: `Hello${firstName ? ` ${firstName}` : ""}, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
         created_at: new Date().toISOString(),
         is_auto_reply: true,
       },

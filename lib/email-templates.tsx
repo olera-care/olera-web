@@ -773,3 +773,74 @@ export function reviewRequestEmail(opts: {
     </p>
   `);
 }
+
+/** Care report email — sent to families after connection request (the anti-APFM differentiator) */
+export function careReportEmail(opts: {
+  seekerFirstName: string;
+  providerName: string;
+  providerSlug: string;
+  careTypeLabel: string | null;
+  pricingRange: string | null;
+  pricingDescription: string | null;
+  city: string | null;
+  state: string | null;
+  fundingOptions: { label: string; savings: string | null }[];
+  similarProviders: { name: string; slug: string; priceRange: string | null }[];
+}): string {
+  const greeting = opts.seekerFirstName
+    ? `Hi ${firstName(opts.seekerFirstName)}`
+    : "Hi there";
+
+  const locationStr = [opts.city, opts.state].filter(Boolean).join(", ");
+  const careLabel = opts.careTypeLabel || "senior care";
+
+  const pricingSection = opts.pricingRange
+    ? `
+    <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:20px 0;">
+      <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 4px;">Typical range for ${careLabel}${locationStr ? ` in ${locationStr}` : ""}</p>
+      <p style="font-size:22px;font-weight:700;color:#111827;margin:0 0 4px;">${opts.pricingRange}</p>
+      ${opts.pricingDescription ? `<p style="font-size:13px;color:#6b7280;margin:0;line-height:1.5;">${opts.pricingDescription}</p>` : ""}
+      <p style="font-size:11px;color:#9ca3af;margin:8px 0 0;">Actual costs vary based on care level and services needed.</p>
+    </div>`
+    : "";
+
+  const fundingSection = opts.fundingOptions.length > 0
+    ? `
+    <div style="margin:20px 0;">
+      <p style="font-size:14px;font-weight:600;color:#111827;margin:0 0 8px;">Ways to pay for care</p>
+      ${opts.fundingOptions.map((f) => `
+        <p style="font-size:13px;color:#374151;margin:0 0 4px;line-height:1.5;">
+          &bull; <strong>${f.label}</strong>${f.savings ? ` <span style="color:#6b7280;">(saves ${f.savings}/mo)</span>` : ""}
+        </p>
+      `).join("")}
+      <div style="margin:12px 0 0;">${button("Check your eligibility", `${BASE_URL}/benefits/finder`)}</div>
+    </div>`
+    : "";
+
+  const similarSection = opts.similarProviders.length > 0
+    ? `
+    <div style="margin:24px 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
+      <p style="font-size:14px;font-weight:600;color:#111827;margin:0 0 12px;">Similar providers${locationStr ? ` in ${locationStr}` : ""}</p>
+      ${opts.similarProviders.map((p) => `
+        <div style="margin:0 0 8px;">
+          <a href="${BASE_URL}/provider/${p.slug}" style="font-size:14px;color:${BRAND_COLOR};font-weight:500;text-decoration:none;">${p.name}</a>
+          ${p.priceRange ? `<span style="font-size:12px;color:#6b7280;margin-left:8px;">${p.priceRange}</span>` : ""}
+        </div>
+      `).join("")}
+    </div>`
+    : "";
+
+  return layout(`
+    <p style="font-size:16px;font-weight:600;color:#111827;margin:0 0 8px;">${greeting},</p>
+    <p style="font-size:14px;color:#374151;margin:0 0 4px;line-height:1.6;">
+      We've sent your request to <strong>${opts.providerName}</strong>. Here's what we found to help you get started:
+    </p>
+    ${pricingSection}
+    ${fundingSection}
+    ${similarSection}
+    <div style="margin:24px 0 0;">${button("View your inbox", `${BASE_URL}/portal/inbox`)}</div>
+    <p style="font-size:13px;color:#6b7280;margin:16px 0 0;line-height:1.5;">
+      Have questions? Just reply to this email — a real person will get back to you.
+    </p>
+  `);
+}

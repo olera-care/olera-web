@@ -4,17 +4,11 @@ import { useState, useCallback } from "react";
 
 interface InquiryFormProps {
   providerName: string;
-  onSubmit: (data: {
-    email: string;
-    fullName: string;
-    phone: string;
-    message: string;
-  }) => void;
+  onSubmit: (data: { email: string }) => void;
   submitting?: boolean;
   error?: string;
   initialEmail?: string;
-  initialName?: string;
-  initialPhone?: string;
+  connectionCount?: number;
 }
 
 export default function InquiryForm({
@@ -23,13 +17,9 @@ export default function InquiryForm({
   submitting,
   error,
   initialEmail = "",
-  initialName = "",
-  initialPhone = "",
+  connectionCount,
 }: InquiryFormProps) {
   const [email, setEmail] = useState(initialEmail);
-  const [fullName, setFullName] = useState(initialName);
-  const [phone, setPhone] = useState(initialPhone);
-  const [message, setMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [localError, setLocalError] = useState("");
 
@@ -51,15 +41,8 @@ export default function InquiryForm({
       return;
     }
 
-    onSubmit({
-      email: email.trim().toLowerCase(),
-      fullName: fullName.trim(),
-      phone: phone.trim(),
-      message:
-        message.trim() ||
-        `I'd like to learn more about your services and availability.`,
-    });
-  }, [email, fullName, phone, message, honeypot, onSubmit]);
+    onSubmit({ email: email.trim().toLowerCase() });
+  }, [email, honeypot, onSubmit]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -74,12 +57,12 @@ export default function InquiryForm({
   const displayError = error || localError;
 
   return (
-    <div className="space-y-2.5">
-      <p className="text-[16px] font-bold text-gray-900">
-        Get in touch
+    <div className="space-y-3">
+      <p className="text-[17px] font-bold text-gray-900">
+        What does this cost?
       </p>
 
-      {/* Email — required */}
+      {/* Email — the only field */}
       <input
         type="email"
         value={email}
@@ -88,37 +71,6 @@ export default function InquiryForm({
         placeholder="Your email address"
         autoComplete="email"
         className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150"
-      />
-
-      {/* Name + Phone — side by side */}
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Full name"
-          autoComplete="name"
-          className="flex-1 min-w-0 px-3.5 py-2.5 border border-gray-300 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150"
-        />
-        <input
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Phone"
-          autoComplete="tel"
-          className="flex-1 min-w-0 px-3.5 py-2.5 border border-gray-300 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150"
-        />
-      </div>
-
-      {/* Message */}
-      <textarea
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        placeholder="I'd like to learn more about your services and availability."
-        rows={2}
-        className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white resize-none focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150"
       />
 
       {/* Honeypot — hidden */}
@@ -139,7 +91,7 @@ export default function InquiryForm({
         </p>
       )}
 
-      {/* Submit — always bold teal to invite engagement */}
+      {/* Submit */}
       <button
         onClick={handleSubmit}
         disabled={submitting}
@@ -148,24 +100,20 @@ export default function InquiryForm({
         {submitting && (
           <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
         )}
-        {submitting ? "Sending..." : "Connect with us"}
+        {submitting ? "Checking..." : "Check cost & availability"}
       </button>
 
-      {/* TOS */}
-      <p className="text-[11px] text-gray-400 text-center leading-relaxed">
-        By submitting, you agree to our{" "}
-        <a href="/terms" className="text-gray-500 underline underline-offset-2">
-          TOS
-        </a>{" "}
-        &{" "}
-        <a
-          href="/privacy"
-          className="text-gray-500 underline underline-offset-2"
-        >
-          Privacy Policy
-        </a>
-        .
-      </p>
+      {/* Trust signals */}
+      <div className="space-y-1 pt-0.5">
+        <p className="text-[12px] text-gray-500 text-center font-medium">
+          No spam. No sales calls.
+        </p>
+        {connectionCount != null && connectionCount >= 10 && (
+          <p className="text-[11px] text-gray-400 text-center">
+            {connectionCount} families checked this month
+          </p>
+        )}
+      </div>
     </div>
   );
 }

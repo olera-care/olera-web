@@ -61,16 +61,47 @@ export default function ConnectionCard(props: ConnectionCardProps) {
         )}
 
         {hook.cardState === "default" && (
-          <InquiryForm
-            key={hook.userEmail || "guest"}
-            providerName={providerName}
-            onSubmit={hook.submitInquiryForm}
-            submitting={hook.submitting}
-            error={hook.error}
-            initialEmail={hook.userEmail}
-            initialName={hook.userName}
-            initialPhone={hook.userPhone}
-          />
+          hook.userEmail ? (
+            /* Logged-in: one-click CTA — no form fields */
+            <div className="space-y-3">
+              <p className="text-[17px] font-bold text-gray-900">
+                What does this cost?
+              </p>
+              <p className="text-[13px] text-gray-500">
+                Signed in as {hook.userEmail}
+              </p>
+              {hook.error && (
+                <p className="text-xs text-red-600" role="alert">
+                  {hook.error}
+                </p>
+              )}
+              <button
+                onClick={() => hook.submitInquiryForm({ email: hook.userEmail })}
+                disabled={hook.submitting}
+                className="w-full h-11 rounded-xl text-[14px] font-semibold border-none cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 bg-primary-600 text-white hover:bg-primary-700 active:scale-[0.98] disabled:opacity-70 disabled:cursor-default disabled:active:scale-100"
+              >
+                {hook.submitting && (
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                )}
+                {hook.submitting ? "Checking..." : "Check cost & availability"}
+              </button>
+              <div className="space-y-1 pt-0.5">
+                <p className="text-[12px] text-gray-500 text-center font-medium">
+                  No spam. No sales calls.
+                </p>
+              </div>
+            </div>
+          ) : (
+            /* Guest: email-only form */
+            <InquiryForm
+              key="guest"
+              providerName={providerName}
+              onSubmit={hook.submitInquiryForm}
+              submitting={hook.submitting}
+              error={hook.error}
+              connectionCount={hook.connectionCount ?? undefined}
+            />
+          )
         )}
 
         {hook.cardState === "enrichment" && (
@@ -81,6 +112,8 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             saving={hook.submitting}
             initialRecipient={hook.initialRecipient}
             initialUrgency={hook.initialUrgency}
+            careTypes={props.careTypes}
+            priceRange={props.priceRange}
           />
         )}
 

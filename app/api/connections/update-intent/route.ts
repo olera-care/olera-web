@@ -27,7 +27,7 @@ export async function PATCH(request: Request) {
     } = await supabase.auth.getUser();
 
     const body = await request.json();
-    const { connectionId, careType, careRecipient, urgency, message, additionalNotes, claimToken } = body as {
+    const { connectionId, careType, careRecipient, urgency, message, additionalNotes, claimToken, firstName } = body as {
       connectionId?: string;
       careType?: string;
       careRecipient?: string;
@@ -35,6 +35,7 @@ export async function PATCH(request: Request) {
       message?: string;
       additionalNotes?: string;
       claimToken?: string;
+      firstName?: string;
     };
 
     if (!connectionId) {
@@ -135,6 +136,27 @@ export async function PATCH(request: Request) {
     // Support both new 'message' field and legacy 'additional_notes'
     if (message !== undefined) existingMessage.message = message;
     if (additionalNotes !== undefined) existingMessage.additional_notes = additionalNotes;
+    // First name (collected in post-submit enrichment for email-only CTA flow)
+    if (firstName) {
+      existingMessage.seeker_first_name = firstName;
+      existingMessage.seeker_name = firstName;
+      // Update the sender's profile display_name if it's still the placeholder
+      try {
+        const { data: senderProfile } = await admin
+          .from("business_profiles")
+          .select("display_name")
+          .eq("id", profileId)
+          .single();
+        if (senderProfile && (!senderProfile.display_name || senderProfile.display_name === "Care Seeker")) {
+          await admin
+            .from("business_profiles")
+            .update({ display_name: firstName })
+            .eq("id", profileId);
+        }
+      } catch {
+        // Non-blocking — profile update is best-effort
+      }
+    }
 
     // Regenerate auto_intro with updated intent data
     const newAutoIntro = buildIntroMessage(

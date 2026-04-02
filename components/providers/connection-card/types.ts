@@ -36,9 +36,6 @@ export interface IntentData {
 
 export interface InquiryFormData {
   email: string;
-  fullName: string;
-  phone: string;
-  message: string;
 }
 
 export interface ConnectionCardProps {

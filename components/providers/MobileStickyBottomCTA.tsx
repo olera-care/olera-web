@@ -16,6 +16,53 @@ import {
   URGENCY_LABELS,
 } from "@/components/providers/connection-card/constants";
 
+// ── Mobile email form for new CTA (email-only, no intent questions) ──
+function MobileEmailForm({
+  onSubmit,
+  submitting,
+}: {
+  onSubmit: (email: string) => void;
+  submitting?: boolean;
+}) {
+  const [email, setEmail] = useState("");
+
+  const handleSubmit = useCallback(() => {
+    const val = email.trim().toLowerCase();
+    if (val && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+      onSubmit(val);
+    }
+  }, [email, onSubmit]);
+
+  return (
+    <>
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !submitting) {
+            e.preventDefault();
+            handleSubmit();
+          }
+        }}
+        placeholder="Your email address"
+        autoComplete="email"
+        className="w-full px-3.5 py-3 border border-gray-300 rounded-xl text-[15px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600"
+      />
+      <button
+        onClick={handleSubmit}
+        disabled={submitting || !email.trim()}
+        className="w-full py-3.5 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-[10px] text-base font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+      >
+        {submitting && (
+          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        )}
+        {submitting ? "Checking..." : "Check cost & availability"}
+      </button>
+    </>
+  );
+}
+
 // ── Mobile email capture form (inline to avoid circular imports) ──
 interface MobileEmailCaptureFormProps {
   onSubmit: (email: string) => void;
@@ -215,9 +262,9 @@ export default function MobileStickyBottomCTA({
   const sheetTitle = (() => {
     switch (hook.cardState) {
       case "loading":
-        return "Connect";
+        return "What does this cost?";
       case "default":
-        return priceRange || "Connect";
+        return "What does this cost?";
       case "intent":
         return hook.intentStep === 0
           ? "Who needs care?"
@@ -229,7 +276,7 @@ export default function MobileStickyBottomCTA({
       case "connected":
         return undefined;
       case "returning":
-        return priceRange || "Reconnect";
+        return "What does this cost?";
     }
   })();
 
@@ -259,22 +306,38 @@ export default function MobileStickyBottomCTA({
       case "default":
         return (
           <div className="space-y-2.5">
-            <button
-              onClick={hook.startFlow}
-              className="w-full py-3.5 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-[10px] text-base font-semibold transition-colors"
-            >
-              Connect
-            </button>
-            <PhoneButton
-              phone={phone}
-              revealed={hook.phoneRevealed}
-              onReveal={hook.revealPhone}
-            />
-            {!hook.phoneRevealed && phone && (
-              <p className="text-xs text-gray-400 text-center">
-                Connect to see full number
+            {hook.userEmail ? (
+              /* Logged-in: one-click */
+              <>
+                <p className="text-[13px] text-gray-500 text-center">
+                  Signed in as {hook.userEmail}
+                </p>
+                <button
+                  onClick={() => hook.submitInquiryForm({ email: hook.userEmail })}
+                  disabled={hook.submitting}
+                  className="w-full py-3.5 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-[10px] text-base font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                >
+                  {hook.submitting && (
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  )}
+                  {hook.submitting ? "Checking..." : "Check cost & availability"}
+                </button>
+              </>
+            ) : (
+              /* Guest: email-only form in footer */
+              <MobileEmailForm
+                onSubmit={(email) => hook.submitInquiryForm({ email })}
+                submitting={hook.submitting}
+              />
+            )}
+            {hook.error && (
+              <p className="text-sm text-red-600 text-center" role="alert">
+                {hook.error}
               </p>
             )}
+            <p className="text-[12px] text-gray-500 text-center font-medium">
+              No spam. No sales calls.
+            </p>
           </div>
         );
 
@@ -390,22 +453,19 @@ export default function MobileStickyBottomCTA({
         >
           <div className="flex items-center gap-4 px-4 py-3.5">
             <div className="flex-1 min-w-0">
-              {priceRange ? (
-                <p className="text-base font-bold text-gray-900 truncate">
-                  {priceRange}
-                </p>
-              ) : (
-                <p className="text-sm font-medium text-gray-500 truncate">
-                  Contact for pricing
-                </p>
-              )}
+              <p className="text-sm font-bold text-gray-900 truncate">
+                What does this cost?
+              </p>
+              <p className="text-[11px] text-gray-400">
+                No spam. No sales calls.
+              </p>
             </div>
 
             <button
               onClick={() => setSheetOpen(true)}
-              className="flex-shrink-0 px-7 py-3 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-base font-semibold transition-colors"
+              className="flex-shrink-0 px-5 py-3 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[13px] font-semibold transition-colors"
             >
-              Connect
+              Check cost
             </button>
           </div>
         </div>
@@ -548,6 +608,8 @@ export default function MobileStickyBottomCTA({
               saving={hook.submitting}
               initialRecipient={hook.initialRecipient}
               initialUrgency={hook.initialUrgency}
+              careTypes={careTypes}
+              priceRange={priceRange}
             />
           </div>
         )}

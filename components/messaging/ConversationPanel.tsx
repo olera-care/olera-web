@@ -179,7 +179,7 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
 }) {
   const senderName = careRequest.seekerName;
   const locationStr = [careRequest.lookingInCity, careRequest.lookingInState].filter(Boolean).join(", ");
-  const displayMessage = careRequest.message || careRequest.additionalNotes;
+  const displayMessage = careRequest.message || careRequest.additionalNotes || autoIntro || (locationStr ? `Interested in care services in ${locationStr}.` : null);
   const hasEnhancedDetails = careRequest.careType || careRequest.careRecipient || careRequest.urgency;
 
   return (

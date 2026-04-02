@@ -106,6 +106,15 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const [connectionId, setConnectionId] = useState<string | null>(null);
   const [blockedEmail, setBlockedEmail] = useState<string | null>(null);
 
+  // ── Social proof: monthly connection count ──
+  const [connectionCount, setConnectionCount] = useState<number | null>(null);
+  useEffect(() => {
+    fetch("/api/connections/count")
+      .then((r) => r.json())
+      .then((d) => setConnectionCount(d.count ?? null))
+      .catch(() => {});
+  }, []);
+
   // Track where to redirect after enrichment save/skip
   const postEnrichmentRedirect = useRef<string | null>(null);
   // Lock: prevents checkExisting from overriding enrichment state
@@ -512,12 +521,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
     setCardState("intent");
   }, []);
 
-  // ── Submit inquiry form (v2.0 — optimistic enrichment) ──
+  // ── Submit inquiry form (v3.0 — email-only, optimistic enrichment) ──
   const submitInquiryForm = useCallback(async (formData: {
     email: string;
-    fullName: string;
-    phone: string;
-    message: string;
   }) => {
     if (enrichmentLock.current) return; // Prevent double-submit
     setError("");
@@ -528,11 +534,12 @@ export function useConnectionCard(props: ConnectionCardProps) {
     setCardState("enrichment");
 
     // ── BACKGROUND: Fire API without blocking the UI ──
+    // Name, phone, message no longer collected upfront — moved to enrichment
     const formIntentData = {
       careRecipient: null,
       careType: null,
       urgency: null,
-      additionalNotes: formData.message,
+      additionalNotes: null,
     };
 
     try {
@@ -547,9 +554,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
             providerSlug,
             intentData: formIntentData,
             formData: {
-              fullName: formData.fullName,
-              phone: formData.phone,
-              message: formData.message,
+              fullName: "",
+              phone: "",
+              message: "",
             },
           }),
         });
@@ -581,9 +588,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
             guest: true,
             guestEmail: formData.email,
             formData: {
-              fullName: formData.fullName,
-              phone: formData.phone,
-              message: formData.message,
+              fullName: "",
+              phone: "",
+              message: "",
             },
           }),
         });
@@ -671,6 +678,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const saveEnrichment = useCallback(async (data?: {
     careRecipient?: string;
     urgency?: string;
+    firstName?: string;
   }) => {
     if (!connectionId || !data?.careRecipient || !data?.urgency) {
       navigatePostEnrichment();
@@ -686,6 +694,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
           connectionId,
           careRecipient: data.careRecipient,
           urgency: data.urgency,
+          firstName: data.firstName || undefined,
         }),
       });
 
@@ -770,5 +779,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
     // Provider email block (guest flow)
     blockedEmail,
     resetFromProviderEmailBlock,
+
+    // Social proof
+    connectionCount,
   };
 }

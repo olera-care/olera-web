@@ -140,7 +140,8 @@ function ProviderOnboardingContent() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   // Track if we're still checking for landing page prefill (to avoid flashing step 1)
-  const [checkingPrefill, setCheckingPrefill] = useState(true);
+  // When step=search is in URL (from MedJobs hire flow), skip prefill check immediately
+  const [checkingPrefill, setCheckingPrefill] = useState(initialStep !== "search");
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Provider[]>([]);
@@ -791,7 +792,9 @@ function ProviderOnboardingContent() {
   const showWizardNav = step !== "resume" && step !== "search";
 
   // Show loading while auth is loading or while checking for landing page prefill
-  if (isLoading || checkingPrefill) {
+  // Exception: when step=search is in URL, show the search UI immediately (auth can settle in background)
+  const canShowSearchImmediately = initialStep === "search" && step === "search";
+  if ((isLoading || checkingPrefill) && !canShowSearchImmediately) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />

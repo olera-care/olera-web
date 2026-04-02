@@ -69,13 +69,13 @@ export default function ContactSection({
 
   // Guest: auth modal with provider intent
   // Existing providers will be sent to the provider candidate page after sign-in
-  // New signups will go through provider onboarding (handled by intent: "provider")
+  // New signups go to provider onboarding step 2 (search) then back to this candidate
   const triggerAuth = () =>
     openAuth({
       intent: "provider",
       defaultMode: "sign-in",
       deferred: {
-        action: "inquiry",
+        action: "hire-candidate",
         returnUrl: `/provider/medjobs/candidates/${studentSlug}`,
       },
     });

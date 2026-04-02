@@ -41,6 +41,22 @@ export default function ForProvidersPage() {
       <HeroSection />
       <EasyToConnectSection />
       <StatsSection />
+
+      {/* Bridge — transition from families to staffing */}
+      <section className="py-14 sm:py-16">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+          <h2 className="font-serif text-display-sm sm:text-display-md font-bold text-gray-900 tracking-tight">
+            You have the clients.
+            <br />
+            <span className="text-primary-600">Now staff the shifts.</span>
+          </h2>
+          <p className="mt-4 text-lg text-gray-500 max-w-xl mx-auto">
+            Growing your census is only half the challenge. The other half is
+            finding reliable caregivers to deliver the care families expect.
+          </p>
+        </div>
+      </section>
+
       <StaffingSection />
       <SetUpProfileSection />
       <LeadershipSection />

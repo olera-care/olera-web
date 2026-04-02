@@ -111,24 +111,25 @@ export default function EasyToConnectSection() {
         </div>
 
         {/* How families become clients */}
-        <div className="mt-14 flex flex-wrap items-center justify-center gap-x-2 gap-y-3 text-sm text-gray-500">
-          {[
-            "Families search for care",
-            "Find your profile",
-            "Read your reviews",
-            "Send a connection request",
-            "You schedule a meeting",
-            "New client",
-          ].map((step, i, arr) => (
-            <span key={step} className="flex items-center gap-2">
-              <span className="font-medium text-gray-700">{step}</span>
-              {i < arr.length - 1 && (
-                <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              )}
-            </span>
-          ))}
+        <div className="mt-14">
+          <p className="text-xs text-gray-400 uppercase tracking-widest font-medium mb-6">
+            How families become clients
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {[
+              { step: "1", title: "Families search for care", desc: "By type, location, or need" },
+              { step: "2", title: "They find your profile", desc: "Optimized for search and AI" },
+              { step: "3", title: "They reach out to you", desc: "Direct connection request" },
+            ].map((item) => (
+              <div key={item.step} className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary-100 text-primary-600 text-xs font-bold mb-2">
+                  {item.step}
+                </span>
+                <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Product tabs */}

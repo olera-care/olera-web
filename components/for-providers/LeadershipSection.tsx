@@ -42,7 +42,7 @@ export default function LeadershipSection() {
             , interviewing hundreds of families, providers, and caregivers to
             understand what&apos;s actually broken. That research became an{" "}
             <a
-              href="https://seed.nih.gov/small-business-funding/about"
+              href="https://seed.nih.gov/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary-600 hover:underline"

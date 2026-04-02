@@ -169,22 +169,26 @@ export default function StaffingSection() {
                 ))}
               </div>
               {/* Hiring flow */}
-              <div className="mt-8 flex flex-wrap items-center gap-x-2 gap-y-2 text-sm text-gray-500">
-                {[
-                  "Browse profiles",
-                  "Watch video intros",
-                  "Schedule an interview",
-                  "Hire",
-                ].map((step, i, arr) => (
-                  <span key={step} className="flex items-center gap-2">
-                    <span className="font-medium text-gray-700">{step}</span>
-                    {i < arr.length - 1 && (
-                      <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    )}
-                  </span>
-                ))}
+              <div className="mt-8">
+                <p className="text-xs text-gray-400 uppercase tracking-widest font-medium mb-4">
+                  How hiring works
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { step: "1", title: "Browse profiles", desc: "Video intros and scenario responses" },
+                    { step: "2", title: "Schedule interviews", desc: "Reach out directly, no gatekeepers" },
+                    { step: "3", title: "Hire", desc: "First three hires are free" },
+                    { step: "4", title: "They start working", desc: "Schedule locked, expectations set" },
+                  ].map((item) => (
+                    <div key={item.step} className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 text-xs font-bold mb-1.5">
+                        {item.step}
+                      </span>
+                      <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="mt-6">
                 <Link

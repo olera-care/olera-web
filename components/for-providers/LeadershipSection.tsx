@@ -20,19 +20,45 @@ const leaders = [
 
 export default function LeadershipSection() {
   return (
-    <section className="py-16 md:py-24 bg-white">
+    <section className="py-16 md:py-24 bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="font-serif text-display-md font-bold text-gray-900 text-center mb-12">
-          Our Leadership
-        </h2>
+        <div className="max-w-2xl mx-auto text-center mb-12">
+          <h2 className="font-serif text-display-sm md:text-display-md font-bold text-gray-900">
+            Built by people who studied
+            <br className="hidden sm:block" />
+            the problem firsthand
+          </h2>
+          <p className="mt-4 text-lg text-gray-500 leading-relaxed">
+            TJ and Logan met in graduate school and spent two years researching
+            the eldercare ecosystem through the{" "}
+            <a
+              href="https://new.nsf.gov/funding/initiatives/i-corps"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-600 hover:underline"
+            >
+              NIH/NSF I-Corps program
+            </a>
+            , interviewing hundreds of families, providers, and caregivers to
+            understand what&apos;s actually broken. That research became an{" "}
+            <a
+              href="https://seed.nih.gov/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-600 hover:underline"
+            >
+              NIH SBIR grant
+            </a>{" "}
+            to improve eldercare infrastructure, and that grant became Olera.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {leaders.map((leader) => (
             <div
               key={leader.name}
-              className="flex gap-0 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden min-h-[200px]"
+              className="flex gap-0 rounded-xl border border-gray-200 bg-white overflow-hidden min-h-[200px]"
             >
-              {/* Headshot — fixed aspect ratio on mobile */}
               <div className="shrink-0 w-40 sm:w-52 self-stretch">
                 <Image
                   src={leader.image}
@@ -43,7 +69,6 @@ export default function LeadershipSection() {
                 />
               </div>
 
-              {/* Info */}
               <div className="flex flex-col justify-between min-w-0 p-4 sm:p-5 flex-1">
                 <div>
                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
@@ -57,7 +82,6 @@ export default function LeadershipSection() {
                   </p>
                 </div>
 
-                {/* LinkedIn */}
                 <a
                   href={leader.linkedIn}
                   target="_blank"
@@ -74,7 +98,45 @@ export default function LeadershipSection() {
           ))}
         </div>
 
-        <div className="mt-10 text-center">
+        {/* Supported by + Press */}
+        <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-12">
+          {/* NIA badge */}
+          <a
+            href="https://www.nia.nih.gov/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
+            <div className="w-10 h-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-700 shadow-sm">
+              NIH
+            </div>
+            <div className="text-sm text-gray-500">
+              <span className="block text-xs text-gray-400">Proudly supported by</span>
+              <span className="font-medium text-gray-700">National Institute on Aging</span>
+            </div>
+          </a>
+
+          {/* Divider */}
+          <div className="hidden sm:block w-px h-10 bg-gray-200" />
+
+          {/* Research & Press */}
+          <Link
+            href="/research-and-press"
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
+            <div className="w-10 h-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center shadow-sm">
+              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z" />
+              </svg>
+            </div>
+            <div className="text-sm text-gray-500">
+              <span className="block text-xs text-gray-400">Read our</span>
+              <span className="font-medium text-gray-700">Research &amp; Press</span>
+            </div>
+          </Link>
+        </div>
+
+        <div className="mt-8 text-center">
           <Link
             href="/team"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"

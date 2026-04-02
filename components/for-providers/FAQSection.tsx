@@ -1,32 +1,102 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import Link from "next/link";
 
-const faqItems = [
+interface FAQItem {
+  question: string;
+  answer: ReactNode;
+}
+
+const faqItems: FAQItem[] = [
   {
-    question: "Why We Created Olera?",
+    question: "How does Olera help me balance client demand and staffing?",
     answer:
-      "We built Olera after seeing how most senior care directories fail both families and providers. Existing senior care websites focus on selling family contact information to the highest bidder. They\u2019re limited to a few types of care, packed with confusing ads, and driven more by lead volume than genuine connection.",
+      "Every care operator knows the balancing act: more families means more shifts to fill, and understaffing means turning away business. Olera is the only platform that addresses both sides. Your profile brings in families through local search, and our staffing pipeline connects you with vetted caregivers from university health programs. Grow your census and fill your shifts from the same place.",
   },
   {
-    question: "What senior care businesses should join the Olera network?",
-    answer:
-      "Any organization that provides senior care services \u2014 including assisted living communities, home care agencies, memory care facilities, nursing homes, independent living communities, and adult day care centers. Whether you\u2019re a single-location provider or a multi-site operator, Olera helps families find you.",
+    question: "What does it cost?",
+    answer: (
+      <>
+        Setting up your profile is free, and it goes live immediately, visible
+        to the thousands of families visiting Olera every month. Leads that come
+        to you through your profile are always free, with no commissions. For{" "}
+        <Link href="/provider/pro" className="text-primary-600 font-medium hover:underline">
+          $50/month with Olera Pro
+        </Link>
+        , you unlock proactive matching with high-intent families through our
+        outreach system, plus unlimited access to browse and hire from our vetted
+        caregiver pool. One subscription covers both sides: unlimited family
+        matching and unlimited hiring.
+      </>
+    ),
   },
   {
-    question: "What are the benefits for my organization?",
-    answer:
-      "Olera gives your organization a professional profile optimized for search engines, helping families discover you through local searches. You\u2019ll receive direct inquiries from families \u2014 no middleman, no referral fees per lead. Plus, you can manage reviews, track leads, and showcase what makes your care special.",
+    question: "What about hiring fees?",
+    answer: (
+      <>
+        Your first three hires are completely free, no subscription needed.
+        After that, the same{" "}
+        <Link href="/provider/pro" className="text-primary-600 font-medium hover:underline">
+          $50/month Pro plan
+        </Link>{" "}
+        that unlocks family matching also gives you unlimited access to browse
+        and hire from our caregiver pool. No placement fees, no per-hire
+        charges, no markups.
+      </>
+    ),
   },
   {
-    question: "Are there any costs to joining?",
+    question: "How quickly can I get started?",
     answer:
-      "Getting started on Olera is free. You can claim or create your profile, add your services and photos, and start appearing in search results at no cost. For providers who want to respond to inquiries and access full lead details, we offer a Pro plan with a 14-day free trial.",
+      "You can set up your profile in under five minutes. Once it is live, families searching for care in your area can find you immediately. Browsing caregiver profiles is available right away too. Most providers go from sign-up to their first family inquiry or caregiver interview within the first week.",
   },
   {
-    question: "How many new clients should I expect?",
+    question: "How do families find me and become clients?",
     answer:
-      "Results vary based on your location, care type, and profile completeness. Providers with complete profiles \u2014 including photos, detailed services, and active review management \u2014 tend to receive significantly more inquiries. We\u2019re transparent: there are no guarantees, but we\u2019re building tools to help you convert every lead.",
+      "Families search for care by type and location on Olera and find your profile in the results. They read your reviews, view your services, and send you a connection request. You receive it in your Olera inbox and schedule a meeting or call to convert them into a client. With Pro, you can also proactively browse family care profiles and reach out to high-intent families who are actively searching in your area.",
+  },
+  {
+    question: "How does hiring work on Olera?",
+    answer:
+      "We operate like a hiring platform optimized for vetting pre-health university caregivers and connecting them with senior care providers. You browse caregiver profiles, watch their video intros and scenario-based responses, and schedule interviews directly. Caregivers near your facility can also find your profile and send you connection requests. Your first three hires are free. Everything is designed to be high-value and transparent, not extractive like traditional staffing agencies or directories.",
+  },
+  {
+    question: "Where do your caregivers come from?",
+    answer:
+      "We recruit from university pre-health programs: pre-med, pre-nursing, pre-PA, physical therapy, and public health. They need hundreds of verified patient care hours for their professional school applications, so they stay longer and show up more reliably than typical part-time hires.",
+  },
+  {
+    question: "How are caregivers vetted?",
+    answer:
+      "University enrollment verification, a recorded video intro with scenario-based questions, formal commitments to punctuality and professional conduct, a locked-in schedule, and realistic job expectation setting. Not every applicant makes it through. That is by design.",
+  },
+  {
+    question: "What senior care businesses should join?",
+    answer:
+      "Any organization that provides senior care services, including home care agencies, assisted living communities, memory care facilities, nursing homes, independent living communities, and adult day care centers. Whether you are a single-location provider or a multi-site operator, Olera helps families find you and connects you with vetted staff.",
+  },
+  {
+    question: "Why did you build Olera?",
+    answer: (
+      <>
+        Our founders met in graduate school and spent two years in the{" "}
+        <a
+          href="https://new.nsf.gov/funding/initiatives/i-corps"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary-600 font-medium hover:underline"
+        >
+          NIH/NSF I-Corps program
+        </a>{" "}
+        researching the eldercare ecosystem, interviewing hundreds of families,
+        providers, and caregivers. They found that existing platforms fail both
+        sides: families get sold to the highest bidder, providers pay steep lead
+        fees, and staffing is handled by expensive agencies with high turnover.
+        Olera was built to fix that. One platform where providers can grow their
+        census and staff their shifts without middlemen.
+      </>
+    ),
   },
 ];
 
@@ -68,7 +138,7 @@ export default function FAQSection() {
                 </span>
               </button>
 
-              {/* Answer — animated expand */}
+              {/* Animated expand */}
               <div
                 className="grid transition-all duration-300 ease-in-out"
                 style={{

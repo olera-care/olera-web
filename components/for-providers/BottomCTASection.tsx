@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { useCitySearch } from "@/hooks/use-city-search";
@@ -72,7 +73,7 @@ export default function BottomCTASection() {
             Ready to get started?
           </h2>
 
-          {/* Search bar */}
+          {/* Search bar — for profile setup */}
           <div className="mt-8 flex items-center justify-center gap-3 max-w-lg mx-auto">
             <div className="relative flex-1" ref={dropdownRef}>
               <svg
@@ -95,7 +96,7 @@ export default function BottomCTASection() {
                 value={searchInput}
                 onChange={(e) => {
                   setSearchInput(e.target.value);
-                  setSelectedCity(null); // Clear selection when typing
+                  setSelectedCity(null);
                   setShowDropdown(true);
                 }}
                 onFocus={() => {
@@ -104,7 +105,6 @@ export default function BottomCTASection() {
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    // If dropdown is open and there are city results, select the first one
                     if (showCitySuggestions) {
                       handleSelectCity(cityResults[0].full);
                     } else {
@@ -194,8 +194,31 @@ export default function BottomCTASection() {
               onClick={handleGetStarted}
               className="shrink-0 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors min-h-[44px]"
             >
-              Get started
+              Set up profile
             </button>
+          </div>
+
+          {/* Divider */}
+          <div className="mt-8 flex items-center gap-4 max-w-lg mx-auto">
+            <div className="flex-1 h-px bg-gray-700" />
+            <span className="text-sm text-gray-400">or</span>
+            <div className="flex-1 h-px bg-gray-700" />
+          </div>
+
+          {/* Browse candidates CTA */}
+          <div className="mt-6">
+            <Link
+              href="/medjobs/candidates"
+              className="inline-flex items-center px-7 py-3 border border-gray-600 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors"
+            >
+              Browse vetted caregivers
+              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+            <p className="mt-2 text-sm text-gray-500">
+              No fees. No commitment.
+            </p>
           </div>
         </div>
       </div>

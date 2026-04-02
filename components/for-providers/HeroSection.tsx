@@ -85,10 +85,12 @@ export default function HeroSection() {
         <div className="max-w-7xl mx-auto w-full relative px-4 sm:px-6 lg:px-8">
           <div className="max-w-xl">
             <h1 className="font-serif text-display-md sm:text-display-lg lg:text-display-xl font-bold text-white leading-tight">
-              Reach more families
+              Reach more families.
+              <br />
+              Staff your shifts.
             </h1>
             <p className="mt-3 text-lg text-white/85">
-              Join a network of senior care providers families trust
+              One platform to fill your census and staff your shifts
             </p>
 
             {/* Search bar */}

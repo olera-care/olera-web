@@ -5,7 +5,7 @@ import StatsSection from "@/components/for-providers/StatsSection";
 import StaffingSection from "@/components/for-providers/StaffingSection";
 import SetUpProfileSection from "@/components/for-providers/SetUpProfileSection";
 import LeadershipSection from "@/components/for-providers/LeadershipSection";
-import VideoSection from "@/components/for-providers/VideoSection";
+import HowItWorksSection from "@/components/for-providers/HowItWorksSection";
 import FAQSection from "@/components/for-providers/FAQSection";
 import BottomCTASection from "@/components/for-providers/BottomCTASection";
 import ProviderRedirect from "@/components/for-providers/ProviderRedirect";
@@ -62,7 +62,7 @@ export default function ForProvidersPage() {
       <StaffingSection />
       <SetUpProfileSection />
       <LeadershipSection />
-      <VideoSection />
+      <HowItWorksSection />
       <FAQSection />
       <BottomCTASection />
     </main>

@@ -461,6 +461,10 @@ export interface StudentMetadata {
   // Status
   profile_completeness?: number;   // 0-100
   seeking_status?: "actively_looking" | "open" | "not_looking";
+
+  // Reviews (denormalized for browse page cards)
+  average_rating?: number;
+  review_count?: number;
 }
 
 // ── Interview Scheduling ──

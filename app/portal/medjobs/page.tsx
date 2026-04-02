@@ -13,6 +13,8 @@ import {
   getProfileItems,
   calculateCompleteness,
 } from "@/lib/medjobs-completeness";
+import ReferencesSection from "@/components/medjobs/ReferencesSection";
+import ReviewsReceivedSection from "@/components/medjobs/ReviewsReceivedSection";
 
 /* ─── Types ───────────────────────────────────────────────── */
 
@@ -1333,6 +1335,10 @@ export default function StudentPortalPage() {
                 </Link>
               </div>
             </div>
+
+            {/* References & Reviews */}
+            <ReferencesSection profileId={profile.id} />
+            <ReviewsReceivedSection profileId={profile.id} />
           </div>
         </div>
       </div>

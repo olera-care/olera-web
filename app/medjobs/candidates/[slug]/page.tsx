@@ -17,6 +17,7 @@ import {
 } from "@/lib/medjobs-helpers";
 import ContactSection from "./ContactSection";
 import SaveButton from "@/components/providers/SaveButton";
+import ReviewSection from "./ReviewSection";
 
 function getSupabase() {
   return createClient(
@@ -153,6 +154,23 @@ export default async function StudentProfilePage({ params }: PageProps) {
     careTypes: profile.care_types || [],
     image: profile.image_url || null,
   };
+
+  // Fetch references and reviews (RLS: completed refs + published reviews only)
+  const [{ data: references }, { data: reviews }] = await Promise.all([
+    supabase
+      .from("medjobs_student_references")
+      .select("id, referee_name, referee_title, referee_organization, relationship, recommendation, created_at")
+      .eq("student_profile_id", profile.id)
+      .eq("status", "completed")
+      .order("display_order", { ascending: true })
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("medjobs_student_reviews")
+      .select("id, reviewer_name, rating, comment, relationship, created_at")
+      .eq("student_profile_id", profile.id)
+      .eq("status", "published")
+      .order("created_at", { ascending: false }),
+  ]);
 
   return (
     <main className="min-h-screen bg-[#FAFAF8] pb-28 sm:pb-12">
@@ -692,6 +710,33 @@ export default async function StudentProfilePage({ params }: PageProps) {
           </div>
         )}
 
+        {/* ── References (from DB) ── */}
+        {(references?.length ?? 0) > 0 && (
+          <div className="mt-5 bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <h2 className="text-base font-semibold text-gray-900 mb-4">Recommendations</h2>
+            <div className="space-y-4">
+              {references!.map((ref) => (
+                <div key={ref.id} className="pb-4 border-b border-gray-50 last:border-0 last:pb-0">
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-sm font-medium text-gray-900">{ref.referee_name}</p>
+                    <span className="text-xs text-gray-400 capitalize">{ref.relationship}</span>
+                  </div>
+                  {(ref.referee_title || ref.referee_organization) && (
+                    <p className="text-xs text-gray-500">
+                      {ref.referee_title && ref.referee_organization
+                        ? `${ref.referee_title}, ${ref.referee_organization}`
+                        : ref.referee_title || ref.referee_organization}
+                    </p>
+                  )}
+                  {ref.recommendation && (
+                    <p className="mt-2 text-sm text-gray-600 leading-relaxed italic">&ldquo;{ref.recommendation}&rdquo;</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ── References ── */}
         {meta.references && meta.references.length > 0 && (
           <div className="mt-5 bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
@@ -731,6 +776,13 @@ export default async function StudentProfilePage({ params }: PageProps) {
             <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{profile.description}</p>
           </div>
         )}
+
+        {/* ── Reviews (from DB) ── */}
+        <ReviewSection
+          studentProfileId={profile.id}
+          studentFirstName={profile.display_name?.split(" ")[0] || "this student"}
+          reviews={reviews || []}
+        />
       </div>
 
       {/* ── Mobile Sticky CTA ── */}

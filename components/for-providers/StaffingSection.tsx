@@ -168,7 +168,25 @@ export default function StaffingSection() {
                   </div>
                 ))}
               </div>
-              <div className="mt-8">
+              {/* Hiring flow */}
+              <div className="mt-8 flex flex-wrap items-center gap-x-2 gap-y-2 text-sm text-gray-500">
+                {[
+                  "Browse profiles",
+                  "Watch video intros",
+                  "Schedule an interview",
+                  "Hire",
+                ].map((step, i, arr) => (
+                  <span key={step} className="flex items-center gap-2">
+                    <span className="font-medium text-gray-700">{step}</span>
+                    {i < arr.length - 1 && (
+                      <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    )}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-6">
                 <Link
                   href="/medjobs/candidates"
                   className="inline-flex items-center px-7 py-3 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors"

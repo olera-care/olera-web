@@ -52,6 +52,16 @@ const faqItems: FAQItem[] = [
       "You can set up your profile in under five minutes. Once it is live, families searching for care in your area can find you immediately. Browsing caregiver profiles is available right away too. Most providers go from sign-up to their first family inquiry or caregiver interview within the first week.",
   },
   {
+    question: "How do families find me and become clients?",
+    answer:
+      "Families search for care by type and location on Olera and find your profile in the results. They read your reviews, view your services, and send you a connection request. You receive it in your Olera inbox and schedule a meeting or call to convert them into a client. With Pro, you can also proactively browse family care profiles and reach out to high-intent families who are actively searching in your area.",
+  },
+  {
+    question: "How does hiring work on Olera?",
+    answer:
+      "We operate like a hiring platform optimized for vetting pre-health university caregivers and connecting them with senior care providers. You browse caregiver profiles, watch their video intros and scenario-based responses, and schedule interviews directly. Caregivers near your facility can also find your profile and send you connection requests. Your first three hires are free. Everything is designed to be high-value and transparent, not extractive like traditional staffing agencies or directories.",
+  },
+  {
     question: "Where do your caregivers come from?",
     answer:
       "We recruit from university pre-health programs: pre-med, pre-nursing, pre-PA, physical therapy, and public health. They need hundreds of verified patient care hours for their professional school applications, so they stay longer and show up more reliably than typical part-time hires.",

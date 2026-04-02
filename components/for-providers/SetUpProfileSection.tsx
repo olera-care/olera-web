@@ -74,7 +74,8 @@ export default function SetUpProfileSection() {
           <p className="mt-4 text-lg text-gray-500 leading-relaxed">
             Your Olera profile is how families find you and how caregivers know
             you&apos;re hiring. It takes a few minutes to set up and starts
-            working for you immediately.
+            working for you immediately. Most features are free. Pro features
+            are designed to be high-value, not extractive.
           </p>
         </div>
 

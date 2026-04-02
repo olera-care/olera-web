@@ -40,8 +40,16 @@ export default function LeadershipSection() {
               NIH/NSF I-Corps program
             </a>
             , interviewing hundreds of families, providers, and caregivers to
-            understand what&apos;s actually broken. That research became an NIH
-            grant to improve eldercare infrastructure, and that grant became Olera.
+            understand what&apos;s actually broken. That research became an{" "}
+            <a
+              href="https://seed.nih.gov/small-business-funding/about"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-600 hover:underline"
+            >
+              NIH SBIR grant
+            </a>{" "}
+            to improve eldercare infrastructure, and that grant became Olera.
           </p>
         </div>
 

@@ -110,8 +110,29 @@ export default function EasyToConnectSection() {
           ))}
         </div>
 
+        {/* How families become clients */}
+        <div className="mt-14 flex flex-wrap items-center justify-center gap-x-2 gap-y-3 text-sm text-gray-500">
+          {[
+            "Families search for care",
+            "Find your profile",
+            "Read your reviews",
+            "Send a connection request",
+            "You schedule a meeting",
+            "New client",
+          ].map((step, i, arr) => (
+            <span key={step} className="flex items-center gap-2">
+              <span className="font-medium text-gray-700">{step}</span>
+              {i < arr.length - 1 && (
+                <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              )}
+            </span>
+          ))}
+        </div>
+
         {/* Product tabs */}
-        <div className="mt-16 max-w-5xl mx-auto text-center">
+        <div className="mt-14 max-w-5xl mx-auto text-center">
           {/* Tab pills */}
           <div className="flex items-center justify-center gap-2 flex-wrap">
             {tabs.map((tab, i) => (

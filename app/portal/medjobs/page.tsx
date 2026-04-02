@@ -12,7 +12,24 @@ import {
   getVerificationItems,
   getProfileItems,
   calculateCompleteness,
+  getCompletenessItems,
 } from "@/lib/medjobs-completeness";
+import { useCaregiverGuidedOnboarding } from "@/hooks/useCaregiverGuidedOnboarding";
+import type { CaregiverSectionId } from "@/components/caregiver-portal/edit-modals/types";
+import EditScheduleModal from "@/components/caregiver-portal/edit-modals/EditScheduleModal";
+import EditAvailabilityModal from "@/components/caregiver-portal/edit-modals/EditAvailabilityModal";
+import EditWhyModal from "@/components/caregiver-portal/edit-modals/EditWhyModal";
+import EditScenarioModal from "@/components/caregiver-portal/edit-modals/EditScenarioModal";
+import EditBackgroundModal from "@/components/caregiver-portal/edit-modals/EditBackgroundModal";
+import EditResumeModal from "@/components/caregiver-portal/edit-modals/EditResumeModal";
+import {
+  ScheduleCard,
+  AvailabilityCard,
+  WhyCard,
+  ScenariosCard,
+  BackgroundCard,
+  ResumeCard,
+} from "@/components/caregiver-portal/cards";
 
 /* ─── Types ───────────────────────────────────────────────── */
 
@@ -282,13 +299,42 @@ function DateFieldEditor({ profileId, field, value, onSave, label, hint }: {
 
 /* ─── Section Card ─────────────────────────────────────────── */
 
-function SectionCard({ label, done, children, defaultOpen }: {
+function SectionCard({ label, done, children, defaultOpen, onEdit }: {
   label: string;
   done: boolean;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   defaultOpen?: boolean;
+  /** If provided, clicking the card opens a modal instead of expanding inline */
+  onEdit?: () => void;
 }) {
   const [open, setOpen] = useState(defaultOpen || false);
+
+  // Modal-based card (no inline content)
+  if (onEdit && !children) {
+    return (
+      <div className="border border-gray-100 rounded-xl overflow-hidden">
+        <button
+          type="button"
+          onClick={onEdit}
+          className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            {done ? (
+              <svg className="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            ) : (
+              <div className="w-5 h-5 rounded-full border-2 border-gray-200 shrink-0" />
+            )}
+            <span className={`text-sm font-medium ${done ? "text-gray-600" : "text-gray-900"}`}>{label}</span>
+          </div>
+          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="border border-gray-100 rounded-xl overflow-hidden">
@@ -1046,13 +1092,101 @@ export default function StudentPortalPage() {
     );
   }
 
+  // Once profile is loaded, render the main content component
+  // (separated so hooks like useGuidedOnboarding can be called unconditionally)
+  return (
+    <StudentPortalContent
+      profile={profile}
+      refresh={refresh}
+    />
+  );
+}
+
+/* ─── Main Content Component ─────────────────────────────────── */
+
+function StudentPortalContent({
+  profile,
+  refresh,
+}: {
+  profile: StudentProfile;
+  refresh: () => void;
+}) {
+  const [editingSection, setEditingSection] = useState<CaregiverSectionId | null>(null);
+
   const meta = profile.metadata || {} as StudentMetadata;
   const hasPhoto = !!profile.image_url;
   const verificationItems = getVerificationItems(meta);
   const verificationDone = verificationItems.every((v) => v.done);
   const profileSections = getProfileItems(meta, hasPhoto);
-  const completeness = calculateCompleteness(meta, hasPhoto);
+  const completenessPercent = calculateCompleteness(meta, hasPhoto);
+  const completenessItems = getCompletenessItems(meta, hasPhoto);
   const firstName = profile.display_name?.split(" ")[0] || "there";
+
+  // Debug: Log completeness calculation for investigation
+  // Remove this after debugging is complete
+  if (typeof window !== "undefined") {
+    console.log("[Portal Debug] Profile metadata:", {
+      hasMetadata: !!profile.metadata,
+      metadataKeys: Object.keys(meta),
+      years_caregiving: meta.years_caregiving,
+      care_experience_types: meta.care_experience_types,
+      languages: meta.languages,
+      hours_per_week_range: meta.hours_per_week_range,
+      completenessPercent,
+      itemsBreakdown: completenessItems.map((i) => ({ key: i.key, done: i.done })),
+    });
+  }
+
+  // Guided onboarding hook
+  const guided = useCaregiverGuidedOnboarding({
+    overall: completenessPercent,
+    items: completenessItems,
+  });
+
+  // Modal handlers
+  const handleCloseModal = useCallback(() => {
+    setEditingSection(null);
+    if (guided.isGuidedActive) {
+      guided.stopGuided();
+    }
+  }, [guided]);
+
+  const handleSaved = useCallback(() => {
+    refresh();
+    if (guided.isGuidedActive && editingSection) {
+      const next = guided.getNextSection(editingSection);
+      if (next) {
+        setEditingSection(next);
+      } else {
+        setEditingSection(null);
+        guided.stopGuided();
+      }
+    } else {
+      setEditingSection(null);
+    }
+  }, [refresh, guided, editingSection]);
+
+  const handleGuidedBack = useCallback(() => {
+    if (editingSection) {
+      const prev = guided.getPrevSection(editingSection);
+      if (prev) {
+        setEditingSection(prev);
+      }
+    }
+  }, [editingSection, guided]);
+
+  // Shared modal props
+  const modalProps = {
+    profile: profile as import("@/components/caregiver-portal/edit-modals/types").StudentProfile,
+    onClose: handleCloseModal,
+    onSaved: handleSaved,
+    guidedMode: guided.isGuidedActive,
+    guidedStep: editingSection ? guided.getStepNumber(editingSection) : 1,
+    guidedTotal: guided.totalSteps,
+    onGuidedBack: editingSection && guided.getPrevSection(editingSection)
+      ? handleGuidedBack
+      : undefined,
+  };
   const trackLabel = getTrackLabel(meta);
   const currentSemester = getCurrentSemester();
 
@@ -1062,21 +1196,54 @@ export default function StudentPortalPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Guided onboarding banner */}
+        {guided.shouldPrompt && !guided.isGuidedActive && (
+          <div className="mb-6 bg-gradient-to-r from-primary-50 to-vanilla-50 rounded-2xl border border-primary-100/60 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-[15px] font-semibold text-gray-900">
+                Complete your profile to get matched faster
+              </p>
+              <p className="text-sm text-gray-500 mt-0.5">
+                We&apos;ll guide you through each section step by step.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                onClick={guided.dismiss}
+                className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors px-3 py-2"
+              >
+                Dismiss
+              </button>
+              <button
+                onClick={() => {
+                  guided.startGuided();
+                  if (guided.firstIncompleteSection) {
+                    setEditingSection(guided.firstIncompleteSection);
+                  }
+                }}
+                className="px-4 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors"
+              >
+                Get Started
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ── Grid: Main + Sidebar ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
           {/* ── Main Column (2/3) ── */}
           <div className="lg:col-span-2 space-y-6">
             {/* Profile Header Card — with photo upload */}
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+            <div id="overview" className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-300">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0 relative group">
                   {profile.image_url ? (
-                    <img src={profile.image_url} alt="" className="w-16 h-16 rounded-full object-cover" />
+                    <img src={profile.image_url} alt="" className="w-20 h-20 rounded-xl object-cover ring-2 ring-primary-100 ring-offset-2" />
                   ) : (
-                    <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center">
-                      <span className="text-2xl font-bold text-primary-600">
-                        {profile.display_name?.charAt(0)?.toUpperCase() || "?"}
+                    <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shadow-sm shadow-primary-500/10 border border-primary-100/60">
+                      <span className="text-xl font-display font-bold text-primary-700">
+                        {profile.display_name?.split(" ").filter(Boolean).map((n) => n[0]).slice(0, 2).join("").toUpperCase() || "?"}
                       </span>
                     </div>
                   )}
@@ -1086,28 +1253,33 @@ export default function StudentPortalPage() {
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
+                  {/* Track label */}
+                  {trackLabel && (
+                    <p className="text-xs font-semibold tracking-widest text-primary-600 uppercase mb-1">
+                      {trackLabel}
+                    </p>
+                  )}
                   <div className="flex items-center gap-3 flex-wrap">
-                    <h1 className="text-xl font-semibold text-gray-900 truncate">{profile.display_name}</h1>
-                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      profile.is_active ? "bg-emerald-50 text-emerald-700" : verificationDone ? "bg-amber-50 text-amber-700" : "bg-gray-100 text-gray-500"
+                    <h1 className="text-xl font-display font-bold text-gray-900 truncate">{profile.display_name}</h1>
+                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                      profile.is_active ? "bg-success-50 text-success-700" : verificationDone ? "bg-primary-50 text-primary-700" : "bg-gray-100 text-gray-500"
                     }`}>
                       <div className={`w-1.5 h-1.5 rounded-full ${
-                        profile.is_active ? "bg-emerald-500" : verificationDone ? "bg-amber-500" : "bg-gray-300"
+                        profile.is_active ? "bg-success-600" : verificationDone ? "bg-primary-500" : "bg-gray-300"
                       }`} />
                       {profile.is_active ? "Live" : verificationDone ? "Under review" : "Not verified"}
                     </div>
                   </div>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-gray-500">
+                  <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[15px] text-gray-500">
                     {meta.university && <span>{meta.university}</span>}
-                    {trackLabel && <><span className="text-gray-300">&middot;</span><span>{trackLabel}</span></>}
-                    {profile.city && profile.state && <><span className="text-gray-300">&middot;</span><span>{profile.city}, {profile.state}</span></>}
+                    {profile.city && profile.state && <><span className="text-gray-300">·</span><span>{profile.city}, {profile.state}</span></>}
                   </div>
                   {profile.is_active && (
                     <a
                       href={`/medjobs/candidates/${profile.slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-2 inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                      className="mt-2.5 inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -1120,7 +1292,7 @@ export default function StudentPortalPage() {
             </div>
 
             {/* ── 100% Complete — Celebration + Next Steps ── */}
-            {completeness === 100 && profile.is_active && (
+            {completenessPercent === 100 && profile.is_active && (
               <div className="bg-emerald-50 rounded-2xl border border-emerald-200/80 p-6">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
@@ -1152,8 +1324,8 @@ export default function StudentPortalPage() {
             )}
 
             {/* Verification Card — always visible */}
-              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
-                <h2 className="text-base font-semibold text-gray-900 mb-1">Verification</h2>
+              <div id="verification" className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-300">
+                <h2 className="text-[24px] font-display font-bold text-gray-900 mb-1">Verification</h2>
                 <p className="text-sm text-gray-500 mb-5">
                   {verificationDone ? "All verification documents submitted." : "We verify every student to protect the families you\u2019ll care for. Complete these to go live."}
                 </p>
@@ -1162,14 +1334,51 @@ export default function StudentPortalPage() {
                     <SectionCard key={item.key} label={item.label} done={item.done} defaultOpen={!item.done && nextVerification?.key === item.key}>
                       {item.key === "video" ? (
                         <div>
-                          {item.done && <p className="text-sm text-emerald-600 mb-3">Video submitted</p>}
-                          <p className="text-sm text-gray-500 mb-3">{item.done ? "Update your intro video:" : "2\u20133 min \u2014 providers want to see who they\u2019re hiring"}</p>
+                          {item.done ? (
+                            <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl mb-3">
+                              <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                                </svg>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-emerald-900">Video submitted</p>
+                                <p className="text-xs text-emerald-600">Your intro is ready for review</p>
+                              </div>
+                              <svg className="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500 mb-3">2–3 min — providers want to see who they're hiring</p>
+                          )}
+                          <p className="text-xs text-gray-400 mb-2">{item.done ? "Update your intro video:" : ""}</p>
                           <VideoSubmit slug={profile.slug} onComplete={refresh} />
                         </div>
                       ) : (
                         <div>
-                          {item.done && <p className="text-sm text-emerald-600 mb-3">Document uploaded</p>}
-                          <p className="text-sm text-gray-500 mb-3">{item.done ? "Upload a new version:" : item.key === "drivers_license" ? "Verifies your identity" : "Confirms you can get to assignments safely"}</p>
+                          {item.done ? (
+                            <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl mb-3">
+                              <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                </svg>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-emerald-900">Document uploaded</p>
+                                {(item.key === "drivers_license" ? meta.drivers_license_expiration : meta.car_insurance_expiration) && (
+                                  <p className="text-xs text-emerald-600">
+                                    Expires: {item.key === "drivers_license" ? meta.drivers_license_expiration : meta.car_insurance_expiration}
+                                  </p>
+                                )}
+                              </div>
+                              <svg className="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500 mb-3">{item.key === "drivers_license" ? "Verifies your identity" : "Confirms you can get to assignments safely"}</p>
+                          )}
                           <div className="mb-3">
                             <DateFieldEditor
                               profileId={profile.id}
@@ -1179,6 +1388,7 @@ export default function StudentPortalPage() {
                               label="Expiration date"
                             />
                           </div>
+                          <p className="text-xs text-gray-400 mb-2">{item.done ? "Upload a new version:" : ""}</p>
                           <InlineUpload profileId={profile.id} documentType={item.key as "drivers_license" | "car_insurance"} onComplete={refresh} />
                         </div>
                       )}
@@ -1187,135 +1397,121 @@ export default function StudentPortalPage() {
                 </div>
               </div>
 
-            {/* Profile Sections Card */}
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">Your profile</h2>
-              <p className="text-sm text-gray-500 mb-5">
-                This is what providers see. Every section is required before your profile goes live.
-              </p>
-
-              <div className="space-y-3">
-                {/* Semester Schedule — visual builder */}
-                <ScheduleSection profileId={profile.id} meta={meta} currentSemester={currentSemester} onSave={refresh} />
-
-                {/* Availability & Commitment — right after schedule */}
-                <AvailabilityCommitmentSection profileId={profile.id} meta={meta} onSave={refresh} />
-
-                {/* Resume */}
-                <SectionCard label="Resume" done={!!meta.resume_url}>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-2">Upload a PDF of your resume. A strong caregiver resume includes:</p>
-                    <ul className="text-sm text-gray-500 mb-3 space-y-1 ml-4 list-disc">
-                      <li>Any caregiving, volunteer, or clinical experience</li>
-                      <li>Relevant coursework and certifications (CNA, BLS, CPR)</li>
-                      <li>Soft skills: communication, empathy, reliability</li>
-                      <li>References from professors, coaches, or supervisors</li>
-                    </ul>
-                    {meta.resume_url ? (
-                      <p className="text-sm text-emerald-600 mb-2">Resume uploaded</p>
-                    ) : null}
-                    <InlineUpload profileId={profile.id} documentType="resume" onComplete={refresh}
-                      accept="application/pdf" label={meta.resume_url ? "Replace resume" : "Upload resume (PDF)"} />
-                  </div>
-                </SectionCard>
-
-                {/* LinkedIn */}
-                <SectionCard label="LinkedIn" done={!!meta.linkedin_url}>
-                  <div>
-                    <p className="text-sm text-gray-500 mb-3">Add your LinkedIn profile so providers can learn more about your background.</p>
-                    <MetadataEditor
-                      profileId={profile.id}
-                      field="linkedin_url"
-                      value={meta.linkedin_url || ""}
-                      onSave={refresh}
-                      placeholder="https://linkedin.com/in/yourname"
-                    />
-                  </div>
-                </SectionCard>
-
-                {/* Why Caregiving — dating-app style */}
-                <SectionCard label="Why I want to be a caregiver" done={!!(meta.why_caregiving && meta.why_caregiving.length >= 100)}>
-                  <WhyCaregivingSection profileId={profile.id} value={meta.why_caregiving || ""} onSave={refresh} />
-                </SectionCard>
-
-                {/* Scenario Questions */}
-                <SectionCard label="Screening questions" done={
-                  (meta.scenario_responses || []).length >= SCENARIO_QUESTIONS.length &&
-                  (meta.scenario_responses || []).every((s) => s.answer?.length >= 50)
-                }>
-                  <ScenarioSection profileId={profile.id} responses={meta.scenario_responses || []} onSave={refresh} />
-                </SectionCard>
-
-                {/* Basic Info */}
-                <SectionCard label="Basic info" done={true}>
-                  <dl className="space-y-2 text-sm">
-                    <div className="flex justify-between"><dt className="text-gray-500">Name</dt><dd className="text-gray-900">{profile.display_name}</dd></div>
-                    <div className="flex justify-between"><dt className="text-gray-500">Email</dt><dd className="text-gray-900">{profile.email}</dd></div>
-                    {profile.phone && <div className="flex justify-between"><dt className="text-gray-500">Phone</dt><dd className="text-gray-900">{profile.phone}</dd></div>}
-                    {profile.city && profile.state && <div className="flex justify-between"><dt className="text-gray-500">Location</dt><dd className="text-gray-900">{profile.city}, {profile.state}</dd></div>}
-                    {meta.university && <div className="flex justify-between"><dt className="text-gray-500">University</dt><dd className="text-gray-900">{meta.university}</dd></div>}
-                    {meta.major && <div className="flex justify-between"><dt className="text-gray-500">Major</dt><dd className="text-gray-900">{meta.major}</dd></div>}
-                    {meta.intended_professional_school && <div className="flex justify-between"><dt className="text-gray-500">Career path</dt><dd className="text-gray-900">{INTENDED_SCHOOL_LABELS[meta.intended_professional_school]}</dd></div>}
-                  </dl>
-                </SectionCard>
-
-                {/* Experience & Background */}
-                <SectionCard label="Experience & background" done={meta.years_caregiving != null && (meta.care_experience_types?.length ?? 0) > 0 && (meta.languages?.length ?? 0) > 0}>
-                  <BackgroundSection profileId={profile.id} meta={meta} onSave={refresh} />
-                </SectionCard>
-
-              </div>
-            </div>
+            {/* Individual Profile Section Cards */}
+            <ScheduleCard meta={meta} onEdit={() => setEditingSection("schedule")} />
+            <AvailabilityCard meta={meta} onEdit={() => setEditingSection("availability")} />
+            <WhyCard meta={meta} onEdit={() => setEditingSection("why")} />
+            <ScenariosCard meta={meta} onEdit={() => setEditingSection("scenarios")} />
+            <BackgroundCard meta={meta} onEdit={() => setEditingSection("background")} />
+            <ResumeCard meta={meta} onEdit={() => setEditingSection("resume")} />
           </div>
 
           {/* ── Sidebar (1/3) ── */}
           <div className="lg:col-span-1 space-y-6">
             {/* Completeness */}
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
-              <h3 className="text-sm font-semibold text-gray-900 mb-4">Profile completeness</h3>
-              <div className="flex justify-center mb-4">
-                <div className="relative w-24 h-24">
-                  <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+            <div className="bg-gradient-to-b from-white to-vanilla-50 rounded-2xl border border-gray-200/80 shadow-sm p-6">
+              <h3 className="text-lg font-display font-bold text-gray-900 mb-5">Profile completeness</h3>
+
+              {/* Circular progress */}
+              <div className="flex justify-center mb-2">
+                <div className="relative w-[100px] h-[100px]">
+                  <svg className="w-[100px] h-[100px] -rotate-90" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" strokeWidth="8" />
-                    <circle cx="50" cy="50" r="42" fill="none" stroke={completeness >= 80 ? "#10b981" : completeness >= 50 ? "#f59e0b" : "#d1d5db"}
-                      strokeWidth="8" strokeDasharray={`${completeness * 2.64} 264`} strokeLinecap="round" />
+                    <circle cx="50" cy="50" r="42" fill="none"
+                      stroke={completenessPercent >= 100 ? "#10b981" : "#0d9488"}
+                      strokeWidth="8" strokeDasharray={`${completenessPercent * 2.64} 264`} strokeLinecap="round" />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-xl font-bold text-gray-900">{completeness}%</span>
+                    <span className="text-2xl font-bold text-gray-900">{completenessPercent}%</span>
                   </div>
                 </div>
               </div>
-              <div className="space-y-2">
+
+              {/* Status message */}
+              <p className="text-center text-sm font-semibold tracking-wide uppercase text-gray-900 font-display mb-0.5">
+                {completenessPercent >= 100 ? "ALL DONE!" :
+                 completenessPercent >= 76 ? "NEARLY COMPLETE!" :
+                 completenessPercent >= 51 ? "LOOKING GOOD!" :
+                 completenessPercent >= 26 ? "ALMOST THERE!" :
+                 "JUST GETTING STARTED"}
+              </p>
+              <p className="text-center text-xs text-gray-400 mb-5">
+                Complete your profile to get matched
+              </p>
+
+              {/* Section checklist */}
+              <div className="space-y-0.5">
                 {verificationItems.map((v) => (
-                  <div key={v.key} className="flex items-center gap-2">
-                    {v.done ? (
-                      <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : (
-                      <div className="w-4 h-4 rounded-full border border-gray-300 shrink-0" />
+                  <a
+                    key={v.key}
+                    href="#verification"
+                    className="flex items-center justify-between py-2.5 px-2.5 -mx-2.5 rounded-lg hover:bg-vanilla-100 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {v.done ? (
+                        <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center shrink-0">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      ) : (
+                        <div className="w-5 h-5 rounded-full border-2 border-gray-200 shrink-0" />
+                      )}
+                      <span className={`text-[15px] ${v.done ? "text-primary-600 font-medium" : "text-gray-700"}`}>
+                        {v.label}
+                      </span>
+                    </div>
+                    {!v.done && (
+                      <span className="text-sm font-medium text-primary-600">0%</span>
                     )}
-                    <span className={`text-sm ${v.done ? "text-gray-400" : "text-gray-700"}`}>{v.label}</span>
-                  </div>
+                  </a>
                 ))}
-                {profileSections.map((s) => (
-                  <div key={s.key} className="flex items-center gap-2">
-                    {s.done ? (
-                      <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : (
-                      <div className="w-4 h-4 rounded-full border border-gray-300 shrink-0" />
-                    )}
-                    <span className={`text-sm ${s.done ? "text-gray-400" : "text-gray-700"}`}>{s.label}</span>
-                  </div>
-                ))}
+                {profileSections.map((s) => {
+                  // Map completeness keys to actual card section IDs
+                  const sectionIdMap: Record<string, string> = {
+                    photo: "overview",
+                    schedule: "schedule",
+                    commitment: "availability",
+                    experience: "background",
+                    care_types: "background",
+                    languages: "background",
+                    why: "why",
+                    scenarios: "scenarios",
+                    resume_or_linkedin: "resume",
+                  };
+                  const sectionId = sectionIdMap[s.key] || s.key;
+                  return (
+                    <a
+                      key={s.key}
+                      href={`#${sectionId}`}
+                      className="flex items-center justify-between py-2.5 px-2.5 -mx-2.5 rounded-lg hover:bg-vanilla-100 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        {s.done ? (
+                          <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center shrink-0">
+                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        ) : (
+                          <div className="w-5 h-5 rounded-full border-2 border-gray-200 shrink-0" />
+                        )}
+                        <span className={`text-[15px] ${s.done ? "text-primary-600 font-medium" : "text-gray-700"}`}>
+                          {s.label}
+                        </span>
+                      </div>
+                      {!s.done && (
+                        <span className="text-sm font-medium text-primary-600">0%</span>
+                      )}
+                    </a>
+                  );
+                })}
               </div>
             </div>
 
             {/* Quick links */}
             <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick links</h3>
+              <h3 className="text-lg font-display font-bold text-gray-900 mb-4">Quick links</h3>
               <div className="space-y-1">
                 <Link href="/portal/medjobs/jobs" className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
                   <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -1340,6 +1536,14 @@ export default function StudentPortalPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit Modals */}
+      {editingSection === "schedule" && <EditScheduleModal {...modalProps} />}
+      {editingSection === "availability" && <EditAvailabilityModal {...modalProps} />}
+      {editingSection === "why" && <EditWhyModal {...modalProps} />}
+      {editingSection === "scenarios" && <EditScenarioModal {...modalProps} />}
+      {editingSection === "background" && <EditBackgroundModal {...modalProps} />}
+      {editingSection === "resume" && <EditResumeModal {...modalProps} />}
     </main>
   );
 }

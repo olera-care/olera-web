@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
 import type { StudentMetadata } from "@/lib/types";
-import { getTrackLabel, INTENDED_SCHOOL_LABELS, SEASONAL_STATUS_OPTIONS, SEASON_LABELS, getCurrentSeasonKey, getSeasonalStatusLabel } from "@/lib/medjobs-helpers";
+import { getTrackLabel, INTENDED_SCHOOL_LABELS, SEASONAL_STATUS_OPTIONS, SEASON_LABELS, getCurrentSeasonKey, getSeasonalStatusLabel, hasVideo, getYouTubeId } from "@/lib/medjobs-helpers";
 import { ScheduleBuilder, parseSchedule, serializeSchedule } from "@/components/medjobs/ScheduleBuilder";
 import {
   SCENARIO_QUESTIONS,
@@ -1120,6 +1120,10 @@ function StudentPortalContent({
   const verificationDone = verificationItems.every((v) => v.done);
   const firstName = profile.display_name?.split(" ")[0] || "there";
 
+  // Video verification
+  const videoAvailable = hasVideo(meta);
+  const youtubeId = videoAvailable && meta.video_intro_url ? getYouTubeId(meta.video_intro_url) : null;
+
   // Basic info from onboarding - these are typically already complete
   const hasBasicInfo = {
     hasName: !!profile.display_name,
@@ -1336,90 +1340,139 @@ function StudentPortalContent({
               </div>
             )}
 
-            {/* Verification Card — always visible */}
+            {/* Verification Card — Redesigned with Video Preview */}
               <div id="verification" className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-300">
                 <div className="flex items-start justify-between mb-1">
                   <h2 className="text-[24px] font-display font-bold text-gray-900">Verification</h2>
-                  <button
-                    type="button"
-                    onClick={() => setEditingSection("verification")}
-                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
-                    aria-label="Edit verification"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                    </svg>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-medium ${verificationDone ? "text-emerald-600" : "text-gray-400"}`}>
+                      {verificationItems.filter((v) => v.done).length}/{verificationItems.length}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setEditingSection("verification")}
+                      className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
+                      aria-label="Edit verification"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
                 <p className="text-sm text-gray-500 mb-5">
-                  {verificationDone ? "All verification documents submitted." : "We verify every student to protect the families you\u2019ll care for. Complete these to go live."}
+                  {verificationDone ? "All verification documents submitted." : "We verify every student to protect the families you'll care for. Complete these to go live."}
                 </p>
-                <div className="space-y-3">
-                  {verificationItems.map((item) => (
-                    <SectionCard key={item.key} label={item.label} done={item.done} defaultOpen={!item.done && nextVerification?.key === item.key}>
-                      {item.key === "video" ? (
-                        <div>
-                          {item.done ? (
-                            <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl mb-3">
-                              <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-                                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
-                                </svg>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-emerald-900">Video submitted</p>
-                                <p className="text-xs text-emerald-600">Your intro is ready for review</p>
-                              </div>
-                              <svg className="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                            </div>
-                          ) : (
-                            <p className="text-sm text-gray-500 mb-3">2–3 min — providers want to see who they're hiring</p>
-                          )}
-                          <p className="text-xs text-gray-400 mb-2">{item.done ? "Update your intro video:" : ""}</p>
-                          <VideoSubmit slug={profile.slug} onComplete={refresh} />
+
+                {/* Video Preview - Show when available */}
+                {videoAvailable && (
+                  <div className="mb-6">
+                    <div className="rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
+                      {youtubeId ? (
+                        <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+                          <iframe
+                            className="absolute inset-0 w-full h-full"
+                            src={`https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0`}
+                            title="Your intro video"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
                         </div>
-                      ) : (
-                        <div>
-                          {item.done ? (
-                            <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl mb-3">
-                              <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-                                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                                </svg>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-emerald-900">Document uploaded</p>
-                                {(item.key === "drivers_license" ? meta.drivers_license_expiration : meta.car_insurance_expiration) && (
-                                  <p className="text-xs text-emerald-600">
-                                    Expires: {item.key === "drivers_license" ? meta.drivers_license_expiration : meta.car_insurance_expiration}
-                                  </p>
-                                )}
-                              </div>
-                              <svg className="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                            </div>
-                          ) : (
-                            <p className="text-sm text-gray-500 mb-3">{item.key === "drivers_license" ? "Verifies your identity" : "Confirms you can get to assignments safely"}</p>
-                          )}
-                          <div className="mb-3">
-                            <DateFieldEditor
-                              profileId={profile.id}
-                              field={item.key === "drivers_license" ? "drivers_license_expiration" : "car_insurance_expiration"}
-                              value={(item.key === "drivers_license" ? meta.drivers_license_expiration : meta.car_insurance_expiration) || ""}
-                              onSave={refresh}
-                              label="Expiration date"
-                            />
+                      ) : meta.video_intro_url ? (
+                        <a
+                          href={meta.video_intro_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group flex items-center justify-center gap-4 py-12 hover:bg-gray-100 transition-all duration-200"
+                        >
+                          <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-200">
+                            <svg className="w-6 h-6 text-primary-600 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
                           </div>
-                          <p className="text-xs text-gray-400 mb-2">{item.done ? "Upload a new version:" : ""}</p>
-                          <InlineUpload profileId={profile.id} documentType={item.key as "drivers_license" | "car_insurance"} onComplete={refresh} />
+                          <div>
+                            <p className="text-base font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">Watch Your Intro</p>
+                            <p className="text-sm text-gray-500">Click to view on {meta.video_intro_url.includes("loom") ? "Loom" : "external site"}</p>
+                          </div>
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
+                )}
+
+                {/* Verification Status Pills */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {verificationItems.map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setEditingSection("verification")}
+                      className={`relative flex flex-col items-center p-4 rounded-xl border transition-all duration-200 text-center ${
+                        item.done
+                          ? "bg-emerald-50/50 border-emerald-200 hover:border-emerald-300 hover:shadow-sm"
+                          : "bg-gray-50 border-gray-200 hover:border-gray-300 hover:shadow-sm"
+                      }`}
+                    >
+                      {/* Status Icon */}
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                        item.done ? "bg-emerald-100" : "bg-gray-100"
+                      }`}>
+                        {item.key === "video" ? (
+                          <svg className={`w-5 h-5 ${item.done ? "text-emerald-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                          </svg>
+                        ) : item.key === "drivers_license" ? (
+                          <svg className={`w-5 h-5 ${item.done ? "text-emerald-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+                          </svg>
+                        ) : (
+                          <svg className={`w-5 h-5 ${item.done ? "text-emerald-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                          </svg>
+                        )}
+                      </div>
+
+                      {/* Label */}
+                      <span className={`text-sm font-medium ${item.done ? "text-emerald-900" : "text-gray-700"}`}>
+                        {item.label}
+                      </span>
+
+                      {/* Status Text */}
+                      <span className={`text-xs mt-0.5 ${item.done ? "text-emerald-600" : "text-gray-400"}`}>
+                        {item.done ? (
+                          item.key === "video" ? "Uploaded" :
+                          item.key === "drivers_license" && meta.drivers_license_expiration ? `Exp: ${meta.drivers_license_expiration}` :
+                          item.key === "car_insurance" && meta.car_insurance_expiration ? `Exp: ${meta.car_insurance_expiration}` :
+                          "Uploaded"
+                        ) : (
+                          "Not uploaded"
+                        )}
+                      </span>
+
+                      {/* Check badge */}
+                      {item.done && (
+                        <div className="absolute top-2 right-2">
+                          <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
                         </div>
                       )}
-                    </SectionCard>
+                    </button>
                   ))}
                 </div>
+
+                {/* CTA to add missing items */}
+                {!verificationDone && (
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => setEditingSection("verification")}
+                      className="w-full py-2.5 px-4 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-medium text-white transition-colors"
+                    >
+                      Complete Verification
+                    </button>
+                  </div>
+                )}
               </div>
 
             {/* Individual Profile Section Cards */}

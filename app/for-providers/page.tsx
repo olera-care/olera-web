@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import HeroSection from "@/components/for-providers/HeroSection";
 import EasyToConnectSection from "@/components/for-providers/EasyToConnectSection";
 import StatsSection from "@/components/for-providers/StatsSection";
-import SetUpProfileSection from "@/components/for-providers/SetUpProfileSection";
-import BenefitsSection from "@/components/for-providers/BenefitsSection";
 import StaffingSection from "@/components/for-providers/StaffingSection";
+import SetUpProfileSection from "@/components/for-providers/SetUpProfileSection";
 import LeadershipSection from "@/components/for-providers/LeadershipSection";
+import VideoSection from "@/components/for-providers/VideoSection";
 import FAQSection from "@/components/for-providers/FAQSection";
 import BottomCTASection from "@/components/for-providers/BottomCTASection";
 import ProviderRedirect from "@/components/for-providers/ProviderRedirect";
@@ -41,10 +41,10 @@ export default function ForProvidersPage() {
       <HeroSection />
       <EasyToConnectSection />
       <StatsSection />
-      <SetUpProfileSection />
-      <BenefitsSection />
       <StaffingSection />
+      <SetUpProfileSection />
       <LeadershipSection />
+      <VideoSection />
       <FAQSection />
       <BottomCTASection />
     </main>

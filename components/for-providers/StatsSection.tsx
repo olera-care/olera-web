@@ -36,7 +36,7 @@ export default function StatsSection() {
         <div className="relative z-10 flex items-center h-full min-h-[320px] sm:min-h-[380px] p-8 sm:p-12 lg:p-16">
           <div className="max-w-lg">
             <h2 className="font-serif text-display-sm sm:text-display-md lg:text-display-lg font-bold text-white leading-tight">
-              Over 40,000 providers
+              Over 50,000 providers
               <br />
               on Olera
             </h2>

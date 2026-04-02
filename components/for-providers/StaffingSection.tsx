@@ -50,10 +50,10 @@ export default function StaffingSection() {
               university health programs
             </h2>
             <p className="mt-4 text-lg text-gray-500 leading-relaxed">
-              We recruit caregivers exclusively from pre-med, pre-nursing, pre-PA,
-              and public health programs at universities across the country. They
-              aren&apos;t just filling a shift — they&apos;re building a career in
-              healthcare.
+              More families means more shifts to fill. We recruit caregivers
+              exclusively from pre-med, pre-nursing, pre-PA, and public health
+              programs at universities across the country. They aren&apos;t just
+              filling a shift — they&apos;re building a career in healthcare.
             </p>
           </div>
           <div className="mt-12 grid sm:grid-cols-3 gap-8">

@@ -4,7 +4,12 @@ import { useState } from "react";
 
 const faqItems = [
   {
-    question: "Why We Created Olera?",
+    question: "How does Olera help me balance client demand and staffing?",
+    answer:
+      "Every care operator knows the balancing act: more families means more shifts to fill, and understaffing means turning away business. Olera is the only platform that addresses both sides \u2014 your profile brings in families through local search, and our staffing pipeline connects you with vetted caregivers from university health programs. Grow your census and fill your shifts from the same place.",
+  },
+  {
+    question: "Why did we create Olera?",
     answer:
       "We built Olera after seeing how most senior care directories fail both families and providers. Existing senior care websites focus on selling family contact information to the highest bidder. They\u2019re limited to a few types of care, packed with confusing ads, and driven more by lead volume than genuine connection.",
   },
@@ -14,19 +19,9 @@ const faqItems = [
       "Any organization that provides senior care services \u2014 including assisted living communities, home care agencies, memory care facilities, nursing homes, independent living communities, and adult day care centers. Whether you\u2019re a single-location provider or a multi-site operator, Olera helps families find you.",
   },
   {
-    question: "What are the benefits for my organization?",
-    answer:
-      "Olera gives your organization a professional profile optimized for search engines, helping families discover you through local searches. You\u2019ll receive direct inquiries from families \u2014 no middleman, no referral fees per lead. Plus, you can manage reviews, track leads, and showcase what makes your care special.",
-  },
-  {
     question: "Are there any costs to joining?",
     answer:
       "Getting started on Olera is free. You can claim or create your profile, add your services and photos, and start appearing in search results at no cost. For providers who want to respond to inquiries and access full lead details, we offer a Pro plan with a 14-day free trial.",
-  },
-  {
-    question: "How many new clients should I expect?",
-    answer:
-      "Results vary based on your location, care type, and profile completeness. Providers with complete profiles \u2014 including photos, detailed services, and active review management \u2014 tend to receive significantly more inquiries. We\u2019re transparent: there are no guarantees, but we\u2019re building tools to help you convert every lead.",
   },
   {
     question: "Where do your caregivers come from?",

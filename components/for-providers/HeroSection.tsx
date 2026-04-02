@@ -90,7 +90,7 @@ export default function HeroSection() {
               Staff your shifts.
             </h1>
             <p className="mt-3 text-lg text-white/85">
-              The senior care platform for growing your business
+              One platform to fill your census and staff your shifts
             </p>
 
             {/* Search bar */}

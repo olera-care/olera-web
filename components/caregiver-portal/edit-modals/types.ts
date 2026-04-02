@@ -1,12 +1,14 @@
 import type { StudentMetadata } from "@/lib/types";
 
 export type CaregiverSectionId =
+  | "overview"
+  | "verification"
   | "schedule"
   | "availability"
-  | "resume"
   | "why"
   | "scenarios"
-  | "background";
+  | "background"
+  | "resume";
 
 export interface StudentProfile {
   id: string;
@@ -32,8 +34,10 @@ export interface BaseEditModalProps {
   onGuidedBack?: () => void;
 }
 
-/** Section order used for guided onboarding flow */
+/** Section order used for guided onboarding flow - all 8 sections */
 export const GUIDED_SECTION_ORDER: CaregiverSectionId[] = [
+  "overview",
+  "verification",
   "schedule",
   "availability",
   "why",
@@ -44,6 +48,8 @@ export const GUIDED_SECTION_ORDER: CaregiverSectionId[] = [
 
 /** Section labels for display */
 export const SECTION_LABELS: Record<CaregiverSectionId, string> = {
+  overview: "Profile overview",
+  verification: "Verification",
   schedule: "Semester schedule",
   availability: "Availability & commitment",
   why: "Why I want to be a caregiver",

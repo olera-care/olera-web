@@ -10,12 +10,13 @@ import { ScheduleBuilder, parseSchedule, serializeSchedule } from "@/components/
 import {
   SCENARIO_QUESTIONS,
   getVerificationItems,
-  getProfileItems,
+  getSectionCompleteness,
   calculateCompleteness,
-  getCompletenessItems,
 } from "@/lib/medjobs-completeness";
 import { useCaregiverGuidedOnboarding } from "@/hooks/useCaregiverGuidedOnboarding";
 import type { CaregiverSectionId } from "@/components/caregiver-portal/edit-modals/types";
+import EditOverviewModal from "@/components/caregiver-portal/edit-modals/EditOverviewModal";
+import EditVerificationModal from "@/components/caregiver-portal/edit-modals/EditVerificationModal";
 import EditScheduleModal from "@/components/caregiver-portal/edit-modals/EditScheduleModal";
 import EditAvailabilityModal from "@/components/caregiver-portal/edit-modals/EditAvailabilityModal";
 import EditWhyModal from "@/components/caregiver-portal/edit-modals/EditWhyModal";
@@ -1117,25 +1118,26 @@ function StudentPortalContent({
   const hasPhoto = !!profile.image_url;
   const verificationItems = getVerificationItems(meta);
   const verificationDone = verificationItems.every((v) => v.done);
-  const profileSections = getProfileItems(meta, hasPhoto);
-  const completenessPercent = calculateCompleteness(meta, hasPhoto);
-  const completenessItems = getCompletenessItems(meta, hasPhoto);
   const firstName = profile.display_name?.split(" ")[0] || "there";
 
-  // Debug: Log completeness calculation for investigation
-  // Remove this after debugging is complete
-  if (typeof window !== "undefined") {
-    console.log("[Portal Debug] Profile metadata:", {
-      hasMetadata: !!profile.metadata,
-      metadataKeys: Object.keys(meta),
-      years_caregiving: meta.years_caregiving,
-      care_experience_types: meta.care_experience_types,
-      languages: meta.languages,
-      hours_per_week_range: meta.hours_per_week_range,
-      completenessPercent,
-      itemsBreakdown: completenessItems.map((i) => ({ key: i.key, done: i.done })),
-    });
-  }
+  // Basic info from onboarding - these are typically already complete
+  const hasBasicInfo = {
+    hasName: !!profile.display_name,
+    hasUniversity: !!meta.university,
+    hasLocation: !!(profile.city && profile.state),
+  };
+
+  // Section-based completeness (8 logical sections)
+  const completeSections = getSectionCompleteness(meta, hasPhoto, hasBasicInfo);
+  const completenessPercent = calculateCompleteness(meta, hasPhoto, hasBasicInfo);
+
+  // Convert sections to items format for guided onboarding hook
+  const completenessItems = completeSections.map((s) => ({
+    key: s.id,
+    label: s.label,
+    done: s.done,
+    category: "profile" as const,
+  }));
 
   // Guided onboarding hook
   const guided = useCaregiverGuidedOnboarding({
@@ -1288,6 +1290,17 @@ function StudentPortalContent({
                     </a>
                   )}
                 </div>
+                {/* Edit button */}
+                <button
+                  type="button"
+                  onClick={() => setEditingSection("overview")}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
+                  aria-label="Edit profile overview"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                  </svg>
+                </button>
               </div>
             </div>
 
@@ -1325,7 +1338,19 @@ function StudentPortalContent({
 
             {/* Verification Card — always visible */}
               <div id="verification" className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-300">
-                <h2 className="text-[24px] font-display font-bold text-gray-900 mb-1">Verification</h2>
+                <div className="flex items-start justify-between mb-1">
+                  <h2 className="text-[24px] font-display font-bold text-gray-900">Verification</h2>
+                  <button
+                    type="button"
+                    onClick={() => setEditingSection("verification")}
+                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
+                    aria-label="Edit verification"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                  </button>
+                </div>
                 <p className="text-sm text-gray-500 mb-5">
                   {verificationDone ? "All verification documents submitted." : "We verify every student to protect the families you\u2019ll care for. Complete these to go live."}
                 </p>
@@ -1439,98 +1464,37 @@ function StudentPortalContent({
                 Complete your profile to get matched
               </p>
 
-              {/* Section checklist */}
+              {/* Section checklist - 8 logical sections */}
               <div className="space-y-0.5">
-                {verificationItems.map((v) => (
+                {completeSections.map((section) => (
                   <a
-                    key={v.key}
-                    href="#verification"
+                    key={section.id}
+                    href={`#${section.id}`}
                     className="flex items-center justify-between py-2.5 px-2.5 -mx-2.5 rounded-lg hover:bg-vanilla-100 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5">
-                      {v.done ? (
+                      {section.done ? (
                         <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center shrink-0">
                           <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
+                      ) : section.percent > 0 ? (
+                        <div className="w-5 h-5 rounded-full border-2 border-primary-300 bg-primary-50 shrink-0 flex items-center justify-center">
+                          <div className="w-2 h-2 rounded-full bg-primary-400" />
+                        </div>
                       ) : (
                         <div className="w-5 h-5 rounded-full border-2 border-gray-200 shrink-0" />
                       )}
-                      <span className={`text-[15px] ${v.done ? "text-primary-600 font-medium" : "text-gray-700"}`}>
-                        {v.label}
+                      <span className={`text-[15px] ${section.done ? "text-primary-600 font-medium" : "text-gray-700"}`}>
+                        {section.label}
                       </span>
                     </div>
-                    {!v.done && (
-                      <span className="text-sm font-medium text-primary-600">0%</span>
-                    )}
+                    <span className={`text-sm font-medium ${section.done ? "text-primary-600" : section.percent > 0 ? "text-primary-500" : "text-gray-400"}`}>
+                      {section.percent}%
+                    </span>
                   </a>
                 ))}
-                {profileSections.map((s) => {
-                  // Map completeness keys to actual card section IDs
-                  const sectionIdMap: Record<string, string> = {
-                    photo: "overview",
-                    schedule: "schedule",
-                    commitment: "availability",
-                    experience: "background",
-                    care_types: "background",
-                    languages: "background",
-                    why: "why",
-                    scenarios: "scenarios",
-                    resume_or_linkedin: "resume",
-                  };
-                  const sectionId = sectionIdMap[s.key] || s.key;
-                  return (
-                    <a
-                      key={s.key}
-                      href={`#${sectionId}`}
-                      className="flex items-center justify-between py-2.5 px-2.5 -mx-2.5 rounded-lg hover:bg-vanilla-100 transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        {s.done ? (
-                          <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center shrink-0">
-                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                        ) : (
-                          <div className="w-5 h-5 rounded-full border-2 border-gray-200 shrink-0" />
-                        )}
-                        <span className={`text-[15px] ${s.done ? "text-primary-600 font-medium" : "text-gray-700"}`}>
-                          {s.label}
-                        </span>
-                      </div>
-                      {!s.done && (
-                        <span className="text-sm font-medium text-primary-600">0%</span>
-                      )}
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Quick links */}
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
-              <h3 className="text-lg font-display font-bold text-gray-900 mb-4">Quick links</h3>
-              <div className="space-y-1">
-                <Link href="/portal/medjobs/jobs" className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0H8m8 0h2a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h2" />
-                  </svg>
-                  Browse open jobs
-                </Link>
-                <Link href="/portal/medjobs/interviews" className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Interviews
-                </Link>
-                <Link href="/medjobs" className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  About MedJobs
-                </Link>
               </div>
             </div>
           </div>
@@ -1538,6 +1502,8 @@ function StudentPortalContent({
       </div>
 
       {/* Edit Modals */}
+      {editingSection === "overview" && <EditOverviewModal {...modalProps} />}
+      {editingSection === "verification" && <EditVerificationModal {...modalProps} />}
       {editingSection === "schedule" && <EditScheduleModal {...modalProps} />}
       {editingSection === "availability" && <EditAvailabilityModal {...modalProps} />}
       {editingSection === "why" && <EditWhyModal {...modalProps} />}

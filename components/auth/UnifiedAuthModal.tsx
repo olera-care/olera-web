@@ -614,7 +614,12 @@ export default function UnifiedAuthModal({
         router.push("/portal/medjobs");
       } else {
         // New signup or no profile — go to provider onboarding
-        router.push("/provider/onboarding");
+        // If coming from MedJobs hire flow, skip to search step and preserve return URL
+        if (deferred?.action === "hire-candidate" && deferred?.returnUrl?.startsWith("/provider/medjobs/candidates/")) {
+          router.push(`/provider/onboarding?step=search&next=${encodeURIComponent(deferred.returnUrl)}`);
+        } else {
+          router.push("/provider/onboarding");
+        }
       }
       return;
     }

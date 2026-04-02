@@ -5,7 +5,13 @@ import {
   GUIDED_SECTION_ORDER,
   type CaregiverSectionId,
 } from "@/components/caregiver-portal/edit-modals/types";
-import type { CompletenessItem } from "@/lib/medjobs-completeness";
+
+/** Simple item interface for completeness tracking */
+interface CompletenessItem {
+  key: string;
+  label: string;
+  done: boolean;
+}
 
 const DISMISS_KEY = "olera_caregiver_onboarding_dismissed";
 const LOW_COMPLETENESS_THRESHOLD = 50;
@@ -27,14 +33,20 @@ function persistDismiss(): void {
 }
 
 /**
- * Maps completeness item keys to caregiver section IDs.
+ * Maps completeness section IDs to caregiver modal section IDs.
  * This bridges the completeness calculation with the modal routing.
  */
 const ITEM_TO_SECTION: Record<string, CaregiverSectionId> = {
+  overview: "overview",
+  verification: "verification",
   schedule: "schedule",
-  commitment: "availability",
+  availability: "availability",
   why: "why",
   scenarios: "scenarios",
+  background: "background",
+  resume: "resume",
+  // Legacy mappings for backward compatibility
+  commitment: "availability",
   experience: "background",
   care_types: "background",
   languages: "background",

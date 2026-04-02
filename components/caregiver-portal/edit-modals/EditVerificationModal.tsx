@@ -39,7 +39,7 @@ export default function EditVerificationModal({
   const insuranceInputRef = useRef<HTMLInputElement>(null);
 
   // Transportation attestation
-  const [transportAttestation, setTransportAttestation] = useState(!!meta.transport_attestation);
+  const [transportAttestation, setTransportAttestation] = useState(!!meta.transportation);
 
   // Track if any verification item is complete
   const hasVideo = videoSubmitted || !!videoUrl.trim();
@@ -51,7 +51,7 @@ export default function EditVerificationModal({
     (videoUrl.trim() && videoUrl !== (meta.video_intro_url || "")) ||
     licenseExpiration !== (meta.drivers_license_expiration || "") ||
     insuranceExpiration !== (meta.car_insurance_expiration || "") ||
-    transportAttestation !== !!meta.transport_attestation;
+    transportAttestation !== !!meta.transportation;
 
   async function handleVideoSubmit() {
     if (!videoUrl.trim()) return;
@@ -151,7 +151,7 @@ export default function EditVerificationModal({
         metadataFields: {
           drivers_license_expiration: licenseExpiration || null,
           car_insurance_expiration: insuranceExpiration || null,
-          transport_attestation: transportAttestation || null,
+          transportation: transportAttestation || null,
         },
       });
       onSaved();

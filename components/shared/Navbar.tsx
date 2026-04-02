@@ -471,19 +471,8 @@ export default function Navbar() {
       role="menu"
       aria-label="Account menu"
     >
-      {/* Auth actions */}
+      {/* Auth action */}
       <div className="px-1.5 pb-1">
-        <button
-          type="button"
-          role="menuitem"
-          onClick={() => {
-            setIsUserMenuOpen(false);
-            openAuth({ defaultMode: "sign-in" });
-          }}
-          className="w-full text-left px-3.5 py-2.5 text-[15px] font-semibold text-gray-900 hover:bg-gray-50 rounded-xl transition-colors"
-        >
-          Log in
-        </button>
         <button
           type="button"
           role="menuitem"
@@ -491,9 +480,9 @@ export default function Navbar() {
             setIsUserMenuOpen(false);
             openAuth({});
           }}
-          className="w-full text-left px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
+          className="w-full text-left px-3.5 py-2.5 text-[15px] font-semibold text-gray-900 hover:bg-gray-50 rounded-xl transition-colors"
         >
-          Create account
+          Log in or sign up
         </button>
       </div>
 
@@ -520,14 +509,14 @@ export default function Navbar() {
           role="menuitem"
           onClick={() => {
             setIsUserMenuOpen(false);
-            router.push("/provider/onboarding");
+            router.push("/for-providers");
           }}
           className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
         >
           <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
           </svg>
-          List your organization
+          Grow your business
         </button>
         <button
           type="button"

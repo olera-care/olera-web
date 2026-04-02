@@ -113,24 +113,6 @@ export default function EasyToConnectSection() {
 
         {/* Product tabs */}
         <div className="mt-16 max-w-5xl mx-auto text-center">
-          {/* Tab pills */}
-          <div className="flex items-center justify-center gap-2 flex-wrap">
-            {tabs.map((tab, i) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveIndex(i)}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
-                  i === activeIndex
-                    ? "bg-primary-600 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
           {/* Device mockup area */}
           <div className="mt-2 relative">
             <div className="mx-auto max-w-3xl relative aspect-[16/10]">
@@ -160,6 +142,24 @@ export default function EasyToConnectSection() {
             <p className="mt-1 text-base text-gray-500">
               {activeTab.description}
             </p>
+
+            {/* Tab pills */}
+            <div className="flex items-center justify-center gap-2 flex-wrap mt-5">
+              {tabs.map((tab, i) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveIndex(i)}
+                  className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
+                    i === activeIndex
+                      ? "bg-primary-600 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

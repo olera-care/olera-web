@@ -77,14 +77,14 @@ export default function EditWhyModal({
           This is one of the first things providers read. Be genuine — think of it like a personal statement.
         </p>
 
-        <div className="text-xs text-gray-400 space-y-1 bg-gray-50 rounded-lg p-3">
-          <p><strong>Strong answers include:</strong></p>
-          <ul className="ml-3 list-disc space-y-0.5">
+        <div className="text-xs space-y-1 bg-gray-50 rounded-lg p-3">
+          <p className="text-gray-600 font-semibold">Strong answers include:</p>
+          <ul className="ml-3 list-disc space-y-0.5 text-gray-500">
             <li>What personally draws you to caregiving</li>
             <li>How this connects to your career path (med school, nursing, PA, etc.)</li>
             <li>A specific experience that motivated you (family care, volunteer work, etc.)</li>
           </ul>
-          <p className="mt-2 text-gray-300 italic">
+          <p className="mt-2 text-gray-400 italic">
             AI tools are fine for brainstorming, but write the final version in your own voice. Providers can tell when answers feel generic — your real story is what makes you stand out.
           </p>
         </div>

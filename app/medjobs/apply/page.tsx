@@ -170,7 +170,7 @@ export default function MedJobsApplyPage() {
   const [hoursPerWeekRange, setHoursPerWeekRange] = useState("");
 
   // Confirm — individual attestation checkboxes
-  const [attestations, setAttestations] = useState<boolean[]>([false, false, false, false, false, false]);
+  const [attestations, setAttestations] = useState<boolean[]>([false, false, false, false, false, false, false]);
   const allAcknowledged = attestations.every(Boolean);
   const [honeypot, setHoneypot] = useState("");
 
@@ -628,7 +628,7 @@ export default function MedJobsApplyPage() {
               {[
                 "I\u2019ll be on time, professional, and communicate schedule changes 24+ hours in advance",
                 "I understand caregiving duties include personal care, meals, mobility, and companionship",
-                "I have reliable transportation and accept responsibility for my transport costs",
+                "I have reliable transportation, access to a safe vehicle, and accept responsibility for my transport costs — including driving to client sites and, when needed, transporting clients to appointments or errands",
                 "I consent to a background check and drug test upon hire",
                 "I\u2019ll respond to interview requests within 48 hours",
                 "All information in this application is accurate and Olera is not the employer of record",

@@ -38,6 +38,9 @@ export default function EditVerificationModal({
   const licenseInputRef = useRef<HTMLInputElement>(null);
   const insuranceInputRef = useRef<HTMLInputElement>(null);
 
+  // Transportation attestation
+  const [transportAttestation, setTransportAttestation] = useState(!!meta.transport_attestation);
+
   // Track if any verification item is complete
   const hasVideo = videoSubmitted || !!videoUrl.trim();
   const hasLicense = licenseUploaded && !!licenseExpiration;
@@ -47,7 +50,8 @@ export default function EditVerificationModal({
   const hasChanges =
     (videoUrl.trim() && videoUrl !== (meta.video_intro_url || "")) ||
     licenseExpiration !== (meta.drivers_license_expiration || "") ||
-    insuranceExpiration !== (meta.car_insurance_expiration || "");
+    insuranceExpiration !== (meta.car_insurance_expiration || "") ||
+    transportAttestation !== !!meta.transport_attestation;
 
   async function handleVideoSubmit() {
     if (!videoUrl.trim()) return;
@@ -147,6 +151,7 @@ export default function EditVerificationModal({
         metadataFields: {
           drivers_license_expiration: licenseExpiration || null,
           car_insurance_expiration: insuranceExpiration || null,
+          transport_attestation: transportAttestation || null,
         },
       });
       onSaved();
@@ -322,6 +327,31 @@ export default function EditVerificationModal({
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Transportation Attestation */}
+        <div className="p-4 rounded-xl border border-gray-200 bg-amber-50/50">
+          <button
+            type="button"
+            onClick={() => setTransportAttestation(!transportAttestation)}
+            className="w-full flex items-start gap-3 text-left"
+          >
+            <span className={`inline-flex items-center justify-center w-5 h-5 rounded border-2 shrink-0 mt-0.5 transition-colors ${
+              transportAttestation ? "bg-gray-900 border-gray-900 text-white" : "border-gray-300"
+            }`}>
+              {transportAttestation && (
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </span>
+            <div>
+              <p className="text-sm font-medium text-gray-900">I have access to a reliable, safe vehicle</p>
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                I confirm my vehicle is safe for transporting myself to client locations and, when needed, for driving clients to appointments or errands. Only clients who are safe to transport without specialized equipment would be assigned.
+              </p>
+            </div>
+          </button>
         </div>
 
         {error && (

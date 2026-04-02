@@ -20,17 +20,28 @@ const leaders = [
 
 export default function LeadershipSection() {
   return (
-    <section className="py-16 md:py-24 bg-white">
+    <section className="py-16 md:py-24 bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="font-serif text-display-md font-bold text-gray-900 text-center mb-12">
-          Our Leadership
-        </h2>
+        <div className="max-w-2xl mx-auto text-center mb-12">
+          <h2 className="font-serif text-display-sm md:text-display-md font-bold text-gray-900">
+            Built by people who studied
+            <br className="hidden sm:block" />
+            the problem firsthand
+          </h2>
+          <p className="mt-4 text-lg text-gray-500 leading-relaxed">
+            TJ and Logan met in graduate school and spent two years researching
+            the eldercare ecosystem through the NIH/NSF I-Corps program — interviewing
+            hundreds of families, providers, and caregivers to understand what&apos;s
+            actually broken. That research became an NIH grant to improve eldercare
+            infrastructure, and that grant became Olera.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {leaders.map((leader) => (
             <div
               key={leader.name}
-              className="flex gap-0 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden min-h-[200px]"
+              className="flex gap-0 rounded-xl border border-gray-200 bg-white overflow-hidden min-h-[200px]"
             >
               {/* Headshot — fixed aspect ratio on mobile */}
               <div className="shrink-0 w-40 sm:w-52 self-stretch">
@@ -74,7 +85,18 @@ export default function LeadershipSection() {
           ))}
         </div>
 
-        <div className="mt-10 text-center">
+        {/* NIH badge */}
+        <div className="mt-10 flex items-center justify-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-700 shadow-sm">
+            NIH
+          </div>
+          <div className="text-sm text-gray-500">
+            <span className="block text-xs text-gray-400">Proudly supported by</span>
+            <span className="font-medium text-gray-700">National Institute on Aging</span>
+          </div>
+        </div>
+
+        <div className="mt-6 text-center">
           <Link
             href="/team"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"

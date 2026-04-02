@@ -15,7 +15,8 @@ export default function VideoSection() {
           See how it works
         </h2>
         <p className="text-center text-gray-500 text-lg mb-10 max-w-2xl mx-auto">
-          Watch how providers use Olera to reach families and grow their business.
+          Watch how providers use Olera to reach families and staff shifts to
+          grow their business.
         </p>
 
         <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-gray-900 shadow-xl shadow-gray-900/10">

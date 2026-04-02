@@ -9,34 +9,34 @@ const faqItems = [
       "Every care operator knows the balancing act: more families means more shifts to fill, and understaffing means turning away business. Olera is the only platform that addresses both sides \u2014 your profile brings in families through local search, and our staffing pipeline connects you with vetted caregivers from university health programs. Grow your census and fill your shifts from the same place.",
   },
   {
-    question: "Why did we create Olera?",
+    question: "What does it cost?",
     answer:
-      "We built Olera after seeing how most senior care directories fail both families and providers. Existing senior care websites focus on selling family contact information to the highest bidder. They\u2019re limited to a few types of care, packed with confusing ads, and driven more by lead volume than genuine connection.",
+      "Setting up your profile is free, and it goes live immediately \u2014 visible to the thousands of families visiting Olera every month. Leads that come to you through your profile are always free, with no commissions. For $50/month, you unlock Olera Pro: proactively match with high-intent families through our outreach system, plus unlimited access to browse and hire from our vetted caregiver pool. One subscription covers both sides \u2014 unlimited family matching and unlimited hiring.",
   },
   {
-    question: "What senior care businesses should join the Olera network?",
+    question: "What about hiring fees?",
     answer:
-      "Any organization that provides senior care services \u2014 including assisted living communities, home care agencies, memory care facilities, nursing homes, independent living communities, and adult day care centers. Whether you\u2019re a single-location provider or a multi-site operator, Olera helps families find you.",
-  },
-  {
-    question: "Are there any costs to joining?",
-    answer:
-      "Getting started on Olera is free. You can claim or create your profile, add your services and photos, and start appearing in search results at no cost. For providers who want to respond to inquiries and access full lead details, we offer a Pro plan with a 14-day free trial.",
+      "Your first three interviews with caregivers are completely free \u2014 no subscription needed. After that, the same $50/month Pro plan that unlocks family matching also gives you unlimited access to browse caregiver profiles, watch intro videos, and schedule interviews. No placement fees, no per-hire charges, no markups.",
   },
   {
     question: "Where do your caregivers come from?",
     answer:
-      "We recruit exclusively from university pre-health programs \u2014 pre-med, pre-nursing, pre-PA, physical therapy, and public health. Every caregiver is pursuing a career in healthcare, which means they\u2019re motivated, reliable, and invested in delivering quality care.",
+      "We recruit exclusively from university pre-health programs \u2014 pre-med, pre-nursing, pre-PA, physical therapy, and public health. Every caregiver is pursuing a career in healthcare, which means they\u2019re motivated, reliable, and invested in delivering quality care. They need consistent patient care hours for their professional school applications, so they stay longer and show up more reliably than typical part-time hires.",
   },
   {
     question: "How are caregivers vetted?",
     answer:
-      "Every caregiver goes through a multi-step vetting process: university enrollment verification, a recorded intro video reviewed by our team, reliability and professionalism acknowledgments, and a confirmed schedule commitment. Only candidates who pass every step appear in your browse results.",
+      "Every caregiver goes through a multi-step vetting process: university enrollment verification, a recorded intro video reviewed by our team where they answer reliability and scenario-based questions, formal attestations to punctuality and professional conduct, a locked-in schedule commitment, and realistic job expectation setting so they arrive prepared for the actual demands of caregiving. Not every applicant makes it through \u2014 that\u2019s by design.",
   },
   {
-    question: "Are there fees for hiring through Olera staffing?",
+    question: "What senior care businesses should join?",
     answer:
-      "No placement fees, no markups, no middlemen. You browse caregiver profiles, watch their intro videos, and reach out directly. The connection is free.",
+      "Any organization that provides senior care services \u2014 including home care agencies, assisted living communities, memory care facilities, nursing homes, independent living communities, and adult day care centers. Whether you\u2019re a single-location provider or a multi-site operator, Olera helps families find you and connects you with vetted staff.",
+  },
+  {
+    question: "Why did you build Olera?",
+    answer:
+      "Our founders met in graduate school and spent two years in the NIH/NSF I-Corps program researching the eldercare ecosystem \u2014 interviewing hundreds of families, providers, and caregivers. They found that existing platforms fail both sides: families get sold to the highest bidder, providers pay steep lead fees, and staffing is handled by expensive agencies with high turnover. Olera was built to fix that \u2014 one platform where providers can grow their census and staff their shifts without middlemen.",
   },
 ];
 

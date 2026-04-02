@@ -10,7 +10,7 @@ const PAIN_POINTS = [
   {
     problem: "Last-minute call-outs hurt your clients",
     solution:
-      "Every caregiver completes reliability acknowledgments and commits to a schedule before their profile goes live.",
+      "Every caregiver completes reliability commitments and locks in a schedule before their profile goes live. No surprises.",
   },
   {
     problem: "Agency fees eat into your margins",
@@ -27,11 +27,31 @@ const STATS = [
 ];
 
 const VETTING_STEPS = [
-  "Sourced exclusively from university pre-health programs",
-  "Intro video reviewed before profile goes live",
-  "Reliability and professionalism acknowledgments completed",
-  "Availability and schedule commitment verified",
-  "University enrollment confirmed",
+  {
+    title: "University enrollment verified",
+    detail:
+      "We confirm active enrollment in a pre-health program — pre-med, pre-nursing, pre-PA, PT, or public health. No exceptions.",
+  },
+  {
+    title: "Video interview reviewed by our team",
+    detail:
+      "Every applicant records an intro video answering reliability and scenario-based questions. Our team reviews it before any profile goes live.",
+  },
+  {
+    title: "Reliability and professionalism attestations",
+    detail:
+      "Caregivers sign formal commitments to punctuality, communication standards, dress code, and professional conduct — setting expectations before day one.",
+  },
+  {
+    title: "Schedule commitment locked in",
+    detail:
+      "No vague availability. Every caregiver confirms specific days and hours they can work and commits to a minimum engagement period.",
+  },
+  {
+    title: "Realistic job expectations set",
+    detail:
+      "We prepare caregivers for what the work actually involves — physical demands, emotional weight, client boundaries — so they show up ready, not surprised.",
+  },
 ];
 
 export default function StaffingSection() {
@@ -88,42 +108,39 @@ export default function StaffingSection() {
         </div>
       </div>
 
-      {/* Why our staff are different */}
+      {/* Our vetting process */}
       <div className="py-16 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid lg:grid-cols-2 gap-16 items-start">
             <div>
               <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">
-                Why Olera staff
+                Our vetting process
               </p>
               <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-                Motivated by more
+                We know who&apos;s ready
                 <br />
-                than a paycheck
+                for this work
               </h2>
               <p className="mt-4 text-gray-500 leading-relaxed">
-                Our caregivers are pursuing medicine, nursing, PA, PT, and public
-                health. They need verified patient care hours for their professional
-                school applications — which means they show up, stay engaged, and
-                build real relationships with your clients.
+                Not every applicant makes it through. Our process is designed to
+                identify caregivers who are genuinely committed to the work — and
+                to set clear expectations so they show up prepared, not surprised.
+                The result: staff you can trust from day one.
               </p>
-              <div className="mt-8 space-y-4">
-                {VETTING_STEPS.map((item) => (
-                  <div key={item} className="flex items-start gap-3">
-                    <svg
-                      className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    <span className="text-sm text-gray-700">{item}</span>
+              <div className="mt-10 space-y-6">
+                {VETTING_STEPS.map((item, i) => (
+                  <div key={item.title} className="flex items-start gap-4">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mt-0.5 text-sm font-bold">
+                      {i + 1}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {item.title}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-500 leading-relaxed">
+                        {item.detail}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -149,7 +166,7 @@ export default function StaffingSection() {
                 </Link>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 lg:sticky lg:top-24">
               <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100">
                 <Image
                   src="/images/medjobs/students-group.jpg"

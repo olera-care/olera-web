@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 
@@ -16,11 +18,33 @@ export default function ContactSection({
   studentSlug: string;
   variant?: "sidebar" | "sticky";
 }) {
+  const router = useRouter();
   const { user, activeProfile, profiles, openAuth } = useAuth();
-  const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
-  const hasProviderProfile = profiles.some(
-    (p) => p.type === "organization" || p.type === "caregiver"
-  );
+
+  // Only organization profiles are providers (caregivers are job-seekers)
+  const isProvider = activeProfile?.type === "organization";
+  const hasProviderProfile = profiles.some((p) => p.type === "organization");
+
+  // Identify non-provider user types
+  const isCaregiver = activeProfile?.type === "student" || activeProfile?.type === "caregiver";
+  const isFamily = activeProfile?.type === "family";
+
+  // Redirect logged-in non-providers away from this page (edge case)
+  useEffect(() => {
+    if (!user || hasProviderProfile) return;
+
+    if (isFamily) {
+      router.replace("/");
+    } else if (isCaregiver) {
+      router.replace("/portal/medjobs");
+    }
+  }, [user, hasProviderProfile, isFamily, isCaregiver, router]);
+
+  // Don't render anything while redirecting non-providers
+  if (user && !hasProviderProfile) {
+    return null;
+  }
+
   const firstName = studentName.split(" ")[0];
 
   const providerName = activeProfile?.display_name || "";
@@ -31,21 +55,27 @@ export default function ContactSection({
     ? `Hi ${firstName},\n\nWe'd like to schedule a brief interview to learn more about your availability and experience. Are you free this week for a 15-minute call?\n\nBest,\n${providerName}`
     : `Hi ${firstName},\n\nI came across your profile on Olera MedJobs and I'm interested in learning more about your availability. Would you be free for a quick call this week?\n\nBest`;
 
-  const scheduleHref = studentEmail
+  // Only show contact info to providers
+  const scheduleHref = isProvider && studentEmail
     ? `mailto:${studentEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
     : null;
 
+  // Guest: auth modal with provider intent
+  // Existing providers will be sent to the provider candidate page after sign-in
+  // New signups will go through provider onboarding (handled by intent: "provider")
   const triggerAuth = () =>
     openAuth({
+      intent: "provider",
       defaultMode: "sign-in",
       deferred: {
         action: "inquiry",
-        returnUrl: `/medjobs/candidates/${studentSlug}`,
+        returnUrl: `/provider/medjobs/candidates/${studentSlug}`,
       },
     });
 
   // ── Sticky mobile bar ──
   if (variant === "sticky") {
+    // Guest: prompt to sign in as provider
     if (!user) {
       return (
         <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
@@ -60,6 +90,7 @@ export default function ContactSection({
       );
     }
 
+    // Provider: show contact options
     return (
       <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
         {scheduleHref ? (
@@ -84,7 +115,7 @@ export default function ContactSection({
 
   // ── Sidebar variant (desktop) ──
 
-  // Not signed in — warm gate
+  // Guest: warm gate prompting sign-in as provider
   if (!user) {
     return (
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
@@ -92,7 +123,7 @@ export default function ContactSection({
           Want to connect with {firstName}?
         </p>
         <p className="mt-1 text-xs text-gray-500">
-          Create a free account to see contact info and schedule an interview.
+          Sign in as a provider to see contact info and schedule an interview.
         </p>
         <button
           onClick={triggerAuth}
@@ -101,17 +132,20 @@ export default function ContactSection({
           <CalendarIcon />
           Schedule Interview
         </button>
-        <p className="mt-1.5 text-center text-xs text-gray-400">
-          Free. Takes 30 seconds.
+        <p className="mt-2 text-center text-xs text-gray-400">
+          New to Olera?{" "}
+          <Link href="/provider/onboarding" className="text-primary-500 hover:text-primary-600 font-medium">
+            Get started →
+          </Link>
         </p>
       </div>
     );
   }
 
-  // Signed in (provider or non-provider)
+  // Provider: show contact info and schedule options
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-3">
-      {/* Contact info */}
+      {/* Contact info — only for providers */}
       {(studentEmail || studentPhone) && (
         <div className="space-y-1.5">
           {studentEmail && (
@@ -152,23 +186,13 @@ export default function ContactSection({
       )}
 
       {/* Provider view link */}
-      {(isProvider || hasProviderProfile) && (
+      {hasProviderProfile && (
         <Link
           href={`/provider/medjobs/candidates/${studentSlug}`}
           className="block w-full text-center px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-xl transition-colors"
         >
           Full Provider View
         </Link>
-      )}
-
-      {/* Create provider prompt */}
-      {user && !hasProviderProfile && (
-        <p className="text-center text-xs text-gray-400">
-          <Link href="/for-providers/create" className="text-primary-500 hover:text-primary-600">
-            Create a provider profile
-          </Link>{" "}
-          to hire caregivers.
-        </p>
       )}
     </div>
   );

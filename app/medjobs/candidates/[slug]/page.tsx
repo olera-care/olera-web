@@ -16,7 +16,6 @@ import {
   INTENDED_SCHOOL_LABELS,
 } from "@/lib/medjobs-helpers";
 import ContactSection from "./ContactSection";
-import SaveButton from "@/components/providers/SaveButton";
 
 function getSupabase() {
   return createClient(
@@ -144,16 +143,6 @@ export default async function StudentProfilePage({ params }: PageProps) {
   if ((meta.languages?.length ?? 0) > 1) quickFacts.push(`${meta.languages!.length} languages`);
   if (meta.years_caregiving && meta.years_caregiving > 0) quickFacts.push(`${meta.years_caregiving}+ yr experience`);
 
-  // Save button data
-  const saveData = {
-    providerId: profile.id,
-    slug: profile.slug,
-    name: profile.display_name,
-    location: [profile.city, profile.state].filter(Boolean).join(", "),
-    careTypes: profile.care_types || [],
-    image: profile.image_url || null,
-  };
-
   return (
     <main className="min-h-screen bg-[#FAFAF8] pb-28 sm:pb-12">
       <div className="max-w-4xl mx-auto px-4 pt-6 sm:pt-10">
@@ -247,11 +236,6 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   </span>
                 )}
               </div>
-            </div>
-
-            {/* Save button */}
-            <div className="flex-shrink-0">
-              <SaveButton provider={saveData} variant="icon" />
             </div>
           </div>
 

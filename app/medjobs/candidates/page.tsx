@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { useAuth } from "@/components/auth/AuthProvider";
 import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import CandidateFilters from "@/components/medjobs/CandidateFilters";
@@ -10,6 +11,7 @@ import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilter
 const PAGE_SIZE = 20;
 
 export default function CandidateBrowsePage() {
+  const { openAuth } = useAuth();
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -115,7 +117,7 @@ export default function CandidateBrowsePage() {
           {/* Breadcrumb */}
           <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-4">
             <Link
-              href="/medjobs"
+              href="/medjobs/providers"
               className="hover:text-primary-600 transition-colors"
             >
               MedJobs
@@ -222,18 +224,29 @@ export default function CandidateBrowsePage() {
             {/* End of list */}
             {!hasMore && candidates.length > 0 && (
               <div className="mt-8 text-center">
-                <div className="inline-flex flex-col items-center gap-2 px-6 py-4 bg-white rounded-2xl border border-gray-100">
-                  <p className="text-sm text-gray-500">
-                    Want to see contact details and reach out directly?
+                <div className="inline-flex flex-col items-center gap-3 px-8 py-6 bg-white rounded-2xl border border-gray-100">
+                  <p className="text-base font-medium text-gray-900">
+                    Ready to connect with candidates?
                   </p>
-                  <Link
-                    href="/provider/medjobs/candidates"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
+                  <button
+                    type="button"
+                    onClick={() => openAuth({
+                      intent: "provider",
+                      defaultMode: "sign-in",
+                    })}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
                   >
                     Sign in as a Provider
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
+                  </button>
+                  <Link
+                    href="/provider/onboarding"
+                    className="text-sm text-gray-500 hover:text-primary-600 transition-colors"
+                  >
+                    New to Olera? Create your provider account
+                    <span className="ml-1">→</span>
                   </Link>
                 </div>
               </div>

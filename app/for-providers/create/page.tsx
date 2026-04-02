@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 /**
- * Legacy create-profile page. All profile creation now flows through /onboarding.
- * This page redirects there, cleaning up old storage.
+ * Legacy create-profile page. Redirects to the provider onboarding wizard.
+ * Cleans up old storage from the previous create flow.
  */
 export default function CreateProfileRedirect() {
   const router = useRouter();
@@ -14,8 +14,8 @@ export default function CreateProfileRedirect() {
     // Clean up old form storage from the previous create flow
     sessionStorage.removeItem("olera_create_profile_form");
 
-    // Redirect to the consolidated onboarding flow
-    router.replace("/onboarding?intent=provider");
+    // Redirect to the provider onboarding flow (auth at the end)
+    router.replace("/provider/onboarding");
   }, [router]);
 
   return (

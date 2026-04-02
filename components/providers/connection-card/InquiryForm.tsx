@@ -101,8 +101,8 @@ export default function InquiryForm({
           <p className="text-[24px] font-bold text-gray-900 tracking-tight leading-none">
             {estimateRange}
           </p>
-          <p className="text-[12px] text-gray-500 font-medium mt-1.5">
-            Area estimate · costs vary by provider
+          <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
+            Area estimate — not this provider&apos;s actual price
           </p>
           {pricing.medicareNote && (
             <p className="text-[12px] text-primary-700 font-medium mt-2">
@@ -121,8 +121,8 @@ export default function InquiryForm({
           <p className="text-[24px] font-bold text-gray-900 tracking-tight leading-none">
             {estimateRange}
           </p>
-          <p className="text-[12px] text-gray-500 font-medium mt-1.5">
-            Area estimate · costs vary by provider
+          <p className="text-[13px] text-gray-600 font-semibold mt-1.5">
+            Area estimate — not this provider&apos;s actual price
           </p>
         </div>
       ) : pricing.isHospice ? (

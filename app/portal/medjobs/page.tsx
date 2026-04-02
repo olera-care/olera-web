@@ -1103,13 +1103,17 @@ export default function StudentPortalPage() {
                     {profile.city && profile.state && <><span className="text-gray-300">&middot;</span><span>{profile.city}, {profile.state}</span></>}
                   </div>
                   {profile.is_active && (
-                    <Link href={`/medjobs/candidates/${profile.slug}`}
-                      className="mt-2 inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors">
+                    <a
+                      href={`/medjobs/candidates/${profile.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                    >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                       </svg>
                       View public profile
-                    </Link>
+                    </a>
                   )}
                 </div>
               </div>

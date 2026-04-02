@@ -16,6 +16,7 @@ import {
   INTENDED_SCHOOL_LABELS,
 } from "@/lib/medjobs-helpers";
 import ContactSection from "./ContactSection";
+import BackLink from "./BackLink";
 
 function getSupabase() {
   return createClient(
@@ -146,15 +147,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
   return (
     <main className="min-h-screen bg-[#FAFAF8] pb-28 sm:pb-12">
       <div className="max-w-4xl mx-auto px-4 pt-6 sm:pt-10">
-        <Link
-          href="/medjobs/candidates"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 font-medium transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to Candidates
-        </Link>
+        <BackLink studentSlug={profile.slug} />
 
         {/* ── Identity Bar — optimized for provider scanning ── */}
         <div className="mt-4 bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6">

@@ -29,16 +29,28 @@ export default function ContactSection({
   const isCaregiver = activeProfile?.type === "student" || activeProfile?.type === "caregiver";
   const isFamily = activeProfile?.type === "family";
 
+  // Check if caregiver is viewing their own profile
+  const ownCaregiverProfile = profiles.find(
+    (p) => (p.type === "student" || p.type === "caregiver") && p.slug === studentSlug
+  );
+  const isViewingOwnProfile = !!ownCaregiverProfile;
+
   // Redirect logged-in non-providers away from this page (edge case)
+  // Exception: caregivers can view their own public profile
   useEffect(() => {
-    if (!user || hasProviderProfile) return;
+    if (!user || hasProviderProfile || isViewingOwnProfile) return;
 
     if (isFamily) {
       router.replace("/");
     } else if (isCaregiver) {
       router.replace("/portal/medjobs");
     }
-  }, [user, hasProviderProfile, isFamily, isCaregiver, router]);
+  }, [user, hasProviderProfile, isFamily, isCaregiver, isViewingOwnProfile, router]);
+
+  // Don't render contact section for caregivers viewing their own profile
+  if (isViewingOwnProfile) {
+    return null;
+  }
 
   // Don't render anything while redirecting non-providers
   if (user && !hasProviderProfile) {

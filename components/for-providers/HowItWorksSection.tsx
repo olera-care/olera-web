@@ -33,12 +33,12 @@ export default function HowItWorksSection() {
                 {
                   num: "03",
                   title: "They send a connection request",
-                  desc: "Direct to your inbox. Every lead is exclusive and free. No commissions, no middlemen.",
+                  desc: "Direct to your inbox. Every lead is exclusive and free. With Pro, you can also proactively reach out to high-intent families.",
                 },
                 {
                   num: "04",
                   title: "You schedule a meeting",
-                  desc: "Respond, qualify, and convert. With Pro, you can also proactively match and reach out to high-intent families.",
+                  desc: "Respond, qualify, and convert into a client. No commissions, no middlemen.",
                 },
               ].map((step) => (
                 <div key={step.num} className="flex gap-5">

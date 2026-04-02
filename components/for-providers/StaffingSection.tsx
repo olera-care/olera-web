@@ -66,7 +66,7 @@ export default function StaffingSection() {
   return (
     <section id="staffing" className="scroll-mt-20">
       {/* Header + pain points */}
-      <div className="pt-10 sm:pt-14 pb-16 sm:pb-20 bg-white">
+      <div className="py-16 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
             <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">

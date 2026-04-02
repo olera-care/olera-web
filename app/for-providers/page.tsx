@@ -4,8 +4,8 @@ import EasyToConnectSection from "@/components/for-providers/EasyToConnectSectio
 import StatsSection from "@/components/for-providers/StatsSection";
 import StaffingSection from "@/components/for-providers/StaffingSection";
 import SetUpProfileSection from "@/components/for-providers/SetUpProfileSection";
-import LeadershipSection from "@/components/for-providers/LeadershipSection";
 import HowItWorksSection from "@/components/for-providers/HowItWorksSection";
+import LeadershipSection from "@/components/for-providers/LeadershipSection";
 import FAQSection from "@/components/for-providers/FAQSection";
 import BottomCTASection from "@/components/for-providers/BottomCTASection";
 import ProviderRedirect from "@/components/for-providers/ProviderRedirect";
@@ -42,8 +42,8 @@ export default function ForProvidersPage() {
       <EasyToConnectSection />
       <StatsSection />
 
-      {/* Bridge — transition from families to staffing */}
-      <section className="pt-14 sm:pt-16 pb-4">
+      {/* Bridge */}
+      <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
             <h2 className="font-serif text-display-sm sm:text-display-md font-bold text-gray-900 tracking-tight">
@@ -61,8 +61,8 @@ export default function ForProvidersPage() {
 
       <StaffingSection />
       <SetUpProfileSection />
-      <LeadershipSection />
       <HowItWorksSection />
+      <LeadershipSection />
       <FAQSection />
       <BottomCTASection />
     </main>

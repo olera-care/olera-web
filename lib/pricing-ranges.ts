@@ -44,8 +44,8 @@ const NATIONAL_BASELINES: Record<string, PricingRange> = {
   "Nursing Homes": {
     low: 7000, high: 12000, unit: "/mo",
     description: "24/7 skilled nursing, rehabilitation, and medical care.",
-    medicareCoverage: "partial",
-    medicareNote: "Medicare covers the first 20 days fully after a qualifying hospital stay, then partial coverage up to 100 days.",
+    medicareCoverage: "full",
+    medicareNote: "Medicare covers skilled nursing after a qualifying hospital stay. Medicaid covers long-term stays for eligible individuals.",
   },
   "Senior Communities": {
     low: 2000, high: 5000, unit: "/mo",

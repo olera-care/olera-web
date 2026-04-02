@@ -16,7 +16,7 @@ export default function ContactSection({
   studentEmail: string | null;
   studentPhone: string | null;
   studentSlug: string;
-  variant?: "sidebar" | "sticky";
+  variant?: "sidebar" | "sticky" | "inline";
 }) {
   const router = useRouter();
   const { user, activeProfile, profiles, openAuth } = useAuth();
@@ -125,12 +125,16 @@ export default function ContactSection({
     );
   }
 
-  // ── Sidebar variant (desktop) ──
+  // ── Sidebar/Inline variant (desktop) ──
+  const isInline = variant === "inline";
+  const wrapperClass = isInline
+    ? "space-y-3"
+    : "bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-3";
 
   // Guest: warm gate prompting sign-in as provider
   if (!user) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+      <div className={isInline ? "" : "bg-white rounded-2xl shadow-sm border border-gray-100 p-5"}>
         <p className="text-sm font-semibold text-gray-900">
           Want to connect with {firstName}?
         </p>
@@ -144,19 +148,21 @@ export default function ContactSection({
           <CalendarIcon />
           Schedule Interview
         </button>
-        <p className="mt-2 text-center text-xs text-gray-400">
-          New to Olera?{" "}
-          <Link href="/provider/onboarding" className="text-primary-500 hover:text-primary-600 font-medium">
-            Get started →
-          </Link>
-        </p>
+        {!isInline && (
+          <p className="mt-2 text-center text-xs text-gray-400">
+            New to Olera?{" "}
+            <Link href="/provider/onboarding" className="text-primary-500 hover:text-primary-600 font-medium">
+              Get started →
+            </Link>
+          </p>
+        )}
       </div>
     );
   }
 
   // Provider: show contact info and schedule options
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-3">
+    <div className={wrapperClass}>
       {/* Contact info — only for providers */}
       {(studentEmail || studentPhone) && (
         <div className="space-y-1.5">

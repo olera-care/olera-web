@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import {
+  getPricingForProviderSync,
+  formatPricingRange,
+} from "@/lib/pricing-ranges";
 
 interface InquiryFormProps {
   providerName: string;
@@ -9,6 +13,10 @@ interface InquiryFormProps {
   error?: string;
   initialEmail?: string;
   connectionCount?: number;
+  careTypes?: string[];
+  priceRange?: string | null;
+  city?: string | null;
+  state?: string | null;
 }
 
 export default function InquiryForm({
@@ -18,20 +26,27 @@ export default function InquiryForm({
   error,
   initialEmail = "",
   connectionCount,
+  careTypes = [],
+  priceRange = null,
+  city = null,
+  state = null,
 }: InquiryFormProps) {
   const [email, setEmail] = useState(initialEmail);
   const [honeypot, setHoneypot] = useState("");
   const [localError, setLocalError] = useState("");
+
+  // Resolve pricing from care types
+  const pricing = getPricingForProviderSync(careTypes);
+  const estimateRange = priceRange || (pricing.range ? formatPricingRange(pricing.range) : null);
+  const careLabel = pricing.careTypeLabel || (careTypes.length > 0 ? careTypes[0] : null);
+  const locationStr = [city, state].filter(Boolean).join(", ");
 
   const validateEmail = (val: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
 
   const handleSubmit = useCallback(() => {
     setLocalError("");
-
-    // Honeypot — silently succeed if filled
     if (honeypot) return;
-
     if (!email.trim()) {
       setLocalError("Please enter your email address.");
       return;
@@ -40,7 +55,6 @@ export default function InquiryForm({
       setLocalError("Please enter a valid email address.");
       return;
     }
-
     onSubmit({ email: email.trim().toLowerCase() });
   }, [email, honeypot, onSubmit]);
 
@@ -57,12 +71,40 @@ export default function InquiryForm({
   const displayError = error || localError;
 
   return (
-    <div className="space-y-3">
-      <p className="text-[17px] font-bold text-gray-900">
-        What does this cost?
+    <div>
+      {/* ── Pricing context (the free value) ── */}
+      {estimateRange && !pricing.isHospice && (
+        <div className="mb-4">
+          {(careLabel || locationStr) && (
+            <p className="text-[13px] text-gray-500 font-medium mb-1">
+              {careLabel}{locationStr ? ` in ${locationStr}` : ""}
+            </p>
+          )}
+          <p className="text-[24px] font-bold text-gray-900 tracking-tight leading-none">
+            {estimateRange}
+          </p>
+          <p className="text-[11px] text-gray-400 mt-1">
+            area estimate · costs vary by provider
+          </p>
+        </div>
+      )}
+
+      {pricing.isHospice && (
+        <div className="mb-4">
+          <p className="text-[13px] text-gray-600 leading-relaxed">
+            Hospice is typically covered by Medicare, Medicaid, or insurance at no cost to families.
+          </p>
+        </div>
+      )}
+
+      {/* ── Divider ── */}
+      {estimateRange && <div className="border-t border-gray-100 mb-4" />}
+
+      {/* ── CTA section ── */}
+      <p className="text-[15px] font-semibold text-gray-900 mb-3">
+        Get actual pricing & availability
       </p>
 
-      {/* Email — the only field */}
       <input
         type="email"
         value={email}
@@ -70,10 +112,12 @@ export default function InquiryForm({
         onKeyDown={handleKeyDown}
         placeholder="Your email address"
         autoComplete="email"
-        className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150"
+        className={`w-full px-3.5 py-3 border rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150 ${
+          displayError ? "border-red-300" : "border-gray-200"
+        }`}
       />
 
-      {/* Honeypot — hidden */}
+      {/* Honeypot */}
       <input
         type="text"
         name="website"
@@ -86,34 +130,35 @@ export default function InquiryForm({
       />
 
       {displayError && (
-        <p className="text-xs text-red-600" role="alert">
+        <p className="text-xs text-red-600 mt-1.5" role="alert">
           {displayError}
         </p>
       )}
 
-      {/* Submit */}
       <button
         onClick={handleSubmit}
         disabled={submitting}
-        className="w-full h-11 rounded-xl text-[14px] font-semibold border-none cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 bg-primary-600 text-white hover:bg-primary-700 active:scale-[0.98] disabled:opacity-70 disabled:cursor-default disabled:active:scale-100"
+        className="w-full mt-3 py-3 rounded-xl text-[15px] font-semibold border-none cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 bg-primary-600 text-white shadow-sm hover:bg-primary-700 hover:shadow-md active:scale-[0.98] disabled:opacity-70 disabled:cursor-default disabled:active:scale-100"
       >
         {submitting && (
           <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
         )}
-        {submitting ? "Checking..." : "Check cost & availability"}
+        {submitting ? "Requesting..." : "Request details"}
       </button>
 
-      {/* Trust signals */}
-      <div className="space-y-1 pt-0.5">
-        <p className="text-[12px] text-gray-500 text-center font-medium">
-          No spam. No sales calls.
+      {/* Trust signal */}
+      <p className="text-[13px] text-gray-600 text-center font-medium mt-3 flex items-center justify-center gap-1.5">
+        <svg className="w-3.5 h-3.5 text-primary-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+        </svg>
+        No spam. No sales calls.
+      </p>
+
+      {connectionCount != null && connectionCount >= 10 && (
+        <p className="text-[11px] text-gray-400 text-center mt-1">
+          {connectionCount} families checked this month
         </p>
-        {connectionCount != null && connectionCount >= 10 && (
-          <p className="text-[11px] text-gray-400 text-center">
-            {connectionCount} families checked this month
-          </p>
-        )}
-      </div>
+      )}
     </div>
   );
 }

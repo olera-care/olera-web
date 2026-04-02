@@ -1096,6 +1096,8 @@ export default async function ProviderPage({
                 phone={profile.phone}
                 acceptedPayments={acceptedPayments}
                 careTypes={profile.care_types}
+                city={profile.city}
+                state={profile.state}
                 responseTime={null}
                 providerCategory={profile.category}
                 providerCity={profile.city}

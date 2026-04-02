@@ -47,6 +47,8 @@ export interface ConnectionCardProps {
   phone: string | null;
   acceptedPayments: string[];
   careTypes: string[];
+  city?: string | null;
+  state?: string | null;
   responseTime: string | null; // null in v1
   /** Called after a new connection is successfully created (not on duplicates). */
   onConnectionCreated?: (connectionId: string) => void;

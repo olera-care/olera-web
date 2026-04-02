@@ -39,7 +39,7 @@ const NATIONAL_BASELINES: Record<string, PricingRange> = {
   },
   "Nursing Homes": {
     low: 7000, high: 12000, unit: "/mo",
-    description: "24/7 skilled nursing, rehabilitation, and medical care.",
+    description: "24/7 skilled nursing and rehab. Medicare covers the first 20 days fully after a qualifying hospital stay, then partial coverage up to 100 days.",
   },
   "Senior Communities": {
     low: 2000, high: 5000, unit: "/mo",
@@ -67,7 +67,7 @@ const NATIONAL_BASELINES: Record<string, PricingRange> = {
   },
   "Home Health Care": {
     low: 25, high: 50, unit: "/hr",
-    description: "Skilled nursing, physical therapy, and medical monitoring at home.",
+    description: "Skilled nursing and therapy at home. Often covered by Medicare at no out-of-pocket cost when medically necessary.",
   },
   "Hospice": {
     low: 0, high: 0, unit: "/mo",

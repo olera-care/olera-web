@@ -19,7 +19,7 @@ export default function StatsSection() {
   return (
     <section className="px-4 sm:px-6 lg:px-8 py-4">
       {/* Full-bleed card with background image + teal overlay */}
-      <div className="relative max-w-[1312px] mx-auto rounded-3xl overflow-hidden min-h-[320px] sm:min-h-[380px]">
+      <div className="relative max-w-[1312px] mx-auto rounded-3xl overflow-hidden min-h-[320px] sm:min-h-[400px]">
         {/* Background image */}
         <Image
           src="/images/for-providers/stats-couple.jpg"
@@ -29,42 +29,47 @@ export default function StatsSection() {
           sizes="100vw"
         />
 
-        {/* Teal overlay — heavier on the left for text, transparent on the right to show photo */}
+        {/* Teal overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-primary-800/90 via-primary-700/80 to-primary-600/50" />
 
         {/* Content */}
-        <div className="relative z-10 flex items-center h-full min-h-[320px] sm:min-h-[380px] p-8 sm:p-12 lg:p-16">
+        <div className="relative z-10 flex items-center h-full min-h-[320px] sm:min-h-[400px] p-8 sm:p-12 lg:p-16">
           <div className="max-w-lg">
             <h2 className="font-serif text-display-sm sm:text-display-md lg:text-display-lg font-bold text-white leading-tight">
               Over 50,000 providers
               <br />
-              on Olera
+              already on Olera
             </h2>
             <p className="mt-4 text-lg text-white/85">
-              Join thousands of home care and senior living communities
+              Home care agencies, assisted living communities, and senior care
+              organizations across the country use Olera to reach families and
+              staff their shifts.
             </p>
 
-            {/* Partner logos — overlapping circles */}
-            <div className="mt-8 flex items-center">
-              <div className="flex -space-x-3">
+            {/* Partner logos */}
+            <div className="mt-8">
+              <p className="text-xs text-white/50 uppercase tracking-widest font-medium mb-4">
+                Trusted by
+              </p>
+              <div className="flex items-center gap-4">
                 {partners.map((partner) => (
                   <div
                     key={partner.name}
-                    className="w-12 h-12 rounded-full bg-white border-2 border-white overflow-hidden flex items-center justify-center shadow-sm"
+                    className="w-14 h-14 rounded-xl bg-white/95 overflow-hidden flex items-center justify-center shadow-sm"
                   >
                     <Image
                       src={partner.logo}
                       alt={partner.name}
                       width={48}
                       height={48}
-                      className="w-8 h-8 object-contain"
+                      className="w-9 h-9 object-contain"
                     />
                   </div>
                 ))}
+                <span className="text-sm font-medium text-white/70">
+                  and thousands more
+                </span>
               </div>
-              <span className="ml-3 text-sm font-medium text-white/80">
-                & more
-              </span>
             </div>
           </div>
         </div>

@@ -5,17 +5,17 @@ const PAIN_POINTS = [
   {
     problem: "High turnover drains your budget",
     solution:
-      "Our caregivers are pursuing careers in healthcare. They need consistent hours and long-term placements — not a stopgap between gigs.",
+      "Our caregivers are pursuing careers in healthcare. They need consistent hours and long-term placements, not a stopgap between gigs.",
   },
   {
     problem: "Last-minute call-outs hurt your clients",
     solution:
-      "Every caregiver completes reliability commitments and locks in a schedule before their profile goes live. No surprises.",
+      "Every caregiver signs a no-call no-show commitment and locks in a schedule before their profile goes live. We take reliability seriously.",
   },
   {
     problem: "Agency fees eat into your margins",
     solution:
-      "Connect directly with vetted caregivers. No placement fees, no markups, no middlemen.",
+      "Connect directly with vetted caregivers. No placement fees, no markups, no middlemen. Your first three interviews are free.",
   },
 ];
 
@@ -30,27 +30,27 @@ const VETTING_STEPS = [
   {
     title: "University enrollment verified",
     detail:
-      "We confirm active enrollment in a pre-health program — pre-med, pre-nursing, pre-PA, PT, or public health. No exceptions.",
+      "We confirm active enrollment in a pre-health program: pre-med, pre-nursing, pre-PA, PT, or public health. Many hold CNA or MA certifications already. No exceptions on enrollment verification.",
   },
   {
-    title: "Video interview reviewed by our team",
+    title: "Video intro so you can get to know them",
     detail:
-      "Every applicant records an intro video answering reliability and scenario-based questions. Our team reviews it before any profile goes live.",
+      "Every applicant records a video answering scenario-based questions about reliability, client boundaries, and caregiving situations. You can watch it before you ever schedule an interview.",
   },
   {
-    title: "Reliability and professionalism attestations",
+    title: "No-call no-show commitment enforced",
     detail:
-      "Caregivers sign formal commitments to punctuality, communication standards, dress code, and professional conduct — setting expectations before day one.",
+      "Caregivers sign formal commitments to punctuality, professional conduct, and communication standards. We make it clear: if you no-call no-show for an interview or a shift, you are removed from the platform.",
   },
   {
-    title: "Schedule commitment locked in",
+    title: "Schedule flexibility that fills your hardest shifts",
     detail:
-      "No vague availability. Every caregiver confirms specific days and hours they can work and commits to a minimum engagement period.",
+      "These caregivers want to work evenings, weekends, and overnights because those hours fit around their classes. During summer and winter breaks, many are available full-time. Gap year caregivers between undergrad and medical or PA school can work full-time year-round.",
   },
   {
-    title: "Realistic job expectations set",
+    title: "Realistic expectations set before day one",
     detail:
-      "We prepare caregivers for what the work actually involves — physical demands, emotional weight, client boundaries — so they show up ready, not surprised.",
+      "We prepare every caregiver for the physical demands, emotional weight, and professional boundaries of the job. If they don't have prior experience, we set clear expectations for on-the-job training. They arrive ready to learn, not surprised by the work.",
   },
 ];
 
@@ -58,22 +58,23 @@ export default function StaffingSection() {
   return (
     <section id="staffing" className="scroll-mt-20">
       {/* Header + pain points */}
-      <div className="py-16 sm:py-20 bg-white">
+      <div className="pt-10 sm:pt-14 pb-16 sm:pb-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
             <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">
               Staffing
             </p>
             <h2 className="font-serif text-display-sm sm:text-display-md font-bold text-gray-900 tracking-tight">
-              Reliable staff, sourced from
+              Reliable staff, sourced and vetted
               <br />
-              university health programs
+              from university health programs
             </h2>
             <p className="mt-4 text-lg text-gray-500 leading-relaxed">
-              We recruit caregivers exclusively from pre-med, pre-nursing, pre-PA,
-              and public health programs at universities across the country. They
-              aren&apos;t just filling a shift — they&apos;re building a career in
-              healthcare.
+              We recruit caregivers from pre-med, pre-nursing, pre-PA, and
+              public health programs at universities across the country. They
+              are building careers in healthcare, which means they need real
+              patient care hours and have every reason to be reliable,
+              professional, and engaged with your clients.
             </p>
           </div>
           <div className="mt-12 grid sm:grid-cols-3 gap-8">
@@ -122,10 +123,11 @@ export default function StaffingSection() {
                 for this work
               </h2>
               <p className="mt-4 text-gray-500 leading-relaxed">
-                Not every applicant makes it through. Our process is designed to
-                identify caregivers who are genuinely committed to the work — and
-                to set clear expectations so they show up prepared, not surprised.
-                The result: staff you can trust from day one.
+                You might be thinking: are pre-health college students actually
+                good employees? The honest answer is that not all of them are.
+                That is exactly why our vetting process exists. We identify the
+                ones who are genuinely committed to caregiving, set clear
+                expectations, and remove anyone who does not meet the bar.
               </p>
               <div className="mt-10 space-y-6">
                 {VETTING_STEPS.map((item, i) => (

@@ -14,7 +14,7 @@ const PROFILE_BENEFITS = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
     ),
-    text: "Your profile goes live immediately — visible to thousands of families searching for care in your area",
+    text: "Your profile goes live immediately, visible to thousands of families searching for care in your area",
   },
   {
     icon: (
@@ -22,7 +22,7 @@ const PROFILE_BENEFITS = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
       </svg>
     ),
-    text: "Caregivers near your facility can find you too — one profile connects you to both families and staff",
+    text: "Caregivers near your facility can find you too. One profile connects you to both families and staff",
   },
   {
     icon: (
@@ -30,7 +30,7 @@ const PROFILE_BENEFITS = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
       </svg>
     ),
-    text: "Free to set up — no subscription required to get found. Leads from your profile are always free, no commissions",
+    text: "Free to set up. No subscription required to get found. Leads from your profile are always free, no commissions",
   },
 ];
 
@@ -149,7 +149,7 @@ export default function SetUpProfileSection() {
                 onClick={handleGetStarted}
                 className="mt-6 w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors min-h-[44px]"
               >
-                Get started — it&apos;s free
+                Get started, it&apos;s free
               </button>
             </div>
 

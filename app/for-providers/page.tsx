@@ -13,7 +13,7 @@ import ProviderRedirect from "@/components/for-providers/ProviderRedirect";
 export const metadata: Metadata = {
   title: "For Providers | Reach More Families & Staff Your Shifts on Olera",
   description:
-    "Grow your senior care business on Olera. Get found by families, connect with leads, and hire vetted caregivers from university health programs — free to get started.",
+    "Grow your senior care business on Olera. Get found by families, connect with leads, and hire vetted caregivers from university health programs. Free to get started.",
   alternates: {
     canonical: "/for-providers",
   },
@@ -43,7 +43,7 @@ export default function ForProvidersPage() {
       <StatsSection />
 
       {/* Bridge — transition from families to staffing */}
-      <section className="py-14 sm:py-16">
+      <section className="pt-14 sm:pt-16 pb-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
             <h2 className="font-serif text-display-sm sm:text-display-md font-bold text-gray-900 tracking-tight">

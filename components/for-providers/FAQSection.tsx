@@ -1,42 +1,92 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import Link from "next/link";
 
-const faqItems = [
+interface FAQItem {
+  question: string;
+  answer: ReactNode;
+}
+
+const faqItems: FAQItem[] = [
   {
     question: "How does Olera help me balance client demand and staffing?",
     answer:
-      "Every care operator knows the balancing act: more families means more shifts to fill, and understaffing means turning away business. Olera is the only platform that addresses both sides \u2014 your profile brings in families through local search, and our staffing pipeline connects you with vetted caregivers from university health programs. Grow your census and fill your shifts from the same place.",
+      "Every care operator knows the balancing act: more families means more shifts to fill, and understaffing means turning away business. Olera is the only platform that addresses both sides. Your profile brings in families through local search, and our staffing pipeline connects you with vetted caregivers from university health programs. Grow your census and fill your shifts from the same place.",
   },
   {
     question: "What does it cost?",
-    answer:
-      "Setting up your profile is free, and it goes live immediately \u2014 visible to the thousands of families visiting Olera every month. Leads that come to you through your profile are always free, with no commissions. For $50/month, you unlock Olera Pro: proactively match with high-intent families through our outreach system, plus unlimited access to browse and hire from our vetted caregiver pool. One subscription covers both sides \u2014 unlimited family matching and unlimited hiring.",
+    answer: (
+      <>
+        Setting up your profile is free, and it goes live immediately, visible
+        to the thousands of families visiting Olera every month. Leads that come
+        to you through your profile are always free, with no commissions. For{" "}
+        <Link href="/provider/pro" className="text-primary-600 font-medium hover:underline">
+          $50/month with Olera Pro
+        </Link>
+        , you unlock proactive matching with high-intent families through our
+        outreach system, plus unlimited access to browse and hire from our vetted
+        caregiver pool. One subscription covers both sides: unlimited family
+        matching and unlimited hiring.
+      </>
+    ),
   },
   {
     question: "What about hiring fees?",
+    answer: (
+      <>
+        Your first three interviews with caregivers are completely free, no
+        subscription needed. After that, the same{" "}
+        <Link href="/provider/pro" className="text-primary-600 font-medium hover:underline">
+          $50/month Pro plan
+        </Link>{" "}
+        that unlocks family matching also gives you unlimited access to browse
+        caregiver profiles, watch intro videos, and schedule interviews. No
+        placement fees, no per-hire charges, no markups.
+      </>
+    ),
+  },
+  {
+    question: "How quickly can I get started?",
     answer:
-      "Your first three interviews with caregivers are completely free \u2014 no subscription needed. After that, the same $50/month Pro plan that unlocks family matching also gives you unlimited access to browse caregiver profiles, watch intro videos, and schedule interviews. No placement fees, no per-hire charges, no markups.",
+      "You can set up your profile in under five minutes. Once it is live, families searching for care in your area can find you immediately. Browsing caregiver profiles is available right away too. Most providers go from sign-up to their first family inquiry or caregiver interview within the first week.",
   },
   {
     question: "Where do your caregivers come from?",
     answer:
-      "We recruit exclusively from university pre-health programs \u2014 pre-med, pre-nursing, pre-PA, physical therapy, and public health. Every caregiver is pursuing a career in healthcare, which means they\u2019re motivated, reliable, and invested in delivering quality care. They need consistent patient care hours for their professional school applications, so they stay longer and show up more reliably than typical part-time hires.",
+      "We recruit exclusively from university pre-health programs: pre-med, pre-nursing, pre-PA, physical therapy, and public health. Every caregiver is pursuing a career in healthcare, which means they are motivated, reliable, and invested in delivering quality care. They need consistent patient care hours for their professional school applications, so they stay longer and show up more reliably than typical part-time hires.",
   },
   {
     question: "How are caregivers vetted?",
     answer:
-      "Every caregiver goes through a multi-step vetting process: university enrollment verification, a recorded intro video reviewed by our team where they answer reliability and scenario-based questions, formal attestations to punctuality and professional conduct, a locked-in schedule commitment, and realistic job expectation setting so they arrive prepared for the actual demands of caregiving. Not every applicant makes it through \u2014 that\u2019s by design.",
+      "Every caregiver goes through a multi-step vetting process: university enrollment verification, a recorded intro video where they answer reliability and scenario-based questions, formal attestations to punctuality and professional conduct, a locked-in schedule commitment, and realistic job expectation setting so they arrive prepared for the actual demands of caregiving. Not every applicant makes it through. That is by design.",
   },
   {
     question: "What senior care businesses should join?",
     answer:
-      "Any organization that provides senior care services \u2014 including home care agencies, assisted living communities, memory care facilities, nursing homes, independent living communities, and adult day care centers. Whether you\u2019re a single-location provider or a multi-site operator, Olera helps families find you and connects you with vetted staff.",
+      "Any organization that provides senior care services, including home care agencies, assisted living communities, memory care facilities, nursing homes, independent living communities, and adult day care centers. Whether you are a single-location provider or a multi-site operator, Olera helps families find you and connects you with vetted staff.",
   },
   {
     question: "Why did you build Olera?",
-    answer:
-      "Our founders met in graduate school and spent two years in the NIH/NSF I-Corps program researching the eldercare ecosystem \u2014 interviewing hundreds of families, providers, and caregivers. They found that existing platforms fail both sides: families get sold to the highest bidder, providers pay steep lead fees, and staffing is handled by expensive agencies with high turnover. Olera was built to fix that \u2014 one platform where providers can grow their census and staff their shifts without middlemen.",
+    answer: (
+      <>
+        Our founders met in graduate school and spent two years in the{" "}
+        <a
+          href="https://new.nsf.gov/funding/initiatives/i-corps"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary-600 font-medium hover:underline"
+        >
+          NIH/NSF I-Corps program
+        </a>{" "}
+        researching the eldercare ecosystem, interviewing hundreds of families,
+        providers, and caregivers. They found that existing platforms fail both
+        sides: families get sold to the highest bidder, providers pay steep lead
+        fees, and staffing is handled by expensive agencies with high turnover.
+        Olera was built to fix that. One platform where providers can grow their
+        census and staff their shifts without middlemen.
+      </>
+    ),
   },
 ];
 
@@ -78,7 +128,7 @@ export default function FAQSection() {
                 </span>
               </button>
 
-              {/* Answer — animated expand */}
+              {/* Animated expand */}
               <div
                 className="grid transition-all duration-300 ease-in-out"
                 style={{

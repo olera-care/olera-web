@@ -27,7 +27,7 @@ const VALUE_PROPS = [
   {
     title: "Reviews that build trust",
     description:
-      "Manage your online reputation in one place. Families read reviews before reaching out — make sure yours tell the right story.",
+      "Manage your online reputation in one place. Families read reviews before reaching out, so make sure yours tell the right story.",
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
@@ -81,14 +81,15 @@ export default function EasyToConnectSection() {
             Find families
           </p>
           <h2 className="font-serif text-display-sm md:text-display-md font-bold text-gray-900">
-            It&apos;s easy to connect with
+            Stop paying per lead.
             <br className="hidden sm:block" />
-            families on Olera
+            Start getting found.
           </h2>
           <p className="mt-4 text-lg text-gray-500 leading-relaxed">
-            Most senior care directories sell family contact info to the highest
-            bidder. On Olera, families find you directly through your profile —
-            no bidding, no gatekeepers.
+            Most senior care directories charge $200-400 per lead or sell family
+            contact info to the highest bidder. On Olera, families find you
+            directly through your profile. Leads are free. No commissions, no
+            bidding, no gatekeepers.
           </p>
         </div>
 
@@ -143,7 +144,7 @@ export default function EasyToConnectSection() {
                 >
                   <Image
                     src={tab.image}
-                    alt={`${tab.label} — ${tab.title}`}
+                    alt={`${tab.label}: ${tab.title}`}
                     fill
                     className="object-contain object-center"
                     priority={i === 0}

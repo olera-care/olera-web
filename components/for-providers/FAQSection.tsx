@@ -35,14 +35,14 @@ const faqItems: FAQItem[] = [
     question: "What about hiring fees?",
     answer: (
       <>
-        Your first three interviews with caregivers are completely free, no
-        subscription needed. After that, the same{" "}
+        Your first three hires are completely free, no subscription needed.
+        After that, the same{" "}
         <Link href="/provider/pro" className="text-primary-600 font-medium hover:underline">
           $50/month Pro plan
         </Link>{" "}
         that unlocks family matching also gives you unlimited access to browse
-        caregiver profiles, watch intro videos, and schedule interviews. No
-        placement fees, no per-hire charges, no markups.
+        and hire from our caregiver pool. No placement fees, no per-hire
+        charges, no markups.
       </>
     ),
   },
@@ -54,12 +54,12 @@ const faqItems: FAQItem[] = [
   {
     question: "Where do your caregivers come from?",
     answer:
-      "We recruit exclusively from university pre-health programs: pre-med, pre-nursing, pre-PA, physical therapy, and public health. Every caregiver is pursuing a career in healthcare, which means they are motivated, reliable, and invested in delivering quality care. They need consistent patient care hours for their professional school applications, so they stay longer and show up more reliably than typical part-time hires.",
+      "We recruit from university pre-health programs: pre-med, pre-nursing, pre-PA, physical therapy, and public health. They need hundreds of verified patient care hours for their professional school applications, so they stay longer and show up more reliably than typical part-time hires.",
   },
   {
     question: "How are caregivers vetted?",
     answer:
-      "Every caregiver goes through a multi-step vetting process: university enrollment verification, a recorded intro video where they answer reliability and scenario-based questions, formal attestations to punctuality and professional conduct, a locked-in schedule commitment, and realistic job expectation setting so they arrive prepared for the actual demands of caregiving. Not every applicant makes it through. That is by design.",
+      "University enrollment verification, a recorded video intro with scenario-based questions, formal commitments to punctuality and professional conduct, a locked-in schedule, and realistic job expectation setting. Not every applicant makes it through. That is by design.",
   },
   {
     question: "What senior care businesses should join?",

@@ -1,56 +1,64 @@
 import Image from "next/image";
 import Link from "next/link";
 
+const UNIVERSITIES = [
+  { name: "Texas A&M University", logo: "/images/medjobs/universities/texas-am.png" },
+  { name: "University of Michigan", logo: "/images/medjobs/universities/michigan.png" },
+  { name: "University of Houston", logo: "/images/medjobs/universities/houston.png" },
+  { name: "Prairie View A&M University", logo: "/images/medjobs/universities/prairie-view.webp" },
+  { name: "University of Maryland", logo: "/images/medjobs/universities/maryland.png" },
+];
+
 const PAIN_POINTS = [
   {
     problem: "High turnover drains your budget",
     solution:
-      "Our caregivers are pursuing careers in healthcare. They need consistent hours and long-term placements, not a stopgap between gigs.",
+      "Our caregivers need hundreds of verified patient care hours for professional school. They stay because the work matters to their future.",
   },
   {
     problem: "Last-minute call-outs hurt your clients",
     solution:
-      "Every caregiver signs a no-call no-show commitment and locks in a schedule before their profile goes live. We take reliability seriously.",
+      "Every caregiver signs a no-call no-show commitment before their profile goes live. Violate it and they are removed from the platform.",
   },
   {
     problem: "Agency fees eat into your margins",
     solution:
-      "Connect directly with vetted caregivers. No placement fees, no markups, no middlemen. Your first three interviews are free.",
+      "Connect directly with vetted caregivers. Your first three hires are free. No placement fees, no markups.",
   },
 ];
 
-const STATS = [
-  { stat: "85%", label: "Caregiver retention after 90 days" },
-  { stat: "15-20", label: "Average weekly hours per caregiver" },
-  { stat: "70%", label: "Available evenings & weekends" },
-  { stat: "4.8/5", label: "Provider satisfaction" },
+const COMMITMENT_CARDS = [
+  { stat: "20 hrs/wk", label: "Average weekly commitment" },
+  { stat: "Flexible", label: "Between classes, evenings, weekends, overnights, and PRN" },
+  { stat: "Full-time", label: "Available during summer, winter breaks, and gap years" },
+  { stat: "Zero tolerance", label: "No-call no-show policy enforced" },
 ];
 
 const VETTING_STEPS = [
   {
     title: "University enrollment verified",
     detail:
-      "We confirm active enrollment in a pre-health program: pre-med, pre-nursing, pre-PA, PT, or public health. Many hold CNA or MA certifications already. No exceptions on enrollment verification.",
+      "Active enrollment in a pre-health program confirmed. Many hold CNA or MA certifications.",
   },
   {
     title: "Video intro so you can get to know them",
     detail:
-      "Every applicant records a video answering scenario-based questions about reliability, client boundaries, and caregiving situations. You can watch it before you ever schedule an interview.",
+      "Every applicant answers scenario-based questions on camera. Watch it before you schedule an interview.",
   },
   {
     title: "No-call no-show commitment enforced",
     detail:
-      "Caregivers sign formal commitments to punctuality, professional conduct, and communication standards. We make it clear: if you no-call no-show for an interview or a shift, you are removed from the platform.",
+      "Formal commitments to punctuality, communication, and professional conduct. One violation means removal.",
   },
   {
-    title: "Schedule flexibility that fills your hardest shifts",
+    title: "Schedule locked in, not vague",
     detail:
-      "These caregivers want to work evenings, weekends, and overnights because those hours fit around their classes. During summer and winter breaks, many are available full-time. Gap year caregivers between undergrad and medical or PA school can work full-time year-round.",
+      "Specific days and hours confirmed. Evenings, weekends, overnights, between classes, breaks, and PRN availability.",
   },
   {
-    title: "Realistic expectations set before day one",
+    title: "Job expectations set before day one",
     detail:
-      "We prepare every caregiver for the physical demands, emotional weight, and professional boundaries of the job. If they don't have prior experience, we set clear expectations for on-the-job training. They arrive ready to learn, not surprised by the work.",
+      "Physical demands, emotional weight, and client boundaries covered upfront. They arrive ready, not surprised.",
   },
 ];
 
@@ -70,13 +78,27 @@ export default function StaffingSection() {
               from university health programs
             </h2>
             <p className="mt-4 text-lg text-gray-500 leading-relaxed">
-              We recruit caregivers from pre-med, pre-nursing, pre-PA, and
-              public health programs at universities across the country. They
-              are building careers in healthcare, which means they need real
-              patient care hours and have every reason to be reliable,
-              professional, and engaged with your clients.
+              Pre-med, pre-nursing, pre-PA, and public health caregivers who need
+              real patient care hours for their professional school applications.
+              They have every reason to show up and stay.
             </p>
           </div>
+
+          {/* University logos */}
+          <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3">
+            {UNIVERSITIES.map((uni) => (
+              <Image
+                key={uni.name}
+                src={uni.logo}
+                alt={uni.name}
+                width={100}
+                height={50}
+                className="h-8 sm:h-10 w-auto object-contain opacity-60 grayscale"
+              />
+            ))}
+            <span className="text-sm text-gray-400">and more</span>
+          </div>
+
           <div className="mt-12 grid sm:grid-cols-3 gap-8">
             {PAIN_POINTS.map((item) => (
               <div key={item.problem}>
@@ -92,16 +114,19 @@ export default function StaffingSection() {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Commitment cards */}
       <div className="py-12 sm:py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="text-xs text-center text-gray-400 uppercase tracking-widest font-medium mb-6">
+            What every caregiver commits to before going live
+          </p>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {STATS.map((item) => (
+            {COMMITMENT_CARDS.map((item) => (
               <div
                 key={item.label}
                 className="bg-white rounded-xl p-5 border border-gray-100 text-center"
               >
-                <p className="text-3xl font-bold text-gray-900">{item.stat}</p>
+                <p className="text-2xl font-bold text-gray-900">{item.stat}</p>
                 <p className="text-sm text-gray-500 mt-1">{item.label}</p>
               </div>
             ))}
@@ -109,7 +134,7 @@ export default function StaffingSection() {
         </div>
       </div>
 
-      {/* Our vetting process */}
+      {/* Vetting process */}
       <div className="py-16 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-start">
@@ -123,13 +148,10 @@ export default function StaffingSection() {
                 for this work
               </h2>
               <p className="mt-4 text-gray-500 leading-relaxed">
-                You might be thinking: are pre-health college students actually
-                good employees? The honest answer is that not all of them are.
-                That is exactly why our vetting process exists. We identify the
-                ones who are genuinely committed to caregiving, set clear
-                expectations, and remove anyone who does not meet the bar.
+                Not every applicant makes it through. We identify the ones who
+                are genuinely committed and remove anyone who does not meet the bar.
               </p>
-              <div className="mt-10 space-y-6">
+              <div className="mt-8 space-y-5">
                 {VETTING_STEPS.map((item, i) => (
                   <div key={item.title} className="flex items-start gap-4">
                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mt-0.5 text-sm font-bold">
@@ -139,14 +161,14 @@ export default function StaffingSection() {
                       <p className="text-sm font-semibold text-gray-900">
                         {item.title}
                       </p>
-                      <p className="mt-1 text-sm text-gray-500 leading-relaxed">
+                      <p className="mt-0.5 text-sm text-gray-500 leading-relaxed">
                         {item.detail}
                       </p>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-10">
+              <div className="mt-8">
                 <Link
                   href="/medjobs/candidates"
                   className="inline-flex items-center px-7 py-3 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors"

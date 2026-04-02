@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
       profile_completeness: 0,
     };
 
+    // Profile starts inactive — will be activated when student submits intro video
     const { data: profile, error } = await supabaseAdmin
       .from("business_profiles")
       .insert({
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest) {
         claim_state: "unclaimed",
         verification_state: "unverified",
         source: "user_created",
-        is_active: true,
+        is_active: false,
       })
       .select("id")
       .single();

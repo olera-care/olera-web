@@ -168,29 +168,7 @@ export default function StaffingSection() {
                   </div>
                 ))}
               </div>
-              {/* Hiring flow */}
               <div className="mt-8">
-                <p className="text-xs text-gray-400 uppercase tracking-widest font-medium mb-4">
-                  How hiring works
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { step: "1", title: "Browse profiles", desc: "Video intros and scenario responses" },
-                    { step: "2", title: "Schedule interviews", desc: "Reach out directly, no gatekeepers" },
-                    { step: "3", title: "Hire", desc: "First three hires are free" },
-                    { step: "4", title: "They start working", desc: "Schedule locked, expectations set" },
-                  ].map((item) => (
-                    <div key={item.step} className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 text-xs font-bold mb-1.5">
-                        {item.step}
-                      </span>
-                      <p className="text-sm font-semibold text-gray-900">{item.title}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="mt-6">
                 <Link
                   href="/medjobs/candidates"
                   className="inline-flex items-center px-7 py-3 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors"

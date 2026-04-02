@@ -110,30 +110,8 @@ export default function EasyToConnectSection() {
           ))}
         </div>
 
-        {/* How families become clients */}
-        <div className="mt-14">
-          <p className="text-xs text-gray-400 uppercase tracking-widest font-medium mb-6">
-            How families become clients
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {[
-              { step: "1", title: "Families search for care", desc: "By type, location, or need" },
-              { step: "2", title: "They find your profile", desc: "Optimized for search and AI" },
-              { step: "3", title: "They reach out to you", desc: "Direct connection request" },
-            ].map((item) => (
-              <div key={item.step} className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary-100 text-primary-600 text-xs font-bold mb-2">
-                  {item.step}
-                </span>
-                <p className="text-sm font-semibold text-gray-900">{item.title}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Product tabs */}
-        <div className="mt-14 max-w-5xl mx-auto text-center">
+        <div className="mt-16 max-w-5xl mx-auto text-center">
           {/* Tab pills */}
           <div className="flex items-center justify-center gap-2 flex-wrap">
             {tabs.map((tab, i) => (

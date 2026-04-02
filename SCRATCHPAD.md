@@ -45,15 +45,17 @@
     - Funding options reference existing benefits system (getSavingsRange from Chantel's work)
     - Anti-APFM positioning: "No spam. No sales calls." + actual pricing delivery
     - Dross flagged hardcoding risk → switched to metro-cost-factors.json + benefits system references
-  - **Post-build polish** (7 commits on `fine-dijkstra`):
+  - **Post-build polish** (10 commits on `fine-dijkstra`):
     - Bug fixes: mobile validation + honeypot, firstName save on skip, enrichment partial data
-    - Taste pass: area estimate above CTA, warm card (shadow-only, gradient bg), "Get actual pricing & availability" framing, shield icon on trust line
-    - Medicare handling: Home Health + Nursing Homes show "Medicare / Medicaid may cover" instead of price (matches browse card pattern). Hospice not a service category — dead code, harmless.
-    - Area estimate disclaimer bumped to 12px/gray-500/font-medium to reduce provider complaints
+    - Taste pass: area estimate above CTA, warm card (shadow-only, gradient bg), shield icon on trust line
+    - Medicare handling: Home Health + Nursing Homes show "Medicare / Medicaid may cover" instead of price (matches browse card pattern, provider header text). CTA reads "Check coverage & availability" for Medicare types vs "Get actual pricing & availability" for standard types.
+    - Area estimate disclaimer: 13px/gray-600/font-semibold, explicit "Area estimate — not this provider's actual price" to preempt provider complaints
     - Dross caught hardcoding risk → switched to metro-cost-factors.json + benefits system references
     - `city`/`state` now flow through ConnectionCardProps → InquiryForm for localized context
-  - **Branch**: `fine-dijkstra` — 7 commits, pushed to origin
-  - **Next**: TJ testing on Vercel preview → PR to staging → QA → monitor conversion vs 0.44% baseline
+    - Hospice not a service category — dead code in pricing-ranges.ts, harmless
+  - **Branch**: `fine-dijkstra` — 10 commits, pushed to origin
+  - **TJ testing on Vercel preview** — iterating on copy/styling in real time
+  - **Next**: PR to staging → QA → monitor conversion vs 0.44% baseline
 
 - **City Expansion Batch — 2026-04-01** — DONE ✅
   - 90 new cities processed end-to-end via batch pipeline

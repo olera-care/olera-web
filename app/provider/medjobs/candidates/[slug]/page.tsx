@@ -117,16 +117,16 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
           ═══════════════════════════════════════════════════════════════════ */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm pt-6 pb-4">
+          {/* Back button */}
+          <nav className="pt-6 pb-4">
             <Link
               href="/provider/medjobs/candidates"
-              className="group inline-flex items-center gap-1.5 text-gray-500 hover:text-primary-600 transition-colors"
+              className="group inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary-600 transition-colors"
             >
               <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
               </svg>
-              Back to Candidates
+              Back
             </Link>
           </nav>
 

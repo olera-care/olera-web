@@ -45,23 +45,30 @@ export default function ScenariosCard({ meta, onEdit }: ScenariosCardProps) {
             </span>
           </div>
 
-          {/* Question status list */}
-          <div className="space-y-1.5">
+          {/* Question summaries */}
+          <div className="space-y-2.5">
             {SCENARIO_QUESTIONS.map((q, i) => {
               const response = responses.find((r) => r.question === q.question);
               const isDone = (response?.answer?.length ?? 0) >= 50;
               return (
-                <div key={q.key} className="flex items-center gap-2">
+                <div key={q.key} className="flex items-start gap-2">
                   {isDone ? (
-                    <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   ) : (
-                    <div className="w-4 h-4 rounded-full border border-gray-300 shrink-0" />
+                    <div className="w-4 h-4 rounded-full border border-gray-300 shrink-0 mt-0.5" />
                   )}
-                  <span className={`text-xs ${isDone ? "text-gray-400" : "text-gray-600"}`}>
-                    Question {i + 1}
-                  </span>
+                  <div className="min-w-0">
+                    <span className={`text-xs font-medium ${isDone ? "text-gray-600" : "text-gray-500"}`}>
+                      Q{i + 1}: {q.question.length > 50 ? q.question.slice(0, 50) + "..." : q.question}
+                    </span>
+                    {isDone && response?.answer && (
+                      <p className="text-xs text-gray-400 line-clamp-2 mt-0.5 leading-relaxed">
+                        {response.answer}
+                      </p>
+                    )}
+                  </div>
                 </div>
               );
             })}

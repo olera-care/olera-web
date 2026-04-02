@@ -4,6 +4,7 @@ import { parseSchedule } from "@/components/medjobs/ScheduleBuilder";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"] as const;
 const SLOTS = ["8am", "10am", "12pm", "2pm", "4pm", "6pm"] as const;
+const SLOT_LABELS = ["8a", "10a", "12p", "2p", "4p", "6p"] as const;
 
 interface ScheduleCardProps {
   meta: StudentMetadata;
@@ -42,21 +43,29 @@ export default function ScheduleCard({ meta, onEdit }: ScheduleCardProps) {
       ) : (
         <div className="space-y-3">
           {/* Mini schedule visualization */}
-          <div className="grid grid-cols-5 gap-1">
+          <div className="grid grid-cols-[28px_repeat(5,1fr)] gap-x-1.5 gap-y-0">
+            {/* Header row */}
+            <div />
             {DAYS.map((day) => (
               <div key={day} className="text-center">
                 <span className="text-[10px] font-medium text-gray-400 uppercase">{day.slice(0, 1)}</span>
-                <div className="flex flex-col gap-0.5 mt-1">
-                  {SLOTS.map((slot) => (
-                    <div
-                      key={slot}
-                      className={`h-1.5 rounded-sm ${
-                        isBusy(day, slot) ? "bg-gray-300" : "bg-emerald-200"
-                      }`}
-                    />
-                  ))}
-                </div>
               </div>
+            ))}
+            {/* Time rows */}
+            {SLOTS.map((slot, si) => (
+              <>
+                <div key={`label-${slot}`} className="flex items-center justify-end pr-1">
+                  <span className="text-[9px] text-gray-400 leading-none">{SLOT_LABELS[si]}</span>
+                </div>
+                {DAYS.map((day) => (
+                  <div
+                    key={`${day}-${slot}`}
+                    className={`h-2.5 rounded-sm ${
+                      isBusy(day, slot) ? "bg-gray-300" : "bg-emerald-200"
+                    }`}
+                  />
+                ))}
+              </>
             ))}
           </div>
 

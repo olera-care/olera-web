@@ -624,6 +624,7 @@ export default function MedJobsApplyPage() {
                   These standards are why providers trust MedJobs students. If these feel right to you, you&apos;re exactly who we&apos;re looking for.
               </p>
 
+              <div className="space-y-3">
               {[
                 "I\u2019ll be on time, professional, and communicate schedule changes 24+ hours in advance",
                 "I understand caregiving duties include personal care, meals, mobility, and companionship",
@@ -645,6 +646,7 @@ export default function MedJobsApplyPage() {
                   <span className="text-sm text-gray-700 leading-relaxed">{item}</span>
                 </button>
               ))}
+              </div>
 
               <ReactiveHint show={allAcknowledged}>
                 You&apos;re ready. Students who meet these standards are highly sought after by providers and gain clinical experience that strengthens professional school applications.

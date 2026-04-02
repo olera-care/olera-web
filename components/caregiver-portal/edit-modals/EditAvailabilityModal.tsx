@@ -13,6 +13,14 @@ const COMMITMENT_SUGGESTIONS = [
   "Caregiving is part of my professional development plan. I am committed to 6-12 months of consistent availability, working all hours outside of my coursework, and communicating proactively about schedule changes.",
 ];
 
+const AVAILABILITY_SNIPPETS = [
+  "I have no planned travel and am available for shifts anytime outside of class.",
+  "I can pick up additional shifts during holidays and semester breaks.",
+  "I have reliable transportation and can drive to clients within 30 minutes.",
+  "I am flexible with short-notice shift changes and happy to cover for others.",
+  "I will update my profile with specific finals and travel dates as they are confirmed.",
+];
+
 const SEASONS = ["spring", "summer", "fall", "winter"] as const;
 
 export default function EditAvailabilityModal({
@@ -234,6 +242,18 @@ export default function EditAvailabilityModal({
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-1">Availability notes</label>
           <p className="text-xs text-gray-500 mb-2">Finals, spring break, known travel — the more detail, the better your chances.</p>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {AVAILABILITY_SNIPPETS.map((snippet, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setAvailabilityNotes((prev) => prev ? `${prev.trimEnd()} ${snippet}` : snippet)}
+                className="px-2.5 py-1 border border-gray-200 hover:border-gray-400 rounded-full text-[11px] text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                {snippet.length > 45 ? snippet.slice(0, 45) + "..." : snippet}
+              </button>
+            ))}
+          </div>
           <textarea
             value={availabilityNotes}
             onChange={(e) => setAvailabilityNotes(e.target.value)}

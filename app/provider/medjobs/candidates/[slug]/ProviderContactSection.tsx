@@ -10,7 +10,7 @@ interface ProviderContactSectionProps {
   studentEmail: string | null;
   studentPhone: string | null;
   studentSlug: string;
-  variant?: "sidebar" | "sticky";
+  variant?: "sidebar" | "sticky" | "inline";
 }
 
 export default function ProviderContactSection({
@@ -134,13 +134,18 @@ export default function ProviderContactSection({
     );
   }
 
-  // ── Sidebar variant (desktop) ──
+  // ── Sidebar/Inline variant (desktop) ──
+  const isInline = variant === "inline";
+  const wrapperClass = isInline
+    ? "space-y-4"
+    : "bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4";
+
   // If not authenticated, show auth-gated UI
   if (requiresAuth || requiresProviderProfile) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4">
-        <div className="text-center py-2">
-          <p className="text-sm text-gray-500 mb-4">
+      <div className={wrapperClass}>
+        <div className={isInline ? "" : "text-center py-2"}>
+          <p className={`text-sm text-gray-500 ${isInline ? "mb-3" : "mb-4"}`}>
             Sign in to contact {firstName} and schedule an interview
           </p>
           <button
@@ -156,7 +161,7 @@ export default function ProviderContactSection({
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4">
+    <div className={wrapperClass}>
       {/* Contact Info */}
       {(studentEmail || studentPhone) && (
         <div className="space-y-2">

@@ -113,167 +113,118 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
   return (
     <main className="min-h-screen bg-[#FAFAF8]">
       {/* ═══════════════════════════════════════════════════════════════════
-          HERO SECTION
+          HERO SECTION - Unified Horizontal Card
           ═══════════════════════════════════════════════════════════════════ */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          {/* Back button */}
-          <nav className="pt-6 pb-4">
-            <Link
-              href="/provider/medjobs/candidates"
-              className="group inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary-600 transition-colors"
-            >
-              <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-              Back
-            </Link>
-          </nav>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6">
+        {/* Back button */}
+        <nav className="mb-4">
+          <Link
+            href="/provider/medjobs/candidates"
+            className="group inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary-600 transition-colors"
+          >
+            <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+            Back
+          </Link>
+        </nav>
 
-          {/* Hero Content */}
-          <div className="pb-8 lg:pb-10">
-            <div className="flex flex-col lg:flex-row lg:items-start gap-6 lg:gap-10">
-              {/* Left: Video/Photo Hero */}
-              <div className="flex-1 min-w-0">
-                <div className="rounded-2xl overflow-hidden bg-gray-100 shadow-sm">
-                  {videoAvailable && youtubeId ? (
-                    <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
-                      <iframe
-                        className="absolute inset-0 w-full h-full"
-                        src={`https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0`}
-                        title={`${firstName}'s intro video`}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                    </div>
-                  ) : videoAvailable ? (
-                    <a
-                      href={meta.video_intro_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-center justify-center gap-4 py-20 sm:py-24 hover:bg-gray-50/80 transition-all duration-200"
-                    >
-                      <div className="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-200">
-                        <svg className="w-10 h-10 text-primary-600 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-lg font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">Watch Intro Video</p>
-                        <p className="text-sm text-gray-500 mt-0.5">Hear directly from {firstName}</p>
-                      </div>
-                    </a>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-16 sm:py-20">
-                      {profile.image_url ? (
-                        <Image
-                          src={profile.image_url}
-                          alt={profile.display_name}
-                          width={180}
-                          height={180}
-                          className="w-36 h-36 sm:w-44 sm:h-44 rounded-full object-cover shadow-lg ring-4 ring-white"
-                        />
-                      ) : (
-                        <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shadow-lg ring-4 ring-white">
-                          <span className="text-6xl sm:text-7xl font-bold text-primary-600">
-                            {profile.display_name?.charAt(0)?.toUpperCase() || "?"}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+        {/* ─── Hero Card ─── */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          {/* Main content area */}
+          <div className="p-6 sm:p-8">
+            <div className="flex flex-col sm:flex-row gap-6">
+              {/* Left: Photo */}
+              <div className="flex-shrink-0 flex justify-center sm:justify-start">
+                {profile.image_url ? (
+                  <Image
+                    src={profile.image_url}
+                    alt={profile.display_name}
+                    width={140}
+                    height={140}
+                    className="w-28 h-28 sm:w-32 sm:h-32 lg:w-36 lg:h-36 rounded-full object-cover shadow-md ring-4 ring-white"
+                  />
+                ) : (
+                  <div className="w-28 h-28 sm:w-32 sm:h-32 lg:w-36 lg:h-36 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shadow-md ring-4 ring-white">
+                    <span className="text-4xl sm:text-5xl lg:text-6xl font-bold text-primary-600">
+                      {profile.display_name?.charAt(0)?.toUpperCase() || "?"}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {/* Right: Identity + CTA Sidebar */}
-              <div className="lg:w-[320px] lg:flex-shrink-0 space-y-5">
-                {/* Identity Card */}
-                <div className="space-y-4">
-                  {/* Name + Status */}
-                  <div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
-                        {profile.display_name}
-                      </h1>
-                      {meta.seeking_status === "actively_looking" && (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          Ready to Start
-                        </span>
-                      )}
-                    </div>
-
-                    {/* University + Track + Location */}
-                    <div className="mt-2 space-y-1">
-                      {meta.university && (
-                        <p className="text-base text-gray-600 font-medium">{meta.university}</p>
-                      )}
-                      <p className="text-sm text-gray-500">
-                        {[trackLabel, profile.city && profile.state ? `${profile.city}, ${profile.state}` : null]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Trust Signals */}
-                  <div className="flex flex-wrap items-center gap-3">
-                    {isVerified && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Verified
-                      </span>
-                    )}
-                    {videoAvailable && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary-50 text-primary-700 border border-primary-200">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
-                        </svg>
-                        Video Intro
-                      </span>
-                    )}
-                    {lastUpdated && (
-                      <span className="text-xs text-gray-400">{lastUpdated}</span>
-                    )}
-                  </div>
-
-                  {/* Highlight Chips */}
-                  {displayHighlights.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {displayHighlights.map((fact) => (
-                        <span
-                          key={fact}
-                          className="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-50 text-gray-700 border border-gray-100"
-                        >
-                          {fact}
-                        </span>
-                      ))}
-                    </div>
+              {/* Middle: Identity Info */}
+              <div className="flex-1 min-w-0 text-center sm:text-left">
+                {/* Name + Status */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-wrap justify-center sm:justify-start">
+                  <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
+                    {profile.display_name}
+                  </h1>
+                  {meta.seeking_status === "actively_looking" && (
+                    <span className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 w-fit mx-auto sm:mx-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Ready to Start
+                    </span>
                   )}
                 </div>
 
-                {/* CTA Card (Desktop) */}
-                <div className="hidden lg:block">
-                  <ProviderContactSection
-                    studentId={profile.id}
-                    studentName={profile.display_name}
-                    studentEmail={profile.email}
-                    studentPhone={profile.phone}
-                    studentSlug={profile.slug}
-                    variant="sidebar"
-                  />
+                {/* University + Track + Location */}
+                <div className="mt-2 space-y-0.5">
+                  {meta.university && (
+                    <p className="text-base text-gray-700 font-medium">{meta.university}</p>
+                  )}
+                  <p className="text-sm text-gray-500">
+                    {[trackLabel, profile.city && profile.state ? `${profile.city}, ${profile.state}` : null]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
                 </div>
 
-                {/* Quick Links */}
-                <div className="flex gap-3">
+                {/* Trust Signals */}
+                <div className="mt-3 flex flex-wrap items-center gap-2 justify-center sm:justify-start">
+                  {isVerified && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Verified
+                    </span>
+                  )}
+                  {videoAvailable && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 text-primary-700 border border-primary-200">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                      </svg>
+                      Video Intro
+                    </span>
+                  )}
+                  {lastUpdated && (
+                    <span className="text-xs text-gray-400">{lastUpdated}</span>
+                  )}
+                </div>
+
+                {/* Highlight Chips */}
+                {displayHighlights.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2 justify-center sm:justify-start">
+                    {displayHighlights.map((fact) => (
+                      <span
+                        key={fact}
+                        className="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-50 text-gray-700 border border-gray-100"
+                      >
+                        {fact}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Quick Links - Desktop */}
+                <div className="hidden lg:flex gap-3 mt-4">
                   {resumeUrl && (
                     <a
                       href={resumeUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 hover:bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm rounded-xl text-sm font-medium text-gray-700 transition-all duration-200"
+                      className="group inline-flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm rounded-lg text-sm font-medium text-gray-700 transition-all duration-200"
                     >
                       <svg className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
@@ -286,7 +237,7 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
                       href={meta.linkedin_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 hover:bg-white border border-gray-200 hover:border-[#0A66C2]/30 hover:shadow-sm rounded-xl text-sm font-medium text-gray-700 transition-all duration-200"
+                      className="group inline-flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-white border border-gray-200 hover:border-[#0A66C2]/30 hover:shadow-sm rounded-lg text-sm font-medium text-gray-700 transition-all duration-200"
                     >
                       <svg className="w-4 h-4 text-[#0A66C2]" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
@@ -296,8 +247,87 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
                   )}
                 </div>
               </div>
+
+              {/* Right: CTA Section - Desktop */}
+              <div className="hidden lg:block lg:w-[280px] lg:flex-shrink-0 lg:border-l lg:border-gray-100 lg:pl-6">
+                <ProviderContactSection
+                  studentId={profile.id}
+                  studentName={profile.display_name}
+                  studentEmail={profile.email}
+                  studentPhone={profile.phone}
+                  studentSlug={profile.slug}
+                  variant="inline"
+                />
+              </div>
+            </div>
+
+            {/* Mobile: Quick Links + CTA */}
+            <div className="lg:hidden mt-6 pt-6 border-t border-gray-100">
+              {/* Quick Links */}
+              <div className="flex gap-3 mb-4">
+                {resumeUrl && (
+                  <a
+                    href={resumeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 hover:bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm rounded-xl text-sm font-medium text-gray-700 transition-all duration-200"
+                  >
+                    <svg className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                    </svg>
+                    Resume
+                  </a>
+                )}
+                {meta.linkedin_url && (
+                  <a
+                    href={meta.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 hover:bg-white border border-gray-200 hover:border-[#0A66C2]/30 hover:shadow-sm rounded-xl text-sm font-medium text-gray-700 transition-all duration-200"
+                  >
+                    <svg className="w-4 h-4 text-[#0A66C2]" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                    </svg>
+                    LinkedIn
+                  </a>
+                )}
+              </div>
             </div>
           </div>
+
+          {/* Video Section - Inside card if available */}
+          {videoAvailable && (
+            <div className="border-t border-gray-100">
+              {youtubeId ? (
+                <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+                  <iframe
+                    className="absolute inset-0 w-full h-full"
+                    src={`https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0`}
+                    title={`${firstName}'s intro video`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              ) : (
+                <a
+                  href={meta.video_intro_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center justify-center gap-4 py-12 sm:py-16 bg-gray-50 hover:bg-gray-100 transition-all duration-200"
+                >
+                  <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-200">
+                    <svg className="w-8 h-8 text-primary-600 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">Watch Intro Video</p>
+                    <p className="text-sm text-gray-500 mt-0.5">Hear directly from {firstName}</p>
+                  </div>
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

@@ -267,8 +267,8 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                   </Link>
                 </li>
                 <li>
-                  <Link href="/medjobs/providers" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    MedJobs for Providers
+                  <Link href="/for-providers#staffing" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Staffing
                   </Link>
                 </li>
               </ul>

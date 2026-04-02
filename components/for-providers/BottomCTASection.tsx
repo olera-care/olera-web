@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { useCitySearch } from "@/hooks/use-city-search";
@@ -206,7 +207,7 @@ export default function BottomCTASection() {
 
           {/* Browse candidates CTA */}
           <div className="mt-6">
-            <a
+            <Link
               href="/medjobs/candidates"
               className="inline-flex items-center px-7 py-3 border border-gray-600 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors"
             >
@@ -214,7 +215,7 @@ export default function BottomCTASection() {
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
-            </a>
+            </Link>
             <p className="mt-2 text-sm text-gray-500">
               No fees. No commitment.
             </p>

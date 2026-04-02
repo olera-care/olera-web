@@ -1332,10 +1332,10 @@ function StudentPortalContent({
                         </svg>
                         Browse open jobs
                       </Link>
-                      <Link href={`/medjobs/candidates/${profile.slug}`}
+                      <a href={`/medjobs/candidates/${profile.slug}`} target="_blank" rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 px-5 py-2.5 border border-emerald-300 hover:bg-emerald-100 rounded-lg text-sm font-medium text-emerald-800 transition-colors">
                         View your public profile
-                      </Link>
+                      </a>
                     </div>
                   </div>
                 </div>

@@ -743,7 +743,6 @@ export default async function StudentProfilePage({ params }: PageProps) {
           studentFirstName={profile.display_name?.split(" ")[0] || "this student"}
           reviews={reviews || []}
         />
->>>>>>> origin/claude/add-references-reviews-jju1f
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════

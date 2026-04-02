@@ -262,13 +262,27 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                   </Link>
                 </li>
                 <li>
+                  <Link href="/for-providers#staffing" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Staffing
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* For Caregivers */}
+            <div>
+              <h3 className="text-gray-900 font-semibold text-xs uppercase tracking-wider mb-3">
+                For Caregivers
+              </h3>
+              <ul className="space-y-0">
+                <li>
                   <Link href="/medjobs" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    MedJobs
+                    Become a Caregiver
                   </Link>
                 </li>
                 <li>
-                  <Link href="/for-providers#staffing" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    Staffing
+                  <Link href="/medjobs/apply" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Apply Now
                   </Link>
                 </li>
               </ul>

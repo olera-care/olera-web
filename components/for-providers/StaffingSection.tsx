@@ -21,9 +21,9 @@ const PAIN_POINTS = [
       "Every caregiver signs a no-call no-show commitment before their profile goes live. Violate it and they are removed from the platform.",
   },
   {
-    problem: "Agency fees eat into your margins",
+    problem: "Empty shifts cost you clients",
     solution:
-      "Connect directly with vetted caregivers. Your first three hires are free. No placement fees, no markups.",
+      "When you cannot fill a shift, you turn away business. Our pipeline is evergreen, with new vetted caregivers joining every semester. Your first three hires are free.",
   },
 ];
 

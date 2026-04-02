@@ -28,6 +28,21 @@ const faqItems = [
     answer:
       "Results vary based on your location, care type, and profile completeness. Providers with complete profiles \u2014 including photos, detailed services, and active review management \u2014 tend to receive significantly more inquiries. We\u2019re transparent: there are no guarantees, but we\u2019re building tools to help you convert every lead.",
   },
+  {
+    question: "Where do your caregivers come from?",
+    answer:
+      "We recruit exclusively from university pre-health programs \u2014 pre-med, pre-nursing, pre-PA, physical therapy, and public health. Every caregiver is pursuing a career in healthcare, which means they\u2019re motivated, reliable, and invested in delivering quality care.",
+  },
+  {
+    question: "How are caregivers vetted?",
+    answer:
+      "Every caregiver goes through a multi-step vetting process: university enrollment verification, a recorded intro video reviewed by our team, reliability and professionalism acknowledgments, and a confirmed schedule commitment. Only candidates who pass every step appear in your browse results.",
+  },
+  {
+    question: "Are there fees for hiring through Olera staffing?",
+    answer:
+      "No placement fees, no markups, no middlemen. You browse caregiver profiles, watch their intro videos, and reach out directly. The connection is free.",
+  },
 ];
 
 export default function FAQSection() {

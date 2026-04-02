@@ -1,18 +1,20 @@
-# Plan: Candidate References & Reviews
+# Plan: Candidate References & Reviews (MVP)
 
 Created: 2026-04-02
 Status: Not Started
 
 ## Goal
 
-Add two new sections to MedJobs candidate profile pages: **References** (uploaded by students) and **Reviews** (left by clients/employers about students).
+Add two new sections to MedJobs candidate profile pages: **References** (requested by students, written by referees via unique link) and **Reviews** (left by unauthenticated clients/employers about students).
 
 ## Success Criteria
 
-- [ ] Students can upload references (name, relationship, contact info, optional document) via their portal
-- [ ] Reviews can be left on student profiles by authenticated clients/employers
+- [ ] Students can request references by entering a referee's email — referee gets a unique link to write a recommendation
+- [ ] Referees can write a recommendation via the unique link (no account needed)
+- [ ] Unauthenticated clients/employers can leave reviews on student profiles via a token-based link or public form
 - [ ] Both sections display on the public candidate profile page
 - [ ] Aggregate rating (from reviews) visible on candidate cards in browse list
+- [ ] Reviews received shown inline on the student's existing portal page (read-only)
 - [ ] Data stored in two new Supabase tables with proper RLS
 
 ---
@@ -21,47 +23,57 @@ Add two new sections to MedJobs candidate profile pages: **References** (uploade
 
 ### Table: `medjobs_student_references`
 
+References are **requested by students** and **written by referees** via a unique token link (no account needed).
+
 | Column | Type | Notes |
 |--------|------|-------|
 | id | uuid PK | |
 | student_profile_id | uuid FK → business_profiles | The student |
-| referee_name | text | "Dr. Jane Smith" |
+| referee_name | text | Filled by referee when they write the rec |
 | referee_title | text | "Professor of Biology" |
 | referee_organization | text | "UT Austin" |
-| referee_email | text | Optional contact |
-| referee_phone | text | Optional contact |
-| relationship | text | CHECK: professor, employer, supervisor, colleague, other |
-| document_url | text | Optional uploaded letter (PDF/image in private storage) |
-| display_order | smallint | Student controls ordering |
-| status | text | pending / published — admin can moderate |
+| referee_email | text NOT NULL | Student provides this to send the request |
+| relationship | text | professor, employer, supervisor, colleague, other |
+| recommendation | text | The actual recommendation text (written by referee) |
+| token | text UNIQUE NOT NULL | Secret token for the referee's unique write link |
+| status | text | requested / completed | 
+| display_order | smallint DEFAULT 0 | Student controls ordering of completed refs |
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
 
-**RLS:** Students CRUD own references. Public can read `status = 'published'`.
+**Flow:**
+1. Student enters referee email + relationship in portal → row created with `status = 'requested'`, token generated
+2. Email sent to referee with link: `/medjobs/reference/{token}`
+3. Referee fills in name, title, org, recommendation text → `status = 'completed'`
+4. Completed references display on candidate profile
+
+**RLS:** Students read/insert own. Public can read `status = 'completed'`. Unauthenticated update via API (token-validated, not RLS).
 
 ### Table: `medjobs_student_reviews`
+
+Reviews are left by **unauthenticated users** (clients/employers). No account required for MVP.
 
 | Column | Type | Notes |
 |--------|------|-------|
 | id | uuid PK | |
 | student_profile_id | uuid FK → business_profiles | The student being reviewed |
-| reviewer_profile_id | uuid FK → business_profiles | The reviewer (client/employer) |
-| reviewer_name | text | Display name |
-| rating | smallint | 1-5 stars |
-| title | text | Optional headline |
-| comment | text | Min 50 chars (matches existing reviews pattern) |
-| relationship | text | CHECK: client, employer, supervisor, coworker |
+| reviewer_name | text NOT NULL | Display name |
+| reviewer_email | text | For dedup / follow-up (not displayed) |
+| rating | smallint NOT NULL | 1-5 stars |
+| comment | text NOT NULL | Min 50 chars |
+| relationship | text NOT NULL | client, employer, supervisor, coworker |
 | status | text | published / under_review / removed |
 | created_at | timestamptz | |
 | updated_at | timestamptz | |
 
-**RLS:** One review per reviewer per student. Public can read `status = 'published'`. Authenticated users can insert. Reviewer can update own.
+**No auth required for MVP.** Reviews go to `status = 'under_review'` by default and require admin approval before showing publicly. This prevents spam without requiring accounts.
+
+**RLS:** Public can read `status = 'published'`. Insert is open (via API with basic validation). Admin updates status.
 
 ### StudentMetadata additions
 
 ```typescript
 // Added to StudentMetadata in lib/types.ts
-references_count?: number;    // denormalized for card display
 average_rating?: number;      // denormalized for card display  
 review_count?: number;        // denormalized for card display
 ```
@@ -70,101 +82,116 @@ review_count?: number;        // denormalized for card display
 
 ## Tasks
 
-### Phase 1: Database & Types (foundation)
+### Phase 1: Database & Types
 
 - [ ] 1. Create migration `030_medjobs_references_reviews.sql`
       - Files: `supabase/migrations/030_medjobs_references_reviews.sql`
       - Both tables, indexes, RLS policies, triggers
-      - Verify: Migration SQL is syntactically valid, matches patterns in 019
+      - Verify: SQL is valid, matches patterns in 019
 
 - [ ] 2. Update TypeScript types
       - Files: `lib/types.ts`
-      - Add `references_count`, `average_rating`, `review_count` to `StudentMetadata`
-      - Verify: `npm run build` passes (type-check)
+      - Add `average_rating`, `review_count` to `StudentMetadata`
+      - Verify: `npm run build` passes
 
 ### Phase 2: API Routes
 
-- [ ] 3. Student references CRUD API
+- [ ] 3. Reference request API (student-facing)
       - Files: `app/api/medjobs/references/route.ts`
-      - GET (by student_profile_id), POST (create), PUT (reorder/edit), DELETE
-      - Auth: student owns the profile
-      - Verify: Manual test with curl / browser
+      - POST: student creates a reference request (referee email, relationship) → generates token
+      - GET: fetch references for a student profile (public: completed only)
+      - DELETE: student can cancel/remove a reference request
+      - Auth: student owns the profile (for POST/DELETE)
+      - Verify: Creates row with token, returns reference list
 
-- [ ] 4. Reference document upload API
-      - Files: `app/api/medjobs/upload-reference/route.ts`
-      - Follows existing `upload-document` pattern (private bucket, 10MB, PDF/image)
-      - Storage path: `{profileId}/references/{referenceId}.{ext}`
-      - Verify: Upload returns URL, file accessible via signed URL
+- [ ] 4. Reference submission API (referee-facing, unauthenticated)
+      - Files: `app/api/medjobs/references/submit/route.ts`
+      - GET: validate token, return student name + relationship context
+      - POST: referee submits name, title, org, recommendation text via token
+      - No auth required — token is the auth
+      - Verify: Token lookup works, submission updates row to completed
 
-- [ ] 5. Student reviews API
+- [ ] 5. Student reviews API (unauthenticated)
       - Files: `app/api/medjobs/student-reviews/route.ts`
-      - GET (by student_profile_id, public), POST (authenticated, one per reviewer per student)
-      - Follows existing `reviews` table pattern from migration 009
+      - GET: fetch published reviews for a student (public)
+      - POST: anyone submits a review (name, email, rating, comment, relationship) → status = under_review
+      - Basic spam prevention: rate limit by IP, email dedup per student
       - Verify: Can create and fetch reviews
 
-### Phase 3: Portal UI (student uploads references)
+### Phase 3: Portal UI (inline on existing page)
 
-- [ ] 6. References management section in student portal
-      - Files: `app/portal/medjobs/page.tsx` (or new `app/portal/medjobs/references/page.tsx`)
-      - Add/edit/delete/reorder references
-      - Upload reference letter documents
-      - Inline form (name, title, org, relationship, optional doc)
-      - Verify: Student can add, see, reorder, and remove references
+- [ ] 6. Reference request section on student portal page
+      - Files: `app/portal/medjobs/page.tsx`
+      - New section below existing steps: "References"
+      - Simple form: referee email + relationship dropdown → sends request
+      - List of requested/completed references with status indicators
+      - Student can delete pending requests
+      - Verify: Student can request, see status, and delete references
 
-### Phase 4: Public Candidate Page (display)
+- [ ] 7. Reviews received section on student portal page (read-only)
+      - Files: `app/portal/medjobs/page.tsx`
+      - New section below references: "Reviews"
+      - Read-only list of published reviews with star ratings
+      - Empty state: "No reviews yet"
+      - Verify: Student sees their reviews
 
-- [ ] 7. References section on candidate profile
+### Phase 4: Referee Submission Page
+
+- [ ] 8. Public referee form page
+      - Files: `app/medjobs/reference/[token]/page.tsx`
+      - Validates token → shows student name and relationship context
+      - Form: name, title, organization, recommendation text
+      - Thank-you state after submission
+      - Already-submitted state if token is used
+      - Verify: Referee can write and submit a recommendation via the link
+
+### Phase 5: Public Candidate Page (display)
+
+- [ ] 9. References section on candidate profile
       - Files: `app/medjobs/candidates/[slug]/page.tsx`
-      - New card below existing grid: shows referee name, title, org, relationship
-      - Document link hidden on public page (referee contact info also hidden — just name/title/org)
+      - New card: completed references showing referee name, title, org, relationship, recommendation text
+      - Empty state hidden (don't show section if no completed references)
       - Verify: References appear on public profile
 
-- [ ] 8. Reviews section on candidate profile
+- [ ] 10. Reviews section on candidate profile
       - Files: `app/medjobs/candidates/[slug]/page.tsx`
       - Star rating summary + individual review cards
-      - Follows visual pattern of existing provider reviews
-      - Verify: Reviews appear with ratings on public profile
+      - Simple review form at bottom (name, email, rating, comment, relationship)
+      - Empty state hidden (don't show section if no published reviews)
+      - Verify: Reviews display, form submits
 
-- [ ] 9. Review submission form (for clients/employers)
-      - Files: `app/medjobs/candidates/[slug]/ReviewForm.tsx` (new client component)
-      - Auth-gated: must be logged in, cannot review self
-      - Rating stars + title + comment (min 50 chars) + relationship dropdown
-      - Verify: Authenticated user can submit a review
+### Phase 6: Browse List + Provider View
 
-### Phase 5: Browse List Integration
-
-- [ ] 10. Show aggregate rating on candidate cards
+- [ ] 11. Show aggregate rating on candidate cards
       - Files: `components/medjobs/CandidateRow.tsx`
-      - Display average star rating + review count badge (if any reviews exist)
-      - Verify: Rating appears on browse page cards for reviewed candidates
+      - Display average star rating + review count if any reviews exist
+      - Verify: Rating appears on browse page cards
 
-### Phase 6: Provider View
-
-- [ ] 11. Mirror references/reviews on provider-facing candidate page
+- [ ] 12. Mirror references/reviews on provider-facing candidate page
       - Files: `app/provider/medjobs/candidates/[slug]/page.tsx`
-      - Same display as public page, potentially with referee contact info visible to providers
-      - Verify: Provider sees references and reviews
+      - Same display as public page
+      - Verify: Provider sees both sections
 
 ---
 
 ## Risks
 
-- **Schema coupling:** References and reviews are separate tables from the existing provider `reviews` table — no migration conflicts
-- **RLS complexity:** Need careful policies so students can't write their own reviews. Reviewer must have a different profile than the student
-- **Denormalized counts:** `average_rating` / `review_count` on metadata need to be updated when reviews change. Options: (a) Supabase trigger function, (b) compute on read. Recommend compute on read for now (small scale), add trigger later
-- **Storage bucket:** Reference documents go in existing `student-documents` bucket (private). No new bucket needed
-- **Empty states:** Both sections need graceful empty states (no references yet, no reviews yet)
+- **Spam reviews:** Mitigated by defaulting to `under_review` status — admin must approve before public display
+- **Token security:** Reference tokens should be cryptographically random (crypto.randomUUID). Tokens are single-use (status changes to completed)
+- **Email delivery:** MVP can skip actual email sending — just generate the link and show it to the student to share manually. Real email integration can come later
+- **Denormalized counts:** Compute `average_rating` / `review_count` on read for MVP (join query). Trigger-based denormalization later if needed
 
-## Open Questions
+## Decisions Made
 
-1. **Should references auto-publish or require admin approval?** Recommend auto-publish (status = 'published' on create) since students control their own references
-2. **Should reviews require the reviewer to have an existing connection/experience log with the student?** This would prevent fake reviews but adds friction. Recommend starting without this gate
-3. **Rating display on cards:** Stars or numeric? Recommend stars with count like "4.8 (3)"
-4. **Should the portal show a "Reviews received" section?** Students would want to see their reviews — add read-only view in portal
+1. **References auto-publish** — no admin approval. Students control what they request, referees write directly
+2. **Reviews require admin approval** — `under_review` → `published` since reviewers are unauthenticated
+3. **Reviews are unauthenticated** for MVP — no account needed, just name + email
+4. **Reference flow is token-based** — student enters email, gets a shareable link for the referee
+5. **Portal integration is inline** — references and reviews sections added to existing `/portal/medjobs` page, no new tabs or pages
+6. **Email sending deferred** — MVP generates the link, student shares it manually. Real email can be Phase 2
 
 ## Notes
 
-- Existing provider `reviews` table (migration 009) is a good pattern to follow for student reviews
-- Existing `upload-document` API (private bucket) is the pattern for reference letter uploads
-- The candidate page is a server component — reviews section with the submit form will need a client component island
-- Consider adding reviews to the candidate API response (`/api/medjobs/candidates`) for browse page rating display
+- Reference token link pattern: `/medjobs/reference/{token}` — clean public URL
+- The review form on the candidate page is unauthenticated, so it's a simple HTML form with server action or client POST
+- For the portal page, add sections after the "all done" state — references and reviews only make sense once the profile is live

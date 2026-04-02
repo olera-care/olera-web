@@ -73,7 +73,45 @@ export default function InquiryForm({
   return (
     <div>
       {/* ── Pricing context (the free value) ── */}
-      {estimateRange && !pricing.isHospice && (
+      {pricing.medicareCoverage === "full" ? (
+        /* Medicare-covered care types (Home Health): lead with coverage, not price */
+        <div className="mb-4">
+          {(careLabel || locationStr) && (
+            <p className="text-[13px] text-gray-500 font-medium mb-1">
+              {careLabel}{locationStr ? ` in ${locationStr}` : ""}
+            </p>
+          )}
+          <p className="text-[18px] font-bold text-primary-700 leading-snug">
+            Medicare / Medicaid may cover
+          </p>
+          {pricing.medicareNote && (
+            <p className="text-[12px] text-gray-500 mt-1 leading-relaxed">
+              {pricing.medicareNote}
+            </p>
+          )}
+        </div>
+      ) : pricing.medicareCoverage === "partial" && estimateRange ? (
+        /* Partial Medicare (Nursing Homes): show price + Medicare note */
+        <div className="mb-4">
+          {(careLabel || locationStr) && (
+            <p className="text-[13px] text-gray-500 font-medium mb-1">
+              {careLabel}{locationStr ? ` in ${locationStr}` : ""}
+            </p>
+          )}
+          <p className="text-[24px] font-bold text-gray-900 tracking-tight leading-none">
+            {estimateRange}
+          </p>
+          <p className="text-[11px] text-gray-400 mt-1">
+            area estimate · costs vary by provider
+          </p>
+          {pricing.medicareNote && (
+            <p className="text-[12px] text-primary-700 font-medium mt-2">
+              {pricing.medicareNote}
+            </p>
+          )}
+        </div>
+      ) : estimateRange && !pricing.isHospice ? (
+        /* Standard care types: show price estimate */
         <div className="mb-4">
           {(careLabel || locationStr) && (
             <p className="text-[13px] text-gray-500 font-medium mb-1">
@@ -87,18 +125,18 @@ export default function InquiryForm({
             area estimate · costs vary by provider
           </p>
         </div>
-      )}
-
-      {pricing.isHospice && (
+      ) : pricing.isHospice ? (
         <div className="mb-4">
           <p className="text-[13px] text-gray-600 leading-relaxed">
             Hospice is typically covered by Medicare, Medicaid, or insurance at no cost to families.
           </p>
         </div>
-      )}
+      ) : null}
 
       {/* ── Divider ── */}
-      {estimateRange && <div className="border-t border-gray-100 mb-4" />}
+      {(estimateRange || pricing.medicareCoverage || pricing.isHospice) && (
+        <div className="border-t border-gray-100 mb-4" />
+      )}
 
       {/* ── CTA section ── */}
       <p className="text-[15px] font-semibold text-gray-900 mb-3">

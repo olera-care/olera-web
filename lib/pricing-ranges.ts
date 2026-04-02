@@ -22,6 +22,10 @@ export interface PricingRange {
   high: number;
   unit: "/mo" | "/hr";
   description: string;
+  /** Care types where Medicare is a primary coverage source */
+  medicareCoverage?: "full" | "partial" | null;
+  /** Short message about Medicare for this care type */
+  medicareNote?: string;
 }
 
 const NATIONAL_BASELINES: Record<string, PricingRange> = {
@@ -39,7 +43,9 @@ const NATIONAL_BASELINES: Record<string, PricingRange> = {
   },
   "Nursing Homes": {
     low: 7000, high: 12000, unit: "/mo",
-    description: "24/7 skilled nursing and rehab. Medicare covers the first 20 days fully after a qualifying hospital stay, then partial coverage up to 100 days.",
+    description: "24/7 skilled nursing, rehabilitation, and medical care.",
+    medicareCoverage: "partial",
+    medicareNote: "Medicare covers the first 20 days fully after a qualifying hospital stay, then partial coverage up to 100 days.",
   },
   "Senior Communities": {
     low: 2000, high: 5000, unit: "/mo",
@@ -67,7 +73,9 @@ const NATIONAL_BASELINES: Record<string, PricingRange> = {
   },
   "Home Health Care": {
     low: 25, high: 50, unit: "/hr",
-    description: "Skilled nursing and therapy at home. Often covered by Medicare at no out-of-pocket cost when medically necessary.",
+    description: "Skilled nursing, physical therapy, and medical monitoring at home.",
+    medicareCoverage: "full",
+    medicareNote: "Often covered by Medicare at no cost when ordered by a doctor.",
   },
   "Hospice": {
     low: 0, high: 0, unit: "/mo",
@@ -146,6 +154,8 @@ export interface PricingInfo {
   localizedRange: PricingRange | null;
   careTypeLabel: string | null;
   isHospice: boolean;
+  medicareCoverage: "full" | "partial" | null;
+  medicareNote: string | null;
   costFactor: number;
 }
 
@@ -176,12 +186,14 @@ export async function getPricingForProvider(
         localizedRange: localized,
         careTypeLabel: canonical,
         isHospice: canonical === "Hospice",
+        medicareCoverage: base.medicareCoverage || null,
+        medicareNote: base.medicareNote || null,
         costFactor,
       };
     }
   }
 
-  return { range: null, localizedRange: null, careTypeLabel: null, isHospice: false, costFactor: 1.0 };
+  return { range: null, localizedRange: null, careTypeLabel: null, isHospice: false, medicareCoverage: null, medicareNote: null, costFactor: 1.0 };
 }
 
 /**
@@ -190,18 +202,21 @@ export async function getPricingForProvider(
  */
 export function getPricingForProviderSync(
   careTypes: string[],
-): { range: PricingRange | null; careTypeLabel: string | null; isHospice: boolean } {
+): { range: PricingRange | null; careTypeLabel: string | null; isHospice: boolean; medicareCoverage: "full" | "partial" | null; medicareNote: string | null } {
   for (const ct of careTypes) {
     const canonical = resolveCareType(ct);
     if (canonical && NATIONAL_BASELINES[canonical]) {
+      const base = NATIONAL_BASELINES[canonical];
       return {
-        range: NATIONAL_BASELINES[canonical],
+        range: base,
         careTypeLabel: canonical,
         isHospice: canonical === "Hospice",
+        medicareCoverage: base.medicareCoverage || null,
+        medicareNote: base.medicareNote || null,
       };
     }
   }
-  return { range: null, careTypeLabel: null, isHospice: false };
+  return { range: null, careTypeLabel: null, isHospice: false, medicareCoverage: null, medicareNote: null };
 }
 
 /**

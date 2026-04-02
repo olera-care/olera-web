@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 
@@ -14,13 +16,42 @@ export default function ContactSection({
   studentEmail: string | null;
   studentPhone: string | null;
   studentSlug: string;
-  variant?: "sidebar" | "sticky";
+  variant?: "sidebar" | "sticky" | "inline";
 }) {
+  const router = useRouter();
   const { user, activeProfile, profiles, openAuth } = useAuth();
-  const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
-  const hasProviderProfile = profiles.some(
-    (p) => p.type === "organization" || p.type === "caregiver"
+
+  // Only organization profiles are providers (caregivers are job-seekers)
+  const isProvider = activeProfile?.type === "organization";
+  const hasProviderProfile = profiles.some((p) => p.type === "organization");
+
+  // Identify non-provider user types
+  const isCaregiver = activeProfile?.type === "student" || activeProfile?.type === "caregiver";
+  const isFamily = activeProfile?.type === "family";
+
+  // Check if caregiver is viewing their own profile
+  const ownCaregiverProfile = profiles.find(
+    (p) => (p.type === "student" || p.type === "caregiver") && p.slug === studentSlug
   );
+  const isViewingOwnProfile = !!ownCaregiverProfile;
+
+  // Redirect logged-in non-providers away from this page (edge case)
+  // Exception: caregivers can view their own public profile
+  useEffect(() => {
+    if (!user || hasProviderProfile || isViewingOwnProfile) return;
+
+    if (isFamily) {
+      router.replace("/");
+    } else if (isCaregiver) {
+      router.replace("/portal/medjobs");
+    }
+  }, [user, hasProviderProfile, isFamily, isCaregiver, isViewingOwnProfile, router]);
+
+  // Don't render anything while redirecting non-providers (except when viewing own profile)
+  if (user && !hasProviderProfile && !isViewingOwnProfile) {
+    return null;
+  }
+
   const firstName = studentName.split(" ")[0];
 
   const providerName = activeProfile?.display_name || "";
@@ -31,21 +62,92 @@ export default function ContactSection({
     ? `Hi ${firstName},\n\nWe'd like to schedule a brief interview to learn more about your availability and experience. Are you free this week for a 15-minute call?\n\nBest,\n${providerName}`
     : `Hi ${firstName},\n\nI came across your profile on Olera MedJobs and I'm interested in learning more about your availability. Would you be free for a quick call this week?\n\nBest`;
 
-  const scheduleHref = studentEmail
+  // Only show contact info to providers
+  const scheduleHref = isProvider && studentEmail
     ? `mailto:${studentEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
     : null;
 
+  // Guest: auth modal with provider intent
+  // Existing providers will be sent to the provider candidate page after sign-in
+  // New signups go to provider onboarding step 2 (search) then back to this candidate
   const triggerAuth = () =>
     openAuth({
+      intent: "provider",
       defaultMode: "sign-in",
       deferred: {
-        action: "inquiry",
-        returnUrl: `/medjobs/candidates/${studentSlug}`,
+        action: "hire-candidate",
+        returnUrl: `/provider/medjobs/candidates/${studentSlug}`,
       },
     });
 
+  // ── Own profile preview mode ──
+  // Show a disabled preview of what providers see
+  if (isViewingOwnProfile) {
+    if (variant === "sticky") {
+      return (
+        <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.64 0 8.577 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.64 0-8.577-3.007-9.963-7.178z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Provider preview
+            </div>
+            <Link
+              href="/portal/medjobs"
+              className="px-4 py-2 bg-gray-900 hover:bg-gray-800 rounded-lg text-sm font-medium text-white transition-colors"
+            >
+              Edit Profile
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
+    // Sidebar/inline preview
+    const isInline = variant === "inline";
+    return (
+      <div className={isInline ? "space-y-4" : "bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4"}>
+        {/* Preview badge */}
+        <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.64 0 8.577 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.64 0-8.577-3.007-9.963-7.178z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Provider Preview
+        </div>
+
+        {/* Disabled CTA button */}
+        <div
+          className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gray-200 rounded-xl text-sm font-semibold text-gray-400 cursor-not-allowed"
+          aria-disabled="true"
+        >
+          <CalendarIcon />
+          Schedule Interview
+        </div>
+
+        <p className="text-xs text-gray-400 text-center">
+          This is how providers see your profile
+        </p>
+
+        {/* Edit profile link */}
+        <Link
+          href="/portal/medjobs"
+          className="flex items-center justify-center gap-2 w-full px-4 py-2.5 border border-primary-200 text-primary-700 hover:bg-primary-50 rounded-xl text-sm font-medium transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
+          </svg>
+          Edit your profile
+        </Link>
+      </div>
+    );
+  }
+
   // ── Sticky mobile bar ──
   if (variant === "sticky") {
+    // Guest: prompt to sign in as provider
     if (!user) {
       return (
         <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
@@ -60,6 +162,7 @@ export default function ContactSection({
       );
     }
 
+    // Provider: show contact options
     return (
       <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
         {scheduleHref ? (
@@ -82,17 +185,21 @@ export default function ContactSection({
     );
   }
 
-  // ── Sidebar variant (desktop) ──
+  // ── Sidebar/Inline variant (desktop) ──
+  const isInline = variant === "inline";
+  const wrapperClass = isInline
+    ? "space-y-3"
+    : "bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-3";
 
-  // Not signed in — warm gate
+  // Guest: warm gate prompting sign-in as provider
   if (!user) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+      <div className={isInline ? "" : "bg-white rounded-2xl shadow-sm border border-gray-100 p-5"}>
         <p className="text-sm font-semibold text-gray-900">
           Want to connect with {firstName}?
         </p>
         <p className="mt-1 text-xs text-gray-500">
-          Create a free account to see contact info and schedule an interview.
+          Sign in as a provider to see contact info and schedule an interview.
         </p>
         <button
           onClick={triggerAuth}
@@ -101,17 +208,22 @@ export default function ContactSection({
           <CalendarIcon />
           Schedule Interview
         </button>
-        <p className="mt-1.5 text-center text-xs text-gray-400">
-          Free. Takes 30 seconds.
-        </p>
+        {!isInline && (
+          <p className="mt-2 text-center text-xs text-gray-400">
+            New to Olera?{" "}
+            <Link href="/provider/onboarding" className="text-primary-500 hover:text-primary-600 font-medium">
+              Get started →
+            </Link>
+          </p>
+        )}
       </div>
     );
   }
 
-  // Signed in (provider or non-provider)
+  // Provider: show contact info and schedule options
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-3">
-      {/* Contact info */}
+    <div className={wrapperClass}>
+      {/* Contact info — only for providers */}
       {(studentEmail || studentPhone) && (
         <div className="space-y-1.5">
           {studentEmail && (
@@ -152,23 +264,13 @@ export default function ContactSection({
       )}
 
       {/* Provider view link */}
-      {(isProvider || hasProviderProfile) && (
+      {hasProviderProfile && (
         <Link
           href={`/provider/medjobs/candidates/${studentSlug}`}
           className="block w-full text-center px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-xl transition-colors"
         >
           Full Provider View
         </Link>
-      )}
-
-      {/* Create provider prompt */}
-      {user && !hasProviderProfile && (
-        <p className="text-center text-xs text-gray-400">
-          <Link href="/for-providers/create" className="text-primary-500 hover:text-primary-600">
-            Create a provider profile
-          </Link>{" "}
-          to hire caregivers.
-        </p>
       )}
     </div>
   );

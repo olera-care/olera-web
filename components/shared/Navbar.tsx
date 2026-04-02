@@ -320,28 +320,6 @@ export default function Navbar() {
                 </Link>
               ))}
               <div className="mx-4 my-1 border-t border-gray-100" />
-              {/* Provider-specific settings */}
-              <Link
-                href="/provider/pro"
-                className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                onClick={() => setIsUserMenuOpen(false)}
-              >
-                <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                </svg>
-                Olera Pro
-              </Link>
-              <Link
-                href="/provider/verification"
-                className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                onClick={() => setIsUserMenuOpen(false)}
-              >
-                <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  <polyline points="9 12 11 14 15 10" />
-                </svg>
-                Identity Verification
-              </Link>
               <Link
                 href="/account/settings"
                 className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
@@ -1100,44 +1078,6 @@ export default function Navbar() {
                                       {item.badge}
                                     </span>
                                   )}
-                                </Link>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Account accordion (collapsed by default) */}
-                      <div className="rounded-xl overflow-hidden">
-                        <button
-                          type="button"
-                          onClick={() => setMobileAccordion(mobileAccordion === "settings" ? null : "settings")}
-                          className={`flex items-center justify-between w-full px-3 py-3 rounded-xl transition-colors ${mobileAccordion === "settings" ? "bg-gray-50" : "hover:bg-gray-50"}`}
-                          aria-expanded={mobileAccordion === "settings"}
-                        >
-                          <span className="text-[15px] font-semibold text-gray-900">Account</span>
-                          <svg className={`w-4 h-4 text-gray-400 transition-transform ${mobileAccordion === "settings" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </button>
-                        {mobileAccordion === "settings" && (
-                          <div className="mt-1 space-y-0.5">
-                            {([
-                              { label: "Identity Verification", href: "/provider/verification", icon: "M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" },
-                              { label: "Olera Pro", href: "/provider/pro", icon: "M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" },
-                            ] as const).map((item) => {
-                              const active = pathname.startsWith(item.href);
-                              return (
-                                <Link
-                                  key={item.label}
-                                  href={item.href}
-                                  className={`flex items-center gap-3 py-2.5 px-3 rounded-lg transition-colors ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
-                                  onClick={() => setIsMobileMenuOpen(false)}
-                                >
-                                  <svg className={`w-5 h-5 shrink-0 ${active ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
-                                  </svg>
-                                  <span className="text-[15px]">{item.label}</span>
                                 </Link>
                               );
                             })}

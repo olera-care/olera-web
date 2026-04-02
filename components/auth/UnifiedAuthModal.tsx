@@ -545,7 +545,86 @@ export default function UnifiedAuthModal({
     const deferred = options.deferred || getDeferredAction();
     const hasDeferredAction = !!deferred?.action;
 
-    // Deferred returnUrl — skip welcome and redirect to where they were going.
+    // Provider intent — route based on whether user has a provider profile
+    // Existing providers can use deferred returnUrl; new signups go to onboarding
+    // Existing families/caregivers are redirected to appropriate pages (they can't become providers with same email)
+    if (options.intent === "provider") {
+      onClose();
+
+      // Query fresh profile data from DB (cached `profiles` state may be stale
+      // after sign-out + sign-in of a different account)
+      let freshProviderProfile = null;
+      let existingProfileType: string | null = null;
+      try {
+        const { createBrowserClient } = await import("@supabase/ssr");
+        const sb = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        const { data: { user: currentUser } } = await sb.auth.getUser();
+        if (currentUser) {
+          const { data: account } = await sb
+            .from("accounts")
+            .select("id")
+            .eq("user_id", currentUser.id)
+            .maybeSingle();
+
+          if (account) {
+            // Check for provider profile first
+            const { data: orgProfile } = await sb
+              .from("business_profiles")
+              .select("id")
+              .eq("account_id", account.id)
+              .eq("type", "organization")
+              .eq("is_active", true)
+              .limit(1)
+              .maybeSingle();
+            freshProviderProfile = orgProfile;
+
+            // If no provider profile, check for other profile types
+            if (!freshProviderProfile) {
+              const { data: otherProfile } = await sb
+                .from("business_profiles")
+                .select("type")
+                .eq("account_id", account.id)
+                .eq("is_active", true)
+                .limit(1)
+                .maybeSingle();
+              existingProfileType = otherProfile?.type || null;
+            }
+          }
+        }
+      } catch {
+        // Non-blocking - fall through to onboarding
+      }
+
+      if (freshProviderProfile) {
+        // Existing provider — use deferred returnUrl if present, otherwise go to /provider
+        if (deferred?.returnUrl && hasDeferredAction) {
+          const safeReturnUrl = validateReturnUrl(deferred.returnUrl, "/provider");
+          router.push(safeReturnUrl);
+        } else {
+          router.push("/provider");
+        }
+      } else if (existingProfileType === "family") {
+        // Existing family account — can't become provider with same email, redirect to home
+        router.push("/");
+      } else if (existingProfileType === "student" || existingProfileType === "caregiver") {
+        // Existing caregiver account — can't become provider with same email, redirect to their dashboard
+        router.push("/portal/medjobs");
+      } else {
+        // New signup or no profile — go to provider onboarding
+        // If coming from MedJobs hire flow, skip to search step and preserve return URL
+        if (deferred?.action === "hire-candidate" && deferred?.returnUrl?.startsWith("/provider/medjobs/candidates/")) {
+          router.push(`/provider/onboarding?step=search&next=${encodeURIComponent(deferred.returnUrl)}`);
+        } else {
+          router.push("/provider/onboarding");
+        }
+      }
+      return;
+    }
+
+    // Deferred returnUrl (non-provider intents) — skip welcome and redirect to where they were going.
     // Used by the claim page to return after auth (verification-first flow).
     if (deferred?.returnUrl && hasDeferredAction) {
       const safeReturnUrl = validateReturnUrl(deferred.returnUrl, "/browse");
@@ -557,17 +636,6 @@ export default function UnifiedAuthModal({
     // Check if user already has a provider profile (from cache)
     const providerProfile = (profiles || []).find((p) => p.type === "organization");
     const hasProviderProfile = !!providerProfile;
-
-    // Provider intent — route to provider onboarding (not /welcome)
-    if (options.intent === "provider") {
-      onClose();
-      if (hasProviderProfile) {
-        router.push("/provider");
-      } else {
-        router.push("/provider/onboarding");
-      }
-      return;
-    }
 
     // Family intent — route to family welcome page (skip stale profile checks)
     // This handles the case where a provider creates a separate family account.

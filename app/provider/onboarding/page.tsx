@@ -127,14 +127,21 @@ function ProviderOnboardingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isAdding = searchParams.get("adding") === "true";
+  // Support skipping to search step (from MedJobs hire flow)
+  const initialStep = searchParams.get("step");
+  const rawNextUrl = searchParams.get("next");
+  // Validate nextUrl to prevent open redirect - only allow known safe paths
+  const nextUrl = rawNextUrl?.startsWith("/provider/medjobs/candidates/") ? rawNextUrl : null;
   const { user, account, profiles, isLoading, refreshAccountData, switchProfile, openAuth } = useAuth();
-  const [step, setStep] = useState<Step>(1);
-  const [providerType, setProviderType] = useState<ProviderType | null>(null);
+  // If step=search is in URL, start at search step with organization type pre-selected
+  const [step, setStep] = useState<Step>(initialStep === "search" ? "search" : 1);
+  const [providerType, setProviderType] = useState<ProviderType | null>(initialStep === "search" ? "organization" : null);
   const [data, setData] = useState<WizardData>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   // Track if we're still checking for landing page prefill (to avoid flashing step 1)
-  const [checkingPrefill, setCheckingPrefill] = useState(true);
+  // When step=search is in URL (from MedJobs hire flow), skip prefill check immediately
+  const [checkingPrefill, setCheckingPrefill] = useState(initialStep !== "search");
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Provider[]>([]);
@@ -202,14 +209,19 @@ function ProviderOnboardingContent() {
   useEffect(() => {
     if (isLoading) return;
 
-    // If logged in and they already have a provider profile, redirect to hub
+    // If logged in and they already have a provider profile, redirect appropriately
     // (unless they're explicitly adding another profile, or claiming via ?claim=)
     if (user) {
       const hasProviderProfile = (profiles || []).some(
         (p) => p.type === "organization" || p.type === "caregiver"
       );
       if (hasProviderProfile && !isAdding) {
-        router.replace("/provider");
+        // If coming from MedJobs hire flow, return to the candidate page
+        if (nextUrl) {
+          router.replace(nextUrl);
+        } else {
+          router.replace("/provider");
+        }
         return;
       }
     }
@@ -239,7 +251,13 @@ function ProviderOnboardingContent() {
       // sessionStorage unavailable
     }
 
-    // Check for a previously started session (only if no prefill)
+    // If step=search is in URL (from MedJobs hire flow), skip resume detection
+    if (initialStep === "search") {
+      setCheckingPrefill(false);
+      return;
+    }
+
+    // Check for a previously started session (only if no prefill and no URL step)
     try {
       const savedType = localStorage.getItem(TYPE_KEY) as ProviderType | null;
 
@@ -538,7 +556,7 @@ function ProviderOnboardingContent() {
         setVerifyError(result.error || "Incorrect code. Please try again.");
         return;
       }
-      // Verified — clear wizard state and go straight to dashboard
+      // Verified — clear wizard state and redirect
       // (claimed providers already have their data from olera-providers)
       try {
         localStorage.removeItem(TYPE_KEY);
@@ -549,7 +567,12 @@ function ProviderOnboardingContent() {
         // localStorage unavailable
       }
       await refreshAccountData();
-      router.replace("/provider");
+      // If coming from MedJobs hire flow, return to the candidate page
+      if (nextUrl) {
+        router.replace(nextUrl);
+      } else {
+        router.replace("/provider");
+      }
     } catch {
       setVerifyError("Something went wrong. Please try again.");
     } finally {
@@ -745,7 +768,12 @@ function ProviderOnboardingContent() {
         switchProfile(profileId);
       }
 
-      router.replace("/provider");
+      // If coming from MedJobs hire flow, return to the candidate page
+      if (nextUrl) {
+        router.replace(nextUrl);
+      } else {
+        router.replace("/provider");
+      }
     } catch {
       setSubmitError("Something went wrong. Please try again.");
     } finally {
@@ -764,7 +792,9 @@ function ProviderOnboardingContent() {
   const showWizardNav = step !== "resume" && step !== "search";
 
   // Show loading while auth is loading or while checking for landing page prefill
-  if (isLoading || checkingPrefill) {
+  // Exception: when step=search is in URL, show the search UI immediately (auth can settle in background)
+  const canShowSearchImmediately = initialStep === "search" && step === "search";
+  if ((isLoading || checkingPrefill) && !canShowSearchImmediately) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />

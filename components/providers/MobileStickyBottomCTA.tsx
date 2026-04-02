@@ -25,13 +25,23 @@ function MobileEmailForm({
   submitting?: boolean;
 }) {
   const [email, setEmail] = useState("");
+  const [honeypot, setHoneypot] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = useCallback(() => {
+    setError("");
+    if (honeypot) return; // Bot trap
     const val = email.trim().toLowerCase();
-    if (val && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
-      onSubmit(val);
+    if (!val) {
+      setError("Please enter your email address.");
+      return;
     }
-  }, [email, onSubmit]);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    onSubmit(val);
+  }, [email, honeypot, onSubmit]);
 
   return (
     <>
@@ -47,8 +57,24 @@ function MobileEmailForm({
         }}
         placeholder="Your email address"
         autoComplete="email"
-        className="w-full px-3.5 py-3 border border-gray-300 rounded-xl text-[15px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600"
+        className={`w-full px-3.5 py-3 border rounded-xl text-[15px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 ${
+          error ? "border-red-300" : "border-gray-300"
+        }`}
       />
+      {/* Honeypot */}
+      <input
+        type="text"
+        name="website"
+        value={honeypot}
+        onChange={(e) => setHoneypot(e.target.value)}
+        style={{ display: "none" }}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+      />
+      {error && (
+        <p className="text-xs text-red-600" role="alert">{error}</p>
+      )}
       <button
         onClick={handleSubmit}
         disabled={submitting || !email.trim()}

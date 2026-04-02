@@ -14,8 +14,8 @@ import {
 interface EnrichmentStateProps {
   providerName: string;
   onSave: (data: {
-    careRecipient: CareRecipient;
-    urgency: UrgencyValue;
+    careRecipient?: CareRecipient;
+    urgency?: UrgencyValue;
     firstName: string;
   }) => void;
   onSkip: () => void;
@@ -46,12 +46,17 @@ export default function EnrichmentState({
   const displayRange = priceRange || (pricing.range ? formatPricingRange(pricing.range) : null);
   const fundingOptions = getFundingOptions();
 
-  const canSave = recipient && urgency && !saving;
+  const hasSelections = recipient && urgency;
+  const hasAnything = hasSelections || firstName.trim();
+  const canSave = hasAnything && !saving;
 
   const handleSave = useCallback(() => {
-    if (recipient && urgency) {
-      onSave({ careRecipient: recipient, urgency, firstName: firstName.trim() });
-    }
+    // Save whatever data we have — firstName alone is worth saving
+    onSave({
+      careRecipient: recipient || undefined,
+      urgency: urgency || undefined,
+      firstName: firstName.trim(),
+    });
   }, [recipient, urgency, firstName, onSave]);
 
   return (

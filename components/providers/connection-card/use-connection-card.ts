@@ -680,7 +680,10 @@ export function useConnectionCard(props: ConnectionCardProps) {
     urgency?: string;
     firstName?: string;
   }) => {
-    if (!connectionId || !data?.careRecipient || !data?.urgency) {
+    // Need at least connectionId and some data to save
+    const hasIntentData = data?.careRecipient && data?.urgency;
+    const hasFirstName = data?.firstName && data.firstName.trim();
+    if (!connectionId || (!hasIntentData && !hasFirstName)) {
       navigatePostEnrichment();
       return;
     }

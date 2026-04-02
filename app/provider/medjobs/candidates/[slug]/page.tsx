@@ -263,6 +263,7 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
             </div>
 
             {/* ─── RESUME CARD: All Content Sections with Dividers ─── */}
+            {/* Section order optimized for provider screening: practical filters first, personality later */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
 
               {/* ── Video Section ── */}
@@ -304,41 +305,8 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
                 </div>
               )}
 
-              {/* ── About Section ── */}
-              {hasAbout && (
-                <div className={`py-8 px-6 sm:px-8 ${videoAvailable ? "border-t border-gray-200" : ""}`}>
-                  <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
-                    About {firstName}
-                  </h2>
-                  <div className="space-y-4">
-                    {meta.why_caregiving && (
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                          Why I Want to Be a Caregiver
-                        </h3>
-                        <p className="text-base text-gray-700 leading-relaxed whitespace-pre-line">
-                          {meta.why_caregiving}
-                        </p>
-                      </div>
-                    )}
-                    {profile.description && !meta.why_caregiving && (
-                      <p className="text-base text-gray-700 leading-relaxed whitespace-pre-line">
-                        {profile.description}
-                      </p>
-                    )}
-                    {meta.intended_professional_school && (
-                      <p className="text-sm text-gray-600">
-                        <span className="font-medium text-gray-900">Career Goal:</span>{" "}
-                        {INTENDED_SCHOOL_LABELS[meta.intended_professional_school]}
-                        {meta.graduation_year && ` · Graduating ${meta.graduation_year}`}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
               {/* ── Availability Section ── */}
-              <div className={`py-8 px-6 sm:px-8 ${videoAvailable || hasAbout ? "border-t border-gray-200" : ""}`}>
+              <div className={`py-8 px-6 sm:px-8 ${videoAvailable ? "border-t border-gray-200" : ""}`}>
                 <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
                   Availability
                 </h2>
@@ -557,6 +525,39 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
                         <p className="text-sm text-gray-600 leading-relaxed">{sr.answer}</p>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── About Section ── */}
+              {hasAbout && (
+                <div className="py-8 px-6 sm:px-8 border-t border-gray-200">
+                  <h2 className="text-xl font-display font-bold text-gray-900 mb-4">
+                    About {firstName}
+                  </h2>
+                  <div className="space-y-4">
+                    {meta.why_caregiving && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                          Why I Want to Be a Caregiver
+                        </h3>
+                        <p className="text-base text-gray-700 leading-relaxed whitespace-pre-line">
+                          {meta.why_caregiving}
+                        </p>
+                      </div>
+                    )}
+                    {profile.description && !meta.why_caregiving && (
+                      <p className="text-base text-gray-700 leading-relaxed whitespace-pre-line">
+                        {profile.description}
+                      </p>
+                    )}
+                    {meta.intended_professional_school && (
+                      <p className="text-sm text-gray-600">
+                        <span className="font-medium text-gray-900">Career Goal:</span>{" "}
+                        {INTENDED_SCHOOL_LABELS[meta.intended_professional_school]}
+                        {meta.graduation_year && ` · Graduating ${meta.graduation_year}`}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}

@@ -140,7 +140,7 @@ export default function InquiryForm({
 
       {/* ── CTA section ── */}
       <p className="text-[15px] font-semibold text-gray-900 mb-3">
-        Get actual pricing & availability
+        {pricing.medicareCoverage ? "Check coverage & availability" : "Get actual pricing & availability"}
       </p>
 
       <input

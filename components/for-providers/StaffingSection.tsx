@@ -69,18 +69,16 @@ export default function StaffingSection() {
       <div className="py-16 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
-            <p className="text-sm tracking-widest uppercase text-primary-600 font-medium mb-3">
-              Staffing
-            </p>
             <h2 className="font-serif text-display-sm sm:text-display-md font-bold text-gray-900 tracking-tight">
-              Reliable staff, sourced and vetted
+              You have the clients.
               <br />
-              from university health programs
+              <span className="text-primary-600">Now staff the shifts.</span>
             </h2>
             <p className="mt-4 text-lg text-gray-500 leading-relaxed">
-              Pre-med, pre-nursing, pre-PA, and public health caregivers who need
-              real patient care hours for their professional school applications.
-              They have every reason to show up and stay.
+              Pre-med, pre-nursing, pre-PA, and public health caregivers sourced
+              and vetted from university health programs. They need real patient
+              care hours for professional school. They have every reason to show
+              up and stay.
             </p>
           </div>
 

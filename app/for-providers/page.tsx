@@ -42,23 +42,6 @@ export default function ForProvidersPage() {
       <EasyToConnectSection />
       <StatsSection />
 
-      {/* Bridge */}
-      <section className="pt-16 md:pt-24 pb-6 md:pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl">
-            <h2 className="font-serif text-display-sm sm:text-display-md font-bold text-gray-900 tracking-tight">
-              You have the clients.
-              <br />
-              <span className="text-primary-600">Now staff the shifts.</span>
-            </h2>
-            <p className="mt-4 text-lg text-gray-500">
-              Growing your census is only half the challenge. The other half is
-              finding reliable caregivers to deliver the care families expect.
-            </p>
-          </div>
-        </div>
-      </section>
-
       <StaffingSection />
       <SetUpProfileSection />
       <HowItWorksSection />

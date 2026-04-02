@@ -67,7 +67,7 @@ export default function SetUpProfileSection() {
   return (
     <section className="py-16 md:py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl mb-12">
+        <div className="max-w-2xl mx-auto text-center mb-12">
           <h2 className="font-serif text-display-sm md:text-display-md font-bold text-gray-900">
             Set up your profile in minutes
           </h2>

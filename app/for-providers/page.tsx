@@ -43,7 +43,7 @@ export default function ForProvidersPage() {
       <StatsSection />
 
       {/* Bridge */}
-      <section className="py-16 md:py-24">
+      <section className="pt-16 md:pt-24 pb-6 md:pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
             <h2 className="font-serif text-display-sm sm:text-display-md font-bold text-gray-900 tracking-tight">

@@ -135,7 +135,7 @@ export default function StaffingSection() {
       </div>
 
       {/* Vetting process */}
-      <div className="py-16 sm:py-20 bg-white">
+      <div className="pt-16 sm:pt-20 pb-8 sm:pb-10 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-start">
             <div>

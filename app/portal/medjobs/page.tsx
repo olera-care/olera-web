@@ -31,6 +31,8 @@ import {
   BackgroundCard,
   ResumeCard,
 } from "@/components/caregiver-portal/cards";
+import ReferencesSection from "@/components/medjobs/ReferencesSection";
+import ReviewsReceivedSection from "@/components/medjobs/ReviewsReceivedSection";
 
 /* ─── Types ───────────────────────────────────────────────── */
 
@@ -1550,6 +1552,10 @@ function StudentPortalContent({
                 ))}
               </div>
             </div>
+
+            {/* References & Reviews */}
+            <ReferencesSection profileId={profile.id} />
+            <ReviewsReceivedSection profileId={profile.id} />
           </div>
         </div>
       </div>

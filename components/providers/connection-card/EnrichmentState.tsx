@@ -2,8 +2,6 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import Pill from "./Pill";
-import { URGENCY_OPTIONS, RECIPIENT_OPTIONS } from "./constants";
-import type { CareRecipient, UrgencyValue } from "./types";
 import {
   getPricingForProviderSync,
   formatPricingRange,
@@ -16,15 +14,11 @@ type NotifyChannel = "text" | "whatsapp" | "email";
 interface EnrichmentStateProps {
   providerName: string;
   onSave: (data: {
-    careRecipient?: CareRecipient;
-    urgency?: UrgencyValue;
     phone: string;
     notifyChannel: NotifyChannel;
   }) => void;
   onSkip: () => void;
   saving?: boolean;
-  initialRecipient?: CareRecipient | null;
-  initialUrgency?: UrgencyValue | null;
   careTypes?: string[];
   priceRange?: string | null;
 }
@@ -40,13 +34,9 @@ export default function EnrichmentState({
   onSave,
   onSkip,
   saving,
-  initialRecipient = null,
-  initialUrgency = null,
   careTypes = [],
   priceRange = null,
 }: EnrichmentStateProps) {
-  const [recipient, setRecipient] = useState<CareRecipient | null>(initialRecipient);
-  const [urgency, setUrgency] = useState<UrgencyValue | null>(initialUrgency);
   const [notifyChannel, setNotifyChannel] = useState<NotifyChannel | null>(null);
   const [phone, setPhone] = useState("");
   const [showFunding, setShowFunding] = useState(false);
@@ -66,19 +56,15 @@ export default function EnrichmentState({
   const displayRange = priceRange || (pricing.range ? formatPricingRange(pricing.range) : null);
   const fundingOptions = getFundingOptions();
 
-  const hasSelections = recipient && urgency;
   const hasNotify = notifyChannel === "email" || (needsPhone && phone.trim());
-  const hasAnything = hasNotify || hasSelections;
-  const canSave = hasAnything && !saving;
+  const canSave = hasNotify && !saving;
 
   const handleSave = useCallback(() => {
     onSave({
-      careRecipient: recipient || undefined,
-      urgency: urgency || undefined,
       phone: needsPhone ? phone.trim() : "",
       notifyChannel: notifyChannel || "email",
     });
-  }, [recipient, urgency, phone, notifyChannel, needsPhone, onSave]);
+  }, [phone, notifyChannel, needsPhone, onSave]);
 
   return (
     <div>
@@ -200,37 +186,6 @@ export default function EnrichmentState({
           className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all duration-150 mb-3"
         />
       )}
-
-      {/* ── Care context (secondary) ── */}
-      <p className="text-[13px] font-medium text-gray-700 mb-2 mt-4">
-        Who needs care?
-      </p>
-      <div className="flex flex-wrap gap-2 mb-4">
-        {RECIPIENT_OPTIONS.map((opt) => (
-          <Pill
-            key={opt.value}
-            label={opt.label}
-            selected={recipient === opt.value}
-            onClick={() => setRecipient(opt.value as CareRecipient)}
-            small
-          />
-        ))}
-      </div>
-
-      <p className="text-[13px] font-medium text-gray-700 mb-2">
-        How soon?
-      </p>
-      <div className="flex flex-wrap gap-2 mb-5">
-        {URGENCY_OPTIONS.map((opt) => (
-          <Pill
-            key={opt.value}
-            label={opt.label}
-            selected={urgency === opt.value}
-            onClick={() => setUrgency(opt.value as UrgencyValue)}
-            small
-          />
-        ))}
-      </div>
 
       {/* Save */}
       <button

@@ -632,8 +632,6 @@ export default function MobileStickyBottomCTA({
               onSave={hook.saveEnrichment}
               onSkip={hook.skipEnrichment}
               saving={hook.submitting}
-              initialRecipient={hook.initialRecipient}
-              initialUrgency={hook.initialUrgency}
               careTypes={careTypes}
               priceRange={priceRange}
             />

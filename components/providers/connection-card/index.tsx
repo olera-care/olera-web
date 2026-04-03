@@ -98,8 +98,6 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             onSave={hook.saveEnrichment}
             onSkip={hook.skipEnrichment}
             saving={hook.submitting}
-            initialRecipient={hook.initialRecipient}
-            initialUrgency={hook.initialUrgency}
             careTypes={props.careTypes}
             priceRange={props.priceRange}
           />

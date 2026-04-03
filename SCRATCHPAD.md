@@ -39,12 +39,12 @@
   - **PR #476 merged to staging** (Apr 3): seeker enrichment flow (code + migration + env vars all done)
   - **All 4 Twilio templates approved by Meta** — HX SIDs added to Vercel env vars
   - **Supabase migration 032 run** — whatsapp_conversations table live in production
+  - **Staging → Main promoted** (Apr 3): ~150 commits, 154 files, deploy live on olera.care
   - **Remaining:**
-    1. Configure Twilio webhook URL: `https://olera.care/api/whatsapp/webhook` (do AFTER code is on main)
+    1. **Configure Twilio inbound webhook URL** — go to WhatsApp Senders → Edit Sender → set "When a message comes in" to `https://olera.care/api/whatsapp/webhook` (POST). Without this, inbound replies won't reach the conversation engine.
     2. Create `olera_new_message` provider template (follow-up messages)
     3. Add `"3"` content variable (URL path) to provider WhatsApp sends
-    4. Phone collection on `fine-dijkstra` enrichment panel
-    5. Promote staging → main (124 commits ahead)
+    4. Phone collection on `fine-dijkstra` enrichment panel (notification channel framing)
 
 - **City Expansion Batch — 2026-04-01** — DONE ✅
   - 90 new cities processed end-to-end via batch pipeline

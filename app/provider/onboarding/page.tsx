@@ -1857,7 +1857,7 @@ function ProviderOnboardingContent() {
             )}
 
             {/* Inline email verification overlay */}
-            {emailVerifyActive && !user && (
+            {emailVerifyActive && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
                 <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
                   {submitting ? (

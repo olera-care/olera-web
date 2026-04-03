@@ -734,10 +734,10 @@ export default async function ProviderPage({
                       <p className="text-sm text-gray-400">Contact for pricing</p>
                     )}
                   </div>
-                  {hasRating && (
+                  {hasRating && rating != null && (
                     <span className="flex items-center gap-1.5">
                       <StarIcon className="w-5 h-5 text-amber-400" />
-                      <span className="text-base font-bold text-gray-900">{rating!.toFixed(1)}</span>
+                      <span className="text-base font-bold text-gray-900">{rating.toFixed(1)}</span>
                       <span className="text-sm text-gray-400">on Google</span>
                     </span>
                   )}
@@ -766,10 +766,10 @@ export default async function ProviderPage({
                       {hasRating && <span className="text-gray-300">·</span>}
                     </>
                   )}
-                  {hasRating && (
+                  {hasRating && rating != null && (
                     <span className="flex items-center gap-1">
                       <StarIcon className="w-4 h-4 text-amber-400" />
-                      <span className="font-semibold text-gray-900">{rating!.toFixed(1)}</span>
+                      <span className="font-semibold text-gray-900">{rating.toFixed(1)}</span>
                       <span>on Google</span>
                     </span>
                   )}

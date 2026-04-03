@@ -60,7 +60,7 @@ export default function GoogleReviewSnippets({
   providerName,
   placeId,
 }: GoogleReviewSnippetsProps) {
-  if (!googleReviewsData || !googleReviewsData.reviews.length) {
+  if (!googleReviewsData || !googleReviewsData.reviews.length || googleReviewsData.rating == null) {
     return null;
   }
 

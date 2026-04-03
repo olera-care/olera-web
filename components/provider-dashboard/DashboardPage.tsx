@@ -110,6 +110,7 @@ function DashboardContent({
   editingSection,
   setEditingSection,
   refreshAccountData,
+  isPending = false,
 }: {
   profile: NonNullable<ReturnType<typeof useProviderProfile>>;
   meta: ExtendedMetadata;

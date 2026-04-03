@@ -18,7 +18,7 @@ import GooglePlaceSearch from "@/components/providers/GooglePlaceSearch";
 import type { Provider } from "@/lib/types/provider";
 
 type ProviderType = "organization" | "caregiver";
-type Step = "resume" | 1 | "search" | "verify" | 2 | 3 | 4 | 5;
+type Step = "resume" | 1 | "search" | "verify" | "setup";
 
 const TYPE_KEY = "olera_onboarding_provider_type";
 const DATA_KEY = "olera_provider_wizard_data";
@@ -465,15 +465,16 @@ function ProviderOnboardingContent() {
     let savedStep: Step | null = null;
     try {
       const raw = localStorage.getItem(STEP_KEY);
-      if (raw === "2" || raw === "3" || raw === "4" || raw === "5") savedStep = Number(raw) as 2 | 3 | 4 | 5;
-      else if (raw === "search" || raw === "verify") savedStep = raw;
+      if (raw === "setup" || raw === "search" || raw === "verify") savedStep = raw as Step;
+      // Legacy: map old numeric steps to "setup"
+      else if (raw === "2" || raw === "3" || raw === "4" || raw === "5") savedStep = "setup";
     } catch {
       // localStorage unavailable
     }
 
     if (providerType === "organization") {
-      // For org flow: if they were on step 2-5, go there directly.
-      if (savedStep === 2 || savedStep === 3 || savedStep === 4 || savedStep === 5) {
+      // For org flow: if they were on setup, go there directly.
+      if (savedStep === "setup") {
         setStep(savedStep);
       } else {
         // "verify" step can't resume (claimingProvider not persisted, claimSession not available).
@@ -871,10 +872,10 @@ function ProviderOnboardingContent() {
   const displayName =
     account?.display_name || user?.email?.split("@")[0] || "there";
 
-  // WizardNav step mapping — org flow: 6 steps
+  // WizardNav step mapping — streamlined: 3 steps (type → search → setup)
   const isOrg = providerType === "organization";
-  const wizardTotal = 6;
-  const wizardCurrentMap: Record<string, number> = { "1": 1, search: 2, verify: 2, "2": 3, "3": 4, "4": 5, "5": 6 };
+  const wizardTotal = 3;
+  const wizardCurrentMap: Record<string, number> = { "1": 1, search: 2, verify: 2, setup: 3 };
   const wizardCurrentStep = wizardCurrentMap[String(step)] ?? 1;
   const showWizardNav = step !== "resume" && step !== "search";
 
@@ -1421,7 +1422,13 @@ function ProviderOnboardingContent() {
                     </p>
                     <button
                       type="button"
-                      onClick={() => setStep(2)}
+                      onClick={() => {
+                        // Carry search query as org name
+                        if (searchQuery.trim()) {
+                          update("displayName", searchQuery.trim());
+                        }
+                        setStep("setup");
+                      }}
                       className="px-7 py-3 text-base font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-500 transition-all shadow-sm"
                     >
                       Set up a new page
@@ -1486,7 +1493,12 @@ function ProviderOnboardingContent() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setStep(2)}
+                    onClick={() => {
+                      if (searchQuery.trim()) {
+                        update("displayName", searchQuery.trim());
+                      }
+                      setStep("setup");
+                    }}
                     className="px-6 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-500 transition-colors"
                   >
                     Create new listing
@@ -1732,15 +1744,15 @@ function ProviderOnboardingContent() {
           </div>
         )}
 
-        {/* ── Step 2: About ── */}
-        {step === 2 && (
+        {/* ── Quick Setup: Name + Email + Care Types (replaces old Steps 2-5) ── */}
+        {step === "setup" && (
           <div className="w-full max-w-lg pb-24">
             <div className="text-center mb-6 lg:mb-8">
               <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
-                Tell us about your organization
+                Almost there — just a few details
               </h1>
               <p className="text-gray-500 mt-2 lg:mt-3 text-base">
-                This is what families will see on your public profile.
+                This is all we need to get your profile live. You can add location, photos, and more from your dashboard.
               </p>
             </div>
 
@@ -1755,297 +1767,48 @@ function ProviderOnboardingContent() {
                 placeholder="e.g. Sunrise Senior Living"
               />
 
-              {providerType === "organization" && (
-                <Select
-                  label="Organization type"
-                  options={ORG_CATEGORIES}
-                  value={data.category}
-                  onChange={(val) => update("category", val)}
-                  placeholder="Select a type"
-                />
-              )}
-
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 3: Location ── */}
-        {step === 3 && (
-          <div className="w-full max-w-lg pb-24">
-            <div className="text-center mb-6 lg:mb-8">
-              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
-                Where are you located?
-              </h1>
-              <p className="text-gray-500 mt-2 lg:mt-3 text-base">
-                Families search by location — this helps them find you.
-              </p>
-            </div>
-
-            <div className="space-y-5">
-              {/* City search picker */}
-              <div className="space-y-1.5">
-                <label htmlFor="city-picker" className="block text-base font-medium text-gray-700">
-                  City
-                </label>
-                <div ref={cityPickerRef} className="relative">
-                  <input
-                    id="city-picker"
-                    type="text"
-                    role="combobox"
-                    aria-expanded={showCityPicker && cityPickerResults.length > 0}
-                    aria-autocomplete="list"
-                    aria-controls="city-picker-listbox"
-                    value={cityQuery || (data.city ? `${data.city}${data.state ? `, ${data.state}` : ""}` : "")}
-                    onChange={(e) => {
-                      setCityQuery(e.target.value);
-                      setShowCityPicker(true);
-                      // Clear selected city when user types
-                      if (data.city) {
-                        update("city", "");
-                        update("state", "");
-                      }
-                    }}
-                    onFocus={() => {
-                      preloadCityPicker();
-                      setShowCityPicker(true);
-                      // If showing a selected city, put it into query for editing
-                      if (data.city && !cityQuery) {
-                        setCityQuery(`${data.city}${data.state ? `, ${data.state}` : ""}`);
-                      }
-                    }}
-                    placeholder="Search for a city…"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] placeholder:text-gray-400"
-                    autoComplete="off"
-                  />
-
-                  {/* City suggestions dropdown */}
-                  {showCityPicker && cityPickerResults.length > 0 && (
-                    <div id="city-picker-listbox" role="listbox" aria-label="City suggestions" className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-xl shadow-xl ring-1 ring-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
-                      {!cityQuery.trim() && (
-                        <div className="px-4 pt-1 pb-2">
-                          <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
-                        </div>
-                      )}
-                      {cityPickerResults.map((loc) => (
-                        <button
-                          key={loc.full}
-                          type="button"
-                          role="option"
-                          aria-selected={data.city === loc.city && data.state === loc.state}
-                          onClick={() => {
-                            update("city", loc.city);
-                            update("state", loc.state);
-                            setCityQuery("");
-                            setShowCityPicker(false);
-                          }}
-                          className="flex items-center gap-3 w-full px-4 py-3 text-left text-base hover:bg-gray-50 transition-colors"
-                        >
-                          <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          <span className="font-medium text-gray-700">{loc.full}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
               <Input
-                label="ZIP code (Optional)"
-                value={data.zip}
-                onChange={(e) =>
-                  update("zip", (e.target as HTMLInputElement).value)
-                }
-                placeholder="e.g. 94102"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 4: Contact ── */}
-        {step === 4 && (
-          <div className="w-full max-w-lg pb-24">
-            <div className="text-center mb-6 lg:mb-8">
-              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
-                How can families reach you?
-              </h1>
-              <p className="text-gray-500 mt-2 lg:mt-3 text-base">
-                Give families a way to connect with you.
-              </p>
-            </div>
-
-            <div className="space-y-5">
-              <Input
-                label="Phone"
-                type="tel"
-                value={data.phone}
-                onChange={(e) =>
-                  update("phone", (e.target as HTMLInputElement).value)
-                }
-                placeholder="(555) 123-4567"
-                required
-              />
-
-              <Input
-                label="Email"
+                label="Your email"
                 type="email"
                 value={data.email}
                 onChange={(e) =>
                   update("email", (e.target as HTMLInputElement).value)
                 }
-                placeholder="contact@example.com"
                 required
+                placeholder="you@example.com"
               />
+              <p className="text-xs text-gray-400 -mt-3">We&apos;ll send a quick verification code — no password needed.</p>
 
-              <Input
-                label="Website (Optional)"
-                type="url"
-                value={data.website}
-                onChange={(e) =>
-                  update("website", (e.target as HTMLInputElement).value)
-                }
-                placeholder="https://example.com"
-              />
-
-              <GooglePlaceSearch
-                value={data.googlePlaceId || null}
-                selectedName={data.googlePlaceName || null}
-                onSelect={(placeId, name, rating) => {
-                  update("googlePlaceId", placeId);
-                  update("googlePlaceName", name);
-                  update("googleRating", rating != null ? String(rating) : "");
-                }}
-                onClear={() => {
-                  update("googlePlaceId", "");
-                  update("googlePlaceName", "");
-                  update("googleRating", "");
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 5: Services + Review + Submit ── */}
-        {step === 5 && (
-          <div className="w-full max-w-lg pb-24">
-            <div className="text-center mb-6 lg:mb-8">
-              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
-                Services offered
-              </h1>
-              <p className="text-gray-500 mt-2 lg:mt-3 text-base">
-                Select at least one care type you provide. You can always update these later.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3 mb-10">
-              {CARE_TYPES.map((ct) => {
-                const selected = data.careTypes.includes(ct);
-                return (
-                  <button
-                    key={ct}
-                    type="button"
-                    role="switch"
-                    aria-checked={selected}
-                    onClick={() => toggleCareType(ct)}
-                    className={[
-                      "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-[15px] font-medium border transition-all duration-200",
-                      selected
-                        ? "bg-primary-50 border-primary-500 text-primary-700"
-                        : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
-                    ].join(" ")}
-                  >
-                    {selected && (
-                      <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                    {ct}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Mini listing card preview */}
-            <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
-              {/* Gradient header with initials */}
-              <div className="h-28 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative flex items-center justify-center">
-                <div className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
-                  <span className="text-xl font-bold text-primary-500">
-                    {(data.displayName || "")
-                      .split(/\s+/)
-                      .map((w) => w[0])
-                      .filter(Boolean)
-                      .slice(0, 2)
-                      .join("")
-                      .toUpperCase() || "?"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Card content */}
-              <div className="p-5">
-                {/* Category label */}
-                {data.category && (
-                  <p className="text-xs font-medium text-primary-600 uppercase tracking-wide mb-1">
-                    {ORG_CATEGORIES.find((c) => c.value === data.category)?.label || data.category}
-                  </p>
-                )}
-
-                {/* Name */}
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {data.displayName || "Your listing"}
-                </h3>
-
-                {/* Location */}
-                {(data.city || data.state) && (
-                  <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
-                    <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    {[data.city, data.state].filter(Boolean).join(", ")}
-                  </div>
-                )}
-
-                {/* Service tags */}
-                {data.careTypes.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-3">
-                    {data.careTypes.slice(0, 3).map((ct) => (
-                      <span key={ct} className="bg-primary-50 text-primary-700 text-xs px-2.5 py-1 rounded-full">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">What type of care do you provide?</label>
+                <div className="flex flex-wrap gap-2.5">
+                  {CARE_TYPES.map((ct) => {
+                    const selected = data.careTypes.includes(ct);
+                    return (
+                      <button
+                        key={ct}
+                        type="button"
+                        role="switch"
+                        aria-checked={selected}
+                        onClick={() => toggleCareType(ct)}
+                        className={[
+                          "inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200",
+                          selected
+                            ? "bg-primary-50 border-primary-500 text-primary-700"
+                            : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
+                        ].join(" ")}
+                      >
+                        {selected && (
+                          <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
                         {ct}
-                      </span>
-                    ))}
-                    {data.careTypes.length > 3 && (
-                      <span className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full">
-                        +{data.careTypes.length - 3} more
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Contact line */}
-                {(data.phone || data.email) && (
-                  <div className="flex items-center gap-4 text-xs text-gray-500 pt-3 border-t border-gray-100">
-                    {data.phone && (
-                      <span className="flex items-center gap-1">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
-                        {data.phone}
-                      </span>
-                    )}
-                    {data.email && (
-                      <span className="flex items-center gap-1 min-w-0">
-                        <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        <span className="truncate">{data.email}</span>
-                      </span>
-                    )}
-                  </div>
-                )}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-gray-400 mt-2">Select at least one. You can update these anytime.</p>
               </div>
             </div>
 
@@ -2062,11 +1825,6 @@ function ProviderOnboardingContent() {
             {emailVerifyActive && !user && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
                 <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
-                  <div className="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                    </svg>
-                  </div>
                   {submitting ? (
                     <>
                       <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto mb-4" />
@@ -2079,6 +1837,11 @@ function ProviderOnboardingContent() {
                     </>
                   ) : (
                     <>
+                      <div className="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                        </svg>
+                      </div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-1">
                         Confirm your email
                       </h3>
@@ -2129,12 +1892,9 @@ function ProviderOnboardingContent() {
                 </div>
               </div>
             )}
-
-            <p className="text-center text-sm text-gray-500 mt-5">
-              You can add more details — photos, certifications, pricing — after setup.
-            </p>
           </div>
         )}
+
 
       </div>
 
@@ -2156,14 +1916,8 @@ function ProviderOnboardingContent() {
                   setShowNoAccess(false);
                   setNoAccessSuccess(false);
                 }
-              : step === 2
+              : step === "setup"
               ? () => setStep("search")
-              : step === 3
-              ? () => setStep(2)
-              : step === 4
-              ? () => setStep(3)
-              : step === 5
-              ? () => setStep(4)
               : undefined
           }
           onNext={
@@ -2171,20 +1925,16 @@ function ProviderOnboardingContent() {
               ? handleStep1Next
               : step === "verify"
               ? handleVerifyCode
-              : step === 5
+              : step === "setup"
               ? handleSubmit
-              : step === 2
-              ? () => setStep(3)
-              : step === 3
-              ? () => setStep(4)
-              : () => setStep(5)
+              : undefined
           }
           nextLabel={
             step === 1
               ? "Next"
               : step === "verify"
               ? "Verify"
-              : step === 5
+              : step === "setup"
               ? "Create profile"
               : "Next"
           }
@@ -2193,18 +1943,12 @@ function ProviderOnboardingContent() {
               ? !providerType
               : step === "verify"
               ? verifyCode.length !== 6 || verifyChecking
-              : step === 2
-              ? !data.displayName.trim() || (providerType === "organization" && !data.category)
-              : step === 3
-              ? !data.city.trim()
-              : step === 4
-              ? !data.phone.trim() || data.phone.replace(/\D/g, "").length < 10 || !data.email.trim() || !/\S+@\S+\.\S+/.test(data.email)
-              : step === 5
-              ? !data.displayName.trim() || data.careTypes.length === 0 || submitting
+              : step === "setup"
+              ? !data.displayName.trim() || !data.email.trim() || !/\S+@\S+\.\S+/.test(data.email) || data.careTypes.length === 0 || submitting
               : false
           }
           nextLoading={
-            step === "verify" ? verifyChecking : step === 5 ? submitting : false
+            step === "verify" ? verifyChecking : step === "setup" ? submitting : false
           }
         />
       )}

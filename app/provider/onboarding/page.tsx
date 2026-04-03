@@ -852,20 +852,11 @@ function ProviderOnboardingContent() {
         // localStorage unavailable (SSR or private mode)
       }
 
-      // When adding a new profile, switch to it before navigating
-      if (isAdding && profileId) {
-        switchProfile(profileId);
-      }
-
-      // Await refresh so provider layout sees the new profile — prevents redirect to /portal
-      await refreshAccountData();
-
-      // Navigate to dashboard
-      if (nextUrl) {
-        router.replace(nextUrl);
-      } else {
-        router.replace("/provider");
-      }
+      // Navigate to dashboard — full page load so AuthProvider initializes
+      // fresh with the new session, account, and profile. Client-side
+      // router.replace() causes stale state races; this is the same
+      // pattern AuthProvider uses for all post-auth redirects.
+      window.location.replace(nextUrl || "/provider");
     } catch {
       setSubmitError("Something went wrong. Please try again.");
       creatingProfileRef.current = false;

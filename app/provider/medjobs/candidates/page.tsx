@@ -6,10 +6,12 @@ import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import CandidateFilters from "@/components/medjobs/CandidateFilters";
 import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilters";
+import { useProviderProfile } from "@/hooks/useProviderProfile";
 
 const PAGE_SIZE = 20;
 
 export default function ProviderCandidateBrowsePage() {
+  const providerProfile = useProviderProfile();
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -205,6 +207,7 @@ export default function ProviderCandidateBrowsePage() {
                   key={candidate.id}
                   candidate={candidate}
                   basePath="/provider/medjobs/candidates"
+                  blurPII={providerProfile?.claim_state === "pending"}
                 />
               ))}
             </div>

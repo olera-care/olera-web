@@ -131,9 +131,8 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
 
   const isPending = providerProfile?.claim_state === "pending";
 
-  // Routes where sensitive PII should be blurred for pending providers
-  const SENSITIVE_ROUTES = ["/provider/connections", "/provider/matches", "/provider/medjobs"];
-  const isSensitiveRoute = isPending && SENSITIVE_ROUTES.some((route) => pathname.startsWith(route));
+  // Leads/connections contain full PII (emails, phones, messages) — blur entirely
+  const isLeadsRoute = isPending && pathname.startsWith("/provider/connections");
 
   return (
     <>
@@ -150,7 +149,7 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       )}
-      {isSensitiveRoute ? (
+      {isLeadsRoute ? (
         <div className="relative">
           <div className="blur-[6px] select-none pointer-events-none" aria-hidden="true">
             {children}
@@ -162,13 +161,16 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
               </svg>
               <p className="text-sm font-semibold text-gray-900">Identity verification required</p>
               <p className="text-xs text-gray-500">
-                This information is protected until your identity is verified. We&apos;ll review your request within 2-3 business days.
+                Lead information is protected until your identity is verified. We&apos;ll review your request within 2-3 business days.
               </p>
             </div>
           </div>
         </div>
       ) : (
         children
+      )}
+    </>
+  );
       )}
     </>
   );

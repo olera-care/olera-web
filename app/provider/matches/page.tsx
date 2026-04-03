@@ -2191,6 +2191,7 @@ export default function ProviderMatchesPage() {
                       reachOutCount={reachOutCounts.get(family.id) || 0}
                       onReachOut={handleReachOut}
                       animationDelay={index * 40}
+                      blurPII={providerProfile?.claim_state === "pending"}
                     />
                   ))}
                 </div>

@@ -31,11 +31,14 @@ function getGradient(id: string) {
 interface CandidateCardProps {
   candidate: CandidateData;
   basePath: string;
+  /** Blur PII for unverified providers */
+  blurPII?: boolean;
 }
 
 export default function CandidateCard({
   candidate,
   basePath,
+  blurPII = false,
 }: CandidateCardProps) {
   const meta = candidate.metadata;
   const trackLabel = getTrackLabel(meta);
@@ -81,10 +84,10 @@ export default function CandidateCard({
           </div>
 
           <div className="min-w-0 flex-1">
-            <h3 className="text-base font-semibold text-gray-900 group-hover:text-primary-600 transition-colors truncate">
+            <h3 className={`text-base font-semibold text-gray-900 group-hover:text-primary-600 transition-colors truncate ${blurPII ? "blur-[5px] select-none" : ""}`}>
               {candidate.display_name}
             </h3>
-            <p className="text-sm text-gray-500 truncate">
+            <p className={`text-sm text-gray-500 truncate ${blurPII ? "blur-[5px] select-none" : ""}`}>
               {meta.university || "University not specified"}
             </p>
           </div>
@@ -101,7 +104,7 @@ export default function CandidateCard({
             </span>
           )}
           {location && (
-            <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+            <span className={`inline-flex items-center gap-1 text-xs text-gray-500 ${blurPII ? "blur-[5px] select-none" : ""}`}>
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />

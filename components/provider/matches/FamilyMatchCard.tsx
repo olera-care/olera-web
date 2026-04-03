@@ -13,6 +13,8 @@ interface FamilyMatchCardProps {
   reachOutCount?: number;
   onReachOut: (family: Profile) => void;
   animationDelay?: number;
+  /** Blur PII for unverified providers */
+  blurPII?: boolean;
 }
 
 // ── Helpers ──
@@ -143,6 +145,7 @@ export default function FamilyMatchCard({
   reachOutCount = 0,
   onReachOut,
   animationDelay = 0,
+  blurPII = false,
 }: FamilyMatchCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -245,10 +248,10 @@ export default function FamilyMatchCard({
 
           {/* Name + Location + Time */}
           <div className="flex-1 min-w-0">
-            <h3 className="text-[14.5px] font-medium text-gray-900 truncate leading-tight">
+            <h3 className={`text-[14.5px] font-medium text-gray-900 truncate leading-tight ${blurPII ? "blur-[5px] select-none" : ""}`}>
               {hasFullAccess ? displayName : displayName.charAt(0) + "***"}
             </h3>
-            <p className="text-xs text-gray-500 truncate mt-0.5">
+            <p className={`text-xs text-gray-500 truncate mt-0.5 ${blurPII ? "blur-[5px] select-none" : ""}`}>
               {hasFullAccess ? location : "***"} · {timeAgo(publishedAt)}
             </p>
           </div>
@@ -266,7 +269,7 @@ export default function FamilyMatchCard({
         {familyDescription && (
           <>
             <p
-              className="text-[13px] text-gray-500 italic leading-[1.6] mb-4"
+              className={`text-[13px] text-gray-500 italic leading-[1.6] mb-4 ${blurPII ? "blur-[5px] select-none" : ""}`}
               style={{
                 display: "-webkit-box",
                 WebkitLineClamp: 2,

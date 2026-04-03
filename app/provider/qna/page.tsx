@@ -974,8 +974,11 @@ export default function ProviderQnAPage() {
     }));
   }, [profileId, questions, providerProfile?.slug]);
 
+  const isPending = providerProfile?.claim_state === "pending";
+
   // Handle reply (from card or sheet)
   const handleReply = useCallback(async (question: Question, answer?: string): Promise<boolean> => {
+    if (isPending) return false; // Pending providers can't reply
     if (isMobile || !answer) {
       // Mobile or no answer provided - open sheet
       setSelectedQuestion(question);
@@ -1016,14 +1019,15 @@ export default function ProviderQnAPage() {
         return false;
       }
     }
-  }, [isMobile]);
+  }, [isMobile, isPending]);
 
   // Handle edit
   const handleEdit = useCallback((question: Question) => {
+    if (isPending) return; // Pending providers can't edit
     setSelectedQuestion(question);
     setSheetMode("edit");
     setIsSheetOpen(true);
-  }, []);
+  }, [isPending]);
 
   // Handle sheet submit
   const handleSheetSubmit = useCallback(async (question: Question, answer: string) => {

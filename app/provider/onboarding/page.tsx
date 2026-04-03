@@ -746,7 +746,7 @@ function ProviderOnboardingContent() {
         return;
       }
 
-      // 2. Auto sign-in using the verified email
+      // 2. Auto sign-in: creates auth user + returns magic link token
       const signInRes = await fetch("/api/auth/auto-sign-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -760,7 +760,17 @@ function ProviderOnboardingContent() {
         return;
       }
 
-      // 3. Establish session client-side using magic link token
+      // 3. Pre-create account row BEFORE establishing client session.
+      // This prevents AuthProvider's SIGNED_IN handler from hitting the
+      // slow "no account found → wait 1.5s → retry" path.
+      await fetch("/api/auth/ensure-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ display_name: data.displayName }),
+      }).catch(() => {});
+
+      // 4. Establish client session — fires SIGNED_IN event.
+      // Because account row already exists, AuthProvider resolves quickly.
       if (isSupabaseConfigured()) {
         const supabase = createClient();
         await supabase.auth.verifyOtp({
@@ -769,10 +779,7 @@ function ProviderOnboardingContent() {
         });
       }
 
-      // 4. Refresh auth state (non-blocking — profile creation doesn't need it)
-      refreshAccountData(signInResult.userId).catch(() => {});
-
-      // 5. Create profile immediately — don't wait for auth state to settle
+      // 5. Create provider profile immediately (don't wait for AuthProvider)
       await handleSubmitProfile();
     } catch {
       setEmailVerifyError("Something went wrong. Please try again.");

@@ -682,7 +682,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     notifyChannel?: string;
   }) => {
     // Need at least connectionId and some data to save
-    const hasIntentData = data?.careRecipient && data?.urgency;
+    const hasIntentData = data?.careRecipient || data?.urgency;
     const hasPhone = data?.phone && data.phone.trim();
     const hasNotify = data?.notifyChannel;
     if (!connectionId || (!hasIntentData && !hasPhone && !hasNotify)) {

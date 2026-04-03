@@ -236,6 +236,7 @@ export default function BrowsePageClient({
 function ProviderBrowseCard({ provider }: { provider: ProviderCardData }) {
   const { isSaved: checkSaved, toggleSave } = useSavedProviders();
   const isSaved = checkSaved(provider.id);
+  const [imgFailed, setImgFailed] = useState(false);
   const displayedHighlights = provider.highlights?.slice(0, 3) || [];
 
   return (
@@ -247,7 +248,7 @@ function ProviderBrowseCard({ provider }: { provider: ProviderCardData }) {
     >
       {/* Image */}
       <div className="relative h-48 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
-        {provider.imageType === "placeholder" || !provider.image ? (
+        {provider.imageType === "placeholder" || !provider.image || imgFailed ? (
           <div className="w-full h-full flex flex-col items-center justify-center">
             <div className="w-14 h-14 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
               <span className="text-xl font-bold text-primary-400">
@@ -262,6 +263,7 @@ function ProviderBrowseCard({ provider }: { provider: ProviderCardData }) {
               src={provider.image}
               alt={provider.name}
               className="max-w-full max-h-full object-contain"
+              onError={() => setImgFailed(true)}
             />
           </div>
         ) : (
@@ -269,6 +271,7 @@ function ProviderBrowseCard({ provider }: { provider: ProviderCardData }) {
             src={provider.image}
             alt={provider.name}
             className="w-full h-full object-cover"
+            onError={() => setImgFailed(true)}
           />
         )}
 

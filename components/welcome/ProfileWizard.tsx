@@ -118,7 +118,9 @@ export default function ProfileWizard({
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Overview fields
-  const [displayName, setDisplayName] = useState(profile.display_name || "");
+  const [displayName, setDisplayName] = useState(
+    profile.display_name && profile.display_name !== "Care Seeker" ? profile.display_name : ""
+  );
   const [city, setCity] = useState(profile.city || "");
   const [state, setState] = useState(profile.state || "");
 

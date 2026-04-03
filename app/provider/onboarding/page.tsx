@@ -762,6 +762,9 @@ function ProviderOnboardingContent() {
       }
 
       // 3. Establish client session — fires SIGNED_IN event and sets cookies.
+      // Suppress AuthProvider's SIGNED_IN handler to prevent redundant API
+      // calls and state churn while we handle account/profile creation below.
+      (window as Record<string, unknown>).__olera_onboarding_active = true;
       if (isSupabaseConfigured()) {
         const supabase = createClient();
         await supabase.auth.verifyOtp({
@@ -806,8 +809,12 @@ function ProviderOnboardingContent() {
         localStorage.removeItem(SEARCH_KEY);
       } catch { /* */ }
 
+      // Clear suppression flag before hard redirect — AuthProvider will
+      // re-init fresh on the destination page with the new session.
+      delete (window as Record<string, unknown>).__olera_onboarding_active;
       window.location.replace(nextUrl || "/provider");
     } catch {
+      delete (window as Record<string, unknown>).__olera_onboarding_active;
       setEmailVerifyError("Something went wrong. Please try again.");
       setSubmitting(false);
       creatingProfileRef.current = false;

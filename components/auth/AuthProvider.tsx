@@ -574,6 +574,12 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         // Skip here to avoid a duplicate fetchAccountData call.
         if (initHandlingRef.current) return;
 
+        // The provider onboarding page handles its own account/profile
+        // creation and redirect after verifyOtp. Suppress the SIGNED_IN
+        // handler to avoid redundant API calls and React state churn
+        // (loading flashes, re-renders) that race with the onboarding flow.
+        if (typeof window !== "undefined" && (window as Record<string, unknown>).__olera_onboarding_active) return;
+
         const userId = session.user.id;
         const userEmail = session.user.email!;
         const emailConfirmedAt = session.user.email_confirmed_at ?? undefined;

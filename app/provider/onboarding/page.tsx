@@ -457,7 +457,7 @@ function ProviderOnboardingContent() {
         }, 0);
       }
     } else {
-      setStep(2);
+      setStep("setup");
     }
   };
 
@@ -1157,10 +1157,10 @@ function ProviderOnboardingContent() {
                   or{" "}
                   <button
                     type="button"
-                    onClick={() => setStep(2)}
+                    onClick={() => setStep("setup")}
                     className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
                   >
-                    create a new account
+                    create a new listing
                   </button>
                 </p>
 

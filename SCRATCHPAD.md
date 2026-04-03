@@ -7,15 +7,39 @@
 
 ## Current Focus
 
+- **WhatsApp Business Notifications — Go Live** — IN PROGRESS
+  - Meta approved Olera WhatsApp Business sender (`+12137722970`, Online, 80 MPS)
+  - **Provider templates (2 of 2):**
+    - `olera_new_lead` — Call to Action, submitted for Meta approval ✅
+    - `olera_new_message` — still needs to be created (follow-up messages)
+    - After approval: get `HX...` SIDs, add to Vercel as `TWILIO_WA_TEMPLATE_NEW_LEAD` / `TWILIO_WA_TEMPLATE_NEW_MESSAGE`
+    - **Code fix still needed**: Add `"3"` content variable (URL path) to sendWhatsApp calls
+  - **Seeker WhatsApp Enrichment Flow** — CODE COMPLETE, TEMPLATES IN PROGRESS
+    - Plan: `plans/whatsapp-seeker-enrichment-plan.md`
+    - 3-message conversation: care recipient (Quick Reply) → specific care needs (open text) → urgency (Quick Reply)
+    - Open text Q2 ("what's been the hardest part?") is the crown jewel — rich signal no competitor collects
+    - **Code built (all type-checks clean):**
+      - `supabase/migrations/032_whatsapp_conversations.sql` — state machine tracking table
+      - `lib/whatsapp-conversation.ts` — conversation engine (start, handle inbound, 4-state machine, enrichment sync to connection + profile)
+      - `app/api/whatsapp/webhook/route.ts` — inbound webhook with Twilio signature verification
+      - `app/api/connections/request/route.ts` — wired seeker WhatsApp into both guest + authenticated flows
+    - **Design decisions:**
+      - Tone: calm guide who's been through this (not chatbot, not care coordinator with clipboard)
+      - We already know care TYPE (from provider page category). We collect specific care NEEDS via open text
+      - Message 2 open text is the whole point — "what's been the hardest part?" lets seekers exhale and produces 10x richer signal than checkboxes
+      - At 5 leads/day, TJ reads open-text responses directly. At scale, AI extracts structured needs
+      - Phone number collection being added on `fine-dijkstra` (framed as "how should we notify you?" not "give us your phone")
+    - **Seeker templates (3 of 3 submitted):**
+      - `olera_seeker_recipient` (Quick Reply) — submitted for Meta approval ✅
+      - `olera_seeker_needs` (Text) — submitted for Meta approval ✅
+      - `olera_seeker_urgency` (Quick Reply) — submitted for Meta approval ✅
+    - **After all templates approved:** add env vars `TWILIO_WA_TPL_SEEKER_Q1`, `TWILIO_WA_TPL_SEEKER_Q2`, `TWILIO_WA_TPL_SEEKER_Q3`
+    - **Deploy steps:** push to staging → configure webhook URL in Twilio console (`https://staging-olera2-web.vercel.app/api/whatsapp/webhook`)
+  - **4 PRs already merged to staging** (Apr 1): #469 (core), #470 (sandbox fix), #471 (connection flow), #472 (URL fix)
+
 - **City Expansion Batch — 2026-04-01** — DONE ✅
   - 90 new cities processed end-to-end via batch pipeline
-  - Discovery: 18,191 raw providers (45 min, ~$102 Google Places)
-  - Pipeline: cleaned → uploaded → enriched across all 343 cities (6h 21m, ~$323)
   - 13,814 total providers in DB after dedup + AI verification
-  - Fixed `pipeline-batch.js`: added `relax_quotes: true` + `relax_column_count: true` + try-catch for malformed CSVs
-  - 90 Notion pages created, all marked Complete
-  - Live site verified: providers rendering with ratings/reviews on olera.care
-  - Total cost: ~$425
   - **Notion board: 283 Complete cities (193 prior + 90 new), 7 Planning remain**
 
 - **Strict User Account Type Separation** (branch: `feature/user-accounts-separation-logic`) — READY FOR MERGE (PR #463)

@@ -7,6 +7,7 @@ import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail, veri
 import { sendSlackAlert, slackNewLead, slackMissingEmail } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { sendWhatsApp } from "@/lib/whatsapp";
+import { startSeekerConversation } from "@/lib/whatsapp-conversation";
 import { sendLoopsEvent } from "@/lib/loops";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
@@ -576,12 +577,14 @@ async function handleGuestConnection({
   let providerDisplayName: string | null = null;
   let providerCity: string | null = null;
   let providerState: string | null = null;
+  let providerCategoryForWa: string | null = null;
   try {
     const { data: bp } = await db
       .from("business_profiles")
-      .select("email, display_name, city, state")
+      .select("email, display_name, city, state, category")
       .eq("id", toProfileId)
       .single();
+    providerCategoryForWa = bp?.category || null;
     providerEmail = bp?.email || null;
     providerDisplayName = bp?.display_name || null;
     providerCity = bp?.city || null;
@@ -875,6 +878,34 @@ async function handleGuestConnection({
     }
   } catch (waErr) {
     console.error("[whatsapp] Connection request notification failed:", waErr);
+  }
+
+  // WhatsApp enrichment conversation to seeker (fire-and-forget)
+  try {
+    const seekerNormalized = normalizeUSPhone(guestPhone || "");
+    if (seekerNormalized) {
+      // Check if seeker opted in to WhatsApp
+      const { data: seekerBp } = await db
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", fromProfileId)
+        .single();
+      const seekerMeta = (seekerBp?.metadata || {}) as Record<string, unknown>;
+      if (seekerMeta.whatsapp_opted_in) {
+        await startSeekerConversation({
+          connectionId: newConnection.id,
+          profileId: fromProfileId,
+          phone: seekerNormalized,
+          seekerFirstName: firstName || "there",
+          providerName: providerDisplayName || providerName,
+          providerCategory: providerCategoryForWa,
+          city: providerCity,
+          state: providerState,
+        });
+      }
+    }
+  } catch (seekerWaErr) {
+    console.error("[whatsapp] Seeker enrichment conversation failed:", seekerWaErr);
   }
 
   // Slack alert
@@ -1297,15 +1328,17 @@ export async function POST(request: Request) {
     let providerDisplayName: string | null = null;
     let providerCity: string | null = null;
     let providerState: string | null = null;
+    let providerCategoryAuth: string | null = null;
     try {
       const { data: bp } = await db
         .from("business_profiles")
-        .select("email, display_name, city, state")
+        .select("email, display_name, city, state, category")
         .eq("id", toProfileId)
         .single();
       providerEmail = bp?.email || null;
       providerDisplayName = bp?.display_name || null;
       providerCity = bp?.city || null;
+      providerCategoryAuth = bp?.category || null;
       providerState = bp?.state || null;
 
       // Fallback to olera-providers for email and location
@@ -1644,6 +1677,33 @@ export async function POST(request: Request) {
       }
     } catch (waErr) {
       console.error("[whatsapp] Connection request notification failed:", waErr);
+    }
+
+    // 9d-ii. WhatsApp enrichment conversation to seeker (fire-and-forget)
+    try {
+      const seekerNorm = seekerPhone ? normalizeUSPhone(seekerPhone) : null;
+      if (seekerNorm) {
+        const { data: seekerBpAuth } = await db
+          .from("business_profiles")
+          .select("metadata")
+          .eq("id", fromProfileId)
+          .single();
+        const seekerMetaAuth = (seekerBpAuth?.metadata || {}) as Record<string, unknown>;
+        if (seekerMetaAuth.whatsapp_opted_in) {
+          await startSeekerConversation({
+            connectionId: newConnection.id,
+            profileId: fromProfileId,
+            phone: seekerNorm,
+            seekerFirstName: firstName || "there",
+            providerName: providerDisplayName || providerName,
+            providerCategory: providerCategoryAuth,
+            city: providerCity,
+            state: providerState,
+          });
+        }
+      }
+    } catch (seekerWaErr) {
+      console.error("[whatsapp] Seeker enrichment conversation failed:", seekerWaErr);
     }
 
     // 9e. Slack alert for new lead (fire-and-forget)

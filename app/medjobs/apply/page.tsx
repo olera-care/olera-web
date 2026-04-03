@@ -170,7 +170,7 @@ export default function MedJobsApplyPage() {
   const [hoursPerWeekRange, setHoursPerWeekRange] = useState("");
 
   // Confirm — individual attestation checkboxes
-  const [attestations, setAttestations] = useState<boolean[]>([false, false, false, false, false, false, false]);
+  const [attestations, setAttestations] = useState<boolean[]>([false, false, false, false, false, false]);
   const allAcknowledged = attestations.every(Boolean);
   const [honeypot, setHoneypot] = useState("");
 

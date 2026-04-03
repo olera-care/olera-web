@@ -333,7 +333,7 @@ export default function ReviewsSection({
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-primary-600">
-                        {review.rating.toFixed(1)} / 5{" "}
+                        {(review.rating ?? 0).toFixed(1)} / 5{" "}
                         <StarIcon className="w-3.5 h-3.5 text-primary-500 inline" />
                       </span>
                       {/* More menu - only for review owner */}

@@ -261,7 +261,7 @@ export default function ReviewsSection({
           {/* Rating summary bar */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-4">
-              {googleReviewsData && (
+              {googleReviewsData && googleReviewsData.rating != null && (
                 <div className="flex items-center gap-2">
                   <span className="text-2xl font-bold text-gray-900">{googleReviewsData.rating.toFixed(1)}</span>
                   <div className="flex items-center gap-1">

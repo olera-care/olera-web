@@ -16,6 +16,79 @@ import {
   URGENCY_LABELS,
 } from "@/components/providers/connection-card/constants";
 
+// ── Mobile email form for new CTA (email-only, no intent questions) ──
+function MobileEmailForm({
+  onSubmit,
+  submitting,
+}: {
+  onSubmit: (email: string) => void;
+  submitting?: boolean;
+}) {
+  const [email, setEmail] = useState("");
+  const [honeypot, setHoneypot] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = useCallback(() => {
+    setError("");
+    if (honeypot) return; // Bot trap
+    const val = email.trim().toLowerCase();
+    if (!val) {
+      setError("Please enter your email address.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    onSubmit(val);
+  }, [email, honeypot, onSubmit]);
+
+  return (
+    <>
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !submitting) {
+            e.preventDefault();
+            handleSubmit();
+          }
+        }}
+        placeholder="Your email address"
+        autoComplete="email"
+        className={`w-full px-3.5 py-3 border rounded-xl text-[15px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 ${
+          error ? "border-red-300" : "border-gray-300"
+        }`}
+      />
+      {/* Honeypot */}
+      <input
+        type="text"
+        name="website"
+        value={honeypot}
+        onChange={(e) => setHoneypot(e.target.value)}
+        style={{ display: "none" }}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+      />
+      {error && (
+        <p className="text-xs text-red-600" role="alert">{error}</p>
+      )}
+      <button
+        onClick={handleSubmit}
+        disabled={submitting || !email.trim()}
+        className="w-full py-3.5 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-[10px] text-base font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+      >
+        {submitting && (
+          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        )}
+        {submitting ? "Checking..." : "Check cost & availability"}
+      </button>
+    </>
+  );
+}
+
 // ── Mobile email capture form (inline to avoid circular imports) ──
 interface MobileEmailCaptureFormProps {
   onSubmit: (email: string) => void;
@@ -215,9 +288,9 @@ export default function MobileStickyBottomCTA({
   const sheetTitle = (() => {
     switch (hook.cardState) {
       case "loading":
-        return "Connect";
+        return "What does this cost?";
       case "default":
-        return priceRange || "Connect";
+        return "What does this cost?";
       case "intent":
         return hook.intentStep === 0
           ? "Who needs care?"
@@ -229,7 +302,7 @@ export default function MobileStickyBottomCTA({
       case "connected":
         return undefined;
       case "returning":
-        return priceRange || "Reconnect";
+        return "What does this cost?";
     }
   })();
 
@@ -259,22 +332,38 @@ export default function MobileStickyBottomCTA({
       case "default":
         return (
           <div className="space-y-2.5">
-            <button
-              onClick={hook.startFlow}
-              className="w-full py-3.5 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-[10px] text-base font-semibold transition-colors"
-            >
-              Connect
-            </button>
-            <PhoneButton
-              phone={phone}
-              revealed={hook.phoneRevealed}
-              onReveal={hook.revealPhone}
-            />
-            {!hook.phoneRevealed && phone && (
-              <p className="text-xs text-gray-400 text-center">
-                Connect to see full number
+            {hook.userEmail ? (
+              /* Logged-in: one-click */
+              <>
+                <p className="text-[13px] text-gray-500 text-center">
+                  Signed in as {hook.userEmail}
+                </p>
+                <button
+                  onClick={() => hook.submitInquiryForm({ email: hook.userEmail })}
+                  disabled={hook.submitting}
+                  className="w-full py-3.5 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-[10px] text-base font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                >
+                  {hook.submitting && (
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  )}
+                  {hook.submitting ? "Checking..." : "Check cost & availability"}
+                </button>
+              </>
+            ) : (
+              /* Guest: email-only form in footer */
+              <MobileEmailForm
+                onSubmit={(email) => hook.submitInquiryForm({ email })}
+                submitting={hook.submitting}
+              />
+            )}
+            {hook.error && (
+              <p className="text-sm text-red-600 text-center" role="alert">
+                {hook.error}
               </p>
             )}
+            <p className="text-[12px] text-gray-500 text-center font-medium">
+              No spam. No sales calls.
+            </p>
           </div>
         );
 
@@ -390,22 +479,19 @@ export default function MobileStickyBottomCTA({
         >
           <div className="flex items-center gap-4 px-4 py-3.5">
             <div className="flex-1 min-w-0">
-              {priceRange ? (
-                <p className="text-base font-bold text-gray-900 truncate">
-                  {priceRange}
-                </p>
-              ) : (
-                <p className="text-sm font-medium text-gray-500 truncate">
-                  Contact for pricing
-                </p>
-              )}
+              <p className="text-sm font-bold text-gray-900 truncate">
+                What does this cost?
+              </p>
+              <p className="text-[11px] text-gray-400">
+                No spam. No sales calls.
+              </p>
             </div>
 
             <button
               onClick={() => setSheetOpen(true)}
-              className="flex-shrink-0 px-7 py-3 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-base font-semibold transition-colors"
+              className="flex-shrink-0 px-5 py-3 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[13px] font-semibold transition-colors"
             >
-              Connect
+              Check cost
             </button>
           </div>
         </div>
@@ -415,13 +501,39 @@ export default function MobileStickyBottomCTA({
       <Modal
         isOpen={sheetOpen}
         onClose={() => setSheetOpen(false)}
-        title={sheetTitle}
-        onBack={sheetOnBack}
-        footer={sheetFooter}
+        title={hook.isNonFamilyProfile ? "Family account required" : sheetTitle}
+        onBack={hook.isNonFamilyProfile ? undefined : sheetOnBack}
+        footer={hook.isNonFamilyProfile ? undefined : sheetFooter}
         size="lg"
       >
+        {/* ── Non-family profile block ── */}
+        {hook.isNonFamilyProfile && (
+          <div className="py-4 text-center animate-step-in">
+            <div className="w-14 h-14 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+            <p className="text-sm text-gray-600 mb-4 px-2">
+              Care consultation requests can only be sent from a family account. Create one to connect with {providerName}.
+            </p>
+            <button
+              onClick={() => {
+                setSheetOpen(false);
+                hook.openAuth({ defaultMode: "sign-up", intent: "family" });
+              }}
+              className="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
+            >
+              Create Family Account
+            </button>
+            <p className="text-xs text-gray-400 mt-3">
+              Use a different email than your {hook.accountTypeLabel} account.
+            </p>
+          </div>
+        )}
+
         {/* ── Loading ── */}
-        {hook.cardState === "loading" && (
+        {!hook.isNonFamilyProfile && hook.cardState === "loading" && (
           <div className="py-4 animate-step-in">
             <div className="animate-pulse space-y-3">
               <div className="h-11 bg-gray-100 rounded-[10px]" />
@@ -431,7 +543,7 @@ export default function MobileStickyBottomCTA({
         )}
 
         {/* ── Default: payments ── */}
-        {hook.cardState === "default" && (
+        {!hook.isNonFamilyProfile && hook.cardState === "default" && (
           <div className="animate-step-in">
             {acceptedPayments.length > 0 && (
               <div className="pt-2">
@@ -454,7 +566,7 @@ export default function MobileStickyBottomCTA({
         )}
 
         {/* ── Intent step 0: Who needs care? ── */}
-        {hook.cardState === "intent" && hook.intentStep === 0 && (
+        {!hook.isNonFamilyProfile && hook.cardState === "intent" && hook.intentStep === 0 && (
           <div className="py-2 animate-step-in">
             <StepIndicator current={0} total={hook.totalSteps} />
             <div className="flex flex-col gap-1.5">
@@ -471,7 +583,7 @@ export default function MobileStickyBottomCTA({
         )}
 
         {/* ── Intent step 1: When do you need care? ── */}
-        {hook.cardState === "intent" && hook.intentStep === 1 && (
+        {!hook.isNonFamilyProfile && hook.cardState === "intent" && hook.intentStep === 1 && (
           <div className="py-2 animate-step-in">
             <StepIndicator current={1} total={hook.totalSteps} />
             <div className="grid grid-cols-2 gap-1.5">
@@ -488,7 +600,7 @@ export default function MobileStickyBottomCTA({
         )}
 
         {/* ── Email capture (guest flow) ── */}
-        {hook.cardState === "email_capture" && (
+        {!hook.isNonFamilyProfile && hook.cardState === "email_capture" && (
           <div className="py-2 animate-step-in">
             <StepIndicator current={2} total={3} />
             {/* Summary chips */}
@@ -513,21 +625,21 @@ export default function MobileStickyBottomCTA({
         )}
 
         {/* ── Enrichment: post-submission questions ── */}
-        {hook.cardState === "enrichment" && (
+        {!hook.isNonFamilyProfile && hook.cardState === "enrichment" && (
           <div className="py-4 animate-step-in">
             <EnrichmentState
               providerName={providerName}
               onSave={hook.saveEnrichment}
               onSkip={hook.skipEnrichment}
               saving={hook.submitting}
-              initialRecipient={hook.initialRecipient}
-              initialUrgency={hook.initialUrgency}
+              careTypes={careTypes}
+              priceRange={priceRange}
             />
           </div>
         )}
 
         {/* ── Connected: success banner ── */}
-        {hook.cardState === "connected" && (
+        {!hook.isNonFamilyProfile && hook.cardState === "connected" && (
           <div className="py-4 animate-step-in">
             <div className="flex items-center gap-3 px-4 py-4 bg-emerald-50 rounded-[10px] border border-emerald-100">
               <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
@@ -555,7 +667,7 @@ export default function MobileStickyBottomCTA({
         )}
 
         {/* ── Returning: intent summary ── */}
-        {hook.cardState === "returning" && (
+        {!hook.isNonFamilyProfile && hook.cardState === "returning" && (
           <div className="py-2 animate-step-in">
             <div className="px-3.5 py-3.5 bg-gray-50 rounded-[10px] border border-gray-100">
               <p className="text-sm font-semibold text-gray-800">

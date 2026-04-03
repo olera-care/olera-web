@@ -1218,6 +1218,8 @@ export default function ProviderLeadsPage() {
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const fetchedRef = useRef(false);
+  const [whatsappBannerDismissed, setWhatsappBannerDismissed] = useState(false);
+  const [whatsappOptingIn, setWhatsappOptingIn] = useState(false);
 
   // If auth is done loading and there's no provider profile, stop showing skeletons.
   // This prevents eternal loading when the signed-in user doesn't own a provider listing.
@@ -1401,6 +1403,58 @@ export default function ProviderLeadsPage() {
     );
   }, []);
 
+  // WhatsApp opt-in: show banner if provider has phone, hasn't opted in, and hasn't dismissed
+  const providerMeta = (providerProfile?.metadata || {}) as Record<string, unknown>;
+  const showWhatsAppBanner =
+    !whatsappBannerDismissed &&
+    !whatsappOptingIn &&
+    providerProfile?.phone &&
+    !providerMeta.whatsapp_opted_in &&
+    !providerMeta.whatsapp_banner_dismissed;
+
+  const handleWhatsAppOptIn = useCallback(async () => {
+    if (!providerProfile || !isSupabaseConfigured()) return;
+    setWhatsappOptingIn(true);
+    try {
+      const supabase = createClient();
+      const now = new Date().toISOString();
+      await supabase
+        .from("business_profiles")
+        .update({
+          metadata: {
+            ...providerMeta,
+            whatsapp_opted_in: true,
+            whatsapp_opted_in_at: now,
+          },
+        })
+        .eq("id", providerProfile.id);
+      setWhatsappBannerDismissed(true);
+    } catch (err) {
+      console.error("[whatsapp] Opt-in failed:", err);
+    } finally {
+      setWhatsappOptingIn(false);
+    }
+  }, [providerProfile, providerMeta]);
+
+  const dismissWhatsAppBanner = useCallback(async () => {
+    setWhatsappBannerDismissed(true);
+    if (!providerProfile || !isSupabaseConfigured()) return;
+    try {
+      const supabase = createClient();
+      await supabase
+        .from("business_profiles")
+        .update({
+          metadata: {
+            ...providerMeta,
+            whatsapp_banner_dismissed: true,
+          },
+        })
+        .eq("id", providerProfile.id);
+    } catch {
+      // Non-blocking
+    }
+  }, [providerProfile, providerMeta]);
+
   const filteredLeads = useMemo(() => {
     if (activeFilter === "archived") {
       return leads.filter((l) => l.status === "archived");
@@ -1454,6 +1508,36 @@ export default function ProviderLeadsPage() {
           Families who found you and connected.
         </p>
       </div>
+
+      {/* ── WhatsApp opt-in banner ── */}
+      {showWhatsAppBanner && (
+        <div className="mb-4 lg:mb-5 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-xl shrink-0" aria-hidden="true">💬</span>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-emerald-900">Get lead alerts on WhatsApp</p>
+              <p className="text-xs text-emerald-700 mt-0.5">Instant notifications when families reach out — no more missed leads in email.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={dismissWhatsAppBanner}
+              className="text-xs text-emerald-600 hover:text-emerald-800 px-2 py-1.5"
+            >
+              Dismiss
+            </button>
+            <button
+              type="button"
+              onClick={handleWhatsAppOptIn}
+              disabled={whatsappOptingIn}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            >
+              {whatsappOptingIn ? "Enabling..." : "Enable"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Filter tabs + Sort ── */}
       <div className="flex items-center justify-between gap-3 mb-4 lg:mb-5">
@@ -1538,7 +1622,7 @@ export default function ProviderLeadsPage() {
                     {/* Contact info */}
                     <div className="space-y-0.5 mb-2">
                       <p className="text-sm text-gray-600 truncate">{lead.email || "—"}</p>
-                      <p className="text-sm text-gray-500 truncate">{lead.phone || "—"}</p>
+                      {lead.phone && <p className="text-sm text-gray-500 truncate">{lead.phone}</p>}
                     </div>
 
                     {/* Meta row - location + date */}
@@ -1584,7 +1668,7 @@ export default function ProviderLeadsPage() {
                 <span className="text-[14px] text-gray-600 truncate">{lead.email || "—"}</span>
 
                 {/* Phone */}
-                <span className="text-[14px] text-gray-600 truncate">{lead.phone || "—"}</span>
+                <span className="text-[14px] text-gray-600 truncate">{lead.phone || "Via inbox"}</span>
 
                 {/* Location */}
                 <span className="text-[14px] text-gray-500 truncate">{lead.location}</span>

@@ -37,17 +37,15 @@ const db = createClient(SUPABASE_URL, SERVICE_KEY);
 const SLUG = "star-plus-waiver-texas-complete-guide";
 
 const ARTICLE_HTML = `
-<p class="text-lg leading-relaxed">The STAR+PLUS waiver is one of the most important Medicaid programs in Texas. It helps seniors and adults with disabilities stay in their homes instead of moving to a nursing facility, and it can pay for everything from personal care to home modifications.</p>
+<p class="text-lg leading-relaxed">STAR+PLUS is Texas Medicaid&rsquo;s program that helps seniors and adults with disabilities stay home instead of moving to a nursing facility. It covers everything from personal care to home modifications.</p>
 
-<p>But most families never hear about STAR+PLUS until they are in a crisis. The application process is confusing, the waitlists are long, and the information online is scattered across dozens of government websites. This guide puts everything in one place.</p>
-
-<p><strong>If your loved one needs daily help and you are trying to figure out what Texas will pay for, this is where to start.</strong></p>
+<p>Most families don&rsquo;t find out about it until there&rsquo;s a crisis. This guide puts everything you need in one place.</p>
 
 <h2>What Is the STAR+PLUS Waiver?</h2>
 
 <p><strong>STAR+PLUS</strong> is a Texas Medicaid managed care program that combines acute care (doctor visits, hospital stays, prescriptions) with long-term services and supports (LTSS). It is run through private managed care organizations (MCOs) contracted by the state.</p>
 
-<p>The <strong>HCBS waiver</strong> (Home and Community-Based Services) is the part of STAR+PLUS that pays for services delivered at home or in the community, rather than in a nursing facility. This is what most families are looking for when they search for the STAR+PLUS waiver.</p>
+<p>The <strong>HCBS waiver</strong> (Home and Community-Based Services) is the part of STAR+PLUS that pays for services delivered at home or in the community, rather than in a nursing facility. This is what most families are looking for when they search for the STAR+PLUS waiver. For a quick overview of eligibility and covered services, see our <a href="/texas/benefits/star-plus" class="text-primary-600 underline">STAR+PLUS HCBS program page</a>.</p>
 
 <div class="my-6 rounded-xl bg-primary-50 border border-primary-200 p-5 not-prose">
   <p class="text-sm font-semibold text-primary-800 mb-2">Key distinction</p>
@@ -112,7 +110,10 @@ const ARTICLE_HTML = `
 
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6 not-prose">
   <div class="rounded-xl bg-primary-50 border border-primary-200 p-5 shadow-sm">
-    <p class="text-base font-semibold text-primary-800 mb-3">Personal care</p>
+    <div class="flex items-center gap-3 mb-3">
+      <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 flex-shrink-0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/></svg></span>
+      <p class="text-base font-semibold text-primary-800">Personal care</p>
+    </div>
     <ul class="space-y-2.5 text-sm text-primary-900" style="list-style:none;padding:0;margin:0;">
       <li class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0"></span>Personal attendant services (PAS)</li>
       <li class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0"></span>Help with bathing, dressing, meals</li>
@@ -121,7 +122,10 @@ const ARTICLE_HTML = `
     </ul>
   </div>
   <div class="rounded-xl bg-primary-50 border border-primary-200 p-5 shadow-sm">
-    <p class="text-base font-semibold text-primary-800 mb-3">Home &amp; community</p>
+    <div class="flex items-center gap-3 mb-3">
+      <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 flex-shrink-0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+      <p class="text-base font-semibold text-primary-800">Home &amp; community</p>
+    </div>
     <ul class="space-y-2.5 text-sm text-primary-900" style="list-style:none;padding:0;margin:0;">
       <li class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0"></span>Home modifications (ramps, grab bars)</li>
       <li class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0"></span>Adaptive aids and medical equipment</li>
@@ -130,7 +134,10 @@ const ARTICLE_HTML = `
     </ul>
   </div>
   <div class="rounded-xl bg-primary-50 border border-primary-200 p-5 shadow-sm">
-    <p class="text-base font-semibold text-primary-800 mb-3">Medical &amp; nursing</p>
+    <div class="flex items-center gap-3 mb-3">
+      <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 flex-shrink-0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+      <p class="text-base font-semibold text-primary-800">Medical &amp; nursing</p>
+    </div>
     <ul class="space-y-2.5 text-sm text-primary-900" style="list-style:none;padding:0;margin:0;">
       <li class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0"></span>Skilled nursing visits</li>
       <li class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0"></span>Physical, occupational, speech therapy</li>
@@ -139,7 +146,10 @@ const ARTICLE_HTML = `
     </ul>
   </div>
   <div class="rounded-xl bg-primary-50 border border-primary-200 p-5 shadow-sm">
-    <p class="text-base font-semibold text-primary-800 mb-3">Consumer Directed Services</p>
+    <div class="flex items-center gap-3 mb-3">
+      <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 flex-shrink-0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      <p class="text-base font-semibold text-primary-800">Consumer Directed Services</p>
+    </div>
     <ul class="space-y-2.5 text-sm text-primary-900" style="list-style:none;padding:0;margin:0;">
       <li class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0"></span>Hire your own caregiver (including family)</li>
       <li class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0"></span>Set your own schedule</li>
@@ -195,23 +205,23 @@ const ARTICLE_HTML = `
     <tbody>
       <tr class="border-t border-primary-100">
         <td class="px-4 py-3 text-sm font-medium text-gray-900" style="border:none;">Houston / Harris County</td>
-        <td class="px-4 py-3 text-sm text-gray-600" style="border:none;">6 &ndash; 12 months</td>
+        <td class="px-4 py-3 text-sm text-gray-600" style="border:none;"><span class="inline-flex items-center gap-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary-500"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>6 &ndash; 12 months</span></td>
       </tr>
       <tr class="border-t border-primary-100 bg-primary-25">
         <td class="px-4 py-3 text-sm font-medium text-gray-900" style="border:none;">Dallas / Fort Worth</td>
-        <td class="px-4 py-3 text-sm text-gray-600" style="border:none;">8 &ndash; 14 months</td>
+        <td class="px-4 py-3 text-sm text-gray-600" style="border:none;"><span class="inline-flex items-center gap-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary-500"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>8 &ndash; 14 months</span></td>
       </tr>
       <tr class="border-t border-primary-100">
         <td class="px-4 py-3 text-sm font-medium text-gray-900" style="border:none;">San Antonio / Bexar County</td>
-        <td class="px-4 py-3 text-sm text-gray-600" style="border:none;">6 &ndash; 12 months</td>
+        <td class="px-4 py-3 text-sm text-gray-600" style="border:none;"><span class="inline-flex items-center gap-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary-500"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>6 &ndash; 12 months</span></td>
       </tr>
       <tr class="border-t border-primary-100 bg-primary-25">
         <td class="px-4 py-3 text-sm font-medium text-gray-900" style="border:none;">Austin / Travis County</td>
-        <td class="px-4 py-3 text-sm text-gray-600" style="border:none;">8 &ndash; 16 months</td>
+        <td class="px-4 py-3 text-sm text-gray-600" style="border:none;"><span class="inline-flex items-center gap-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary-500"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>8 &ndash; 16 months</span></td>
       </tr>
       <tr class="border-t border-primary-100">
         <td class="px-4 py-3 text-sm font-medium text-gray-900" style="border:none;">Rural areas</td>
-        <td class="px-4 py-3 text-sm text-gray-600" style="border:none;">3 &ndash; 8 months</td>
+        <td class="px-4 py-3 text-sm text-gray-600" style="border:none;"><span class="inline-flex items-center gap-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary-500"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>3 &ndash; 8 months</span></td>
       </tr>
     </tbody>
   </table>
@@ -223,40 +233,73 @@ const ARTICLE_HTML = `
 
 <p>STAR+PLUS is available statewide, but the managed care organizations and service availability vary by region.</p>
 
-<h3>Houston</h3>
-<p>Houston and Harris County have some of the highest STAR+PLUS enrollment in the state. MCOs serving the area include <strong>UnitedHealthcare, Molina, Amerigroup,</strong> and <strong>Superior HealthPlan</strong>. The area has a strong network of home care agencies and FMSAs for CDS.</p>
+<!-- service-map -->
 
-<h3>Dallas&ndash;Fort Worth</h3>
-<p>The DFW metroplex is served by <strong>UnitedHealthcare, Superior HealthPlan,</strong> and <strong>Molina</strong>. Wait times tend to be slightly longer due to high demand. Start the interest list process early.</p>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-6 not-prose">
+  <div class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm">
+    <div class="flex items-center gap-3 mb-3">
+      <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 flex-shrink-0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+      <p class="text-base font-semibold text-gray-900">Houston</p>
+    </div>
+    <p class="text-sm text-gray-500 mb-3">Harris, Fort Bend &amp; Montgomery counties</p>
+    <div class="flex flex-wrap gap-1.5">
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-primary-50 text-xs font-medium text-primary-700">UnitedHealthcare</span>
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-primary-50 text-xs font-medium text-primary-700">Molina</span>
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-primary-50 text-xs font-medium text-primary-700">Amerigroup</span>
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-primary-50 text-xs font-medium text-primary-700">Superior</span>
+    </div>
+  </div>
+  <div class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm">
+    <div class="flex items-center gap-3 mb-3">
+      <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 flex-shrink-0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+      <p class="text-base font-semibold text-gray-900">Dallas&ndash;Fort Worth</p>
+    </div>
+    <p class="text-sm text-gray-500 mb-3">Dallas, Collin, Denton &amp; Tarrant counties</p>
+    <div class="flex flex-wrap gap-1.5">
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-primary-50 text-xs font-medium text-primary-700">UnitedHealthcare</span>
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-primary-50 text-xs font-medium text-primary-700">Superior</span>
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-primary-50 text-xs font-medium text-primary-700">Molina</span>
+    </div>
+  </div>
+  <div class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm">
+    <div class="flex items-center gap-3 mb-3">
+      <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 flex-shrink-0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+      <p class="text-base font-semibold text-gray-900">San Antonio</p>
+    </div>
+    <p class="text-sm text-gray-500 mb-3">Bexar County</p>
+    <div class="flex flex-wrap gap-1.5">
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-primary-50 text-xs font-medium text-primary-700">Superior</span>
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-primary-50 text-xs font-medium text-primary-700">UnitedHealthcare</span>
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-primary-50 text-xs font-medium text-primary-700">Community First</span>
+    </div>
+  </div>
+</div>
 
-<h3>San Antonio</h3>
-<p>San Antonio and Bexar County are served by <strong>Superior HealthPlan, UnitedHealthcare,</strong> and <strong>Community First</strong>. Community First is unique to the San Antonio area and generally has competitive CDS pay rates.</p>
+<h2>Hire a Family Member as Your Caregiver</h2>
 
-<h2>Consumer Directed Services: Hire Your Own Caregiver</h2>
-
-<p>One of the most valuable parts of STAR+PLUS is <strong>Consumer Directed Services (CDS)</strong>. Instead of using an agency, the person receiving care (or their representative) hires and manages their own caregiver, including family members.</p>
+<p>Through STAR+PLUS, you can hire someone you already trust to be your paid caregiver &mdash; including a family member or close friend. You&rsquo;re in charge of who you hire and how they work. No agency required.</p>
 
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6 not-prose">
   <div class="rounded-xl bg-primary-50 border border-primary-200 p-5 shadow-sm">
-    <p class="text-base font-semibold text-primary-800 mb-3 flex items-center gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600"><path d="M20 6L9 17l-5-5"/></svg> Who can be hired</p>
+    <p class="text-base font-semibold text-primary-800 mb-3">Who can be hired</p>
     <ul class="space-y-2.5 text-sm text-primary-900" style="list-style:none;padding:0;margin:0;">
-      <li class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0"></span>Adult children</li>
-      <li class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0"></span>Siblings and other relatives</li>
-      <li class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0"></span>Close friends and neighbors</li>
-      <li class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0"></span>Anyone 18+ who passes a background check</li>
+      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600 flex-shrink-0"><path d="M20 6L9 17l-5-5"/></svg>Adult children</li>
+      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600 flex-shrink-0"><path d="M20 6L9 17l-5-5"/></svg>Siblings and other relatives</li>
+      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600 flex-shrink-0"><path d="M20 6L9 17l-5-5"/></svg>Close friends and neighbors</li>
+      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600 flex-shrink-0"><path d="M20 6L9 17l-5-5"/></svg>Anyone 18+ who passes a background check</li>
     </ul>
   </div>
   <div class="rounded-xl bg-red-50 border border-red-200 p-5 shadow-sm">
-    <p class="text-base font-semibold text-red-700 mb-3 flex items-center gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-500"><path d="M18 6L6 18M6 6l12 12"/></svg> Who cannot</p>
+    <p class="text-base font-semibold text-red-700 mb-3">Who cannot</p>
     <ul class="space-y-2.5 text-sm text-red-800" style="list-style:none;padding:0;margin:0;">
-      <li class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-red-400 flex-shrink-0"></span>Spouses (in most cases)</li>
-      <li class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-red-400 flex-shrink-0"></span>Legal guardians (in most cases)</li>
-      <li class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-red-400 flex-shrink-0"></span>The person receiving services</li>
+      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-500 flex-shrink-0"><path d="M18 6L6 18M6 6l12 12"/></svg>Spouses (in most cases)</li>
+      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-500 flex-shrink-0"><path d="M18 6L6 18M6 6l12 12"/></svg>Legal guardians (in most cases)</li>
+      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-500 flex-shrink-0"><path d="M18 6L6 18M6 6l12 12"/></svg>The person receiving services</li>
     </ul>
   </div>
 </div>
 
-<p>CDS pay rates range from <strong>$10 to $17 per hour</strong> depending on the MCO and region. For a detailed breakdown, see our guide on <a href="/texas/how-to-get-paid-as-a-caregiver-in-texas" class="text-primary-600 underline">how to get paid as a caregiver in Texas</a>.</p>
+<p>Pay ranges from <strong>$10 to $17 per hour</strong>, depending on your location and insurance plan. For a detailed breakdown, see our guide on <a href="/texas/how-to-get-paid-as-a-caregiver-in-texas" class="text-primary-600 underline">how to get paid as a caregiver in Texas</a>.</p>
 
 <h2>Documents You Will Need</h2>
 
@@ -270,6 +313,25 @@ const ARTICLE_HTML = `
 </ul>
 
 <p><strong>Want a personalized checklist?</strong> Use the <a href="/texas/benefits/star-plus/checklist" class="text-primary-600 underline">Olera Document Checklist</a> to get a downloadable list tailored to STAR+PLUS.</p>
+
+<h2>Related Texas Benefit Programs</h2>
+
+<p>STAR+PLUS is just one of several programs available to Texas families. Depending on your situation, you may also qualify for:</p>
+
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-6 not-prose">
+  <a href="/texas/benefits/medicaid" class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm hover:border-primary-300 hover:shadow-md transition-all no-underline block">
+    <p class="text-sm font-semibold text-gray-900 mb-1">Texas Medicaid for Elderly &amp; Disabled</p>
+    <p class="text-xs text-gray-500">Full Medicaid coverage for seniors and adults with disabilities who meet income and asset limits.</p>
+  </a>
+  <a href="/texas/benefits/medicare-savings" class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm hover:border-primary-300 hover:shadow-md transition-all no-underline block">
+    <p class="text-sm font-semibold text-gray-900 mb-1">Medicare Savings Programs</p>
+    <p class="text-xs text-gray-500">Help paying Medicare premiums, deductibles, and copays for low-income seniors.</p>
+  </a>
+  <a href="/texas/benefits/respite-care" class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm hover:border-primary-300 hover:shadow-md transition-all no-underline block">
+    <p class="text-sm font-semibold text-gray-900 mb-1">Respite Care Services</p>
+    <p class="text-xs text-gray-500">Temporary relief for family caregivers so you can rest while your loved one is cared for.</p>
+  </a>
+</div>
 
 <!-- faq-accordion -->
 
@@ -300,21 +362,19 @@ async function main() {
         title: "STAR+PLUS Waiver Texas 2026 — Complete Guide to Eligibility & How to Apply",
         meta_title: "STAR+PLUS Waiver Texas 2026 — Complete Guide to Eligibility & How to Apply",
         meta_description:
-          "Everything you need to know about the Texas STAR+PLUS Waiver in 2026. Income limits, covered services, how to apply, and where to find it in Houston, Dallas and San Antonio.",
+          "STAR+PLUS Texas 2026 guide: income limits, covered services, how to apply, waitlist times, and where to find help in Houston, Dallas, and San Antonio.",
         canonical_url: `https://olera.care/texas/${SLUG}`,
         content_html: ARTICLE_HTML.trim(),
         excerpt:
-          "The STAR+PLUS waiver is one of the most important Medicaid programs in Texas. It helps seniors and adults with disabilities stay in their homes instead of moving to a nursing facility, and it can pay for everything from personal care to home modifications.",
+          "STAR+PLUS is Texas Medicaid\u2019s program that helps seniors and adults with disabilities stay home instead of moving to a nursing facility. It covers everything from personal care to home modifications.",
         subtitle:
           "Everything you need to know about eligibility, covered services, how to apply, and waitlist times across Texas.",
         reading_time: "10 min read",
         care_types: ["home-health"],
-        tags: ["texas", "medicaid", "star-plus", "waiver", "hcbs", "eligibility"],
+        tags: ["texas", "medicaid", "star-plus", "waiver", "hcbs", "eligibility", "cover-alt:Caregiver comforting elderly woman wrapped in blanket on couch in Texas home"],
         focus_keyword: "star plus waiver texas",
         structured_data_type: "Article",
         author_name: "Olera Team",
-        status: "published",
-        published_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq("id", existing.id);
@@ -323,7 +383,7 @@ async function main() {
       console.error("Failed to update article:", error.message);
       process.exit(1);
     }
-    console.log(`Updated and published article (id: ${existing.id})`);
+    console.log(`Updated article (id: ${existing.id})`);
     console.log(`  URL: /texas/${SLUG}`);
     return;
   }
@@ -340,16 +400,16 @@ async function main() {
       category: "guide",
       meta_title: "STAR+PLUS Waiver Texas 2026 — Complete Guide to Eligibility & How to Apply",
       meta_description:
-        "Everything you need to know about the Texas STAR+PLUS Waiver in 2026. Income limits, covered services, how to apply, and where to find it in Houston, Dallas and San Antonio.",
+        "STAR+PLUS Texas 2026 guide: income limits, covered services, how to apply, waitlist times, and where to find help in Houston, Dallas, and San Antonio.",
       canonical_url: `https://olera.care/texas/${SLUG}`,
       content_html: ARTICLE_HTML.trim(),
       excerpt:
-        "The STAR+PLUS waiver is one of the most important Medicaid programs in Texas. It helps seniors and adults with disabilities stay in their homes instead of moving to a nursing facility, and it can pay for everything from personal care to home modifications.",
+        "STAR+PLUS is Texas Medicaid\u2019s program that helps seniors and adults with disabilities stay home instead of moving to a nursing facility. It covers everything from personal care to home modifications.",
       subtitle:
         "Everything you need to know about eligibility, covered services, how to apply, and waitlist times across Texas.",
       reading_time: "10 min read",
       care_types: ["home-health"],
-      tags: ["texas", "medicaid", "star-plus", "waiver", "hcbs", "eligibility"],
+      tags: ["texas", "medicaid", "star-plus", "waiver", "hcbs", "eligibility", "cover-alt:Caregiver comforting elderly woman wrapped in blanket on couch in Texas home"],
       focus_keyword: "star plus waiver texas",
       structured_data_type: "Article",
       author_name: "Olera Team",

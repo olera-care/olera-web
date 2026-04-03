@@ -321,11 +321,13 @@ export interface FamilyMetadata {
   // Benefits intake fields
   income_range?: string;
   medicaid_status?: string;
+  whatsapp_opted_in?: boolean;
+  whatsapp_opted_in_at?: string;
   notification_prefs?: {
-    connection_updates?: { email?: boolean; sms?: boolean };
-    saved_provider_alerts?: { email?: boolean; sms?: boolean };
-    match_updates?: { email?: boolean; sms?: boolean };
-    profile_reminders?: { email?: boolean; sms?: boolean };
+    connection_updates?: { email?: boolean; sms?: boolean; whatsapp?: boolean };
+    saved_provider_alerts?: { email?: boolean; sms?: boolean; whatsapp?: boolean };
+    match_updates?: { email?: boolean; sms?: boolean; whatsapp?: boolean };
+    profile_reminders?: { email?: boolean; sms?: boolean; whatsapp?: boolean };
   };
   care_post?: {
     status: "draft" | "active" | "paused";
@@ -402,10 +404,86 @@ export interface StudentMetadata {
   hours_per_week_range?: string;        // "5-10", "10-15", "15-20", "20+"
   acknowledgments_completed?: boolean;
   acknowledgment_date?: string;
+  application_completed?: boolean;
+
+  // Motivation & Personal Statement
+  why_caregiving?: string;
+  personal_statement?: string;
+
+  // Course Schedule
+  course_schedule_description?: string;
+  course_schedule_grid?: string;      // JSON serialized ScheduleGrid (day-slot toggles)
+  course_schedule_semester?: string;  // e.g. "Fall 2026"
+
+  // Availability & Commitment
+  commitment_statement?: string;        // Required free-text on commitment to shifts
+  availability_notes?: string;          // Free-text: finals, breaks, travel, constraints
+  schedule_update_date?: string;        // Next date schedule needs updating (ISO date)
+  summer_availability?: string;         // Legacy — migrated to year_round_availability
+  winter_availability?: string;         // Legacy — migrated to year_round_availability
+
+  // Year-round availability (structured)
+  year_round_availability?: {
+    spring?: { status: string; year: number; notes?: string };
+    summer?: { status: string; year: number; notes?: string };
+    fall?: { status: string; year: number; notes?: string };
+    winter?: { status: string; year: number; notes?: string };
+  };
+
+  // Document Expiration
+  drivers_license_expiration?: string;  // ISO date
+  car_insurance_expiration?: string;    // ISO date
+
+  // Commitments & Pledges
+  ncns_pledge?: boolean;
+  school_balance_pledge?: boolean;
+  advance_notice_pledge?: boolean;
+  prn_willing?: boolean;
+
+  // Scenario Responses
+  scenario_responses?: Array<{
+    question: string;
+    answer: string;
+  }>;
+
+  // References
+  references?: Array<{
+    name: string;
+    relationship: string;
+    note?: string;
+  }>;
+
+  // Social Links
+  instagram_url?: string;
+  facebook_url?: string;
+  tiktok_url?: string;
 
   // Status
   profile_completeness?: number;   // 0-100
   seeking_status?: "actively_looking" | "open" | "not_looking";
+}
+
+// ── Interview Scheduling ──
+
+export type InterviewStatus = "proposed" | "confirmed" | "completed" | "cancelled" | "no_show" | "rescheduled";
+export type InterviewType = "video" | "in_person" | "phone";
+
+export interface Interview {
+  id: string;
+  provider_profile_id: string;
+  student_profile_id: string;
+  connection_id: string | null;
+  status: InterviewStatus;
+  type: InterviewType;
+  proposed_time: string;
+  alternative_time: string | null;
+  confirmed_time: string | null;
+  duration_minutes: number;
+  location: string | null;
+  notes: string | null;
+  proposed_by: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export type ExperienceLogStatus = "pending" | "confirmed" | "disputed";
@@ -467,7 +545,7 @@ export interface MedJobsJobPost {
 // ============================================================
 
 export interface DeferredAction {
-  action: "save" | "inquiry" | "apply" | "claim" | "create_profile" | "phone_reveal" | "connection_request" | "save_benefit" | "review" | "question";
+  action: "save" | "inquiry" | "apply" | "claim" | "create_profile" | "phone_reveal" | "connection_request" | "save_benefit" | "review" | "question" | "hire-candidate";
   targetProfileId?: string;
   benefitProgramName?: string;
   /** For question deferred action - preserve the question text */

@@ -14,7 +14,9 @@ import EligibilityChecker from "@/components/article/EligibilityChecker";
 import ArticleFAQ from "@/components/article/ArticleFAQ";
 import SeniorCareFAQ from "@/components/article/SeniorCareFAQ";
 import StarPlusFAQ from "@/components/article/StarPlusFAQ";
+import MedicaidEligibilityFAQ from "@/components/article/MedicaidEligibilityFAQ";
 import ShareButton from "@/components/article/ShareButton";
+import SpendDownWidget from "@/components/article/SpendDownWidget";
 
 // ISR: revalidate every 60 seconds
 export const revalidate = 60;
@@ -290,7 +292,7 @@ export default async function TexasArticlePage({
               <img
                 src={coverImage}
                 alt={coverAlt}
-                className="w-full aspect-[2/1] object-cover rounded-2xl"
+                className="w-full aspect-[2/1] object-cover object-top rounded-2xl"
               />
             </figure>
           )}
@@ -304,7 +306,8 @@ export default async function TexasArticlePage({
           {contentHtml ? (() => {
             const MARKERS: Record<string, React.ReactNode> = {
               "<!-- eligibility-checker -->": <EligibilityChecker />,
-              "<!-- faq-accordion -->": slug === "how-to-pay-for-senior-care-in-texas" ? <SeniorCareFAQ /> : slug === "star-plus-waiver-texas-complete-guide" ? <StarPlusFAQ /> : <ArticleFAQ />,
+              "<!-- spend-down-calculator -->": <SpendDownWidget initialStateCode="TX" />,
+              "<!-- faq-accordion -->": slug === "how-to-pay-for-senior-care-in-texas" ? <SeniorCareFAQ /> : slug === "star-plus-waiver-texas-complete-guide" ? <StarPlusFAQ /> : slug === "texas-medicaid-eligibility-seniors-2026" ? <MedicaidEligibilityFAQ /> : <ArticleFAQ />,
             };
             let segments: React.ReactNode[] = [processedHtml];
             for (const [marker, component] of Object.entries(MARKERS)) {

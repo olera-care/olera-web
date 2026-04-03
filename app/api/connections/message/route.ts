@@ -4,6 +4,8 @@ import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { newMessageEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
+import { sendWhatsApp } from "@/lib/whatsapp";
+import { normalizeUSPhone } from "@/lib/twilio";
 
 interface ThreadMessage {
   from_profile_id: string;
@@ -167,7 +169,7 @@ export async function POST(request: Request) {
               .single(),
             admin
               .from("business_profiles")
-              .select("display_name, email, account_id, type, slug, source_provider_id")
+              .select("display_name, email, account_id, type, slug, source_provider_id, phone, metadata")
               .eq("id", recipientProfileId)
               .single(),
           ]);
@@ -250,6 +252,39 @@ export async function POST(request: Request) {
             providerId: !isFamily ? recipientProfileId : undefined,
             emailLogId: msgEmailLogId ?? undefined,
           });
+        }
+
+        // WhatsApp notification (same debounce applies)
+        try {
+          const recipientMeta = (recipientProfile?.metadata || {}) as Record<string, unknown>;
+          if (recipientProfile?.phone && recipientMeta.whatsapp_opted_in) {
+            const waNormalized = normalizeUSPhone(recipientProfile.phone);
+            if (waNormalized) {
+              const waPreview = text.trim().length > 100
+                ? text.trim().slice(0, 100) + "..."
+                : text.trim();
+
+              const senderLabel = senderProfile?.display_name || "Someone";
+              await sendWhatsApp({
+                to: waNormalized,
+                contentSid: process.env.TWILIO_WA_TEMPLATE_NEW_MESSAGE || "sandbox",
+                contentVariables: {
+                  "1": senderLabel,
+                  "2": waPreview,
+                },
+                fallbackBody: `New message from ${senderLabel} on Olera:\n\n"${waPreview}"\n\nReply now: ${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}${
+                  recipientProfile?.type === "family"
+                    ? "/portal/inbox"
+                    : `/provider/${recipientProfile?.slug || recipientProfile?.source_provider_id || recipientProfileId}/onboard?action=message&actionId=${connectionId}`
+                }`,
+                messageType: "new_message",
+                recipientType: recipientProfile?.type === "family" ? "family" : "provider",
+                profileId: recipientProfileId,
+              });
+            }
+          }
+        } catch (waErr) {
+          console.error("[whatsapp] Message notification failed:", waErr);
         }
       }
     } catch (emailErr) {

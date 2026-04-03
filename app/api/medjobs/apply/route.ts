@@ -397,6 +397,7 @@ export async function POST(req: NextRequest) {
     const supabaseAdmin = getSupabaseAdmin();
 
     // Create profile — is_active: false until video submitted
+    // Profile will be activated when student submits intro video via submit-video endpoint
     const { data: profile, error } = await supabaseAdmin
       .from("business_profiles")
       .insert({

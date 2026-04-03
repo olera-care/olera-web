@@ -81,6 +81,11 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const { user, account, activeProfile, profiles, isLoading: authLoading, openAuth, refreshAccountData } =
     useAuth();
   const savedProviders = useSavedProviders();
+
+  // ── Non-family profile guard ──
+  // Provider, caregiver, and student accounts cannot send care inquiries
+  const isNonFamilyProfile = activeProfile &&
+    (activeProfile.type === "organization" || activeProfile.type === "caregiver" || activeProfile.type === "student");
   const phoneRevealTriggered = useRef(false);
   const connectionAuthTriggered = useRef(false);
 
@@ -99,6 +104,16 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const [previousIntent, setPreviousIntent] = useState<IntentData | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [connectionId, setConnectionId] = useState<string | null>(null);
+  const [blockedEmail, setBlockedEmail] = useState<string | null>(null);
+
+  // ── Social proof: monthly connection count ──
+  const [connectionCount, setConnectionCount] = useState<number | null>(null);
+  useEffect(() => {
+    fetch("/api/connections/count")
+      .then((r) => r.json())
+      .then((d) => setConnectionCount(d.count ?? null))
+      .catch(() => {});
+  }, []);
 
   // Track where to redirect after enrichment save/skip
   const postEnrichmentRedirect = useRef<string | null>(null);
@@ -374,6 +389,13 @@ export function useConnectionCard(props: ConnectionCardProps) {
     setError("");
   }, []);
 
+  // ── Reset from provider email block (use different email) ──
+  const resetFromProviderEmailBlock = useCallback(() => {
+    setBlockedEmail(null);
+    setCardState("default");
+    setError("");
+  }, []);
+
   // ── Auto-advancing field setters (for intent steps) ──
   const selectRecipient = useCallback((val: CareRecipient) => {
     setIntentData((prev) => ({ ...prev, careRecipient: val }));
@@ -499,12 +521,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
     setCardState("intent");
   }, []);
 
-  // ── Submit inquiry form (v2.0 — optimistic enrichment) ──
+  // ── Submit inquiry form (v3.0 — email-only, optimistic enrichment) ──
   const submitInquiryForm = useCallback(async (formData: {
     email: string;
-    fullName: string;
-    phone: string;
-    message: string;
   }) => {
     if (enrichmentLock.current) return; // Prevent double-submit
     setError("");
@@ -515,11 +534,12 @@ export function useConnectionCard(props: ConnectionCardProps) {
     setCardState("enrichment");
 
     // ── BACKGROUND: Fire API without blocking the UI ──
+    // Name, phone, message no longer collected upfront — moved to enrichment
     const formIntentData = {
       careRecipient: null,
       careType: null,
       urgency: null,
-      additionalNotes: formData.message,
+      additionalNotes: null,
     };
 
     try {
@@ -534,9 +554,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
             providerSlug,
             intentData: formIntentData,
             formData: {
-              fullName: formData.fullName,
-              phone: formData.phone,
-              message: formData.message,
+              fullName: "",
+              phone: "",
+              message: "",
             },
           }),
         });
@@ -568,14 +588,24 @@ export function useConnectionCard(props: ConnectionCardProps) {
             guest: true,
             guestEmail: formData.email,
             formData: {
-              fullName: formData.fullName,
-              phone: formData.phone,
-              message: formData.message,
+              fullName: "",
+              phone: "",
+              message: "",
             },
           }),
         });
 
         const data = await res.json();
+
+        // Check for provider email block — show blocking UI instead of error
+        if (!res.ok && data.code === "PROVIDER_EMAIL") {
+          enrichmentLock.current = false;
+          postEnrichmentRedirect.current = null;
+          setBlockedEmail(formData.email);
+          setCardState("provider_email_block");
+          return;
+        }
+
         if (!res.ok) throw new Error(data.error || "Failed to send request.");
 
         window.dispatchEvent(new CustomEvent("olera:connection-created"));
@@ -648,27 +678,52 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const saveEnrichment = useCallback(async (data?: {
     careRecipient?: string;
     urgency?: string;
+    phone?: string;
+    notifyChannel?: string;
   }) => {
-    if (!connectionId || !data?.careRecipient || !data?.urgency) {
+    // Need at least connectionId and some data to save
+    const hasIntentData = data?.careRecipient || data?.urgency;
+    const hasPhone = data?.phone && data.phone.trim();
+    const hasNotify = data?.notifyChannel;
+    if (!connectionId || (!hasIntentData && !hasPhone && !hasNotify)) {
       navigatePostEnrichment();
       return;
     }
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/connections/update-intent", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          connectionId,
-          careRecipient: data.careRecipient,
-          urgency: data.urgency,
-        }),
-      });
+      // For guest flow: session may still be establishing in background.
+      // Wait briefly for it if needed, then retry once on 401.
+      const doSave = async (retry = false): Promise<boolean> => {
+        const res = await fetch("/api/connections/update-intent", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            connectionId,
+            careRecipient: data.careRecipient,
+            urgency: data.urgency,
+            phone: data.phone || undefined,
+            notifyChannel: data.notifyChannel || undefined,
+          }),
+        });
 
-      if (!res.ok) {
-        console.error("[enrichment] update-intent failed:", await res.text());
-      }
+        if (res.status === 401 && !retry) {
+          // Session not ready yet — wait and retry once
+          await new Promise(r => setTimeout(r, 1500));
+          return doSave(true);
+        }
+
+        if (!res.ok) {
+          console.error("[enrichment] update-intent failed:", await res.text());
+          return false;
+        }
+        return true;
+      };
+
+      await doSave();
+
+      // Refresh auth context so welcome page has fresh profile data
+      await refreshAccountData().catch(() => {});
     } catch (err) {
       console.error("[enrichment] update-intent error:", err);
     } finally {
@@ -676,7 +731,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     }
 
     navigatePostEnrichment();
-  }, [connectionId, navigatePostEnrichment]);
+  }, [connectionId, navigatePostEnrichment, refreshAccountData]);
 
   const skipEnrichment = useCallback(() => {
     navigatePostEnrichment();
@@ -734,5 +789,21 @@ export function useConnectionCard(props: ConnectionCardProps) {
     hasProfileCareDetails,
     initialRecipient,
     initialUrgency,
+
+    // Non-family profile guard
+    isNonFamilyProfile,
+    accountTypeLabel: activeProfile?.type === "organization"
+      ? "provider"
+      : (activeProfile?.type === "caregiver" || activeProfile?.type === "student")
+      ? "caregiver"
+      : "current",
+    openAuth,
+
+    // Provider email block (guest flow)
+    blockedEmail,
+    resetFromProviderEmailBlock,
+
+    // Social proof
+    connectionCount,
   };
 }

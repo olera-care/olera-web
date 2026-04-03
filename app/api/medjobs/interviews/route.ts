@@ -1,0 +1,292 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
+import { sendEmail } from "@/lib/email";
+import { generateICS } from "@/lib/ics-generator";
+import type { InterviewStatus } from "@/lib/types";
+
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
+
+/**
+ * GET /api/medjobs/interviews
+ * List interviews for the authenticated user (provider or student).
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const admin = getAdminClient();
+
+    // Find the user's profile IDs
+    const { data: account } = await admin.from("accounts").select("id").eq("user_id", user.id).single();
+    if (!account) return NextResponse.json({ error: "No account" }, { status: 404 });
+
+    const { data: profiles } = await admin.from("business_profiles").select("id, type").eq("account_id", account.id);
+    const profileIds = (profiles || []).map((p) => p.id);
+
+    if (profileIds.length === 0) return NextResponse.json({ interviews: [] });
+
+    // Fetch interviews where user is either provider or student
+    const { data: interviews } = await admin
+      .from("interviews")
+      .select(`
+        *,
+        provider:business_profiles!interviews_provider_profile_id_fkey(id, display_name, image_url, city, state),
+        student:business_profiles!interviews_student_profile_id_fkey(id, slug, display_name, image_url, email, metadata)
+      `)
+      .or(`provider_profile_id.in.(${profileIds.join(",")}),student_profile_id.in.(${profileIds.join(",")})`)
+      .order("created_at", { ascending: false });
+
+    return NextResponse.json({ interviews: interviews || [] });
+  } catch (err) {
+    console.error("[medjobs/interviews] GET error:", err);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
+}
+
+/**
+ * POST /api/medjobs/interviews
+ * Create a new interview (provider proposes time).
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const body = await request.json();
+    const {
+      studentProfileId,
+      type = "video",
+      proposedTime,
+      alternativeTime,
+      location,
+      notes,
+    } = body;
+
+    if (!studentProfileId || !proposedTime) {
+      return NextResponse.json({ error: "studentProfileId and proposedTime are required" }, { status: 400 });
+    }
+
+    const admin = getAdminClient();
+
+    // Verify the user is a provider
+    const { data: account } = await admin.from("accounts").select("id").eq("user_id", user.id).single();
+    if (!account) return NextResponse.json({ error: "No account" }, { status: 403 });
+
+    const { data: providerProfile } = await admin
+      .from("business_profiles")
+      .select("id, display_name, email")
+      .eq("account_id", account.id)
+      .in("type", ["organization", "caregiver"])
+      .limit(1)
+      .maybeSingle();
+
+    if (!providerProfile) {
+      return NextResponse.json({ error: "Provider profile required" }, { status: 403 });
+    }
+
+    // Get the student profile
+    const { data: studentProfile } = await admin
+      .from("business_profiles")
+      .select("id, display_name, email, slug")
+      .eq("id", studentProfileId)
+      .eq("type", "student")
+      .single();
+
+    if (!studentProfile) {
+      return NextResponse.json({ error: "Student not found" }, { status: 404 });
+    }
+
+    // Create the interview
+    const { data: interview, error: insertError } = await admin
+      .from("interviews")
+      .insert({
+        provider_profile_id: providerProfile.id,
+        student_profile_id: studentProfile.id,
+        status: "proposed",
+        type,
+        proposed_time: proposedTime,
+        alternative_time: alternativeTime || null,
+        location: location || null,
+        notes: notes || null,
+        proposed_by: providerProfile.id,
+      })
+      .select("id")
+      .single();
+
+    if (insertError) {
+      console.error("[medjobs/interviews] insert error:", insertError);
+      return NextResponse.json({ error: "Failed to create interview" }, { status: 500 });
+    }
+
+    // Send notification email to student
+    try {
+      const typeLabel = type === "video" ? "Video" : type === "in_person" ? "In-Person" : "Phone";
+      const time = new Date(proposedTime).toLocaleString("en-US", {
+        weekday: "long", month: "long", day: "numeric",
+        hour: "numeric", minute: "2-digit", timeZoneName: "short",
+      });
+      await sendEmail({
+        to: studentProfile.email!,
+        subject: `Interview request from ${providerProfile.display_name}`,
+        html: `
+          <h2>You have an interview request!</h2>
+          <p><strong>${providerProfile.display_name}</strong> would like to schedule a ${typeLabel.toLowerCase()} interview with you.</p>
+          <p><strong>Proposed time:</strong> ${time}</p>
+          ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ""}
+          <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews">View & confirm on Olera</a></p>
+        `,
+        emailType: "interview_proposed",
+      });
+    } catch (err) {
+      console.error("[medjobs/interviews] email error:", err);
+    }
+
+    return NextResponse.json({ interviewId: interview.id });
+  } catch (err) {
+    console.error("[medjobs/interviews] POST error:", err);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
+}
+
+/**
+ * PATCH /api/medjobs/interviews
+ * Update interview status (confirm, cancel, reschedule).
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const body = await request.json();
+    const { interviewId, status, newTime } = body as {
+      interviewId: string;
+      status: InterviewStatus;
+      newTime?: string;
+    };
+
+    if (!interviewId || !status) {
+      return NextResponse.json({ error: "interviewId and status required" }, { status: 400 });
+    }
+
+    const admin = getAdminClient();
+
+    // Fetch the interview
+    const { data: interview } = await admin
+      .from("interviews")
+      .select(`
+        *,
+        provider:business_profiles!interviews_provider_profile_id_fkey(id, display_name, email),
+        student:business_profiles!interviews_student_profile_id_fkey(id, display_name, email, slug)
+      `)
+      .eq("id", interviewId)
+      .single();
+
+    if (!interview) return NextResponse.json({ error: "Interview not found" }, { status: 404 });
+
+    // Verify the user is a participant
+    const { data: account } = await admin.from("accounts").select("id").eq("user_id", user.id).single();
+    if (!account) return NextResponse.json({ error: "No account" }, { status: 403 });
+
+    const { data: userProfiles } = await admin.from("business_profiles").select("id").eq("account_id", account.id);
+    const userProfileIds = (userProfiles || []).map((p) => p.id);
+    const isParticipant = userProfileIds.includes(interview.provider_profile_id) || userProfileIds.includes(interview.student_profile_id);
+    if (!isParticipant) return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+
+    // Build update
+    const update: Record<string, unknown> = { status };
+    if (status === "confirmed") {
+      update.confirmed_time = interview.proposed_time;
+    }
+    if (status === "rescheduled" && newTime) {
+      update.proposed_time = newTime;
+      update.status = "proposed";
+    }
+
+    await admin.from("interviews").update(update).eq("id", interviewId);
+
+    // Send emails based on status change
+    const provider = interview.provider as { display_name: string; email: string };
+    const student = interview.student as { display_name: string; email: string; slug: string };
+
+    if (status === "confirmed") {
+      const confirmedTime = new Date(interview.proposed_time);
+      const typeLabel = interview.type === "video" ? "Video" : interview.type === "in_person" ? "In-Person" : "Phone";
+
+      // Generate .ics
+      const icsContent = generateICS({
+        title: `MedJobs Interview: ${student.display_name} × ${provider.display_name}`,
+        description: `${typeLabel} interview scheduled via Olera MedJobs.${interview.notes ? `\n\nNotes: ${interview.notes}` : ""}`,
+        location: interview.location || (interview.type === "video" ? "Video call — link TBD" : undefined),
+        startTime: confirmedTime,
+        durationMinutes: interview.duration_minutes || 30,
+        organizerEmail: provider.email,
+        attendeeEmail: student.email,
+      });
+
+      const icsBase64 = Buffer.from(icsContent).toString("base64");
+      const time = confirmedTime.toLocaleString("en-US", {
+        weekday: "long", month: "long", day: "numeric",
+        hour: "numeric", minute: "2-digit", timeZoneName: "short",
+      });
+
+      // Email both parties with .ics attachment
+      const confirmationHtml = (name: string, otherName: string) => `
+        <h2>Interview Confirmed!</h2>
+        <p>Your ${typeLabel.toLowerCase()} interview with <strong>${otherName}</strong> is confirmed.</p>
+        <p><strong>When:</strong> ${time}</p>
+        <p><strong>Duration:</strong> ${interview.duration_minutes || 30} minutes</p>
+        ${interview.location ? `<p><strong>Where:</strong> ${interview.location}</p>` : ""}
+        <p>A calendar invite is attached to this email.</p>
+        <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews">View on Olera</a></p>
+      `;
+
+      try {
+        await sendEmail({
+          to: student.email,
+          subject: `Interview confirmed with ${provider.display_name}`,
+          html: confirmationHtml(student.display_name, provider.display_name),
+          emailType: "interview_confirmed",
+          attachments: [{ filename: "interview.ics", content: icsBase64, encoding: "base64", type: "text/calendar" }],
+        });
+        await sendEmail({
+          to: provider.email,
+          subject: `Interview confirmed with ${student.display_name}`,
+          html: confirmationHtml(provider.display_name, student.display_name),
+          emailType: "interview_confirmed",
+          attachments: [{ filename: "interview.ics", content: icsBase64, encoding: "base64", type: "text/calendar" }],
+        });
+      } catch (err) {
+        console.error("[medjobs/interviews] confirmation email error:", err);
+      }
+    }
+
+    if (status === "cancelled") {
+      try {
+        const cancelHtml = (otherName: string) => `
+          <h2>Interview Cancelled</h2>
+          <p>The interview with <strong>${otherName}</strong> has been cancelled.</p>
+          <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews">View on Olera</a></p>
+        `;
+        await sendEmail({ to: student.email, subject: "Interview cancelled", html: cancelHtml(provider.display_name), emailType: "interview_cancelled" });
+        await sendEmail({ to: provider.email, subject: "Interview cancelled", html: cancelHtml(student.display_name), emailType: "interview_cancelled" });
+      } catch (err) {
+        console.error("[medjobs/interviews] cancel email error:", err);
+      }
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[medjobs/interviews] PATCH error:", err);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
+}

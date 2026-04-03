@@ -44,6 +44,8 @@ export interface SendEmailOptions {
   metadata?: Record<string, unknown>;
   /** Pre-reserved email_log ID (from reserveEmailLogId). If set, updates that row instead of creating a new one. */
   emailLogId?: string;
+  /** File attachments (e.g. .ics calendar invites) */
+  attachments?: Array<{ filename: string; content: string; encoding?: string; type?: string }>;
 }
 
 function getServiceDb() {
@@ -198,7 +200,16 @@ export async function sendEmail(
       metadata,
     }));
 
-  const { data, error } = await resend.emails.send({ from, to, subject, html });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sendPayload: any = { from, to, subject, html };
+  if (options.attachments?.length) {
+    sendPayload.attachments = options.attachments.map((a) => ({
+      filename: a.filename,
+      content: Buffer.from(a.content, (a.encoding as BufferEncoding) || "utf-8"),
+      contentType: a.type,
+    }));
+  }
+  const { data, error } = await resend.emails.send(sendPayload);
 
   // Update the log row with send result
   if (logId) {

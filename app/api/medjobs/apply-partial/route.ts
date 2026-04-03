@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { sendEmail } from "@/lib/email";
+import { studentAccountCreatedEmail } from "@/lib/medjobs-email-templates";
 import { sendSlackAlert, slackMedJobsNewStudent } from "@/lib/slack";
 
 // Lazy initialization to avoid build-time errors when env vars are not available
@@ -68,6 +70,7 @@ export async function POST(req: NextRequest) {
       profile_completeness: 0,
     };
 
+    // Profile starts inactive — will be activated when student submits intro video
     const { data: profile, error } = await supabaseAdmin
       .from("business_profiles")
       .insert({
@@ -176,8 +179,20 @@ export async function POST(req: NextRequest) {
       console.error("[medjobs/apply-partial] account creation error:", err);
     }
 
-    // No welcome email on partial creation — the full submit (step 4) sends it.
-    // If student abandons, the 48h nudge cron handles follow-up.
+    // Fire-and-forget: account created email
+    try {
+      await sendEmail({
+        to: normalizedEmail,
+        subject: "Welcome to MedJobs — complete your profile to connect with providers",
+        html: studentAccountCreatedEmail({
+          studentName: displayName.trim(),
+          city: city?.trim() || undefined,
+        }),
+        emailType: "student_account_created",
+      });
+    } catch (err) {
+      console.error("[medjobs/apply-partial] account email error:", err);
+    }
 
     // Fire-and-forget: Slack alert
     try {

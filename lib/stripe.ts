@@ -31,4 +31,5 @@ export function isStripeConfigured(): boolean {
 export const PRICE_IDS = {
   monthly: process.env.STRIPE_PRICE_MONTHLY || "",
   annual: process.env.STRIPE_PRICE_ANNUAL || "",
+  medjobs_monthly: process.env.STRIPE_PRICE_MEDJOBS_MONTHLY || "",
 };

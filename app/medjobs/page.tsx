@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import CaregiverRedirect from "@/components/medjobs/CaregiverRedirect";
 
 export const metadata: Metadata = {
   title: "MedJobs — Student Caregiver Talent Marketplace | Olera",
@@ -82,25 +83,12 @@ const STUDENT_FEATURES = [
   },
 ];
 
-// Placeholder testimonials — replace with real quotes from pilot students
-const TESTIMONIALS = [
-  {
-    quote: "Caregiving through Olera gave me direct patient experience I couldn\u2019t get in a classroom. It strengthened my med school application and reminded me why I chose this path.",
-    name: "Minh-Nguyet Hoang",
-    track: "MD/MBA Candidate, Texas A&M",
-    image: "/images/medjobs/minh-nguyet-hoang.jpg",
-  },
-  {
-    quote: "I was struggling to find healthcare experience that fit my class schedule. MedJobs matched me with a home care agency 10 minutes from campus. I work two shifts a week.",
-    name: "Jeswin Vennatt",
-    track: "MD/MBA Candidate, Texas A&M",
-    image: "/images/medjobs/jeswin-vennatt.png",
-  },
-];
 
 export default function MedJobsPage() {
   return (
     <main className="bg-white">
+      {/* Redirect logged-in caregivers to their dashboard */}
+      <CaregiverRedirect />
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white" />
@@ -178,23 +166,6 @@ export default function MedJobsPage() {
         </div>
       </section>
 
-      {/* Testimonial #1 — woven between sections */}
-      <section className="py-10 sm:py-12">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <div className="flex items-start gap-5">
-            <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-gray-100">
-              <Image src={TESTIMONIALS[0].image} alt="" width={48} height={48} className="w-full h-full object-cover" />
-            </div>
-            <div>
-              <p className="text-lg text-gray-700 leading-relaxed italic">
-                &ldquo;{TESTIMONIALS[0].quote}&rdquo;
-              </p>
-              <p className="mt-3 text-sm font-medium text-gray-900">{TESTIMONIALS[0].name}</p>
-              <p className="text-sm text-gray-400">{TESTIMONIALS[0].track}</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* How it works */}
       <section className="py-16 sm:py-20 bg-gray-50/70">
@@ -324,23 +295,6 @@ export default function MedJobsPage() {
         </div>
       </section>
 
-      {/* Testimonial #2 */}
-      <section className="py-10 sm:py-12 bg-primary-50/40">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <div className="flex items-start gap-5">
-            <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-gray-100">
-              <Image src={TESTIMONIALS[1].image} alt="" width={48} height={48} className="w-full h-full object-cover" />
-            </div>
-            <div>
-              <p className="text-lg text-gray-700 leading-relaxed italic">
-                &ldquo;{TESTIMONIALS[1].quote}&rdquo;
-              </p>
-              <p className="mt-3 text-sm font-medium text-gray-900">{TESTIMONIALS[1].name}</p>
-              <p className="text-sm text-gray-400">{TESTIMONIALS[1].track}</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Meet the students */}
       <section className="py-16 sm:py-20">

@@ -3,9 +3,12 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
-import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail, verifyEmailEmail } from "@/lib/email-templates";
+import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail, verifyEmailEmail, careReportEmail } from "@/lib/email-templates";
+import { getPricingForProviderSync, formatPricingRange, getFundingOptions } from "@/lib/pricing-ranges";
 import { sendSlackAlert, slackNewLead, slackMissingEmail } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
+import { sendWhatsApp } from "@/lib/whatsapp";
+import { startSeekerConversation } from "@/lib/whatsapp-conversation";
 import { sendLoopsEvent } from "@/lib/loops";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
@@ -95,6 +98,29 @@ async function handleGuestConnection({
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // PROVIDER EMAIL CHECK
+  // Block if this email belongs to a provider/caregiver account.
+  // Family accounts are allowed to proceed (they'll just get logged in).
+  // ═══════════════════════════════════════════════════════════════════════════
+  const { data: existingProviderProfile } = await db
+    .from("business_profiles")
+    .select("id, type")
+    .eq("email", normalizedEmail)
+    .in("type", ["organization", "caregiver", "student"])
+    .limit(1)
+    .maybeSingle();
+
+  if (existingProviderProfile) {
+    return NextResponse.json(
+      {
+        error: "This email is linked to a provider account. To send care inquiries, please use a different email or sign in to create a separate family account.",
+        code: "PROVIDER_EMAIL",
+      },
+      { status: 409 }
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // INSTANT ACCOUNT CREATION
   // Create real Supabase user + account + profile (not placeholder)
   // User gets instant session via tokenHash returned to client
@@ -119,7 +145,7 @@ async function handleGuestConnection({
   let accessToken: string | null = null;
   let refreshToken: string | null = null;
   let isNewUser = false;
-  const displayName = guestFullName?.trim() || normalizedEmail.split("@")[0] || "Guest";
+  const displayName = guestFullName?.trim() || "Care Seeker";
 
   // Try to create user — if already exists, we'll handle that case
   const { data: newUser, error: createUserErr } = await authClient.auth.admin.createUser({
@@ -227,6 +253,35 @@ async function handleGuestConnection({
             }
           } catch (verifyErr) {
             console.error("[guest-connection] Server-side verify error for auth-only user:", verifyErr);
+          }
+        }
+
+        // Check if this auth user has a provider profile on their account
+        // If so, block them instead of creating a family profile
+        if (userId) {
+          const { data: existingAccount } = await db
+            .from("accounts")
+            .select("id")
+            .eq("user_id", userId)
+            .single();
+
+          if (existingAccount) {
+            const { data: providerProfiles } = await db
+              .from("business_profiles")
+              .select("id, type")
+              .eq("account_id", existingAccount.id)
+              .in("type", ["organization", "caregiver", "student"])
+              .limit(1);
+
+            if (providerProfiles && providerProfiles.length > 0) {
+              return NextResponse.json(
+                {
+                  error: "This email is linked to a provider account. To send care inquiries, please use a different email or sign in to create a separate family account.",
+                  code: "PROVIDER_EMAIL",
+                },
+                { status: 409 }
+              );
+            }
           }
         }
 
@@ -523,12 +578,14 @@ async function handleGuestConnection({
   let providerDisplayName: string | null = null;
   let providerCity: string | null = null;
   let providerState: string | null = null;
+  let providerCategoryForWa: string | null = null;
   try {
     const { data: bp } = await db
       .from("business_profiles")
-      .select("email, display_name, city, state")
+      .select("email, display_name, city, state, category")
       .eq("id", toProfileId)
       .single();
+    providerCategoryForWa = bp?.category || null;
     providerEmail = bp?.email || null;
     providerDisplayName = bp?.display_name || null;
     providerCity = bp?.city || null;
@@ -549,11 +606,30 @@ async function handleGuestConnection({
     // Non-blocking
   }
 
+  // Pre-fill seeker's location from provider's city if seeker has none
+  if (providerCity && fromProfileId) {
+    try {
+      const { data: seekerProfile } = await db
+        .from("business_profiles")
+        .select("city")
+        .eq("id", fromProfileId)
+        .single();
+      if (seekerProfile && !seekerProfile.city) {
+        await db
+          .from("business_profiles")
+          .update({ city: providerCity, state: providerState })
+          .eq("id", fromProfileId);
+      }
+    } catch {
+      // Non-blocking
+    }
+  }
+
   // Build message payload with all available seeker info
   const seekerName = guestFullName?.trim() || displayName;
   const nameParts = seekerName.split(/\s+/);
-  const firstName = nameParts[0] || normalizedEmail.split("@")[0] || "";
-  const lastName = nameParts.slice(1).join(" ") || "";
+  const firstName = (guestFullName?.trim()) ? nameParts[0] : "";
+  const lastName = (guestFullName?.trim()) ? nameParts.slice(1).join(" ") : "";
   const normalizedPhone = guestPhone ? normalizeUSPhone(guestPhone) : null;
 
   // Build location string for summary
@@ -588,10 +664,12 @@ async function handleGuestConnection({
     autoIntro = intentData.additionalNotes;
   } else if (locationStr) {
     // No custom message - generate based on location
-    autoIntro = `${firstName} is interested in care services in ${locationStr}.`;
+    const introName = firstName || "A family";
+    autoIntro = `${introName} is interested in care services in ${locationStr}.`;
   } else {
     // Fallback
-    autoIntro = `${firstName} is interested in learning more about your services.`;
+    const introName = firstName || "A family";
+    autoIntro = `${introName} is interested in learning more about your services.`;
   }
 
   // Build connection metadata
@@ -603,7 +681,7 @@ async function handleGuestConnection({
   connectionMetadata.thread = [
     {
       from_profile_id: toProfileId,
-      text: `Hello ${firstName || "there"}, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
+      text: `Hello${firstName ? ` ${firstName}` : ""}, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
       created_at: new Date().toISOString(),
       is_auto_reply: true,
     },
@@ -644,43 +722,46 @@ async function handleGuestConnection({
     if (actErr) console.error("[seeker_activity] connection_sent insert failed:", actErr);
   });
 
-  // Send "Verify your email" email (user already has instant session via tokenHash)
-  try {
-    const verifyEmailLogId = await reserveEmailLogId({
-      to: normalizedEmail,
-      subject: `Verify your email — Olera`,
-      emailType: "verify_email",
-      recipientType: "family",
-    });
-
-    const verifyDest = appendTrackingParams("/portal/inbox", verifyEmailLogId);
-
-    // Generate a verification link for the email
-    const { data: verifyLinkData, error: verifyLinkError } = await authClient.auth.admin.generateLink({
-      type: "magiclink",
-      email: normalizedEmail,
-      options: {
-        redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(verifyDest)}&verify=true`,
-      },
-    });
-
-    if (!verifyLinkError && verifyLinkData?.properties?.action_link) {
-      await sendEmail({
+  // Send "Verify your email" email ONLY for new users
+  // Returning family users who submit while not logged in shouldn't get welcome emails
+  if (isNewUser) {
+    try {
+      const verifyEmailLogId = await reserveEmailLogId({
         to: normalizedEmail,
         subject: `Verify your email — Olera`,
-        html: verifyEmailEmail({
-          familyName: firstName || "there",
-          providerName,
-          verifyUrl: verifyLinkData.properties.action_link,
-        }),
-        emailType: 'verify_email',
-        recipientType: 'family',
-        emailLogId: verifyEmailLogId ?? undefined,
+        emailType: "verify_email",
+        recipientType: "family",
       });
+
+      const verifyDest = appendTrackingParams("/portal/inbox", verifyEmailLogId);
+
+      // Generate a verification link for the email
+      const { data: verifyLinkData, error: verifyLinkError } = await authClient.auth.admin.generateLink({
+        type: "magiclink",
+        email: normalizedEmail,
+        options: {
+          redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(verifyDest)}&verify=true`,
+        },
+      });
+
+      if (!verifyLinkError && verifyLinkData?.properties?.action_link) {
+        await sendEmail({
+          to: normalizedEmail,
+          subject: `Verify your email — Olera`,
+          html: verifyEmailEmail({
+            familyName: firstName || "there",  // "there" is fine for "Hello there"
+            providerName,
+            verifyUrl: verifyLinkData.properties.action_link,
+          }),
+          emailType: 'verify_email',
+          recipientType: 'family',
+          emailLogId: verifyEmailLogId ?? undefined,
+        });
+      }
+    } catch (emailErr) {
+      console.error("Failed to send verify email:", emailErr);
+      // Non-blocking — user has instant session, verification is optional
     }
-  } catch (emailErr) {
-    console.error("Failed to send verify email:", emailErr);
-    // Non-blocking — user has instant session, verification is optional
   }
 
   // Provider notifications (fire-and-forget)
@@ -778,6 +859,77 @@ async function handleGuestConnection({
     console.error("[sms] Guest connection error:", smsErr);
   }
 
+  // WhatsApp notification to provider (fire-and-forget)
+  try {
+    let waPhone: string | null = null;
+    const { data: waBp } = await db
+      .from("business_profiles")
+      .select("phone, metadata")
+      .eq("id", toProfileId)
+      .single();
+    waPhone = waBp?.phone || null;
+
+    if (!waPhone) {
+      const { data: waIos } = await db
+        .from("olera-providers")
+        .select("phone")
+        .eq("provider_id", providerId)
+        .single();
+      waPhone = waIos?.phone || null;
+    }
+
+    const providerMeta = (waBp?.metadata || {}) as Record<string, unknown>;
+    if (waPhone && providerMeta.whatsapp_opted_in) {
+      const waNormalized = normalizeUSPhone(waPhone);
+      if (waNormalized) {
+        const familyLabel = firstName || "A family";
+        const providerLabel = providerDisplayName || providerName;
+        await sendWhatsApp({
+          to: waNormalized,
+          contentSid: process.env.TWILIO_WA_TEMPLATE_NEW_LEAD || "sandbox",
+          contentVariables: {
+            "1": familyLabel,
+            "2": providerLabel,
+          },
+          fallbackBody: `${familyLabel} is looking for care from ${providerLabel}.\n\nThey reached out through Olera and are waiting for your response.\n\nView inquiry: ${getSiteUrl()}/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`,
+          messageType: "connection_request",
+          recipientType: "provider",
+          profileId: toProfileId,
+        });
+      }
+    }
+  } catch (waErr) {
+    console.error("[whatsapp] Connection request notification failed:", waErr);
+  }
+
+  // WhatsApp enrichment conversation to seeker (fire-and-forget)
+  try {
+    const seekerNormalized = normalizeUSPhone(guestPhone || "");
+    if (seekerNormalized) {
+      // Check if seeker opted in to WhatsApp
+      const { data: seekerBp } = await db
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", fromProfileId)
+        .single();
+      const seekerMeta = (seekerBp?.metadata || {}) as Record<string, unknown>;
+      if (seekerMeta.whatsapp_opted_in) {
+        await startSeekerConversation({
+          connectionId: newConnection.id,
+          profileId: fromProfileId,
+          phone: seekerNormalized,
+          seekerFirstName: firstName || "there",
+          providerName: providerDisplayName || providerName,
+          providerCategory: providerCategoryForWa,
+          city: providerCity,
+          state: providerState,
+        });
+      }
+    }
+  } catch (seekerWaErr) {
+    console.error("[whatsapp] Seeker enrichment conversation failed:", seekerWaErr);
+  }
+
   // Slack alert
   try {
     const careTypeMap: Record<string, string> = {
@@ -787,7 +939,7 @@ async function handleGuestConnection({
       memory_care: "Memory Care",
     };
     const alert = slackNewLead({
-      familyName: `${firstName || "Guest"} (guest)`,
+      familyName: `${firstName || "A family"} (guest)`,
       providerName,
       careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
     });
@@ -806,7 +958,7 @@ async function handleGuestConnection({
         memory_care: "Memory Care",
       };
       const missingAlert = slackMissingEmail({
-        familyName: `${firstName || "Guest"} (guest)`,
+        familyName: `${firstName || "A family"} (guest)`,
         providerName,
         providerId,
         careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
@@ -815,6 +967,65 @@ async function handleGuestConnection({
     } catch {
       // Non-blocking
     }
+  }
+
+  // Care report email — the value delivery that differentiates Olera from APFM/Caring.com
+  try {
+    const providerCareTypes = (await db
+      .from("business_profiles")
+      .select("care_types")
+      .eq("id", toProfileId)
+      .single()
+    ).data?.care_types as string[] || [];
+
+    // Resolve pricing from care types (sync — national baselines)
+    const pricing = getPricingForProviderSync(providerCareTypes.length > 0 ? providerCareTypes : [providerName]);
+    const pricingRange = pricing.range ? formatPricingRange(pricing.range) : null;
+
+    // Get funding options with savings ranges
+    const fundingOpts = getFundingOptions().map((f) => ({
+      label: f.label,
+      savings: f.monthlySavings ? `$${f.monthlySavings.low.toLocaleString()}–$${f.monthlySavings.high.toLocaleString()}` : null,
+    }));
+
+    // Find 3 similar providers in the same city
+    const { data: similarRaw } = await db
+      .from("business_profiles")
+      .select("display_name, slug, metadata")
+      .eq("city", providerCity)
+      .eq("state", providerState)
+      .eq("type", "organization")
+      .eq("is_active", true)
+      .neq("id", toProfileId)
+      .limit(3);
+
+    const similarProviders = (similarRaw || []).map((p: { display_name: string; slug: string; metadata: Record<string, unknown> | null }) => ({
+      name: p.display_name,
+      slug: p.slug,
+      priceRange: (p.metadata?.price_range as string) || null,
+    }));
+
+    await sendEmail({
+      to: normalizedEmail,
+      subject: `Care costs for ${providerName}${locationStr ? ` in ${locationStr}` : ""}`,
+      html: careReportEmail({
+        seekerFirstName: firstName || "",
+        providerName,
+        providerSlug: providerSlug || toProfileId,
+        careTypeLabel: pricing.careTypeLabel,
+        pricingRange,
+        pricingDescription: pricing.range?.description || null,
+        city: providerCity,
+        state: providerState,
+        fundingOptions: fundingOpts,
+        similarProviders,
+      }),
+      emailType: "care_report",
+      recipientType: "family",
+    });
+  } catch (err) {
+    console.error("[care-report-email] error:", err);
+    // Non-blocking — connection still created successfully
   }
 
   // Loops event
@@ -955,7 +1166,29 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Ensure user has a family profile
+    // 2. STRICT ACCOUNT SEPARATION: Check if user has any non-family profiles
+    // Provider, caregiver, and student accounts cannot send care inquiries
+    const { data: allProfiles } = await db
+      .from("business_profiles")
+      .select("id, type")
+      .eq("account_id", account.id)
+      .eq("is_active", true);
+
+    const hasNonFamilyProfile = allProfiles?.some(
+      (p: { type: string }) => p.type === "organization" || p.type === "caregiver" || p.type === "student"
+    );
+    const hasFamilyProfile = allProfiles?.some((p: { type: string }) => p.type === "family");
+
+    // Block if user has a non-family profile but no family profile
+    // This enforces strict account separation
+    if (hasNonFamilyProfile && !hasFamilyProfile) {
+      return NextResponse.json(
+        { error: "Care inquiries can only be sent from a family account. Please create a separate family account to connect with providers." },
+        { status: 403 }
+      );
+    }
+
+    // 3. Ensure user has a family profile
     let fromProfileId: string;
 
     const { data: existingFamily } = await db
@@ -1176,15 +1409,17 @@ export async function POST(request: Request) {
     let providerDisplayName: string | null = null;
     let providerCity: string | null = null;
     let providerState: string | null = null;
+    let providerCategoryAuth: string | null = null;
     try {
       const { data: bp } = await db
         .from("business_profiles")
-        .select("email, display_name, city, state")
+        .select("email, display_name, city, state, category")
         .eq("id", toProfileId)
         .single();
       providerEmail = bp?.email || null;
       providerDisplayName = bp?.display_name || null;
       providerCity = bp?.city || null;
+      providerCategoryAuth = bp?.category || null;
       providerState = bp?.state || null;
 
       // Fallback to olera-providers for email and location
@@ -1294,7 +1529,7 @@ export async function POST(request: Request) {
     connectionMetadata.thread = [
       {
         from_profile_id: toProfileId,
-        text: `Hello ${firstName || "there"}, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
+        text: `Hello${firstName ? ` ${firstName}` : ""}, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
         created_at: new Date().toISOString(),
         is_auto_reply: true,
       },
@@ -1482,7 +1717,77 @@ export async function POST(request: Request) {
       console.error("[sms] Unexpected error:", smsErr);
     }
 
-    // 9d. Slack alert for new lead (fire-and-forget)
+    // 9d. WhatsApp notification to provider (fire-and-forget)
+    try {
+      let waPhone: string | null = null;
+      const { data: waBp2 } = await db
+        .from("business_profiles")
+        .select("phone, metadata")
+        .eq("id", toProfileId)
+        .single();
+      waPhone = waBp2?.phone || null;
+
+      if (!waPhone) {
+        const { data: waIos2 } = await db
+          .from("olera-providers")
+          .select("phone")
+          .eq("provider_id", providerId)
+          .single();
+        waPhone = waIos2?.phone || null;
+      }
+
+      const provMeta = (waBp2?.metadata || {}) as Record<string, unknown>;
+      if (waPhone && provMeta.whatsapp_opted_in) {
+        const waNormalized = normalizeUSPhone(waPhone);
+        if (waNormalized) {
+          const familyLabel = account.display_name || "A family";
+          const providerLabel = providerDisplayName || providerName;
+          await sendWhatsApp({
+            to: waNormalized,
+            contentSid: process.env.TWILIO_WA_TEMPLATE_NEW_LEAD || "sandbox",
+            contentVariables: {
+              "1": familyLabel,
+              "2": providerLabel,
+            },
+            fallbackBody: `${familyLabel} is looking for care from ${providerLabel}.\n\nThey reached out through Olera and are waiting for your response.\n\nView inquiry: ${getSiteUrl()}/provider/${providerSlug || toProfileId}/onboard?action=lead&actionId=${newConnection.id}`,
+            messageType: "connection_request",
+            recipientType: "provider",
+            profileId: toProfileId,
+          });
+        }
+      }
+    } catch (waErr) {
+      console.error("[whatsapp] Connection request notification failed:", waErr);
+    }
+
+    // 9d-ii. WhatsApp enrichment conversation to seeker (fire-and-forget)
+    try {
+      const seekerNorm = seekerPhone ? normalizeUSPhone(seekerPhone) : null;
+      if (seekerNorm) {
+        const { data: seekerBpAuth } = await db
+          .from("business_profiles")
+          .select("metadata")
+          .eq("id", fromProfileId)
+          .single();
+        const seekerMetaAuth = (seekerBpAuth?.metadata || {}) as Record<string, unknown>;
+        if (seekerMetaAuth.whatsapp_opted_in) {
+          await startSeekerConversation({
+            connectionId: newConnection.id,
+            profileId: fromProfileId,
+            phone: seekerNorm,
+            seekerFirstName: firstName || "there",
+            providerName: providerDisplayName || providerName,
+            providerCategory: providerCategoryAuth,
+            city: providerCity,
+            state: providerState,
+          });
+        }
+      }
+    } catch (seekerWaErr) {
+      console.error("[whatsapp] Seeker enrichment conversation failed:", seekerWaErr);
+    }
+
+    // 9e. Slack alert for new lead (fire-and-forget)
     try {
       const careTypeMap2: Record<string, string> = {
         home_care: "Home Care",
@@ -1500,7 +1805,7 @@ export async function POST(request: Request) {
       // Non-blocking
     }
 
-    // 9e. Slack alert for missing provider email (fire-and-forget)
+    // 9f. Slack alert for missing provider email (fire-and-forget)
     if (!providerEmail) {
       try {
         const careTypeMap3: Record<string, string> = {

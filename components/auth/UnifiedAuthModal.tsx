@@ -177,6 +177,13 @@ export default function UnifiedAuthModal({
         return;
       }
 
+      // If user is already logged in with a DIFFERENT email, sign out first.
+      // This handles the case where a provider creates a separate family account.
+      if (user && user.email?.toLowerCase() !== email.toLowerCase()) {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+      }
+
       // Use implicit-flow client for signUp to avoid PKCE code_challenge.
       // The SSR browser client forces PKCE, but verifyOtp() can't send
       // the code_verifier back, causing 403 on verification.
@@ -191,7 +198,16 @@ export default function UnifiedAuthModal({
 
       if (authError) {
         if (authError.message.includes("already registered")) {
-          setError("This email is already registered. Try signing in instead.");
+          // Provide a clearer message when user is trying to create a family account
+          // but their email is already used for a provider/caregiver account
+          if (options.intent === "family") {
+            setError(
+              "This email is already registered with another account. " +
+              "Please use a different email for your family account, or sign in to your existing account."
+            );
+          } else {
+            setError("This email is already registered. Try signing in instead.");
+          }
         } else {
           setError(authError.message);
         }
@@ -529,7 +545,86 @@ export default function UnifiedAuthModal({
     const deferred = options.deferred || getDeferredAction();
     const hasDeferredAction = !!deferred?.action;
 
-    // Deferred returnUrl — skip welcome and redirect to where they were going.
+    // Provider intent — route based on whether user has a provider profile
+    // Existing providers can use deferred returnUrl; new signups go to onboarding
+    // Existing families/caregivers are redirected to appropriate pages (they can't become providers with same email)
+    if (options.intent === "provider") {
+      onClose();
+
+      // Query fresh profile data from DB (cached `profiles` state may be stale
+      // after sign-out + sign-in of a different account)
+      let freshProviderProfile = null;
+      let existingProfileType: string | null = null;
+      try {
+        const { createBrowserClient } = await import("@supabase/ssr");
+        const sb = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        const { data: { user: currentUser } } = await sb.auth.getUser();
+        if (currentUser) {
+          const { data: account } = await sb
+            .from("accounts")
+            .select("id")
+            .eq("user_id", currentUser.id)
+            .maybeSingle();
+
+          if (account) {
+            // Check for provider profile first
+            const { data: orgProfile } = await sb
+              .from("business_profiles")
+              .select("id")
+              .eq("account_id", account.id)
+              .eq("type", "organization")
+              .eq("is_active", true)
+              .limit(1)
+              .maybeSingle();
+            freshProviderProfile = orgProfile;
+
+            // If no provider profile, check for other profile types
+            if (!freshProviderProfile) {
+              const { data: otherProfile } = await sb
+                .from("business_profiles")
+                .select("type")
+                .eq("account_id", account.id)
+                .eq("is_active", true)
+                .limit(1)
+                .maybeSingle();
+              existingProfileType = otherProfile?.type || null;
+            }
+          }
+        }
+      } catch {
+        // Non-blocking - fall through to onboarding
+      }
+
+      if (freshProviderProfile) {
+        // Existing provider — use deferred returnUrl if present, otherwise go to /provider
+        if (deferred?.returnUrl && hasDeferredAction) {
+          const safeReturnUrl = validateReturnUrl(deferred.returnUrl, "/provider");
+          router.push(safeReturnUrl);
+        } else {
+          router.push("/provider");
+        }
+      } else if (existingProfileType === "family") {
+        // Existing family account — can't become provider with same email, redirect to home
+        router.push("/");
+      } else if (existingProfileType === "student" || existingProfileType === "caregiver") {
+        // Existing caregiver account — can't become provider with same email, redirect to their dashboard
+        router.push("/portal/medjobs");
+      } else {
+        // New signup or no profile — go to provider onboarding
+        // If coming from MedJobs hire flow, skip to search step and preserve return URL
+        if (deferred?.action === "hire-candidate" && deferred?.returnUrl?.startsWith("/provider/medjobs/candidates/")) {
+          router.push(`/provider/onboarding?step=search&next=${encodeURIComponent(deferred.returnUrl)}`);
+        } else {
+          router.push("/provider/onboarding");
+        }
+      }
+      return;
+    }
+
+    // Deferred returnUrl (non-provider intents) — skip welcome and redirect to where they were going.
     // Used by the claim page to return after auth (verification-first flow).
     if (deferred?.returnUrl && hasDeferredAction) {
       const safeReturnUrl = validateReturnUrl(deferred.returnUrl, "/browse");
@@ -539,19 +634,15 @@ export default function UnifiedAuthModal({
     }
 
     // Check if user already has a provider profile (from cache)
-    const providerProfile = (profiles || []).find(
-      (p) => p.type === "organization" || p.type === "caregiver"
-    );
+    const providerProfile = (profiles || []).find((p) => p.type === "organization");
     const hasProviderProfile = !!providerProfile;
 
-    // Provider intent — route to provider onboarding (not /welcome)
-    if (options.intent === "provider") {
+    // Family intent — route to family welcome page (skip stale profile checks)
+    // This handles the case where a provider creates a separate family account.
+    if (options.intent === "family") {
       onClose();
-      if (hasProviderProfile) {
-        router.push("/provider");
-      } else {
-        router.push("/provider/onboarding");
-      }
+      const currentPath = window.location.pathname + window.location.search;
+      router.push(`/welcome?next=${encodeURIComponent(currentPath)}`);
       return;
     }
 
@@ -570,9 +661,31 @@ export default function UnifiedAuthModal({
             // Pass current page as ?next= so they return here after onboarding
             const currentPath = window.location.pathname + window.location.search;
 
-            if (providerProfile) {
+            // Query fresh provider profile from DB (cached `profiles` state may be stale
+            // after sign-out + sign-up of a different account)
+            let freshProviderProfile = null;
+            try {
+              const { createBrowserClient } = await import("@supabase/ssr");
+              const sb = createBrowserClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+              );
+              const { data: orgProfile } = await sb
+                .from("business_profiles")
+                .select("id, slug, source_provider_id")
+                .eq("account_id", freshAccount.id)
+                .eq("type", "organization")
+                .eq("is_active", true)
+                .limit(1)
+                .maybeSingle();
+              freshProviderProfile = orgProfile;
+            } catch {
+              // Non-blocking - fall through to family welcome
+            }
+
+            if (freshProviderProfile) {
               // Route providers to their onboard page
-              const slug = providerProfile.slug || providerProfile.source_provider_id || providerProfile.id;
+              const slug = freshProviderProfile.slug || freshProviderProfile.source_provider_id || freshProviderProfile.id;
               router.push(`/provider/${slug}/onboard?next=${encodeURIComponent(currentPath)}`);
             } else {
               // Route families to family welcome page
@@ -581,7 +694,8 @@ export default function UnifiedAuthModal({
             return;
           }
 
-          // Check for incomplete student profile → redirect to student dashboard
+          // Redirect providers and students to their respective dashboards
+          // This ensures they go to their dashboard regardless of which page they logged in from
           if (freshAccount?.id) {
             try {
               const { createBrowserClient } = await import("@supabase/ssr");
@@ -589,17 +703,36 @@ export default function UnifiedAuthModal({
                 process.env.NEXT_PUBLIC_SUPABASE_URL!,
                 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
               );
+
+              // Check for organization (provider) profile
+              const { data: orgProfile } = await sb
+                .from("business_profiles")
+                .select("id, is_active")
+                .eq("account_id", freshAccount.id)
+                .eq("type", "organization")
+                .eq("is_active", true)
+                .limit(1)
+                .maybeSingle();
+
+              if (orgProfile) {
+                router.push("/provider");
+                onClose();
+                return;
+              }
+
+              // Check for student or legacy caregiver profile (both are MedJobs users)
               const { data: studentProfile } = await sb
                 .from("business_profiles")
                 .select("id, is_active")
                 .eq("account_id", freshAccount.id)
-                .eq("type", "student")
+                .in("type", ["student", "caregiver"])
+                .eq("is_active", true)
                 .limit(1)
                 .maybeSingle();
 
-              if (studentProfile && !studentProfile.is_active) {
-                onClose();
+              if (studentProfile) {
                 router.push("/portal/medjobs");
+                onClose();
                 return;
               }
             } catch {

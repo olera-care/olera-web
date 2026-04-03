@@ -118,7 +118,9 @@ export default function ProfileWizard({
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Overview fields
-  const [displayName, setDisplayName] = useState(profile.display_name || "");
+  const [displayName, setDisplayName] = useState(
+    profile.display_name && profile.display_name !== "Care Seeker" ? profile.display_name : ""
+  );
   const [city, setCity] = useState(profile.city || "");
   const [state, setState] = useState(profile.state || "");
 
@@ -143,6 +145,7 @@ export default function ProfileWizard({
   const [email, setEmail] = useState(profile.email || userEmail || "");
   const [phone, setPhone] = useState(profile.phone || "");
   const [contactPref, setContactPref] = useState<string>(meta.contact_preference || "");
+  const [whatsappOptIn, setWhatsappOptIn] = useState(meta.whatsapp_opted_in || false);
 
   // Care fields
   const [careRecipient, setCareRecipient] = useState(meta.relationship_to_recipient || "");
@@ -260,6 +263,9 @@ export default function ProfileWizard({
           };
           metaUpdates = {
             contact_preference: contactPref || undefined,
+            ...(whatsappOptIn && phone
+              ? { whatsapp_opted_in: true, whatsapp_opted_in_at: new Date().toISOString() }
+              : {}),
           };
           break;
 
@@ -308,6 +314,29 @@ export default function ProfileWizard({
     careTypes, careNeeds, timeline, payments,
   ]);
 
+  // Check if a step's key fields are already filled (from enrichment or prior data)
+  const isStepPreFilled = useCallback((stepIndex: number): boolean => {
+    const stepId = STEPS[stepIndex].id;
+    switch (stepId) {
+      case "contact":
+        // Skip if phone AND contact preference are already set (from enrichment)
+        return Boolean(phone && contactPref);
+      case "recipient":
+        // Skip if care recipient AND timeline are set (from enrichment)
+        return Boolean(careRecipient && timeline);
+      default:
+        return false;
+    }
+  }, [phone, contactPref, careRecipient, timeline]);
+
+  // Find the next step that still needs user input
+  const findNextIncompleteStep = useCallback((fromStep: number): number | null => {
+    for (let i = fromStep + 1; i < STEPS.length; i++) {
+      if (!isStepPreFilled(i)) return i;
+    }
+    return null; // All remaining steps are pre-filled
+  }, [isStepPreFilled]);
+
   const handleNext = async () => {
     // Optimistic UI: advance immediately, save in background
     const isLastStep = currentStep === STEPS.length - 1;
@@ -317,12 +346,20 @@ export default function ProfileWizard({
       clearDraft();
       setShowCompleteModal(true);
     } else {
-      // Smooth transition to next step
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentStep(currentStep + 1);
-        setIsTransitioning(false);
-      }, 150);
+      // Find next step that needs input, skipping pre-filled ones
+      const nextStep = findNextIncompleteStep(currentStep);
+
+      if (nextStep !== null) {
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setCurrentStep(nextStep);
+          setIsTransitioning(false);
+        }, 150);
+      } else {
+        // All remaining steps are pre-filled — save them all and complete
+        clearDraft();
+        setShowCompleteModal(true);
+      }
     }
 
     // Save in background (non-blocking)
@@ -332,13 +369,21 @@ export default function ProfileWizard({
         onStepSaved?.();
       }
     });
+
+    // Also save any skipped pre-filled steps (enrichment data → DB)
+    // This ensures data from enrichment that was skipped still gets persisted
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
+      // Find previous step that isn't pre-filled, skipping enrichment-completed ones
+      let prevStep = currentStep - 1;
+      while (prevStep > 0 && isStepPreFilled(prevStep)) {
+        prevStep--;
+      }
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentStep(currentStep - 1);
+        setCurrentStep(prevStep);
         setIsTransitioning(false);
       }, 150);
     }
@@ -530,6 +575,26 @@ export default function ProfileWizard({
                   )}
                 </div>
               </div>
+
+              {/* WhatsApp opt-in (only show when phone is entered) */}
+              {phone.trim().length > 0 && (
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={whatsappOptIn}
+                    onChange={(e) => setWhatsappOptIn(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <div>
+                    <span className="text-sm font-medium text-gray-900 group-hover:text-primary-700 transition-colors">
+                      Send me WhatsApp notifications
+                    </span>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Get instant alerts when providers respond — right on WhatsApp.
+                    </p>
+                  </div>
+                </label>
+              )}
             </div>
           )}
 

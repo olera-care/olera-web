@@ -7,6 +7,43 @@
 
 ## Current Focus
 
+- **Provider Image Migration to R2** — DONE ✅
+  - `cdn-api.olera.care` CloudFront was dead → 33,319 providers with broken image URLs
+  - Browse card fallback fix merged (PR #475)
+  - Migration completed: 72 min, 41,202 photos uploaded, 21,997 DB rows updated, 0 errors
+  - 7,380 providers had no photos on Google → still show initials placeholder
+  - Images live on `pub-e9cff84835324ecca87386d81c641a56.r2.dev`, verified on production
+  - Backlog: custom domain `images.olera.care` → [Notion ticket](https://www.notion.so/3375903a0ffe8199b1f6e381b3f4c87a)
+  - **Next: run `classify-provider-images.mjs` to pick hero images**
+
+- **Provider Page CTA Conversion Redesign — 2026-04-02** — PUSHED TO `fine-dijkstra`, TESTING ON VERCEL PREVIEW
+  - **Problem**: Provider page CTA converts at 0.44%. Getting to 3% = 329 connections/month (6.9x increase).
+  - Email-only form, post-submit enrichment with localized pricing, care report email
+  - **Branch**: `fine-dijkstra` — 10 commits, pushed to origin
+  - **Next**: PR to staging → QA → monitor conversion vs 0.44% baseline
+
+- **City Expansion Batch — 2026-04-01** — DONE ✅
+  - 90 new cities processed end-to-end via batch pipeline
+  - Discovery: 18,191 raw providers (45 min, ~$102 Google Places)
+  - Pipeline: cleaned → uploaded → enriched across all 343 cities (6h 21m, ~$323)
+  - 13,814 total providers in DB after dedup + AI verification
+  - Fixed `pipeline-batch.js`: added `relax_quotes: true` + `relax_column_count: true` + try-catch for malformed CSVs
+  - 90 Notion pages created, all marked Complete
+  - Live site verified: providers rendering with ratings/reviews on olera.care
+  - Total cost: ~$425
+  - **Notion board: 283 Complete cities (193 prior + 90 new), 7 Planning remain**
+
+- **Strict User Account Type Separation** (branch: `feature/user-accounts-separation-logic`) — READY FOR MERGE (PR #463)
+  - **22 commits**, clean fast-forward from staging, no conflicts
+  - **Phase 1**: Fix broken provider experience (stop auto-creating family profiles, fix menus/dropdowns, account settings by type)
+  - **Phase 2**: Block family-only actions (save buttons, connection card, server-side guards, guest provider email detection)
+  - **Auth flow fix**: Sign out existing session when provider creates family account with different email
+  - **Context-aware navigation**: Logo redirects to "home base" by account type (family→/, provider→/for-providers, caregiver→/medjobs). Hide MedJobs/For Providers from family accounts in nav.
+  - **Cleanup**: Removed obsolete "Remove this profile" (154 lines), updated save tooltips to dark style
+  - **Principle**: One email = one account type. No mixing. Defense in depth (UI → API → email check)
+  - **PR URL**: https://github.com/olera-care/olera-web/pull/463
+  - **Testing**: Provider logged in → sees blocking UI on save/connect. Guest with provider email → "Provider email detected" UI. Family users unaffected.
+
 - **Staging → Main Promotion** — IN PROGRESS
   - Audited full staging diff: 253 commits, 225 files changed, ~31K lines across ~90 PRs
   - Key areas: one-click onboarding, provider dashboard, MedJobs, reviews, activity center, email revamp, highlights waterfall, city expansion, admin improvements
@@ -386,6 +423,32 @@
 ---
 
 ## Session Log
+
+### 2026-04-03 (Session 66) — Browse Card Image Fallback Fix + R2 Migration Plan
+
+**Branch:** `humble-euler` | **PR #475 merged to staging**
+
+**Root Cause Investigation:**
+- Provider images on browse pages flickering/broken — traced to `cdn-api.olera.care` CloudFront distribution being dead (DNS resolves to CNAME but CloudFront returns 0 A records)
+- ALL ~35K provider image URLs in DB point to this dead CDN
+- Some images still appeared to work due to Vercel `/_next/image` cache — ticking clock as caches expire
+- `BrowseCard.tsx` had broken fallback: `imgFailed` → logo mode (same broken URL) instead of placeholder
+
+**Fix (Move 1):**
+- `components/browse/BrowseCard.tsx`: `imgFailed` now triggers `showPlaceholder` directly instead of `showAsLogo`
+- `app/browse/BrowsePageClient.tsx`: Added `imgFailed` state + `onError` handlers (had none before)
+- Verified: `ProviderCard.tsx` and `ProviderHeroGallery.tsx` already had correct error handling
+- Staging verified: broken cards now show initials + category on gradient, no flickering
+
+**Move 2 (R2 Image Migration):**
+- Script: `scripts/migrate-images-to-r2.mjs` — installed `@aws-sdk/client-s3` as devDep
+- Optimizations: 20 concurrent workers (global rate limiter at ~30 QPS), direct photo download (follow redirect instead of 2-step), landscape-first photo ranking from API metadata
+- Test batch (10 providers): 17 photos → R2, 9 DB updates, 0 errors, all images 200 OK
+- Full migration: 72 min, 41,202 photos uploaded, 21,997 DB updated, 0 errors, 7,380 no photos
+- Notion backlog: custom domain `images.olera.care` for R2 bucket
+- **Next: run `classify-provider-images.mjs` for hero selection**
+
+**Key discovery:** `hero_image_url` column doesn't exist in production DB (TypeScript type has it but DB doesn't). Classification script would need the column created first.
 
 ### 2026-03-31 (Session 65) — Worktree Cleanup + URL/Breadcrumb System Docs
 

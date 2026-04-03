@@ -7,54 +7,19 @@
 
 ## Current Focus
 
+- **Provider Image Migration to R2** — DONE ✅
+  - `cdn-api.olera.care` CloudFront was dead → 33,319 providers with broken image URLs
+  - Browse card fallback fix merged (PR #475)
+  - Migration completed: 72 min, 41,202 photos uploaded, 21,997 DB rows updated, 0 errors
+  - 7,380 providers had no photos on Google → still show initials placeholder
+  - Images live on `pub-e9cff84835324ecca87386d81c641a56.r2.dev`, verified on production
+  - Backlog: custom domain `images.olera.care` → [Notion ticket](https://www.notion.so/3375903a0ffe8199b1f6e381b3f4c87a)
+  - **Next: run `classify-provider-images.mjs` to pick hero images**
+
 - **Provider Page CTA Conversion Redesign — 2026-04-02** — PUSHED TO `fine-dijkstra`, TESTING ON VERCEL PREVIEW
-  - **Problem**: Provider page CTA converts at 0.44% (48 real connections from ~10,980 unique visitors in March). Industry average is 2–5%. Getting to 3% = 329 connections/month (6.9x increase), same traffic.
-  - **Root cause analysis**: 4-field form (email, name, phone, message) with generic copy ("Get in touch" / "Connect with us") on pages where most providers are unclaimed with no photos. 95%+ of visitors are first-time, not logged in.
-  - **Key constraint**: Prior question-first experiment saw 90% drop-off per click — no friction before the action.
-  - **Competitive analysis** (Logan's APFM + Caring.com docs in iCloud): Competitors use "Get Pricing" but deliver spam calls. Olera's differentiator: use intent-matched language but actually deliver value.
-  - **What was built** (all 6 phases, 16 tasks):
-    - **Phase 1**: Email-only form, "What does this cost?" / "Check cost & availability", one-click for logged-in, "No spam. No sales calls." trust signals
-    - **Phase 2**: Post-submit enrichment with localized pricing ranges (national baselines × metro-cost-factors.json), funding options (from existing benefits system getSavingsRange()), first name collection
-    - **Phase 3**: Mobile bottom sheet matches desktop — new copy, email-only form, trust signals, pricing in enrichment
-    - **Phase 4**: `/api/connections/count` endpoint (1hr ISR cache) → "X families checked this month" social proof
-    - **Phase 5**: `careReportEmail` template — pricing, funding options, 3 similar providers. Sent automatically after guest connection.
-    - **Phase 6**: API + downstream fixes — "Care Seeker" default name, "A family" in notifications, provider connections page hides empty phone, messaging falls back to auto_intro, admin handles gracefully
-  - **Files modified** (10):
-    - `components/providers/connection-card/InquiryForm.tsx` — email-only form, new copy, trust signals
-    - `components/providers/connection-card/index.tsx` — one-click for logged-in, pass pricing props to enrichment
-    - `components/providers/connection-card/use-connection-card.ts` — new submitInquiryForm({email}), connectionCount fetch, firstName in saveEnrichment
-    - `components/providers/connection-card/EnrichmentState.tsx` — pricing display, funding options, first name input
-    - `components/providers/connection-card/types.ts` — InquiryFormData simplified to {email}
-    - `components/providers/MobileStickyBottomCTA.tsx` — new sticky bar copy, email form in sheet, MobileEmailForm component
-    - `components/messaging/ConversationPanel.tsx` — fallback to autoIntro when no message
-    - `components/messaging/RequestDetailPanel.tsx` — fallback to auto_intro from metadata
-    - `app/provider/connections/page.tsx` — hide phone when null, show "Via inbox"
-    - `app/api/connections/request/route.ts` — "Care Seeker" default, "A family" fallbacks, care report email send
-    - `app/api/connections/update-intent/route.ts` — accept firstName, update profile display_name
-    - `lib/email-templates.tsx` — new careReportEmail template
-  - **Files created** (3):
-    - `lib/pricing-ranges.ts` — national baselines × metro cost factors, funding options from benefits system
-    - `app/api/connections/count/route.ts` — social proof endpoint
-    - `plans/cta-conversion-redesign-plan.md` — full implementation plan
-  - **Build**: Compiled successfully, 1917 static pages, zero errors
-  - **GA baseline** (March 2026): 10,980 unique users on provider pages, 0.44% conversion, 54% organic search
-  - **Supabase baseline** (March 2026): 48 real connections, 0% provider response rate
-  - **Key decisions**:
-    - Raw lead volume > quality (critical mass per city)
-    - Pricing data uses Genworth national baselines × metro-cost-factors.json (NOT AI-derived provider data)
-    - Funding options reference existing benefits system (getSavingsRange from Chantel's work)
-    - Anti-APFM positioning: "No spam. No sales calls." + actual pricing delivery
-    - Dross flagged hardcoding risk → switched to metro-cost-factors.json + benefits system references
-  - **Post-build polish** (10 commits on `fine-dijkstra`):
-    - Bug fixes: mobile validation + honeypot, firstName save on skip, enrichment partial data
-    - Taste pass: area estimate above CTA, warm card (shadow-only, gradient bg), shield icon on trust line
-    - Medicare handling: Home Health + Nursing Homes show "Medicare / Medicaid may cover" instead of price (matches browse card pattern, provider header text). CTA reads "Check coverage & availability" for Medicare types vs "Get actual pricing & availability" for standard types.
-    - Area estimate disclaimer: 13px/gray-600/font-semibold, explicit "Area estimate — not this provider's actual price" to preempt provider complaints
-    - Dross caught hardcoding risk → switched to metro-cost-factors.json + benefits system references
-    - `city`/`state` now flow through ConnectionCardProps → InquiryForm for localized context
-    - Hospice not a service category — dead code in pricing-ranges.ts, harmless
+  - **Problem**: Provider page CTA converts at 0.44%. Getting to 3% = 329 connections/month (6.9x increase).
+  - Email-only form, post-submit enrichment with localized pricing, care report email
   - **Branch**: `fine-dijkstra` — 10 commits, pushed to origin
-  - **TJ testing on Vercel preview** — iterating on copy/styling in real time
   - **Next**: PR to staging → QA → monitor conversion vs 0.44% baseline
 
 - **City Expansion Batch — 2026-04-01** — DONE ✅
@@ -458,6 +423,32 @@
 ---
 
 ## Session Log
+
+### 2026-04-03 (Session 66) — Browse Card Image Fallback Fix + R2 Migration Plan
+
+**Branch:** `humble-euler` | **PR #475 merged to staging**
+
+**Root Cause Investigation:**
+- Provider images on browse pages flickering/broken — traced to `cdn-api.olera.care` CloudFront distribution being dead (DNS resolves to CNAME but CloudFront returns 0 A records)
+- ALL ~35K provider image URLs in DB point to this dead CDN
+- Some images still appeared to work due to Vercel `/_next/image` cache — ticking clock as caches expire
+- `BrowseCard.tsx` had broken fallback: `imgFailed` → logo mode (same broken URL) instead of placeholder
+
+**Fix (Move 1):**
+- `components/browse/BrowseCard.tsx`: `imgFailed` now triggers `showPlaceholder` directly instead of `showAsLogo`
+- `app/browse/BrowsePageClient.tsx`: Added `imgFailed` state + `onError` handlers (had none before)
+- Verified: `ProviderCard.tsx` and `ProviderHeroGallery.tsx` already had correct error handling
+- Staging verified: broken cards now show initials + category on gradient, no flickering
+
+**Move 2 (R2 Image Migration):**
+- Script: `scripts/migrate-images-to-r2.mjs` — installed `@aws-sdk/client-s3` as devDep
+- Optimizations: 20 concurrent workers (global rate limiter at ~30 QPS), direct photo download (follow redirect instead of 2-step), landscape-first photo ranking from API metadata
+- Test batch (10 providers): 17 photos → R2, 9 DB updates, 0 errors, all images 200 OK
+- Full migration: 72 min, 41,202 photos uploaded, 21,997 DB updated, 0 errors, 7,380 no photos
+- Notion backlog: custom domain `images.olera.care` for R2 bucket
+- **Next: run `classify-provider-images.mjs` for hero selection**
+
+**Key discovery:** `hero_image_url` column doesn't exist in production DB (TypeScript type has it but DB doesn't). Classification script would need the column created first.
 
 ### 2026-03-31 (Session 65) — Worktree Cleanup + URL/Breadcrumb System Docs
 

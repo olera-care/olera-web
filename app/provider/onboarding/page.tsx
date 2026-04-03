@@ -1925,9 +1925,7 @@ function ProviderOnboardingContent() {
               ? handleStep1Next
               : step === "verify"
               ? handleVerifyCode
-              : step === "setup"
-              ? handleSubmit
-              : undefined
+              : handleSubmit
           }
           nextLabel={
             step === 1

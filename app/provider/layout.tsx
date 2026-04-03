@@ -171,7 +171,4 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
       )}
     </>
   );
-      )}
-    </>
-  );
 }

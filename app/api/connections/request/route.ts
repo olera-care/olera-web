@@ -606,6 +606,25 @@ async function handleGuestConnection({
     // Non-blocking
   }
 
+  // Pre-fill seeker's location from provider's city if seeker has none
+  if (providerCity && fromProfileId) {
+    try {
+      const { data: seekerProfile } = await db
+        .from("business_profiles")
+        .select("city")
+        .eq("id", fromProfileId)
+        .single();
+      if (seekerProfile && !seekerProfile.city) {
+        await db
+          .from("business_profiles")
+          .update({ city: providerCity, state: providerState })
+          .eq("id", fromProfileId);
+      }
+    } catch {
+      // Non-blocking
+    }
+  }
+
   // Build message payload with all available seeker info
   const seekerName = guestFullName?.trim() || displayName;
   const nameParts = seekerName.split(/\s+/);

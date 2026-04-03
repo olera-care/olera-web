@@ -71,24 +71,21 @@ export default function EnrichmentState({
     if (notifyComplete) setStep("recipient");
   }, [notifyComplete]);
 
-  // Recipient tap → auto-advance to urgency
+  // Recipient tap → instant advance to urgency
   const selectRecipient = useCallback((val: CareRecipient) => {
     setRecipient(val);
-    setTimeout(() => setStep("urgency"), 200);
+    setStep("urgency");
   }, []);
 
-  // Urgency tap → save everything
+  // Urgency tap → save everything instantly
   const selectUrgency = useCallback((val: UrgencyValue) => {
     setUrgency(val);
-    // Small delay for visual feedback, then save
-    setTimeout(() => {
-      onSave({
-        phone: (notifyChannel === "text" || notifyChannel === "whatsapp") ? phone.trim() : "",
-        notifyChannel: notifyChannel || "email",
-        careRecipient: recipient || undefined,
-        urgency: val,
-      });
-    }, 200);
+    onSave({
+      phone: (notifyChannel === "text" || notifyChannel === "whatsapp") ? phone.trim() : "",
+      notifyChannel: notifyChannel || "email",
+      careRecipient: recipient || undefined,
+      urgency: val,
+    });
   }, [notifyChannel, phone, recipient, onSave]);
 
   // Skip from any step — save whatever we have

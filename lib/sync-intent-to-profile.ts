@@ -17,6 +17,10 @@ export interface IntentData {
   additionalNotes?: string | null;
   phone?: string | null;
   notifyChannel?: string | null;
+  /** Provider's city — used to pre-fill seeker location if empty */
+  providerCity?: string | null;
+  /** Provider's state — used to pre-fill seeker location if empty */
+  providerState?: string | null;
 }
 
 const recipientMap: Record<string, string> = {
@@ -47,7 +51,7 @@ export async function syncIntentToProfile(
 ): Promise<void> {
   const { data: currentProfile } = await db
     .from("business_profiles")
-    .select("metadata, care_types, phone")
+    .select("metadata, care_types, phone, city, state")
     .eq("id", profileId)
     .single();
 
@@ -98,6 +102,14 @@ export async function syncIntentToProfile(
   // Sync phone only if profile phone is currently null
   if (intent.phone && !currentProfile.phone) {
     updates.phone = intent.phone;
+  }
+
+  // Pre-fill seeker location from provider's city if seeker has none
+  if (intent.providerCity && !currentProfile.city) {
+    updates.city = intent.providerCity;
+  }
+  if (intent.providerState && !currentProfile.state) {
+    updates.state = intent.providerState;
   }
 
   await db

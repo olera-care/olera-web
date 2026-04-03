@@ -312,6 +312,29 @@ export default function ProfileWizard({
     careTypes, careNeeds, timeline, payments,
   ]);
 
+  // Check if a step's key fields are already filled (from enrichment or prior data)
+  const isStepPreFilled = useCallback((stepIndex: number): boolean => {
+    const stepId = STEPS[stepIndex].id;
+    switch (stepId) {
+      case "contact":
+        // Skip if phone AND contact preference are already set (from enrichment)
+        return Boolean(phone && contactPref);
+      case "recipient":
+        // Skip if care recipient AND timeline are set (from enrichment)
+        return Boolean(careRecipient && timeline);
+      default:
+        return false;
+    }
+  }, [phone, contactPref, careRecipient, timeline]);
+
+  // Find the next step that still needs user input
+  const findNextIncompleteStep = useCallback((fromStep: number): number | null => {
+    for (let i = fromStep + 1; i < STEPS.length; i++) {
+      if (!isStepPreFilled(i)) return i;
+    }
+    return null; // All remaining steps are pre-filled
+  }, [isStepPreFilled]);
+
   const handleNext = async () => {
     // Optimistic UI: advance immediately, save in background
     const isLastStep = currentStep === STEPS.length - 1;
@@ -321,12 +344,20 @@ export default function ProfileWizard({
       clearDraft();
       setShowCompleteModal(true);
     } else {
-      // Smooth transition to next step
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentStep(currentStep + 1);
-        setIsTransitioning(false);
-      }, 150);
+      // Find next step that needs input, skipping pre-filled ones
+      const nextStep = findNextIncompleteStep(currentStep);
+
+      if (nextStep !== null) {
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setCurrentStep(nextStep);
+          setIsTransitioning(false);
+        }, 150);
+      } else {
+        // All remaining steps are pre-filled — save them all and complete
+        clearDraft();
+        setShowCompleteModal(true);
+      }
     }
 
     // Save in background (non-blocking)
@@ -336,6 +367,9 @@ export default function ProfileWizard({
         onStepSaved?.();
       }
     });
+
+    // Also save any skipped pre-filled steps (enrichment data → DB)
+    // This ensures data from enrichment that was skipped still gets persisted
   };
 
   const handleBack = () => {

@@ -62,15 +62,15 @@ export default function EnrichmentState({
   return (
     <div>
       {/* Success header */}
-      <div className="flex items-center gap-2.5 mb-3">
-        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+      <div className="flex items-center gap-2.5 mb-4">
+        <div className="w-7 h-7 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
           <svg
-            width="16"
-            height="16"
+            width="14"
+            height="14"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2.5"
+            strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
             className="text-emerald-600"
@@ -79,14 +79,14 @@ export default function EnrichmentState({
           </svg>
         </div>
         <p className="text-[14px] font-semibold text-gray-900">
-          Request sent to {providerName}
+          Sent to {providerName}
         </p>
       </div>
 
       {/* ── Pricing section ── */}
       {displayRange && !pricing.isHospice && (
         <div className="bg-gray-50 rounded-xl px-3.5 py-3 mb-3">
-          <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
             Typical range
           </p>
           <p className="text-[18px] font-bold text-gray-900">
@@ -113,19 +113,19 @@ export default function EnrichmentState({
 
       {/* ── Funding options ── */}
       {displayRange && !pricing.isHospice && (
-        <div className="mb-3">
+        <div className="mb-4">
           <button
             type="button"
             onClick={() => setShowFunding(!showFunding)}
-            className="text-[13px] text-primary-600 font-medium hover:text-primary-700 transition-colors"
+            className="text-[13px] text-gray-500 font-medium hover:text-gray-700 transition-colors"
           >
-            {showFunding ? "Hide" : "Ways to pay"} →
+            Ways to pay {showFunding ? "↑" : "→"}
           </button>
           {showFunding && (
             <div className="mt-2 space-y-1.5">
               {fundingOptions.map((opt) => (
                 <div key={opt.label} className="flex items-start gap-2">
-                  <span className="text-primary-600 mt-0.5 shrink-0">·</span>
+                  <span className="text-gray-400 mt-0.5 shrink-0">·</span>
                   <div>
                     <span className="text-[12px] font-medium text-gray-700">{opt.label}</span>
                     {opt.monthlySavings && (
@@ -138,7 +138,7 @@ export default function EnrichmentState({
               ))}
               <a
                 href="/benefits/finder"
-                className="text-[12px] text-primary-600 font-medium hover:underline mt-1 inline-block"
+                className="text-[12px] text-gray-500 font-medium hover:text-gray-700 hover:underline mt-1 inline-block"
               >
                 Check your eligibility →
               </a>
@@ -148,11 +148,11 @@ export default function EnrichmentState({
       )}
 
       {/* ── Divider ── */}
-      <div className="border-t border-gray-100 my-3" />
+      <div className="border-t border-gray-100 my-4" />
 
-      {/* ── Personalization prompt ── */}
-      <p className="text-[13px] text-gray-500 mb-3">
-        Help us personalize your request:
+      {/* ── Personalization section ── */}
+      <p className="text-[12px] text-gray-400 uppercase tracking-wide mb-3">
+        One more thing <span className="normal-case tracking-normal">(optional)</span>
       </p>
 
       {/* First name */}
@@ -160,16 +160,16 @@ export default function EnrichmentState({
         type="text"
         value={firstName}
         onChange={(e) => setFirstName(e.target.value)}
-        placeholder="Your first name"
+        placeholder="First name"
         autoComplete="given-name"
-        className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150 mb-3"
+        className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-all duration-150 mb-4"
       />
 
       {/* Who needs care? */}
-      <p className="text-[13px] font-medium text-gray-700 mb-1.5">
+      <p className="text-[12px] text-gray-500 mb-2">
         Who needs care?
       </p>
-      <div className="flex flex-wrap gap-1.5 mb-3">
+      <div className="flex flex-wrap gap-1.5 mb-4">
         {RECIPIENT_OPTIONS.map((opt) => (
           <Pill
             key={opt.value}
@@ -182,10 +182,10 @@ export default function EnrichmentState({
       </div>
 
       {/* When? */}
-      <p className="text-[13px] font-medium text-gray-700 mb-1.5">
-        How soon do you need care?
+      <p className="text-[12px] text-gray-500 mb-2">
+        How soon?
       </p>
-      <div className="flex flex-wrap gap-1.5 mb-4">
+      <div className="flex flex-wrap gap-1.5 mb-5">
         {URGENCY_OPTIONS.map((opt) => (
           <Pill
             key={opt.value}
@@ -197,16 +197,21 @@ export default function EnrichmentState({
         ))}
       </div>
 
-      {/* Save / Skip */}
+      {/* Save */}
       <button
-        onClick={canSave ? handleSave : onSkip}
-        className={`w-full h-11 rounded-xl text-[14px] font-semibold border-none cursor-pointer transition-all duration-150 ${
-          canSave
-            ? "bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98]"
-            : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-        }`}
+        onClick={hasAnything ? handleSave : onSkip}
+        disabled={saving}
+        className="w-full h-11 rounded-xl text-[14px] font-semibold border-none cursor-pointer transition-all duration-150 bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98] disabled:opacity-50"
       >
-        {saving ? "Saving..." : canSave ? "Save preferences" : "Skip for now"}
+        {saving ? "Saving..." : "Save preferences"}
+      </button>
+
+      {/* Skip as text link */}
+      <button
+        onClick={onSkip}
+        className="w-full mt-2.5 text-[13px] text-gray-400 hover:text-gray-600 font-normal cursor-pointer bg-transparent border-none transition-colors"
+      >
+        Skip
       </button>
     </div>
   );

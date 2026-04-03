@@ -12,16 +12,15 @@ export default function Pill({ label, selected, onClick, small }: PillProps) {
     <button
       onClick={onClick}
       className={`
-        ${small ? "px-3.5 py-2 min-h-[44px] text-sm rounded-full" : "px-4 py-3 min-h-[44px] text-[15px] rounded-xl"}
-        whitespace-nowrap border-[1.5px] font-normal text-center cursor-pointer transition-all duration-150
+        ${small ? "px-3.5 py-2 min-h-[44px] text-[13px] rounded-full" : "px-4 py-3 min-h-[44px] text-[15px] rounded-xl"}
+        whitespace-nowrap border text-center cursor-pointer transition-all duration-150
         ${
           selected
-            ? "border-primary-600 bg-primary-100 text-primary-700 font-semibold shadow-sm"
-            : "border-primary-100 bg-primary-25 text-gray-700 hover:border-primary-300 hover:bg-primary-50 hover:shadow-sm"
+            ? "border-gray-900 bg-gray-900 text-white font-medium"
+            : "border-gray-200 bg-white text-gray-600 hover:border-gray-400 hover:text-gray-900"
         }
       `}
     >
-      {selected && <span className="mr-1 text-sm">&#10003;</span>}
       {label}
     </button>
   );

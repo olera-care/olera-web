@@ -730,7 +730,7 @@ function ProviderOnboardingContent() {
       const verifyRes = await fetch("/api/claim/verify-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: emailVerifyCode, claimSession: emailVerifySessionId }),
+        body: JSON.stringify({ providerId: "00000000-0000-0000-0000-000000000000", code: emailVerifyCode, claimSession: emailVerifySessionId }),
       });
       const verifyResult = await verifyRes.json();
       if (!verifyRes.ok || !verifyResult.verified) {
@@ -2062,47 +2062,61 @@ function ProviderOnboardingContent() {
               </div>
             )}
 
-            {/* Inline email verification (shown when unauth user clicks "Create profile") */}
+            {/* Inline email verification overlay */}
             {emailVerifyActive && !user && (
-              <div className="mt-6 bg-gray-50 border border-gray-200 rounded-xl p-5 text-center">
-                <p className="text-sm font-medium text-gray-900 mb-1">
-                  Verify your email to publish
-                </p>
-                <p className="text-xs text-gray-500 mb-4">
-                  We sent a 6-digit code to <span className="font-medium text-gray-700">{data.email}</span>
-                </p>
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={6}
-                    value={emailVerifyCode}
-                    onChange={(e) => setEmailVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    onKeyDown={(e) => { if (e.key === "Enter" && emailVerifyCode.length === 6) handleVerifyAndCreate(); }}
-                    placeholder="000000"
-                    className="w-36 text-center text-lg tracking-[0.3em] font-mono px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    autoFocus
-                  />
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
+                  <div className="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    Confirm your email
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-5">
+                    We sent a 6-digit code to <span className="font-medium text-gray-700">{data.email}</span>
+                  </p>
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={emailVerifyCode}
+                      onChange={(e) => setEmailVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      onKeyDown={(e) => { if (e.key === "Enter" && emailVerifyCode.length === 6) handleVerifyAndCreate(); }}
+                      placeholder="000000"
+                      className="w-36 text-center text-lg tracking-[0.3em] font-mono px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={handleVerifyAndCreate}
+                      disabled={emailVerifyCode.length !== 6 || submitting}
+                      className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-40 text-white font-medium rounded-lg transition-colors text-sm"
+                    >
+                      {submitting ? "Setting up..." : "Verify"}
+                    </button>
+                  </div>
+                  {emailVerifyError && (
+                    <p className="text-xs text-red-600 mb-3">{emailVerifyError}</p>
+                  )}
                   <button
                     type="button"
-                    onClick={handleVerifyAndCreate}
-                    disabled={emailVerifyCode.length !== 6 || submitting}
-                    className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-40 text-white font-medium rounded-lg transition-colors text-sm"
+                    onClick={handleSendVerification}
+                    disabled={emailVerifySending}
+                    className="text-xs text-gray-400 hover:text-gray-600 underline transition-colors"
                   >
-                    {submitting ? "Creating..." : "Verify"}
+                    {emailVerifySending ? "Sending..." : "Resend code"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setEmailVerifyActive(false); setEmailVerifyCode(""); setEmailVerifyError(""); }}
+                    className="block mx-auto mt-3 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    Cancel
                   </button>
                 </div>
-                {emailVerifyError && (
-                  <p className="text-xs text-red-600 mb-2">{emailVerifyError}</p>
-                )}
-                <button
-                  type="button"
-                  onClick={handleSendVerification}
-                  disabled={emailVerifySending}
-                  className="text-xs text-gray-400 hover:text-gray-600 underline transition-colors"
-                >
-                  {emailVerifySending ? "Sending..." : "Resend code"}
-                </button>
               </div>
             )}
 

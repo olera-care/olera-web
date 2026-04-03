@@ -1622,7 +1622,7 @@ export default function ProviderLeadsPage() {
                     {/* Contact info */}
                     <div className="space-y-0.5 mb-2">
                       <p className="text-sm text-gray-600 truncate">{lead.email || "—"}</p>
-                      <p className="text-sm text-gray-500 truncate">{lead.phone || "—"}</p>
+                      {lead.phone && <p className="text-sm text-gray-500 truncate">{lead.phone}</p>}
                     </div>
 
                     {/* Meta row - location + date */}
@@ -1668,7 +1668,7 @@ export default function ProviderLeadsPage() {
                 <span className="text-[14px] text-gray-600 truncate">{lead.email || "—"}</span>
 
                 {/* Phone */}
-                <span className="text-[14px] text-gray-600 truncate">{lead.phone || "—"}</span>
+                <span className="text-[14px] text-gray-600 truncate">{lead.phone || "Via inbox"}</span>
 
                 {/* Location */}
                 <span className="text-[14px] text-gray-500 truncate">{lead.location}</span>

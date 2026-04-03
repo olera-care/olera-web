@@ -50,9 +50,9 @@ export default function ConnectionCard(props: ConnectionCardProps) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden max-h-[calc(100vh-120px)] overflow-y-auto">
+    <div className="bg-gradient-to-b from-white to-primary-25/40 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden max-h-[calc(100vh-120px)] overflow-y-auto">
       {/* Main content */}
-      <div className="px-5 py-5">
+      <div className="px-6 py-6">
         {hook.cardState === "loading" && (
           <div className="animate-pulse space-y-3">
             <div className="h-11 bg-gray-100 rounded-[10px]" />
@@ -61,16 +61,35 @@ export default function ConnectionCard(props: ConnectionCardProps) {
         )}
 
         {hook.cardState === "default" && (
-          <InquiryForm
-            key={hook.userEmail || "guest"}
-            providerName={providerName}
-            onSubmit={hook.submitInquiryForm}
-            submitting={hook.submitting}
-            error={hook.error}
-            initialEmail={hook.userEmail}
-            initialName={hook.userName}
-            initialPhone={hook.userPhone}
-          />
+          hook.userEmail ? (
+            /* Logged-in: one-click CTA — pricing context + one button */
+            <InquiryForm
+              key={hook.userEmail}
+              providerName={providerName}
+              onSubmit={hook.submitInquiryForm}
+              submitting={hook.submitting}
+              error={hook.error}
+              initialEmail={hook.userEmail}
+              careTypes={props.careTypes}
+              priceRange={props.priceRange}
+              city={props.city}
+              state={props.state}
+            />
+          ) : (
+            /* Guest: email-only form */
+            <InquiryForm
+              key="guest"
+              providerName={providerName}
+              onSubmit={hook.submitInquiryForm}
+              submitting={hook.submitting}
+              error={hook.error}
+              connectionCount={hook.connectionCount ?? undefined}
+              careTypes={props.careTypes}
+              priceRange={props.priceRange}
+              city={props.city}
+              state={props.state}
+            />
+          )
         )}
 
         {hook.cardState === "enrichment" && (
@@ -79,8 +98,8 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             onSave={hook.saveEnrichment}
             onSkip={hook.skipEnrichment}
             saving={hook.submitting}
-            initialRecipient={hook.initialRecipient}
-            initialUrgency={hook.initialUrgency}
+            careTypes={props.careTypes}
+            priceRange={props.priceRange}
           />
         )}
 

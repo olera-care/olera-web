@@ -7,39 +7,65 @@
 
 ## Current Focus
 
-- **WhatsApp Business Notifications — Go Live** — IN PROGRESS
-  - Meta approved Olera WhatsApp Business sender (`+12137722970`, Online, 80 MPS)
-  - **Provider templates (2 of 2):**
-    - `olera_new_lead` — Call to Action, submitted for Meta approval ✅
-    - `olera_new_message` — still needs to be created (follow-up messages)
-    - After approval: get `HX...` SIDs, add to Vercel as `TWILIO_WA_TEMPLATE_NEW_LEAD` / `TWILIO_WA_TEMPLATE_NEW_MESSAGE`
-    - **Code fix still needed**: Add `"3"` content variable (URL path) to sendWhatsApp calls
-  - **Seeker WhatsApp Enrichment Flow** — CODE COMPLETE, TEMPLATES IN PROGRESS
-    - Plan: `plans/whatsapp-seeker-enrichment-plan.md`
-    - 3-message conversation: care recipient (Quick Reply) → specific care needs (open text) → urgency (Quick Reply)
-    - Open text Q2 ("what's been the hardest part?") is the crown jewel — rich signal no competitor collects
-    - **Code built (all type-checks clean):**
-      - `supabase/migrations/032_whatsapp_conversations.sql` — state machine tracking table
-      - `lib/whatsapp-conversation.ts` — conversation engine (start, handle inbound, 4-state machine, enrichment sync to connection + profile)
-      - `app/api/whatsapp/webhook/route.ts` — inbound webhook with Twilio signature verification
-      - `app/api/connections/request/route.ts` — wired seeker WhatsApp into both guest + authenticated flows
-    - **Design decisions:**
-      - Tone: calm guide who's been through this (not chatbot, not care coordinator with clipboard)
-      - We already know care TYPE (from provider page category). We collect specific care NEEDS via open text
-      - Message 2 open text is the whole point — "what's been the hardest part?" lets seekers exhale and produces 10x richer signal than checkboxes
-      - At 5 leads/day, TJ reads open-text responses directly. At scale, AI extracts structured needs
-      - Phone number collection being added on `fine-dijkstra` (framed as "how should we notify you?" not "give us your phone")
-    - **Seeker templates (3 of 3 submitted):**
-      - `olera_seeker_recipient` (Quick Reply) — submitted for Meta approval ✅
-      - `olera_seeker_needs` (Text) — submitted for Meta approval ✅
-      - `olera_seeker_urgency` (Quick Reply) — submitted for Meta approval ✅
-    - **After all templates approved:** add env vars `TWILIO_WA_TPL_SEEKER_Q1`, `TWILIO_WA_TPL_SEEKER_Q2`, `TWILIO_WA_TPL_SEEKER_Q3`
-    - **Deploy steps:** push to staging → configure webhook URL in Twilio console (`https://staging-olera2-web.vercel.app/api/whatsapp/webhook`)
-  - **4 PRs already merged to staging** (Apr 1): #469 (core), #470 (sandbox fix), #471 (connection flow), #472 (URL fix)
+- **Provider Page CTA Conversion Redesign — 2026-04-02** — PUSHED TO `fine-dijkstra`, TESTING ON VERCEL PREVIEW
+  - **Problem**: Provider page CTA converts at 0.44% (48 real connections from ~10,980 unique visitors in March). Industry average is 2–5%. Getting to 3% = 329 connections/month (6.9x increase), same traffic.
+  - **Root cause analysis**: 4-field form (email, name, phone, message) with generic copy ("Get in touch" / "Connect with us") on pages where most providers are unclaimed with no photos. 95%+ of visitors are first-time, not logged in.
+  - **Key constraint**: Prior question-first experiment saw 90% drop-off per click — no friction before the action.
+  - **Competitive analysis** (Logan's APFM + Caring.com docs in iCloud): Competitors use "Get Pricing" but deliver spam calls. Olera's differentiator: use intent-matched language but actually deliver value.
+  - **What was built** (all 6 phases, 16 tasks):
+    - **Phase 1**: Email-only form, "What does this cost?" / "Check cost & availability", one-click for logged-in, "No spam. No sales calls." trust signals
+    - **Phase 2**: Post-submit enrichment with localized pricing ranges (national baselines × metro-cost-factors.json), funding options (from existing benefits system getSavingsRange()), first name collection
+    - **Phase 3**: Mobile bottom sheet matches desktop — new copy, email-only form, trust signals, pricing in enrichment
+    - **Phase 4**: `/api/connections/count` endpoint (1hr ISR cache) → "X families checked this month" social proof
+    - **Phase 5**: `careReportEmail` template — pricing, funding options, 3 similar providers. Sent automatically after guest connection.
+    - **Phase 6**: API + downstream fixes — "Care Seeker" default name, "A family" in notifications, provider connections page hides empty phone, messaging falls back to auto_intro, admin handles gracefully
+  - **Files modified** (10):
+    - `components/providers/connection-card/InquiryForm.tsx` — email-only form, new copy, trust signals
+    - `components/providers/connection-card/index.tsx` — one-click for logged-in, pass pricing props to enrichment
+    - `components/providers/connection-card/use-connection-card.ts` — new submitInquiryForm({email}), connectionCount fetch, firstName in saveEnrichment
+    - `components/providers/connection-card/EnrichmentState.tsx` — pricing display, funding options, first name input
+    - `components/providers/connection-card/types.ts` — InquiryFormData simplified to {email}
+    - `components/providers/MobileStickyBottomCTA.tsx` — new sticky bar copy, email form in sheet, MobileEmailForm component
+    - `components/messaging/ConversationPanel.tsx` — fallback to autoIntro when no message
+    - `components/messaging/RequestDetailPanel.tsx` — fallback to auto_intro from metadata
+    - `app/provider/connections/page.tsx` — hide phone when null, show "Via inbox"
+    - `app/api/connections/request/route.ts` — "Care Seeker" default, "A family" fallbacks, care report email send
+    - `app/api/connections/update-intent/route.ts` — accept firstName, update profile display_name
+    - `lib/email-templates.tsx` — new careReportEmail template
+  - **Files created** (3):
+    - `lib/pricing-ranges.ts` — national baselines × metro cost factors, funding options from benefits system
+    - `app/api/connections/count/route.ts` — social proof endpoint
+    - `plans/cta-conversion-redesign-plan.md` — full implementation plan
+  - **Build**: Compiled successfully, 1917 static pages, zero errors
+  - **GA baseline** (March 2026): 10,980 unique users on provider pages, 0.44% conversion, 54% organic search
+  - **Supabase baseline** (March 2026): 48 real connections, 0% provider response rate
+  - **Key decisions**:
+    - Raw lead volume > quality (critical mass per city)
+    - Pricing data uses Genworth national baselines × metro-cost-factors.json (NOT AI-derived provider data)
+    - Funding options reference existing benefits system (getSavingsRange from Chantel's work)
+    - Anti-APFM positioning: "No spam. No sales calls." + actual pricing delivery
+    - Dross flagged hardcoding risk → switched to metro-cost-factors.json + benefits system references
+  - **Post-build polish** (10 commits on `fine-dijkstra`):
+    - Bug fixes: mobile validation + honeypot, firstName save on skip, enrichment partial data
+    - Taste pass: area estimate above CTA, warm card (shadow-only, gradient bg), shield icon on trust line
+    - Medicare handling: Home Health + Nursing Homes show "Medicare / Medicaid may cover" instead of price (matches browse card pattern, provider header text). CTA reads "Check coverage & availability" for Medicare types vs "Get actual pricing & availability" for standard types.
+    - Area estimate disclaimer: 13px/gray-600/font-semibold, explicit "Area estimate — not this provider's actual price" to preempt provider complaints
+    - Dross caught hardcoding risk → switched to metro-cost-factors.json + benefits system references
+    - `city`/`state` now flow through ConnectionCardProps → InquiryForm for localized context
+    - Hospice not a service category — dead code in pricing-ranges.ts, harmless
+  - **Branch**: `fine-dijkstra` — 10 commits, pushed to origin
+  - **TJ testing on Vercel preview** — iterating on copy/styling in real time
+  - **Next**: PR to staging → QA → monitor conversion vs 0.44% baseline
 
 - **City Expansion Batch — 2026-04-01** — DONE ✅
   - 90 new cities processed end-to-end via batch pipeline
+  - Discovery: 18,191 raw providers (45 min, ~$102 Google Places)
+  - Pipeline: cleaned → uploaded → enriched across all 343 cities (6h 21m, ~$323)
   - 13,814 total providers in DB after dedup + AI verification
+  - Fixed `pipeline-batch.js`: added `relax_quotes: true` + `relax_column_count: true` + try-catch for malformed CSVs
+  - 90 Notion pages created, all marked Complete
+  - Live site verified: providers rendering with ratings/reviews on olera.care
+  - Total cost: ~$425
   - **Notion board: 283 Complete cities (193 prior + 90 new), 7 Planning remain**
 
 - **Strict User Account Type Separation** (branch: `feature/user-accounts-separation-logic`) — READY FOR MERGE (PR #463)

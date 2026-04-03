@@ -16,6 +16,11 @@ export interface IntentData {
   urgency?: string | null;
   additionalNotes?: string | null;
   phone?: string | null;
+  notifyChannel?: string | null;
+  /** Provider's city — used to pre-fill seeker location if empty */
+  providerCity?: string | null;
+  /** Provider's state — used to pre-fill seeker location if empty */
+  providerState?: string | null;
 }
 
 const recipientMap: Record<string, string> = {
@@ -46,7 +51,7 @@ export async function syncIntentToProfile(
 ): Promise<void> {
   const { data: currentProfile } = await db
     .from("business_profiles")
-    .select("metadata, care_types, phone")
+    .select("metadata, care_types, phone, city, state")
     .eq("id", profileId)
     .single();
 
@@ -71,6 +76,20 @@ export async function syncIntentToProfile(
     currentMeta.about_situation = intent.additionalNotes;
   }
 
+  // Map notifyChannel → metadata.contact_preference
+  // Wizard stores lowercase ("text", "email", "call")
+  const contactPrefMap: Record<string, string> = {
+    text: "text",
+    whatsapp: "text", // WhatsApp maps to text preference (phone-based)
+    email: "email",
+  };
+  if (intent.notifyChannel && contactPrefMap[intent.notifyChannel]) {
+    currentMeta.contact_preference = contactPrefMap[intent.notifyChannel];
+    if (intent.notifyChannel === "whatsapp") {
+      currentMeta.whatsapp_opted_in = true;
+    }
+  }
+
   updates.metadata = currentMeta;
 
   // Map careType → care_types[] (append-only)
@@ -84,6 +103,14 @@ export async function syncIntentToProfile(
   // Sync phone only if profile phone is currently null
   if (intent.phone && !currentProfile.phone) {
     updates.phone = intent.phone;
+  }
+
+  // Pre-fill seeker location from provider's city if seeker has none
+  if (intent.providerCity && !currentProfile.city) {
+    updates.city = intent.providerCity;
+  }
+  if (intent.providerState && !currentProfile.state) {
+    updates.state = intent.providerState;
   }
 
   await db

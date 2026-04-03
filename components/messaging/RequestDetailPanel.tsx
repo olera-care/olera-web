@@ -60,11 +60,18 @@ function getProviderMessage(connection: ConnectionWithProfile): string | null {
   if (connection.message) {
     try {
       const parsed = JSON.parse(connection.message);
-      return parsed.message || parsed.note || parsed.additional_notes || null;
+      if (parsed.message || parsed.note || parsed.additional_notes) {
+        return parsed.message || parsed.note || parsed.additional_notes;
+      }
     } catch {
       // Plain text message
       return connection.message;
     }
+  }
+
+  // Fall back to auto-intro from metadata
+  if (meta?.auto_intro && typeof meta.auto_intro === "string") {
+    return meta.auto_intro;
   }
 
   return null;

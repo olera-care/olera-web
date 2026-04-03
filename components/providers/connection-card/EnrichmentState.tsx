@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import Pill from "./Pill";
 import { URGENCY_OPTIONS, RECIPIENT_OPTIONS } from "./constants";
 import type { CareRecipient, UrgencyValue } from "./types";
@@ -11,12 +11,15 @@ import {
   type PricingRange,
 } from "@/lib/pricing-ranges";
 
+type NotifyChannel = "text" | "whatsapp" | "email";
+
 interface EnrichmentStateProps {
   providerName: string;
   onSave: (data: {
     careRecipient?: CareRecipient;
     urgency?: UrgencyValue;
-    firstName: string;
+    phone: string;
+    notifyChannel: NotifyChannel;
   }) => void;
   onSkip: () => void;
   saving?: boolean;
@@ -25,6 +28,12 @@ interface EnrichmentStateProps {
   careTypes?: string[];
   priceRange?: string | null;
 }
+
+const NOTIFY_OPTIONS: { label: string; value: NotifyChannel }[] = [
+  { label: "Text me", value: "text" },
+  { label: "WhatsApp me", value: "whatsapp" },
+  { label: "Email is fine", value: "email" },
+];
 
 export default function EnrichmentState({
   providerName,
@@ -38,8 +47,19 @@ export default function EnrichmentState({
 }: EnrichmentStateProps) {
   const [recipient, setRecipient] = useState<CareRecipient | null>(initialRecipient);
   const [urgency, setUrgency] = useState<UrgencyValue | null>(initialUrgency);
-  const [firstName, setFirstName] = useState("");
+  const [notifyChannel, setNotifyChannel] = useState<NotifyChannel | null>(null);
+  const [phone, setPhone] = useState("");
   const [showFunding, setShowFunding] = useState(false);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus phone input when a phone-requiring channel is selected
+  const needsPhone = notifyChannel === "text" || notifyChannel === "whatsapp";
+  useEffect(() => {
+    if (needsPhone) {
+      // Small delay so the input is rendered before focusing
+      setTimeout(() => phoneInputRef.current?.focus(), 100);
+    }
+  }, [needsPhone]);
 
   // Resolve pricing from care types
   const pricing = getPricingForProviderSync(careTypes);
@@ -47,17 +67,18 @@ export default function EnrichmentState({
   const fundingOptions = getFundingOptions();
 
   const hasSelections = recipient && urgency;
-  const hasAnything = hasSelections || firstName.trim();
+  const hasNotify = notifyChannel === "email" || (needsPhone && phone.trim());
+  const hasAnything = hasNotify || hasSelections;
   const canSave = hasAnything && !saving;
 
   const handleSave = useCallback(() => {
-    // Save whatever data we have — firstName alone is worth saving
     onSave({
       careRecipient: recipient || undefined,
       urgency: urgency || undefined,
-      firstName: firstName.trim(),
+      phone: needsPhone ? phone.trim() : "",
+      notifyChannel: notifyChannel || "email",
     });
-  }, [recipient, urgency, firstName, onSave]);
+  }, [recipient, urgency, phone, notifyChannel, needsPhone, onSave]);
 
   return (
     <div>
@@ -150,23 +171,38 @@ export default function EnrichmentState({
       {/* ── Divider ── */}
       <div className="border-t border-gray-200 my-4" />
 
-      {/* ── Personalization section ── */}
-      <p className="text-[13px] font-medium text-gray-500 mb-3">
-        One more thing <span className="text-gray-400 font-normal">(optional)</span>
-      </p>
-
-      {/* First name */}
-      <input
-        type="text"
-        value={firstName}
-        onChange={(e) => setFirstName(e.target.value)}
-        placeholder="First name"
-        autoComplete="given-name"
-        className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all duration-150 mb-4"
-      />
-
-      {/* Who needs care? */}
+      {/* ── Notification preference (the key ask) ── */}
       <p className="text-[13px] font-medium text-gray-700 mb-2">
+        How should we let you know when they respond?
+      </p>
+      <div className="flex flex-wrap gap-2 mb-3">
+        {NOTIFY_OPTIONS.map((opt) => (
+          <Pill
+            key={opt.value}
+            label={opt.label}
+            selected={notifyChannel === opt.value}
+            onClick={() => setNotifyChannel(opt.value)}
+            small
+          />
+        ))}
+      </div>
+
+      {/* Phone input — appears when Text or WhatsApp selected */}
+      {needsPhone && (
+        <input
+          ref={phoneInputRef}
+          type="tel"
+          inputMode="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="Phone number"
+          autoComplete="tel"
+          className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all duration-150 mb-3"
+        />
+      )}
+
+      {/* ── Care context (secondary) ── */}
+      <p className="text-[13px] font-medium text-gray-700 mb-2 mt-4">
         Who needs care?
       </p>
       <div className="flex flex-wrap gap-2 mb-4">
@@ -181,7 +217,6 @@ export default function EnrichmentState({
         ))}
       </div>
 
-      {/* When? */}
       <p className="text-[13px] font-medium text-gray-700 mb-2">
         How soon?
       </p>
@@ -199,20 +234,26 @@ export default function EnrichmentState({
 
       {/* Save */}
       <button
-        onClick={hasAnything ? handleSave : onSkip}
+        onClick={canSave ? handleSave : onSkip}
         disabled={saving}
-        className="w-full h-11 rounded-xl text-[14px] font-semibold border-none cursor-pointer transition-all duration-150 bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98] disabled:opacity-50"
+        className={`w-full h-11 rounded-xl text-[14px] font-semibold border-none cursor-pointer transition-all duration-150 ${
+          canSave
+            ? "bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98]"
+            : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+        } disabled:opacity-50`}
       >
-        {saving ? "Saving..." : "Save preferences"}
+        {saving ? "Saving..." : canSave ? "Save preferences" : "Skip for now"}
       </button>
 
-      {/* Skip as text link */}
-      <button
-        onClick={onSkip}
-        className="w-full mt-2.5 text-[13px] text-gray-400 hover:text-gray-600 font-normal cursor-pointer bg-transparent border-none transition-colors"
-      >
-        Skip
-      </button>
+      {/* Skip as text link — only show when save is possible (otherwise button already says Skip) */}
+      {canSave && (
+        <button
+          onClick={onSkip}
+          className="w-full mt-2.5 text-[13px] text-gray-400 hover:text-gray-600 font-normal cursor-pointer bg-transparent border-none transition-colors"
+        >
+          Skip
+        </button>
+      )}
     </div>
   );
 }

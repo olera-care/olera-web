@@ -27,7 +27,7 @@ export async function PATCH(request: Request) {
     } = await supabase.auth.getUser();
 
     const body = await request.json();
-    const { connectionId, careType, careRecipient, urgency, message, additionalNotes, claimToken, firstName } = body as {
+    const { connectionId, careType, careRecipient, urgency, message, additionalNotes, claimToken, firstName, phone, notifyChannel } = body as {
       connectionId?: string;
       careType?: string;
       careRecipient?: string;
@@ -36,6 +36,8 @@ export async function PATCH(request: Request) {
       additionalNotes?: string;
       claimToken?: string;
       firstName?: string;
+      phone?: string;
+      notifyChannel?: string;
     };
 
     if (!connectionId) {
@@ -153,6 +155,22 @@ export async function PATCH(request: Request) {
             .update({ display_name: firstName })
             .eq("id", profileId);
         }
+      } catch {
+        // Non-blocking — profile update is best-effort
+      }
+    }
+    // Phone + notification channel (enrichment: "How should we let you know?")
+    if (notifyChannel) {
+      existingMessage.notify_channel = notifyChannel;
+    }
+    if (phone) {
+      existingMessage.seeker_phone = phone;
+      // Update the sender's profile phone
+      try {
+        await admin
+          .from("business_profiles")
+          .update({ phone })
+          .eq("id", profileId);
       } catch {
         // Non-blocking — profile update is best-effort
       }

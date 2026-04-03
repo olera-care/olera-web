@@ -678,12 +678,14 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const saveEnrichment = useCallback(async (data?: {
     careRecipient?: string;
     urgency?: string;
-    firstName?: string;
+    phone?: string;
+    notifyChannel?: string;
   }) => {
     // Need at least connectionId and some data to save
     const hasIntentData = data?.careRecipient && data?.urgency;
-    const hasFirstName = data?.firstName && data.firstName.trim();
-    if (!connectionId || (!hasIntentData && !hasFirstName)) {
+    const hasPhone = data?.phone && data.phone.trim();
+    const hasNotify = data?.notifyChannel;
+    if (!connectionId || (!hasIntentData && !hasPhone && !hasNotify)) {
       navigatePostEnrichment();
       return;
     }
@@ -697,7 +699,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
           connectionId,
           careRecipient: data.careRecipient,
           urgency: data.urgency,
-          firstName: data.firstName || undefined,
+          phone: data.phone || undefined,
+          notifyChannel: data.notifyChannel || undefined,
         }),
       });
 

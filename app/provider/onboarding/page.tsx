@@ -848,10 +848,10 @@ function ProviderOnboardingContent() {
       // router.replace() causes stale state races; this is the same
       // pattern AuthProvider uses for all post-auth redirects.
       window.location.replace(nextUrl || "/provider");
+      // Don't setSubmitting(false) — keep overlay spinner visible until page unloads
     } catch {
       setSubmitError("Something went wrong. Please try again.");
       creatingProfileRef.current = false;
-    } finally {
       setSubmitting(false);
     }
   };

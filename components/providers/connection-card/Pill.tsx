@@ -16,8 +16,8 @@ export default function Pill({ label, selected, onClick, small }: PillProps) {
         whitespace-nowrap border text-center cursor-pointer transition-all duration-150
         ${
           selected
-            ? "border-gray-900 bg-gray-900 text-white font-medium"
-            : "border-gray-200 bg-white text-gray-600 hover:border-gray-400 hover:text-gray-900"
+            ? "border-gray-900 bg-gray-900 text-white font-medium shadow-sm"
+            : "border-gray-300 bg-gray-50 text-gray-700 hover:border-gray-400 hover:bg-gray-100"
         }
       `}
     >

@@ -148,11 +148,11 @@ export default function EnrichmentState({
       )}
 
       {/* ── Divider ── */}
-      <div className="border-t border-gray-100 my-4" />
+      <div className="border-t border-gray-200 my-4" />
 
       {/* ── Personalization section ── */}
-      <p className="text-[12px] text-gray-400 uppercase tracking-wide mb-3">
-        One more thing <span className="normal-case tracking-normal">(optional)</span>
+      <p className="text-[13px] font-medium text-gray-500 mb-3">
+        One more thing <span className="text-gray-400 font-normal">(optional)</span>
       </p>
 
       {/* First name */}
@@ -162,14 +162,14 @@ export default function EnrichmentState({
         onChange={(e) => setFirstName(e.target.value)}
         placeholder="First name"
         autoComplete="given-name"
-        className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-all duration-150 mb-4"
+        className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all duration-150 mb-4"
       />
 
       {/* Who needs care? */}
-      <p className="text-[12px] text-gray-500 mb-2">
+      <p className="text-[13px] font-medium text-gray-700 mb-2">
         Who needs care?
       </p>
-      <div className="flex flex-wrap gap-1.5 mb-4">
+      <div className="flex flex-wrap gap-2 mb-4">
         {RECIPIENT_OPTIONS.map((opt) => (
           <Pill
             key={opt.value}
@@ -182,10 +182,10 @@ export default function EnrichmentState({
       </div>
 
       {/* When? */}
-      <p className="text-[12px] text-gray-500 mb-2">
+      <p className="text-[13px] font-medium text-gray-700 mb-2">
         How soon?
       </p>
-      <div className="flex flex-wrap gap-1.5 mb-5">
+      <div className="flex flex-wrap gap-2 mb-5">
         {URGENCY_OPTIONS.map((opt) => (
           <Pill
             key={opt.value}

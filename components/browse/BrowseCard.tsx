@@ -43,8 +43,8 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
     ? "caregiver"
     : "current";
 
-  const showAsLogo = provider.imageType === "logo" || imgFailed;
-  const showPlaceholder = provider.imageType === "placeholder" || (imgFailed && !provider.image);
+  const showPlaceholder = provider.imageType === "placeholder" || imgFailed;
+  const showAsLogo = !showPlaceholder && provider.imageType === "logo";
 
   const careTypeLabel = getCategoryDisplayName(provider.careTypes[0]) || provider.primaryCategory;
   const displayedHighlights = provider.highlights?.slice(0, 3) || [];

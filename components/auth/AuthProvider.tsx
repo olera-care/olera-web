@@ -578,7 +578,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         // creation and redirect after verifyOtp. Suppress the SIGNED_IN
         // handler to avoid redundant API calls and React state churn
         // (loading flashes, re-renders) that race with the onboarding flow.
-        if (typeof window !== "undefined" && (window as Record<string, unknown>).__olera_onboarding_active) return;
+        if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).__olera_onboarding_active) return;
 
         const userId = session.user.id;
         const userEmail = session.user.email!;

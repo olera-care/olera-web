@@ -56,6 +56,8 @@ interface ActionCardProps {
   claimSession: string;
   initialState?: ActionCardState;
   onVerificationComplete: (verifiedEmail?: string) => void;
+  /** Called after no-access form submitted — passes alternative email for auto-sign-in */
+  onNoAccessComplete?: (alternativeEmail: string, providerId: string) => void;
   /** Pre-verified email hint from token validation */
   preVerifiedEmail?: string;
   /** Whether to highlight the card (attention state) */
@@ -391,6 +393,7 @@ export default function ActionCard({
   claimSession,
   initialState = "verify-form",
   onVerificationComplete,
+  onNoAccessComplete,
   preVerifiedEmail,
   highlighted = false,
   notificationData,
@@ -628,6 +631,12 @@ export default function ActionCard({
       if (!res.ok) {
         const result = await res.json().catch(() => ({}));
         setError(result.error || "Failed to submit request.");
+        return;
+      }
+
+      // If callback provided, trigger auto-sign-in flow instead of showing static success
+      if (onNoAccessComplete) {
+        onNoAccessComplete(noAccessEmail.trim(), provider.provider_id);
         return;
       }
 

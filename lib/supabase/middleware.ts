@@ -109,8 +109,9 @@ export async function updateSession(request: NextRequest) {
           const originalPath = request.nextUrl.pathname + request.nextUrl.search;
 
           if (providerProfile) {
-            // Claimed providers skip onboarding — allow through to destination
-            if (providerProfile.claim_state === "claimed") {
+            // Claimed or pending providers can access portal
+            // (pending providers see restricted/blurred content)
+            if (providerProfile.claim_state === "claimed" || providerProfile.claim_state === "pending") {
               return supabaseResponse;
             }
             // Unclaimed providers go to onboard page

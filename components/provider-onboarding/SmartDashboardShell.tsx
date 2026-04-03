@@ -138,6 +138,8 @@ interface SmartDashboardShellProps {
   provider: Provider;
   claimSession: string;
   onVerificationComplete: (verifiedEmail?: string) => void;
+  /** Called after no-access form submitted — passes email for auto-sign-in */
+  onNoAccessComplete?: (alternativeEmail: string, providerId: string) => void;
   /** Initial state for the action card */
   initialActionState?: ActionCardState;
   /** If provided, user came from email campaign link and is pre-verified */
@@ -156,6 +158,7 @@ export default function SmartDashboardShell({
   provider,
   claimSession,
   onVerificationComplete,
+  onNoAccessComplete,
   initialActionState = "verify-form",
   preVerifiedEmail,
   notificationData,
@@ -215,6 +218,7 @@ export default function SmartDashboardShell({
               claimSession={claimSession}
               initialState={actionCardState}
               onVerificationComplete={onVerificationComplete}
+              onNoAccessComplete={onNoAccessComplete}
               preVerifiedEmail={preVerifiedEmail}
               notificationData={notificationData}
               isSignedIn={isSignedIn}
@@ -232,6 +236,7 @@ export default function SmartDashboardShell({
               claimSession={claimSession}
               initialState={actionCardState}
               onVerificationComplete={onVerificationComplete}
+              onNoAccessComplete={onNoAccessComplete}
               preVerifiedEmail={preVerifiedEmail}
               notificationData={notificationData}
               isSignedIn={isSignedIn}

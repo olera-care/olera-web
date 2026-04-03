@@ -39,16 +39,16 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { providerId, claimSession } = body;
+    const { providerId, claimSession, pendingClaim } = body;
 
-    if (!providerId || !claimSession) {
+    if (!providerId || (!claimSession && !pendingClaim)) {
       return NextResponse.json(
         { error: "Provider ID and claim session are required." },
         { status: 400 }
       );
     }
 
-    if (!UUID_RE.test(claimSession)) {
+    if (claimSession && !UUID_RE.test(claimSession)) {
       return NextResponse.json({ error: "Invalid claim session." }, { status: 400 });
     }
 
@@ -57,24 +57,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Server configuration error." }, { status: 500 });
     }
 
-    // 1. Verify that a valid, verified claim_session exists
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { data: verifiedCode } = await db
-      .from("claim_verification_codes")
-      .select("id")
-      .eq("provider_id", providerId)
-      .eq("claim_session", claimSession)
-      .not("verified_at", "is", null)
-      .gt("verified_at", oneHourAgo)
-      .limit(1)
-      .maybeSingle();
+    // 1. Verify claim_session (skip for pending claims — they go through manual review)
+    if (!pendingClaim) {
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const { data: verifiedCode } = await db
+        .from("claim_verification_codes")
+        .select("id")
+        .eq("provider_id", providerId)
+        .eq("claim_session", claimSession)
+        .not("verified_at", "is", null)
+        .gt("verified_at", oneHourAgo)
+        .limit(1)
+        .maybeSingle();
 
-    if (!verifiedCode) {
-      return NextResponse.json(
-        { error: "Verification required or expired. Please verify again." },
-        { status: 403 }
-      );
+      if (!verifiedCode) {
+        return NextResponse.json(
+          { error: "Verification required or expired. Please verify again." },
+          { status: 403 }
+        );
+      }
     }
+
+    const targetClaimState = pendingClaim ? "pending" : "claimed";
 
     // 2. Ensure user has an account
     let { data: account } = await db
@@ -159,7 +163,7 @@ export async function POST(request: Request) {
       // Update existing unclaimed profile
       const { error: updateErr } = await db
         .from("business_profiles")
-        .update({ account_id: accountId, claim_state: "claimed" })
+        .update({ account_id: accountId, claim_state: targetClaimState })
         .eq("id", existingProfile.id);
 
       if (updateErr) {
@@ -211,8 +215,8 @@ export async function POST(request: Request) {
           city: provider.city,
           state: provider.state,
           zip: provider.zipcode?.toString() || null,
-          claim_state: "claimed",
-          verification_state: "verified",
+          claim_state: targetClaimState,
+          verification_state: targetClaimState === "claimed" ? "verified" : "unverified",
           // Real provider claimed from directory - NOT seeded test data
           source: "claimed_from_directory",
           is_active: true,

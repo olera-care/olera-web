@@ -28,7 +28,7 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
      !pathname.startsWith("/provider/verification"));
 
   // Known hub routes that require authentication
-  const HUB_ROUTES = ["/provider", "/provider/connections", "/provider/inbox", "/provider/reviews", "/provider/matches", "/provider/pro", "/provider/qna", "/provider/medjobs", "/provider/verification"];
+  const HUB_ROUTES = ["/provider", "/provider/connections", "/provider/inbox", "/provider/reviews", "/provider/matches", "/provider/pro", "/provider/qna", "/provider/medjobs", "/provider/verification", "/provider/caregivers"];
 
   const isHubRoute = HUB_ROUTES.some((route) =>
     route === "/provider" ? pathname === "/provider" : pathname.startsWith(route)
@@ -129,5 +129,47 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  const isPending = providerProfile?.claim_state === "pending";
+
+  // Routes where sensitive PII should be blurred for pending providers
+  const SENSITIVE_ROUTES = ["/provider/connections", "/provider/matches", "/provider/medjobs"];
+  const isSensitiveRoute = isPending && SENSITIVE_ROUTES.some((route) => pathname.startsWith(route));
+
+  return (
+    <>
+      {isPending && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-3">
+          <div className="max-w-7xl mx-auto flex items-center gap-3">
+            <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+            </svg>
+            <p className="text-sm text-amber-800">
+              <span className="font-semibold">Identity verification pending.</span>{" "}
+              Your account is under review. Some information is blurred until your identity is verified.
+            </p>
+          </div>
+        </div>
+      )}
+      {isSensitiveRoute ? (
+        <div className="relative">
+          <div className="blur-[6px] select-none pointer-events-none" aria-hidden="true">
+            {children}
+          </div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3 px-6 py-4 bg-white rounded-2xl shadow-lg border border-gray-200 max-w-sm text-center">
+              <svg className="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+              </svg>
+              <p className="text-sm font-semibold text-gray-900">Identity verification required</p>
+              <p className="text-xs text-gray-500">
+                This information is protected until your identity is verified. We&apos;ll review your request within 2-3 business days.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        children
+      )}
+    </>
+  );
 }

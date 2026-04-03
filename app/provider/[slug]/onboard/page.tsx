@@ -702,6 +702,71 @@ export default function ProviderOnboardPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, openAuth, provider?.provider_id, session?.emailHint, session?.sessionId, preVerifiedEmail]);
 
+  // Handle no-access form completion: auto-sign-in → finalize as pending → redirect
+  const handleNoAccessComplete = useCallback(async (alternativeEmail: string, providerId: string) => {
+    setStep("finalizing");
+    try {
+      // 1. Auto-sign-in with the alternative email
+      const signInRes = await fetch("/api/auth/auto-sign-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: alternativeEmail, claimSession: claimSession || "no-access" }),
+      });
+      const signInData = await signInRes.json();
+
+      if (!signInRes.ok || !signInData.tokenHash) {
+        setErrorMsg("Could not sign in. Please try again.");
+        setStep("error");
+        return;
+      }
+
+      // Suppress AuthProvider SIGNED_IN handler to avoid state churn
+      (window as unknown as Record<string, unknown>).__olera_onboarding_active = true;
+
+      const authClient = createAuthClient();
+      const { error: otpError } = await authClient.auth.verifyOtp({
+        token_hash: signInData.tokenHash,
+        type: "magiclink",
+      });
+
+      if (otpError) {
+        delete (window as unknown as Record<string, unknown>).__olera_onboarding_active;
+        setErrorMsg("Sign-in failed. Please try again.");
+        setStep("error");
+        return;
+      }
+
+      // 2. Finalize as pending (skips verification code check)
+      const finalizeRes = await fetch("/api/claim/finalize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerId, pendingClaim: true }),
+      });
+      const finalizeData = await finalizeRes.json();
+
+      if (!finalizeRes.ok) {
+        delete (window as unknown as Record<string, unknown>).__olera_onboarding_active;
+        setErrorMsg(finalizeData.error || "Failed to set up account.");
+        setStep("error");
+        return;
+      }
+
+      clearClaimSession();
+      await refreshAccountData();
+
+      if (finalizeData.profileId) {
+        switchProfile(finalizeData.profileId);
+      }
+
+      delete (window as unknown as Record<string, unknown>).__olera_onboarding_active;
+      window.location.replace("/provider");
+    } catch {
+      delete (window as unknown as Record<string, unknown>).__olera_onboarding_active;
+      setErrorMsg("Something went wrong. Please try again.");
+      setStep("error");
+    }
+  }, [claimSession, refreshAccountData, switchProfile]);
+
   // Loading state
   if (step === "loading") {
     return (
@@ -812,71 +877,6 @@ export default function ProviderOnboardPage() {
 
   // Dashboard state - render SmartDashboardShell with ActionCard
   if (!provider || !session) return null;
-
-  // Handle no-access form completion: auto-sign-in → finalize as pending → redirect
-  const handleNoAccessComplete = useCallback(async (alternativeEmail: string, providerId: string) => {
-    setStep("finalizing");
-    try {
-      // 1. Auto-sign-in with the alternative email
-      const signInRes = await fetch("/api/auth/auto-sign-in", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: alternativeEmail, claimSession: claimSession || "no-access" }),
-      });
-      const signInData = await signInRes.json();
-
-      if (!signInRes.ok || !signInData.tokenHash) {
-        setErrorMsg("Could not sign in. Please try again.");
-        setStep("error");
-        return;
-      }
-
-      // Suppress AuthProvider SIGNED_IN handler to avoid state churn
-      (window as unknown as Record<string, unknown>).__olera_onboarding_active = true;
-
-      const authClient = createAuthClient();
-      const { error: otpError } = await authClient.auth.verifyOtp({
-        token_hash: signInData.tokenHash,
-        type: "magiclink",
-      });
-
-      if (otpError) {
-        delete (window as unknown as Record<string, unknown>).__olera_onboarding_active;
-        setErrorMsg("Sign-in failed. Please try again.");
-        setStep("error");
-        return;
-      }
-
-      // 2. Finalize as pending (skips verification code check)
-      const finalizeRes = await fetch("/api/claim/finalize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ providerId, pendingClaim: true }),
-      });
-      const finalizeData = await finalizeRes.json();
-
-      if (!finalizeRes.ok) {
-        delete (window as unknown as Record<string, unknown>).__olera_onboarding_active;
-        setErrorMsg(finalizeData.error || "Failed to set up account.");
-        setStep("error");
-        return;
-      }
-
-      clearClaimSession();
-      await refreshAccountData();
-
-      if (finalizeData.profileId) {
-        switchProfile(finalizeData.profileId);
-      }
-
-      delete (window as unknown as Record<string, unknown>).__olera_onboarding_active;
-      window.location.replace("/provider");
-    } catch {
-      delete (window as unknown as Record<string, unknown>).__olera_onboarding_active;
-      setErrorMsg("Something went wrong. Please try again.");
-      setStep("error");
-    }
-  }, [claimSession, refreshAccountData, switchProfile]);
 
   return (
     <SmartDashboardShell

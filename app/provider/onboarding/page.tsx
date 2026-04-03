@@ -156,6 +156,8 @@ function ProviderOnboardingContent() {
   const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  // Flow lock: prevents auth-change effects from redirecting during profile creation
+  const creatingProfileRef = useRef(false);
 
   // Location input state (separate from name search)
   const [locationQuery, setLocationQuery] = useState("");
@@ -214,6 +216,8 @@ function ProviderOnboardingContent() {
   // Resume detection (auth check moved to handleSubmit)
   useEffect(() => {
     if (isLoading) return;
+    // Don't redirect while the inline verification + profile creation flow is in progress
+    if (creatingProfileRef.current) return;
 
     // If logged in and they already have a provider profile, redirect appropriately
     // (unless they're explicitly adding another profile, or claiming via ?claim=)
@@ -725,6 +729,8 @@ function ProviderOnboardingContent() {
     }
     setSubmitting(true);
     setEmailVerifyError("");
+    // Lock to prevent auth-change effects from redirecting mid-flow
+    creatingProfileRef.current = true;
     try {
       // 1. Verify the code
       const verifyRes = await fetch("/api/claim/verify-code", {
@@ -736,6 +742,7 @@ function ProviderOnboardingContent() {
       if (!verifyRes.ok || !verifyResult.verified) {
         setEmailVerifyError(verifyResult.error || "Invalid code. Please try again.");
         setSubmitting(false);
+        creatingProfileRef.current = false;
         return;
       }
 
@@ -749,6 +756,7 @@ function ProviderOnboardingContent() {
       if (!signInRes.ok || !signInResult.tokenHash) {
         setEmailVerifyError("Failed to create your account. Please try again.");
         setSubmitting(false);
+        creatingProfileRef.current = false;
         return;
       }
 
@@ -761,17 +769,15 @@ function ProviderOnboardingContent() {
         });
       }
 
-      // 4. Refresh auth state so handleSubmit can proceed
-      await refreshAccountData(signInResult.userId);
+      // 4. Refresh auth state (non-blocking — profile creation doesn't need it)
+      refreshAccountData(signInResult.userId).catch(() => {});
 
-      // Small delay to let auth state propagate
-      await new Promise((r) => setTimeout(r, 500));
-
-      // 5. Now call handleSubmitProfile which creates the profile
+      // 5. Create profile immediately — don't wait for auth state to settle
       await handleSubmitProfile();
     } catch {
       setEmailVerifyError("Something went wrong. Please try again.");
       setSubmitting(false);
+      creatingProfileRef.current = false;
     }
   };
 
@@ -839,14 +845,15 @@ function ProviderOnboardingContent() {
         // localStorage unavailable (SSR or private mode)
       }
 
-      await refreshAccountData();
-
       // When adding a new profile, switch to it before navigating
       if (isAdding && profileId) {
         switchProfile(profileId);
       }
 
-      // If coming from MedJobs hire flow, return to the candidate page
+      // Refresh account data in background — don't block navigation
+      refreshAccountData().catch(() => {});
+
+      // Navigate immediately — the dashboard will load fresh data
       if (nextUrl) {
         router.replace(nextUrl);
       } else {
@@ -854,6 +861,7 @@ function ProviderOnboardingContent() {
       }
     } catch {
       setSubmitError("Something went wrong. Please try again.");
+      creatingProfileRef.current = false;
     } finally {
       setSubmitting(false);
     }

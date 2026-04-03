@@ -16,6 +16,7 @@ export interface IntentData {
   urgency?: string | null;
   additionalNotes?: string | null;
   phone?: string | null;
+  notifyChannel?: string | null;
 }
 
 const recipientMap: Record<string, string> = {
@@ -69,6 +70,19 @@ export async function syncIntentToProfile(
   // Map additionalNotes → metadata.about_situation
   if (intent.additionalNotes) {
     currentMeta.about_situation = intent.additionalNotes;
+  }
+
+  // Map notifyChannel → metadata.contact_preference
+  const contactPrefMap: Record<string, string> = {
+    text: "Text",
+    whatsapp: "Text", // WhatsApp maps to Text preference (phone-based)
+    email: "Email",
+  };
+  if (intent.notifyChannel && contactPrefMap[intent.notifyChannel]) {
+    currentMeta.contact_preference = contactPrefMap[intent.notifyChannel];
+    if (intent.notifyChannel === "whatsapp") {
+      currentMeta.whatsapp_opted_in = true;
+    }
   }
 
   updates.metadata = currentMeta;

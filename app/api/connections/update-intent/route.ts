@@ -232,6 +232,8 @@ export async function PATCH(request: Request) {
         careType: existingMessage.care_type as string | null,
         urgency: existingMessage.urgency as string | null,
         additionalNotes: existingMessage.additional_notes as string | null,
+        phone: existingMessage.seeker_phone as string | null,
+        notifyChannel: existingMessage.notify_channel as string | null,
       };
       console.log("[update-intent] syncing to profile:", profileId, syncData);
       await syncIntentToProfile(admin, profileId, syncData);

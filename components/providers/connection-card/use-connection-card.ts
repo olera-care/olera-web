@@ -707,6 +707,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
       if (!res.ok) {
         console.error("[enrichment] update-intent failed:", await res.text());
       }
+
+      // Refresh auth context so welcome page has fresh profile data
+      await refreshAccountData().catch(() => {});
     } catch (err) {
       console.error("[enrichment] update-intent error:", err);
     } finally {

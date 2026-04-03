@@ -77,10 +77,11 @@ export async function syncIntentToProfile(
   }
 
   // Map notifyChannel → metadata.contact_preference
+  // Wizard stores lowercase ("text", "email", "call")
   const contactPrefMap: Record<string, string> = {
-    text: "Text",
-    whatsapp: "Text", // WhatsApp maps to Text preference (phone-based)
-    email: "Email",
+    text: "text",
+    whatsapp: "text", // WhatsApp maps to text preference (phone-based)
+    email: "email",
   };
   if (intent.notifyChannel && contactPrefMap[intent.notifyChannel]) {
     currentMeta.contact_preference = contactPrefMap[intent.notifyChannel];

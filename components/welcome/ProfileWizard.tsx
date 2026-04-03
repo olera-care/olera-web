@@ -376,9 +376,14 @@ export default function ProfileWizard({
 
   const handleBack = () => {
     if (currentStep > 0) {
+      // Find previous step that isn't pre-filled, skipping enrichment-completed ones
+      let prevStep = currentStep - 1;
+      while (prevStep > 0 && isStepPreFilled(prevStep)) {
+        prevStep--;
+      }
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentStep(currentStep - 1);
+        setCurrentStep(prevStep);
         setIsTransitioning(false);
       }, 150);
     }

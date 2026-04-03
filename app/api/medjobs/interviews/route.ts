@@ -53,7 +53,9 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/medjobs/interviews
- * Create a new interview (provider proposes time).
+ * Create a new interview proposal. Supports both directions:
+ * - Provider proposes to student: send { studentProfileId, ... }
+ * - Student proposes to provider: send { providerProfileId, ... }
  */
 export async function POST(request: NextRequest) {
   try {
@@ -64,6 +66,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       studentProfileId,
+      providerProfileId,
       type = "video",
       proposedTime,
       alternativeTime,
@@ -71,53 +74,82 @@ export async function POST(request: NextRequest) {
       notes,
     } = body;
 
-    if (!studentProfileId || !proposedTime) {
-      return NextResponse.json({ error: "studentProfileId and proposedTime are required" }, { status: 400 });
+    if (!proposedTime || (!studentProfileId && !providerProfileId)) {
+      return NextResponse.json({ error: "proposedTime and either studentProfileId or providerProfileId are required" }, { status: 400 });
     }
 
     const admin = getAdminClient();
 
-    // Verify the user is a provider
+    // Get the caller's account and profiles
     const { data: account } = await admin.from("accounts").select("id").eq("user_id", user.id).single();
     if (!account) return NextResponse.json({ error: "No account" }, { status: 403 });
 
-    const { data: providerProfile } = await admin
+    const { data: callerProfiles } = await admin
       .from("business_profiles")
-      .select("id, display_name, email")
-      .eq("account_id", account.id)
-      .in("type", ["organization", "caregiver"])
-      .limit(1)
-      .maybeSingle();
+      .select("id, type, display_name, email")
+      .eq("account_id", account.id);
 
-    if (!providerProfile) {
-      return NextResponse.json({ error: "Provider profile required" }, { status: 403 });
+    if (!callerProfiles?.length) {
+      return NextResponse.json({ error: "No profile found" }, { status: 403 });
     }
 
-    // Get the student profile
-    const { data: studentProfile } = await admin
-      .from("business_profiles")
-      .select("id, display_name, email, slug")
-      .eq("id", studentProfileId)
-      .eq("type", "student")
-      .single();
+    let resolvedProviderId: string;
+    let resolvedStudentId: string;
+    let proposedById: string;
+    let providerProfile: { id: string; display_name: string; email: string };
+    let studentProfile: { id: string; display_name: string; email: string; slug?: string };
 
-    if (!studentProfile) {
-      return NextResponse.json({ error: "Student not found" }, { status: 404 });
+    if (studentProfileId) {
+      // Provider → Student flow
+      const callerProvider = callerProfiles.find((p) => p.type === "organization" || p.type === "caregiver");
+      if (!callerProvider) return NextResponse.json({ error: "Provider profile required" }, { status: 403 });
+
+      const { data: target } = await admin
+        .from("business_profiles")
+        .select("id, display_name, email, slug")
+        .eq("id", studentProfileId)
+        .eq("type", "student")
+        .single();
+      if (!target) return NextResponse.json({ error: "Student not found" }, { status: 404 });
+
+      resolvedProviderId = callerProvider.id;
+      resolvedStudentId = target.id;
+      proposedById = callerProvider.id;
+      providerProfile = callerProvider as typeof providerProfile;
+      studentProfile = target;
+    } else {
+      // Student → Provider flow
+      const callerStudent = callerProfiles.find((p) => p.type === "student");
+      if (!callerStudent) return NextResponse.json({ error: "Student profile required" }, { status: 403 });
+
+      const { data: target } = await admin
+        .from("business_profiles")
+        .select("id, display_name, email")
+        .eq("id", providerProfileId)
+        .in("type", ["organization", "caregiver"])
+        .single();
+      if (!target) return NextResponse.json({ error: "Provider not found" }, { status: 404 });
+
+      resolvedProviderId = target.id;
+      resolvedStudentId = callerStudent.id;
+      proposedById = callerStudent.id;
+      providerProfile = target;
+      studentProfile = callerStudent as typeof studentProfile;
     }
 
     // Create the interview
     const { data: interview, error: insertError } = await admin
       .from("interviews")
       .insert({
-        provider_profile_id: providerProfile.id,
-        student_profile_id: studentProfile.id,
+        provider_profile_id: resolvedProviderId,
+        student_profile_id: resolvedStudentId,
         status: "proposed",
         type,
         proposed_time: proposedTime,
         alternative_time: alternativeTime || null,
         location: location || null,
         notes: notes || null,
-        proposed_by: providerProfile.id,
+        proposed_by: proposedById,
       })
       .select("id")
       .single();
@@ -127,22 +159,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to create interview" }, { status: 500 });
     }
 
-    // Send notification email to student
+    // Send notification email to the other party
     try {
       const typeLabel = type === "video" ? "Video" : type === "in_person" ? "In-Person" : "Phone";
       const time = new Date(proposedTime).toLocaleString("en-US", {
         weekday: "long", month: "long", day: "numeric",
         hour: "numeric", minute: "2-digit", timeZoneName: "short",
       });
+
+      // Email goes to whoever did NOT propose
+      const recipientEmail = proposedById === providerProfile.id ? studentProfile.email : providerProfile.email;
+      const proposerName = proposedById === providerProfile.id ? providerProfile.display_name : studentProfile.display_name;
+      const viewUrl = proposedById === providerProfile.id
+        ? `${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews`
+        : `${process.env.NEXT_PUBLIC_SITE_URL}/provider/caregivers`;
+
       await sendEmail({
-        to: studentProfile.email!,
-        subject: `Interview request from ${providerProfile.display_name}`,
+        to: recipientEmail!,
+        subject: `Interview request from ${proposerName}`,
         html: `
           <h2>You have an interview request!</h2>
-          <p><strong>${providerProfile.display_name}</strong> would like to schedule a ${typeLabel.toLowerCase()} interview with you.</p>
+          <p><strong>${proposerName}</strong> would like to schedule a ${typeLabel.toLowerCase()} interview.</p>
           <p><strong>Proposed time:</strong> ${time}</p>
           ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ""}
-          <p><a href="${process.env.NEXT_PUBLIC_SITE_URL}/portal/medjobs/interviews">View & confirm on Olera</a></p>
+          <p><a href="${viewUrl}">View & respond on Olera</a></p>
         `,
         emailType: "interview_proposed",
       });

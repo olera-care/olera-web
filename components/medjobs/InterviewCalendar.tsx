@@ -376,8 +376,8 @@ function InterviewDetailPopup({
           )}
         </div>
 
-        {/* Provider contact info (for caregivers, when pending — so they can call to reschedule) */}
-        {perspective === "student" && interview.status === "proposed" && (providerEmail || providerPhone) && (
+        {/* Provider contact info (for caregivers receiving proposals — so they can call to reschedule) */}
+        {perspective === "student" && interview.status === "proposed" && interview.proposed_by === interview.provider_profile_id && (providerEmail || providerPhone) && (
           <div className="mb-4 p-3 bg-gray-50 rounded-lg">
             <p className="text-xs text-gray-500 mb-2">Can&apos;t make this time? Contact {interview.provider?.display_name} to suggest an alternative:</p>
             <div className="space-y-1">
@@ -401,37 +401,51 @@ function InterviewDetailPopup({
           </div>
         )}
 
-        {/* Actions */}
+        {/* Actions — based on who proposed, not just perspective */}
         <div className="flex gap-2">
-          {/* Caregiver sees Confirm/Decline for pending interviews */}
-          {perspective === "student" && interview.status === "proposed" && (
-            <>
-              <button type="button" onClick={() => handleAction("confirmed")} disabled={isLoading}
-                className="flex-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 rounded-lg text-sm font-medium text-white transition-colors">
-                {isLoading ? "..." : "Confirm"}
-              </button>
-              <button type="button" onClick={() => handleAction("cancelled")} disabled={isLoading}
-                className="flex-1 px-3 py-2 border border-gray-200 hover:bg-gray-50 disabled:opacity-40 rounded-lg text-sm font-medium text-gray-700 transition-colors">
-                Decline
-              </button>
-            </>
-          )}
+          {(() => {
+            // Determine if "I" am the proposer based on perspective + proposed_by
+            const myProfileId = perspective === "provider"
+              ? interview.provider_profile_id
+              : interview.student_profile_id;
+            const iProposed = interview.proposed_by === myProfileId;
 
-          {/* Provider sees Cancel (withdraw) for pending or confirmed */}
-          {perspective === "provider" && (interview.status === "proposed" || interview.status === "confirmed") && (
-            <button type="button" onClick={() => handleAction("cancelled")} disabled={isLoading}
-              className="flex-1 px-3 py-2 border border-gray-200 hover:bg-red-50 hover:border-red-200 hover:text-red-600 disabled:opacity-40 rounded-lg text-sm font-medium text-gray-700 transition-colors">
-              {isLoading ? "..." : interview.status === "proposed" ? "Withdraw Request" : "Cancel Interview"}
-            </button>
-          )}
+            if (interview.status === "proposed") {
+              if (iProposed) {
+                // I proposed → I can only withdraw
+                return (
+                  <button type="button" onClick={() => handleAction("cancelled")} disabled={isLoading}
+                    className="flex-1 px-3 py-2 border border-gray-200 hover:bg-red-50 hover:border-red-200 hover:text-red-600 disabled:opacity-40 rounded-lg text-sm font-medium text-gray-700 transition-colors">
+                    {isLoading ? "..." : "Withdraw Request"}
+                  </button>
+                );
+              }
+              // They proposed → I can confirm or decline
+              return (
+                <>
+                  <button type="button" onClick={() => handleAction("confirmed")} disabled={isLoading}
+                    className="flex-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 rounded-lg text-sm font-medium text-white transition-colors">
+                    {isLoading ? "..." : "Confirm"}
+                  </button>
+                  <button type="button" onClick={() => handleAction("cancelled")} disabled={isLoading}
+                    className="flex-1 px-3 py-2 border border-gray-200 hover:bg-gray-50 disabled:opacity-40 rounded-lg text-sm font-medium text-gray-700 transition-colors">
+                    Decline
+                  </button>
+                </>
+              );
+            }
 
-          {/* Caregiver can cancel confirmed interviews */}
-          {perspective === "student" && interview.status === "confirmed" && (
-            <button type="button" onClick={() => handleAction("cancelled")} disabled={isLoading}
-              className="flex-1 px-3 py-2 border border-gray-200 hover:bg-red-50 hover:border-red-200 hover:text-red-600 disabled:opacity-40 rounded-lg text-sm font-medium text-gray-700 transition-colors">
-              {isLoading ? "..." : "Cancel Interview"}
-            </button>
-          )}
+            if (interview.status === "confirmed") {
+              return (
+                <button type="button" onClick={() => handleAction("cancelled")} disabled={isLoading}
+                  className="flex-1 px-3 py-2 border border-gray-200 hover:bg-red-50 hover:border-red-200 hover:text-red-600 disabled:opacity-40 rounded-lg text-sm font-medium text-gray-700 transition-colors">
+                  {isLoading ? "..." : "Cancel Interview"}
+                </button>
+              );
+            }
+
+            return null;
+          })()}
 
           {/* No actions for past/cancelled */}
         </div>

@@ -80,7 +80,7 @@ export default function ProviderContactSection({
         {showModal && (
           <ScheduleInterviewModal
             studentProfileId={studentId}
-            studentName={studentName}
+            otherName={studentName}
             onClose={() => setShowModal(false)}
             onScheduled={() => { setShowModal(false); setScheduled(true); }}
           />

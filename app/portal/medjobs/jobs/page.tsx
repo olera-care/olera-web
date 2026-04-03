@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
+import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
 
 interface JobProvider {
   id: string;
@@ -16,12 +18,12 @@ interface JobProvider {
 }
 
 export default function OpenJobsPage() {
-  const { account, profiles, isLoading: authLoading } = useAuth();
+  const { profiles, isLoading: authLoading } = useAuth();
   const [providers, setProviders] = useState<JobProvider[]>([]);
   const [loading, setLoading] = useState(true);
   const [studentProfileId, setStudentProfileId] = useState<string | null>(null);
-  const [applying, setApplying] = useState<string | null>(null);
-  const [applied, setApplied] = useState<Set<string>>(new Set());
+  const [requested, setRequested] = useState<Set<string>>(new Set());
+  const [modalTarget, setModalTarget] = useState<JobProvider | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -46,22 +48,6 @@ export default function OpenJobsPage() {
     finally { setLoading(false); }
   }, []);
 
-  const handleApply = async (providerId: string) => {
-    if (!studentProfileId || applying) return;
-    setApplying(providerId);
-    try {
-      const res = await fetch("/api/medjobs/apply-to-provider", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ providerProfileId: providerId }),
-      });
-      if (res.ok || res.status === 409) {
-        setApplied((prev) => new Set(prev).add(providerId));
-      }
-    } catch { /* ignore */ }
-    finally { setApplying(null); }
-  };
-
   if (authLoading || loading) {
     return <main className="min-h-screen bg-[#FAFAF8] flex items-center justify-center"><div className="text-gray-300 text-sm">Loading...</div></main>;
   }
@@ -72,7 +58,7 @@ export default function OpenJobsPage() {
         <div className="mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">Open Jobs</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Browse providers hiring through MedJobs. Apply, then call to introduce yourself — students who follow up get interviewed faster.
+            Browse providers hiring through MedJobs. Request an interview to get started.
           </p>
         </div>
 
@@ -90,9 +76,9 @@ export default function OpenJobsPage() {
           <div className="space-y-3">
             {providers.map((p) => (
               <div key={p.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {p.image_url ? (
-                    <img src={p.image_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                    <Image src={p.image_url} alt="" width={40} height={40} className="w-10 h-10 rounded-lg object-cover" />
                   ) : (
                     <span className="text-sm font-bold text-gray-400">{p.display_name?.charAt(0)}</span>
                   )}
@@ -104,16 +90,16 @@ export default function OpenJobsPage() {
                     {p.category && ` · ${p.category.replace(/_/g, " ")}`}
                   </p>
                 </div>
-                {applied.has(p.id) ? (
-                  <span className="text-xs font-medium text-emerald-600 px-3 py-1.5">Applied</span>
+                {requested.has(p.id) ? (
+                  <span className="text-xs font-medium text-emerald-600 px-3 py-1.5">Requested</span>
                 ) : (
                   <button
                     type="button"
-                    onClick={() => handleApply(p.id)}
-                    disabled={applying === p.id || !studentProfileId}
+                    onClick={() => setModalTarget(p)}
+                    disabled={!studentProfileId}
                     className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 rounded-lg text-xs font-medium text-white transition-colors"
                   >
-                    {applying === p.id ? "..." : "Apply"}
+                    Request Interview
                   </button>
                 )}
               </div>
@@ -121,6 +107,18 @@ export default function OpenJobsPage() {
           </div>
         )}
       </div>
+
+      {modalTarget && (
+        <ScheduleInterviewModal
+          providerProfileId={modalTarget.id}
+          otherName={modalTarget.display_name}
+          onClose={() => setModalTarget(null)}
+          onScheduled={() => {
+            setRequested((prev) => new Set(prev).add(modalTarget.id));
+            setModalTarget(null);
+          }}
+        />
+      )}
     </main>
   );
 }

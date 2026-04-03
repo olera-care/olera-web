@@ -257,7 +257,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             .from("business_profiles")
             .select("*")
             .eq("account_id", account.id)
-            .eq("is_active", true)
+            .or("is_active.eq.true,type.eq.student")
             .order("created_at", { ascending: true }),
           supabase
             .from("memberships")

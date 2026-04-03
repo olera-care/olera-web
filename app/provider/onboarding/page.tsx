@@ -760,17 +760,7 @@ function ProviderOnboardingContent() {
         return;
       }
 
-      // 3. Pre-create account row BEFORE establishing client session.
-      // This prevents AuthProvider's SIGNED_IN handler from hitting the
-      // slow "no account found → wait 1.5s → retry" path.
-      await fetch("/api/auth/ensure-account", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ display_name: data.displayName }),
-      }).catch(() => {});
-
-      // 4. Establish client session — fires SIGNED_IN event.
-      // Because account row already exists, AuthProvider resolves quickly.
+      // 3. Establish client session — fires SIGNED_IN event and sets cookies.
       if (isSupabaseConfigured()) {
         const supabase = createClient();
         await supabase.auth.verifyOtp({
@@ -779,7 +769,7 @@ function ProviderOnboardingContent() {
         });
       }
 
-      // 5. Create provider profile immediately (don't wait for AuthProvider)
+      // 4. Create provider profile (cookies are set, server APIs will authenticate)
       await handleSubmitProfile();
     } catch {
       setEmailVerifyError("Something went wrong. Please try again.");

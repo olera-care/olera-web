@@ -35,7 +35,7 @@ const PROFILE_BENEFITS = [
 ];
 
 export default function SetUpProfileSection() {
-  const { user, openAuth } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const [businessName, setBusinessName] = useState("");
   const [zipCode, setZipCode] = useState("");
@@ -57,11 +57,7 @@ export default function SetUpProfileSection() {
       }
     }
 
-    if (user) {
-      router.push("/provider/onboarding");
-    } else {
-      openAuth({ intent: "provider" });
-    }
+    router.push("/provider/onboarding");
   };
 
   return (

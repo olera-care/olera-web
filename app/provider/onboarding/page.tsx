@@ -132,13 +132,19 @@ function ProviderOnboardingContent() {
   const rawNextUrl = searchParams.get("next");
   // Validate nextUrl to prevent open redirect - only allow known safe paths
   const nextUrl = rawNextUrl?.startsWith("/provider/medjobs/candidates/") ? rawNextUrl : null;
-  const { user, account, profiles, isLoading, refreshAccountData, switchProfile, openAuth } = useAuth();
+  const { user, account, profiles, isLoading, refreshAccountData, switchProfile } = useAuth();
   // If step=search is in URL, start at search step with organization type pre-selected
   const [step, setStep] = useState<Step>(initialStep === "search" ? "search" : 1);
   const [providerType, setProviderType] = useState<ProviderType | null>(initialStep === "search" ? "organization" : null);
   const [data, setData] = useState<WizardData>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  // Inline email verification (replaces auth modal at end of onboarding)
+  const [verifyingEmail, setVerifyingEmail] = useState(false);
+  const [verifyCode, setVerifyCode] = useState("");
+  const [verifyError, setVerifyError] = useState("");
+  const [verifySending, setVerifySending] = useState(false);
+  const [verifySessionId] = useState(() => typeof crypto !== "undefined" ? crypto.randomUUID() : "");
   // Track if we're still checking for landing page prefill (to avoid flashing step 1)
   // When step=search is in URL (from MedJobs hire flow), skip prefill check immediately
   const [checkingPrefill, setCheckingPrefill] = useState(initialStep !== "search");
@@ -683,22 +689,94 @@ function ProviderOnboardingContent() {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!data.displayName.trim()) return;
-
-    // Auth check: if not logged in, prompt to create account first
-    if (!user) {
-      openAuth({
-        headline: "Almost done! Create an account to publish your listing",
-        intent: "provider",
-        deferred: {
-          action: "claim",
-          returnUrl: window.location.pathname + window.location.search,
-        },
-      });
+  // Send verification code to the email from the contact step
+  const handleSendVerification = async () => {
+    const email = data.email?.trim();
+    if (!email) {
+      setVerifyError("Please go back and enter your email in the Contact step.");
       return;
     }
+    setVerifySending(true);
+    setVerifyError("");
+    try {
+      const res = await fetch("/api/auth/send-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, sessionId: verifySessionId }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        setVerifyError(result.error || "Failed to send code.");
+        return;
+      }
+      setVerifyingEmail(true);
+    } catch {
+      setVerifyError("Network error. Please try again.");
+    } finally {
+      setVerifySending(false);
+    }
+  };
 
+  // Verify the code, auto-sign-in, then create profile
+  const handleVerifyAndCreate = async () => {
+    if (verifyCode.length !== 6) {
+      setVerifyError("Please enter the 6-digit code.");
+      return;
+    }
+    setSubmitting(true);
+    setVerifyError("");
+    try {
+      // 1. Verify the code
+      const verifyRes = await fetch("/api/claim/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: verifyCode, claimSession: verifySessionId }),
+      });
+      const verifyResult = await verifyRes.json();
+      if (!verifyRes.ok || !verifyResult.verified) {
+        setVerifyError(verifyResult.error || "Invalid code. Please try again.");
+        setSubmitting(false);
+        return;
+      }
+
+      // 2. Auto sign-in using the verified email
+      const signInRes = await fetch("/api/auth/auto-sign-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: data.email!.trim(), claimSession: verifySessionId }),
+      });
+      const signInResult = await signInRes.json();
+      if (!signInRes.ok || !signInResult.tokenHash) {
+        setVerifyError("Failed to create your account. Please try again.");
+        setSubmitting(false);
+        return;
+      }
+
+      // 3. Establish session client-side using magic link token
+      if (isSupabaseConfigured()) {
+        const supabase = createClient();
+        await supabase.auth.verifyOtp({
+          token_hash: signInResult.tokenHash,
+          type: "magiclink",
+        });
+      }
+
+      // 4. Refresh auth state so handleSubmit can proceed
+      await refreshAccountData(signInResult.userId);
+
+      // Small delay to let auth state propagate
+      await new Promise((r) => setTimeout(r, 500));
+
+      // 5. Now call handleSubmitProfile which creates the profile
+      await handleSubmitProfile();
+    } catch {
+      setVerifyError("Something went wrong. Please try again.");
+      setSubmitting(false);
+    }
+  };
+
+  // The actual profile creation logic (called after auth is established)
+  const handleSubmitProfile = async () => {
     setSubmitting(true);
     setSubmitError("");
 
@@ -781,6 +859,19 @@ function ProviderOnboardingContent() {
     }
   };
 
+  // Main submit handler — routes to verification or direct creation
+  const handleSubmit = async () => {
+    if (!data.displayName.trim()) return;
+
+    if (user) {
+      // Already authenticated — create profile directly
+      await handleSubmitProfile();
+    } else {
+      // Not authenticated — start inline email verification
+      await handleSendVerification();
+    }
+  };
+
   const displayName =
     account?.display_name || user?.email?.split("@")[0] || "there";
 
@@ -831,10 +922,10 @@ function ProviderOnboardingContent() {
             <span className="text-xl font-bold text-gray-900">Olera</span>
           </Link>
           <Link
-            href="/"
+            href="/for-providers"
             className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
           >
-            Save & exit
+            Exit
           </Link>
         </div>
       </nav>
@@ -1968,6 +2059,50 @@ function ProviderOnboardingContent() {
                 role="alert"
               >
                 {submitError}
+              </div>
+            )}
+
+            {/* Inline email verification (shown when unauth user clicks "Create profile") */}
+            {verifyingEmail && !user && (
+              <div className="mt-6 bg-gray-50 border border-gray-200 rounded-xl p-5 text-center">
+                <p className="text-sm font-medium text-gray-900 mb-1">
+                  Verify your email to publish
+                </p>
+                <p className="text-xs text-gray-500 mb-4">
+                  We sent a 6-digit code to <span className="font-medium text-gray-700">{data.email}</span>
+                </p>
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={verifyCode}
+                    onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    onKeyDown={(e) => { if (e.key === "Enter" && verifyCode.length === 6) handleVerifyAndCreate(); }}
+                    placeholder="000000"
+                    className="w-36 text-center text-lg tracking-[0.3em] font-mono px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={handleVerifyAndCreate}
+                    disabled={verifyCode.length !== 6 || submitting}
+                    className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-40 text-white font-medium rounded-lg transition-colors text-sm"
+                  >
+                    {submitting ? "Creating..." : "Verify"}
+                  </button>
+                </div>
+                {verifyError && (
+                  <p className="text-xs text-red-600 mb-2">{verifyError}</p>
+                )}
+                <button
+                  type="button"
+                  onClick={handleSendVerification}
+                  disabled={verifySending}
+                  className="text-xs text-gray-400 hover:text-gray-600 underline transition-colors"
+                >
+                  {verifySending ? "Sending..." : "Resend code"}
+                </button>
               </div>
             )}
 

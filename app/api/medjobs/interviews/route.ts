@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       .from("interviews")
       .select(`
         *,
-        provider:business_profiles!interviews_provider_profile_id_fkey(id, display_name, image_url, city, state),
+        provider:business_profiles!interviews_provider_profile_id_fkey(id, display_name, image_url, city, state, email, phone),
         student:business_profiles!interviews_student_profile_id_fkey(id, slug, display_name, image_url, email, metadata)
       `)
       .or(`provider_profile_id.in.(${profileIds.join(",")}),student_profile_id.in.(${profileIds.join(",")})`)

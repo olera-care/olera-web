@@ -95,6 +95,7 @@ export default function DashboardPage() {
       editingSection={editingSection}
       setEditingSection={setEditingSection}
       refreshAccountData={refreshAccountData}
+      isPending={profile.claim_state === "pending"}
     />
   );
 }
@@ -117,13 +118,17 @@ function DashboardContent({
   editingSection: SectionId | null;
   setEditingSection: (s: SectionId | null) => void;
   refreshAccountData: () => Promise<void>;
+  isPending?: boolean;
 }) {
   const guided = useGuidedOnboarding(completeness);
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
 
   const handleEdit = useCallback(
-    (sectionId: SectionId) => setEditingSection(sectionId),
-    [setEditingSection]
+    (sectionId: SectionId) => {
+      if (isPending) return; // Pending providers can't edit
+      setEditingSection(sectionId);
+    },
+    [setEditingSection, isPending]
   );
 
   const handleCloseModal = useCallback(() => {
@@ -176,8 +181,8 @@ function DashboardContent({
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <DashboardHeader slug={profile.slug} />
 
-      {/* Guided onboarding banner */}
-      {guided.shouldPrompt && !guided.isGuidedActive && (
+      {/* Guided onboarding banner — hidden for pending providers */}
+      {guided.shouldPrompt && !guided.isGuidedActive && !isPending && (
         <div
           className="mb-6 bg-gradient-to-r from-primary-50 to-vanilla-50 rounded-2xl border border-primary-100/60 p-5 flex items-center justify-between"
           style={{ animation: "card-enter 0.25s ease-out both" }}
@@ -234,49 +239,49 @@ function DashboardContent({
               key="overview"
               profile={profile}
               completionPercent={sectionPercent("overview")}
-              onEdit={() => handleEdit("overview")}
+              onEdit={isPending ? undefined : () => handleEdit("overview")}
             />,
             <GalleryCard
               key="gallery"
               metadata={meta}
               completionPercent={sectionPercent("gallery")}
-              onEdit={() => handleEdit("gallery")}
+              onEdit={isPending ? undefined : () => handleEdit("gallery")}
             />,
             <CareServicesCard
               key="services"
               profile={profile}
               completionPercent={sectionPercent("services")}
-              onEdit={() => handleEdit("services")}
+              onEdit={isPending ? undefined : () => handleEdit("services")}
             />,
             <StaffScreeningCard
               key="screening"
               metadata={meta}
               completionPercent={sectionPercent("screening")}
-              onEdit={() => handleEdit("screening")}
+              onEdit={isPending ? undefined : () => handleEdit("screening")}
             />,
             <AboutCard
               key="about"
               profile={profile}
               metadata={meta}
               completionPercent={sectionPercent("about")}
-              onEdit={() => handleEdit("about")}
+              onEdit={isPending ? undefined : () => handleEdit("about")}
             />,
             <PricingCard
               key="pricing"
               metadata={meta}
               completionPercent={sectionPercent("pricing")}
-              onEdit={() => handleEdit("pricing")}
+              onEdit={isPending ? undefined : () => handleEdit("pricing")}
             />,
             <PaymentInsuranceCard
               key="payment"
               metadata={meta}
               completionPercent={sectionPercent("payment")}
-              onEdit={() => handleEdit("payment")}
+              onEdit={isPending ? undefined : () => handleEdit("payment")}
             />,
             <OwnerCard
               key="owner"
               metadata={meta}
-              onEdit={() => handleEdit("owner")}
+              onEdit={isPending ? undefined : () => handleEdit("owner")}
             />,
           ].map((card, i) => (
             <div

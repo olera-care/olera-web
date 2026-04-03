@@ -724,17 +724,23 @@ export default function ProviderOnboardPage() {
       (window as unknown as Record<string, unknown>).__olera_onboarding_active = true;
 
       const authClient = createAuthClient();
-      const { error: otpError } = await authClient.auth.verifyOtp({
+      const { data: otpData, error: otpError } = await authClient.auth.verifyOtp({
         token_hash: signInData.tokenHash,
         type: "magiclink",
       });
 
-      if (otpError) {
+      if (otpError || !otpData?.session) {
         delete (window as unknown as Record<string, unknown>).__olera_onboarding_active;
         setErrorMsg("Sign-in failed. Please try again.");
         setStep("error");
         return;
       }
+
+      // Transfer session to SSR client so server-side auth works
+      await createClient().auth.setSession({
+        access_token: otpData.session.access_token,
+        refresh_token: otpData.session.refresh_token,
+      });
 
       // 2. Finalize as pending (skips verification code check)
       const finalizeRes = await fetch("/api/claim/finalize", {

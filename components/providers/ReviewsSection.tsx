@@ -258,7 +258,7 @@ export default function ReviewsSection({
           {/* Rating summary bar */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-4">
-              {googleReviewsData && (
+              {googleReviewsData && googleReviewsData.rating != null && (
                 <div className="flex items-center gap-2">
                   <span className="text-2xl font-bold text-gray-900">{googleReviewsData.rating.toFixed(1)}</span>
                   <div className="flex items-center gap-1">
@@ -330,7 +330,7 @@ export default function ReviewsSection({
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-primary-600">
-                        {review.rating.toFixed(1)} / 5{" "}
+                        {(review.rating ?? 0).toFixed(1)} / 5{" "}
                         <StarIcon className="w-3.5 h-3.5 text-primary-500 inline" />
                       </span>
                       {/* More menu - only for review owner */}

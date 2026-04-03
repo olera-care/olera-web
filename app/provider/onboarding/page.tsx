@@ -770,8 +770,43 @@ function ProviderOnboardingContent() {
         });
       }
 
-      // 4. Create provider profile (cookies are set, server APIs will authenticate)
-      await handleSubmitProfile();
+      // 4. Create account + profile and redirect (all server-side, no React state dependencies)
+      await fetch("/api/auth/ensure-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ display_name: data.displayName }),
+      });
+
+      const profileRes = await fetch("/api/auth/create-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          intent: "provider",
+          providerType,
+          displayName: data.displayName,
+          orgName: providerType === "organization" ? data.displayName : undefined,
+          email: data.email || undefined,
+          careTypes: data.careTypes,
+        }),
+      });
+
+      if (!profileRes.ok) {
+        const err = await profileRes.json().catch(() => ({}));
+        setEmailVerifyError(err.error || "Failed to create profile. Please try again.");
+        setSubmitting(false);
+        creatingProfileRef.current = false;
+        return;
+      }
+
+      // 5. Clean up and navigate — hard redirect, no React state races
+      try {
+        localStorage.removeItem(TYPE_KEY);
+        localStorage.removeItem(DATA_KEY);
+        localStorage.removeItem(STEP_KEY);
+        localStorage.removeItem(SEARCH_KEY);
+      } catch { /* */ }
+
+      window.location.replace(nextUrl || "/provider");
     } catch {
       setEmailVerifyError("Something went wrong. Please try again.");
       setSubmitting(false);

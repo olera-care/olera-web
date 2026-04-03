@@ -140,11 +140,11 @@ function ProviderOnboardingContent() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   // Inline email verification (replaces auth modal at end of onboarding)
-  const [verifyingEmail, setVerifyingEmail] = useState(false);
-  const [verifyCode, setVerifyCode] = useState("");
-  const [verifyError, setVerifyError] = useState("");
-  const [verifySending, setVerifySending] = useState(false);
-  const [verifySessionId] = useState(() => typeof crypto !== "undefined" ? crypto.randomUUID() : "");
+  const [emailVerifyActive, setEmailVerifyActive] = useState(false);
+  const [emailVerifyCode, setEmailVerifyCode] = useState("");
+  const [emailVerifyError, setEmailVerifyError] = useState("");
+  const [emailVerifySending, setEmailVerifySending] = useState(false);
+  const [emailVerifySessionId] = useState(() => typeof crypto !== "undefined" ? crypto.randomUUID() : "");
   // Track if we're still checking for landing page prefill (to avoid flashing step 1)
   // When step=search is in URL (from MedJobs hire flow), skip prefill check immediately
   const [checkingPrefill, setCheckingPrefill] = useState(initialStep !== "search");
@@ -693,48 +693,48 @@ function ProviderOnboardingContent() {
   const handleSendVerification = async () => {
     const email = data.email?.trim();
     if (!email) {
-      setVerifyError("Please go back and enter your email in the Contact step.");
+      setEmailVerifyError("Please go back and enter your email in the Contact step.");
       return;
     }
-    setVerifySending(true);
-    setVerifyError("");
+    setEmailVerifySending(true);
+    setEmailVerifyError("");
     try {
       const res = await fetch("/api/auth/send-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, sessionId: verifySessionId }),
+        body: JSON.stringify({ email, sessionId: emailVerifySessionId }),
       });
       const result = await res.json();
       if (!res.ok) {
-        setVerifyError(result.error || "Failed to send code.");
+        setEmailVerifyError(result.error || "Failed to send code.");
         return;
       }
-      setVerifyingEmail(true);
+      setEmailVerifyActive(true);
     } catch {
-      setVerifyError("Network error. Please try again.");
+      setEmailVerifyError("Network error. Please try again.");
     } finally {
-      setVerifySending(false);
+      setEmailVerifySending(false);
     }
   };
 
   // Verify the code, auto-sign-in, then create profile
   const handleVerifyAndCreate = async () => {
-    if (verifyCode.length !== 6) {
-      setVerifyError("Please enter the 6-digit code.");
+    if (emailVerifyCode.length !== 6) {
+      setEmailVerifyError("Please enter the 6-digit code.");
       return;
     }
     setSubmitting(true);
-    setVerifyError("");
+    setEmailVerifyError("");
     try {
       // 1. Verify the code
       const verifyRes = await fetch("/api/claim/verify-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: verifyCode, claimSession: verifySessionId }),
+        body: JSON.stringify({ code: emailVerifyCode, claimSession: emailVerifySessionId }),
       });
       const verifyResult = await verifyRes.json();
       if (!verifyRes.ok || !verifyResult.verified) {
-        setVerifyError(verifyResult.error || "Invalid code. Please try again.");
+        setEmailVerifyError(verifyResult.error || "Invalid code. Please try again.");
         setSubmitting(false);
         return;
       }
@@ -743,11 +743,11 @@ function ProviderOnboardingContent() {
       const signInRes = await fetch("/api/auth/auto-sign-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: data.email!.trim(), claimSession: verifySessionId }),
+        body: JSON.stringify({ email: data.email!.trim(), claimSession: emailVerifySessionId }),
       });
       const signInResult = await signInRes.json();
       if (!signInRes.ok || !signInResult.tokenHash) {
-        setVerifyError("Failed to create your account. Please try again.");
+        setEmailVerifyError("Failed to create your account. Please try again.");
         setSubmitting(false);
         return;
       }
@@ -770,7 +770,7 @@ function ProviderOnboardingContent() {
       // 5. Now call handleSubmitProfile which creates the profile
       await handleSubmitProfile();
     } catch {
-      setVerifyError("Something went wrong. Please try again.");
+      setEmailVerifyError("Something went wrong. Please try again.");
       setSubmitting(false);
     }
   };
@@ -2063,7 +2063,7 @@ function ProviderOnboardingContent() {
             )}
 
             {/* Inline email verification (shown when unauth user clicks "Create profile") */}
-            {verifyingEmail && !user && (
+            {emailVerifyActive && !user && (
               <div className="mt-6 bg-gray-50 border border-gray-200 rounded-xl p-5 text-center">
                 <p className="text-sm font-medium text-gray-900 mb-1">
                   Verify your email to publish
@@ -2076,9 +2076,9 @@ function ProviderOnboardingContent() {
                     type="text"
                     inputMode="numeric"
                     maxLength={6}
-                    value={verifyCode}
-                    onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    onKeyDown={(e) => { if (e.key === "Enter" && verifyCode.length === 6) handleVerifyAndCreate(); }}
+                    value={emailVerifyCode}
+                    onChange={(e) => setEmailVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    onKeyDown={(e) => { if (e.key === "Enter" && emailVerifyCode.length === 6) handleVerifyAndCreate(); }}
                     placeholder="000000"
                     className="w-36 text-center text-lg tracking-[0.3em] font-mono px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     autoFocus
@@ -2086,22 +2086,22 @@ function ProviderOnboardingContent() {
                   <button
                     type="button"
                     onClick={handleVerifyAndCreate}
-                    disabled={verifyCode.length !== 6 || submitting}
+                    disabled={emailVerifyCode.length !== 6 || submitting}
                     className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-40 text-white font-medium rounded-lg transition-colors text-sm"
                   >
                     {submitting ? "Creating..." : "Verify"}
                   </button>
                 </div>
-                {verifyError && (
-                  <p className="text-xs text-red-600 mb-2">{verifyError}</p>
+                {emailVerifyError && (
+                  <p className="text-xs text-red-600 mb-2">{emailVerifyError}</p>
                 )}
                 <button
                   type="button"
                   onClick={handleSendVerification}
-                  disabled={verifySending}
+                  disabled={emailVerifySending}
                   className="text-xs text-gray-400 hover:text-gray-600 underline transition-colors"
                 >
-                  {verifySending ? "Sending..." : "Resend code"}
+                  {emailVerifySending ? "Sending..." : "Resend code"}
                 </button>
               </div>
             )}

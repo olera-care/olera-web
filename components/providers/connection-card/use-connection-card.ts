@@ -692,21 +692,35 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/connections/update-intent", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          connectionId,
-          careRecipient: data.careRecipient,
-          urgency: data.urgency,
-          phone: data.phone || undefined,
-          notifyChannel: data.notifyChannel || undefined,
-        }),
-      });
+      // For guest flow: session may still be establishing in background.
+      // Wait briefly for it if needed, then retry once on 401.
+      const doSave = async (retry = false): Promise<boolean> => {
+        const res = await fetch("/api/connections/update-intent", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            connectionId,
+            careRecipient: data.careRecipient,
+            urgency: data.urgency,
+            phone: data.phone || undefined,
+            notifyChannel: data.notifyChannel || undefined,
+          }),
+        });
 
-      if (!res.ok) {
-        console.error("[enrichment] update-intent failed:", await res.text());
-      }
+        if (res.status === 401 && !retry) {
+          // Session not ready yet — wait and retry once
+          await new Promise(r => setTimeout(r, 1500));
+          return doSave(true);
+        }
+
+        if (!res.ok) {
+          console.error("[enrichment] update-intent failed:", await res.text());
+          return false;
+        }
+        return true;
+      };
+
+      await doSave();
 
       // Refresh auth context so welcome page has fresh profile data
       await refreshAccountData().catch(() => {});
@@ -717,7 +731,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     }
 
     navigatePostEnrichment();
-  }, [connectionId, navigatePostEnrichment]);
+  }, [connectionId, navigatePostEnrichment, refreshAccountData]);
 
   const skipEnrichment = useCallback(() => {
     navigatePostEnrichment();

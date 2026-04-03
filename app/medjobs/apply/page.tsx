@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useAuth } from "@/components/auth/AuthProvider";
 import type { IntendedProfessionalSchool } from "@/lib/types";
 import { createBrowserClient } from "@supabase/ssr";
 import { useCitySearch } from "@/hooks/use-city-search";
@@ -129,6 +130,7 @@ function SearchDropdown({ options, value, onSelect, placeholder = "Type or selec
 /* ─── Main Page ────────────────────────────────────────────── */
 
 export default function MedJobsApplyPage() {
+  const { refreshAccountData } = useAuth();
   const [step, setStep] = useState<Step>(0);
   const [animClass, setAnimClass] = useState("tf-visible");
   const [animating, setAnimating] = useState(false);
@@ -317,7 +319,8 @@ export default function MedJobsApplyPage() {
           if (otpError) {
             console.warn("[medjobs/apply] auto-sign-in failed:", otpError.message);
           } else {
-            console.log("[medjobs/apply] auto-sign-in succeeded");
+            // Refresh cached profiles so Navbar picks up the new student profile
+            await refreshAccountData();
           }
         } catch (err) {
           console.warn("[medjobs/apply] auto-sign-in error:", err);
@@ -331,7 +334,7 @@ export default function MedJobsApplyPage() {
     displayName, email, phone, university, universityId, universityOther, universitySearch,
     major, majorOther, intendedSchool, city, state, certifications, yearsCaregiving,
     careExperienceTypes, languages, availabilityTypes, seasonalAvailability,
-    durationCommitment, hoursPerWeekRange, honeypot,
+    durationCommitment, hoursPerWeekRange, honeypot, refreshAccountData,
   ]);
 
   /* ─── Success ────────────────────────────────────────────── */

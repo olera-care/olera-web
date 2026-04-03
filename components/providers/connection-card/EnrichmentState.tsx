@@ -185,6 +185,8 @@ export default function EnrichmentState({
                   ))}
                   <a
                     href="/benefits/finder"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-[12px] text-gray-500 font-medium hover:text-gray-700 hover:underline mt-1 inline-block"
                   >
                     Check your eligibility →

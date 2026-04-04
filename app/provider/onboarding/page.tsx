@@ -1834,7 +1834,7 @@ function ProviderOnboardingContent() {
               {/* CTA card - matches search results styling */}
               <div className="mt-10 text-center py-8 bg-white rounded-xl border border-gray-200">
                 <p className="text-lg font-semibold text-gray-900 mb-1">
-                  {isSingleMatch ? "Not this one?" : "None of these?"}
+                  Not yours?
                 </p>
                 <p className="text-base text-gray-500 mb-5">
                   Let&apos;s create your page instead.

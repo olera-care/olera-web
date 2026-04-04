@@ -538,12 +538,14 @@ async function handleFamiliesFeedView(db: any, opts: FamilyOpts) {
   const familyMap: Record<string, {
     name: string; email: string | null; city: string | null;
     state: string | null; care_types: string[]; timeline: string | null;
+    phone: string | null; contact_preference: string | null;
+    relationship: string | null;
   }> = {};
 
   if (profileIds.length > 0) {
     const { data: profiles } = await db
       .from("business_profiles")
-      .select("id, display_name, email, city, state, care_types, metadata")
+      .select("id, display_name, email, phone, city, state, care_types, metadata")
       .in("id", profileIds);
 
     if (profiles) {
@@ -556,6 +558,9 @@ async function handleFamiliesFeedView(db: any, opts: FamilyOpts) {
           state: p.state,
           care_types: p.care_types || [],
           timeline: (meta.timeline as string) || null,
+          phone: p.phone || null,
+          contact_preference: (meta.contact_preference as string) || null,
+          relationship: (meta.relationship_to_recipient as string) || null,
         };
       }
     }
@@ -654,15 +659,16 @@ async function handleFamiliesPeopleView(db: any, opts: FamilyOpts) {
   // Hydrate with family profile info
   const profileIds = sortedFamilies.map((f) => f.profile_id);
   const familyMap: Record<string, {
-    name: string; email: string | null; city: string | null;
+    name: string; email: string | null; phone: string | null; city: string | null;
     state: string | null; care_types: string[]; timeline: string | null;
+    contact_preference: string | null; relationship: string | null;
     account_id: string | null;
   }> = {};
 
   if (profileIds.length > 0) {
     const { data: profiles } = await db
       .from("business_profiles")
-      .select("id, display_name, email, city, state, care_types, metadata, account_id")
+      .select("id, display_name, email, phone, city, state, care_types, metadata, account_id")
       .in("id", profileIds);
 
     if (profiles) {
@@ -671,10 +677,13 @@ async function handleFamiliesPeopleView(db: any, opts: FamilyOpts) {
         familyMap[p.id] = {
           name: p.display_name || "Unknown",
           email: p.email,
+          phone: p.phone || null,
           city: p.city,
           state: p.state,
           care_types: p.care_types || [],
           timeline: (meta.timeline as string) || null,
+          contact_preference: (meta.contact_preference as string) || null,
+          relationship: (meta.relationship_to_recipient as string) || null,
           account_id: p.account_id,
         };
       }

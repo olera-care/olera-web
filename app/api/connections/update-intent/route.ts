@@ -238,6 +238,28 @@ export async function PATCH(request: Request) {
       console.log("[update-intent] syncing to profile:", profileId, syncData);
       await syncIntentToProfile(admin, profileId, syncData);
       console.log("[update-intent] profile sync complete");
+
+      // Log profile_enriched event (fire-and-forget)
+      // Use request body fields (not merged syncData) so we only log what was actually enriched in THIS request
+      const enrichedFields = [
+        notifyChannel && "contact_preference",
+        phone && "phone",
+        careRecipient && "relationship",
+        urgency && "timeline",
+      ].filter(Boolean);
+
+      if (enrichedFields.length > 0) {
+        admin.from("seeker_activity").insert({
+          profile_id: profileId,
+          event_type: "profile_enriched",
+          metadata: {
+            connection_id: connectionId,
+            enriched_fields: enrichedFields,
+          },
+        }).then(({ error: actErr }: { error: { message: string } | null }) => {
+          if (actErr) console.error("[seeker_activity] profile_enriched insert failed:", actErr);
+        });
+      }
     } catch (syncErr) {
       // Non-blocking — connection update succeeded
       console.error("[update-intent] profile sync error:", syncErr);

@@ -717,6 +717,8 @@ async function handleGuestConnection({
       care_type: intentData.careType || null,
       timeline: intentData.urgency || null,
       guest: true,
+      provider_name: providerName || null,
+      provider_slug: providerSlug || null,
     },
   }).then(({ error: actErr }: { error: { message: string } | null }) => {
     if (actErr) console.error("[seeker_activity] connection_sent insert failed:", actErr);
@@ -1567,6 +1569,8 @@ export async function POST(request: Request) {
         care_type: intentData?.careType || null,
         timeline: intentData?.urgency || null,
         guest: false,
+        provider_name: providerName || null,
+        provider_slug: providerSlug || null,
       },
     }).then(({ error: actErr }: { error: { message: string } | null }) => {
       if (actErr) console.error("[seeker_activity] connection_sent insert failed:", actErr);

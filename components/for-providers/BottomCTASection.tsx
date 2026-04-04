@@ -75,7 +75,7 @@ export default function BottomCTASection() {
   return (
     <section className="py-16 md:py-24 bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gray-900 rounded-2xl px-6 sm:px-12 py-12 sm:py-16 text-center">
+        <div className="bg-gray-900 rounded-2xl px-6 sm:px-12 py-12 sm:py-16 text-center overflow-visible">
           <h2 className="font-serif text-display-sm md:text-display-md font-bold text-white">
             Ready to get started?
           </h2>
@@ -127,9 +127,9 @@ export default function BottomCTASection() {
                 className="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-600 bg-gray-800 text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
 
-              {/* City dropdown */}
+              {/* City dropdown — opens DOWN, card has overflow-visible */}
               {showCitySuggestions && (
-                <div className="absolute left-0 bottom-[calc(100%+4px)] w-full bg-white rounded-lg shadow-lg border border-gray-100 py-1.5 z-50 max-h-[240px] overflow-y-auto">
+                <div className="absolute left-0 top-[calc(100%+4px)] w-full bg-white rounded-lg shadow-lg border border-gray-100 py-1.5 z-50 max-h-[240px] overflow-y-auto">
                   <div className="px-3 py-1">
                     <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">
                       Cities matching &quot;{searchInput}&quot;

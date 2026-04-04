@@ -167,7 +167,7 @@ export default function HeroSection() {
                   {/* Location Input with Dropdown */}
                   <div className="relative flex-1" ref={locationDropdownRef}>
                     <div
-                      className={`flex items-center px-4 py-3 bg-gray-50 rounded-xl border transition-colors cursor-text ${
+                      className={`flex items-center h-12 px-4 bg-gray-50 rounded-xl border transition-all duration-150 cursor-text ${
                         showLocationDropdown ? "border-primary-400 ring-2 ring-primary-100" : "border-gray-200 hover:border-gray-300"
                       }`}
                       onClick={() => {
@@ -227,7 +227,7 @@ export default function HeroSection() {
 
                     {/* Location Dropdown */}
                     {showLocationDropdown && (
-                      <div className="absolute left-0 top-[calc(100%+6px)] w-full bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-[60] max-h-[340px] overflow-y-auto">
+                      <div className="absolute left-0 top-[calc(100%+6px)] w-full bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-[60] max-h-[340px] animate-dropdown-pop overflow-y-auto">
                         {/* Use Current Location */}
                         <button
                           type="button"
@@ -301,7 +301,7 @@ export default function HeroSection() {
                   {/* Care Type Dropdown */}
                   <div className="relative flex-1" ref={careTypeDropdownRef}>
                     <div
-                      className={`flex items-center px-4 py-3 bg-gray-50 rounded-xl border transition-colors cursor-pointer ${
+                      className={`flex items-center h-12 px-4 bg-gray-50 rounded-xl border transition-all duration-150 cursor-pointer ${
                         showCareTypeDropdown ? "border-primary-400 ring-2 ring-primary-100" : "border-gray-200 hover:border-gray-300"
                       }`}
                       onClick={() => setShowCareTypeDropdown(!showCareTypeDropdown)}
@@ -354,7 +354,7 @@ export default function HeroSection() {
                   {/* Search Button */}
                   <button
                     type="submit"
-                    className="bg-primary-600 hover:bg-primary-700 text-white font-semibold text-base px-6 py-3 rounded-xl shadow-lg shadow-primary-600/25 transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-2"
+                    className="bg-primary-600 hover:bg-primary-700 text-white font-semibold text-base px-6 h-12 rounded-xl shadow-lg shadow-primary-600/25 transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-2"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

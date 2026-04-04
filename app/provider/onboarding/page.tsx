@@ -1611,39 +1611,42 @@ function ProviderOnboardingContent() {
         )}
 
         {/* ── Potential Matches step: Show duplicate candidates ── */}
-        {step === "potential-matches" && (potentialMatches.length > 0 || businessProfileMatches.length > 0) && (
-          <>
-            {/* Scrollable content area */}
-            <div className="w-full max-w-lg mx-auto pb-32">
+        {step === "potential-matches" && (potentialMatches.length > 0 || businessProfileMatches.length > 0) && (() => {
+          const totalMatches = businessProfileMatches.length + potentialMatches.length;
+          const isSingleMatch = totalMatches === 1;
+
+          return (
+            <div className="w-full max-w-lg mx-auto pb-12">
               <div className="mb-8">
                 <h1 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 tracking-tight">
-                  We found a page that might be yours
+                  {isSingleMatch
+                    ? "We found a page that might be yours"
+                    : "We found pages that might be yours"}
                 </h1>
                 <p className="text-gray-500 mt-2 text-base">
-                  Claim to manage, or create a new page.
+                  {isSingleMatch
+                    ? "Is this your organization?"
+                    : "Select yours, or create a new page."}
                 </p>
               </div>
 
-              {/* Business profile matches (already created/claimed) */}
+              {/* Business profile matches (already set up) */}
               {businessProfileMatches.length > 0 && (
                 <div className="space-y-4 mb-6">
                   {businessProfileMatches.map((profile) => {
                     const isOwnedBySomeoneElse = user && account?.id && profile.account_id !== account.id;
-                    const isClaimed = profile.claim_state === "claimed";
                     const locationText = [profile.city, profile.state].filter(Boolean).join(", ");
 
                     const handleBusinessProfileClick = () => {
                       if (isOwnedBySomeoneElse) {
                         // Logged in but someone else owns it → dispute flow
                         if (profile.source_provider_id) {
-                          // Has a linked provider listing - use onboard page dispute flow
                           router.push(`/provider/${profile.slug || profile.source_provider_id}/onboard?provider_id=${profile.source_provider_id}&state=already-claimed`);
                         } else {
-                          // User-created profile without provider listing - contact support
                           router.push(`/contact?subject=${encodeURIComponent(`Ownership dispute: ${profile.display_name}`)}&profile_id=${profile.id}`);
                         }
                       } else {
-                        // Logged out → prompt to sign in (not sign up)
+                        // Logged out → prompt to sign in
                         openAuth({
                           defaultMode: "sign-in",
                           headline: "Sign in to manage this page",
@@ -1665,7 +1668,7 @@ function ProviderOnboardingContent() {
                       >
                         <div className="flex">
                           {/* Image */}
-                          <div className="w-40 min-h-[160px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
+                          <div className="w-36 sm:w-40 min-h-[140px] sm:min-h-[160px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
                             {profile.image_url ? (
                               <Image
                                 src={profile.image_url}
@@ -1692,52 +1695,36 @@ function ProviderOnboardingContent() {
                           </div>
 
                           {/* Content */}
-                          <div className="flex-1 p-5 min-w-0">
+                          <div className="flex-1 p-5 min-w-0 flex flex-col">
                             {locationText && (
-                              <p className="text-sm text-gray-500 mb-1 tracking-wide">{locationText}</p>
+                              <p className="text-sm text-gray-500 mb-1">{locationText}</p>
                             )}
-                            <div className="flex items-start justify-between gap-3 mb-1.5">
-                              <h3 className="text-lg font-bold text-gray-900 leading-snug line-clamp-1">
-                                {profile.display_name}
-                              </h3>
-                              {/* Managed badge - shows this profile is already managed by someone */}
-                              {isClaimed && (
-                                <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-500 ring-1 ring-gray-200">
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                  </svg>
-                                  Managed
-                                </span>
-                              )}
-                            </div>
+                            <h3 className="text-lg font-bold text-gray-900 leading-snug line-clamp-2">
+                              {profile.display_name}
+                            </h3>
 
-                            {/* Status text for logged-in users seeing someone else's profile */}
-                            {isOwnedBySomeoneElse && (
-                              <p className="text-sm text-gray-500 mb-2">This page is managed by another account</p>
-                            )}
+                            {/* Helper text - explains the situation clearly */}
+                            <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                              {isOwnedBySomeoneElse
+                                ? "This page is managed by another account."
+                                : "This page is already set up. Sign in if this is yours."}
+                            </p>
+
+                            {/* Spacer to push button down */}
+                            <div className="flex-1 min-h-3" />
 
                             {/* Action button */}
-                            <div className="flex justify-end mt-2">
+                            <div className="flex justify-end">
                               <button
                                 type="button"
                                 onClick={handleBusinessProfileClick}
-                                className={`px-4 sm:px-5 py-2.5 text-sm sm:text-base font-semibold rounded-xl transition-all ${
+                                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
                                   isOwnedBySomeoneElse
                                     ? "text-amber-600 ring-1 ring-amber-200 hover:ring-amber-300 hover:bg-amber-50"
                                     : "text-primary-600 ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50"
                                 }`}
                               >
-                                {isOwnedBySomeoneElse ? (
-                                  <>
-                                    <span className="sm:hidden">Dispute &rarr;</span>
-                                    <span className="hidden sm:inline">Dispute ownership &rarr;</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <span className="sm:hidden">Claim &rarr;</span>
-                                    <span className="hidden sm:inline">Claim this page &rarr;</span>
-                                  </>
-                                )}
+                                {isOwnedBySomeoneElse ? "Dispute →" : "Sign in →"}
                               </button>
                             </div>
                           </div>
@@ -1759,47 +1746,28 @@ function ProviderOnboardingContent() {
                   <div className="space-y-4">
                     {potentialMatches.map((provider) => {
                       const image = getProviderImage(provider);
-                      const address = formatAddress(provider);
+                      const locationText = [provider.city, provider.state].filter(Boolean).join(", ");
 
                       return (
-                        <button
+                        <div
                           key={provider.provider_id}
-                          type="button"
-                          onClick={() => {
-                            // Cache provider data for claim page
-                            try {
-                              sessionStorage.setItem(
-                                "olera_claim_provider_cache",
-                                JSON.stringify({
-                                  provider_id: provider.provider_id,
-                                  provider_name: provider.provider_name,
-                                  provider_images: provider.provider_images,
-                                  address: provider.address,
-                                  city: provider.city,
-                                  state: provider.state,
-                                  slug: provider.slug,
-                                })
-                              );
-                            } catch {}
-                            router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}`);
-                          }}
-                          className="w-full bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200 text-left"
+                          className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
                         >
                           <div className="flex">
                             {/* Image */}
-                            <div className="w-32 min-h-[120px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
+                            <div className="w-36 sm:w-40 min-h-[140px] sm:min-h-[160px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
                               {image ? (
                                 <Image
                                   src={image}
                                   alt={provider.provider_name}
                                   fill
                                   className="object-cover"
-                                  sizes="128px"
+                                  sizes="160px"
                                 />
                               ) : (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                  <div className="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
-                                    <span className="text-sm font-bold text-primary-400">
+                                  <div className="w-12 h-12 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+                                    <span className="text-lg font-bold text-primary-400">
                                       {(provider.provider_name || "")
                                         .split(/\s+/)
                                         .map((w) => w[0])
@@ -1814,57 +1782,86 @@ function ProviderOnboardingContent() {
                             </div>
 
                             {/* Content */}
-                            <div className="flex-1 p-4 min-w-0 flex flex-col justify-center">
-                              {address && (
-                                <p className="text-xs text-gray-500 mb-0.5">{address}</p>
+                            <div className="flex-1 p-5 min-w-0 flex flex-col">
+                              {locationText && (
+                                <p className="text-sm text-gray-500 mb-1">{locationText}</p>
                               )}
-                              <h3 className="text-base font-bold text-gray-900 leading-snug line-clamp-1">
+                              <h3 className="text-lg font-bold text-gray-900 leading-snug line-clamp-2">
                                 {provider.provider_name}
                               </h3>
 
-                              {/* CTA row */}
-                              <div className="flex items-center justify-between mt-2">
-                                <span className="text-sm font-semibold text-primary-600">
-                                  Claim this page
-                                </span>
-                                <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
+                              {/* Helper text */}
+                              <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                                This page hasn&apos;t been claimed yet.
+                              </p>
+
+                              {/* Spacer to push button down */}
+                              <div className="flex-1 min-h-3" />
+
+                              {/* Action button */}
+                              <div className="flex justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    try {
+                                      sessionStorage.setItem(
+                                        "olera_claim_provider_cache",
+                                        JSON.stringify({
+                                          provider_id: provider.provider_id,
+                                          provider_name: provider.provider_name,
+                                          provider_images: provider.provider_images,
+                                          address: provider.address,
+                                          city: provider.city,
+                                          state: provider.state,
+                                          slug: provider.slug,
+                                        })
+                                      );
+                                    } catch {}
+                                    router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}`);
+                                  }}
+                                  className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
+                                >
+                                  Claim this page →
+                                </button>
                               </div>
                             </div>
                           </div>
-                        </button>
+                        </div>
                       );
                     })}
                   </div>
                 </>
               )}
-            </div>
 
-            {/* Sticky bottom nav */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 z-40">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-                {/* Back button */}
-                <button
-                  type="button"
-                  onClick={() => setStep("create")}
-                  className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
-                >
-                  Back
-                </button>
-
-                {/* Create new page button */}
-                <Button
-                  onClick={() => handleSubmit(true)}
-                  disabled={submitting}
-                  loading={submitting}
-                >
-                  Create your page
-                </Button>
+              {/* Inline CTA section - replaces sticky bar */}
+              <div className="mt-10 pt-8 border-t border-gray-200">
+                <p className="text-base font-medium text-gray-900 mb-1">
+                  {isSingleMatch ? "Not this one?" : "None of these?"}
+                </p>
+                <p className="text-sm text-gray-500 mb-5">
+                  We&apos;ll create a new page with the info you provided.
+                </p>
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setStep("create")}
+                    className="text-base font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSubmit(true)}
+                    disabled={submitting}
+                    className="px-5 py-2.5 text-base font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                  >
+                    {submitting ? "Creating..." : "Create new page →"}
+                  </button>
+                </div>
               </div>
             </div>
-          </>
-        )}
+          );
+        })()}
 
       </div>
     </div>

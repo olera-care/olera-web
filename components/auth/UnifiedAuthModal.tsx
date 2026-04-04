@@ -64,8 +64,10 @@ export default function UnifiedAuthModal({
   // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      setStep(getInitialStep());
-      setEmail("");
+      // If initialEmail is provided, skip entry step and go directly to sign-up
+      const hasInitialEmail = options?.initialEmail && options.initialEmail.trim().length > 0;
+      setStep(hasInitialEmail ? "sign-up" : getInitialStep());
+      setEmail(options?.initialEmail || "");
       setPassword("");
       setDisplayName("");
       setError("");
@@ -76,7 +78,7 @@ export default function UnifiedAuthModal({
       setOtpContext("signup");
       setForgotPasswordSent(false);
     }
-  }, [isOpen, getInitialStep]);
+  }, [isOpen, getInitialStep, options?.initialEmail]);
 
   // Resend cooldown timer
   useEffect(() => {

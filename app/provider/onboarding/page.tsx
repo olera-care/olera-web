@@ -1290,19 +1290,14 @@ function ProviderOnboardingContent() {
                 />
 
                 {/* Your email */}
-                <div className="space-y-1.5">
-                  <Input
-                    label="Your email"
-                    type="email"
-                    value={data.email}
-                    onChange={(e) => update("email", (e.target as HTMLInputElement).value)}
-                    placeholder="you@example.com"
-                    required
-                  />
-                  <p className="text-sm text-gray-500">
-                    We&apos;ll send a quick verification code — no password needed.
-                  </p>
-                </div>
+                <Input
+                  label="Your email"
+                  type="email"
+                  value={data.email}
+                  onChange={(e) => update("email", (e.target as HTMLInputElement).value)}
+                  placeholder="you@example.com"
+                  required
+                />
 
                 {/* City picker */}
                 <div className="space-y-1.5">
@@ -1375,7 +1370,7 @@ function ProviderOnboardingContent() {
                 {/* Care types */}
                 <div className="space-y-3">
                   <label className="block text-base font-medium text-gray-700">
-                    What type of care do you provide?
+                    Type of care <span className="font-normal text-gray-400">(select at least one)</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {CARE_TYPES.map((ct) => {
@@ -1404,9 +1399,6 @@ function ProviderOnboardingContent() {
                       );
                     })}
                   </div>
-                  <p className="text-sm text-gray-500">
-                    Select at least one. You can update these anytime.
-                  </p>
                 </div>
 
                 {submitError && (

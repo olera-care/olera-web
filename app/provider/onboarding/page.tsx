@@ -1703,11 +1703,11 @@ function ProviderOnboardingContent() {
                               {profile.display_name}
                             </h3>
 
-                            {/* Helper text - explains the situation clearly */}
+                            {/* Helper text - concise */}
                             <p className="text-sm text-gray-500 mt-2 leading-relaxed">
                               {isOwnedBySomeoneElse
-                                ? "This page is managed by another account."
-                                : "This page is already set up. Sign in if this is yours."}
+                                ? "Managed by another account."
+                                : "Sign in to manage this page."}
                             </p>
 
                             {/* Spacer to push button down */}
@@ -1737,13 +1737,7 @@ function ProviderOnboardingContent() {
 
               {/* Provider matches (unclaimed pages from olera-providers) */}
               {potentialMatches.length > 0 && (
-                <>
-                  {businessProfileMatches.length > 0 && (
-                    <div className="mb-4 pt-4">
-                      <p className="text-sm font-medium text-gray-500">Or claim an unclaimed page:</p>
-                    </div>
-                  )}
-                  <div className="space-y-4">
+                <div className="space-y-4">
                     {potentialMatches.map((provider) => {
                       const image = getProviderImage(provider);
                       const locationText = [provider.city, provider.state].filter(Boolean).join(", ");
@@ -1830,22 +1824,21 @@ function ProviderOnboardingContent() {
                       );
                     })}
                   </div>
-                </>
               )}
 
-              {/* Inline CTA section - wrapped in light card */}
-              <div className="mt-10 bg-gray-50 rounded-xl p-6">
-                <p className="text-base font-medium text-gray-900 mb-1">
+              {/* CTA card - matches search results styling */}
+              <div className="mt-10 text-center py-8 bg-white rounded-xl border border-gray-200">
+                <p className="text-lg font-semibold text-gray-900 mb-1">
                   {isSingleMatch ? "Not this one?" : "None of these?"}
                 </p>
-                <p className="text-sm text-gray-500 mb-5">
-                  We&apos;ll create a new page with the info you provided.
+                <p className="text-base text-gray-500 mb-5">
+                  Create a new page from scratch
                 </p>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-center gap-4">
                   <button
                     type="button"
                     onClick={() => setStep("create")}
-                    className="text-base font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                    className="px-5 py-2.5 text-base font-medium text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     ← Back
                   </button>
@@ -1853,9 +1846,9 @@ function ProviderOnboardingContent() {
                     type="button"
                     onClick={() => handleSubmit(true)}
                     disabled={submitting}
-                    className="px-5 py-2.5 text-base font-semibold text-primary-600 bg-white rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 disabled:opacity-50 transition-colors"
+                    className="px-7 py-3 text-base font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-500 disabled:opacity-50 transition-all shadow-sm"
                   >
-                    {submitting ? "Creating..." : "Create new page →"}
+                    {submitting ? "Creating..." : "Set up a new page"}
                   </button>
                 </div>
               </div>

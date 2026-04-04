@@ -1630,16 +1630,38 @@ function ProviderOnboardingContent() {
                   {businessProfileMatches.map((profile) => {
                     const isOwnedBySomeoneElse = user && account?.id && profile.account_id !== account.id;
                     const locationText = [profile.city, profile.state].filter(Boolean).join(", ");
-                    const slugOrId = profile.slug || profile.source_provider_id || profile.id;
+
+                    const handleBusinessProfileClick = () => {
+                      if (isOwnedBySomeoneElse) {
+                        // Logged in but someone else owns it → dispute flow
+                        if (profile.source_provider_id) {
+                          // Has a linked provider listing - use onboard page dispute flow
+                          router.push(`/provider/${profile.slug || profile.source_provider_id}/onboard?provider_id=${profile.source_provider_id}&state=already-claimed`);
+                        } else {
+                          // User-created profile without provider listing - contact support
+                          router.push(`/contact?subject=${encodeURIComponent(`Ownership dispute: ${profile.display_name}`)}&profile_id=${profile.id}`);
+                        }
+                      } else {
+                        // Logged out → prompt to sign in (not sign up)
+                        openAuth({
+                          defaultMode: "sign-in",
+                          headline: "Sign in to manage this page",
+                          intent: "provider",
+                          providerType: "organization",
+                          initialEmail: profile.email || data.email || undefined,
+                          deferred: {
+                            action: "create_profile",
+                            returnUrl: "/provider",
+                          },
+                        });
+                      }
+                    };
 
                     return (
                       <button
                         key={profile.id}
                         type="button"
-                        onClick={() => {
-                          // Route to verification page - handles both login and dispute
-                          router.push(`/provider/${slugOrId}/onboard?profile_id=${profile.id}&state=${isOwnedBySomeoneElse ? "already-claimed" : "verify"}`);
-                        }}
+                        onClick={handleBusinessProfileClick}
                         className="w-full bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200 text-left"
                       >
                         <div className="flex">
@@ -1686,10 +1708,10 @@ function ProviderOnboardingContent() {
 
                             {/* CTA row */}
                             <div className="flex items-center justify-between mt-2">
-                              <span className="text-sm font-semibold text-primary-600">
-                                Claim this page
+                              <span className={`text-sm font-semibold ${isOwnedBySomeoneElse ? "text-amber-600" : "text-primary-600"}`}>
+                                {isOwnedBySomeoneElse ? "Dispute ownership" : "Claim this page"}
                               </span>
-                              <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className={`w-4 h-4 ${isOwnedBySomeoneElse ? "text-amber-600" : "text-primary-600"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                               </svg>
                             </div>

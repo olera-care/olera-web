@@ -45,6 +45,9 @@ const EMPTY: WizardData = {
   careTypes: [],
 };
 
+// Key for persisting form data through auth redirect
+const CREATE_FORM_STORAGE_KEY = "olera_provider_create_form";
+
 function getProviderImage(provider: Provider): string | null {
   if (!provider.provider_images) return null;
   const first = provider.provider_images.split("|")[0].trim();
@@ -157,6 +160,42 @@ function ProviderOnboardingContent() {
       }
     }
   }, [user, profiles, isLoading, isAdding, nextUrl, router]);
+
+  // Restore form data after auth redirect (user just completed OTP and came back)
+  const formRestored = useRef(false);
+  const pendingAutoSubmit = useRef(false);
+  useEffect(() => {
+    if (formRestored.current) return;
+
+    try {
+      const raw = sessionStorage.getItem(CREATE_FORM_STORAGE_KEY);
+      if (!raw) return;
+
+      // Only restore if user is now logged in (just completed auth)
+      if (!user) return;
+
+      sessionStorage.removeItem(CREATE_FORM_STORAGE_KEY);
+      formRestored.current = true;
+
+      const saved = JSON.parse(raw) as WizardData;
+      setData(saved);
+      setStep("create");
+
+      // Flag for auto-submit — will be picked up by the next effect
+      pendingAutoSubmit.current = true;
+    } catch {
+      // sessionStorage unavailable or corrupt — ignore
+    }
+  }, [user]);
+
+  // Auto-submit after form data is restored (runs after state updates)
+  useEffect(() => {
+    if (pendingAutoSubmit.current && step === "create" && data.displayName && user) {
+      pendingAutoSubmit.current = false;
+      handleSubmit();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, data, user]);
 
   // Read landing-page prefill from sessionStorage (set by /for-providers CTA buttons)
   // If prefill exists, auto-execute the search
@@ -443,6 +482,13 @@ function ProviderOnboardingContent() {
 
     // Auth check: if not logged in, prompt to create account first
     if (!user) {
+      // Save form data to sessionStorage so it persists through auth redirect
+      try {
+        sessionStorage.setItem(CREATE_FORM_STORAGE_KEY, JSON.stringify(data));
+      } catch {
+        // sessionStorage unavailable — proceed anyway, user will have to re-enter
+      }
+
       openAuth({
         headline: "Verify your email to continue",
         intent: "provider",
@@ -498,6 +544,13 @@ function ProviderOnboardingContent() {
       }
 
       const { profileId } = result;
+
+      // Clear any saved form data
+      try {
+        sessionStorage.removeItem(CREATE_FORM_STORAGE_KEY);
+      } catch {
+        // Ignore
+      }
 
       await refreshAccountData();
 

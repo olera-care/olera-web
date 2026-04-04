@@ -1289,13 +1289,13 @@ function ProviderOnboardingContent() {
                   required
                 />
 
-                {/* Your email */}
+                {/* Business email */}
                 <Input
-                  label="Your email"
+                  label="Business email"
                   type="email"
                   value={data.email}
                   onChange={(e) => update("email", (e.target as HTMLInputElement).value)}
-                  placeholder="you@example.com"
+                  placeholder="you@yourcompany.com"
                   required
                 />
 

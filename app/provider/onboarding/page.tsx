@@ -1484,15 +1484,155 @@ function ProviderOnboardingContent() {
                     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email) ||
                     !data.city.trim() ||
                     data.careTypes.length === 0 ||
-                    submitting
+                    submitting ||
+                    checkingDuplicates
                   }
-                  loading={submitting}
+                  loading={submitting || checkingDuplicates}
                 >
-                  Create profile
+                  {checkingDuplicates ? "Checking..." : "Create profile"}
                 </Button>
               </div>
             </div>
           </>
+        )}
+
+        {/* ── Potential Matches step: Show duplicate candidates ── */}
+        {step === "potential-matches" && potentialMatches.length > 0 && (
+          <div className="w-full max-w-lg mx-auto pb-24">
+            <div className="mb-8">
+              <h1 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 tracking-tight">
+                We found a listing that might be yours
+              </h1>
+              <p className="text-gray-500 mt-2 text-base">
+                Claim your existing listing to manage it, or create a new one if none of these are yours.
+              </p>
+            </div>
+
+            {/* Potential matches list */}
+            <div className="space-y-4">
+              {potentialMatches.map((provider) => {
+                const image = getProviderImage(provider);
+                const address = formatAddress(provider);
+                const highlights = getProviderHighlights(provider);
+
+                return (
+                  <div
+                    key={provider.provider_id}
+                    className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
+                  >
+                    <div className="flex">
+                      {/* Image */}
+                      <div className="w-32 min-h-[140px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
+                        {image ? (
+                          <Image
+                            src={image}
+                            alt={provider.provider_name}
+                            fill
+                            className="object-cover"
+                            sizes="128px"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+                              <span className="text-sm font-bold text-primary-400">
+                                {(provider.provider_name || "")
+                                  .split(/\s+/)
+                                  .map((w) => w[0])
+                                  .filter(Boolean)
+                                  .slice(0, 2)
+                                  .join("")
+                                  .toUpperCase()}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 p-4 min-w-0">
+                        {address && (
+                          <p className="text-xs text-gray-500 mb-1">{address}</p>
+                        )}
+                        <h3 className="text-base font-bold text-gray-900 leading-snug line-clamp-1 mb-1">
+                          {provider.provider_name}
+                        </h3>
+
+                        {/* Highlights */}
+                        {highlights.length > 0 && (
+                          <div className="flex flex-wrap gap-x-2 gap-y-0.5 mb-3">
+                            {highlights.slice(0, 2).map((h) => (
+                              <span key={h} className="flex items-center gap-1 text-xs text-gray-600">
+                                <svg className="w-2.5 h-2.5 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                </svg>
+                                {h}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Claim button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Cache provider data for claim page
+                            try {
+                              sessionStorage.setItem(
+                                "olera_claim_provider_cache",
+                                JSON.stringify({
+                                  provider_id: provider.provider_id,
+                                  provider_name: provider.provider_name,
+                                  provider_images: provider.provider_images,
+                                  address: provider.address,
+                                  city: provider.city,
+                                  state: provider.state,
+                                  slug: provider.slug,
+                                })
+                              );
+                            } catch {}
+                            router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}`);
+                          }}
+                          className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
+                        >
+                          Claim this listing
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Create new listing option */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={() => handleSubmit(true)} // Skip duplicate check
+                disabled={submitting}
+                className="w-full py-3 text-base font-medium text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                {submitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                    Creating...
+                  </span>
+                ) : (
+                  "None of these — create new listing"
+                )}
+              </button>
+            </div>
+
+            {/* Back to form */}
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                onClick={() => setStep("create")}
+                className="text-sm text-gray-500 hover:text-gray-700 underline underline-offset-4 transition-colors"
+              >
+                Go back and edit details
+              </button>
+            </div>
+          </div>
         )}
 
       </div>

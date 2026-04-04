@@ -1260,190 +1260,198 @@ function ProviderOnboardingContent() {
 
         {/* ── Simplified Create step: Single-step new account ── */}
         {step === "create" && (
-          <div className="w-full max-w-lg pb-24">
-            <div className="mb-8">
-              <h1 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 tracking-tight">
-                Let&apos;s set you up
-              </h1>
-              <p className="text-gray-500 mt-2 text-base">
-                Create your provider profile in seconds.
-              </p>
-            </div>
+          <>
+            {/* Scrollable form content */}
+            <div className="w-full max-w-lg pb-36">
+              <div className="mb-8">
+                <h1 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 tracking-tight">
+                  Let&apos;s set you up
+                </h1>
+                <p className="text-gray-500 mt-2 text-base">
+                  Create your provider profile in seconds.
+                </p>
+              </div>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSubmit();
-              }}
-              className="space-y-6"
-            >
-              {/* Organization name */}
-              <Input
-                label="Organization name"
-                value={data.displayName}
-                onChange={(e) => update("displayName", (e.target as HTMLInputElement).value)}
-                placeholder="e.g. Sunrise Senior Living"
-                required
-              />
-
-              {/* Your email */}
-              <div className="space-y-1.5">
+              <form
+                id="create-profile-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSubmit();
+                }}
+                className="space-y-6"
+              >
+                {/* Organization name */}
                 <Input
-                  label="Your email"
-                  type="email"
-                  value={data.email}
-                  onChange={(e) => update("email", (e.target as HTMLInputElement).value)}
-                  placeholder="you@example.com"
+                  label="Organization name"
+                  value={data.displayName}
+                  onChange={(e) => update("displayName", (e.target as HTMLInputElement).value)}
+                  placeholder="e.g. Sunrise Senior Living"
                   required
                 />
-                <p className="text-sm text-gray-500">
-                  We&apos;ll send a quick verification code — no password needed.
-                </p>
-              </div>
 
-              {/* City picker */}
-              <div className="space-y-1.5">
-                <label htmlFor="create-city-picker" className="block text-base font-medium text-gray-700">
-                  City
-                </label>
-                <div ref={cityPickerRef} className="relative">
-                  <input
-                    id="create-city-picker"
-                    type="text"
-                    role="combobox"
-                    aria-expanded={showCityPicker && cityPickerResults.length > 0}
-                    aria-autocomplete="list"
-                    value={cityQuery || (data.city ? `${data.city}${data.state ? `, ${data.state}` : ""}` : "")}
-                    onChange={(e) => {
-                      setCityQuery(e.target.value);
-                      setShowCityPicker(true);
-                      if (data.city) {
-                        update("city", "");
-                        update("state", "");
-                      }
-                    }}
-                    onFocus={() => {
-                      preloadCityPicker();
-                      setShowCityPicker(true);
-                      if (data.city && !cityQuery) {
-                        setCityQuery(`${data.city}${data.state ? `, ${data.state}` : ""}`);
-                      }
-                    }}
-                    placeholder="e.g. Houston"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] placeholder:text-gray-400"
-                    autoComplete="off"
+                {/* Your email */}
+                <div className="space-y-1.5">
+                  <Input
+                    label="Your email"
+                    type="email"
+                    value={data.email}
+                    onChange={(e) => update("email", (e.target as HTMLInputElement).value)}
+                    placeholder="you@example.com"
                     required
                   />
-
-                  {/* City suggestions dropdown */}
-                  {showCityPicker && cityPickerResults.length > 0 && (
-                    <div role="listbox" aria-label="City suggestions" className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-xl shadow-xl ring-1 ring-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
-                      {!cityQuery.trim() && (
-                        <div className="px-4 pt-1 pb-2">
-                          <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
-                        </div>
-                      )}
-                      {cityPickerResults.map((loc) => (
-                        <button
-                          key={loc.full}
-                          type="button"
-                          role="option"
-                          aria-selected={data.city === loc.city && data.state === loc.state}
-                          onClick={() => {
-                            update("city", loc.city);
-                            update("state", loc.state);
-                            setCityQuery("");
-                            setShowCityPicker(false);
-                          }}
-                          className="flex items-center gap-3 w-full px-4 py-3 text-left text-base hover:bg-gray-50 transition-colors"
-                        >
-                          <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          <span className="font-medium text-gray-700">{loc.full}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  <p className="text-sm text-gray-500">
+                    We&apos;ll send a quick verification code — no password needed.
+                  </p>
                 </div>
-              </div>
 
-              {/* Care types */}
-              <div className="space-y-3">
-                <label className="block text-base font-medium text-gray-700">
-                  What type of care do you provide?
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {CARE_TYPES.map((ct) => {
-                    const selected = data.careTypes.includes(ct);
-                    return (
-                      <button
-                        key={ct}
-                        type="button"
-                        role="switch"
-                        aria-checked={selected}
-                        onClick={() => toggleCareType(ct)}
-                        className={[
-                          "inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200",
-                          selected
-                            ? "bg-primary-50 border-primary-500 text-primary-700"
-                            : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
-                        ].join(" ")}
-                      >
-                        {selected && (
-                          <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                          </svg>
+                {/* City picker */}
+                <div className="space-y-1.5">
+                  <label htmlFor="create-city-picker" className="block text-base font-medium text-gray-700">
+                    City
+                  </label>
+                  <div ref={cityPickerRef} className="relative">
+                    <input
+                      id="create-city-picker"
+                      type="text"
+                      role="combobox"
+                      aria-expanded={showCityPicker && cityPickerResults.length > 0}
+                      aria-autocomplete="list"
+                      value={cityQuery || (data.city ? `${data.city}${data.state ? `, ${data.state}` : ""}` : "")}
+                      onChange={(e) => {
+                        setCityQuery(e.target.value);
+                        setShowCityPicker(true);
+                        if (data.city) {
+                          update("city", "");
+                          update("state", "");
+                        }
+                      }}
+                      onFocus={() => {
+                        preloadCityPicker();
+                        setShowCityPicker(true);
+                        if (data.city && !cityQuery) {
+                          setCityQuery(`${data.city}${data.state ? `, ${data.state}` : ""}`);
+                        }
+                      }}
+                      placeholder="e.g. Houston"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] placeholder:text-gray-400"
+                      autoComplete="off"
+                      required
+                    />
+
+                    {/* City suggestions dropdown */}
+                    {showCityPicker && cityPickerResults.length > 0 && (
+                      <div role="listbox" aria-label="City suggestions" className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-xl shadow-xl ring-1 ring-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
+                        {!cityQuery.trim() && (
+                          <div className="px-4 pt-1 pb-2">
+                            <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
+                          </div>
                         )}
-                        {ct}
-                      </button>
-                    );
-                  })}
+                        {cityPickerResults.map((loc) => (
+                          <button
+                            key={loc.full}
+                            type="button"
+                            role="option"
+                            aria-selected={data.city === loc.city && data.state === loc.state}
+                            onClick={() => {
+                              update("city", loc.city);
+                              update("state", loc.state);
+                              setCityQuery("");
+                              setShowCityPicker(false);
+                            }}
+                            className="flex items-center gap-3 w-full px-4 py-3 text-left text-base hover:bg-gray-50 transition-colors"
+                          >
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span className="font-medium text-gray-700">{loc.full}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <p className="text-sm text-gray-500">
-                  Select at least one. You can update these anytime.
-                </p>
-              </div>
 
-              {submitError && (
-                <div className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-sm" role="alert">
-                  {submitError}
+                {/* Care types */}
+                <div className="space-y-3">
+                  <label className="block text-base font-medium text-gray-700">
+                    What type of care do you provide?
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {CARE_TYPES.map((ct) => {
+                      const selected = data.careTypes.includes(ct);
+                      return (
+                        <button
+                          key={ct}
+                          type="button"
+                          role="switch"
+                          aria-checked={selected}
+                          onClick={() => toggleCareType(ct)}
+                          className={[
+                            "inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200",
+                            selected
+                              ? "bg-primary-50 border-primary-500 text-primary-700"
+                              : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
+                          ].join(" ")}
+                        >
+                          {selected && (
+                            <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                          {ct}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    Select at least one. You can update these anytime.
+                  </p>
                 </div>
-              )}
 
-              {/* Submit button */}
-              <Button
-                type="submit"
-                disabled={
-                  !data.displayName.trim() ||
-                  !data.email.trim() ||
-                  !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email) ||
-                  !data.city.trim() ||
-                  data.careTypes.length === 0 ||
-                  submitting
-                }
-                loading={submitting}
-                className="w-full"
-              >
-                Create profile
-              </Button>
-            </form>
-
-            {/* Back button */}
-            <div className="flex justify-center mt-8">
-              <button
-                type="button"
-                onClick={() => setStep("search")}
-                className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                </svg>
-                Back
-              </button>
+                {submitError && (
+                  <div className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-sm" role="alert">
+                    {submitError}
+                  </div>
+                )}
+              </form>
             </div>
-          </div>
+
+            {/* Sticky bottom bar */}
+            <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 z-40">
+              <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between gap-4">
+                {/* Back button */}
+                <button
+                  type="button"
+                  onClick={() => setStep("search")}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                  </svg>
+                  Back
+                </button>
+
+                {/* Submit button */}
+                <Button
+                  type="submit"
+                  form="create-profile-form"
+                  disabled={
+                    !data.displayName.trim() ||
+                    !data.email.trim() ||
+                    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email) ||
+                    !data.city.trim() ||
+                    data.careTypes.length === 0 ||
+                    submitting
+                  }
+                  loading={submitting}
+                  className="flex-1 max-w-xs"
+                >
+                  Create profile
+                </Button>
+              </div>
+            </div>
+          </>
         )}
 
       </div>

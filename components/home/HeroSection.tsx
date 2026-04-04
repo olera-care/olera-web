@@ -227,7 +227,7 @@ export default function HeroSection() {
 
                     {/* Location Dropdown */}
                     {showLocationDropdown && (
-                      <div className="absolute left-0 top-[calc(100%+6px)] w-full bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 max-h-[340px] overflow-y-auto">
+                      <div className="absolute left-0 top-[calc(100%+6px)] w-full bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-[60] max-h-[340px] overflow-y-auto">
                         {/* Use Current Location */}
                         <button
                           type="button"
@@ -306,20 +306,7 @@ export default function HeroSection() {
                       }`}
                       onClick={() => setShowCareTypeDropdown(!showCareTypeDropdown)}
                     >
-                      <svg
-                        className="w-5 h-5 text-gray-400 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                        />
-                      </svg>
-                      <span className="flex-1 ml-3 text-base text-left text-gray-900 truncate">
+                      <span className="flex-1 text-base text-left text-gray-900 truncate">
                         {careTypeOptions.find(opt => opt.value === careType)?.label}
                       </span>
                       <svg
@@ -334,7 +321,7 @@ export default function HeroSection() {
 
                     {/* Care Type Dropdown Menu */}
                     {showCareTypeDropdown && (
-                      <div className="absolute left-0 top-[calc(100%+8px)] w-full bg-white rounded-2xl shadow-lg shadow-black/8 border border-gray-100 p-1.5 z-50 animate-dropdown-pop">
+                      <div className="absolute left-0 top-[calc(100%+8px)] w-full bg-white rounded-2xl shadow-lg shadow-black/8 border border-gray-100 p-1.5 z-[60] animate-dropdown-pop">
                         {careTypeOptions.map((option) => {
                           const isSelected = careType === option.value;
                           return (

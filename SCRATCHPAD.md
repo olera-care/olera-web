@@ -7,6 +7,15 @@
 
 ## Current Focus
 
+- **Homepage De-Jank + Mega Menu + Search Bar Polish** (branch: `gifted-rosalind`) — READY FOR QA
+  - Fixed mega menu flicker: redesigned hover architecture — backdrop `onMouseEnter` as leave detector instead of fragile `onMouseLeave` on panel
+  - Fixed search bar height shift: `truncate` on care type label prevents "Independent Living" from wrapping
+  - Fixed hero dropdown z-index: stacking context was `z-10`, trapping dropdowns behind provider card hearts — bumped to `z-20`
+  - De-janked search bar inputs: `transition-colors` → `transition-all` for smooth ring animation, fixed heights (`h-12`)
+  - Redesigned care type dropdown: entrance animation, rounded pill items, primary dot selection indicator
+  - Removed decorative heart icon from care type trigger
+  - Files changed: `Navbar.tsx`, `FindCareMegaMenu.tsx`, `HeroSection.tsx`, `globals.css`
+
 - **Provider Image Migration to R2** — DONE ✅
   - `cdn-api.olera.care` CloudFront was dead → 33,319 providers with broken image URLs
   - Browse card fallback fix merged (PR #475)

@@ -64,9 +64,20 @@ export default function UnifiedAuthModal({
   // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      // If initialEmail is provided, skip entry step and go directly to sign-up
+      // Determine initial step based on options
       const hasInitialEmail = options?.initialEmail && options.initialEmail.trim().length > 0;
-      setStep(hasInitialEmail ? "sign-up" : getInitialStep());
+      let initialStep: AuthStep = getInitialStep();
+
+      if (hasInitialEmail) {
+        // If email is provided, go directly to the appropriate step
+        // Respect defaultMode: "sign-in" for returning users, "sign-up" for new users
+        initialStep = options?.defaultMode === "sign-in" ? "sign-in" : "sign-up";
+      } else if (options?.defaultMode === "sign-in") {
+        // No email but defaultMode is sign-in - go to entry (will flow to sign-in after email check)
+        initialStep = "entry";
+      }
+
+      setStep(initialStep);
       setEmail(options?.initialEmail || "");
       setPassword("");
       setDisplayName("");

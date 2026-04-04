@@ -124,9 +124,9 @@ export default function SetUpProfileSection() {
                     className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
 
-                  {/* City dropdown */}
+                  {/* City dropdown — opens UP to avoid card clipping */}
                   {showCitySuggestions && (
-                    <div className="absolute left-0 top-[calc(100%+4px)] w-full bg-white rounded-lg shadow-lg border border-gray-200 py-1.5 z-50 max-h-[200px] overflow-y-auto">
+                    <div className="absolute left-0 bottom-[calc(100%+4px)] w-full bg-white rounded-lg shadow-lg border border-gray-200 py-1.5 z-50 max-h-[200px] overflow-y-auto">
                       {cityResults.slice(0, 5).map((city, index) => (
                         <button
                           key={city.full}

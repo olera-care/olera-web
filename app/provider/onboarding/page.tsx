@@ -1261,8 +1261,8 @@ function ProviderOnboardingContent() {
         {/* ── Simplified Create step: Single-step new account ── */}
         {step === "create" && (
           <>
-            {/* Scrollable form content */}
-            <div className="w-full max-w-lg pb-36">
+            {/* Scrollable form content — centered with room for sticky bar */}
+            <div className="w-full max-w-lg mx-auto pb-24">
               <div className="mb-8">
                 <h1 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 tracking-tight">
                   Let&apos;s set you up
@@ -1409,18 +1409,15 @@ function ProviderOnboardingContent() {
               </form>
             </div>
 
-            {/* Sticky bottom bar */}
+            {/* Sticky bottom bar — aligned with nav */}
             <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 z-40">
-              <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between gap-4">
-                {/* Back button */}
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+                {/* Back button — styled like Exit */}
                 <button
                   type="button"
                   onClick={() => setStep("search")}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                  className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                  </svg>
                   Back
                 </button>
 
@@ -1437,7 +1434,6 @@ function ProviderOnboardingContent() {
                     submitting
                   }
                   loading={submitting}
-                  className="flex-1 max-w-xs"
                 >
                   Create profile
                 </Button>

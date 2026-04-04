@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useClickOutside } from "@/hooks/use-click-outside";
+import { useCitySearch } from "@/hooks/use-city-search";
 
 const PREFILL_KEY = "olera_provider_search_prefill";
 
@@ -11,18 +13,30 @@ export default function SetUpProfileSection() {
   const { user, openAuth } = useAuth();
   const router = useRouter();
   const [businessName, setBusinessName] = useState("");
-  const [zipCode, setZipCode] = useState("");
+  const [cityInput, setCityInput] = useState("");
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const cityDropdownRef = useRef<HTMLDivElement>(null);
+
+  const { results: cityResults, preload: preloadCities } = useCitySearch(cityInput);
+  useClickOutside(cityDropdownRef, () => setShowCityDropdown(false));
+
+  const handleSelectCity = (cityFull: string) => {
+    setCityInput(cityFull);
+    setSelectedCity(cityFull);
+    setShowCityDropdown(false);
+  };
 
   const handleGetStarted = () => {
     const name = businessName.trim();
-    const zip = zipCode.trim();
-    if (name || zip) {
+    const city = selectedCity || cityInput.trim();
+    if (name || city) {
       try {
         sessionStorage.setItem(
           PREFILL_KEY,
           JSON.stringify({
             searchQuery: name,
-            locationQuery: zip,
+            locationQuery: city,
           }),
         );
       } catch {
@@ -36,6 +50,8 @@ export default function SetUpProfileSection() {
       openAuth({ intent: "provider" });
     }
   };
+
+  const showCitySuggestions = showCityDropdown && cityResults.length > 0;
 
   return (
     <section className="py-16 md:py-24 bg-white">
@@ -72,23 +88,80 @@ export default function SetUpProfileSection() {
                   />
                 </div>
 
-                <div>
+                <div ref={cityDropdownRef} className="relative">
                   <label
-                    htmlFor="zip-code"
+                    htmlFor="city-input"
                     className="block text-sm font-medium text-gray-700 mb-1.5"
                   >
-                    Zip code
+                    City
                   </label>
                   <input
-                    id="zip-code"
+                    id="city-input"
                     type="text"
-                    value={zipCode}
-                    onChange={(e) => setZipCode(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleGetStarted();
+                    value={cityInput}
+                    onChange={(e) => {
+                      setCityInput(e.target.value);
+                      setSelectedCity(null);
+                      setShowCityDropdown(true);
                     }}
+                    onFocus={() => {
+                      setShowCityDropdown(true);
+                      preloadCities();
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        if (showCitySuggestions && cityResults.length > 0) {
+                          handleSelectCity(cityResults[0].full);
+                        } else {
+                          handleGetStarted();
+                        }
+                      }
+                      if (e.key === "Escape") {
+                        setShowCityDropdown(false);
+                      }
+                    }}
+                    placeholder="e.g. Houston, TX"
                     className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
+
+                  {/* City dropdown */}
+                  {showCitySuggestions && (
+                    <div className="absolute left-0 top-[calc(100%+4px)] w-full bg-white rounded-lg shadow-lg border border-gray-200 py-1.5 z-50 max-h-[200px] overflow-y-auto">
+                      {cityResults.slice(0, 5).map((city, index) => (
+                        <button
+                          key={city.full}
+                          type="button"
+                          onClick={() => handleSelectCity(city.full)}
+                          className={`flex items-center gap-2 w-full px-3 py-2 text-left text-sm transition-colors ${
+                            index === 0
+                              ? "bg-gray-50 text-gray-900"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          <svg
+                            className="w-4 h-4 text-gray-400 shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                          </svg>
+                          <span>{city.full}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 

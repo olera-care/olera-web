@@ -23,7 +23,6 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFindCareOpen, setIsFindCareOpen] = useState(false);
   const megaMenuCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const megaMenuOpenedAt = useRef<number>(0);
   const [isMobileCareOpen, setIsMobileCareOpen] = useState(false);
   // Mobile accordion states — only one open at a time
   const [mobileAccordion, setMobileAccordion] = useState<"account" | "discover" | "hub" | "settings" | null>(null);
@@ -718,7 +717,6 @@ export default function Navbar() {
                     ) : (
                       <div onMouseEnter={() => {
                         if (megaMenuCloseTimer.current) { clearTimeout(megaMenuCloseTimer.current); megaMenuCloseTimer.current = null; }
-                        megaMenuOpenedAt.current = Date.now();
                         setIsFindCareOpen(true);
                       }}>
                         <button
@@ -1453,11 +1451,7 @@ export default function Navbar() {
           setIsFindCareOpen(true);
         }}
         onMouseLeave={() => {
-          // Ignore mouseLeave during the entry animation — the slide-down
-          // animation sweeps the panel through the cursor, triggering a
-          // spurious leave event that causes open→close→reopen flicker.
-          if (Date.now() - megaMenuOpenedAt.current < 300) return;
-          megaMenuCloseTimer.current = setTimeout(() => setIsFindCareOpen(false), 150);
+          megaMenuCloseTimer.current = setTimeout(() => setIsFindCareOpen(false), 200);
         }}
       />
     </>

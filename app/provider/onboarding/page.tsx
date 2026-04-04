@@ -126,6 +126,7 @@ function ProviderOnboardingContent() {
   const [potentialMatches, setPotentialMatches] = useState<Provider[]>([]);
   const [businessProfileMatches, setBusinessProfileMatches] = useState<BusinessProfileMatch[]>([]);
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
+  const [showAllMatches, setShowAllMatches] = useState(false);
 
   // Location input state (separate from name search)
   const [locationQuery, setLocationQuery] = useState("");
@@ -1615,9 +1616,23 @@ function ProviderOnboardingContent() {
           const totalMatches = businessProfileMatches.length + potentialMatches.length;
           const isSingleMatch = totalMatches === 1;
 
+          // Limit visible cards to keep CTA in viewport
+          const MAX_VISIBLE = 2;
+          const hasMore = totalMatches > MAX_VISIBLE;
+
+          // Calculate how many to show from each list
+          const visibleBusinessProfiles = showAllMatches
+            ? businessProfileMatches
+            : businessProfileMatches.slice(0, MAX_VISIBLE);
+          const remainingSlots = showAllMatches
+            ? potentialMatches.length
+            : Math.max(0, MAX_VISIBLE - visibleBusinessProfiles.length);
+          const visibleProviders = potentialMatches.slice(0, remainingSlots);
+          const hiddenCount = totalMatches - visibleBusinessProfiles.length - visibleProviders.length;
+
           return (
             <div className="w-full max-w-lg mx-auto pb-12">
-              <div className="mb-8">
+              <div className="mb-6">
                 <h1 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 tracking-tight">
                   {isSingleMatch
                     ? "We found a page that might be yours"
@@ -1630,200 +1645,190 @@ function ProviderOnboardingContent() {
                 </p>
               </div>
 
-              {/* Business profile matches (already set up) */}
-              {businessProfileMatches.length > 0 && (
-                <div className="space-y-4 mb-6">
-                  {businessProfileMatches.map((profile) => {
-                    const isOwnedBySomeoneElse = user && account?.id && profile.account_id !== account.id;
-                    const locationText = [profile.city, profile.state].filter(Boolean).join(", ");
+              {/* Combined matches list */}
+              <div className="space-y-3">
+                {/* Business profile matches (already set up) */}
+                {visibleBusinessProfiles.map((profile) => {
+                  const isOwnedBySomeoneElse = user && account?.id && profile.account_id !== account.id;
+                  const locationText = [profile.city, profile.state].filter(Boolean).join(", ");
 
-                    const handleBusinessProfileClick = () => {
-                      if (isOwnedBySomeoneElse) {
-                        // Logged in but someone else owns it → dispute flow
-                        if (profile.source_provider_id) {
-                          router.push(`/provider/${profile.slug || profile.source_provider_id}/onboard?provider_id=${profile.source_provider_id}&state=already-claimed`);
-                        } else {
-                          router.push(`/contact?subject=${encodeURIComponent(`Ownership dispute: ${profile.display_name}`)}&profile_id=${profile.id}`);
-                        }
+                  const handleBusinessProfileClick = () => {
+                    if (isOwnedBySomeoneElse) {
+                      if (profile.source_provider_id) {
+                        router.push(`/provider/${profile.slug || profile.source_provider_id}/onboard?provider_id=${profile.source_provider_id}&state=already-claimed`);
                       } else {
-                        // Logged out → prompt to sign in
-                        openAuth({
-                          defaultMode: "sign-in",
-                          headline: "Sign in to manage this page",
-                          intent: "provider",
-                          providerType: "organization",
-                          initialEmail: profile.email || data.email || undefined,
-                          deferred: {
-                            action: "create_profile",
-                            returnUrl: "/provider",
-                          },
-                        });
+                        router.push(`/contact?subject=${encodeURIComponent(`Ownership dispute: ${profile.display_name}`)}&profile_id=${profile.id}`);
                       }
-                    };
+                    } else {
+                      openAuth({
+                        defaultMode: "sign-in",
+                        headline: "Sign in to manage this page",
+                        intent: "provider",
+                        providerType: "organization",
+                        initialEmail: profile.email || data.email || undefined,
+                        deferred: {
+                          action: "create_profile",
+                          returnUrl: "/provider",
+                        },
+                      });
+                    }
+                  };
 
-                    return (
-                      <div
-                        key={profile.id}
-                        className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
-                      >
-                        <div className="flex">
-                          {/* Image */}
-                          <div className="w-36 sm:w-40 min-h-[140px] sm:min-h-[160px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
-                            {profile.image_url ? (
-                              <Image
-                                src={profile.image_url}
-                                alt={profile.display_name}
-                                fill
-                                className="object-cover"
-                                sizes="160px"
-                              />
-                            ) : (
-                              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <div className="w-12 h-12 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
-                                  <span className="text-lg font-bold text-primary-400">
-                                    {(profile.display_name || "")
-                                      .split(/\s+/)
-                                      .map((w) => w[0])
-                                      .filter(Boolean)
-                                      .slice(0, 2)
-                                      .join("")
-                                      .toUpperCase()}
-                                  </span>
-                                </div>
+                  return (
+                    <div
+                      key={profile.id}
+                      className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
+                    >
+                      <div className="flex">
+                        {/* Image - compact on mobile */}
+                        <div className="w-28 sm:w-36 min-h-[100px] sm:min-h-[130px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
+                          {profile.image_url ? (
+                            <Image
+                              src={profile.image_url}
+                              alt={profile.display_name}
+                              fill
+                              className="object-cover"
+                              sizes="144px"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+                                <span className="text-base sm:text-lg font-bold text-primary-400">
+                                  {(profile.display_name || "")
+                                    .split(/\s+/)
+                                    .map((w) => w[0])
+                                    .filter(Boolean)
+                                    .slice(0, 2)
+                                    .join("")
+                                    .toUpperCase()}
+                                </span>
                               </div>
-                            )}
-                          </div>
-
-                          {/* Content */}
-                          <div className="flex-1 p-5 min-w-0 flex flex-col">
-                            {locationText && (
-                              <p className="text-sm text-gray-500 mb-1">{locationText}</p>
-                            )}
-                            <h3 className="text-lg font-bold text-gray-900 leading-snug line-clamp-2">
-                              {profile.display_name}
-                            </h3>
-
-                            {/* Helper text - concise */}
-                            <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-                              {isOwnedBySomeoneElse
-                                ? "Managed by another account."
-                                : "Sign in to manage this page."}
-                            </p>
-
-                            {/* Spacer to push button down */}
-                            <div className="flex-1 min-h-3" />
-
-                            {/* Action button */}
-                            <div className="flex justify-end">
-                              <button
-                                type="button"
-                                onClick={handleBusinessProfileClick}
-                                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
-                                  isOwnedBySomeoneElse
-                                    ? "text-amber-600 ring-1 ring-amber-200 hover:ring-amber-300 hover:bg-amber-50"
-                                    : "text-primary-600 ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50"
-                                }`}
-                              >
-                                {isOwnedBySomeoneElse ? "Dispute →" : "Sign in →"}
-                              </button>
                             </div>
+                          )}
+                        </div>
+
+                        {/* Content - compact padding */}
+                        <div className="flex-1 p-3 sm:p-4 min-w-0 flex flex-col">
+                          {locationText && (
+                            <p className="text-xs sm:text-sm text-gray-500 mb-0.5">{locationText}</p>
+                          )}
+                          <h3 className="text-base sm:text-lg font-bold text-gray-900 leading-snug line-clamp-1">
+                            {profile.display_name}
+                          </h3>
+                          <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                            {isOwnedBySomeoneElse ? "Managed by another account." : "Sign in to manage."}
+                          </p>
+                          <div className="flex-1 min-h-2" />
+                          <div className="flex justify-end">
+                            <button
+                              type="button"
+                              onClick={handleBusinessProfileClick}
+                              className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-all ${
+                                isOwnedBySomeoneElse
+                                  ? "text-amber-600 ring-1 ring-amber-200 hover:ring-amber-300 hover:bg-amber-50"
+                                  : "text-primary-600 ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50"
+                              }`}
+                            >
+                              {isOwnedBySomeoneElse ? "Dispute →" : "Sign in →"}
+                            </button>
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                    </div>
+                  );
+                })}
 
-              {/* Provider matches (unclaimed pages from olera-providers) */}
-              {potentialMatches.length > 0 && (
-                <div className="space-y-4">
-                    {potentialMatches.map((provider) => {
-                      const image = getProviderImage(provider);
-                      const locationText = [provider.city, provider.state].filter(Boolean).join(", ");
+                {/* Provider matches (unclaimed pages) */}
+                {visibleProviders.map((provider) => {
+                  const image = getProviderImage(provider);
+                  const locationText = [provider.city, provider.state].filter(Boolean).join(", ");
 
-                      return (
-                        <div
-                          key={provider.provider_id}
-                          className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
-                        >
-                          <div className="flex">
-                            {/* Image */}
-                            <div className="w-36 sm:w-40 min-h-[140px] sm:min-h-[160px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
-                              {image ? (
-                                <Image
-                                  src={image}
-                                  alt={provider.provider_name}
-                                  fill
-                                  className="object-cover"
-                                  sizes="160px"
-                                />
-                              ) : (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                  <div className="w-12 h-12 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
-                                    <span className="text-lg font-bold text-primary-400">
-                                      {(provider.provider_name || "")
-                                        .split(/\s+/)
-                                        .map((w) => w[0])
-                                        .filter(Boolean)
-                                        .slice(0, 2)
-                                        .join("")
-                                        .toUpperCase()}
-                                    </span>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Content */}
-                            <div className="flex-1 p-5 min-w-0 flex flex-col">
-                              {locationText && (
-                                <p className="text-sm text-gray-500 mb-1">{locationText}</p>
-                              )}
-                              <h3 className="text-lg font-bold text-gray-900 leading-snug line-clamp-2">
-                                {provider.provider_name}
-                              </h3>
-
-                              {/* Helper text */}
-                              <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-                                This page hasn&apos;t been claimed yet.
-                              </p>
-
-                              {/* Spacer to push button down */}
-                              <div className="flex-1 min-h-3" />
-
-                              {/* Action button */}
-                              <div className="flex justify-end">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    try {
-                                      sessionStorage.setItem(
-                                        "olera_claim_provider_cache",
-                                        JSON.stringify({
-                                          provider_id: provider.provider_id,
-                                          provider_name: provider.provider_name,
-                                          provider_images: provider.provider_images,
-                                          address: provider.address,
-                                          city: provider.city,
-                                          state: provider.state,
-                                          slug: provider.slug,
-                                        })
-                                      );
-                                    } catch {}
-                                    router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}`);
-                                  }}
-                                  className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
-                                >
-                                  Claim this page →
-                                </button>
+                  return (
+                    <div
+                      key={provider.provider_id}
+                      className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
+                    >
+                      <div className="flex">
+                        {/* Image - compact on mobile */}
+                        <div className="w-28 sm:w-36 min-h-[100px] sm:min-h-[130px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
+                          {image ? (
+                            <Image
+                              src={image}
+                              alt={provider.provider_name}
+                              fill
+                              className="object-cover"
+                              sizes="144px"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+                                <span className="text-base sm:text-lg font-bold text-primary-400">
+                                  {(provider.provider_name || "")
+                                    .split(/\s+/)
+                                    .map((w) => w[0])
+                                    .filter(Boolean)
+                                    .slice(0, 2)
+                                    .join("")
+                                    .toUpperCase()}
+                                </span>
                               </div>
                             </div>
+                          )}
+                        </div>
+
+                        {/* Content - compact padding */}
+                        <div className="flex-1 p-3 sm:p-4 min-w-0 flex flex-col">
+                          {locationText && (
+                            <p className="text-xs sm:text-sm text-gray-500 mb-0.5">{locationText}</p>
+                          )}
+                          <h3 className="text-base sm:text-lg font-bold text-gray-900 leading-snug line-clamp-1">
+                            {provider.provider_name}
+                          </h3>
+                          <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                            Unclaimed page.
+                          </p>
+                          <div className="flex-1 min-h-2" />
+                          <div className="flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                try {
+                                  sessionStorage.setItem(
+                                    "olera_claim_provider_cache",
+                                    JSON.stringify({
+                                      provider_id: provider.provider_id,
+                                      provider_name: provider.provider_name,
+                                      provider_images: provider.provider_images,
+                                      address: provider.address,
+                                      city: provider.city,
+                                      state: provider.state,
+                                      slug: provider.slug,
+                                    })
+                                  );
+                                } catch {}
+                                router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}`);
+                              }}
+                              className="px-3 py-1.5 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
+                            >
+                              Claim →
+                            </button>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Show more button */}
+              {hasMore && !showAllMatches && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllMatches(true)}
+                  className="mt-3 w-full py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  Show {hiddenCount} more {hiddenCount === 1 ? "result" : "results"}
+                </button>
               )}
 
               {/* CTA card - matches search results styling */}

@@ -319,7 +319,7 @@ export default function HeroSection() {
                           d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                         />
                       </svg>
-                      <span className="flex-1 ml-3 text-base text-left text-gray-900">
+                      <span className="flex-1 ml-3 text-base text-left text-gray-900 truncate">
                         {careTypeOptions.find(opt => opt.value === careType)?.label}
                       </span>
                       <svg
@@ -334,27 +334,32 @@ export default function HeroSection() {
 
                     {/* Care Type Dropdown Menu */}
                     {showCareTypeDropdown && (
-                      <div className="absolute left-0 top-[calc(100%+8px)] w-full bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
-                        {careTypeOptions.map((option) => (
-                          <button
-                            key={option.value}
-                            type="button"
-                            onClick={() => {
-                              setCareType(option.value);
-                              setShowCareTypeDropdown(false);
-                            }}
-                            className={`flex items-center justify-between w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
-                              careType === option.value ? "bg-primary-50 text-primary-700" : "text-gray-900"
-                            }`}
-                          >
-                            <span className="font-medium">{option.label}</span>
-                            {careType === option.value && (
-                              <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
-                          </button>
-                        ))}
+                      <div className="absolute left-0 top-[calc(100%+8px)] w-full bg-white rounded-2xl shadow-lg shadow-black/8 border border-gray-100 p-1.5 z-50 animate-dropdown-pop">
+                        {careTypeOptions.map((option) => {
+                          const isSelected = careType === option.value;
+                          return (
+                            <button
+                              key={option.value}
+                              type="button"
+                              onClick={() => {
+                                setCareType(option.value);
+                                setShowCareTypeDropdown(false);
+                              }}
+                              className={`flex items-center gap-3 w-full px-3 py-2.5 text-left rounded-lg transition-all duration-150 ${
+                                isSelected
+                                  ? "bg-primary-50 text-primary-700"
+                                  : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                              }`}
+                            >
+                              <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${
+                                isSelected ? "bg-primary-500" : "bg-transparent"
+                              }`} />
+                              <span className={`text-[15px] ${isSelected ? "font-semibold" : "font-medium"}`}>
+                                {option.label}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

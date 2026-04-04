@@ -149,7 +149,7 @@ export default function HeroSection() {
       </div>
 
       {/* Content — left-aligned, bottom-anchored */}
-      <div className="relative z-10 flex flex-col justify-end h-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px] pb-6 sm:pb-14 lg:pb-16">
+      <div className="relative z-20 flex flex-col justify-end h-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px] pb-6 sm:pb-14 lg:pb-16">
         <div className="max-w-7xl mx-auto w-full relative px-4 sm:px-6 lg:px-8">
           <div className="max-w-xl">
             <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-white">

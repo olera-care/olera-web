@@ -149,7 +149,7 @@ export default function HeroSection() {
       </div>
 
       {/* Content — left-aligned, bottom-anchored */}
-      <div className="relative z-10 flex flex-col justify-end h-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px] pb-6 sm:pb-14 lg:pb-16">
+      <div className="relative z-20 flex flex-col justify-end h-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px] pb-6 sm:pb-14 lg:pb-16">
         <div className="max-w-7xl mx-auto w-full relative px-4 sm:px-6 lg:px-8">
           <div className="max-w-xl">
             <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-white">
@@ -167,7 +167,7 @@ export default function HeroSection() {
                   {/* Location Input with Dropdown */}
                   <div className="relative flex-1" ref={locationDropdownRef}>
                     <div
-                      className={`flex items-center px-4 py-3 bg-gray-50 rounded-xl border transition-colors cursor-text ${
+                      className={`flex items-center h-12 px-4 bg-gray-50 rounded-xl border transition-all duration-150 cursor-text ${
                         showLocationDropdown ? "border-primary-400 ring-2 ring-primary-100" : "border-gray-200 hover:border-gray-300"
                       }`}
                       onClick={() => {
@@ -227,7 +227,7 @@ export default function HeroSection() {
 
                     {/* Location Dropdown */}
                     {showLocationDropdown && (
-                      <div className="absolute left-0 top-[calc(100%+6px)] w-full bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 max-h-[340px] overflow-y-auto">
+                      <div className="absolute left-0 top-[calc(100%+6px)] w-full bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-[60] max-h-[340px] animate-dropdown-pop overflow-y-auto">
                         {/* Use Current Location */}
                         <button
                           type="button"
@@ -301,25 +301,12 @@ export default function HeroSection() {
                   {/* Care Type Dropdown */}
                   <div className="relative flex-1" ref={careTypeDropdownRef}>
                     <div
-                      className={`flex items-center px-4 py-3 bg-gray-50 rounded-xl border transition-colors cursor-pointer ${
+                      className={`flex items-center h-12 px-4 bg-gray-50 rounded-xl border transition-all duration-150 cursor-pointer ${
                         showCareTypeDropdown ? "border-primary-400 ring-2 ring-primary-100" : "border-gray-200 hover:border-gray-300"
                       }`}
                       onClick={() => setShowCareTypeDropdown(!showCareTypeDropdown)}
                     >
-                      <svg
-                        className="w-5 h-5 text-gray-400 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                        />
-                      </svg>
-                      <span className="flex-1 ml-3 text-base text-left text-gray-900">
+                      <span className="flex-1 text-base text-left text-gray-900 truncate">
                         {careTypeOptions.find(opt => opt.value === careType)?.label}
                       </span>
                       <svg
@@ -334,27 +321,32 @@ export default function HeroSection() {
 
                     {/* Care Type Dropdown Menu */}
                     {showCareTypeDropdown && (
-                      <div className="absolute left-0 top-[calc(100%+8px)] w-full bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
-                        {careTypeOptions.map((option) => (
-                          <button
-                            key={option.value}
-                            type="button"
-                            onClick={() => {
-                              setCareType(option.value);
-                              setShowCareTypeDropdown(false);
-                            }}
-                            className={`flex items-center justify-between w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
-                              careType === option.value ? "bg-primary-50 text-primary-700" : "text-gray-900"
-                            }`}
-                          >
-                            <span className="font-medium">{option.label}</span>
-                            {careType === option.value && (
-                              <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
-                          </button>
-                        ))}
+                      <div className="absolute left-0 top-[calc(100%+8px)] w-full bg-white rounded-2xl shadow-lg shadow-black/8 border border-gray-100 p-1.5 z-[60] animate-dropdown-pop">
+                        {careTypeOptions.map((option) => {
+                          const isSelected = careType === option.value;
+                          return (
+                            <button
+                              key={option.value}
+                              type="button"
+                              onClick={() => {
+                                setCareType(option.value);
+                                setShowCareTypeDropdown(false);
+                              }}
+                              className={`flex items-center gap-3 w-full px-3 py-2.5 text-left rounded-lg transition-all duration-150 ${
+                                isSelected
+                                  ? "bg-primary-50 text-primary-700"
+                                  : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                              }`}
+                            >
+                              <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${
+                                isSelected ? "bg-primary-500" : "bg-transparent"
+                              }`} />
+                              <span className={`text-[15px] ${isSelected ? "font-semibold" : "font-medium"}`}>
+                                {option.label}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -362,7 +354,7 @@ export default function HeroSection() {
                   {/* Search Button */}
                   <button
                     type="submit"
-                    className="bg-primary-600 hover:bg-primary-700 text-white font-semibold text-base px-6 py-3 rounded-xl shadow-lg shadow-primary-600/25 transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-2"
+                    className="bg-primary-600 hover:bg-primary-700 text-white font-semibold text-base px-6 h-12 rounded-xl shadow-lg shadow-primary-600/25 transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-2"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

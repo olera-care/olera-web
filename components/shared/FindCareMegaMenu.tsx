@@ -89,7 +89,7 @@ export default function FindCareMegaMenu({
 
   return (
     <>
-      {/* Backdrop — blur active element before close to prevent scroll-to-footer */}
+      {/* Backdrop — closes on click; starts close timer on hover (mouse left menu area) */}
       <div
         className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm animate-fade-in"
         onMouseDown={() => {
@@ -99,13 +99,13 @@ export default function FindCareMegaMenu({
           }
           onClose();
         }}
+        onMouseEnter={onMouseLeave}
       />
 
-      {/* Mega-menu panel */}
+      {/* Mega-menu panel — no onMouseLeave (backdrop handles that) */}
       <div
         className="fixed top-[64px] left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-xl animate-slide-down"
         onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="flex gap-12">

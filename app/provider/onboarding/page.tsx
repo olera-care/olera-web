@@ -1837,7 +1837,7 @@ function ProviderOnboardingContent() {
                   {isSingleMatch ? "Not this one?" : "None of these?"}
                 </p>
                 <p className="text-base text-gray-500 mb-5">
-                  Create a new page from scratch
+                  We&apos;ll use the info you provided.
                 </p>
                 <div className="flex items-center justify-center gap-4">
                   <button

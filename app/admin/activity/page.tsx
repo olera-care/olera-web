@@ -20,10 +20,13 @@ interface ProviderInfo {
 interface FamilyInfo {
   name: string;
   email: string | null;
+  phone: string | null;
   city: string | null;
   state: string | null;
   care_types: string[];
   timeline: string | null;
+  contact_preference: string | null;
+  relationship: string | null;
   account_id: string | null;
 }
 
@@ -472,10 +475,18 @@ function FamilyFeedView({ events, loading, total, page, setPage, pageSize, selec
               </Link>
               {event.family && (
                 <span className="text-xs text-gray-400">
-                  {event.family.care_types[0] && categoryLabel(event.family.care_types[0])}
-                  {event.family.city && ` \u00b7 ${event.family.city}, ${event.family.state}`}
-                  {event.family.timeline && ` \u00b7 ${TIMELINE_LABELS[event.family.timeline] || event.family.timeline}`}
+                  {[
+                    event.family.email,
+                    event.family.care_types[0] && categoryLabel(event.family.care_types[0]),
+                    event.family.city && `${event.family.city}, ${event.family.state}`,
+                    event.family.timeline && (TIMELINE_LABELS[event.family.timeline] || event.family.timeline),
+                  ].filter(Boolean).join(" \u00b7 ")}
                 </span>
+              )}
+              {event.event_type === "connection_sent" && (event.metadata as Record<string, string>)?.provider_name && (
+                <p className="text-xs text-gray-500 mt-0.5 truncate">
+                  → {String((event.metadata as Record<string, string>).provider_name)}
+                </p>
               )}
               {event.event_type === "question_asked" && String((event.metadata as Record<string, string>)?.question_preview || "") !== "" && (
                 <p className="text-xs text-gray-500 mt-0.5 truncate">
@@ -552,8 +563,11 @@ function FamiliesPeopleView({ families, loading, total, page, setPage, pageSize,
                 </div>
                 {f.family && (
                   <span className="text-xs text-gray-400">
-                    {f.family.care_types[0] && categoryLabel(f.family.care_types[0])}
-                    {f.family.city && ` \u00b7 ${f.family.city}, ${f.family.state}`}
+                    {[
+                      f.family.email,
+                      f.family.care_types[0] && categoryLabel(f.family.care_types[0]),
+                      f.family.city && `${f.family.city}, ${f.family.state}`,
+                    ].filter(Boolean).join(" \u00b7 ")}
                   </span>
                 )}
                 {Object.keys(f.event_types).length > 0 && (

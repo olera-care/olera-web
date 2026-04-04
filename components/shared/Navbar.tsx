@@ -22,6 +22,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFindCareOpen, setIsFindCareOpen] = useState(false);
+  const megaMenuCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isMobileCareOpen, setIsMobileCareOpen] = useState(false);
   // Mobile accordion states — only one open at a time
   const [mobileAccordion, setMobileAccordion] = useState<"account" | "discover" | "hub" | "settings" | null>(null);
@@ -162,11 +163,21 @@ export default function Navbar() {
   useEffect(() => {
     if (!isFindCareOpen) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsFindCareOpen(false);
+      if (e.key === "Escape") {
+        if (megaMenuCloseTimer.current) { clearTimeout(megaMenuCloseTimer.current); megaMenuCloseTimer.current = null; }
+        setIsFindCareOpen(false);
+      }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [isFindCareOpen]);
+
+  // Clean up mega menu close timer on unmount
+  useEffect(() => {
+    return () => {
+      if (megaMenuCloseTimer.current) clearTimeout(megaMenuCloseTimer.current);
+    };
+  }, []);
 
   // Close user/account menu on outside click (blur-before-close prevents scroll-to-footer)
   useClickOutside(userMenuRef, () => setIsUserMenuOpen(false), isUserMenuOpen);
@@ -185,6 +196,7 @@ export default function Navbar() {
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsUserMenuOpen(false);
+    if (megaMenuCloseTimer.current) { clearTimeout(megaMenuCloseTimer.current); megaMenuCloseTimer.current = null; }
     setIsFindCareOpen(false);
   }, [pathname]);
 
@@ -703,10 +715,14 @@ export default function Navbar() {
                         Find Care
                       </Link>
                     ) : (
-                      <div onMouseEnter={() => setIsFindCareOpen(true)}>
+                      <div onMouseEnter={() => {
+                        if (megaMenuCloseTimer.current) { clearTimeout(megaMenuCloseTimer.current); megaMenuCloseTimer.current = null; }
+                        setIsFindCareOpen(true);
+                      }}>
                         <button
                           type="button"
                           onClick={() => {
+                            if (megaMenuCloseTimer.current) { clearTimeout(megaMenuCloseTimer.current); megaMenuCloseTimer.current = null; }
                             setIsFindCareOpen(false);
                             router.push("/browse");
                           }}
@@ -1426,9 +1442,17 @@ export default function Navbar() {
       {/* Find Care Mega Menu */}
       <FindCareMegaMenu
         isOpen={isFindCareOpen}
-        onClose={() => setIsFindCareOpen(false)}
-        onMouseEnter={() => setIsFindCareOpen(true)}
-        onMouseLeave={() => setIsFindCareOpen(false)}
+        onClose={() => {
+          if (megaMenuCloseTimer.current) { clearTimeout(megaMenuCloseTimer.current); megaMenuCloseTimer.current = null; }
+          setIsFindCareOpen(false);
+        }}
+        onMouseEnter={() => {
+          if (megaMenuCloseTimer.current) { clearTimeout(megaMenuCloseTimer.current); megaMenuCloseTimer.current = null; }
+          setIsFindCareOpen(true);
+        }}
+        onMouseLeave={() => {
+          megaMenuCloseTimer.current = setTimeout(() => setIsFindCareOpen(false), 200);
+        }}
       />
     </>
   );

@@ -26,7 +26,8 @@ interface BusinessProfileMatch {
   email: string | null;
   city: string | null;
   state: string | null;
-  profile_image_url: string | null;
+  slug: string;
+  image_url: string | null;
   account_id: string;
   source_provider_id: string | null;
   claim_state: string | null;
@@ -551,7 +552,7 @@ function ProviderOnboardingContent() {
     if (email) {
       const { data: bpEmailMatches } = await supabase
         .from("business_profiles")
-        .select("id, display_name, email, city, state, profile_image_url, account_id, source_provider_id, claim_state")
+        .select("id, display_name, email, city, state, slug, image_url, account_id, source_provider_id, claim_state")
         .ilike("email", email)
         .limit(5);
 
@@ -564,7 +565,7 @@ function ProviderOnboardingContent() {
     if (name && city) {
       const { data: bpNameCityMatches } = await supabase
         .from("business_profiles")
-        .select("id, display_name, email, city, state, profile_image_url, account_id, source_provider_id, claim_state")
+        .select("id, display_name, email, city, state, slug, image_url, account_id, source_provider_id, claim_state")
         .ilike("display_name", `%${name}%`)
         .ilike("city", `%${city}%`)
         .limit(5);
@@ -614,8 +615,8 @@ function ProviderOnboardingContent() {
           // If user is logged in, check if any match belongs to them
           if (user && account?.id) {
             const ownProfile = businessMatches.find((bp) => bp.account_id === account.id);
-            if (ownProfile) {
-              // They already own this profile - redirect to dashboard
+            if (ownProfile && !isAdding) {
+              // They already own this profile and aren't adding another - redirect to dashboard
               setCheckingDuplicates(false);
               router.replace("/provider");
               return;
@@ -1640,9 +1641,9 @@ function ProviderOnboardingContent() {
                       <div className="flex">
                         {/* Image */}
                         <div className="w-32 min-h-[140px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
-                          {profile.profile_image_url ? (
+                          {profile.image_url ? (
                             <Image
-                              src={profile.profile_image_url}
+                              src={profile.image_url}
                               alt={profile.display_name}
                               fill
                               className="object-cover"
@@ -1694,13 +1695,9 @@ function ProviderOnboardingContent() {
                               type="button"
                               onClick={() => {
                                 // Go to dispute flow - redirect to onboard page with dispute state
-                                if (profile.source_provider_id) {
-                                  router.push(`/provider/onboard?provider_id=${profile.source_provider_id}&state=already-claimed`);
-                                } else {
-                                  // No source provider - show inline dispute form
-                                  // For now, redirect to contact
-                                  router.push(`/contact?subject=Profile%20dispute&profile_id=${profile.id}`);
-                                }
+                                // Use the profile's slug for the URL, fall back to source_provider_id or profile id
+                                const slugOrId = profile.slug || profile.source_provider_id || profile.id;
+                                router.push(`/provider/${slugOrId}/onboard?provider_id=${profile.source_provider_id || profile.id}&state=already-claimed`);
                               }}
                               className="px-4 py-2 text-sm font-semibold text-amber-700 rounded-lg ring-1 ring-amber-200 hover:ring-amber-300 hover:bg-amber-50 transition-all"
                             >

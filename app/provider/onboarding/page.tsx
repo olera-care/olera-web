@@ -490,33 +490,58 @@ function ProviderOnboardingContent() {
     const email = data.email.trim().toLowerCase();
     const city = data.city.trim();
 
-    // Build query: email match OR (name + city match)
-    let query = supabase
-      .from("olera-providers")
-      .select("*")
-      .not("deleted", "is", true);
+    // Not enough info to check
+    if (!email && !(name && city)) return [];
 
-    // If we have email, check for email match
-    // If we have name + city, also check for name + city match
-    if (email && city && name) {
-      query = query.or(`email.ilike.${email},and(provider_name.ilike.%${name}%,city.ilike.%${city}%)`);
-    } else if (email) {
-      query = query.ilike("email", email);
-    } else if (name && city) {
-      query = query.ilike("provider_name", `%${name}%`).ilike("city", `%${city}%`);
-    } else {
-      return []; // Not enough info to check
+    const allMatches: Provider[] = [];
+
+    // Query 1: Email match (if we have an email)
+    if (email) {
+      const { data: emailMatches } = await supabase
+        .from("olera-providers")
+        .select("*")
+        .ilike("email", email)
+        .not("deleted", "is", true)
+        .limit(5);
+
+      if (emailMatches) {
+        allMatches.push(...(emailMatches as Provider[]));
+      }
     }
 
-    const { data: matches } = await query.limit(5);
-    return (matches as Provider[]) || [];
+    // Query 2: Name + city match (if we have both)
+    if (name && city) {
+      const { data: nameCityMatches } = await supabase
+        .from("olera-providers")
+        .select("*")
+        .ilike("provider_name", `%${name}%`)
+        .ilike("city", `%${city}%`)
+        .not("deleted", "is", true)
+        .limit(5);
+
+      if (nameCityMatches) {
+        allMatches.push(...(nameCityMatches as Provider[]));
+      }
+    }
+
+    // Dedupe by provider_id
+    const seen = new Set<string>();
+    const uniqueMatches: Provider[] = [];
+    for (const match of allMatches) {
+      if (!seen.has(match.provider_id)) {
+        seen.add(match.provider_id);
+        uniqueMatches.push(match);
+      }
+    }
+
+    return uniqueMatches.slice(0, 5);
   };
 
   const handleSubmit = async (skipDuplicateCheck = false) => {
     if (!data.displayName.trim()) return;
 
     // Check for duplicates before proceeding (unless skipped)
-    if (!skipDuplicateCheck && !user) {
+    if (!skipDuplicateCheck) {
       setCheckingDuplicates(true);
       try {
         const matches = await checkForDuplicates();

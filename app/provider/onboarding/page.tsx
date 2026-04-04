@@ -11,34 +11,13 @@ import { useCitySearch } from "@/hooks/use-city-search";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
-import WizardNav from "@/components/ui/WizardNav";
 import Pagination from "@/components/ui/Pagination";
 import OtpInput from "@/components/auth/OtpInput";
-import GooglePlaceSearch from "@/components/providers/GooglePlaceSearch";
 import type { Provider } from "@/lib/types/provider";
 
-type ProviderType = "organization" | "caregiver";
-type Step = "resume" | 1 | "search" | "verify" | "create" | 2 | 3 | 4 | 5;
+type Step = "search" | "verify" | "create";
 
-const TYPE_KEY = "olera_onboarding_provider_type";
-const DATA_KEY = "olera_provider_wizard_data";
-const STEP_KEY = "olera_onboarding_step";
-const SEARCH_KEY = "olera_onboarding_search";
 const RESULTS_PER_PAGE = 6;
-
-const ORG_CATEGORIES: { value: string; label: string }[] = [
-  { value: "assisted_living", label: "Assisted Living" },
-  { value: "independent_living", label: "Independent Living" },
-  { value: "memory_care", label: "Memory Care" },
-  { value: "nursing_home", label: "Nursing Home / Skilled Nursing" },
-  { value: "home_care_agency", label: "Home Care Agency" },
-  { value: "home_health_agency", label: "Home Health Agency" },
-  { value: "hospice_agency", label: "Hospice" },
-  { value: "inpatient_hospice", label: "Inpatient Hospice" },
-  { value: "rehab_facility", label: "Rehabilitation Facility" },
-  { value: "adult_day_care", label: "Adult Day Care" },
-  { value: "wellness_center", label: "Wellness Center" },
-];
 
 const CARE_TYPES = [
   "Assisted Living",
@@ -52,34 +31,18 @@ const CARE_TYPES = [
 
 interface WizardData {
   displayName: string;
-  description: string;
-  category: string;
+  email: string;
   city: string;
   state: string;
-  zip: string;
-  phone: string;
-  email: string;
-  website: string;
   careTypes: string[];
-  googlePlaceId: string;
-  googlePlaceName: string;
-  googleRating: string;
 }
 
 const EMPTY: WizardData = {
   displayName: "",
-  description: "",
-  category: "",
+  email: "",
   city: "",
   state: "",
-  zip: "",
-  phone: "",
-  email: "",
-  website: "",
   careTypes: [],
-  googlePlaceId: "",
-  googlePlaceName: "",
-  googleRating: "",
 };
 
 function getProviderImage(provider: Provider): string | null {
@@ -130,15 +93,10 @@ function ProviderOnboardingContent() {
   // Validate nextUrl to prevent open redirect - only allow known safe paths
   const nextUrl = rawNextUrl?.startsWith("/provider/medjobs/candidates/") ? rawNextUrl : null;
   const { user, account, profiles, isLoading, refreshAccountData, switchProfile, openAuth } = useAuth();
-  // If step=search is in URL, start at search step with organization type pre-selected
-  const [step, setStep] = useState<Step>(initialStep === "search" ? "search" : 1);
-  const [providerType, setProviderType] = useState<ProviderType | null>(initialStep === "search" ? "organization" : null);
+  const [step, setStep] = useState<Step>("search");
   const [data, setData] = useState<WizardData>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  // Track if we're still checking for landing page prefill (to avoid flashing step 1)
-  // When step=search is in URL (from MedJobs hire flow), skip prefill check immediately
-  const [checkingPrefill, setCheckingPrefill] = useState(initialStep !== "search");
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Provider[]>([]);
@@ -164,26 +122,6 @@ function ProviderOnboardingContent() {
   useClickOutside(locationDropdownRef, () => setShowLocationDropdown(false));
   useClickOutside(cityPickerRef, () => setShowCityPicker(false));
 
-  // Persist step + search query so resume works properly
-  useEffect(() => {
-    if (step === "resume" || step === 1) return; // don't overwrite during init
-    try {
-      localStorage.setItem(STEP_KEY, String(step));
-    } catch {
-      // localStorage unavailable
-    }
-  }, [step]);
-
-  useEffect(() => {
-    try {
-      if (searchQuery) {
-        localStorage.setItem(SEARCH_KEY, searchQuery);
-      }
-    } catch {
-      // localStorage unavailable
-    }
-  }, [searchQuery]);
-
   // Claim verification state
   const [claimingProvider, setClaimingProvider] = useState<Provider | null>(null);
   const [claimSession] = useState(() => crypto.randomUUID());
@@ -202,110 +140,34 @@ function ProviderOnboardingContent() {
   const [noAccessSubmitting, setNoAccessSubmitting] = useState(false);
   const [noAccessSuccess, setNoAccessSuccess] = useState(false);
 
-  // Resume detection (auth check moved to handleSubmit)
+  // Redirect if user already has a provider profile (unless adding another)
   useEffect(() => {
     if (isLoading) return;
 
-    // If logged in and they already have a provider profile, redirect appropriately
-    // (unless they're explicitly adding another profile, or claiming via ?claim=)
     if (user) {
       const hasProviderProfile = (profiles || []).some(
         (p) => p.type === "organization" || p.type === "caregiver"
       );
       if (hasProviderProfile && !isAdding) {
-        // If coming from MedJobs hire flow, return to the candidate page
         if (nextUrl) {
           router.replace(nextUrl);
         } else {
           router.replace("/provider");
         }
-        return;
       }
     }
-
-    // When adding a new profile, clear stale wizard data so we start fresh
-    if (user && isAdding) {
-      try {
-        localStorage.removeItem(TYPE_KEY);
-        localStorage.removeItem(DATA_KEY);
-        localStorage.removeItem(STEP_KEY);
-        localStorage.removeItem(SEARCH_KEY);
-
-      } catch {
-        // localStorage unavailable
-      }
-    }
-
-    // Check if coming from landing page with search prefill
-    // If so, skip resume detection — the prefill useEffect will handle routing
-    try {
-      const hasPrefill = sessionStorage.getItem("olera_provider_search_prefill");
-      if (hasPrefill) {
-        // Don't show resume screen — let prefill handler take over
-        return;
-      }
-    } catch {
-      // sessionStorage unavailable
-    }
-
-    // If step=search is in URL (from MedJobs hire flow), skip resume detection
-    if (initialStep === "search") {
-      setCheckingPrefill(false);
-      return;
-    }
-
-    // Check for a previously started session (only if no prefill and no URL step)
-    try {
-      const savedType = localStorage.getItem(TYPE_KEY) as ProviderType | null;
-
-      // Legacy caregiver sessions (from "coming soon" era) → redirect to MedJobs
-      if (savedType === "caregiver") {
-        localStorage.removeItem(TYPE_KEY);
-        localStorage.removeItem(DATA_KEY);
-        localStorage.removeItem(STEP_KEY);
-        localStorage.removeItem(SEARCH_KEY);
-        router.push("/medjobs/apply");
-        return;
-      }
-
-      if (savedType === "organization") {
-        setProviderType(savedType);
-        const savedData = localStorage.getItem(DATA_KEY);
-        if (savedData) {
-          try {
-            setData({ ...EMPTY, ...JSON.parse(savedData) });
-          } catch {
-            // ignore corrupt data
-          }
-        }
-        // Restore search query so it's visible when resuming
-        try {
-          const savedSearch = localStorage.getItem(SEARCH_KEY);
-          if (savedSearch) setSearchQuery(savedSearch);
-        } catch {
-          // ignore
-        }
-        setStep("resume");
-      }
-    } catch {
-      // localStorage unavailable
-    }
-  }, [user, profiles, isLoading, isAdding, router]);
+  }, [user, profiles, isLoading, isAdding, nextUrl, router]);
 
   // Read landing-page prefill from sessionStorage (set by /for-providers CTA buttons)
-  // If prefill exists, auto-select organization and skip directly to search step
+  // If prefill exists, auto-execute the search
   const prefillApplied = useRef(false);
   useEffect(() => {
     if (prefillApplied.current) return;
-    if (isLoading) return; // Wait for auth to settle (but don't require user)
 
     try {
       const raw = sessionStorage.getItem("olera_provider_search_prefill");
-      if (!raw) {
-        // No prefill — done checking, show normal flow
-        setCheckingPrefill(false);
-        return;
-      }
+      if (!raw) return;
+
       sessionStorage.removeItem("olera_provider_search_prefill");
       prefillApplied.current = true;
 
@@ -313,24 +175,13 @@ function ProviderOnboardingContent() {
       if (sq) setSearchQuery(sq);
       if (lq) setLocationQuery(lq);
 
-      // Auto-select organization and skip to search step if we have prefill
+      // Auto-execute search if we have prefill
       if (sq || lq) {
-        setProviderType("organization");
-        try {
-          localStorage.setItem(TYPE_KEY, "organization");
-        } catch {
-          // localStorage unavailable
-        }
-        setStep("search");
-        setCheckingPrefill(false); // Done checking, now on search step
-
-        // Auto-execute search after a tick so state settles
         setTimeout(() => {
           setSearching(true);
           setSearchError("");
           setCurrentPage(1);
 
-          // Trigger the search programmatically
           const doSearch = async () => {
             const name = sq || "";
             const loc = lq || "";
@@ -395,26 +246,14 @@ function ProviderOnboardingContent() {
 
           doSearch();
         }, 0);
-      } else {
-        // Prefill existed but was empty — done checking
-        setCheckingPrefill(false);
       }
     } catch {
       // sessionStorage unavailable or corrupt
-      setCheckingPrefill(false);
     }
-  }, [isLoading, user]);
+  }, []);
 
   const update = (key: keyof WizardData, value: string | string[]) => {
-    setData((prev) => {
-      const next = { ...prev, [key]: value };
-      try {
-        localStorage.setItem(DATA_KEY, JSON.stringify(next));
-      } catch {
-        // localStorage unavailable (SSR or private mode)
-      }
-      return next;
-    });
+    setData((prev) => ({ ...prev, [key]: value }));
   };
 
   const toggleCareType = (ct: string) => {
@@ -422,78 +261,6 @@ function ProviderOnboardingContent() {
       ? data.careTypes.filter((t) => t !== ct)
       : [...data.careTypes, ct];
     update("careTypes", next);
-  };
-
-  const handleSelectType = (type: ProviderType) => {
-    setProviderType(type);
-    try {
-      localStorage.setItem(TYPE_KEY, type);
-    } catch {
-      // localStorage unavailable
-    }
-  };
-
-  const handleStep1Next = () => {
-    if (!providerType) return;
-    if (providerType === "organization") {
-      setStep("search");
-      // Auto-search if prefilled values exist
-      if (searchQuery.trim() || locationQuery.trim()) {
-        setTimeout(() => {
-          handleSearch({ preventDefault: () => {} } as React.FormEvent);
-        }, 0);
-      }
-    } else {
-      setStep(2);
-    }
-  };
-
-  const handleResume = () => {
-    let savedStep: Step | null = null;
-    try {
-      const raw = localStorage.getItem(STEP_KEY);
-      if (raw === "2" || raw === "3" || raw === "4" || raw === "5") savedStep = Number(raw) as 2 | 3 | 4 | 5;
-      else if (raw === "search" || raw === "verify") savedStep = raw;
-    } catch {
-      // localStorage unavailable
-    }
-
-    if (providerType === "organization") {
-      // For org flow: if they were on step 2-5, go there directly.
-      if (savedStep === 2 || savedStep === 3 || savedStep === 4 || savedStep === 5) {
-        setStep(savedStep);
-      } else {
-        // "verify" step can't resume (claimingProvider not persisted, claimSession not available).
-        // Fall through to search — user can re-initiate claim from search results.
-        // Default: go to search. If there's a saved query, auto-search.
-        setStep("search");
-        if (searchQuery.trim()) {
-          // Auto-trigger search after a tick so the step renders first
-          setTimeout(() => {
-            handleSearch({ preventDefault: () => {} } as React.FormEvent);
-          }, 0);
-        }
-      }
-    } else {
-      // Caregiver flow redirects to MedJobs
-      router.push("/medjobs/apply");
-    }
-  };
-
-  const handleStartFresh = () => {
-    try {
-      localStorage.removeItem(TYPE_KEY);
-      localStorage.removeItem(DATA_KEY);
-      localStorage.removeItem(STEP_KEY);
-      localStorage.removeItem(SEARCH_KEY);
-
-    } catch {
-      // localStorage unavailable
-    }
-    setProviderType(null);
-    setData(EMPTY);
-    setClaimingProvider(null);
-    setStep(1);
   };
 
   // Resend cooldown timer for claim verification
@@ -553,16 +320,7 @@ function ProviderOnboardingContent() {
         setVerifyError(result.error || "Incorrect code. Please try again.");
         return;
       }
-      // Verified — clear wizard state and redirect
-      // (claimed providers already have their data from olera-providers)
-      try {
-        localStorage.removeItem(TYPE_KEY);
-        localStorage.removeItem(DATA_KEY);
-        localStorage.removeItem(STEP_KEY);
-        localStorage.removeItem(SEARCH_KEY);
-      } catch {
-        // localStorage unavailable
-      }
+      // Verified — redirect to provider dashboard
       await refreshAccountData();
       // If coming from MedJobs hire flow, return to the candidate page
       if (nextUrl) {
@@ -721,23 +479,14 @@ function ProviderOnboardingContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           intent: "provider",
-          providerType,
+          providerType: "organization",
           displayName: data.displayName,
-          orgName:
-            providerType === "organization" ? data.displayName : undefined,
-          description: data.description || undefined,
-          category: data.category || undefined,
-          phone: data.phone || undefined,
-          email: data.email || undefined,
-          website: data.website || undefined,
+          orgName: data.displayName,
           city: data.city || undefined,
           state: data.state || undefined,
-          zip: data.zip || undefined,
+          email: data.email || undefined,
           careTypes: data.careTypes,
           isAddingProfile: isAdding,
-          googlePlaceId: data.googlePlaceId || undefined,
-          googlePlaceName: data.googlePlaceName || undefined,
-          googleRating: data.googleRating ? Number(data.googleRating) : undefined,
         }),
       });
 
@@ -749,16 +498,6 @@ function ProviderOnboardingContent() {
       }
 
       const { profileId } = result;
-
-      try {
-        localStorage.removeItem(TYPE_KEY);
-        localStorage.removeItem(DATA_KEY);
-        localStorage.removeItem(STEP_KEY);
-        localStorage.removeItem(SEARCH_KEY);
-
-      } catch {
-        // localStorage unavailable (SSR or private mode)
-      }
 
       await refreshAccountData();
 
@@ -779,27 +518,6 @@ function ProviderOnboardingContent() {
       setSubmitting(false);
     }
   };
-
-  const displayName =
-    account?.display_name || user?.email?.split("@")[0] || "there";
-
-  // WizardNav step mapping — org flow: 6 steps
-  const isOrg = providerType === "organization";
-  const wizardTotal = 6;
-  const wizardCurrentMap: Record<string, number> = { "1": 1, search: 2, verify: 2, "2": 3, "3": 4, "4": 5, "5": 6 };
-  const wizardCurrentStep = wizardCurrentMap[String(step)] ?? 1;
-  const showWizardNav = step !== "resume" && step !== "search" && step !== "create";
-
-  // Show loading while auth is loading or while checking for landing page prefill
-  // Exception: when step=search is in URL, show the search UI immediately (auth can settle in background)
-  const canShowSearchImmediately = initialStep === "search" && step === "search";
-  if ((isLoading || checkingPrefill) && !canShowSearchImmediately) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   // Prevent flash: if logged-in user already has a provider profile and isn't adding another,
   // render nothing while the useEffect redirect fires.
@@ -833,129 +551,12 @@ function ProviderOnboardingContent() {
             href="/"
             className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
           >
-            Save & exit
+            Exit
           </Link>
         </div>
       </nav>
 
       <div key={String(step)} className={`flex-1 animate-wizard-in ${isResultsGrid ? "" : showResultsBg ? "px-4 py-12" : "px-4 flex items-center justify-center py-16"}`}>
-
-        {/* ── Resume screen ── */}
-        {step === "resume" && (
-          <div className="w-full max-w-lg">
-            <div className="text-center mb-8 lg:mb-10">
-              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
-                Welcome back, {displayName}
-              </h1>
-              <p className="text-gray-500 mt-3 text-base">
-                Pick up where you left off.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              {/* Continue card — primary action */}
-              <button
-                type="button"
-                onClick={handleResume}
-                className="w-full flex items-center gap-5 p-6 rounded-2xl border-2 border-primary-200 hover:border-primary-400 hover:shadow-md transition-all duration-200 bg-white text-left group"
-              >
-                <div className="w-14 h-14 rounded-2xl bg-primary-100 group-hover:bg-primary-100 flex items-center justify-center shrink-0 transition-colors duration-200">
-                  {providerType === "organization" ? (
-                    <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                  ) : (
-                    <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-primary-600 uppercase tracking-wide mb-1">Continue where you left off</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {providerType === "organization" ? "Organization" : "Private Caregiver"}
-                  </p>
-                </div>
-                <svg className="w-5 h-5 text-primary-300 group-hover:text-primary-500 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-
-              {/* Start fresh card — secondary action */}
-              <button
-                type="button"
-                onClick={handleStartFresh}
-                className="w-full flex items-center gap-5 p-6 rounded-2xl border-2 border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-200 bg-white text-left group"
-              >
-                <div className="w-14 h-14 rounded-2xl bg-gray-100 group-hover:bg-gray-100 flex items-center justify-center shrink-0 transition-colors duration-200">
-                  <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Start over</p>
-                  <p className="text-lg font-semibold text-gray-900">Start from scratch</p>
-                </div>
-                <svg className="w-5 h-5 text-gray-300 group-hover:text-gray-400 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 1: Choose provider type ── */}
-        {step === 1 && (
-          <div className="w-full max-w-2xl pb-24">
-            <div className="text-center mb-6 lg:mb-8">
-              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
-                How would you describe yourself?
-              </h1>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-5">
-              {/* Organization */}
-              <button
-                type="button"
-                onClick={() => handleSelectType("organization")}
-                className={`group flex flex-col items-center text-center p-4 lg:p-10 rounded-2xl border-2 transition-all duration-200 cursor-pointer bg-white ${
-                  providerType === "organization"
-                    ? "border-primary-500 ring-2 ring-primary-100 shadow-md"
-                    : "border-gray-200 hover:border-primary-400 hover:shadow-md"
-                }`}
-              >
-                <div className={`w-14 h-14 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl flex items-center justify-center mb-3 lg:mb-6 transition-colors duration-200 ${
-                  providerType === "organization" ? "bg-primary-100" : "bg-primary-50 group-hover:bg-primary-100"
-                }`}>
-                  <svg className="w-7 h-7 lg:w-10 lg:h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </div>
-                <h2 className="text-base lg:text-xl font-semibold text-gray-900 mb-1 lg:mb-2">Organization</h2>
-                <p className="text-sm lg:text-base text-gray-500 leading-relaxed">
-                  Assisted living, home care agency, memory care facility, and more
-                </p>
-              </button>
-
-              {/* Private Caregiver — redirects to MedJobs */}
-              <button
-                type="button"
-                onClick={() => router.push("/medjobs/apply")}
-                className="group flex flex-col items-center text-center p-4 lg:p-10 rounded-2xl border-2 border-gray-200 hover:border-primary-400 hover:shadow-md transition-all duration-200 cursor-pointer bg-white"
-              >
-                <div className="w-14 h-14 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl bg-primary-50 group-hover:bg-primary-100 flex items-center justify-center mb-3 lg:mb-6 transition-colors duration-200">
-                  <svg className="w-7 h-7 lg:w-10 lg:h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <h2 className="text-base lg:text-xl font-semibold text-gray-900 mb-1 lg:mb-2">Private Caregiver</h2>
-                <p className="text-sm lg:text-base text-gray-500 leading-relaxed">
-                  Individual caregiver offering personal care services
-                </p>
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* ── Search step: Find your organization ── */}
         {step === "search" && (
@@ -1074,20 +675,6 @@ function ProviderOnboardingContent() {
                     create a new account
                   </button>
                 </p>
-
-                {/* Back button */}
-                <div className="flex justify-center mt-8">
-                  <button
-                    type="button"
-                    onClick={() => setStep(1)}
-                    className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                    </svg>
-                    Back
-                  </button>
-                </div>
               </div>
             )}
 
@@ -1333,7 +920,7 @@ function ProviderOnboardingContent() {
                     </p>
                     <button
                       type="button"
-                      onClick={() => setStep(2)}
+                      onClick={() => setStep("create")}
                       className="px-7 py-3 text-base font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-500 transition-all shadow-sm"
                     >
                       Set up a new page
@@ -1354,20 +941,6 @@ function ProviderOnboardingContent() {
                     showItemCount={false}
                     className="justify-center"
                   />
-
-                  {/* Back link */}
-                  <div className="flex justify-center mt-8">
-                    <button
-                      type="button"
-                      onClick={() => setStep(1)}
-                      className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                      </svg>
-                      Back
-                    </button>
-                  </div>
                 </div>
               </div>
             )}
@@ -1398,24 +971,12 @@ function ProviderOnboardingContent() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setStep(2)}
+                    onClick={() => setStep("create")}
                     className="px-6 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-500 transition-colors"
                   >
                     Create new listing
                   </button>
                 </div>
-
-                {/* Back link */}
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors mt-8"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                  </svg>
-                  Back
-                </button>
               </div>
             )}
           </>
@@ -1832,410 +1393,7 @@ function ProviderOnboardingContent() {
           </div>
         )}
 
-        {/* ── Step 2: About (legacy, for resume compatibility) ── */}
-        {step === 2 && (
-          <div className="w-full max-w-lg pb-24">
-            <div className="text-center mb-6 lg:mb-8">
-              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
-                Tell us about your organization
-              </h1>
-              <p className="text-gray-500 mt-2 lg:mt-3 text-base">
-                This is what families will see on your public profile.
-              </p>
-            </div>
-
-            <div className="space-y-5">
-              <Input
-                label="Organization name"
-                value={data.displayName}
-                onChange={(e) =>
-                  update("displayName", (e.target as HTMLInputElement).value)
-                }
-                required
-                placeholder="e.g. Sunrise Senior Living"
-              />
-
-              {providerType === "organization" && (
-                <Select
-                  label="Organization type"
-                  options={ORG_CATEGORIES}
-                  value={data.category}
-                  onChange={(val) => update("category", val)}
-                  placeholder="Select a type"
-                />
-              )}
-
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 3: Location ── */}
-        {step === 3 && (
-          <div className="w-full max-w-lg pb-24">
-            <div className="text-center mb-6 lg:mb-8">
-              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
-                Where are you located?
-              </h1>
-              <p className="text-gray-500 mt-2 lg:mt-3 text-base">
-                Families search by location — this helps them find you.
-              </p>
-            </div>
-
-            <div className="space-y-5">
-              {/* City search picker */}
-              <div className="space-y-1.5">
-                <label htmlFor="city-picker" className="block text-base font-medium text-gray-700">
-                  City
-                </label>
-                <div ref={cityPickerRef} className="relative">
-                  <input
-                    id="city-picker"
-                    type="text"
-                    role="combobox"
-                    aria-expanded={showCityPicker && cityPickerResults.length > 0}
-                    aria-autocomplete="list"
-                    aria-controls="city-picker-listbox"
-                    value={cityQuery || (data.city ? `${data.city}${data.state ? `, ${data.state}` : ""}` : "")}
-                    onChange={(e) => {
-                      setCityQuery(e.target.value);
-                      setShowCityPicker(true);
-                      // Clear selected city when user types
-                      if (data.city) {
-                        update("city", "");
-                        update("state", "");
-                      }
-                    }}
-                    onFocus={() => {
-                      preloadCityPicker();
-                      setShowCityPicker(true);
-                      // If showing a selected city, put it into query for editing
-                      if (data.city && !cityQuery) {
-                        setCityQuery(`${data.city}${data.state ? `, ${data.state}` : ""}`);
-                      }
-                    }}
-                    placeholder="Search for a city…"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] placeholder:text-gray-400"
-                    autoComplete="off"
-                  />
-
-                  {/* City suggestions dropdown */}
-                  {showCityPicker && cityPickerResults.length > 0 && (
-                    <div id="city-picker-listbox" role="listbox" aria-label="City suggestions" className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-xl shadow-xl ring-1 ring-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
-                      {!cityQuery.trim() && (
-                        <div className="px-4 pt-1 pb-2">
-                          <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
-                        </div>
-                      )}
-                      {cityPickerResults.map((loc) => (
-                        <button
-                          key={loc.full}
-                          type="button"
-                          role="option"
-                          aria-selected={data.city === loc.city && data.state === loc.state}
-                          onClick={() => {
-                            update("city", loc.city);
-                            update("state", loc.state);
-                            setCityQuery("");
-                            setShowCityPicker(false);
-                          }}
-                          className="flex items-center gap-3 w-full px-4 py-3 text-left text-base hover:bg-gray-50 transition-colors"
-                        >
-                          <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          <span className="font-medium text-gray-700">{loc.full}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <Input
-                label="ZIP code (Optional)"
-                value={data.zip}
-                onChange={(e) =>
-                  update("zip", (e.target as HTMLInputElement).value)
-                }
-                placeholder="e.g. 94102"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 4: Contact ── */}
-        {step === 4 && (
-          <div className="w-full max-w-lg pb-24">
-            <div className="text-center mb-6 lg:mb-8">
-              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
-                How can families reach you?
-              </h1>
-              <p className="text-gray-500 mt-2 lg:mt-3 text-base">
-                Give families a way to connect with you.
-              </p>
-            </div>
-
-            <div className="space-y-5">
-              <Input
-                label="Phone"
-                type="tel"
-                value={data.phone}
-                onChange={(e) =>
-                  update("phone", (e.target as HTMLInputElement).value)
-                }
-                placeholder="(555) 123-4567"
-                required
-              />
-
-              <Input
-                label="Email"
-                type="email"
-                value={data.email}
-                onChange={(e) =>
-                  update("email", (e.target as HTMLInputElement).value)
-                }
-                placeholder="contact@example.com"
-                required
-              />
-
-              <Input
-                label="Website (Optional)"
-                type="url"
-                value={data.website}
-                onChange={(e) =>
-                  update("website", (e.target as HTMLInputElement).value)
-                }
-                placeholder="https://example.com"
-              />
-
-              <GooglePlaceSearch
-                value={data.googlePlaceId || null}
-                selectedName={data.googlePlaceName || null}
-                onSelect={(placeId, name, rating) => {
-                  update("googlePlaceId", placeId);
-                  update("googlePlaceName", name);
-                  update("googleRating", rating != null ? String(rating) : "");
-                }}
-                onClear={() => {
-                  update("googlePlaceId", "");
-                  update("googlePlaceName", "");
-                  update("googleRating", "");
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 5: Services + Review + Submit ── */}
-        {step === 5 && (
-          <div className="w-full max-w-lg pb-24">
-            <div className="text-center mb-6 lg:mb-8">
-              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
-                Services offered
-              </h1>
-              <p className="text-gray-500 mt-2 lg:mt-3 text-base">
-                Select at least one care type you provide. You can always update these later.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3 mb-10">
-              {CARE_TYPES.map((ct) => {
-                const selected = data.careTypes.includes(ct);
-                return (
-                  <button
-                    key={ct}
-                    type="button"
-                    role="switch"
-                    aria-checked={selected}
-                    onClick={() => toggleCareType(ct)}
-                    className={[
-                      "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-[15px] font-medium border transition-all duration-200",
-                      selected
-                        ? "bg-primary-50 border-primary-500 text-primary-700"
-                        : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
-                    ].join(" ")}
-                  >
-                    {selected && (
-                      <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                    {ct}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Mini listing card preview */}
-            <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
-              {/* Gradient header with initials */}
-              <div className="h-28 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative flex items-center justify-center">
-                <div className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
-                  <span className="text-xl font-bold text-primary-500">
-                    {(data.displayName || "")
-                      .split(/\s+/)
-                      .map((w) => w[0])
-                      .filter(Boolean)
-                      .slice(0, 2)
-                      .join("")
-                      .toUpperCase() || "?"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Card content */}
-              <div className="p-5">
-                {/* Category label */}
-                {data.category && (
-                  <p className="text-xs font-medium text-primary-600 uppercase tracking-wide mb-1">
-                    {ORG_CATEGORIES.find((c) => c.value === data.category)?.label || data.category}
-                  </p>
-                )}
-
-                {/* Name */}
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {data.displayName || "Your listing"}
-                </h3>
-
-                {/* Location */}
-                {(data.city || data.state) && (
-                  <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
-                    <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    {[data.city, data.state].filter(Boolean).join(", ")}
-                  </div>
-                )}
-
-                {/* Service tags */}
-                {data.careTypes.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-3">
-                    {data.careTypes.slice(0, 3).map((ct) => (
-                      <span key={ct} className="bg-primary-50 text-primary-700 text-xs px-2.5 py-1 rounded-full">
-                        {ct}
-                      </span>
-                    ))}
-                    {data.careTypes.length > 3 && (
-                      <span className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full">
-                        +{data.careTypes.length - 3} more
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Contact line */}
-                {(data.phone || data.email) && (
-                  <div className="flex items-center gap-4 text-xs text-gray-500 pt-3 border-t border-gray-100">
-                    {data.phone && (
-                      <span className="flex items-center gap-1">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
-                        {data.phone}
-                      </span>
-                    )}
-                    {data.email && (
-                      <span className="flex items-center gap-1 min-w-0">
-                        <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        <span className="truncate">{data.email}</span>
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {submitError && (
-              <div
-                className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-sm mt-5"
-                role="alert"
-              >
-                {submitError}
-              </div>
-            )}
-
-            <p className="text-center text-sm text-gray-500 mt-5">
-              You can add more details — photos, certifications, pricing — after setup.
-            </p>
-          </div>
-        )}
-
       </div>
-
-      {/* Sticky bottom wizard nav — all steps except resume */}
-      {showWizardNav && (
-        <WizardNav
-          currentStep={wizardCurrentStep}
-          totalSteps={wizardTotal}
-          onBack={
-            step === 1
-              ? undefined
-              : step === "verify"
-              ? () => {
-                  setStep("search");
-                  setVerifyCode("");
-                  setVerifyError("");
-                  setVerifyEmailHint("");
-                  setVerifyNoEmail(false);
-                  setShowNoAccess(false);
-                  setNoAccessSuccess(false);
-                }
-              : step === 2
-              ? () => setStep("search")
-              : step === 3
-              ? () => setStep(2)
-              : step === 4
-              ? () => setStep(3)
-              : step === 5
-              ? () => setStep(4)
-              : undefined
-          }
-          onNext={
-            step === 1
-              ? handleStep1Next
-              : step === "verify"
-              ? handleVerifyCode
-              : step === 5
-              ? handleSubmit
-              : step === 2
-              ? () => setStep(3)
-              : step === 3
-              ? () => setStep(4)
-              : () => setStep(5)
-          }
-          nextLabel={
-            step === 1
-              ? "Next"
-              : step === "verify"
-              ? "Verify"
-              : step === 5
-              ? "Create profile"
-              : "Next"
-          }
-          nextDisabled={
-            step === 1
-              ? !providerType
-              : step === "verify"
-              ? verifyCode.length !== 6 || verifyChecking
-              : step === 2
-              ? !data.displayName.trim() || (providerType === "organization" && !data.category)
-              : step === 3
-              ? !data.city.trim()
-              : step === 4
-              ? !data.phone.trim() || data.phone.replace(/\D/g, "").length < 10 || !data.email.trim() || !/\S+@\S+\.\S+/.test(data.email)
-              : step === 5
-              ? !data.displayName.trim() || data.careTypes.length === 0 || submitting
-              : false
-          }
-          nextLoading={
-            step === "verify" ? verifyChecking : step === 5 ? submitting : false
-          }
-        />
-      )}
     </div>
   );
 }

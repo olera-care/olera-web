@@ -1629,6 +1629,7 @@ function ProviderOnboardingContent() {
                 <div className="space-y-4 mb-6">
                   {businessProfileMatches.map((profile) => {
                     const isOwnedBySomeoneElse = user && account?.id && profile.account_id !== account.id;
+                    const isClaimed = profile.claim_state === "claimed";
                     const locationText = [profile.city, profile.state].filter(Boolean).join(", ");
 
                     const handleBusinessProfileClick = () => {
@@ -1658,27 +1659,25 @@ function ProviderOnboardingContent() {
                     };
 
                     return (
-                      <button
+                      <div
                         key={profile.id}
-                        type="button"
-                        onClick={handleBusinessProfileClick}
-                        className="w-full bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200 text-left"
+                        className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
                       >
                         <div className="flex">
                           {/* Image */}
-                          <div className="w-32 min-h-[120px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
+                          <div className="w-40 min-h-[160px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
                             {profile.image_url ? (
                               <Image
                                 src={profile.image_url}
                                 alt={profile.display_name}
                                 fill
                                 className="object-cover"
-                                sizes="128px"
+                                sizes="160px"
                               />
                             ) : (
                               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <div className="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
-                                  <span className="text-sm font-bold text-primary-400">
+                                <div className="w-12 h-12 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+                                  <span className="text-lg font-bold text-primary-400">
                                     {(profile.display_name || "")
                                       .split(/\s+/)
                                       .map((w) => w[0])
@@ -1693,31 +1692,57 @@ function ProviderOnboardingContent() {
                           </div>
 
                           {/* Content */}
-                          <div className="flex-1 p-4 min-w-0 flex flex-col justify-center">
+                          <div className="flex-1 p-5 min-w-0">
                             {locationText && (
-                              <p className="text-xs text-gray-500 mb-0.5">{locationText}</p>
+                              <p className="text-sm text-gray-500 mb-1 tracking-wide">{locationText}</p>
                             )}
-                            <h3 className="text-base font-bold text-gray-900 leading-snug line-clamp-1">
-                              {profile.display_name}
-                            </h3>
+                            <div className="flex items-start justify-between gap-3 mb-1.5">
+                              <h3 className="text-lg font-bold text-gray-900 leading-snug line-clamp-1">
+                                {profile.display_name}
+                              </h3>
+                              {/* Managed badge - shows this profile is already managed by someone */}
+                              {isClaimed && (
+                                <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-500 ring-1 ring-gray-200">
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                  </svg>
+                                  Managed
+                                </span>
+                              )}
+                            </div>
 
                             {/* Status text for logged-in users seeing someone else's profile */}
                             {isOwnedBySomeoneElse && (
-                              <p className="text-xs text-gray-500 mt-1">Managed by another account</p>
+                              <p className="text-sm text-gray-500 mb-2">This page is managed by another account</p>
                             )}
 
-                            {/* CTA row */}
-                            <div className="flex items-center justify-between mt-2">
-                              <span className={`text-sm font-semibold ${isOwnedBySomeoneElse ? "text-amber-600" : "text-primary-600"}`}>
-                                {isOwnedBySomeoneElse ? "Dispute ownership" : "Claim this page"}
-                              </span>
-                              <svg className={`w-4 h-4 ${isOwnedBySomeoneElse ? "text-amber-600" : "text-primary-600"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                              </svg>
+                            {/* Action button */}
+                            <div className="flex justify-end mt-2">
+                              <button
+                                type="button"
+                                onClick={handleBusinessProfileClick}
+                                className={`px-4 sm:px-5 py-2.5 text-sm sm:text-base font-semibold rounded-xl transition-all ${
+                                  isOwnedBySomeoneElse
+                                    ? "text-amber-600 ring-1 ring-amber-200 hover:ring-amber-300 hover:bg-amber-50"
+                                    : "text-primary-600 ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50"
+                                }`}
+                              >
+                                {isOwnedBySomeoneElse ? (
+                                  <>
+                                    <span className="sm:hidden">Dispute &rarr;</span>
+                                    <span className="hidden sm:inline">Dispute ownership &rarr;</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="sm:hidden">Claim &rarr;</span>
+                                    <span className="hidden sm:inline">Claim this page &rarr;</span>
+                                  </>
+                                )}
+                              </button>
                             </div>
                           </div>
                         </div>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>

@@ -19,6 +19,19 @@ type Step = "search" | "verify" | "create" | "potential-matches";
 
 const RESULTS_PER_PAGE = 6;
 
+// Business profile match (from business_profiles table - already claimed/created profiles)
+interface BusinessProfileMatch {
+  id: string;
+  display_name: string;
+  email: string | null;
+  city: string | null;
+  state: string | null;
+  profile_image_url: string | null;
+  account_id: string;
+  source_provider_id: string | null;
+  claim_state: string | null;
+}
+
 const CARE_TYPES = [
   "Assisted Living",
   "Memory Care",
@@ -110,6 +123,7 @@ function ProviderOnboardingContent() {
   const [currentPage, setCurrentPage] = useState(1);
   // Potential matches for duplicate detection
   const [potentialMatches, setPotentialMatches] = useState<Provider[]>([]);
+  const [businessProfileMatches, setBusinessProfileMatches] = useState<BusinessProfileMatch[]>([]);
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
 
   // Location input state (separate from name search)
@@ -482,8 +496,12 @@ function ProviderOnboardingContent() {
   };
 
   // Check for potential duplicate providers before creating
-  const checkForDuplicates = async (): Promise<Provider[]> => {
-    if (!isSupabaseConfigured()) return [];
+  // Returns both olera-providers matches and business_profiles matches
+  const checkForDuplicates = async (): Promise<{
+    providerMatches: Provider[];
+    businessMatches: BusinessProfileMatch[];
+  }> => {
+    if (!isSupabaseConfigured()) return { providerMatches: [], businessMatches: [] };
 
     const supabase = createClient();
     const name = data.displayName.trim();
@@ -491,9 +509,12 @@ function ProviderOnboardingContent() {
     const city = data.city.trim();
 
     // Not enough info to check
-    if (!email && !(name && city)) return [];
+    if (!email && !(name && city)) return { providerMatches: [], businessMatches: [] };
 
-    const allMatches: Provider[] = [];
+    const allProviderMatches: Provider[] = [];
+    const allBusinessMatches: BusinessProfileMatch[] = [];
+
+    // === Check olera-providers (scraped listings) ===
 
     // Query 1: Email match (if we have an email)
     if (email) {
@@ -505,7 +526,7 @@ function ProviderOnboardingContent() {
         .limit(5);
 
       if (emailMatches) {
-        allMatches.push(...(emailMatches as Provider[]));
+        allProviderMatches.push(...(emailMatches as Provider[]));
       }
     }
 
@@ -520,21 +541,63 @@ function ProviderOnboardingContent() {
         .limit(5);
 
       if (nameCityMatches) {
-        allMatches.push(...(nameCityMatches as Provider[]));
+        allProviderMatches.push(...(nameCityMatches as Provider[]));
       }
     }
 
-    // Dedupe by provider_id
-    const seen = new Set<string>();
-    const uniqueMatches: Provider[] = [];
-    for (const match of allMatches) {
-      if (!seen.has(match.provider_id)) {
-        seen.add(match.provider_id);
-        uniqueMatches.push(match);
+    // === Check business_profiles (already created/claimed profiles) ===
+
+    // Query 3: Email match in business_profiles
+    if (email) {
+      const { data: bpEmailMatches } = await supabase
+        .from("business_profiles")
+        .select("id, display_name, email, city, state, profile_image_url, account_id, source_provider_id, claim_state")
+        .ilike("email", email)
+        .limit(5);
+
+      if (bpEmailMatches) {
+        allBusinessMatches.push(...(bpEmailMatches as BusinessProfileMatch[]));
       }
     }
 
-    return uniqueMatches.slice(0, 5);
+    // Query 4: Name + city match in business_profiles
+    if (name && city) {
+      const { data: bpNameCityMatches } = await supabase
+        .from("business_profiles")
+        .select("id, display_name, email, city, state, profile_image_url, account_id, source_provider_id, claim_state")
+        .ilike("display_name", `%${name}%`)
+        .ilike("city", `%${city}%`)
+        .limit(5);
+
+      if (bpNameCityMatches) {
+        allBusinessMatches.push(...(bpNameCityMatches as BusinessProfileMatch[]));
+      }
+    }
+
+    // Dedupe provider matches by provider_id
+    const seenProviders = new Set<string>();
+    const uniqueProviderMatches: Provider[] = [];
+    for (const match of allProviderMatches) {
+      if (!seenProviders.has(match.provider_id)) {
+        seenProviders.add(match.provider_id);
+        uniqueProviderMatches.push(match);
+      }
+    }
+
+    // Dedupe business matches by id
+    const seenBusiness = new Set<string>();
+    const uniqueBusinessMatches: BusinessProfileMatch[] = [];
+    for (const match of allBusinessMatches) {
+      if (!seenBusiness.has(match.id)) {
+        seenBusiness.add(match.id);
+        uniqueBusinessMatches.push(match);
+      }
+    }
+
+    return {
+      providerMatches: uniqueProviderMatches.slice(0, 5),
+      businessMatches: uniqueBusinessMatches.slice(0, 5),
+    };
   };
 
   const handleSubmit = async (skipDuplicateCheck = false) => {
@@ -544,9 +607,34 @@ function ProviderOnboardingContent() {
     if (!skipDuplicateCheck) {
       setCheckingDuplicates(true);
       try {
-        const matches = await checkForDuplicates();
-        if (matches.length > 0) {
-          setPotentialMatches(matches);
+        const { providerMatches, businessMatches } = await checkForDuplicates();
+
+        // Check business_profiles first (already created/claimed profiles)
+        if (businessMatches.length > 0) {
+          // If user is logged in, check if any match belongs to them
+          if (user && account?.id) {
+            const ownProfile = businessMatches.find((bp) => bp.account_id === account.id);
+            if (ownProfile) {
+              // They already own this profile - redirect to dashboard
+              setCheckingDuplicates(false);
+              router.replace("/provider");
+              return;
+            }
+          }
+
+          // Either logged out OR profile belongs to someone else
+          // Show potential matches with verification flow
+          setBusinessProfileMatches(businessMatches);
+          setPotentialMatches(providerMatches);
+          setStep("potential-matches");
+          setCheckingDuplicates(false);
+          return;
+        }
+
+        // Check olera-providers (unclaimed listings)
+        if (providerMatches.length > 0) {
+          setPotentialMatches(providerMatches);
+          setBusinessProfileMatches([]);
           setStep("potential-matches");
           setCheckingDuplicates(false);
           return;
@@ -1522,111 +1610,235 @@ function ProviderOnboardingContent() {
         )}
 
         {/* ── Potential Matches step: Show duplicate candidates ── */}
-        {step === "potential-matches" && potentialMatches.length > 0 && (
+        {step === "potential-matches" && (potentialMatches.length > 0 || businessProfileMatches.length > 0) && (
           <div className="w-full max-w-lg mx-auto pb-24">
             <div className="mb-8">
               <h1 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 tracking-tight">
-                We found a listing that might be yours
+                {businessProfileMatches.length > 0
+                  ? "We found a profile that might be yours"
+                  : "We found a listing that might be yours"}
               </h1>
               <p className="text-gray-500 mt-2 text-base">
-                Claim your existing listing to manage it, or create a new one if none of these are yours.
+                {businessProfileMatches.length > 0
+                  ? "Log in to manage your existing profile, or create a new one if this isn't yours."
+                  : "Claim your existing listing to manage it, or create a new one if none of these are yours."}
               </p>
             </div>
 
-            {/* Potential matches list */}
-            <div className="space-y-4">
-              {potentialMatches.map((provider) => {
-                const image = getProviderImage(provider);
-                const address = formatAddress(provider);
-                const highlights = getProviderHighlights(provider);
+            {/* Business profile matches (already created/claimed) */}
+            {businessProfileMatches.length > 0 && (
+              <div className="space-y-4 mb-6">
+                {businessProfileMatches.map((profile) => {
+                  const isOwnedBySomeoneElse = user && account?.id && profile.account_id !== account.id;
+                  const locationText = [profile.city, profile.state].filter(Boolean).join(", ");
 
-                return (
-                  <div
-                    key={provider.provider_id}
-                    className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
-                  >
-                    <div className="flex">
-                      {/* Image */}
-                      <div className="w-32 min-h-[140px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
-                        {image ? (
-                          <Image
-                            src={image}
-                            alt={provider.provider_name}
-                            fill
-                            className="object-cover"
-                            sizes="128px"
-                          />
-                        ) : (
-                          <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <div className="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
-                              <span className="text-sm font-bold text-primary-400">
-                                {(provider.provider_name || "")
-                                  .split(/\s+/)
-                                  .map((w) => w[0])
-                                  .filter(Boolean)
-                                  .slice(0, 2)
-                                  .join("")
-                                  .toUpperCase()}
-                              </span>
+                  return (
+                    <div
+                      key={profile.id}
+                      className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
+                    >
+                      <div className="flex">
+                        {/* Image */}
+                        <div className="w-32 min-h-[140px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
+                          {profile.profile_image_url ? (
+                            <Image
+                              src={profile.profile_image_url}
+                              alt={profile.display_name}
+                              fill
+                              className="object-cover"
+                              sizes="128px"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <div className="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+                                <span className="text-sm font-bold text-primary-400">
+                                  {(profile.display_name || "")
+                                    .split(/\s+/)
+                                    .map((w) => w[0])
+                                    .filter(Boolean)
+                                    .slice(0, 2)
+                                    .join("")
+                                    .toUpperCase()}
+                                </span>
+                              </div>
                             </div>
+                          )}
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 p-4 min-w-0">
+                          {locationText && (
+                            <p className="text-xs text-gray-500 mb-1">{locationText}</p>
+                          )}
+                          <h3 className="text-base font-bold text-gray-900 leading-snug line-clamp-1 mb-1">
+                            {profile.display_name}
+                          </h3>
+
+                          {/* Status badge */}
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 ring-1 ring-green-200">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                              </svg>
+                              Active profile
+                            </span>
+                            {isOwnedBySomeoneElse && (
+                              <span className="text-xs text-gray-500">Managed by another account</span>
+                            )}
                           </div>
-                        )}
-                      </div>
 
-                      {/* Content */}
-                      <div className="flex-1 p-4 min-w-0">
-                        {address && (
-                          <p className="text-xs text-gray-500 mb-1">{address}</p>
-                        )}
-                        <h3 className="text-base font-bold text-gray-900 leading-snug line-clamp-1 mb-1">
-                          {provider.provider_name}
-                        </h3>
-
-                        {/* Highlights */}
-                        {highlights.length > 0 && (
-                          <div className="flex flex-wrap gap-x-2 gap-y-0.5 mb-3">
-                            {highlights.slice(0, 2).map((h) => (
-                              <span key={h} className="flex items-center gap-1 text-xs text-gray-600">
-                                <svg className="w-2.5 h-2.5 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                </svg>
-                                {h}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Claim button */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            // Cache provider data for claim page
-                            try {
-                              sessionStorage.setItem(
-                                "olera_claim_provider_cache",
-                                JSON.stringify({
-                                  provider_id: provider.provider_id,
-                                  provider_name: provider.provider_name,
-                                  provider_images: provider.provider_images,
-                                  address: provider.address,
-                                  city: provider.city,
-                                  state: provider.state,
-                                  slug: provider.slug,
-                                })
-                              );
-                            } catch {}
-                            router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}`);
-                          }}
-                          className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
-                        >
-                          Claim this listing
-                        </button>
+                          {/* Action button */}
+                          {isOwnedBySomeoneElse ? (
+                            // Logged in but someone else owns it → Dispute
+                            <button
+                              type="button"
+                              onClick={() => {
+                                // Go to dispute flow - redirect to onboard page with dispute state
+                                if (profile.source_provider_id) {
+                                  router.push(`/provider/onboard?provider_id=${profile.source_provider_id}&state=already-claimed`);
+                                } else {
+                                  // No source provider - show inline dispute form
+                                  // For now, redirect to contact
+                                  router.push(`/contact?subject=Profile%20dispute&profile_id=${profile.id}`);
+                                }
+                              }}
+                              className="px-4 py-2 text-sm font-semibold text-amber-700 rounded-lg ring-1 ring-amber-200 hover:ring-amber-300 hover:bg-amber-50 transition-all"
+                            >
+                              Dispute ownership
+                            </button>
+                          ) : (
+                            // Logged out → Prompt to log in
+                            <button
+                              type="button"
+                              onClick={() => {
+                                // Open auth modal with the profile's email pre-filled
+                                openAuth({
+                                  headline: "Log in to manage your profile",
+                                  intent: "provider",
+                                  providerType: "organization",
+                                  initialEmail: profile.email || data.email || undefined,
+                                  deferred: {
+                                    action: "create_profile", // Reuse existing action type - will redirect to /provider
+                                    returnUrl: "/provider",
+                                  },
+                                });
+                              }}
+                              className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
+                            >
+                              Log in to manage
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Provider matches (unclaimed listings from olera-providers) */}
+            {potentialMatches.length > 0 && (
+              <>
+                {businessProfileMatches.length > 0 && (
+                  <div className="mb-4 pt-4 border-t border-gray-200">
+                    <p className="text-sm font-medium text-gray-500">Or claim an unclaimed listing:</p>
                   </div>
-                );
-              })}
-            </div>
+                )}
+                <div className="space-y-4">
+                  {potentialMatches.map((provider) => {
+                    const image = getProviderImage(provider);
+                    const address = formatAddress(provider);
+                    const highlights = getProviderHighlights(provider);
+
+                    return (
+                      <div
+                        key={provider.provider_id}
+                        className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
+                      >
+                        <div className="flex">
+                          {/* Image */}
+                          <div className="w-32 min-h-[140px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
+                            {image ? (
+                              <Image
+                                src={image}
+                                alt={provider.provider_name}
+                                fill
+                                className="object-cover"
+                                sizes="128px"
+                              />
+                            ) : (
+                              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <div className="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+                                  <span className="text-sm font-bold text-primary-400">
+                                    {(provider.provider_name || "")
+                                      .split(/\s+/)
+                                      .map((w) => w[0])
+                                      .filter(Boolean)
+                                      .slice(0, 2)
+                                      .join("")
+                                      .toUpperCase()}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1 p-4 min-w-0">
+                            {address && (
+                              <p className="text-xs text-gray-500 mb-1">{address}</p>
+                            )}
+                            <h3 className="text-base font-bold text-gray-900 leading-snug line-clamp-1 mb-1">
+                              {provider.provider_name}
+                            </h3>
+
+                            {/* Highlights */}
+                            {highlights.length > 0 && (
+                              <div className="flex flex-wrap gap-x-2 gap-y-0.5 mb-3">
+                                {highlights.slice(0, 2).map((h) => (
+                                  <span key={h} className="flex items-center gap-1 text-xs text-gray-600">
+                                    <svg className="w-2.5 h-2.5 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    {h}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Claim button */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                // Cache provider data for claim page
+                                try {
+                                  sessionStorage.setItem(
+                                    "olera_claim_provider_cache",
+                                    JSON.stringify({
+                                      provider_id: provider.provider_id,
+                                      provider_name: provider.provider_name,
+                                      provider_images: provider.provider_images,
+                                      address: provider.address,
+                                      city: provider.city,
+                                      state: provider.state,
+                                      slug: provider.slug,
+                                    })
+                                  );
+                                } catch {}
+                                router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}`);
+                              }}
+                              className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
+                            >
+                              Claim this listing
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
 
             {/* Create new listing option */}
             <div className="mt-8 pt-6 border-t border-gray-200">

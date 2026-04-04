@@ -60,7 +60,7 @@ function ValueCard({
   );
 }
 
-// ── Listing Card (compact profile preview, static) ──
+// ── Listing Card (opens public profile in new tab) ──
 
 function ListingCard({
   provider,
@@ -72,10 +72,14 @@ function ListingCard({
   delay?: number;
 }) {
   const primaryImage = getPrimaryImage(provider);
+  const profileUrl = `/provider/${provider.slug || provider.provider_id}`;
 
   return (
-    <div
-      className="bg-white rounded-2xl border border-gray-100 p-5"
+    <a
+      href={profileUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group block bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md hover:border-gray-200 transition-all duration-200"
       style={{
         animation: "card-enter 0.3s ease-out both",
         animationDelay: `${delay}ms`,
@@ -116,12 +120,20 @@ function ListingCard({
           </p>
         </div>
 
-        {/* Completeness indicator */}
-        <div className="shrink-0">
-          <span className="text-sm text-gray-400">{completenessPercent}% complete</span>
+        {/* Completeness + external link indicator */}
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-sm text-gray-400">{completenessPercent}%</span>
+          <svg
+            className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
         </div>
       </div>
-    </div>
+    </a>
   );
 }
 

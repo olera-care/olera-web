@@ -15,7 +15,7 @@ import Pagination from "@/components/ui/Pagination";
 import OtpInput from "@/components/auth/OtpInput";
 import type { Provider } from "@/lib/types/provider";
 
-type Step = "search" | "verify" | "create";
+type Step = "search" | "verify" | "create" | "potential-matches";
 
 const RESULTS_PER_PAGE = 6;
 
@@ -108,6 +108,9 @@ function ProviderOnboardingContent() {
   const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  // Potential matches for duplicate detection
+  const [potentialMatches, setPotentialMatches] = useState<Provider[]>([]);
+  const [checkingDuplicates, setCheckingDuplicates] = useState(false);
 
   // Location input state (separate from name search)
   const [locationQuery, setLocationQuery] = useState("");
@@ -189,10 +192,11 @@ function ProviderOnboardingContent() {
   }, [user]);
 
   // Auto-submit after form data is restored (runs after state updates)
+  // Skip duplicate check since user already went through it before auth
   useEffect(() => {
     if (pendingAutoSubmit.current && step === "create" && data.displayName && user) {
       pendingAutoSubmit.current = false;
-      handleSubmit();
+      handleSubmit(true); // Skip duplicate check
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, data, user]);
@@ -477,8 +481,57 @@ function ProviderOnboardingContent() {
     }
   };
 
-  const handleSubmit = async () => {
+  // Check for potential duplicate providers before creating
+  const checkForDuplicates = async (): Promise<Provider[]> => {
+    if (!isSupabaseConfigured()) return [];
+
+    const supabase = createClient();
+    const name = data.displayName.trim();
+    const email = data.email.trim().toLowerCase();
+    const city = data.city.trim();
+
+    // Build query: email match OR (name + city match)
+    let query = supabase
+      .from("olera-providers")
+      .select("*")
+      .not("deleted", "is", true);
+
+    // If we have email, check for email match
+    // If we have name + city, also check for name + city match
+    if (email && city && name) {
+      query = query.or(`email.ilike.${email},and(provider_name.ilike.%${name}%,city.ilike.%${city}%)`);
+    } else if (email) {
+      query = query.ilike("email", email);
+    } else if (name && city) {
+      query = query.ilike("provider_name", `%${name}%`).ilike("city", `%${city}%`);
+    } else {
+      return []; // Not enough info to check
+    }
+
+    const { data: matches } = await query.limit(5);
+    return (matches as Provider[]) || [];
+  };
+
+  const handleSubmit = async (skipDuplicateCheck = false) => {
     if (!data.displayName.trim()) return;
+
+    // Check for duplicates before proceeding (unless skipped)
+    if (!skipDuplicateCheck && !user) {
+      setCheckingDuplicates(true);
+      try {
+        const matches = await checkForDuplicates();
+        if (matches.length > 0) {
+          setPotentialMatches(matches);
+          setStep("potential-matches");
+          setCheckingDuplicates(false);
+          return;
+        }
+      } catch (err) {
+        console.error("Duplicate check failed:", err);
+        // Continue anyway if check fails
+      }
+      setCheckingDuplicates(false);
+    }
 
     // Auth check: if not logged in, prompt to create account first
     if (!user) {

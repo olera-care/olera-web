@@ -751,7 +751,7 @@ function ProviderOnboardingContent() {
     }
   }
 
-  const showResultsBg = step === "search" && hasSearched;
+  const showResultsBg = (step === "search" && hasSearched) || step === "potential-matches";
   const isResultsGrid = showResultsBg && searchResults.length > 0;
   const totalPages = Math.ceil(searchResults.length / RESULTS_PER_PAGE);
   const paginatedResults = searchResults.slice(

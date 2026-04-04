@@ -1739,7 +1739,7 @@ function ProviderOnboardingContent() {
               {potentialMatches.length > 0 && (
                 <>
                   {businessProfileMatches.length > 0 && (
-                    <div className="mb-4 pt-4 border-t border-gray-200">
+                    <div className="mb-4 pt-4">
                       <p className="text-sm font-medium text-gray-500">Or claim an unclaimed page:</p>
                     </div>
                   )}
@@ -1833,8 +1833,8 @@ function ProviderOnboardingContent() {
                 </>
               )}
 
-              {/* Inline CTA section - replaces sticky bar */}
-              <div className="mt-10 pt-8 border-t border-gray-200">
+              {/* Inline CTA section - wrapped in light card */}
+              <div className="mt-10 bg-gray-50 rounded-xl p-6">
                 <p className="text-base font-medium text-gray-900 mb-1">
                   {isSingleMatch ? "Not this one?" : "None of these?"}
                 </p>
@@ -1853,7 +1853,7 @@ function ProviderOnboardingContent() {
                     type="button"
                     onClick={() => handleSubmit(true)}
                     disabled={submitting}
-                    className="px-5 py-2.5 text-base font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                    className="px-5 py-2.5 text-base font-semibold text-primary-600 bg-white rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 disabled:opacity-50 transition-colors"
                   >
                     {submitting ? "Creating..." : "Create new page →"}
                   </button>

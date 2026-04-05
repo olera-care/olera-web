@@ -79,11 +79,23 @@ function logTable(label, count, error) {
 }
 
 // ── Email lookup ────────────────────────────────────────────────
+async function findAuthUserByEmail(sb, email) {
+  // Paginate through all auth users (SDK lacks getUserByEmail)
+  let page = 1;
+  const perPage = 1000;
+  while (true) {
+    const { data: { users }, error } = await sb.auth.admin.listUsers({ page, perPage });
+    if (error) throw new Error(`Auth lookup failed: ${error.message}`);
+    const match = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    if (match) return match;
+    if (users.length < perPage) return null; // Last page
+    page++;
+  }
+}
+
 async function lookupByEmail(sb, email) {
   // 1. Find auth user
-  const { data: { users }, error: authErr } = await sb.auth.admin.listUsers({ perPage: 1000 });
-  if (authErr) throw new Error(`Auth lookup failed: ${authErr.message}`);
-  const authUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+  const authUser = await findAuthUserByEmail(sb, email);
   if (!authUser) return null;
 
   // 2. Find account
@@ -315,48 +327,48 @@ async function eraseEmail(sb, data) {
   const errors = [];
 
   async function del(table, filter) {
-    const { error } = await filter;
+    const { error, data: rows } = await filter;
     if (error) errors.push(`${table}: ${error.message}`);
-    else log(`✓ ${table}`);
+    else log(`✓ ${table} (${rows?.length ?? 0} deleted)`);
   }
 
   // 1. Text-reference tables (no FK cascade)
   if (account) {
-    await del("reviews", sb.from("reviews").delete().eq("account_id", account.id));
+    await del("reviews", sb.from("reviews").delete().eq("account_id", account.id).select("id"));
   }
-  await del("provider_questions", sb.from("provider_questions").delete().eq("asker_user_id", authUser.id));
-  await del("email_log", sb.from("email_log").delete().eq("recipient", authUser.email));
+  await del("provider_questions", sb.from("provider_questions").delete().eq("asker_user_id", authUser.id).select("id"));
+  await del("email_log", sb.from("email_log").delete().eq("recipient", authUser.email).select("id"));
 
   const phones = profiles.map(p => p.phone).filter(Boolean);
   if (phones.length > 0) {
-    await del("whatsapp_log", sb.from("whatsapp_log").delete().in("recipient", phones));
+    await del("whatsapp_log", sb.from("whatsapp_log").delete().in("recipient", phones).select("id"));
   }
 
   if (profileIds.length > 0) {
-    await del("whatsapp_conversations", sb.from("whatsapp_conversations").delete().in("profile_id", profileIds));
-    await del("provider_activity", sb.from("provider_activity").delete().in("profile_id", profileIds));
-    await del("seeker_activity", sb.from("seeker_activity").delete().in("profile_id", profileIds));
-    await del("feature_waitlist", sb.from("feature_waitlist").delete().in("profile_id", profileIds));
+    await del("whatsapp_conversations", sb.from("whatsapp_conversations").delete().in("profile_id", profileIds).select("id"));
+    await del("provider_activity", sb.from("provider_activity").delete().in("profile_id", profileIds).select("id"));
+    await del("seeker_activity", sb.from("seeker_activity").delete().in("profile_id", profileIds).select("id"));
+    await del("feature_waitlist", sb.from("feature_waitlist").delete().in("profile_id", profileIds).select("id"));
   }
   // Also clean waitlist by email
-  await del("feature_waitlist (email)", sb.from("feature_waitlist").delete().eq("email", authUser.email));
+  await del("feature_waitlist (email)", sb.from("feature_waitlist").delete().eq("email", authUser.email).select("id"));
 
   if (sourceProviderIds.length > 0) {
-    await del("disputes", sb.from("disputes").delete().in("provider_id", sourceProviderIds));
-    await del("removal_requests", sb.from("removal_requests").delete().in("provider_id", sourceProviderIds));
-    await del("provider_image_metadata", sb.from("provider_image_metadata").delete().in("provider_id", sourceProviderIds));
+    await del("disputes", sb.from("disputes").delete().in("provider_id", sourceProviderIds).select("id"));
+    await del("removal_requests", sb.from("removal_requests").delete().in("provider_id", sourceProviderIds).select("id"));
+    await del("provider_image_metadata", sb.from("provider_image_metadata").delete().in("provider_id", sourceProviderIds).select("id"));
   }
 
   // 2. Cascade-triggering deletes
   if (profileIds.length > 0) {
     const orFilter = profileIds.map(id => `from_profile_id.eq.${id},to_profile_id.eq.${id}`).join(",");
-    await del("connections", sb.from("connections").delete().or(orFilter));
+    await del("connections", sb.from("connections").delete().or(orFilter).select("id"));
   }
 
   if (account) {
-    await del("business_profiles", sb.from("business_profiles").delete().eq("account_id", account.id));
-    await del("memberships", sb.from("memberships").delete().eq("account_id", account.id));
-    await del("accounts", sb.from("accounts").delete().eq("id", account.id));
+    await del("business_profiles", sb.from("business_profiles").delete().eq("account_id", account.id).select("id"));
+    await del("memberships", sb.from("memberships").delete().eq("account_id", account.id).select("id"));
+    await del("accounts", sb.from("accounts").delete().eq("id", account.id).select("id"));
   }
 
   // 3. Auth user
@@ -374,27 +386,27 @@ async function eraseProvider(sb, profile, counts) {
   const errors = [];
 
   async function del(table, filter) {
-    const { error } = await filter;
+    const { error, data: rows } = await filter;
     if (error) errors.push(`${table}: ${error.message}`);
-    else log(`✓ ${table}`);
+    else log(`✓ ${table} (${rows?.length ?? 0} deleted)`);
   }
 
   // 1. Clean text-reference tables
   if (spid) {
-    await del("reviews", sb.from("reviews").delete().eq("provider_id", spid));
-    await del("provider_questions", sb.from("provider_questions").delete().eq("provider_id", spid));
-    await del("disputes", sb.from("disputes").delete().eq("provider_id", spid));
-    await del("removal_requests", sb.from("removal_requests").delete().eq("provider_id", spid));
-    await del("provider_image_metadata", sb.from("provider_image_metadata").delete().eq("provider_id", spid));
+    await del("reviews", sb.from("reviews").delete().eq("provider_id", spid).select("id"));
+    await del("provider_questions", sb.from("provider_questions").delete().eq("provider_id", spid).select("id"));
+    await del("disputes", sb.from("disputes").delete().eq("provider_id", spid).select("id"));
+    await del("removal_requests", sb.from("removal_requests").delete().eq("provider_id", spid).select("id"));
+    await del("provider_image_metadata", sb.from("provider_image_metadata").delete().eq("provider_id", spid).select("id"));
   }
 
-  await del("provider_activity", sb.from("provider_activity").delete().eq("profile_id", pid));
+  await del("provider_activity", sb.from("provider_activity").delete().eq("profile_id", pid).select("id"));
 
   // 2. Connections
-  await del("connections", sb.from("connections").delete().or(`from_profile_id.eq.${pid},to_profile_id.eq.${pid}`));
+  await del("connections", sb.from("connections").delete().or(`from_profile_id.eq.${pid},to_profile_id.eq.${pid}`).select("id"));
 
   // 3. Interviews
-  await del("interviews", sb.from("interviews").delete().or(`provider_profile_id.eq.${pid},student_profile_id.eq.${pid}`));
+  await del("interviews", sb.from("interviews").delete().or(`provider_profile_id.eq.${pid},student_profile_id.eq.${pid}`).select("id"));
 
   // 4. Archive the profile
   const { error: archiveErr } = await sb

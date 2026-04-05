@@ -215,3 +215,32 @@ Evidence that revealed it: comparing the URL in the email (`...&token=eyJ...&ref
 **Lesson**: "Flashes then disappears" is a different bug class than "never shows." It means the data loaded successfully but a downstream condition rejected it. Always trace the full conditional chain (data fetch -> state set -> condition evaluation -> render) before shipping. The user describing the BEHAVIOR ("flashed for a second") was more diagnostic than any code analysis — listen to the symptom description precisely.
 
 ---
+
+### 2026-04-05: pipeline-batch.js enrichment phase hangs for hours on redundant re-hydration loop
+
+**Symptom**: City expansion pipeline (193 cities) completed clean, load, and enrichment streams successfully, then hung indefinitely at "Re-hydrating reviews (merging snippets into JSONB)..." — twice. First run hung for 5+ hours before being killed. Second run hung for 40+ minutes.
+
+**Root Cause**: Post-streams re-hydration loop (lines 924-947) iterated over all 700 city directories, re-queried Supabase for each city's providers, then did ~22,000 individual sequential `await supabase.update()` calls — one per provider, no batching, no parallelism, no progress logging. This was **100% redundant work**:
+- Stream D (line 899-910) already hydrated `rating` + `review_count` into `google_reviews_data` JSONB
+- Stream B (`enrichReviewsAndImages`, line 1078-1081) already merged review snippets into the same JSONB column and wrote to Supabase
+
+The re-hydration loop re-set the same `rating` and `review_count` values that were already there. With 22K sequential writes over a single connection, it either exhausted the connection pool or hit Supabase statement timeouts and hung silently (no error handling, no timeout, no progress logging).
+
+**Fix**: Removed the redundant loop entirely (replaced with a comment explaining why). The enrichment phase now ends cleanly after streams A/B complete. Total fix: deleted 23 lines, added 3-line comment.
+
+**Time to Resolution**: ~20 minutes of investigation once `/troubleshoot` was invoked. But ~16 hours of wall clock time were wasted across two runs before the investigation started — the first run was left overnight assuming it was "just slow," the second run was given 40 minutes before recognizing the same pattern.
+
+**Why I didn't catch this earlier**:
+- **Assumed "still running" = "making progress."** The process had 0.9% CPU and open TCP connections, which I reported as "still alive." I should have checked the log's last-modified timestamp immediately — 5 hours without a log write is not "slow," it's hung.
+- **No progress logging in the loop.** 22K sequential writes with zero console output means no way to distinguish "working" from "stuck" without external monitoring.
+- **Didn't read the code until asked.** I checked `ps`, `tail`, `lsof` — all process-level diagnostics. I never read `pipeline-batch.js` to understand what "Re-hydrating reviews" actually does until TJ invoked `/troubleshoot`. One `grep` for the log message would have found the loop and the redundancy in 2 minutes.
+
+**Prevention**:
+- When a long-running script stops producing log output for >5 minutes, check the log file's modification timestamp immediately — don't assume the process is working just because `ps` shows CPU usage
+- Any loop doing >100 sequential DB writes MUST have progress logging (at minimum every 100 iterations)
+- Before writing a post-processing step, check if upstream steps already did the same work — trace which functions write to the same column
+- Added this pattern to `/troubleshoot`: for batch scripts, "log not updating" is the equivalent of "flashes then disappears" — the process reached a point and got stuck, not failed
+
+**Lesson**: A process with CPU usage and open connections is not necessarily making progress. The absence of log output IS the diagnostic signal — treat "no new log lines" the same way you'd treat an error message. And always read the code before monitoring the process: understanding what a step does takes 2 minutes and prevents 16 hours of wasted wall time.
+
+---

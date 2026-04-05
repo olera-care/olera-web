@@ -31,6 +31,18 @@
   - **Branch**: `fine-dijkstra` — 10 commits, pushed to origin
   - **Next**: PR to staging → QA → monitor conversion vs 0.44% baseline
 
+- **City Expansion Batch — 2026-04-04** — DONE ✅
+  - 193 new cities processed end-to-end via batch pipeline
+  - Discovery: ~35,000 raw providers (53 min, quick mode)
+  - Pipeline: cleaned → uploaded → enriched, total cost ~$263 (~$1.36/city)
+  - Fixed `pipeline-batch.js`: removed redundant re-hydration loop (22K sequential Supabase writes) that hung the pipeline for 16+ hours — Stream D and Stream B already handled the same work
+  - 193 Notion pages created + all marked Complete
+  - Spot-checked 4 cities (Birmingham MI, Fort Walton Beach FL, Golden CO, Makakilo HI) — all rendering with ratings, reviews, images, descriptions, trust signals
+  - Updated city pipeline cost estimator: actual ~$4/city, not $25/city
+  - Added postmortem for the re-hydration hang to `docs/POSTMORTEMS.md`
+  - Added batch script debugging guidance to `/troubleshoot` command
+  - **Notion board: 476 Complete cities (283 prior + 193 new)**
+
 - **City Expansion Batch — 2026-04-01** — DONE ✅
   - 90 new cities processed end-to-end via batch pipeline
   - Discovery: 18,191 raw providers (45 min, ~$102 Google Places)

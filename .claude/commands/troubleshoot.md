@@ -83,6 +83,12 @@ console.log("[component-name]", {
 | Flashes then disappears | Data loaded but a downstream condition **rejected** it | "What condition HIDES this after data loads?" |
 | Shows wrong content | Data loaded but wrong branch matched | "Which conditional branch is actually executing?" |
 | Shows then breaks on re-render | Effect/state change clobbers the UI | "What useEffect or state change fires after initial render?" |
+| Long-running script stops logging | Process reached a step and hung (not failed) | "When was the log file last modified? What does the code do at that step?" |
+
+**For batch/pipeline scripts specifically:**
+- If log output stops for >5 minutes, check the file's modification timestamp — don't assume the process is working just because `ps` shows CPU
+- Read the code at the hung step BEFORE monitoring the process — understanding what a step does takes 2 minutes
+- Check if the hung step is redundant (does upstream already write to the same DB column?)
 
 ### Phase 3: Identify the Real Cause
 - The symptom location may not be the cause location

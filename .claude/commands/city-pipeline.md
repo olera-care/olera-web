@@ -171,10 +171,10 @@ Claude's role in batch mode:
 When TJ provides a batch `.md` file:
 
 1. **Parse the city list** from the machine-readable block at the bottom
-2. **Show estimates**:
-   - Discovery: `cities × ~$4 = $X` (Google Places), `cities × ~2.5min = Xh`
-   - Processing: `cities × ~$2 = $X` (geocoding + enrichment), `~35min enrichment overhead`
-   - Total: `~$6/city`
+2. **Show estimates** (based on actual batch data from 88-city and 90-city runs):
+   - Discovery: `cities × ~$1.20 = $X` (Google Places, quick mode), `cities × ~0.5min = Xh`
+   - Processing: `cities × ~$2.70 = $X` (geocoding + enrichment), `~35min enrichment overhead`
+   - Total: `~$4/city`
 3. **If >20 cities**, warn about discovery time and suggest running discovery in background while TJ does other work
 4. **Ask TJ to confirm**, then proceed
 
@@ -248,7 +248,7 @@ For processing a **single city** or when the batch scripts aren't available, use
 Run only the unchecked steps for the target city. **Run autonomously end-to-end** — do not pause for approval between steps. Run enrichment steps in parallel. Only stop and ask TJ if:
 - Something fails unexpectedly (API errors, rate limits that don't resolve)
 - An unmapped category appears that needs a decision
-- Cost would exceed $15 for a single city (unusual — flag it)
+- Cost would exceed $8 for a single city (unusual — flag it)
 
 Report results at the end with a summary table, not step-by-step.
 
@@ -260,7 +260,7 @@ cd ~/Desktop/TJ-hq/Olera/Olera\ Data\ Analysis\ Scripts/senior-care-discovery/
 python discovery.py
 ```
 
-Select option 1 (manual city entry), enter city/state, confirm cost (~$4-5 per city in quick search mode). Copy the output CSV (`providers_discovered_*.csv`) to the city's expansion directory.
+Select option 1 (manual city entry), enter city/state, confirm cost (~$1-2 per city in quick search mode). Copy the output CSV (`providers_discovered_*.csv`) to the city's expansion directory.
 
 For **batch mode**, use the batch discovery script instead (see Batch Mode section above).
 
@@ -607,11 +607,14 @@ These are real issues from past expansions. Each one has wasted real debugging t
 
 | Item | Cost |
 |------|------|
-| Discovery (quick search) | $4-5 |
-| Geocoding (~375 providers) | ~$2 |
+| Discovery (quick search) | ~$1.20 |
+| Geocoding (~375 providers) | ~$0.50 |
 | Trust Signals (~250 non-CMS) | ~$0.25 |
-| Review Snippets (~375 providers) | ~$2 |
-| **Total** | **~$8-9** |
+| Review Snippets (~375 providers) | ~$1.00 |
+| Processing + enrichment overhead | ~$1.00 |
+| **Total** | **~$4/city** |
+
+> Based on actuals: 88-city batch = $270 (~$3.07/city), 90-city batch = $425 (~$4.72/city)
 
 ## Reference
 

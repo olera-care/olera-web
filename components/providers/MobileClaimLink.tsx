@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 
 interface MobileClaimLinkProps {
-  claimState: "unclaimed" | "pending" | "claimed" | "rejected";
+  claimState: "unclaimed" | "pending" | "claimed" | "rejected" | "archived";
   providerName: string;
   claimUrl: string;
 }

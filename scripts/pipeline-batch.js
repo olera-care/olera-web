@@ -131,56 +131,6 @@ const CATEGORY_MAP = {
 
 const NON_CMS_CATEGORIES = ['Assisted Living', 'Memory Care', 'Home Care (Non-medical)', 'Independent Living'];
 
-const SIGNAL_NAMES = [
-  'state_licensed', 'accredited', 'bbb_rated', 'years_in_operation',
-  'regulatory_actions', 'active_website', 'google_business', 'community_presence',
-];
-
-/**
- * Normalize raw LLM trust signal output into the canonical AiTrustSignals shape.
- * Handles flat objects ({state_licensed: true}), nested objects ({state_licensed: {status: "confirmed"}}),
- * and already-correct arrays ([{signal: "state_licensed", status: "confirmed"}]).
- */
-function buildTrustSignalsRecord(provider, rawSignals, confidence, entityReason) {
-  let signals;
-
-  if (Array.isArray(rawSignals)) {
-    // Already in array format — validate each entry has required fields
-    signals = SIGNAL_NAMES.map(name => {
-      const existing = rawSignals.find(s => s.signal === name);
-      if (existing) return { signal: name, status: existing.status || 'not_found', detail: existing.detail || null, source_url: existing.source_url || null };
-      return { signal: name, status: 'not_found', detail: null, source_url: null };
-    });
-  } else if (rawSignals && typeof rawSignals === 'object') {
-    // Flat object like {state_licensed: true} or {state_licensed: {status: "confirmed", detail: "..."}}
-    signals = SIGNAL_NAMES.map(name => {
-      const value = rawSignals[name];
-      if (value === true || value === 'confirmed') return { signal: name, status: 'confirmed', detail: null, source_url: null };
-      if (value === false || value === 'not_found' || value == null) return { signal: name, status: 'not_found', detail: null, source_url: null };
-      if (typeof value === 'string') {
-        const negative = /^(no|not found|unknown|unclear|n\/a|none|no info|no evidence|no mention)/i.test(value);
-        return { signal: name, status: negative ? 'not_found' : 'confirmed', detail: negative ? null : value, source_url: null };
-      }
-      if (typeof value === 'object') return { signal: name, status: value.status === 'confirmed' || value.confirmed ? 'confirmed' : 'not_found', detail: value.detail || null, source_url: value.source_url || null };
-      return { signal: name, status: 'not_found', detail: null, source_url: null };
-    });
-  } else {
-    signals = SIGNAL_NAMES.map(name => ({ signal: name, status: 'not_found', detail: null, source_url: null }));
-  }
-
-  return {
-    provider_name: provider.provider_name,
-    state: provider.state || '',
-    category: provider.provider_category,
-    signals,
-    summary_score: signals.filter(s => s.status === 'confirmed').length,
-    last_verified: new Date().toISOString(),
-    model: 'sonar',
-    confidence: confidence || 'medium',
-    entity_reason: entityReason || undefined,
-  };
-}
-
 const KEYWORD_BLOCKLIST = [
   'pharmacy', 'hospital', 'pediatric', 'veterinary', 'dental', 'optometrist',
   'chiropractor', 'urgent care', 'physical therapy', 'dialysis', 'medical supply',
@@ -483,12 +433,18 @@ function slug(name, city, state) {
 }
 
 function discoveryCsvForCity(expansionDir, city, state) {
-  const cityDir = path.join(expansionDir, `${city}-${state}`);
-  if (!fs.existsSync(cityDir)) return null;
-  const csvs = fs.readdirSync(cityDir).filter(f => f.startsWith('providers_discovered_') && f.endsWith('.csv'));
-  if (csvs.length === 0) return null;
-  csvs.sort();
-  return path.join(cityDir, csvs[csvs.length - 1]); // latest
+  const slug = `${city}-${state}`.replace(/\s+/g, '-');
+  // Try multiple folder name variants (spaces→hyphens, with/without periods)
+  const variants = [slug, slug.replace(/\./g, '')];
+  for (const v of variants) {
+    const cityDir = path.join(expansionDir, v);
+    if (!fs.existsSync(cityDir)) continue;
+    const csvs = fs.readdirSync(cityDir).filter(f => f.startsWith('providers_discovered_') && f.endsWith('.csv'));
+    if (csvs.length === 0) continue;
+    csvs.sort();
+    return path.join(cityDir, csvs[csvs.length - 1]); // latest
+  }
+  return null;
 }
 
 function readyCityList(expansionDir) {
@@ -577,13 +533,7 @@ async function phaseClean(cities, opts) {
 
     // Load discovery CSV
     const raw = fs.readFileSync(csvPath);
-    let providers;
-    try {
-      providers = csvParse.parse(raw, { columns: true, relax_column_count: true, relax_quotes: true });
-    } catch (csvErr) {
-      console.log(`    WARN: CSV parse error for ${c.city}, ${c.state}: ${csvErr.message} — skipping`);
-      continue;
-    }
+    let providers = csvParse.parse(raw, { columns: true, relax_column_count: true, relax_quotes: true });
     const discovered = providers.length;
 
     // 2a: Keyword filter + business status
@@ -971,30 +921,10 @@ async function phaseEnrich(cities, opts) {
   console.log(`    Stream A (Trust signals): ${trustResult.confirmed} confirmed, ${trustResult.deleted} deleted`);
   console.log(`    Stream B (Reviews+Images): ${placesResult.snippetsFetched} snippets, ${placesResult.imagesFetched} images, ${placesResult.noData} no data (${placesResult.apiCalls} API calls — was ${placesResult.savedCalls} separate calls before merge)`);
 
-  // --- Post-streams: Re-hydrate to merge snippets into existing JSONB ---
-  console.log('\n  Re-hydrating reviews (merging snippets into JSONB)...');
-  let rehydrated = 0;
-  for (const c of cities) {
-    const citySlug = c.city.toLowerCase().replace(/\s+/g, '-');
-    const stateSlug = c.state.toLowerCase();
-    const { data: providers } = await supabase
-      .from('olera-providers')
-      .select('provider_id, google_rating, place_id, google_reviews_data')
-      .like('provider_id', `${citySlug}-${stateSlug}-%`)
-      .eq('deleted', false);
-
-    for (const p of (providers || [])) {
-      if (!p.google_rating) continue;
-      const csvRow = csvReviewMap[p.place_id] || {};
-      const existing = p.google_reviews_data || {};
-      existing.rating = parseFloat(p.google_rating);
-      existing.review_count = parseInt(csvRow.review_count) || existing.review_count || 0;
-      existing.last_synced = new Date().toISOString();
-      await supabase.from('olera-providers').update({ google_reviews_data: existing }).eq('provider_id', p.provider_id);
-      rehydrated++;
-    }
-  }
-  console.log(`    Re-hydrated: ${rehydrated}`);
+  // Post-streams re-hydration removed — Stream D already hydrates rating + review_count,
+  // and Stream B already merges review snippets into google_reviews_data JSONB.
+  // The old loop re-queried all 700 cities and did 22K+ sequential updates for no reason,
+  // causing the pipeline to hang for hours.
 
   console.log(`\n  Enrich phase complete. Cost so far: ${cost.summary()}`);
 }
@@ -1054,9 +984,11 @@ Return ONLY this JSON:
             .eq('provider_id', p.provider_id);
           deleted++;
         } else {
-          const trustSignals = buildTrustSignalsRecord(p, r.signals, r.confidence, r.entity_reason);
+          const signals = r.signals || {};
+          signals.verified_at = new Date().toISOString();
+          signals.confidence = r.confidence;
           await supabase.from('olera-providers')
-            .update({ ai_trust_signals: trustSignals })
+            .update({ ai_trust_signals: signals })
             .eq('provider_id', p.provider_id);
           confirmed++;
         }

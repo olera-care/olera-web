@@ -21,7 +21,7 @@ export type ProfileCategory =
   // Caregivers
   | "private_caregiver";
 
-export type ClaimState = "unclaimed" | "pending" | "claimed" | "rejected";
+export type ClaimState = "unclaimed" | "pending" | "claimed" | "rejected" | "archived";
 export type VerificationState = "unverified" | "pending" | "verified";
 // ProfileSource indicates how the profile was created:
 // - "seeded": Test/demo data from dev seeding scripts

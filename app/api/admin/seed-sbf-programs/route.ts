@@ -72,6 +72,11 @@ async function handleSeed(request: NextRequest) {
           state_code: state.abbreviation,
           savings_range: program.savingsRange || null,
           waiver_library_url: buildWaiverLibraryUrl(state.abbreviation, program.id),
+          source_url: program.sourceUrl || null,
+          last_verified_date: program.lastVerifiedDate || null,
+          verified_by: program.verifiedBy || null,
+          savings_source: program.savingsSource || null,
+          savings_verified: program.savingsVerified ?? false,
         });
       }
     }
@@ -89,6 +94,9 @@ async function handleSeed(request: NextRequest) {
         has_waiver_url: programs.filter((p) => p.waiver_library_url != null).length,
         requires_medicaid: programs.filter((p) => p.requires_medicaid).length,
         requires_veteran: programs.filter((p) => p.requires_veteran).length,
+        has_source_url: programs.filter((p) => p.source_url != null).length,
+        has_verified_date: programs.filter((p) => p.last_verified_date != null).length,
+        savings_verified: programs.filter((p) => p.savings_verified).length,
       });
     }
 

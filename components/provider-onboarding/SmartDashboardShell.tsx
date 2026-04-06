@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
+import { useState, useLayoutEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { Provider } from "@/lib/types/provider";
@@ -191,11 +191,6 @@ export default function SmartDashboardShell({
     return () => setForceHidden(false);
   }, [setForceHidden]);
 
-  // When unauthenticated user clicks a platform card, scroll to verify prompt
-  const handleUnauthenticatedClick = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
   return (
     <div className="min-h-screen bg-[#F7F5F0] pt-14">
       {/* Header */}
@@ -239,12 +234,10 @@ export default function SmartDashboardShell({
           </div>
         )}
 
-        {/* ── Platform Showcase ── */}
+        {/* ── Platform Showcase (static cards, no navigation) ── */}
         <PlatformShowcase
           provider={provider}
           completenessPercent={completeness.overall}
-          isSignedIn={isSignedIn}
-          onUnauthenticatedClick={handleUnauthenticatedClick}
         />
       </div>
     </div>

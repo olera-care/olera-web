@@ -56,6 +56,8 @@ export interface OpenAuthOptions {
   headline?: string;
   /** Custom subline for the entry screen (context-specific copy) */
   subline?: string;
+  /** Pre-fill email field (skips entry step, goes directly to sign-up) */
+  initialEmail?: string;
 }
 
 const AUTH_INTENT_KEY = "olera_auth_intent";

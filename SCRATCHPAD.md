@@ -7,6 +7,15 @@
 
 ## Current Focus
 
+- **Database Dedup Cleanup — 2026-04-06** — DONE ✅
+  - Ran dedupe across 55,907 active providers
+  - Tier 1+2 (address-confirmed): 548 pairs → **539 soft-deleted**, 519 groups resolved
+  - Tier 3 (name+city): Found 803 pairs but many were false positives (different branches, cross-state city name collisions)
+  - Fixed Tier 3: now requires same state + 95% name threshold (was 90% with no state check) — reduces to 542 pairs
+  - Tier 3 still catches legitimate branches (same name, different address) — left undeleted, needs manual review or smarter signal (place_id/phone)
+  - Added `--tiers 1,2` flag to run specific tiers independently
+  - CSV exports: `dupes.csv` (all tiers), `dupes-tier3.csv` (improved tier 3 only)
+
 - **Homepage De-Jank + Mega Menu + Search Bar Polish** (branch: `gifted-rosalind`) — READY FOR QA
   - Fixed mega menu flicker: redesigned hover architecture — backdrop `onMouseEnter` as leave detector instead of fragile `onMouseLeave` on panel
   - Fixed search bar height shift: `truncate` on care type label prevents "Independent Living" from wrapping
@@ -30,6 +39,18 @@
   - Email-only form, post-submit enrichment with localized pricing, care report email
   - **Branch**: `fine-dijkstra` — 10 commits, pushed to origin
   - **Next**: PR to staging → QA → monitor conversion vs 0.44% baseline
+
+- **City Expansion Batch — 2026-04-04** — DONE ✅
+  - 193 new cities processed end-to-end via batch pipeline
+  - Discovery: ~35,000 raw providers (53 min, quick mode)
+  - Pipeline: cleaned → uploaded → enriched, total cost ~$263 (~$1.36/city)
+  - Fixed `pipeline-batch.js`: removed redundant re-hydration loop (22K sequential Supabase writes) that hung the pipeline for 16+ hours — Stream D and Stream B already handled the same work
+  - 193 Notion pages created + all marked Complete
+  - Spot-checked 4 cities (Birmingham MI, Fort Walton Beach FL, Golden CO, Makakilo HI) — all rendering with ratings, reviews, images, descriptions, trust signals
+  - Updated city pipeline cost estimator: actual ~$4/city, not $25/city
+  - Added postmortem for the re-hydration hang to `docs/POSTMORTEMS.md`
+  - Added batch script debugging guidance to `/troubleshoot` command
+  - **Notion board: 476 Complete cities (283 prior + 193 new)**
 
 - **City Expansion Batch — 2026-04-01** — DONE ✅
   - 90 new cities processed end-to-end via batch pipeline

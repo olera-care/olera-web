@@ -36,5 +36,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Claude Code local files
-.claude/
+# Claude Code local files (keep commands tracked for team sharing)
+.claude/*
+!.claude/commands/

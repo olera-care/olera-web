@@ -20,8 +20,12 @@ export default function HeroSection() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { results: cityResults, preload: preloadCities } = useCitySearch(searchInput);
+  const [zipError, setZipError] = useState(false);
 
   useClickOutside(dropdownRef, () => setShowDropdown(false));
+
+  // Detect if input looks like a zip code
+  const isZipCode = /^\d{5}(-\d{4})?$/.test(searchInput.trim());
 
   // Check if user already has a provider profile
   const hasProviderProfile = (profiles || []).some(
@@ -36,8 +40,15 @@ export default function HeroSection() {
 
   const handleGetStarted = () => {
     const val = searchInput.trim();
+
+    // Block zip code searches
+    if (/^\d{5}(-\d{4})?$/.test(val)) {
+      setZipError(true);
+      return;
+    }
+    setZipError(false);
+
     if (val) {
-      const isZip = /^\d{5}$/.test(val);
       // Check if it's a selected city (format: "City, ST")
       const isCity = selectedCity === val || /^[A-Za-z\s]+,\s*[A-Z]{2}$/.test(val);
 
@@ -45,8 +56,8 @@ export default function HeroSection() {
         sessionStorage.setItem(
           PREFILL_KEY,
           JSON.stringify({
-            searchQuery: (isZip || isCity) ? "" : val,
-            locationQuery: (isZip || isCity) ? val : "",
+            searchQuery: isCity ? "" : val,
+            locationQuery: isCity ? val : "",
           }),
         );
       } catch {
@@ -110,12 +121,13 @@ export default function HeroSection() {
                 <input
                   ref={inputRef}
                   type="text"
-                  placeholder="Business name, city, or zip code"
+                  placeholder="Business name or city"
                   value={searchInput}
                   onChange={(e) => {
                     setSearchInput(e.target.value);
                     setSelectedCity(null); // Clear selection when typing
                     setShowDropdown(true);
+                    setZipError(false); // Clear error when typing
                   }}
                   onFocus={() => {
                     setShowDropdown(true);
@@ -216,6 +228,13 @@ export default function HeroSection() {
                 Get started
               </button>
             </div>
+
+            {/* Zip code error message */}
+            {zipError && (
+              <p className="mt-2 text-sm text-red-200">
+                Please search by business name or city instead.
+              </p>
+            )}
           </div>
 
           {/* NIH badge — aligned to right edge of container */}

@@ -19,6 +19,7 @@ export default function BottomCTASection() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { results: cityResults, preload: preloadCities } = useCitySearch(searchInput);
+  const [zipError, setZipError] = useState(false);
 
   useClickOutside(dropdownRef, () => setShowDropdown(false));
 
@@ -35,8 +36,15 @@ export default function BottomCTASection() {
 
   const handleGetStarted = () => {
     const val = searchInput.trim();
+
+    // Block zip code searches
+    if (/^\d{5}(-\d{4})?$/.test(val)) {
+      setZipError(true);
+      return;
+    }
+    setZipError(false);
+
     if (val) {
-      const isZip = /^\d{5}$/.test(val);
       // Check if it's a selected city (format: "City, ST")
       const isCity = selectedCity === val || /^[A-Za-z\s]+,\s*[A-Z]{2}$/.test(val);
 
@@ -44,8 +52,8 @@ export default function BottomCTASection() {
         sessionStorage.setItem(
           PREFILL_KEY,
           JSON.stringify({
-            searchQuery: (isZip || isCity) ? "" : val,
-            locationQuery: (isZip || isCity) ? val : "",
+            searchQuery: isCity ? "" : val,
+            locationQuery: isCity ? val : "",
           }),
         );
       } catch {
@@ -67,7 +75,7 @@ export default function BottomCTASection() {
   return (
     <section className="py-16 md:py-24 bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gray-900 rounded-2xl px-6 sm:px-12 py-12 sm:py-16 text-center">
+        <div className="bg-gray-900 rounded-2xl px-6 sm:px-12 py-12 sm:py-16 text-center overflow-visible">
           <h2 className="font-serif text-display-sm md:text-display-md font-bold text-white">
             Ready to get started?
           </h2>
@@ -91,12 +99,13 @@ export default function BottomCTASection() {
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Business name, city, or zip code"
+                placeholder="Business name or city"
                 value={searchInput}
                 onChange={(e) => {
                   setSearchInput(e.target.value);
                   setSelectedCity(null); // Clear selection when typing
                   setShowDropdown(true);
+                  setZipError(false); // Clear error when typing
                 }}
                 onFocus={() => {
                   setShowDropdown(true);
@@ -118,9 +127,9 @@ export default function BottomCTASection() {
                 className="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-600 bg-gray-800 text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
 
-              {/* City dropdown */}
+              {/* City dropdown — opens DOWN, card has overflow-visible */}
               {showCitySuggestions && (
-                <div className="absolute left-0 bottom-[calc(100%+4px)] w-full bg-white rounded-lg shadow-lg border border-gray-100 py-1.5 z-50 max-h-[240px] overflow-y-auto">
+                <div className="absolute left-0 top-[calc(100%+4px)] w-full bg-white rounded-lg shadow-lg border border-gray-100 py-1.5 z-50 max-h-[240px] overflow-y-auto">
                   <div className="px-3 py-1">
                     <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">
                       Cities matching &quot;{searchInput}&quot;
@@ -197,6 +206,13 @@ export default function BottomCTASection() {
               Get started
             </button>
           </div>
+
+          {/* Zip code error message */}
+          {zipError && (
+            <p className="mt-3 text-sm text-red-300">
+              Please search by business name or city instead.
+            </p>
+          )}
         </div>
       </div>
     </section>

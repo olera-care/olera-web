@@ -165,7 +165,7 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
       {/* ── Main Footer ── */}
       <div className="bg-gray-50 border-t border-gray-200/60">
         <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-10 md:py-12">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 md:gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-6">
             {/* Brand */}
             <div className="col-span-2 md:col-span-2 mb-4 md:mb-0">
               <Link href="/" className="inline-flex items-center space-x-2.5 mb-4 min-h-[44px]">
@@ -262,13 +262,27 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                   </Link>
                 </li>
                 <li>
+                  <Link href="/medjobs/providers" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Staffing
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* For Caregivers */}
+            <div>
+              <h3 className="text-gray-900 font-semibold text-xs uppercase tracking-wider mb-3">
+                For Caregivers
+              </h3>
+              <ul className="space-y-0">
+                <li>
                   <Link href="/medjobs" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    MedJobs
+                    Become a Caregiver
                   </Link>
                 </li>
                 <li>
-                  <Link href="/medjobs/providers" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    MedJobs for Providers
+                  <Link href="/medjobs/apply" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Apply Now
                   </Link>
                 </li>
               </ul>

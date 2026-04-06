@@ -1,6 +1,3 @@
-"use client";
-
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { Provider } from "@/lib/types/provider";
 import { getPrimaryImage } from "@/lib/types/provider";
@@ -8,56 +5,32 @@ import { getPrimaryImage } from "@/lib/types/provider";
 // ============================================================
 // Platform Showcase — Replaces profile card grid on onboard page
 // Shows what providers can DO on Olera, not what they need to fill out
+// These cards are purely informational — no navigation
 // ============================================================
 
 interface PlatformShowcaseProps {
   provider: Provider;
   completenessPercent: number;
-  /** Whether the user is authenticated — gates card navigation */
-  isSignedIn: boolean;
-  /** Called when an unauthenticated user clicks a card */
-  onUnauthenticatedClick?: () => void;
 }
 
-// ── Individual Value Card ──
+// ── Individual Value Card (static, non-interactive) ──
 
 function ValueCard({
-  href,
   headline,
   subtext,
   badge,
   icon,
   delay = 0,
-  isSignedIn,
-  onUnauthenticatedClick,
 }: {
-  href: string;
   headline: string;
   subtext: string;
   badge?: string;
   icon: React.ReactNode;
   delay?: number;
-  isSignedIn: boolean;
-  onUnauthenticatedClick?: () => void;
 }) {
-  const router = useRouter();
-
-  // Single <div> for all states — avoids DOM swap + animation re-trigger when isSignedIn changes
-  const handleClick = () => {
-    if (isSignedIn) {
-      router.push(href);
-    } else {
-      onUnauthenticatedClick?.();
-    }
-  };
-
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={handleClick}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleClick(); }}
-      className="group block bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md hover:border-gray-200 transition-all duration-200 cursor-pointer"
+      className="bg-white rounded-2xl border border-gray-100 p-6"
       style={{
         animation: "card-enter 0.3s ease-out both",
         animationDelay: `${delay}ms`,
@@ -79,59 +52,34 @@ function ValueCard({
         </div>
 
         {/* Icon */}
-        <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center shrink-0 group-hover:bg-gray-100 transition-colors">
+        <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center shrink-0">
           {icon}
         </div>
-      </div>
-
-      {/* Subtle arrow — no text, just the chevron */}
-      <div className="mt-4 flex items-center text-gray-300 group-hover:text-gray-500 transition-colors">
-        <svg
-          className="w-4 h-4 transform group-hover:translate-x-0.5 transition-transform"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-        </svg>
       </div>
     </div>
   );
 }
 
-// ── Listing Card (compact profile preview) ──
+// ── Listing Card (opens public profile in new tab) ──
 
 function ListingCard({
   provider,
   completenessPercent,
   delay = 0,
-  isSignedIn,
-  onUnauthenticatedClick,
 }: {
   provider: Provider;
   completenessPercent: number;
   delay?: number;
-  isSignedIn: boolean;
-  onUnauthenticatedClick?: () => void;
 }) {
-  const router = useRouter();
   const primaryImage = getPrimaryImage(provider);
-
-  const handleClick = () => {
-    if (isSignedIn) {
-      router.push("/provider");
-    } else {
-      onUnauthenticatedClick?.();
-    }
-  };
+  const profileUrl = `/provider/${provider.slug || provider.provider_id}`;
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={handleClick}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleClick(); }}
-      className="group block bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md hover:border-gray-200 transition-all duration-200 cursor-pointer"
+    <a
+      href={profileUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group block bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md hover:border-gray-200 transition-all duration-200"
       style={{
         animation: "card-enter 0.3s ease-out both",
         animationDelay: `${delay}ms`,
@@ -172,20 +120,20 @@ function ListingCard({
           </p>
         </div>
 
-        {/* Completeness + arrow */}
-        <div className="flex items-center gap-3 shrink-0">
-          <span className="text-sm text-gray-400">{completenessPercent}% complete</span>
+        {/* Completeness + external link indicator */}
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-sm text-gray-400">{completenessPercent}%</span>
           <svg
-            className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transform group-hover:translate-x-0.5 transition-all"
+            className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
           </svg>
         </div>
       </div>
-    </div>
+    </a>
   );
 }
 
@@ -212,8 +160,6 @@ function StaffIcon() {
 export default function PlatformShowcase({
   provider,
   completenessPercent,
-  isSignedIn,
-  onUnauthenticatedClick,
 }: PlatformShowcaseProps) {
   const city = provider.city || "your area";
 
@@ -230,24 +176,18 @@ export default function PlatformShowcase({
       {/* Value cards — 2-column, balanced */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <ValueCard
-          href="/provider/matches"
           headline="Families in your area"
           subtext={`Families nearby in ${city} are looking for care`}
           icon={<FamiliesIcon />}
           delay={150}
-          isSignedIn={isSignedIn}
-          onUnauthenticatedClick={onUnauthenticatedClick}
         />
 
         <ValueCard
-          href="/provider/medjobs/candidates"
           headline="Hire staff"
           subtext="Browse pre-screened healthcare students"
           badge="New"
           icon={<StaffIcon />}
           delay={210}
-          isSignedIn={isSignedIn}
-          onUnauthenticatedClick={onUnauthenticatedClick}
         />
       </div>
 
@@ -256,8 +196,6 @@ export default function PlatformShowcase({
         provider={provider}
         completenessPercent={completenessPercent}
         delay={390}
-        isSignedIn={isSignedIn}
-        onUnauthenticatedClick={onUnauthenticatedClick}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import type { Profile } from "@/lib/types";
 import type { ConnectionWithProfile } from "./ConversationList";
@@ -167,7 +168,7 @@ const HomeIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 
 // ── Care Request Card ──
 
-function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, otherInitial, imageUrl, autoIntro }: {
+function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, otherInitial, imageUrl, autoIntro, hideContactInfo }: {
   careRequest: CareRequestData;
   time: string;
   dateStr: string;
@@ -176,6 +177,7 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
   otherInitial: string;
   imageUrl?: string | null;
   autoIntro?: string | null;
+  hideContactInfo?: boolean;
 }) {
   const senderName = careRequest.seekerName;
   const locationStr = [careRequest.lookingInCity, careRequest.lookingInState].filter(Boolean).join(", ");
@@ -230,8 +232,8 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
               </p>
             )}
 
-            {/* Contact info */}
-            {(careRequest.seekerEmail || careRequest.seekerPhone) && (
+            {/* Contact info - hidden for unverified providers */}
+            {(careRequest.seekerEmail || careRequest.seekerPhone) && !hideContactInfo && (
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-[13px] text-gray-600">
                 {careRequest.seekerEmail && (
                   <a href={`mailto:${careRequest.seekerEmail}`} className="flex items-center gap-1.5 hover:text-primary-600 transition-colors">
@@ -249,6 +251,15 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
                     {careRequest.seekerPhone}
                   </a>
                 )}
+              </div>
+            )}
+            {/* Verification prompt when contact info is hidden */}
+            {(careRequest.seekerEmail || careRequest.seekerPhone) && hideContactInfo && (
+              <div className="mt-3 flex items-center gap-2 text-[13px] text-gray-400">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span>Contact info available after verification</span>
               </div>
             )}
 
@@ -332,6 +343,13 @@ export default function ConversationPanel({
   const [messageText, setMessageText] = useState("");
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+
+  // Provider verification check - only applies to organization/caregiver profiles
+  const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
+  const isVerified = activeProfile?.verification_state === "verified";
+  const verificationState = activeProfile?.verification_state;
+  // Unverified providers can't see contact info or send messages
+  const isProviderAndNotVerified = isProvider && !isVerified;
 
   // Auto-dismiss send error after 4 seconds
   useEffect(() => {
@@ -532,6 +550,7 @@ export default function ConversationPanel({
                   otherInitial={otherInitial}
                   imageUrl={imageUrl}
                   autoIntro={autoIntro}
+                  hideContactInfo={isProviderAndNotVerified}
                 />
               ) : initialNotes ? (
                 /* Fallback to simple bubble when no structured data */
@@ -771,52 +790,96 @@ export default function ConversationPanel({
       {/* ── Response time hint + Message input ── */}
       {showMessageInput && (
         <div className="shrink-0 border-t border-gray-200 bg-white">
-          {/* Send error */}
-          {sendError && (
-            <div className="mx-4 sm:mx-6 mt-3 px-3 py-2 rounded-lg bg-rose-50/80 border border-rose-100/60">
-              <p className="text-[13px] text-rose-600 font-medium text-center">{sendError}</p>
-            </div>
-          )}
-          {/* Input area */}
-          <div className={`px-4 sm:pl-6 ${detailOpen ? "sm:pr-6" : "sm:pr-[44px]"} py-4`}>
-            <div className="border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">
-              <textarea
-                ref={messageInputRef}
-                value={messageText}
-                onChange={(e) => {
-                  setMessageText(e.target.value);
-                  e.target.style.height = 'auto';
-                  e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey && messageText.trim()) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                placeholder={messagePlaceholder}
-                disabled={sending}
-                rows={1}
-                className="w-full px-4 pt-3.5 pb-1 text-base text-gray-900 placeholder:text-gray-400 outline-none resize-none disabled:opacity-50 leading-relaxed bg-transparent"
-              />
-              <div className="flex items-center justify-end px-3 pb-3">
-                <button
-                  type="button"
-                  onClick={handleSendMessage}
-                  disabled={sending || !messageText.trim()}
-                  className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
-                    messageText.trim()
-                      ? "bg-primary-600 text-white hover:bg-primary-700"
-                      : "bg-gray-200 text-gray-400"
-                  }`}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19V5m0 0l-7 7m7-7l7 7" />
-                  </svg>
-                </button>
+          {/* Verification prompt for unverified providers */}
+          {isProviderAndNotVerified ? (
+            <div className={`px-4 sm:pl-6 ${detailOpen ? "sm:pr-6" : "sm:pr-[44px]"} py-4`}>
+              <div className={`rounded-xl p-4 ${verificationState === "pending" ? "bg-amber-50 border border-amber-200" : "bg-gray-50 border border-gray-200"}`}>
+                <div className="flex items-start gap-3">
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${verificationState === "pending" ? "bg-amber-100" : "bg-gray-200"}`}>
+                    {verificationState === "pending" ? (
+                      <svg className="w-4.5 h-4.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4.5 h-4.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {verificationState === "pending" ? "Verification in Progress" : "Verify to Reply"}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {verificationState === "pending"
+                        ? "We're reviewing your request. You'll be able to reply once approved."
+                        : "Complete verification to unlock messaging and contact info."}
+                    </p>
+                    {verificationState !== "pending" && (
+                      <Link
+                        href="/provider"
+                        className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium text-primary-600 hover:text-primary-700"
+                      >
+                        Complete verification
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <>
+              {/* Send error */}
+              {sendError && (
+                <div className="mx-4 sm:mx-6 mt-3 px-3 py-2 rounded-lg bg-rose-50/80 border border-rose-100/60">
+                  <p className="text-[13px] text-rose-600 font-medium text-center">{sendError}</p>
+                </div>
+              )}
+              {/* Input area */}
+              <div className={`px-4 sm:pl-6 ${detailOpen ? "sm:pr-6" : "sm:pr-[44px]"} py-4`}>
+                <div className="border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">
+                  <textarea
+                    ref={messageInputRef}
+                    value={messageText}
+                    onChange={(e) => {
+                      setMessageText(e.target.value);
+                      e.target.style.height = 'auto';
+                      e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey && messageText.trim()) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder={messagePlaceholder}
+                    disabled={sending}
+                    rows={1}
+                    className="w-full px-4 pt-3.5 pb-1 text-base text-gray-900 placeholder:text-gray-400 outline-none resize-none disabled:opacity-50 leading-relaxed bg-transparent"
+                  />
+                  <div className="flex items-center justify-end px-3 pb-3">
+                    <button
+                      type="button"
+                      onClick={handleSendMessage}
+                      disabled={sending || !messageText.trim()}
+                      className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
+                        messageText.trim()
+                          ? "bg-primary-600 text-white hover:bg-primary-700"
+                          : "bg-gray-200 text-gray-400"
+                      }`}
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19V5m0 0l-7 7m7-7l7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

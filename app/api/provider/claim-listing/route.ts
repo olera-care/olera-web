@@ -101,6 +101,26 @@ export async function POST(request: Request) {
       }
     }
 
+    // STRICT ACCOUNT SEPARATION: Check if user already has a profile of a different type
+    // One email = one account type (family, provider, caregiver are separate)
+    const { data: anyExistingProfile } = await db
+      .from("business_profiles")
+      .select("id, type")
+      .eq("account_id", account.id)
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle();
+
+    if (anyExistingProfile && anyExistingProfile.type !== "organization") {
+      return NextResponse.json(
+        {
+          error: "This email is already used for a different account type. Please use a different email to claim this listing.",
+          code: "ACCOUNT_TYPE_MISMATCH"
+        },
+        { status: 409 }
+      );
+    }
+
     // Check if user already has a provider profile (they can only have one for now)
     const { data: existingProfile } = await db
       .from("business_profiles")

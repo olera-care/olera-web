@@ -176,7 +176,7 @@ export default function ManageListingModal({
   providerState,
 }: ManageListingModalProps) {
   const router = useRouter();
-  const { account, openAuth } = useAuth();
+  const { account } = useAuth();
   const [view, setView] = useState<ModalView>("choice");
   const [isMobile, setIsMobile] = useState(false);
 
@@ -244,76 +244,12 @@ export default function ManageListingModal({
     }, 200);
   }
 
-  // Claim state
-  const [claiming, setClaiming] = useState(false);
-  const [claimError, setClaimError] = useState<string | null>(null);
-
-  // Direct claim for logged-in users
-  async function claimDirectly() {
-    const claimId = sourceProviderId || providerId;
-    setClaiming(true);
-    setClaimError(null);
-
-    try {
-      const res = await fetch("/api/provider/claim-listing", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerId: claimId,
-          providerName: providerName,
-          providerSlug: providerSlug,
-          providerEmail: providerEmail,
-          city: providerCity,
-          state: providerState,
-        }),
-      });
-
-      if (res.ok) {
-        onClose();
-        router.push("/provider");
-      } else {
-        const data = await res.json().catch(() => ({}));
-        setClaimError(data.error || "Failed to claim listing. Please try again.");
-      }
-    } catch {
-      setClaimError("Something went wrong. Please try again.");
-    } finally {
-      setClaiming(false);
-    }
-  }
-
+  // Claim flow: ALWAYS route to onboard page
+  // This ensures strict account separation is enforced through the auth modal
+  // (one email = one account type: family, provider, caregiver are separate)
   function handleClaimClick() {
-    // If user is already logged in, claim directly
-    if (account) {
-      claimDirectly();
-      return;
-    }
-
-    // Not logged in — cache data and open auth modal
-    const claimId = sourceProviderId || providerId;
-    sessionStorage.setItem(
-      "olera_claim_provider_cache",
-      JSON.stringify({
-        provider_id: claimId,
-        provider_name: providerName,
-        slug: providerSlug,
-        email: providerEmail,
-        city: providerCity,
-        state: providerState,
-      })
-    );
-
     onClose();
-    openAuth({
-      intent: "provider",
-      headline: `Claim ${providerName}`,
-      subline: "Sign in or create an account to manage this listing",
-      initialEmail: providerEmail || undefined,
-      deferred: {
-        action: "claim-listing",
-        returnUrl: "/provider",
-      },
-    });
+    router.push(`/provider/${providerSlug}/onboard`);
   }
 
   function handleDisputeClick() {
@@ -565,43 +501,17 @@ export default function ManageListingModal({
                     ? <>Sign in with <span className="font-semibold text-gray-700">{maskEmail(providerEmail)}</span> for instant access.</>
                     : "Use your business email for instant verification."}
                 </p>
-                {/* Error message */}
-                {claimError && (
-                  <div className="mb-4 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg text-sm text-red-700 text-left">
-                    {claimError}
-                  </div>
-                )}
               </div>
-              {/* CTA button */}
+              {/* CTA button - routes to onboard page */}
               <button
                 type="button"
                 onClick={handleClaimClick}
-                disabled={claiming}
-                className="w-full py-3.5 bg-primary-700 hover:bg-primary-800 active:bg-primary-900 disabled:opacity-70 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 min-h-[48px]"
+                className="w-full py-3.5 bg-primary-700 hover:bg-primary-800 active:bg-primary-900 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 min-h-[48px]"
               >
-                {claiming ? (
-                  <>
-                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Claiming...
-                  </>
-                ) : account ? (
-                  <>
-                    Claim this listing
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </>
-                ) : (
-                  <>
-                    Sign in to claim
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </>
-                )}
+                Claim this listing
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </button>
             </div>
           )}

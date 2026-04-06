@@ -65,8 +65,8 @@ export function ScheduleBuilder({ value, onChange, readOnly }: ScheduleBuilderPr
                       isClass
                         ? "bg-gray-800 text-white"
                         : readOnly
-                        ? "bg-emerald-50 text-emerald-600"
-                        : "bg-emerald-50/70 hover:bg-emerald-100 text-transparent hover:text-emerald-400"
+                        ? "bg-gray-100 text-gray-500"
+                        : "bg-gray-100 hover:bg-gray-200 text-transparent hover:text-gray-400"
                     } ${readOnly ? "" : "cursor-pointer"}`}
                   >
                     {isClass ? "Class" : readOnly ? "" : ""}
@@ -79,7 +79,7 @@ export function ScheduleBuilder({ value, onChange, readOnly }: ScheduleBuilderPr
       </div>
       {hasAnyClass && !readOnly && (
         <p className="text-xs text-gray-400 mt-2">
-          Dark = class time. Green = available for shifts.
+          Dark = class time. Light = available for shifts.
         </p>
       )}
     </div>

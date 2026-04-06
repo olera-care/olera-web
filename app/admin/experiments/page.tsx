@@ -122,7 +122,7 @@ export default function ExperimentsPage() {
 
   async function toggleStatus(expId: string, currentStatus: string) {
     setSaving(true);
-    const newStatus = currentStatus === "active" ? "paused" : "active";
+    const newStatus = currentStatus === "active" ? "paused" : "active"; // draft → active, paused → active, active → paused
     const { error } = await supabase
       .from("experiments")
       .update({ status: newStatus })
@@ -334,9 +334,29 @@ export default function ExperimentsPage() {
                         {exp.status}
                       </span>
                     </div>
-                    <span className="text-xs text-gray-400">
-                      {new Date(exp.created_at).toLocaleDateString()}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      {(exp.status === "draft" || exp.status === "paused") && (
+                        <button
+                          onClick={() => toggleStatus(exp.id, exp.status)}
+                          disabled={saving}
+                          className="px-3 py-1 rounded-lg text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 transition-colors"
+                        >
+                          Activate
+                        </button>
+                      )}
+                      {exp.status === "active" && (
+                        <button
+                          onClick={() => toggleStatus(exp.id, exp.status)}
+                          disabled={saving}
+                          className="px-3 py-1 rounded-lg text-xs font-medium bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors"
+                        >
+                          Pause
+                        </button>
+                      )}
+                      <span className="text-xs text-gray-400">
+                        {new Date(exp.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
                   {exp.variants.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">

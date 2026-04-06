@@ -1354,6 +1354,7 @@ function ProviderOnboardingContent() {
                                   <button
                                     type="button"
                                     onClick={() => {
+                                      // Store provider data for claim flow
                                       try {
                                         sessionStorage.setItem(
                                           "olera_claim_provider_cache",
@@ -1365,10 +1366,20 @@ function ProviderOnboardingContent() {
                                             city: provider.city,
                                             state: provider.state,
                                             slug: provider.slug,
+                                            email: provider.email,
                                           })
                                         );
                                       } catch {}
-                                      router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}`);
+                                      // Open auth modal - after auth, deferred action handles the claim
+                                      openAuth({
+                                        intent: "provider",
+                                        headline: `Claim ${provider.provider_name}`,
+                                        subline: "Sign in or create an account to manage this listing",
+                                        deferred: {
+                                          action: "claim-listing",
+                                          returnUrl: "/provider",
+                                        },
+                                      });
                                     }}
                                     className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
                                   >
@@ -2052,6 +2063,7 @@ function ProviderOnboardingContent() {
                             <button
                               type="button"
                               onClick={() => {
+                                // Store provider data for claim flow
                                 try {
                                   sessionStorage.setItem(
                                     "olera_claim_provider_cache",
@@ -2063,10 +2075,20 @@ function ProviderOnboardingContent() {
                                       city: provider.city,
                                       state: provider.state,
                                       slug: provider.slug,
+                                      email: provider.email,
                                     })
                                   );
                                 } catch {}
-                                router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}`);
+                                // Open auth modal - after auth, deferred action handles the claim
+                                openAuth({
+                                  intent: "provider",
+                                  headline: `Claim ${provider.provider_name}`,
+                                  subline: "Sign in or create an account to manage this listing",
+                                  deferred: {
+                                    action: "claim-listing",
+                                    returnUrl: "/provider",
+                                  },
+                                });
                               }}
                               className="px-3 py-1.5 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
                             >

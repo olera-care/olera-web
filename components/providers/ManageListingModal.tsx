@@ -8,6 +8,84 @@ import Select from "@/components/ui/Select";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { ClaimState } from "@/lib/types";
 
+// ============================================================
+// Utility Functions
+// ============================================================
+
+function maskEmail(email: string): string {
+  const [local, domain] = email.split("@");
+  if (!domain) return "***@***.com";
+  const maskedLocal =
+    local.length <= 2
+      ? "*".repeat(local.length)
+      : local[0] + "***" + local[local.length - 1];
+  return `${maskedLocal}@${domain}`;
+}
+
+// ============================================================
+// Info Tooltip Component
+// ============================================================
+
+function InfoTooltip({ content }: { content: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (tooltipRef.current && !tooltipRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  // Close on escape key
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen]);
+
+  return (
+    <div className="relative inline-flex" ref={tooltipRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-1 -m-0.5 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
+        aria-label="More information"
+        aria-expanded={isOpen}
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div
+          className="absolute right-0 top-full mt-2 z-[200] w-[calc(100vw-3rem)] max-w-72 p-3.5 bg-gray-900 text-white text-sm rounded-xl shadow-xl animate-fade-in"
+          role="tooltip"
+        >
+          {/* Arrow */}
+          <div className="absolute -top-1.5 right-3 w-3 h-3 bg-gray-900 rotate-45" />
+          <p className="relative text-[13px] leading-relaxed text-gray-100">
+            {content}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 type ModalView = "choice" | "removal" | "dispute";
 
 const ACTION_OPTIONS = [
@@ -37,6 +115,12 @@ interface ManageListingModalProps {
   claimState?: ClaimState;
   /** The account_id of the claiming user (for ownership check) */
   claimAccountId?: string | null;
+  /** The provider's email on file (for claim nudge) */
+  providerEmail?: string | null;
+  /** Provider's city */
+  providerCity?: string | null;
+  /** Provider's state */
+  providerState?: string | null;
 }
 
 /** Trigger button + modal combo for use in server components */
@@ -47,6 +131,9 @@ export function ManagePageButton({
   sourceProviderId,
   claimState,
   claimAccountId,
+  providerEmail,
+  providerCity,
+  providerState,
 }: Omit<ManageListingModalProps, "isOpen" | "onClose">) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -67,6 +154,9 @@ export function ManagePageButton({
         sourceProviderId={sourceProviderId}
         claimState={claimState}
         claimAccountId={claimAccountId}
+        providerEmail={providerEmail}
+        providerCity={providerCity}
+        providerState={providerState}
       />
     </>
   );
@@ -81,9 +171,12 @@ export default function ManageListingModal({
   sourceProviderId,
   claimState,
   claimAccountId,
+  providerEmail,
+  providerCity,
+  providerState,
 }: ManageListingModalProps) {
   const router = useRouter();
-  const { account } = useAuth();
+  const { account, openAuth } = useAuth();
   const [view, setView] = useState<ModalView>("choice");
   const [isMobile, setIsMobile] = useState(false);
 
@@ -151,10 +244,76 @@ export default function ManageListingModal({
     }, 200);
   }
 
-  function handleClaimClick() {
-    // Navigate directly — page change will unmount modal, no need to close first
+  // Claim state
+  const [claiming, setClaiming] = useState(false);
+  const [claimError, setClaimError] = useState<string | null>(null);
+
+  // Direct claim for logged-in users
+  async function claimDirectly() {
     const claimId = sourceProviderId || providerId;
-    router.push(`/provider/${providerSlug}/onboard?provider_id=${claimId}`);
+    setClaiming(true);
+    setClaimError(null);
+
+    try {
+      const res = await fetch("/api/provider/claim-listing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId: claimId,
+          providerName: providerName,
+          providerSlug: providerSlug,
+          providerEmail: providerEmail,
+          city: providerCity,
+          state: providerState,
+        }),
+      });
+
+      if (res.ok) {
+        onClose();
+        router.push("/provider");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setClaimError(data.error || "Failed to claim listing. Please try again.");
+      }
+    } catch {
+      setClaimError("Something went wrong. Please try again.");
+    } finally {
+      setClaiming(false);
+    }
+  }
+
+  function handleClaimClick() {
+    // If user is already logged in, claim directly
+    if (account) {
+      claimDirectly();
+      return;
+    }
+
+    // Not logged in — cache data and open auth modal
+    const claimId = sourceProviderId || providerId;
+    sessionStorage.setItem(
+      "olera_claim_provider_cache",
+      JSON.stringify({
+        provider_id: claimId,
+        provider_name: providerName,
+        slug: providerSlug,
+        email: providerEmail,
+        city: providerCity,
+        state: providerState,
+      })
+    );
+
+    onClose();
+    openAuth({
+      intent: "provider",
+      headline: `Claim ${providerName}`,
+      subline: "Sign in or create an account to manage this listing",
+      initialEmail: providerEmail || undefined,
+      deferred: {
+        action: "claim-listing",
+        returnUrl: "/provider",
+      },
+    });
   }
 
   function handleDisputeClick() {
@@ -376,13 +535,15 @@ export default function ManageListingModal({
             </div>
           )}
 
-          {/* CASE 3: Unclaimed → Claim card */}
+          {/* CASE 3: Unclaimed → Claim card (centered design matching ActionCard) */}
           {!isClaimed && (
-            <div className="rounded-2xl border border-primary-100 bg-primary-50/60 p-5">
-              <div className="flex items-start gap-3 mb-4">
-                <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center shrink-0">
+            <div className="rounded-2xl border border-primary-100 bg-primary-50/60 p-6">
+              {/* Centered header */}
+              <div className="text-center mb-5">
+                {/* Icon */}
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-600 to-primary-700 flex items-center justify-center mx-auto mb-4 shadow-sm">
                   <svg
-                    className="w-5 h-5 text-white"
+                    className="w-6 h-6 text-white"
                     viewBox="0 0 24 24"
                     fill="currentColor"
                   >
@@ -393,24 +554,54 @@ export default function ManageListingModal({
                     />
                   </svg>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-semibold text-primary-900 mb-0.5">
-                    Claim this listing
-                  </h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    Manage your page, respond to families, and update your info
-                  </p>
-                </div>
+                {/* Title with tooltip */}
+                <h3 className="text-lg font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
+                  Claim this listing
+                  <InfoTooltip content="Sign in with your business email. If it matches our records, you'll get instant access to manage this listing." />
+                </h3>
+                {/* Conditional subtitle */}
+                <p className="text-[15px] text-gray-600 leading-relaxed mb-4">
+                  {providerEmail
+                    ? <>Sign in with <span className="font-semibold text-gray-700">{maskEmail(providerEmail)}</span> for instant access.</>
+                    : "Use your business email for instant verification."}
+                </p>
+                {/* Error message */}
+                {claimError && (
+                  <div className="mb-4 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg text-sm text-red-700 text-left">
+                    {claimError}
+                  </div>
+                )}
               </div>
+              {/* CTA button */}
               <button
                 type="button"
                 onClick={handleClaimClick}
-                className="w-full py-3 bg-primary-700 hover:bg-primary-800 active:bg-primary-900 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-1.5"
+                disabled={claiming}
+                className="w-full py-3.5 bg-primary-700 hover:bg-primary-800 active:bg-primary-900 disabled:opacity-70 disabled:cursor-not-allowed text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 min-h-[48px]"
               >
-                Get started
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
+                {claiming ? (
+                  <>
+                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Claiming...
+                  </>
+                ) : account ? (
+                  <>
+                    Claim this listing
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </>
+                ) : (
+                  <>
+                    Sign in to claim
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </>
+                )}
               </button>
             </div>
           )}

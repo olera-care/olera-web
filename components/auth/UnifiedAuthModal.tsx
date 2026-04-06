@@ -564,6 +564,49 @@ export default function UnifiedAuthModal({
     if (options.intent === "provider") {
       onClose();
 
+      // Handle claim-listing deferred action — link account to existing listing
+      if (deferred?.action === "claim-listing") {
+        try {
+          // Read cached provider data from sessionStorage
+          const cached = sessionStorage.getItem("olera_claim_provider_cache");
+          if (cached) {
+            const providerData = JSON.parse(cached);
+
+            // Call API to claim the listing
+            const res = await fetch("/api/provider/claim-listing", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                providerId: providerData.provider_id,
+                providerName: providerData.provider_name,
+                providerSlug: providerData.slug,
+                providerEmail: providerData.email,
+                city: providerData.city,
+                state: providerData.state,
+              }),
+            });
+
+            // Clear the cache regardless of result
+            sessionStorage.removeItem("olera_claim_provider_cache");
+
+            if (res.ok) {
+              // Refresh account data to pick up new profile
+              await refreshAccountData();
+              router.push("/provider");
+              return;
+            } else {
+              const errorData = await res.json().catch(() => ({}));
+              console.error("Claim listing failed:", errorData.error);
+              // Fall through to normal routing - they can try again from dashboard
+            }
+          }
+        } catch (err) {
+          console.error("Claim listing error:", err);
+          // Clear cache and fall through to normal routing
+          try { sessionStorage.removeItem("olera_claim_provider_cache"); } catch {}
+        }
+      }
+
       // Query fresh profile data from DB (cached `profiles` state may be stale
       // after sign-out + sign-in of a different account)
       let freshProviderProfile = null;

@@ -5,9 +5,9 @@ import type { Season } from "@/lib/aging-in-america-data"
 import EpisodeCard from "./EpisodeCard"
 
 export default function SeasonAccordion({ seasons }: { seasons: Season[] }) {
-  // Latest season (first in array) is open by default
+  // All seasons open by default
   const [openSeasons, setOpenSeasons] = useState<Set<number>>(
-    new Set([seasons[0]?.number])
+    new Set(seasons.map((s) => s.number))
   )
 
   function toggleSeason(num: number) {

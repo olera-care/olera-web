@@ -13,6 +13,8 @@ import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
 import Pagination from "@/components/ui/Pagination";
 import OtpInput from "@/components/auth/OtpInput";
+import VerificationFormModal from "@/components/provider/VerificationFormModal";
+import type { VerificationSubmission } from "@/components/provider/VerificationFormModal";
 import type { Provider } from "@/lib/types/provider";
 
 type Step = "search" | "verify" | "create" | "potential-matches";
@@ -112,6 +114,11 @@ function ProviderOnboardingContent() {
   const [businessProfileMatches, setBusinessProfileMatches] = useState<BusinessProfileMatch[]>([]);
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
   const [showAllMatches, setShowAllMatches] = useState(false);
+
+  // Verification modal state
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [pendingProfileId, setPendingProfileId] = useState<string | null>(null);
+  const [pendingProfileName, setPendingProfileName] = useState<string>("");
 
   // Location input state (separate from name search) - initialize from URL params
   const [locationQuery, setLocationQuery] = useState(urlLocationQuery);
@@ -360,51 +367,106 @@ function ProviderOnboardingContent() {
             try {
               const supabase = (await import("@/lib/supabase/client")).createClient();
 
-              let query = supabase
+              // === Query 1: olera-providers (scraped listings) ===
+              let providerQuery = supabase
                 .from("olera-providers")
                 .select("*")
                 .not("deleted", "is", true);
 
               if (name) {
-                query = query.ilike("provider_name", `%${name}%`);
+                providerQuery = providerQuery.ilike("provider_name", `%${name}%`);
               }
-
               if (loc) {
                 const parts = loc.split(",").map((s: string) => s.trim());
                 if (parts.length >= 2 && parts[1].length <= 3) {
-                  query = query.ilike("city", `%${parts[0]}%`);
-                  query = query.ilike("state", `%${parts[1]}%`);
+                  providerQuery = providerQuery.ilike("city", `%${parts[0]}%`);
+                  providerQuery = providerQuery.ilike("state", `%${parts[1]}%`);
                 } else {
-                  query = query.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
+                  providerQuery = providerQuery.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
                 }
               }
 
-              const { data: providers, error: providerErr } = await query.limit(20);
+              // === Query 2: business_profiles (created from scratch) ===
+              let bpQuery = supabase
+                .from("business_profiles")
+                .select("id, display_name, image_url, city, state, slug, account_id, source_provider_id")
+                .is("source_provider_id", null);
 
-              if (providerErr) {
-                setSearchError(`Search failed: ${providerErr.message}`);
-                setSearchResults([]);
-              } else {
-                const results = (providers as Provider[]) || [];
-                setSearchResults(results);
-
-                if (results.length > 0) {
-                  const ids = results.map((p) => p.provider_id);
-                  const { data: claimed } = await supabase
-                    .from("business_profiles")
-                    .select("source_provider_id")
-                    .in("source_provider_id", ids)
-                    .in("claim_state", ["claimed", "pending"]);
-
-                  const claimedSet = new Set<string>(
-                    (claimed || [])
-                      .map((r: { source_provider_id: string | null }) => r.source_provider_id)
-                      .filter((id): id is string => !!id)
-                  );
-                  setClaimedIds(claimedSet);
+              if (name) {
+                bpQuery = bpQuery.ilike("display_name", `%${name}%`);
+              }
+              if (loc) {
+                const parts = loc.split(",").map((s: string) => s.trim());
+                if (parts.length >= 2 && parts[1].length <= 3) {
+                  bpQuery = bpQuery.ilike("city", `%${parts[0]}%`);
+                  bpQuery = bpQuery.ilike("state", `%${parts[1]}%`);
                 } else {
-                  setClaimedIds(new Set());
+                  bpQuery = bpQuery.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
                 }
+              }
+
+              // Run both queries in parallel
+              const [providerResult, bpResult] = await Promise.all([
+                providerQuery.limit(20),
+                bpQuery.limit(10),
+              ]);
+
+              if (providerResult.error) {
+                setSearchError(`Search failed: ${providerResult.error.message}`);
+                setSearchResults([]);
+                return;
+              }
+
+              // Convert business_profiles to Provider-like shape
+              const bpAsProviders: Provider[] = (bpResult.data || []).map((bp) => ({
+                provider_id: `bp_${bp.id}`,
+                provider_name: bp.display_name,
+                provider_images: bp.image_url || "",
+                city: bp.city,
+                state: bp.state,
+                slug: bp.slug,
+                address: null,
+                zipcode: null,
+                provider_category: "Senior Care",
+                main_category: null,
+                provider_description: null,
+                phone: null,
+                email: null,
+                website: null,
+                lat: null,
+                lon: null,
+                lower_price: null,
+                upper_price: null,
+                deleted: false,
+                _isBusinessProfile: true,
+                _accountId: bp.account_id,
+              } as Provider & { _isBusinessProfile?: boolean; _accountId?: string }));
+
+              // Merge results (business_profiles first, then olera-providers)
+              const allResults = [...bpAsProviders, ...(providerResult.data as Provider[] || [])];
+              setSearchResults(allResults);
+
+              // Check which olera-providers have been claimed
+              const oleraProviderIds = (providerResult.data || []).map((p: Provider) => p.provider_id);
+              if (oleraProviderIds.length > 0) {
+                const { data: claimed } = await supabase
+                  .from("business_profiles")
+                  .select("source_provider_id")
+                  .in("source_provider_id", oleraProviderIds)
+                  .in("claim_state", ["claimed", "pending"]);
+
+                const claimedSet = new Set<string>(
+                  (claimed || [])
+                    .map((r: { source_provider_id: string | null }) => r.source_provider_id)
+                    .filter((id): id is string => !!id)
+                );
+                // Also mark all business_profile results as claimed
+                bpAsProviders.forEach((bp) => claimedSet.add(bp.provider_id));
+                setClaimedIds(claimedSet);
+              } else {
+                // Just mark business_profiles as claimed
+                const claimedSet = new Set<string>(bpAsProviders.map((bp) => bp.provider_id));
+                setClaimedIds(claimedSet);
               }
             } catch {
               setSearchError("Search failed. Please try again.");
@@ -883,7 +945,7 @@ function ProviderOnboardingContent() {
         return;
       }
 
-      const { profileId } = result;
+      const { profileId, verificationState } = result;
 
       // Clear any saved form data
       try {
@@ -899,6 +961,14 @@ function ProviderOnboardingContent() {
         switchProfile(profileId);
       }
 
+      // If not auto-verified, show verification modal before redirecting
+      if (verificationState === "unverified") {
+        setPendingProfileId(profileId);
+        setPendingProfileName(data.displayName);
+        setShowVerificationModal(true);
+        return;
+      }
+
       // If coming from MedJobs hire flow, return to the candidate page
       if (nextUrl) {
         router.replace(nextUrl);
@@ -909,6 +979,42 @@ function ProviderOnboardingContent() {
       setSubmitError("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Handle verification form submission
+  const handleVerificationSubmit = async (submission: VerificationSubmission) => {
+    if (!pendingProfileId) return;
+
+    const res = await fetch("/api/provider/verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        profileId: pendingProfileId,
+        submission,
+      }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || "Failed to submit verification");
+    }
+
+    // Navigate to dashboard after successful submission
+    if (nextUrl) {
+      router.replace(nextUrl);
+    } else {
+      router.replace("/provider");
+    }
+  };
+
+  // Handle verification dismissal (provisional access)
+  const handleVerificationDismiss = () => {
+    // Navigate to dashboard with provisional access (unverified)
+    if (nextUrl) {
+      router.replace(nextUrl);
+    } else {
+      router.replace("/provider");
     }
   };
 
@@ -1248,6 +1354,7 @@ function ProviderOnboardingContent() {
                                   <button
                                     type="button"
                                     onClick={() => {
+                                      // Store provider data for claim flow
                                       try {
                                         sessionStorage.setItem(
                                           "olera_claim_provider_cache",
@@ -1259,10 +1366,20 @@ function ProviderOnboardingContent() {
                                             city: provider.city,
                                             state: provider.state,
                                             slug: provider.slug,
+                                            email: provider.email,
                                           })
                                         );
                                       } catch {}
-                                      router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}`);
+                                      // Open auth modal - after auth, deferred action handles the claim
+                                      openAuth({
+                                        intent: "provider",
+                                        headline: `Claim ${provider.provider_name}`,
+                                        subline: "Sign in or create an account to manage this listing",
+                                        deferred: {
+                                          action: "claim-listing",
+                                          returnUrl: "/provider",
+                                        },
+                                      });
                                     }}
                                     className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
                                   >
@@ -1815,16 +1932,15 @@ function ProviderOnboardingContent() {
                         router.push(`/contact?subject=${encodeURIComponent(`Ownership dispute: ${profile.display_name}`)}&profile_id=${profile.id}`);
                       }
                     } else {
+                      // Just sign them in — no profile creation
+                      // After sign-in, normal routing takes over:
+                      // - If they have a provider profile → /provider
+                      // - If not → /provider/onboarding
                       openAuth({
                         defaultMode: "sign-in",
-                        headline: "Sign in to manage this page",
+                        headline: "Sign in to your account",
                         intent: "provider",
-                        providerType: "organization",
                         initialEmail: profile.email || data.email || undefined,
-                        deferred: {
-                          action: "create_profile",
-                          returnUrl: "/provider",
-                        },
                       });
                     }
                   };
@@ -1947,6 +2063,7 @@ function ProviderOnboardingContent() {
                             <button
                               type="button"
                               onClick={() => {
+                                // Store provider data for claim flow
                                 try {
                                   sessionStorage.setItem(
                                     "olera_claim_provider_cache",
@@ -1958,10 +2075,20 @@ function ProviderOnboardingContent() {
                                       city: provider.city,
                                       state: provider.state,
                                       slug: provider.slug,
+                                      email: provider.email,
                                     })
                                   );
                                 } catch {}
-                                router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}`);
+                                // Open auth modal - after auth, deferred action handles the claim
+                                openAuth({
+                                  intent: "provider",
+                                  headline: `Claim ${provider.provider_name}`,
+                                  subline: "Sign in or create an account to manage this listing",
+                                  deferred: {
+                                    action: "claim-listing",
+                                    returnUrl: "/provider",
+                                  },
+                                });
                               }}
                               className="px-3 py-1.5 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
                             >
@@ -2017,6 +2144,16 @@ function ProviderOnboardingContent() {
         })()}
 
       </div>
+
+      {/* Verification Modal */}
+      <VerificationFormModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        onSubmit={handleVerificationSubmit}
+        businessName={pendingProfileName}
+        allowDismiss={true}
+        onDismiss={handleVerificationDismiss}
+      />
     </div>
   );
 }

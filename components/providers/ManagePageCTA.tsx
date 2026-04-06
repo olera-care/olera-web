@@ -2,20 +2,98 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/auth/AuthProvider";
+
+// ============================================================
+// Utility Functions
+// ============================================================
+
+function maskEmail(email: string): string {
+  const [local, domain] = email.split("@");
+  if (!domain) return "***@***.com";
+  const maskedLocal =
+    local.length <= 2
+      ? "*".repeat(local.length)
+      : local[0] + "***" + local[local.length - 1];
+  return `${maskedLocal}@${domain}`;
+}
+
+// ============================================================
+// Info Tooltip Component
+// ============================================================
+
+function InfoTooltip({ content }: { content: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="relative inline-flex">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        onBlur={() => setTimeout(() => setIsOpen(false), 150)}
+        className="p-1 -m-0.5 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
+        aria-label="More information"
+        aria-expanded={isOpen}
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div
+          className="absolute right-0 top-full mt-2 z-[200] w-64 p-3 bg-gray-900 text-white text-sm rounded-xl shadow-xl"
+          role="tooltip"
+        >
+          <div className="absolute -top-1.5 right-3 w-3 h-3 bg-gray-900 rotate-45" />
+          <p className="relative text-[13px] leading-relaxed text-gray-100">
+            {content}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// Main Component
+// ============================================================
 
 interface ManagePageCTAProps {
   providerSlug: string;
   providerName: string;
   providerId: string;
+  /** The olera-providers.provider_id (for claiming) */
+  sourceProviderId?: string | null;
+  /** Provider's email on file */
+  providerEmail?: string | null;
+  /** Provider's city */
+  providerCity?: string | null;
+  /** Provider's state */
+  providerState?: string | null;
+  /** Whether listing is already claimed */
+  isClaimed?: boolean;
+  /** Account ID of claimer (for ownership check) */
+  claimAccountId?: string | null;
 }
 
 export default function ManagePageCTA({
   providerSlug,
   providerName,
   providerId,
+  sourceProviderId,
+  providerEmail,
+  providerCity,
+  providerState,
+  isClaimed = false,
+  claimAccountId,
 }: ManagePageCTAProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const { account } = useAuth();
+
+  // Check if current user is the owner
+  const isOwner = isClaimed && !!account && !!claimAccountId && account.id === claimAccountId;
 
   // Close on Escape
   useEffect(() => {
@@ -39,17 +117,34 @@ export default function ManagePageCTA({
     };
   }, [open]);
 
-  const handleGetStarted = useCallback(() => {
+  // Owner goes to dashboard
+  const handleGoToDashboard = useCallback(() => {
+    setOpen(false);
+    router.push("/provider");
+  }, [router]);
+
+  // Claim flow: ALWAYS route to onboard page
+  // This ensures strict account separation is enforced through the auth modal
+  // (one email = one account type: family, provider, caregiver are separate)
+  const handleClaimClick = useCallback(() => {
     setOpen(false);
     router.push(`/provider/${providerSlug}/onboard`);
   }, [router, providerSlug]);
 
+  // Dispute flow: go to dispute page
+  const handleDispute = useCallback(() => {
+    setOpen(false);
+    router.push(
+      `/for-providers/dispute/${providerSlug}?provider_name=${encodeURIComponent(providerName)}&provider_id=${encodeURIComponent(sourceProviderId || providerId)}`
+    );
+  }, [router, providerSlug, providerName, sourceProviderId, providerId]);
+
   const handleRemoval = useCallback(() => {
     setOpen(false);
     router.push(
-      `/for-providers/removal-request/${providerSlug}?provider_name=${encodeURIComponent(providerName)}&provider_id=${encodeURIComponent(providerId)}`
+      `/for-providers/removal-request/${providerSlug}?provider_name=${encodeURIComponent(providerName)}&provider_id=${encodeURIComponent(sourceProviderId || providerId)}`
     );
-  }, [router, providerSlug, providerName, providerId]);
+  }, [router, providerSlug, providerName, sourceProviderId, providerId]);
 
   return (
     <>
@@ -91,7 +186,7 @@ export default function ManagePageCTA({
 
           {/* Dialog */}
           <div
-            className="relative w-full max-w-sm bg-white rounded-2xl shadow-xl p-8 text-center"
+            className="relative w-full max-w-sm bg-white rounded-2xl shadow-xl p-6 sm:p-8"
             onClick={(e) => e.stopPropagation()}
             style={{ animation: "modal-enter 200ms ease-out" }}
           >
@@ -106,36 +201,108 @@ export default function ManagePageCTA({
               </svg>
             </button>
 
-            {/* Content */}
-            <h2 className="text-xl font-semibold text-gray-900 mt-1">
-              Manage this page
-            </h2>
-            <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-              Update your details, respond to inquiries, and stand out to families.
-            </p>
+            {/* CASE 1: Owner → Go to Dashboard */}
+            {isOwner && (
+              <div className="text-center">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-600 to-primary-700 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                    <path fillRule="evenodd" d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08zm3.094 8.016a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <h2 className="text-lg font-display font-bold text-gray-900 mb-1.5">
+                  You manage this listing
+                </h2>
+                <p className="text-[15px] text-gray-500 leading-relaxed mb-6">
+                  Update info, respond to families, and manage your presence.
+                </p>
+                <button
+                  onClick={handleGoToDashboard}
+                  className="w-full py-3.5 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] flex items-center justify-center gap-1.5"
+                >
+                  Go to Dashboard
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            )}
 
-            {/* Primary CTA */}
-            <button
-              onClick={handleGetStarted}
-              className="w-full mt-6 px-5 py-3 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all"
-            >
-              Get started
-            </button>
+            {/* CASE 2: Claimed by someone else → Dispute */}
+            {isClaimed && !isOwner && (
+              <div className="text-center">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center mx-auto mb-4 shadow-sm border border-amber-200/60">
+                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <h2 className="text-lg font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
+                  This listing is claimed
+                  <InfoTooltip content="Someone else has verified ownership of this listing. If you believe this is incorrect, you can submit a dispute." />
+                </h2>
+                <p className="text-[15px] text-gray-500 leading-relaxed mb-6">
+                  Someone else is managing this listing.
+                </p>
+                <button
+                  onClick={handleDispute}
+                  className="w-full py-3.5 bg-amber-600 text-white font-semibold rounded-xl hover:bg-amber-700 active:scale-[0.99] transition-all min-h-[48px] flex items-center justify-center gap-1.5"
+                >
+                  Dispute this claim
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            )}
 
-            {/* Divider */}
-            <div className="flex items-center gap-3 mt-5">
-              <div className="flex-1 h-px bg-gray-200" />
-              <span className="text-xs text-gray-400">or</span>
-              <div className="flex-1 h-px bg-gray-200" />
-            </div>
+            {/* CASE 3: Unclaimed → Claim card (new centered design) */}
+            {!isClaimed && (
+              <div className="text-center">
+                {/* Icon */}
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-600 to-primary-700 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                    <path fillRule="evenodd" d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08zm3.094 8.016a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                {/* Title with tooltip */}
+                <h2 className="text-lg font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
+                  Claim this listing
+                  <InfoTooltip content="Sign in with your business email. If it matches our records, you'll get instant access to manage this listing." />
+                </h2>
+                {/* Conditional subtitle */}
+                <p className="text-[15px] text-gray-500 leading-relaxed mb-4">
+                  {providerEmail
+                    ? <>Sign in with <span className="font-semibold text-gray-700">{maskEmail(providerEmail)}</span> for instant access.</>
+                    : "Use your business email for instant verification."}
+                </p>
+                {/* CTA - routes to onboard page */}
+                <button
+                  onClick={handleClaimClick}
+                  className="w-full py-3.5 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] flex items-center justify-center gap-1.5"
+                >
+                  Claim this listing
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            )}
 
-            {/* Secondary: Removal */}
-            <button
-              onClick={handleRemoval}
-              className="mt-4 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              Request to hide or remove page
-            </button>
+            {/* Divider + Removal link (for all cases except owner) */}
+            {!isOwner && (
+              <>
+                <div className="flex items-center gap-3 mt-5">
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <span className="text-xs text-gray-400">or</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
+                <button
+                  onClick={handleRemoval}
+                  className="w-full mt-4 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  Request to hide or remove page
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -321,7 +321,7 @@ function SectionCard({ label, done, children, defaultOpen, onEdit }: {
         >
           <div className="flex items-center gap-3">
             {done ? (
-              <svg className="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-primary-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             ) : (
@@ -346,7 +346,7 @@ function SectionCard({ label, done, children, defaultOpen, onEdit }: {
       >
         <div className="flex items-center gap-3">
           {done ? (
-            <svg className="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-primary-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           ) : (
@@ -1243,7 +1243,7 @@ function StudentPortalContent({
             {/* Profile Header Card — with photo upload */}
             <div id="overview" className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-300">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 relative group">
+                <div className="flex-shrink-0">
                   {profile.image_url ? (
                     <img src={profile.image_url} alt="" className="w-20 h-20 rounded-xl object-cover ring-2 ring-primary-100 ring-offset-2" />
                   ) : (
@@ -1253,10 +1253,6 @@ function StudentPortalContent({
                       </span>
                     </div>
                   )}
-                  <div className="absolute -bottom-1 -right-1">
-                    <InlineUpload profileId={profile.id} documentType="photo" onComplete={refresh}
-                      accept="image/*" label={profile.image_url ? "\u270E" : "+"} />
-                  </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   {/* Track label */}
@@ -1268,10 +1264,10 @@ function StudentPortalContent({
                   <div className="flex items-center gap-3 flex-wrap">
                     <h1 className="text-xl font-display font-bold text-gray-900 truncate">{profile.display_name}</h1>
                     <div className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                      profile.is_active ? "bg-success-50 text-success-700" : verificationDone ? "bg-primary-50 text-primary-700" : "bg-gray-100 text-gray-500"
+                      profile.is_active ? "bg-primary-50 text-primary-700" : verificationDone ? "bg-amber-50 text-amber-700" : "bg-gray-100 text-gray-500"
                     }`}>
                       <div className={`w-1.5 h-1.5 rounded-full ${
-                        profile.is_active ? "bg-success-600" : verificationDone ? "bg-primary-500" : "bg-gray-300"
+                        profile.is_active ? "bg-primary-500 animate-pulse" : verificationDone ? "bg-amber-500" : "bg-gray-300"
                       }`} />
                       {profile.is_active ? "Live" : verificationDone ? "Under review" : "Not verified"}
                     </div>
@@ -1294,183 +1290,197 @@ function StudentPortalContent({
                     </a>
                   )}
                 </div>
-                {/* Edit button */}
+                {/* Edit button — circular style matching other section cards */}
                 <button
                   type="button"
                   onClick={() => setEditingSection("overview")}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
+                  className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200 shrink-0"
                   aria-label="Edit profile overview"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                   </svg>
                 </button>
               </div>
             </div>
 
-            {/* ── 100% Complete — Celebration + Next Steps ── */}
+            {/* ── Profile Complete — Simple confirmation message (no buttons needed) ── */}
             {completenessPercent === 100 && profile.is_active && (
-              <div className="bg-emerald-50 rounded-2xl border border-emerald-200/80 p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-lg font-semibold text-emerald-900">You&apos;re live, {firstName}!</h2>
-                    <p className="text-sm text-emerald-700 mt-1 mb-4">
-                      Your profile is complete and visible to providers. Start applying to open positions — students who reach out directly get interviewed faster.
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      <Link href="/portal/medjobs/jobs"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 rounded-lg text-sm font-medium text-white transition-colors">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0H8m8 0h2a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h2" />
-                        </svg>
-                        Browse open jobs
-                      </Link>
-                      <Link href={`/medjobs/candidates/${profile.slug}`}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 border border-emerald-300 hover:bg-emerald-100 rounded-lg text-sm font-medium text-emerald-800 transition-colors">
-                        View your public profile
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+              <div className="flex items-center gap-3 px-4 py-3 bg-primary-50/60 rounded-xl border border-primary-100">
+                <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-sm text-primary-700">
+                  <span className="font-medium">Profile complete.</span>{" "}
+                  <span className="text-primary-600">Visible to providers — browse open jobs to get started.</span>
+                </p>
               </div>
             )}
 
-            {/* Verification Card — Redesigned with Video Preview */}
+            {/* Verification Card — Compact, Premium Design */}
               <div id="verification" className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-300">
-                <div className="flex items-start justify-between mb-1">
-                  <h2 className="text-[24px] font-display font-bold text-gray-900">Verification</h2>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-sm font-medium ${verificationDone ? "text-emerald-600" : "text-gray-400"}`}>
-                      {verificationItems.filter((v) => v.done).length}/{verificationItems.length}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setEditingSection("verification")}
-                      className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
-                      aria-label="Edit verification"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                      </svg>
-                    </button>
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-lg font-semibold text-gray-900">Verification</h2>
+                    {verificationDone ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-50 text-primary-700 text-xs font-medium rounded-full">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        Complete
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-400">
+                        {verificationItems.filter((v) => v.done).length} of {verificationItems.length}
+                      </span>
+                    )}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditingSection("verification")}
+                    className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
+                    aria-label="Edit verification"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                    </svg>
+                  </button>
                 </div>
-                <p className="text-sm text-gray-500 mb-5">
-                  {verificationDone ? "All verification documents submitted." : "We verify every student to protect the families you'll care for. Complete these to go live."}
-                </p>
 
-                {/* Video Preview - Show when available */}
-                {videoAvailable && (
-                  <div className="mb-6">
-                    <div className="rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
-                      {youtubeId ? (
-                        <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
-                          <iframe
-                            className="absolute inset-0 w-full h-full"
-                            src={`https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0`}
-                            title="Your intro video"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        </div>
-                      ) : meta.video_intro_url ? (
+                {/* Empty State - No verifications yet */}
+                {verificationItems.every((v) => !v.done) ? (
+                  <button
+                    type="button"
+                    onClick={() => setEditingSection("verification")}
+                    className="w-full group"
+                  >
+                    <div className="flex items-center gap-4 p-4 rounded-xl border-2 border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-50/50 transition-all">
+                      <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="text-sm font-medium text-gray-900">Get verified to go live</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Add intro video, license, and insurance</p>
+                      </div>
+                      <svg className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
+                ) : (
+                  <div className="space-y-3">
+                    {/* Video row - compact thumbnail when available */}
+                    {videoAvailable && (
+                      <div className="flex items-center gap-3">
+                        {/* Compact video thumbnail */}
                         <a
-                          href={meta.video_intro_url}
+                          href={meta.video_intro_url || "#"}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="group flex items-center justify-center gap-4 py-12 hover:bg-gray-100 transition-all duration-200"
+                          className="relative w-20 h-14 rounded-lg overflow-hidden bg-gray-900 flex-shrink-0 group"
                         >
-                          <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-200">
-                            <svg className="w-6 h-6 text-primary-600 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M8 5v14l11-7z" />
-                            </svg>
-                          </div>
-                          <div>
-                            <p className="text-base font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">Watch Your Intro</p>
-                            <p className="text-sm text-gray-500">Click to view on {meta.video_intro_url.includes("loom") ? "Loom" : "external site"}</p>
+                          {youtubeId ? (
+                            <img
+                              src={`https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`}
+                              alt="Video thumbnail"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-primary-600 to-primary-800" />
+                          )}
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
+                            <div className="w-7 h-7 rounded-full bg-white/90 flex items-center justify-center">
+                              <svg className="w-3 h-3 text-gray-900 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                              </svg>
+                            </div>
                           </div>
                         </a>
-                      ) : null}
-                    </div>
-                  </div>
-                )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900">Intro video</p>
+                          <p className="text-xs text-primary-600">Uploaded</p>
+                        </div>
+                        <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
 
-                {/* Verification Status Pills */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {verificationItems.map((item) => (
-                    <button
-                      key={item.key}
-                      type="button"
-                      onClick={() => setEditingSection("verification")}
-                      className={`relative flex flex-col items-center p-4 rounded-xl border transition-all duration-200 text-center ${
-                        item.done
-                          ? "bg-emerald-50/50 border-emerald-200 hover:border-emerald-300 hover:shadow-sm"
-                          : "bg-gray-50 border-gray-200 hover:border-gray-300 hover:shadow-sm"
-                      }`}
-                    >
-                      {/* Status Icon */}
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-                        item.done ? "bg-emerald-100" : "bg-gray-100"
-                      }`}>
-                        {item.key === "video" ? (
-                          <svg className={`w-5 h-5 ${item.done ? "text-emerald-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {/* Document verification items - compact horizontal rows */}
+                    {verificationItems.filter(item => item.key !== "video").map((item) => {
+                      const isDone = item.done;
+                      const expiration = item.key === "drivers_license" ? meta.drivers_license_expiration : meta.car_insurance_expiration;
+
+                      return (
+                        <button
+                          key={item.key}
+                          type="button"
+                          onClick={() => setEditingSection("verification")}
+                          className="w-full flex items-center gap-3 text-left group"
+                        >
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
+                            isDone ? "bg-primary-50" : "bg-gray-100 group-hover:bg-gray-200"
+                          }`}>
+                            {item.key === "drivers_license" ? (
+                              <svg className={`w-5 h-5 ${isDone ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+                              </svg>
+                            ) : (
+                              <svg className={`w-5 h-5 ${isDone ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                              </svg>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900">{item.label}</p>
+                            <p className={`text-xs ${isDone ? "text-primary-600" : "text-gray-400"}`}>
+                              {isDone ? (expiration ? `Expires ${expiration}` : "Uploaded") : "Not uploaded"}
+                            </p>
+                          </div>
+                          {isDone ? (
+                            <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          ) : (
+                            <div className="w-5 h-5 rounded-full border-2 border-gray-200 flex-shrink-0 group-hover:border-gray-300 transition-colors" />
+                          )}
+                        </button>
+                      );
+                    })}
+
+                    {/* Show video row if not available (need to add it) */}
+                    {!videoAvailable && (
+                      <button
+                        type="button"
+                        onClick={() => setEditingSection("verification")}
+                        className="w-full flex items-center gap-3 text-left group"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center flex-shrink-0 transition-colors">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
                           </svg>
-                        ) : item.key === "drivers_license" ? (
-                          <svg className={`w-5 h-5 ${item.done ? "text-emerald-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
-                          </svg>
-                        ) : (
-                          <svg className={`w-5 h-5 ${item.done ? "text-emerald-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                          </svg>
-                        )}
-                      </div>
-
-                      {/* Label */}
-                      <span className={`text-sm font-medium ${item.done ? "text-emerald-900" : "text-gray-700"}`}>
-                        {item.label}
-                      </span>
-
-                      {/* Status Text */}
-                      <span className={`text-xs mt-0.5 ${item.done ? "text-emerald-600" : "text-gray-400"}`}>
-                        {item.done ? (
-                          item.key === "video" ? "Uploaded" :
-                          item.key === "drivers_license" && meta.drivers_license_expiration ? `Exp: ${meta.drivers_license_expiration}` :
-                          item.key === "car_insurance" && meta.car_insurance_expiration ? `Exp: ${meta.car_insurance_expiration}` :
-                          "Uploaded"
-                        ) : (
-                          "Not uploaded"
-                        )}
-                      </span>
-
-                      {/* Check badge */}
-                      {item.done && (
-                        <div className="absolute top-2 right-2">
-                          <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
                         </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900">Intro video</p>
+                          <p className="text-xs text-gray-400">Not uploaded</p>
+                        </div>
+                        <div className="w-5 h-5 rounded-full border-2 border-gray-200 flex-shrink-0 group-hover:border-gray-300 transition-colors" />
+                      </button>
+                    )}
 
-                {/* CTA to add missing items */}
-                {!verificationDone && (
-                  <div className="mt-4 pt-4 border-t border-gray-100">
-                    <button
-                      type="button"
-                      onClick={() => setEditingSection("verification")}
-                      className="w-full py-2.5 px-4 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-medium text-white transition-colors"
-                    >
-                      Complete Verification
-                    </button>
+                    {/* CTA if not complete */}
+                    {!verificationDone && (
+                      <button
+                        type="button"
+                        onClick={() => setEditingSection("verification")}
+                        className="w-full mt-2 py-2.5 px-4 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-medium text-white transition-colors"
+                      >
+                        Continue verification
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

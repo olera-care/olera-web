@@ -23,6 +23,7 @@ export default function EditResumeModal({
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [justUploaded, setJustUploaded] = useState(false);
 
   const hasChanges =
     linkedinUrl !== (meta.linkedin_url || "") ||
@@ -78,6 +79,18 @@ export default function EditResumeModal({
       // Update local state with new URL
       if (data.url) {
         setResumeUrl(data.url);
+
+        // Auto-save immediately after successful upload so user sees it reflected
+        await saveStudentProfile({
+          profileId: profile.id,
+          metadataFields: {
+            resume_url: data.url,
+          },
+        });
+
+        // Show "saved" feedback
+        setJustUploaded(true);
+        setTimeout(() => setJustUploaded(false), 3000);
       }
     } catch {
       setError("Network error.");
@@ -118,11 +131,15 @@ export default function EditResumeModal({
           </ul>
 
           {resumeUrl ? (
-            <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded-lg mb-3">
-              <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className={`flex items-center gap-2 p-3 rounded-lg mb-3 transition-colors ${
+              justUploaded ? "bg-primary-50" : "bg-gray-100"
+            }`}>
+              <svg className={`w-4 h-4 ${justUploaded ? "text-primary-600" : "text-gray-500"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-sm text-emerald-700">Resume uploaded</span>
+              <span className={`text-sm ${justUploaded ? "text-primary-700 font-medium" : "text-gray-600"}`}>
+                {justUploaded ? "Resume saved!" : "Resume uploaded"}
+              </span>
             </div>
           ) : null}
 

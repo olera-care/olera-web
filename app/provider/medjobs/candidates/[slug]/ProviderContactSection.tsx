@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
+import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
 
 interface ProviderContactSectionProps {
   studentId: string;
@@ -11,6 +12,7 @@ interface ProviderContactSectionProps {
   studentPhone: string | null;
   studentSlug: string;
   variant?: "sidebar" | "sticky" | "inline";
+  onVerifyClick?: () => void;
 }
 
 export default function ProviderContactSection({
@@ -20,18 +22,18 @@ export default function ProviderContactSection({
   studentPhone,
   studentSlug,
   variant = "sidebar",
+  onVerifyClick,
 }: ProviderContactSectionProps) {
   const pathname = usePathname();
   const { activeProfile, user, openAuth } = useAuth();
-  const [showInviteForm, setShowInviteForm] = useState(false);
-  const [message, setMessage] = useState("");
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [scheduled, setScheduled] = useState(false);
 
-  // Check if user needs to authenticate
   const requiresAuth = !user;
-  const requiresProviderProfile = user && !activeProfile;
+
+  // Verification check - providers must be verified to see contact info and schedule
+  const isVerified = activeProfile?.verification_state === "verified";
+  const verificationState = activeProfile?.verification_state;
 
   const handleAuthRequired = useCallback(() => {
     openAuth({
@@ -45,103 +47,77 @@ export default function ProviderContactSection({
     });
   }, [openAuth, studentName, pathname]);
 
-  const firstName = studentName.split(" ")[0];
-  const providerName = activeProfile?.display_name || "";
-
-  const subject = `Interview — ${providerName} × ${studentName}`;
-  const body = `Hi ${firstName},\n\nWe'd like to schedule a brief interview to learn more about your availability and experience. Are you free this week for a 15-minute call?\n\nBest,\n${providerName}`;
-  const scheduleHref = studentEmail
-    ? `mailto:${studentEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-    : null;
-
-  const handleSendInvitation = useCallback(async () => {
-    // Auth gate: if not logged in or no provider profile, prompt auth
-    if (requiresAuth || requiresProviderProfile) {
+  const handleScheduleClick = useCallback(() => {
+    if (requiresAuth) {
       handleAuthRequired();
       return;
     }
-    if (!activeProfile) return;
+    setShowModal(true);
+  }, [requiresAuth, handleAuthRequired]);
 
-    setSending(true);
-    setError("");
-
-    try {
-      const res = await fetch("/api/medjobs/apply-to-provider", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerProfileId: studentId,
-          message: message.trim() || `We'd like to invite you to work with us at ${providerName}.`,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || "Failed to send invitation");
-        return;
-      }
-
-      setSent(true);
-      setShowInviteForm(false);
-    } catch {
-      setError("Network error. Please try again.");
-    } finally {
-      setSending(false);
-    }
-  }, [activeProfile, studentId, message, providerName, requiresAuth, requiresProviderProfile, handleAuthRequired]);
+  const firstName = studentName.split(" ")[0];
 
   // ── Sticky mobile bar ──
   if (variant === "sticky") {
-    // If not authenticated, show auth-gated CTA
-    if (requiresAuth || requiresProviderProfile) {
+    // Unverified provider - show verification prompt
+    if (user && activeProfile && !isVerified) {
       return (
         <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
           <button
-            onClick={handleAuthRequired}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
+            type="button"
+            onClick={onVerifyClick}
+            className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
           >
-            <CalendarIcon />
-            Schedule Interview
+            <LockIcon />
+            Verify to Contact {firstName}
           </button>
         </div>
       );
     }
 
     return (
-      <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
-        <div className="flex gap-2">
-          {scheduleHref && (
-            <a
-              href={scheduleHref}
+      <>
+        <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
+          <div className="flex gap-2">
+            <button
+              onClick={handleScheduleClick}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
             >
               <CalendarIcon />
-              Schedule Interview
-            </a>
-          )}
-          {studentPhone && (
-            <a
-              href={`tel:${studentPhone}`}
-              className="w-12 h-12 flex items-center justify-center bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors"
-            >
-              <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-              </svg>
-            </a>
-          )}
+              {scheduled ? "Interview Requested!" : "Schedule Interview"}
+            </button>
+            {studentPhone && (
+              <a
+                href={`tel:${studentPhone}`}
+                className="w-12 h-12 flex items-center justify-center bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors"
+              >
+                <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                </svg>
+              </a>
+            )}
+          </div>
         </div>
-      </div>
+        {showModal && (
+          <ScheduleInterviewModal
+            studentProfileId={studentId}
+            otherName={studentName}
+            onClose={() => setShowModal(false)}
+            onScheduled={() => { setShowModal(false); setScheduled(true); }}
+          />
+        )}
+      </>
     );
   }
 
-  // ── Sidebar/Inline variant (desktop) ──
+  // ── Sidebar/Inline variant (desktop) ���─
   const isInline = variant === "inline";
   const wrapperClass = isInline
     ? "space-y-4"
     : "bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4";
 
-  // If not authenticated, show auth-gated UI
-  if (requiresAuth || requiresProviderProfile) {
+  // If not authenticated at all, show auth-gated UI
+  if (requiresAuth) {
     return (
       <div className={wrapperClass}>
         <div className={isInline ? "" : "text-center py-2"}>
@@ -156,6 +132,51 @@ export default function ProviderContactSection({
             Schedule Interview
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // Logged in but not verified - show verification prompt
+  if (!isVerified) {
+    const isPending = verificationState === "pending";
+    return (
+      <div className={wrapperClass}>
+        {/* Verification banner */}
+        <div className={`rounded-xl p-4 ${isPending ? "bg-amber-50 border border-amber-200" : "bg-gray-50 border border-gray-200"}`}>
+          <div className="flex items-start gap-3">
+            <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isPending ? "bg-amber-100" : "bg-gray-200"}`}>
+              {isPending ? (
+                <svg className="w-4.5 h-4.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              ) : (
+                <LockIcon />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-900">
+                {isPending ? "Verification in Progress" : "Verify to Contact"}
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {isPending
+                  ? "We're reviewing your request. Contact info unlocks once approved."
+                  : `Complete verification to see ${firstName}'s contact info and schedule interviews.`}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA */}
+        {!isPending && onVerifyClick && (
+          <button
+            type="button"
+            onClick={onVerifyClick}
+            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
+          >
+            <LockIcon />
+            Complete Verification
+          </button>
+        )}
       </div>
     );
   }
@@ -192,54 +213,27 @@ export default function ProviderContactSection({
       )}
 
       {/* Primary CTA - Schedule Interview */}
-      {scheduleHref && (
-        <a
-          href={scheduleHref}
+      {scheduled ? (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-700 font-medium text-center">
+          Interview request sent to {firstName}!
+        </div>
+      ) : (
+        <button
+          onClick={() => setShowModal(true)}
           className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
         >
           <CalendarIcon />
           Schedule Interview
-        </a>
+        </button>
       )}
 
-      {/* Send Invitation */}
-      {sent ? (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-700 font-medium text-center">
-          Invitation sent to {firstName}!
-        </div>
-      ) : showInviteForm ? (
-        <div className="space-y-3">
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            rows={3}
-            placeholder={`Hi ${firstName}, we'd love to have you on our team...`}
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none text-sm"
-          />
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <div className="flex gap-2">
-            <button
-              onClick={handleSendInvitation}
-              disabled={sending}
-              className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 rounded-xl text-sm font-semibold text-white transition-colors"
-            >
-              {sending ? "Sending..." : "Send"}
-            </button>
-            <button
-              onClick={() => setShowInviteForm(false)}
-              className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button
-          onClick={() => setShowInviteForm(true)}
-          className="w-full px-4 py-2.5 border border-primary-200 text-primary-700 hover:bg-primary-50 rounded-xl text-sm font-medium transition-colors"
-        >
-          Send Connection Request
-        </button>
+      {showModal && (
+        <ScheduleInterviewModal
+          studentProfileId={studentId}
+          otherName={studentName}
+          onClose={() => setShowModal(false)}
+          onScheduled={() => { setShowModal(false); setScheduled(true); }}
+        />
       )}
     </div>
   );
@@ -249,6 +243,14 @@ function CalendarIcon() {
   return (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
     </svg>
   );
 }

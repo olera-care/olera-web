@@ -4,80 +4,129 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
+import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
+import JobProviderCard from "@/components/medjobs/JobProviderCard";
+import type { JobProviderData } from "@/components/medjobs/JobProviderCard";
+import Pagination from "@/components/ui/Pagination";
 
-interface JobProvider {
-  id: string;
-  slug: string;
-  display_name: string;
-  city: string | null;
-  state: string | null;
-  category: string | null;
-  image_url: string | null;
-}
+const PAGE_SIZE = 12;
 
 export default function OpenJobsPage() {
-  const { account, profiles, isLoading: authLoading } = useAuth();
-  const [providers, setProviders] = useState<JobProvider[]>([]);
+  const { profiles, isLoading: authLoading } = useAuth();
+  const [providers, setProviders] = useState<JobProviderData[]>([]);
   const [loading, setLoading] = useState(true);
   const [studentProfileId, setStudentProfileId] = useState<string | null>(null);
-  const [applying, setApplying] = useState<string | null>(null);
-  const [applied, setApplied] = useState<Set<string>>(new Set());
+  const [requested, setRequested] = useState<Set<string>>(new Set());
+  const [modalTarget, setModalTarget] = useState<JobProviderData | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
+  // Fetch providers immediately on mount (don't wait for auth)
+  useEffect(() => {
+    fetchProviders(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Update studentProfileId when auth loads (separate from data fetch)
   useEffect(() => {
     if (authLoading) return;
     const studentProfile = profiles?.find((p) => p.type === "student");
     if (studentProfile) setStudentProfileId(studentProfile.id);
-    fetchProviders();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, profiles]);
 
-  const fetchProviders = useCallback(async () => {
+  const fetchProviders = useCallback(async (page: number) => {
+    setLoading(true);
     try {
       const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-      const { data } = await sb
-        .from("business_profiles")
-        .select("id, slug, display_name, city, state, category, image_url")
-        .in("type", ["organization", "caregiver"])
-        .eq("is_active", true)
-        .order("display_name")
-        .limit(50);
-      if (data) setProviders(data);
+
+      const from = (page - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      // Run count and data queries in parallel
+      const [countResult, dataResult] = await Promise.all([
+        sb
+          .from("business_profiles")
+          .select("id", { count: "exact", head: true })
+          .in("type", ["organization", "caregiver"])
+          .eq("is_active", true),
+        sb
+          .from("business_profiles")
+          .select("id, slug, display_name, city, state, category, image_url, description, care_types")
+          .in("type", ["organization", "caregiver"])
+          .eq("is_active", true)
+          .order("display_name")
+          .range(from, to),
+      ]);
+
+      setTotal(countResult.count || 0);
+      if (dataResult.data) setProviders(dataResult.data);
+      setCurrentPage(page);
     } catch { /* ignore */ }
     finally { setLoading(false); }
   }, []);
 
-  const handleApply = async (providerId: string) => {
-    if (!studentProfileId || applying) return;
-    setApplying(providerId);
-    try {
-      const res = await fetch("/api/medjobs/apply-to-provider", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ providerProfileId: providerId }),
-      });
-      if (res.ok || res.status === 409) {
-        setApplied((prev) => new Set(prev).add(providerId));
-      }
-    } catch { /* ignore */ }
-    finally { setApplying(null); }
+  const handlePageChange = (page: number) => {
+    fetchProviders(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  if (authLoading || loading) {
-    return <main className="min-h-screen bg-[#FAFAF8] flex items-center justify-center"><div className="text-gray-300 text-sm">Loading...</div></main>;
-  }
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <main className="min-h-screen bg-[#FAFAF8]">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">Open Jobs</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Browse providers hiring through MedJobs. Apply, then call to introduce yourself — students who follow up get interviewed faster.
+            Browse providers hiring through MedJobs. Request an interview to get started.
           </p>
+          {total > 0 && !loading && (
+            <div className="mt-3">
+              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1 rounded-full">
+                <span className="w-2 h-2 bg-primary-500 rounded-full animate-pulse" />
+                {total} provider{total !== 1 ? "s" : ""} hiring
+              </span>
+            </div>
+          )}
         </div>
 
-        {providers.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+        {/* Loading skeleton */}
+        {loading ? (
+          <div className="space-y-4 max-w-3xl">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-xl border border-gray-200 overflow-hidden animate-pulse"
+              >
+                <div className="flex">
+                  {/* Image placeholder */}
+                  <div className="w-32 sm:w-40 min-h-[140px] bg-gray-100 shrink-0" />
+                  {/* Content */}
+                  <div className="flex-1 p-4 sm:p-5 flex flex-col">
+                    <div className="h-3 bg-gray-100 rounded w-24 mb-2" />
+                    <div className="h-5 bg-gray-200 rounded w-48 mb-1" />
+                    <div className="h-3 bg-gray-100 rounded w-32 mb-3" />
+                    <div className="flex gap-1.5 mb-3">
+                      <div className="h-5 bg-gray-100 rounded-full w-16" />
+                      <div className="h-5 bg-gray-100 rounded-full w-20" />
+                    </div>
+                    <div className="flex-1" />
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                      <div className="h-4 bg-gray-100 rounded w-20" />
+                      <div className="h-9 bg-gray-100 rounded-lg w-32" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : providers.length === 0 ? (
+          <div className="max-w-3xl bg-white rounded-xl border border-gray-200 p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-50 flex items-center justify-center">
+              <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" />
+              </svg>
+            </div>
             <p className="text-gray-500 mb-2">No open positions right now.</p>
             <p className="text-sm text-gray-400">
               Make sure your profile is complete — providers in your area will be able to find you when they start hiring.
@@ -87,40 +136,47 @@ export default function OpenJobsPage() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-3">
-            {providers.map((p) => (
-              <div key={p.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-                  {p.image_url ? (
-                    <img src={p.image_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
-                  ) : (
-                    <span className="text-sm font-bold text-gray-400">{p.display_name?.charAt(0)}</span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{p.display_name}</p>
-                  <p className="text-xs text-gray-500">
-                    {[p.city, p.state].filter(Boolean).join(", ")}
-                    {p.category && ` · ${p.category.replace(/_/g, " ")}`}
-                  </p>
-                </div>
-                {applied.has(p.id) ? (
-                  <span className="text-xs font-medium text-emerald-600 px-3 py-1.5">Applied</span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => handleApply(p.id)}
-                    disabled={applying === p.id || !studentProfileId}
-                    className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 rounded-lg text-xs font-medium text-white transition-colors"
-                  >
-                    {applying === p.id ? "..." : "Apply"}
-                  </button>
-                )}
+          <>
+            <div className="space-y-4 max-w-3xl">
+              {providers.map((p) => (
+                <JobProviderCard
+                  key={p.id}
+                  provider={p}
+                  isRequested={requested.has(p.id)}
+                  canRequest={!!studentProfileId}
+                  onRequestInterview={() => setModalTarget(p)}
+                />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={total}
+                  itemsPerPage={PAGE_SIZE}
+                  onPageChange={handlePageChange}
+                  itemLabel="providers"
+                />
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
+
+      {modalTarget && (
+        <ScheduleInterviewModal
+          providerProfileId={modalTarget.id}
+          otherName={modalTarget.display_name}
+          onClose={() => setModalTarget(null)}
+          onScheduled={() => {
+            setRequested((prev) => new Set(prev).add(modalTarget.id));
+            setModalTarget(null);
+          }}
+        />
+      )}
     </main>
   );
 }

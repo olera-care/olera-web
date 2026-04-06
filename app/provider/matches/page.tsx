@@ -22,6 +22,8 @@ import { useCitySearch } from "@/hooks/use-city-search";
 type MatchesTab = "best_match" | "most_recent" | "most_urgent" | "reached_out";
 import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
 import Pagination from "@/components/ui/Pagination";
+import VerificationFormModal from "@/components/provider/VerificationFormModal";
+import type { VerificationSubmission } from "@/components/provider/VerificationFormModal";
 
 
 // ── Timeline config ──
@@ -49,9 +51,9 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(diffDays / 30)}mo ago`;
 }
 
-function blurName(name: string): string {
-  if (!name) return "***";
-  return name.charAt(0) + "***";
+function getFirstName(name: string): string {
+  if (!name) return "User";
+  return name.split(" ")[0];
 }
 
 function getInitials(name: string): string {
@@ -1593,11 +1595,12 @@ export default function ProviderMatchesPage() {
   const hasFetchedOnceRef = useRef(false);
   const [totalCount, setTotalCount] = useState(0);
 
-  const hasFullAccess = canEngage(
-    providerProfile?.type,
-    membership,
-    "view_inquiry_details"
-  );
+  // Verification modal state
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+
+  // Verification-based access control: only verified providers see full details
+  const isVerified = providerProfile?.verification_state === "verified";
+  const hasFullAccess = isVerified;
 
   const freeRemaining = getFreeConnectionsRemaining(membership);
   const isFreeTier = freeRemaining !== null;
@@ -1616,10 +1619,40 @@ export default function ProviderMatchesPage() {
     return calculateProfileCompleteness(providerProfile, meta).overall;
   }, [providerProfile, dashboardMetadata]);
 
+  // ── Verification handler ──
+
+  const handleVerificationSubmit = useCallback(async (data: VerificationSubmission) => {
+    if (!providerProfile?.id) return;
+
+    const response = await fetch("/api/provider/verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        profileId: providerProfile.id,
+        submission: data,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || "Failed to submit verification");
+    }
+
+    // Close modal and refresh the page to update verification state
+    setShowVerificationModal(false);
+    window.location.reload();
+  }, [providerProfile?.id]);
+
   // ── Drawer handlers ──
 
   const handleReachOut = useCallback(
     (family: Profile) => {
+      // Gate: unverified providers must complete verification first
+      if (!isVerified) {
+        setShowVerificationModal(true);
+        return;
+      }
+
       if (!isProfileShareable(providerProfile)) {
         const gaps = getProfileCompletionGaps(providerProfile);
         setProfileGapWarning(gaps);
@@ -1643,7 +1676,7 @@ export default function ProviderMatchesPage() {
       }
       setDrawerFamily(family);
     },
-    [providerProfile],
+    [providerProfile, isVerified],
   );
 
   const handleCloseDrawer = useCallback(() => {
@@ -2079,6 +2112,14 @@ export default function ProviderMatchesPage() {
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
         {/* ── LEFT COLUMN: Banner + Filters + Content ── */}
         <div className="flex-1 min-w-0">
+          {/* Verification Banner - show if provider is not verified */}
+          {!isVerified && (
+            <VerificationAccessBanner
+              verificationState={providerProfile?.verification_state}
+              onVerifyClick={() => setShowVerificationModal(true)}
+            />
+          )}
+
           {/* Discovery Banner - separate entity */}
           <div className="mb-8">
             <DiscoveryBanner
@@ -2185,6 +2226,7 @@ export default function ProviderMatchesPage() {
                       key={family.id}
                       family={family}
                       hasFullAccess={hasFullAccess}
+                      isVerified={isVerified}
                       providerCareTypes={providerCareTypes}
                       providerPaymentMethods={providerPaymentMethods}
                       contacted={contactedIds.has(family.id)}
@@ -2247,7 +2289,67 @@ export default function ProviderMatchesPage() {
         sending={sending}
         sendError={sendError}
       />
+
+      {/* ── Verification Modal ── */}
+      <VerificationFormModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        onSubmit={handleVerificationSubmit}
+        businessName={providerProfile?.display_name || "Your Business"}
+        allowDismiss={true}
+        onDismiss={() => setShowVerificationModal(false)}
+      />
     </div>
+    </div>
+  );
+}
+
+function VerificationAccessBanner({
+  verificationState,
+  onVerifyClick,
+}: {
+  verificationState?: string;
+  onVerifyClick?: () => void;
+}) {
+  const isPending = verificationState === "pending";
+
+  return (
+    <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-5">
+      <div className="flex items-start gap-4">
+        <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+          {isPending ? (
+            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          )}
+        </div>
+        <div className="flex-1">
+          <h3 className="text-base font-semibold text-gray-900">
+            {isPending ? "Verification in Progress" : "Limited Access Mode"}
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            {isPending
+              ? "We're reviewing your verification request. Once approved, you'll see full family profiles and contact info."
+              : "You're seeing limited information. Verify your business to unlock full profiles and connect with families."}
+          </p>
+          {!isPending && onVerifyClick && (
+            <button
+              type="button"
+              onClick={onVerifyClick}
+              className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-amber-700 hover:text-amber-800"
+            >
+              Complete verification
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

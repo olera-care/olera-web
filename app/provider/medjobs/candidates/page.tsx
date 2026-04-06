@@ -1,21 +1,28 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
+import { useAuth } from "@/components/auth/AuthProvider";
 import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import CandidateFilters from "@/components/medjobs/CandidateFilters";
 import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilters";
+import Pagination from "@/components/ui/Pagination";
+import VerificationFormModal from "@/components/provider/VerificationFormModal";
+import type { VerificationSubmission } from "@/components/provider/VerificationFormModal";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 12;
 
 export default function ProviderCandidateBrowsePage() {
+  const { activeProfile } = useAuth();
+
+  // Verification check
+  const isVerified = activeProfile?.verification_state === "verified";
+  const verificationState = activeProfile?.verification_state;
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<CandidateFilterValues>({
     search: "",
     state: "",
@@ -23,19 +30,13 @@ export default function ProviderCandidateBrowsePage() {
     sort: "newest",
   });
 
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
   const fetchCandidates = useCallback(
-    async (pageNum: number, append: boolean) => {
-      if (append) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
-      }
+    async (page: number) => {
+      setLoading(true);
 
       try {
         const params = new URLSearchParams({
-          page: String(pageNum),
+          page: String(page - 1), // API uses 0-indexed pages
           pageSize: String(PAGE_SIZE),
           sort: filters.sort,
         });
@@ -46,21 +47,13 @@ export default function ProviderCandidateBrowsePage() {
         const res = await fetch(`/api/medjobs/candidates?${params}`);
         const data = await res.json();
 
-        const newCandidates = data.candidates || [];
-
-        if (append) {
-          setCandidates((prev) => [...prev, ...newCandidates]);
-        } else {
-          setCandidates(newCandidates);
-        }
-
+        setCandidates(data.candidates || []);
         setTotal(data.total || 0);
-        setHasMore(newCandidates.length === PAGE_SIZE);
+        setCurrentPage(page);
       } catch (err) {
         console.error("[provider/medjobs/candidates] fetch error:", err);
       } finally {
         setLoading(false);
-        setLoadingMore(false);
       }
     },
     [filters]
@@ -68,28 +61,8 @@ export default function ProviderCandidateBrowsePage() {
 
   // Initial load + filter changes
   useEffect(() => {
-    setPage(0);
-    fetchCandidates(0, false);
+    fetchCandidates(1);
   }, [fetchCandidates]);
-
-  // Infinite scroll — intersection observer
-  useEffect(() => {
-    if (!sentinelRef.current || !hasMore || loadingMore) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore) {
-          const nextPage = page + 1;
-          setPage(nextPage);
-          fetchCandidates(nextPage, true);
-        }
-      },
-      { rootMargin: "200px" }
-    );
-
-    observer.observe(sentinelRef.current);
-    return () => observer.disconnect();
-  }, [hasMore, loadingMore, page, fetchCandidates]);
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const handleFilterChange = useCallback(
@@ -107,25 +80,40 @@ export default function ProviderCandidateBrowsePage() {
     [filters.search]
   );
 
+  const handlePageChange = (page: number) => {
+    fetchCandidates(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  // Verification handler
+  const handleVerificationSubmit = useCallback(async (data: VerificationSubmission) => {
+    if (!activeProfile?.id) return;
+
+    const response = await fetch("/api/provider/verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        profileId: activeProfile.id,
+        submission: data,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || "Failed to submit verification");
+    }
+
+    setShowVerificationModal(false);
+    window.location.reload();
+  }, [activeProfile?.id]);
+
   return (
     <main className="min-h-screen bg-[#FAFAF8]">
       {/* Hero header */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-8 sm:pt-8 sm:pb-10">
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-4">
-            <Link
-              href="/provider"
-              className="hover:text-primary-600 transition-colors"
-            >
-              Dashboard
-            </Link>
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            <span className="text-gray-600">Hire Staff</span>
-          </nav>
-
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 font-display">
             Hire Local Caregivers
           </h1>
@@ -147,6 +135,13 @@ export default function ProviderCandidateBrowsePage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/* Verification banner - show if not verified */}
+        {!isVerified && (
+          <VerificationAccessBanner
+            verificationState={verificationState}
+            onVerifyClick={() => setShowVerificationModal(true)}
+          />
+        )}
         {/* Filters */}
         <CandidateFilters
           filters={filters}
@@ -160,24 +155,23 @@ export default function ProviderCandidateBrowsePage() {
             {Array.from({ length: 9 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse"
+                className="bg-white rounded-2xl shadow-sm overflow-hidden animate-pulse"
               >
-                <div className="h-1 bg-gray-100" />
-                <div className="p-5 pt-4">
-                  <div className="flex items-center gap-3.5 mb-3">
-                    <div className="w-14 h-14 rounded-full bg-gray-200 shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-gray-200 rounded w-2/3" />
-                      <div className="h-3 bg-gray-100 rounded w-4/5" />
+                <div className="p-6">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-14 h-14 rounded-full bg-gray-100 shrink-0" />
+                    <div className="flex-1 space-y-2 pt-1">
+                      <div className="h-5 bg-gray-100 rounded w-2/3" />
+                      <div className="h-4 bg-gray-50 rounded w-4/5" />
                     </div>
                   </div>
-                  <div className="flex gap-2 mb-3">
-                    <div className="h-6 bg-gray-100 rounded-full w-20" />
-                    <div className="h-6 bg-gray-100 rounded-full w-24" />
+                  <div className="space-y-2 mb-4">
+                    <div className="h-4 bg-gray-50 rounded w-3/4" />
+                    <div className="h-4 bg-gray-50 rounded w-1/2" />
                   </div>
-                  <div className="space-y-2">
-                    <div className="h-3 bg-gray-100 rounded w-3/4" />
-                    <div className="h-3 bg-gray-100 rounded w-1/2" />
+                  <div className="pt-4 border-t border-gray-100 flex justify-between">
+                    <div className="h-4 bg-gray-100 rounded w-24" />
+                    <div className="h-4 bg-gray-50 rounded w-20" />
                   </div>
                 </div>
               </div>
@@ -205,31 +199,86 @@ export default function ProviderCandidateBrowsePage() {
                   key={candidate.id}
                   candidate={candidate}
                   basePath="/provider/medjobs/candidates"
+                  isVerified={isVerified}
                 />
               ))}
             </div>
 
-            {/* Loading more indicator */}
-            {loadingMore && (
-              <div className="flex justify-center py-8">
-                <div className="w-6 h-6 border-2 border-gray-300 border-t-primary-600 rounded-full animate-spin" />
-              </div>
-            )}
-
-            {/* Infinite scroll sentinel */}
-            {hasMore && !loadingMore && <div ref={sentinelRef} className="h-1" />}
-
-            {/* End of list */}
-            {!hasMore && candidates.length > 0 && (
-              <div className="mt-8 text-center">
-                <p className="text-sm text-gray-400">
-                  Showing all {total} candidate{total !== 1 ? "s" : ""}
-                </p>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={total}
+                  itemsPerPage={PAGE_SIZE}
+                  onPageChange={handlePageChange}
+                  itemLabel="caregivers"
+                />
               </div>
             )}
           </>
         )}
       </div>
+      {/* ── Verification Modal ── */}
+      <VerificationFormModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        onSubmit={handleVerificationSubmit}
+        businessName={activeProfile?.display_name || "Your Business"}
+        allowDismiss={true}
+        onDismiss={() => setShowVerificationModal(false)}
+      />
     </main>
+  );
+}
+
+function VerificationAccessBanner({
+  verificationState,
+  onVerifyClick,
+}: {
+  verificationState?: string;
+  onVerifyClick?: () => void;
+}) {
+  const isPending = verificationState === "pending";
+
+  return (
+    <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-5">
+      <div className="flex items-start gap-4">
+        <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+          {isPending ? (
+            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          )}
+        </div>
+        <div className="flex-1">
+          <h3 className="text-base font-semibold text-gray-900">
+            {isPending ? "Verification in Progress" : "Limited Access Mode"}
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            {isPending
+              ? "We're reviewing your verification request. Once approved, you'll see full candidate profiles and be able to contact caregivers directly."
+              : "You're seeing limited information. Verify your business to unlock full profiles, contact details, and hiring features."}
+          </p>
+          {!isPending && onVerifyClick && (
+            <button
+              type="button"
+              onClick={onVerifyClick}
+              className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-amber-700 hover:text-amber-800"
+            >
+              Complete verification
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

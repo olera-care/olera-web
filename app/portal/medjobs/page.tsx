@@ -321,7 +321,7 @@ function SectionCard({ label, done, children, defaultOpen, onEdit }: {
         >
           <div className="flex items-center gap-3">
             {done ? (
-              <svg className="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-primary-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             ) : (
@@ -346,7 +346,7 @@ function SectionCard({ label, done, children, defaultOpen, onEdit }: {
       >
         <div className="flex items-center gap-3">
           {done ? (
-            <svg className="w-5 h-5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-primary-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           ) : (
@@ -1268,10 +1268,10 @@ function StudentPortalContent({
                   <div className="flex items-center gap-3 flex-wrap">
                     <h1 className="text-xl font-display font-bold text-gray-900 truncate">{profile.display_name}</h1>
                     <div className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                      profile.is_active ? "bg-success-50 text-success-700" : verificationDone ? "bg-primary-50 text-primary-700" : "bg-gray-100 text-gray-500"
+                      profile.is_active ? "bg-primary-50 text-primary-700" : verificationDone ? "bg-amber-50 text-amber-700" : "bg-gray-100 text-gray-500"
                     }`}>
                       <div className={`w-1.5 h-1.5 rounded-full ${
-                        profile.is_active ? "bg-success-600" : verificationDone ? "bg-primary-500" : "bg-gray-300"
+                        profile.is_active ? "bg-primary-500 animate-pulse" : verificationDone ? "bg-amber-500" : "bg-gray-300"
                       }`} />
                       {profile.is_active ? "Live" : verificationDone ? "Under review" : "Not verified"}
                     </div>
@@ -1308,31 +1308,36 @@ function StudentPortalContent({
               </div>
             </div>
 
-            {/* ── 100% Complete — Celebration + Next Steps ── */}
+            {/* ── Profile Complete — Next Steps CTA ── */}
             {completenessPercent === 100 && profile.is_active && (
-              <div className="bg-emerald-50 rounded-2xl border border-emerald-200/80 p-6">
+              <div className="bg-gradient-to-br from-primary-50 via-white to-vanilla-50 rounded-2xl border border-primary-200/60 shadow-sm p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-11 h-11 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-primary-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <div className="flex-1">
-                    <h2 className="text-lg font-semibold text-emerald-900">You&apos;re live, {firstName}!</h2>
-                    <p className="text-sm text-emerald-700 mt-1 mb-4">
-                      Your profile is complete and visible to providers. Start applying to open positions — students who reach out directly get interviewed faster.
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-base font-semibold text-gray-900">Profile complete</h2>
+                    <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+                      Your profile is visible to providers. Reach out directly to open positions — proactive candidates get interviewed faster.
                     </p>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-2.5 mt-4">
                       <Link href="/portal/medjobs/jobs"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 rounded-lg text-sm font-medium text-white transition-colors">
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-medium text-white transition-colors">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0H8m8 0h2a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h2" />
                         </svg>
                         Browse open jobs
                       </Link>
                       <Link href={`/medjobs/candidates/${profile.slug}`}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 border border-emerald-300 hover:bg-emerald-100 rounded-lg text-sm font-medium text-emerald-800 transition-colors">
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
                         View your public profile
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
                       </Link>
                     </div>
                   </div>
@@ -1347,7 +1352,7 @@ function StudentPortalContent({
                   <div className="flex items-center gap-3">
                     <h2 className="text-lg font-semibold text-gray-900">Verification</h2>
                     {verificationDone ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-50 text-primary-700 text-xs font-medium rounded-full">
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>
@@ -1424,9 +1429,9 @@ function StudentPortalContent({
                         </a>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900">Intro video</p>
-                          <p className="text-xs text-emerald-600">Uploaded</p>
+                          <p className="text-xs text-primary-600">Uploaded</p>
                         </div>
-                        <svg className="w-5 h-5 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>
                       </div>
@@ -1445,26 +1450,26 @@ function StudentPortalContent({
                           className="w-full flex items-center gap-3 text-left group"
                         >
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
-                            isDone ? "bg-emerald-50" : "bg-gray-100 group-hover:bg-gray-200"
+                            isDone ? "bg-primary-50" : "bg-gray-100 group-hover:bg-gray-200"
                           }`}>
                             {item.key === "drivers_license" ? (
-                              <svg className={`w-5 h-5 ${isDone ? "text-emerald-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className={`w-5 h-5 ${isDone ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
                               </svg>
                             ) : (
-                              <svg className={`w-5 h-5 ${isDone ? "text-emerald-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className={`w-5 h-5 ${isDone ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                               </svg>
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-900">{item.label}</p>
-                            <p className={`text-xs ${isDone ? "text-emerald-600" : "text-gray-400"}`}>
+                            <p className={`text-xs ${isDone ? "text-primary-600" : "text-gray-400"}`}>
                               {isDone ? (expiration ? `Expires ${expiration}` : "Uploaded") : "Not uploaded"}
                             </p>
                           </div>
                           {isDone ? (
-                            <svg className="w-5 h-5 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                             </svg>
                           ) : (

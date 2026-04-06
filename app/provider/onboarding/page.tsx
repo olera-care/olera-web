@@ -1113,7 +1113,7 @@ function ProviderOnboardingContent() {
                                           intent: "provider",
                                           providerType: "organization",
                                           deferred: {
-                                            action: "claim_profile",
+                                            action: "claim",
                                             returnUrl: "/provider",
                                           },
                                         });

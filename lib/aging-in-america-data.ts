@@ -26,9 +26,13 @@ export type Season = {
   episodes: Episode[]
 }
 
-// Helper to generate YouTube thumbnail URL
+// YouTube IDs where maxresdefault.jpg returns 404
+const NO_MAXRES = new Set(["VqqAyeqiZ9M"])
+
+// Helper to generate YouTube thumbnail URL (falls back to sddefault if maxres unavailable)
 export function getYouTubeThumbnail(youtubeId: string): string {
-  return `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`
+  const quality = NO_MAXRES.has(youtubeId) ? "sddefault" : "maxresdefault"
+  return `https://img.youtube.com/vi/${youtubeId}/${quality}.jpg`
 }
 
 // ─── Season 1 ────────────────────────────────────────────────────────────────

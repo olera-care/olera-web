@@ -34,8 +34,8 @@ export default function HeroSection({
       <div className="absolute inset-0">
         <img
           ref={imgRef}
-          src="https://img.youtube.com/vi/TiVrqkrYhEc/maxresdefault.jpg"
-          alt=""
+          src="/images/aging-in-america/hero.jpg"
+          alt="Viviane Koenig — Aging in America"
           className="w-full h-full object-cover scale-110 will-change-transform"
         />
         {/* Lighter gradient — let the photo breathe */}

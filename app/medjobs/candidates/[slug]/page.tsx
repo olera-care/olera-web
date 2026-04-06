@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import type { Metadata } from "next";
 import type { StudentMetadata } from "@/lib/types";
 import {
@@ -28,6 +30,30 @@ function getAdminSupabase() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
+}
+
+/** Check if current user is a verified provider */
+async function checkVerifiedProvider(): Promise<boolean> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    // Check if user has a verified organization profile
+    const { data: profile } = await supabase
+      .from("business_profiles")
+      .select("id, verification_state")
+      .eq("account_id", user.id)
+      .eq("type", "organization")
+      .eq("is_active", true)
+      .eq("verification_state", "verified")
+      .limit(1)
+      .maybeSingle();
+
+    return !!profile;
+  } catch {
+    return false;
+  }
 }
 
 interface PageProps {
@@ -70,6 +96,9 @@ function formatLastUpdated(dateStr: string): string {
 export default async function StudentProfilePage({ params }: PageProps) {
   const { slug } = await params;
 
+  // Check if current user is a verified provider
+  const isVerifiedProvider = await checkVerifiedProvider();
+
   const supabase = getSupabase();
   const { data: profile } = await supabase
     .from("business_profiles")
@@ -90,17 +119,18 @@ export default async function StudentProfilePage({ params }: PageProps) {
   const firstName = profile.display_name?.split(" ")[0] || "This candidate";
   const lastUpdated = profile.updated_at ? formatLastUpdated(profile.updated_at) : null;
 
-  // Generate signed URLs for private documents
+  // Generate signed URLs for private documents - only for verified providers
   const adminSb = getAdminSupabase();
   async function getSignedUrl(path: string | undefined): Promise<string | null> {
+    if (!isVerifiedProvider) return null; // Don't expose documents to non-verified users
     if (!path || path.startsWith("http")) return path || null;
     const { data } = await adminSb.storage.from("student-documents").createSignedUrl(path, 3600);
     return data?.signedUrl || null;
   }
   const resumeUrl = await getSignedUrl(meta.resume_url);
 
-  // Verification status
-  const isVerified = !!(meta.drivers_license_url && meta.car_insurance_url);
+  // Candidate's verification status (driver's license + insurance on file)
+  const candidateIsVerified = !!(meta.drivers_license_url && meta.car_insurance_url);
 
   // Build highlight chips (max 4, most important only)
   const highlights: string[] = [];
@@ -136,9 +166,9 @@ export default async function StudentProfilePage({ params }: PageProps) {
             {/* ─── HERO CARD: Identity Only ─── */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
               <div className="flex flex-col sm:flex-row gap-5 sm:gap-6">
-                {/* Photo */}
+                {/* Photo - show silhouette for non-verified providers */}
                 <div className="flex-shrink-0 flex justify-center sm:justify-start">
-                  {profile.image_url ? (
+                  {isVerifiedProvider && profile.image_url ? (
                     <Image
                       src={profile.image_url}
                       alt={profile.display_name}
@@ -146,11 +176,17 @@ export default async function StudentProfilePage({ params }: PageProps) {
                       height={120}
                       className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover shadow-md ring-4 ring-white"
                     />
-                  ) : (
+                  ) : isVerifiedProvider ? (
                     <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shadow-md ring-4 ring-white">
                       <span className="text-3xl sm:text-4xl font-bold text-primary-600">
                         {profile.display_name?.charAt(0)?.toUpperCase() || "?"}
                       </span>
+                    </div>
+                  ) : (
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gray-100 flex items-center justify-center shadow-md ring-4 ring-white">
+                      <svg className="w-12 h-12 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                      </svg>
                     </div>
                   )}
                 </div>
@@ -160,7 +196,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   {/* Name + Status */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-wrap justify-center sm:justify-start">
                     <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
-                      {profile.display_name}
+                      {isVerifiedProvider ? profile.display_name : firstName}
                     </h1>
                     {meta.seeking_status === "actively_looking" && (
                       <span className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 w-fit mx-auto sm:mx-0">
@@ -170,21 +206,26 @@ export default async function StudentProfilePage({ params }: PageProps) {
                     )}
                   </div>
 
-                  {/* University + Track + Location */}
+                  {/* University + Track + Location - limited for non-verified */}
                   <div className="mt-2 space-y-0.5">
-                    {meta.university && (
+                    {isVerifiedProvider && meta.university && (
                       <p className="text-base text-gray-700 font-medium">{meta.university}</p>
                     )}
                     <p className="text-sm text-gray-500">
-                      {[trackLabel, profile.city && profile.state ? `${profile.city}, ${profile.state}` : null]
-                        .filter(Boolean)
-                        .join(" · ")}
+                      {isVerifiedProvider
+                        ? [trackLabel, profile.city && profile.state ? `${profile.city}, ${profile.state}` : null]
+                            .filter(Boolean)
+                            .join(" · ")
+                        : trackLabel || "Healthcare Student"}
                     </p>
+                    {!isVerifiedProvider && (
+                      <p className="text-sm text-gray-400 mt-1">Full details available after verification</p>
+                    )}
                   </div>
 
                   {/* Trust Signals */}
                   <div className="mt-3 flex flex-wrap items-center gap-2 justify-center sm:justify-start">
-                    {isVerified && (
+                    {candidateIsVerified && isVerifiedProvider && (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -192,7 +233,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                         Verified
                       </span>
                     )}
-                    {videoAvailable && (
+                    {isVerifiedProvider && videoAvailable && (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 text-primary-700 border border-primary-200">
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
@@ -200,13 +241,13 @@ export default async function StudentProfilePage({ params }: PageProps) {
                         Video Intro
                       </span>
                     )}
-                    {lastUpdated && (
+                    {isVerifiedProvider && lastUpdated && (
                       <span className="text-xs text-gray-400">{lastUpdated}</span>
                     )}
                   </div>
 
-                  {/* Highlight Chips */}
-                  {displayHighlights.length > 0 && (
+                  {/* Highlight Chips - only for verified providers */}
+                  {isVerifiedProvider && displayHighlights.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2 justify-center sm:justify-start">
                       {displayHighlights.map((fact) => (
                         <span
@@ -219,8 +260,8 @@ export default async function StudentProfilePage({ params }: PageProps) {
                     </div>
                   )}
 
-                  {/* Quick Links */}
-                  {(resumeUrl || meta.linkedin_url) && (
+                  {/* Quick Links - only for verified providers */}
+                  {isVerifiedProvider && (resumeUrl || meta.linkedin_url) && (
                     <div className="mt-4 flex flex-wrap gap-3 justify-center sm:justify-start">
                       {resumeUrl && (
                         <a
@@ -254,8 +295,48 @@ export default async function StudentProfilePage({ params }: PageProps) {
               </div>
             </div>
 
+            {/* ─── VERIFICATION CTA: For non-verified providers ─── */}
+            {!isVerifiedProvider && (
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-200 p-6 sm:p-8">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                    <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      Verify your business to see full details
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Get access to {firstName}&apos;s complete profile including photo, full name, university, certifications, video intro, resume, and contact information.
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      <Link
+                        href="/provider/onboarding"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
+                      >
+                        Get Verified
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                      </Link>
+                      <Link
+                        href="/provider/medjobs/candidates"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl border border-gray-200 transition-colors"
+                      >
+                        Browse as Provider
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* ─── RESUME CARD: All Content Sections with Dividers ─── */}
             {/* Section order optimized for provider screening: practical filters first, personality later */}
+            {/* Only show for verified providers */}
+            {isVerifiedProvider && (
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
 
               {/* ── Video Section ── */}
@@ -376,8 +457,8 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   Qualifications
                 </h2>
 
-                {/* Verification Banner */}
-                {isVerified && (
+                {/* Verification Banner - only show to verified providers */}
+                {candidateIsVerified && isVerifiedProvider && (
                   <div className="flex items-center gap-3 p-4 bg-emerald-50 rounded-xl border border-emerald-100 mb-6">
                     <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
                       <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -612,9 +693,12 @@ export default async function StudentProfilePage({ params }: PageProps) {
                 </div>
               )}
             </div>
+            )}
+
           </div>
 
           {/* ─── RIGHT COLUMN: Sticky CTA Sidebar (Desktop Only) ─── */}
+          {isVerifiedProvider && (
           <div className="hidden lg:block">
             <div className="sticky top-6">
               <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6">
@@ -628,12 +712,14 @@ export default async function StudentProfilePage({ params }: PageProps) {
               </div>
             </div>
           </div>
+          )}
         </div>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          MOBILE STICKY CTA
+          MOBILE STICKY CTA - only for verified providers
           ═══════════════════════════════════════════════════════════════════ */}
+      {isVerifiedProvider && (
       <div className="lg:hidden">
         <ContactSection
           studentName={profile.display_name}
@@ -643,6 +729,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
           variant="sticky"
         />
       </div>
+      )}
     </main>
   );
 }

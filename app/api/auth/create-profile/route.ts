@@ -234,6 +234,30 @@ export async function POST(request: Request) {
       } else {
         // Create new provider profile
         const name = providerType === "organization" ? (orgName?.trim().slice(0, 100) || sanitizedDisplayName) : sanitizedDisplayName;
+
+        // Check for duplicate email before creating
+        // This prevents users from creating a new profile with an email that already exists
+        // Check both auth email and form-submitted email
+        const userEmail = user.email?.toLowerCase();
+        const formEmail = (body.email as string | undefined)?.toLowerCase();
+        const emailsToCheck = [...new Set([userEmail, formEmail].filter(Boolean))];
+
+        for (const emailToCheck of emailsToCheck) {
+          const { data: existingByEmail } = await db
+            .from("business_profiles")
+            .select("id, display_name")
+            .ilike("email", emailToCheck!)
+            .limit(1)
+            .maybeSingle();
+
+          if (existingByEmail) {
+            return NextResponse.json(
+              { error: "An account with this email already exists. Please sign in instead." },
+              { status: 409 }
+            );
+          }
+        }
+
         const slug = await generateUniqueSlug(db, name, city || "", state || "");
 
         const { data: newProfile, error: insertErr } = await db

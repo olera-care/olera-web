@@ -1593,11 +1593,9 @@ export default function ProviderMatchesPage() {
   const hasFetchedOnceRef = useRef(false);
   const [totalCount, setTotalCount] = useState(0);
 
-  const hasFullAccess = canEngage(
-    providerProfile?.type,
-    membership,
-    "view_inquiry_details"
-  );
+  // Verification-based access control: only verified providers see full details
+  const isVerified = providerProfile?.verification_state === "verified";
+  const hasFullAccess = isVerified;
 
   const freeRemaining = getFreeConnectionsRemaining(membership);
   const isFreeTier = freeRemaining !== null;
@@ -2079,6 +2077,11 @@ export default function ProviderMatchesPage() {
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
         {/* ── LEFT COLUMN: Banner + Filters + Content ── */}
         <div className="flex-1 min-w-0">
+          {/* Verification Banner - show if provider is not verified */}
+          {!isVerified && (
+            <VerificationAccessBanner verificationState={providerProfile?.verification_state} />
+          )}
+
           {/* Discovery Banner - separate entity */}
           <div className="mb-8">
             <DiscoveryBanner
@@ -2248,6 +2251,53 @@ export default function ProviderMatchesPage() {
         sendError={sendError}
       />
     </div>
+    </div>
+  );
+}
+
+function VerificationAccessBanner({
+  verificationState,
+}: {
+  verificationState?: string;
+}) {
+  const isPending = verificationState === "pending";
+
+  return (
+    <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-5">
+      <div className="flex items-start gap-4">
+        <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+          {isPending ? (
+            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          )}
+        </div>
+        <div className="flex-1">
+          <h3 className="text-base font-semibold text-gray-900">
+            {isPending ? "Verification in Progress" : "Limited Access Mode"}
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            {isPending
+              ? "We're reviewing your verification request. Once approved, you'll see full family profiles and contact info."
+              : "You're seeing limited information. Verify your business to unlock full profiles and connect with families."}
+          </p>
+          {!isPending && (
+            <Link
+              href="/provider/verification"
+              className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-amber-700 hover:text-amber-800"
+            >
+              Complete verification
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

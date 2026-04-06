@@ -64,7 +64,7 @@ export default function ProviderContactSection({
       return (
         <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
           <Link
-            href="/provider"
+            href="/provider/verification"
             className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
           >
             <LockIcon />
@@ -168,7 +168,7 @@ export default function ProviderContactSection({
         {/* CTA */}
         {!isPending && (
           <Link
-            href="/provider"
+            href="/provider/verification"
             className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
           >
             <LockIcon />

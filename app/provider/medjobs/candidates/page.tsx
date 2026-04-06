@@ -243,7 +243,7 @@ function VerificationAccessBanner({
           </p>
           {!isPending && (
             <Link
-              href="/provider"
+              href="/provider/verification"
               className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-amber-700 hover:text-amber-800"
             >
               Complete verification

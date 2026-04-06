@@ -216,7 +216,9 @@ export default function Navbar() {
   // If user has multiple profile types, provider takes precedence (they can use mode switcher)
   const logoHref = hasStudentProfile
     ? "/portal/medjobs"
-    : "/";
+    : (isProviderPortal || isProviderOnlyAccount)
+      ? "/provider"
+      : "/";
 
   useEffect(() => {
     if (isMobileMenuOpen && hasSession) {

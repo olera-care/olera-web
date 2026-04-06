@@ -1870,16 +1870,15 @@ function ProviderOnboardingContent() {
                         router.push(`/contact?subject=${encodeURIComponent(`Ownership dispute: ${profile.display_name}`)}&profile_id=${profile.id}`);
                       }
                     } else {
+                      // Just sign them in — no profile creation
+                      // After sign-in, normal routing takes over:
+                      // - If they have a provider profile → /provider
+                      // - If not → /provider/onboarding
                       openAuth({
                         defaultMode: "sign-in",
-                        headline: "Sign in to manage this page",
+                        headline: "Sign in to your account",
                         intent: "provider",
-                        providerType: "organization",
                         initialEmail: profile.email || data.email || undefined,
-                        deferred: {
-                          action: "create_profile",
-                          returnUrl: "/provider",
-                        },
                       });
                     }
                   };

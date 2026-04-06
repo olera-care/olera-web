@@ -90,13 +90,17 @@ function ProviderOnboardingContent() {
   const rawNextUrl = searchParams.get("next");
   // Validate nextUrl to prevent open redirect - only allow known safe paths
   const nextUrl = rawNextUrl?.startsWith("/provider/medjobs/candidates/") ? rawNextUrl : null;
+  // URL-based search state (for back button preservation)
+  const urlSearchQuery = searchParams.get("q") || "";
+  const urlLocationQuery = searchParams.get("loc") || "";
+  const urlSearched = searchParams.get("searched") === "true";
   const { user, account, profiles, isLoading, refreshAccountData, switchProfile, openAuth } = useAuth();
   const [step, setStep] = useState<Step>("search");
   const [data, setData] = useState<WizardData>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  // Search state
-  const [searchQuery, setSearchQuery] = useState("");
+  // Search state - initialize from URL params for back button support
+  const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
   const [searchResults, setSearchResults] = useState<Provider[]>([]);
   const [claimedIds, setClaimedIds] = useState<Set<string>>(new Set());
   const [searching, setSearching] = useState(false);
@@ -109,8 +113,8 @@ function ProviderOnboardingContent() {
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
   const [showAllMatches, setShowAllMatches] = useState(false);
 
-  // Location input state (separate from name search)
-  const [locationQuery, setLocationQuery] = useState("");
+  // Location input state (separate from name search) - initialize from URL params
+  const [locationQuery, setLocationQuery] = useState(urlLocationQuery);
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const locationDropdownRef = useRef<HTMLDivElement>(null);
   const { results: cityResults, preload: preloadCities } = useCitySearch(locationQuery);
@@ -197,6 +201,133 @@ function ProviderOnboardingContent() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, data, user]);
+
+  // Restore search from URL params (for back button support)
+  // This runs when user navigates back from the claim/onboard page
+  const urlRestoreApplied = useRef(false);
+  useEffect(() => {
+    if (urlRestoreApplied.current) return;
+    if (!urlSearched || (!urlSearchQuery && !urlLocationQuery)) return;
+
+    urlRestoreApplied.current = true;
+
+    // Execute search with URL params
+    const doSearch = async () => {
+      setSearching(true);
+      setSearchError("");
+      setCurrentPage(1);
+
+      try {
+        const supabase = createClient();
+
+        // === Query 1: olera-providers (scraped listings) ===
+        let providerQuery = supabase
+          .from("olera-providers")
+          .select("*")
+          .not("deleted", "is", true);
+
+        if (urlSearchQuery) {
+          providerQuery = providerQuery.ilike("provider_name", `%${urlSearchQuery}%`);
+        }
+        if (urlLocationQuery) {
+          const parts = urlLocationQuery.split(",").map((s: string) => s.trim());
+          if (parts.length >= 2 && parts[1].length <= 3) {
+            providerQuery = providerQuery.ilike("city", `%${parts[0]}%`);
+            providerQuery = providerQuery.ilike("state", `%${parts[1]}%`);
+          } else {
+            providerQuery = providerQuery.or(`city.ilike.%${urlLocationQuery}%,state.ilike.%${urlLocationQuery}%`);
+          }
+        }
+
+        // === Query 2: business_profiles (created from scratch) ===
+        let bpQuery = supabase
+          .from("business_profiles")
+          .select("id, display_name, image_url, city, state, slug, account_id, source_provider_id")
+          .is("source_provider_id", null);
+
+        if (urlSearchQuery) {
+          bpQuery = bpQuery.ilike("display_name", `%${urlSearchQuery}%`);
+        }
+        if (urlLocationQuery) {
+          const parts = urlLocationQuery.split(",").map((s: string) => s.trim());
+          if (parts.length >= 2 && parts[1].length <= 3) {
+            bpQuery = bpQuery.ilike("city", `%${parts[0]}%`);
+            bpQuery = bpQuery.ilike("state", `%${parts[1]}%`);
+          } else {
+            bpQuery = bpQuery.or(`city.ilike.%${urlLocationQuery}%,state.ilike.%${urlLocationQuery}%`);
+          }
+        }
+
+        const [providerResult, bpResult] = await Promise.all([
+          providerQuery.limit(20),
+          bpQuery.limit(10),
+        ]);
+
+        if (providerResult.error) {
+          setSearchError(`Search failed: ${providerResult.error.message}`);
+          setSearchResults([]);
+          return;
+        }
+
+        // Convert business_profiles to Provider-like shape
+        const bpAsProviders: Provider[] = (bpResult.data || []).map((bp) => ({
+          provider_id: `bp_${bp.id}`,
+          provider_name: bp.display_name,
+          provider_images: bp.image_url || "",
+          city: bp.city,
+          state: bp.state,
+          slug: bp.slug,
+          address: null,
+          zipcode: null,
+          provider_category: "Senior Care",
+          main_category: null,
+          provider_description: null,
+          phone: null,
+          email: null,
+          website: null,
+          lat: null,
+          lon: null,
+          lower_price: null,
+          upper_price: null,
+          deleted: false,
+          _isBusinessProfile: true,
+          _accountId: bp.account_id,
+        } as Provider & { _isBusinessProfile?: boolean; _accountId?: string }));
+
+        const allResults = [...bpAsProviders, ...(providerResult.data as Provider[] || [])];
+        setSearchResults(allResults);
+
+        // Check claimed status
+        const oleraProviderIds = (providerResult.data || []).map((p: Provider) => p.provider_id);
+        if (oleraProviderIds.length > 0) {
+          const { data: claimed } = await supabase
+            .from("business_profiles")
+            .select("source_provider_id")
+            .in("source_provider_id", oleraProviderIds)
+            .in("claim_state", ["claimed", "pending"]);
+
+          const claimedSet = new Set<string>(
+            (claimed || [])
+              .map((r: { source_provider_id: string | null }) => r.source_provider_id)
+              .filter((id): id is string => !!id)
+          );
+          bpAsProviders.forEach((bp) => claimedSet.add(bp.provider_id));
+          setClaimedIds(claimedSet);
+        } else {
+          const claimedSet = new Set<string>(bpAsProviders.map((bp) => bp.provider_id));
+          setClaimedIds(claimedSet);
+        }
+      } catch {
+        setSearchError("Search failed. Please try again.");
+        setSearchResults([]);
+      } finally {
+        setHasSearched(true);
+        setSearching(false);
+      }
+    };
+
+    doSearch();
+  }, [urlSearched, urlSearchQuery, urlLocationQuery]);
 
   // Read landing-page prefill from sessionStorage (set by /for-providers CTA buttons)
   // If prefill exists, auto-execute the search
@@ -413,6 +544,16 @@ function ProviderOnboardingContent() {
     setSearchError("");
     setShowLocationDropdown(false);
     setCurrentPage(1);
+
+    // Update URL with search params for back button support
+    const params = new URLSearchParams();
+    if (name) params.set("q", name);
+    if (loc) params.set("loc", loc);
+    params.set("searched", "true");
+    // Preserve existing params
+    if (isAdding) params.set("adding", "true");
+    if (nextUrl) params.set("next", nextUrl);
+    router.replace(`/provider/onboarding?${params.toString()}`, { scroll: false });
 
     try {
       const supabase = createClient();
@@ -1190,7 +1331,16 @@ function ProviderOnboardingContent() {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                   <button
                     type="button"
-                    onClick={() => setHasSearched(false)}
+                    onClick={() => {
+                      setHasSearched(false);
+                      setSearchResults([]);
+                      // Clear URL params when starting a new search
+                      const params = new URLSearchParams();
+                      if (isAdding) params.set("adding", "true");
+                      if (nextUrl) params.set("next", nextUrl);
+                      const newUrl = params.toString() ? `/provider/onboarding?${params.toString()}` : "/provider/onboarding";
+                      router.replace(newUrl, { scroll: false });
+                    }}
                     className="px-6 py-2.5 text-sm font-semibold text-gray-700 bg-white rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors"
                   >
                     Try a different search

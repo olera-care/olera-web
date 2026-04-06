@@ -1,0 +1,855 @@
+{
+  "state": "MI",
+  "stateName": "Michigan",
+  "qaAt": "2026-04-06T23:31:20.449Z",
+  "overallScore": 49,
+  "gatePass": false,
+  "totalPass": 0,
+  "totalFail": 20,
+  "programs": [
+    {
+      "name": "MI Health Link Program",
+      "id": "mi-health-link-program",
+      "isNew": true,
+      "score": 17,
+      "passed": 1,
+      "failed": 5,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": true,
+          "value": "Not checked"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": false,
+          "value": "low"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": false,
+          "value": "MISSING"
+        }
+      ]
+    },
+    {
+      "name": "Medicaid for the Aged, Blind and Disabled (ABD)",
+      "id": "medicaid-for-the-aged-blind-and-disabled-abd",
+      "isNew": true,
+      "score": 29,
+      "passed": 2,
+      "failed": 5,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://www.michigan.gov/mdhhs/assistance-programs/medicaid/health-care-programs-eligibility"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": false,
+          "value": "BROKEN"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": false,
+          "value": "low"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": true,
+          "value": "65+"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Application URL accessible",
+          "pass": false,
+          "value": "BROKEN"
+        }
+      ]
+    },
+    {
+      "name": "Michigan Medicare Assistance Program (MMAP)",
+      "id": "michigan-medicare-assistance-program-mmap",
+      "isNew": true,
+      "score": 29,
+      "passed": 2,
+      "failed": 5,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://healthymichiganplan.org/state-programs/mmap/"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": false,
+          "value": "BROKEN"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": false,
+          "value": "low"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Phone format valid",
+          "pass": true,
+          "value": "1-877-678-2580"
+        }
+      ]
+    },
+    {
+      "name": "MI Options Person-Centered Options Counseling (Respite)",
+      "id": "mi-options-person-centered-options-counseling-respite",
+      "isNew": true,
+      "score": 29,
+      "passed": 2,
+      "failed": 5,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://www.michigan.gov/mdhhs/-/media/Project/Websites/mdhhs/Adult-and-Childrens-Services/Adults-and-Seniors/MI-Options-Program.pdf"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": false,
+          "value": "BROKEN"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": false,
+          "value": "low"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Phone format valid",
+          "pass": true,
+          "value": "517-592-1974 or 800-803-7174"
+        }
+      ]
+    },
+    {
+      "name": "Michigan Medicare Savings Programs (QMB, SLMB, QI)",
+      "id": "michigan-medicare-savings-programs-qmb-slmb-qi",
+      "isNew": true,
+      "score": 33,
+      "passed": 2,
+      "failed": 4,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://dhhs.michigan.gov/olmweb/ex/bp/public/bem/165.pdf"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": false,
+          "value": "BROKEN"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": false,
+          "value": "low"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": true,
+          "value": "Varies by program: QMB pays Part B premium, copayments, dedu"
+        }
+      ]
+    },
+    {
+      "id": "unknown",
+      "isNew": true,
+      "score": 33,
+      "passed": 2,
+      "failed": 4,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://www.elderlawofmi.org/micafe"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": true,
+          "value": "Not checked"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": false,
+          "value": "low"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": false,
+          "value": "MISSING"
+        }
+      ]
+    },
+    {
+      "name": "Senior Services via Area Agencies on Aging",
+      "id": "senior-services-via-area-agencies-on-aging",
+      "isNew": true,
+      "score": 33,
+      "passed": 2,
+      "failed": 4,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": true,
+          "value": "Not checked"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": false,
+          "value": "low"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": false,
+          "value": "MISSING"
+        }
+      ]
+    },
+    {
+      "name": "AgeWays Caregiver Assistance (Respite Care)",
+      "id": "ageways-caregiver-assistance-respite-care",
+      "isNew": true,
+      "score": 43,
+      "passed": 3,
+      "failed": 4,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://www.ageways.org/senior-services/community-referrals/"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": true,
+          "value": "Not checked"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": false,
+          "value": "low"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Phone format valid",
+          "pass": true,
+          "value": "800-852-7795"
+        }
+      ]
+    },
+    {
+      "name": "SNAP Food Assistance (Michigan Bridge Card)",
+      "id": "snap-food-assistance-michigan-bridge-card",
+      "isNew": true,
+      "score": 50,
+      "passed": 3,
+      "failed": 3,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://www.michigan.gov/mdhhs/assistance-programs/food"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": false,
+          "value": "BROKEN"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": false,
+          "value": "low"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": true,
+          "value": "$2608/mo"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": true,
+          "value": "Maximum monthly allotments vary by household size (e.g., $29"
+        }
+      ]
+    },
+    {
+      "name": "State Rehabilitation Services - Weatherization",
+      "id": "state-rehabilitation-services-weatherization",
+      "isNew": true,
+      "score": 50,
+      "passed": 3,
+      "failed": 3,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://www.michigan.gov/mdhhs/doing-business/weatherization"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": false,
+          "value": "BROKEN"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": true,
+          "value": "medium"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": true,
+          "value": "No cost to eligible residents; services based on whole home "
+        }
+      ]
+    },
+    {
+      "name": "Meals on Wheels (via Area Agencies on Aging)",
+      "id": "meals-on-wheels-via-area-agencies-on-aging",
+      "isNew": true,
+      "score": 50,
+      "passed": 3,
+      "failed": 3,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://seniorresourceswmi.org/resources/"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": true,
+          "value": "Not checked"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": false,
+          "value": "low"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": true,
+          "value": "60+"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": false,
+          "value": "MISSING"
+        }
+      ]
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "id": "senior-community-service-employment-program-scsep",
+      "isNew": true,
+      "score": 50,
+      "passed": 3,
+      "failed": 3,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://www.dol.gov/agencies/eta/seniors[10]"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": false,
+          "value": "BROKEN"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": false,
+          "value": "low"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": true,
+          "value": "55+"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": true,
+          "value": "Paid at Michigan state minimum wage per hour, bi-weekly for "
+        }
+      ]
+    },
+    {
+      "name": "Michigan Choice Waiver Program",
+      "id": "michigan-choice-waiver-program",
+      "isNew": true,
+      "score": 57,
+      "passed": 4,
+      "failed": 3,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver/mi-choice-waiver-program-use"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": false,
+          "value": "BROKEN"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": true,
+          "value": "medium"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": true,
+          "value": "$2982/mo"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Phone format valid",
+          "pass": true,
+          "value": "1-800-858-1637"
+        }
+      ]
+    },
+    {
+      "name": "MI Home Heating Credit (LIHEAP)",
+      "id": "mi-home-heating-credit-liheap",
+      "isNew": true,
+      "score": 57,
+      "passed": 4,
+      "failed": 3,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://www.michigan.gov/taxes/questions/iit/accordion/heating/home-heating-credit-information-1"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": false,
+          "value": "BROKEN"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": true,
+          "value": "medium"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": true,
+          "value": "Varies based on income, household size, and heating costs; u"
+        },
+        {
+          "check": "Phone format valid",
+          "pass": true,
+          "value": "517-636-4486"
+        }
+      ]
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "id": "long-term-care-ombudsman-program",
+      "isNew": false,
+      "score": 57,
+      "passed": 4,
+      "failed": 3,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://mltcop.org/about-us/program-highlights"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": true,
+          "value": "OK"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": true,
+          "value": "high"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": false,
+          "value": "null"
+        },
+        {
+          "check": "Application URL accessible",
+          "pass": true,
+          "value": "BROKEN"
+        }
+      ]
+    },
+    {
+      "name": "MI Options Counseling (SHIP/Medicare Counseling)",
+      "id": "mi-options-counseling-ship-medicare-counseling",
+      "isNew": true,
+      "score": 67,
+      "passed": 4,
+      "failed": 2,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://www.michigan.gov/mdhhs/-/media/Project/Websites/mdhhs/Adult-and-Childrens-Services/Adults-and-Seniors/MI-Options-Program.pdf"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": false,
+          "value": "BROKEN"
+        },
+        {
+          "check": "Verified by source",
+          "pass": true,
+          "value": "Yes"
+        },
+        {
+          "check": "Confidence level",
+          "pass": true,
+          "value": "high"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": true,
+          "value": "Free counseling services; no monetary benefit amount"
+        }
+      ]
+    },
+    {
+      "name": "Senior Companion Program",
+      "id": "senior-companion-program",
+      "isNew": true,
+      "score": 67,
+      "passed": 4,
+      "failed": 2,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://seniorresourceswmi.org/resources/"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": true,
+          "value": "Not checked"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": false,
+          "value": "low"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": true,
+          "value": "55+"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": true,
+          "value": "Tax-exempt hourly stipend (exact amount not specified in sou"
+        }
+      ]
+    },
+    {
+      "name": "Homestead Property Tax Credit",
+      "id": "homestead-property-tax-credit",
+      "isNew": true,
+      "score": 67,
+      "passed": 4,
+      "failed": 2,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://www.michigan.gov/taxes/iit/tax-guidance/credits-exemptions/hptc"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": false,
+          "value": "BROKEN"
+        },
+        {
+          "check": "Verified by source",
+          "pass": true,
+          "value": "Yes"
+        },
+        {
+          "check": "Confidence level",
+          "pass": true,
+          "value": "high"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": true,
+          "value": "Up to $1,900 maximum credit limit (computed as percentage of"
+        }
+      ]
+    },
+    {
+      "name": "Legal Aid of Western Michigan",
+      "id": "legal-aid-of-western-michigan",
+      "isNew": true,
+      "score": 71,
+      "passed": 5,
+      "failed": 2,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://seniorresourceswmi.org/resources/"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": true,
+          "value": "Not checked"
+        },
+        {
+          "check": "Verified by source",
+          "pass": false,
+          "value": "No"
+        },
+        {
+          "check": "Confidence level",
+          "pass": true,
+          "value": "medium"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": false,
+          "value": "MISSING"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": true,
+          "value": "Free legal services (no fixed dollar value; services provide"
+        },
+        {
+          "check": "Phone format valid",
+          "pass": true,
+          "value": "616-774-0672"
+        }
+      ]
+    },
+    {
+      "name": "LifeCircles PACE",
+      "id": "lifecircles-pace",
+      "isNew": true,
+      "score": 86,
+      "passed": 6,
+      "failed": 1,
+      "checks": [
+        {
+          "check": "Has source URL",
+          "pass": true,
+          "value": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/program-of-all-inclusive-care-for-the-elderly-pace"
+        },
+        {
+          "check": "Source URL accessible",
+          "pass": false,
+          "value": "BROKEN"
+        },
+        {
+          "check": "Verified by source",
+          "pass": true,
+          "value": "Yes"
+        },
+        {
+          "check": "Confidence level",
+          "pass": true,
+          "value": "medium"
+        },
+        {
+          "check": "Has income limit or age requirement",
+          "pass": true,
+          "value": "$2982/mo"
+        },
+        {
+          "check": "Has benefit value description",
+          "pass": true,
+          "value": "Complete health care coverage (no cost for Medicaid-eligible"
+        },
+        {
+          "check": "Phone format valid",
+          "pass": true,
+          "value": "616-347-3477"
+        }
+      ]
+    }
+  ]
+}

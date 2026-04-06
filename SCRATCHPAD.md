@@ -7,6 +7,17 @@
 
 ## Current Focus
 
+- **Aging in America — Framer → Olera Web Migration** (branch: `thirsty-hugle`) — IN PROGRESS
+  - Migrating aginginamerica.co (Framer) into olera.care/aging-in-america
+  - Dark cinematic landing page with season accordion + episode detail pages
+  - Design refs: bfnadocs.org (primary), thewhy.dk (season accordion), water.org (human storytelling), NYT Op-Docs (clean grid)
+  - Data file: `lib/aging-in-america-data.ts` — all S1 (3 eps) + S2 (trailer + 4 eps) content
+  - All S1 YouTube IDs confirmed: TiVrqkrYhEc, -rUirbsNmzA, VqqAyeqiZ9M
+  - S2 trailer: kbKOG8vmJl0, Carol Dean: aF_fekzYNDw, Rob Arnold: TBD (goes up Apr 7)
+  - Build passes clean, all routes generating
+  - Plan: `plans/aging-in-america-plan.md`
+  - **Next**: Rob Arnold YouTube ID, responsive polish, homepage CommunitySection link, sitemap
+
 - **Database Dedup Cleanup — 2026-04-06** — DONE ✅
   - Ran dedupe across 55,907 active providers
   - Tier 1+2 (address-confirmed): 548 pairs → **539 soft-deleted**, 519 groups resolved

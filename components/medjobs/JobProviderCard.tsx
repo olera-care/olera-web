@@ -64,6 +64,8 @@ export default function JobProviderCard({
         <div className="flex items-start gap-4 mb-4">
           <Link
             href={profileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             className="relative w-12 h-12 rounded-xl overflow-hidden shadow-sm shrink-0"
           >
             {provider.image_url ? (
@@ -86,7 +88,7 @@ export default function JobProviderCard({
           </Link>
 
           <div className="min-w-0 flex-1 pt-0.5">
-            <Link href={profileUrl}>
+            <Link href={profileUrl} target="_blank" rel="noopener noreferrer">
               <h3 className="text-lg font-semibold text-gray-900 group-hover:text-gray-700 transition-colors leading-tight line-clamp-1">
                 {provider.display_name}
               </h3>
@@ -131,6 +133,8 @@ export default function JobProviderCard({
           <div className="flex items-center justify-between">
             <Link
               href={profileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
             >
               View profile

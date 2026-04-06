@@ -7,6 +7,15 @@
 
 ## Current Focus
 
+- **Database Dedup Cleanup — 2026-04-06** — DONE ✅
+  - Ran dedupe across 55,907 active providers
+  - Tier 1+2 (address-confirmed): 548 pairs → **539 soft-deleted**, 519 groups resolved
+  - Tier 3 (name+city): Found 803 pairs but many were false positives (different branches, cross-state city name collisions)
+  - Fixed Tier 3: now requires same state + 95% name threshold (was 90% with no state check) — reduces to 542 pairs
+  - Tier 3 still catches legitimate branches (same name, different address) — left undeleted, needs manual review or smarter signal (place_id/phone)
+  - Added `--tiers 1,2` flag to run specific tiers independently
+  - CSV exports: `dupes.csv` (all tiers), `dupes-tier3.csv` (improved tier 3 only)
+
 - **DNS Cutover v1.0 → v2.0** (branch: `peaceful-wiles`) — DONE ✅
   - olera.care now serving v2.0 Next.js app via Vercel
   - Provider slug migration done (008 + 009): 477/500 top GSC pages passing

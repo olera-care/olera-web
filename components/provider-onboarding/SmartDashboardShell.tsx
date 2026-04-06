@@ -136,8 +136,8 @@ function providerToProfile(provider: Provider): Profile {
 
 interface SmartDashboardShellProps {
   provider: Provider;
-  claimSession: string;
-  onVerificationComplete: (verifiedEmail?: string) => void;
+  /** Called when user clicks claim button - parent should open auth modal */
+  onClaimClick: () => void;
   /** Initial state for the action card */
   initialActionState?: ActionCardState;
   /** If provided, user came from email campaign link and is pre-verified */
@@ -154,9 +154,8 @@ interface SmartDashboardShellProps {
 
 export default function SmartDashboardShell({
   provider,
-  claimSession,
-  onVerificationComplete,
-  initialActionState = "verify-form",
+  onClaimClick,
+  initialActionState = "claim-form",
   preVerifiedEmail,
   notificationData,
   isSignedIn = false,
@@ -207,9 +206,8 @@ export default function SmartDashboardShell({
           >
             <ActionCard
               provider={provider}
-              claimSession={claimSession}
               initialState={actionCardState}
-              onVerificationComplete={onVerificationComplete}
+              onClaimClick={onClaimClick}
               preVerifiedEmail={preVerifiedEmail}
               notificationData={notificationData}
               isSignedIn={isSignedIn}
@@ -221,12 +219,11 @@ export default function SmartDashboardShell({
             className="mb-10"
             style={{ animation: "card-enter 0.3s ease-out both" }}
           >
-            {/* ActionCard for verification (verify-form, pre-verified, etc.) */}
+            {/* ActionCard for auth-based claim flow */}
             <ActionCard
               provider={provider}
-              claimSession={claimSession}
               initialState={actionCardState}
-              onVerificationComplete={onVerificationComplete}
+              onClaimClick={onClaimClick}
               preVerifiedEmail={preVerifiedEmail}
               notificationData={notificationData}
               isSignedIn={isSignedIn}

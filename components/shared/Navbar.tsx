@@ -90,7 +90,6 @@ export default function Navbar() {
     pathname.startsWith("/provider/matches") ||
     pathname.startsWith("/provider/pro") ||
     pathname.startsWith("/provider/qna") ||
-    pathname.startsWith("/provider/verification") ||
     pathname.startsWith("/provider/account") ||
     pathname.startsWith("/provider/medjobs") ||
     // Claim/onboard flow shows provider portal nav
@@ -107,8 +106,7 @@ export default function Navbar() {
     pathname.startsWith("/provider/matches") ||
     pathname.startsWith("/provider/pro") ||
     pathname.startsWith("/provider/qna") ||
-    pathname.startsWith("/provider/medjobs") ||
-    pathname.startsWith("/provider/verification");
+    pathname.startsWith("/provider/medjobs");
   const isProviderWelcome = pathname.startsWith("/provider/welcome");
 
   // Show auth pill as soon as we know a user session exists.

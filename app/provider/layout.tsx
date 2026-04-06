@@ -24,11 +24,10 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
     (pathname.startsWith("/provider/") && !pathname.startsWith("/provider/connections") &&
      !pathname.startsWith("/provider/inbox") && !pathname.startsWith("/provider/reviews") &&
      !pathname.startsWith("/provider/matches") && !pathname.startsWith("/provider/pro") &&
-     !pathname.startsWith("/provider/qna") && !pathname.startsWith("/provider/medjobs") &&
-     !pathname.startsWith("/provider/verification"));
+     !pathname.startsWith("/provider/qna") && !pathname.startsWith("/provider/medjobs"));
 
   // Known hub routes that require authentication
-  const HUB_ROUTES = ["/provider", "/provider/connections", "/provider/inbox", "/provider/reviews", "/provider/matches", "/provider/pro", "/provider/qna", "/provider/medjobs", "/provider/verification"];
+  const HUB_ROUTES = ["/provider", "/provider/connections", "/provider/inbox", "/provider/reviews", "/provider/matches", "/provider/pro", "/provider/qna", "/provider/medjobs"];
 
   const isHubRoute = HUB_ROUTES.some((route) =>
     route === "/provider" ? pathname === "/provider" : pathname.startsWith(route)

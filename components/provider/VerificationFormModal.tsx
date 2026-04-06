@@ -3,6 +3,22 @@
 import { useState, useEffect } from "react";
 import Modal from "@/components/ui/Modal";
 
+export interface VerificationSubmission {
+  name: string;
+  role: string;
+  phone: string;
+  affiliation: string;
+  documentUrl: string | null;
+}
+
+export interface ExistingVerificationData {
+  name: string;
+  role: string;
+  phone?: string | null;
+  affiliation?: string | null;
+  submitted_at?: string;
+}
+
 interface VerificationFormModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -11,14 +27,10 @@ interface VerificationFormModalProps {
   /** If true, shows "I'll do this later" option */
   allowDismiss?: boolean;
   onDismiss?: () => void;
-}
-
-export interface VerificationSubmission {
-  name: string;
-  role: string;
-  phone: string;
-  affiliation: string;
-  documentUrl: string | null;
+  /** Pre-fill form with existing data (for updates) */
+  existingData?: ExistingVerificationData;
+  /** Whether this is an update to an existing submission */
+  isUpdate?: boolean;
 }
 
 const ROLE_OPTIONS = [
@@ -36,6 +48,8 @@ export default function VerificationFormModal({
   businessName,
   allowDismiss = true,
   onDismiss,
+  existingData,
+  isUpdate = false,
 }: VerificationFormModalProps) {
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
@@ -44,17 +58,18 @@ export default function VerificationFormModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Reset form state when modal opens
+  // Reset/pre-fill form state when modal opens
   useEffect(() => {
     if (isOpen) {
-      setName("");
-      setRole("");
-      setPhone("");
-      setAffiliation("");
+      // Pre-fill with existing data if available (for updates)
+      setName(existingData?.name || "");
+      setRole(existingData?.role || "");
+      setPhone(existingData?.phone || "");
+      setAffiliation(existingData?.affiliation || "");
       setError(null);
       setSubmitting(false);
     }
-  }, [isOpen]);
+  }, [isOpen, existingData]);
 
   const isValid = name.trim().length > 0 && role.length > 0;
 
@@ -92,7 +107,7 @@ export default function VerificationFormModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Complete Verification"
+      title={isUpdate ? "Update Verification" : "Complete Verification"}
       size="lg"
       footer={
         <div className="space-y-3 pt-4 border-t border-gray-100">
@@ -102,9 +117,9 @@ export default function VerificationFormModal({
             disabled={!isValid || submitting}
             className="w-full py-3 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-colors"
           >
-            {submitting ? "Submitting..." : "Submit for Review"}
+            {submitting ? "Submitting..." : isUpdate ? "Update Submission" : "Submit for Review"}
           </button>
-          {allowDismiss && (
+          {allowDismiss && !isUpdate && (
             <button
               type="button"
               onClick={handleDismiss}
@@ -114,15 +129,21 @@ export default function VerificationFormModal({
             </button>
           )}
           <p className="text-xs text-gray-400 text-center">
-            Until verified, some features are limited (contact info hidden).
+            {isUpdate
+              ? "Your updated information will be reviewed within 1-2 business days."
+              : "Until verified, some features are limited (contact info hidden)."}
           </p>
         </div>
       }
     >
       <form id="verification-form" onSubmit={handleSubmit} className="space-y-5 pt-4">
         <p className="text-gray-600">
-          Help us confirm you&apos;re with <span className="font-medium text-gray-900">{businessName}</span>.
-          We review most requests within 1-2 business days.
+          {isUpdate ? (
+            <>Update your verification details for <span className="font-medium text-gray-900">{businessName}</span>.</>
+          ) : (
+            <>Help us confirm you&apos;re with <span className="font-medium text-gray-900">{businessName}</span>.
+            We review most requests within 1-2 business days.</>
+          )}
         </p>
 
         {/* Name */}

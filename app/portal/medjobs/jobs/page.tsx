@@ -21,12 +21,17 @@ export default function OpenJobsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [total, setTotal] = useState(0);
 
+  // Fetch providers immediately on mount (don't wait for auth)
+  useEffect(() => {
+    fetchProviders(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Update studentProfileId when auth loads (separate from data fetch)
   useEffect(() => {
     if (authLoading) return;
     const studentProfile = profiles?.find((p) => p.type === "student");
     if (studentProfile) setStudentProfileId(studentProfile.id);
-    fetchProviders(1);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, profiles]);
 
   const fetchProviders = useCallback(async (page: number) => {
@@ -34,28 +39,27 @@ export default function OpenJobsPage() {
     try {
       const sb = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
-      // Get total count
-      const { count } = await sb
-        .from("business_profiles")
-        .select("id", { count: "exact", head: true })
-        .in("type", ["organization", "caregiver"])
-        .eq("is_active", true);
-
-      setTotal(count || 0);
-
-      // Get paginated data
       const from = (page - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      const { data } = await sb
-        .from("business_profiles")
-        .select("id, slug, display_name, city, state, category, image_url, description, care_types")
-        .in("type", ["organization", "caregiver"])
-        .eq("is_active", true)
-        .order("display_name")
-        .range(from, to);
+      // Run count and data queries in parallel
+      const [countResult, dataResult] = await Promise.all([
+        sb
+          .from("business_profiles")
+          .select("id", { count: "exact", head: true })
+          .in("type", ["organization", "caregiver"])
+          .eq("is_active", true),
+        sb
+          .from("business_profiles")
+          .select("id, slug, display_name, city, state, category, image_url, description, care_types")
+          .in("type", ["organization", "caregiver"])
+          .eq("is_active", true)
+          .order("display_name")
+          .range(from, to),
+      ]);
 
-      if (data) setProviders(data);
+      setTotal(countResult.count || 0);
+      if (dataResult.data) setProviders(dataResult.data);
       setCurrentPage(page);
     } catch { /* ignore */ }
     finally { setLoading(false); }
@@ -87,7 +91,7 @@ export default function OpenJobsPage() {
         </div>
 
         {/* Loading skeleton */}
-        {(authLoading || loading) ? (
+        {loading ? (
           <div className="space-y-4 max-w-3xl">
             {Array.from({ length: 6 }).map((_, i) => (
               <div

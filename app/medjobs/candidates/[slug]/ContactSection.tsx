@@ -19,15 +19,14 @@ export default function ContactSection({
   variant?: "sidebar" | "sticky" | "inline";
 }) {
   const router = useRouter();
-  const { user, activeProfile, profiles, openAuth } = useAuth();
+  const { user, activeProfile, profiles } = useAuth();
 
   // Only organization profiles are providers (caregivers are job-seekers)
   const isProvider = activeProfile?.type === "organization";
   const hasProviderProfile = profiles.some((p) => p.type === "organization");
 
-  // Identify non-provider user types
+  // Identify caregivers (they get redirected to their portal)
   const isCaregiver = activeProfile?.type === "student" || activeProfile?.type === "caregiver";
-  const isFamily = activeProfile?.type === "family";
 
   // Check if caregiver is viewing their own profile
   const ownCaregiverProfile = profiles.find(
@@ -35,20 +34,20 @@ export default function ContactSection({
   );
   const isViewingOwnProfile = !!ownCaregiverProfile;
 
-  // Redirect logged-in non-providers away from this page (edge case)
-  // Exception: caregivers can view their own public profile
+  // Redirect caregivers (not viewing own profile) to their portal
+  // Families and logged-out users can stay — we'll route them to onboarding on CTA click
   useEffect(() => {
     if (!user || hasProviderProfile || isViewingOwnProfile) return;
 
-    if (isFamily) {
-      router.replace("/");
-    } else if (isCaregiver) {
+    // Only redirect caregivers viewing other profiles
+    if (isCaregiver) {
       router.replace("/portal/medjobs");
     }
-  }, [user, hasProviderProfile, isFamily, isCaregiver, isViewingOwnProfile, router]);
+    // Families stay on page — they'll be routed to onboarding when they click CTA
+  }, [user, hasProviderProfile, isCaregiver, isViewingOwnProfile, router]);
 
-  // Don't render anything while redirecting non-providers (except when viewing own profile)
-  if (user && !hasProviderProfile && !isViewingOwnProfile) {
+  // Don't render while redirecting caregivers (except when viewing own profile)
+  if (user && isCaregiver && !hasProviderProfile && !isViewingOwnProfile) {
     return null;
   }
 
@@ -67,18 +66,13 @@ export default function ContactSection({
     ? `mailto:${studentEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
     : null;
 
-  // Guest: auth modal with provider intent
-  // Existing providers will be sent to the provider candidate page after sign-in
-  // New signups go to provider onboarding step 2 (search) then back to this candidate
-  const triggerAuth = () =>
-    openAuth({
-      intent: "provider",
-      defaultMode: "sign-in",
-      deferred: {
-        action: "hire-candidate",
-        returnUrl: `/provider/medjobs/candidates/${studentSlug}`,
-      },
-    });
+  // Route to onboarding for users without provider profile
+  // Onboarding handles auth, duplicate detection, and returns them to the candidate
+  const onboardingUrl = `/provider/onboarding?next=${encodeURIComponent(`/provider/medjobs/candidates/${studentSlug}`)}`;
+
+  const handleHireClick = () => {
+    router.push(onboardingUrl);
+  };
 
   // ── Own profile preview mode ──
   // Show a disabled preview of what providers see
@@ -145,14 +139,17 @@ export default function ContactSection({
     );
   }
 
+  // Users who need to go through onboarding (no provider profile)
+  const needsOnboarding = !user || (user && !hasProviderProfile);
+
   // ── Sticky mobile bar ──
   if (variant === "sticky") {
-    // Guest: prompt to sign in as provider
-    if (!user) {
+    // Guest or Family without provider: route to onboarding
+    if (needsOnboarding) {
       return (
         <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
           <button
-            onClick={triggerAuth}
+            onClick={handleHireClick}
             className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
           >
             <CalendarIcon />
@@ -191,18 +188,18 @@ export default function ContactSection({
     ? "space-y-3"
     : "bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-3";
 
-  // Guest: warm gate prompting sign-in as provider
-  if (!user) {
+  // Guest or Family without provider: route to onboarding
+  if (needsOnboarding) {
     return (
       <div className={isInline ? "" : "bg-white rounded-2xl shadow-sm border border-gray-100 p-5"}>
         <p className="text-sm font-semibold text-gray-900">
           Want to connect with {firstName}?
         </p>
         <p className="mt-1 text-xs text-gray-500">
-          Sign in as a provider to see contact info and schedule an interview.
+          Set up a provider account to see contact info and schedule an interview.
         </p>
         <button
-          onClick={triggerAuth}
+          onClick={handleHireClick}
           className="mt-3 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
         >
           <CalendarIcon />
@@ -210,10 +207,7 @@ export default function ContactSection({
         </button>
         {!isInline && (
           <p className="mt-2 text-center text-xs text-gray-400">
-            New to Olera?{" "}
-            <Link href="/provider/onboarding" className="text-primary-500 hover:text-primary-600 font-medium">
-              Get started →
-            </Link>
+            Takes less than a minute to get started.
           </p>
         )}
       </div>

@@ -101,7 +101,15 @@ do $$ begin
 exception when duplicate_object then null;
 end $$;
 
--- Updated_at trigger
+-- Updated_at trigger function (create if not exists)
+create or replace function public.update_updated_at()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
 do $$ begin
   create trigger experiments_updated_at
     before update on public.experiments

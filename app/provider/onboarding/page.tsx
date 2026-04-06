@@ -436,47 +436,93 @@ function ProviderOnboardingContent() {
     try {
       const supabase = createClient();
 
-      let query = supabase
+      // === Query 1: olera-providers (scraped listings) ===
+      let providerQuery = supabase
         .from("olera-providers")
         .select("*")
         .not("deleted", "is", true);
 
-      // Apply name filter if provided
       if (name) {
-        query = query.ilike("provider_name", `%${name}%`);
+        providerQuery = providerQuery.ilike("provider_name", `%${name}%`);
       }
-
-      // Apply location filter if provided
       if (loc) {
         const parts = loc.split(",").map((s: string) => s.trim());
         if (parts.length >= 2 && parts[1].length <= 3) {
-          // "Houston, TX" format → city AND state
-          query = query.ilike("city", `%${parts[0]}%`);
-          query = query.ilike("state", `%${parts[1]}%`);
+          providerQuery = providerQuery.ilike("city", `%${parts[0]}%`);
+          providerQuery = providerQuery.ilike("state", `%${parts[1]}%`);
         } else {
-          // Single term → match city or state
-          query = query.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
+          providerQuery = providerQuery.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
         }
       }
 
-      const { data: providers, error: providerErr } = await query.limit(20);
+      // === Query 2: business_profiles (created from scratch, no source_provider_id) ===
+      let bpQuery = supabase
+        .from("business_profiles")
+        .select("id, display_name, image_url, city, state, slug, account_id, source_provider_id")
+        .is("source_provider_id", null); // Only profiles created from scratch
 
-      if (providerErr) {
-        setSearchError(`Search failed: ${providerErr.message}`);
+      if (name) {
+        bpQuery = bpQuery.ilike("display_name", `%${name}%`);
+      }
+      if (loc) {
+        const parts = loc.split(",").map((s: string) => s.trim());
+        if (parts.length >= 2 && parts[1].length <= 3) {
+          bpQuery = bpQuery.ilike("city", `%${parts[0]}%`);
+          bpQuery = bpQuery.ilike("state", `%${parts[1]}%`);
+        } else {
+          bpQuery = bpQuery.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
+        }
+      }
+
+      // Run both queries in parallel
+      const [providerResult, bpResult] = await Promise.all([
+        providerQuery.limit(20),
+        bpQuery.limit(10),
+      ]);
+
+      if (providerResult.error) {
+        setSearchError(`Search failed: ${providerResult.error.message}`);
         setSearchResults([]);
         return;
       }
 
-      const results = (providers as Provider[]) || [];
-      setSearchResults(results);
+      // Convert business_profiles to Provider-like shape for unified display
+      const bpAsProviders: Provider[] = (bpResult.data || []).map((bp) => ({
+        provider_id: `bp_${bp.id}`, // Prefix to distinguish from olera-providers
+        provider_name: bp.display_name,
+        provider_images: bp.image_url || "",
+        city: bp.city,
+        state: bp.state,
+        slug: bp.slug,
+        address: null,
+        zipcode: null,
+        provider_category: "Senior Care",
+        main_category: null,
+        provider_description: null,
+        phone: null,
+        email: null,
+        website: null,
+        lat: null,
+        lon: null,
+        lower_price: null,
+        upper_price: null,
+        deleted: false,
+        // Mark as claimed since it's already a business_profile
+        _isBusinessProfile: true,
+        _accountId: bp.account_id,
+      } as Provider & { _isBusinessProfile?: boolean; _accountId?: string }));
 
-      // Step 2: Check which of these have been claimed in business_profiles
-      if (results.length > 0) {
-        const ids = results.map((p) => p.provider_id);
+      // Merge results (business_profiles first, then olera-providers)
+      const allResults = [...bpAsProviders, ...(providerResult.data as Provider[] || [])];
+      setSearchResults(allResults);
+
+      // Check which olera-providers have been claimed
+      const oleraProviderIds = (providerResult.data || []).map((p: Provider) => p.provider_id);
+      if (oleraProviderIds.length > 0) {
         const { data: claimed } = await supabase
           .from("business_profiles")
           .select("source_provider_id")
-          .in("source_provider_id", ids)
+          .in("source_provider_id", oleraProviderIds)
           .in("claim_state", ["claimed", "pending"]);
 
         const claimedSet = new Set<string>(
@@ -484,9 +530,13 @@ function ProviderOnboardingContent() {
             .map((r: { source_provider_id: string | null }) => r.source_provider_id)
             .filter((id): id is string => !!id)
         );
+        // Also mark all business_profile results as claimed
+        bpAsProviders.forEach((bp) => claimedSet.add(bp.provider_id));
         setClaimedIds(claimedSet);
       } else {
-        setClaimedIds(new Set());
+        // Just mark business_profiles as claimed
+        const claimedSet = new Set<string>(bpAsProviders.map((bp) => bp.provider_id));
+        setClaimedIds(claimedSet);
       }
     } catch {
       setSearchError("Search failed. Please try again.");
@@ -1169,8 +1219,8 @@ function ProviderOnboardingContent() {
             {/* ── State C: No results ── */}
             {hasSearched && searchResults.length === 0 && (
               <div className="w-full max-w-md mx-auto text-center pb-24">
-                <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-6">
-                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-14 h-14 rounded-full bg-white shadow-sm flex items-center justify-center mx-auto mb-6">
+                  <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>

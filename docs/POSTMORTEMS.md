@@ -244,3 +244,17 @@ The re-hydration loop re-set the same `rating` and `review_count` values that we
 **Lesson**: A process with CPU usage and open connections is not necessarily making progress. The absence of log output IS the diagnostic signal — treat "no new log lines" the same way you'd treat an error message. And always read the code before monitoring the process: understanding what a step does takes 2 minutes and prevents 16 hours of wasted wall time.
 
 ---
+
+### 2026-04-06: `/erase` slash command missing across instances
+
+**Symptom**: TJ couldn't find the `/erase` command in a new Claude Code session, despite the erase script being merged to staging (PR #485).
+
+**Root Cause**: The erase tool was built as a standalone Node script (`scripts/erase.mjs`) but no `.claude/commands/erase.md` slash command was created to wire it up. The script existed, but the discoverability layer was missing. Secondary issue: `.claude/` was in `.gitignore`, which would have blocked future command files from being committed (existing commands were grandfathered in from before the ignore rule).
+
+**Fix**: Created `.claude/commands/erase.md` wrapping the script with mode detection, preview-before-confirm safety, and usage docs. Updated `.gitignore` from `.claude/` to `.claude/*` + `!.claude/commands/` so future commands are always committable.
+
+**Prevention**: When building a new tool script, always create the matching slash command in the same PR. Added to `/troubleshoot`: if a user says a command is "missing," check both the script AND the `.claude/commands/` wiring.
+
+**Lesson**: A tool that exists but can't be discovered doesn't exist.
+
+---

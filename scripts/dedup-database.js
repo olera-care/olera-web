@@ -5,11 +5,12 @@
  * three-tier matching (adapted from TJ's duplicate_finder.py):
  *   Tier 1: Exact normalized address + name similarity >= 75%
  *   Tier 2: Base address (suite stripped) + name similarity >= 75%
- *   Tier 3: Name + city match (>=90% fuzzy similarity)
+ *   Tier 3: Name + city + state match (>=95% fuzzy similarity)
  *
  * Usage:
  *   node scripts/dedup-database.js                    # Report only
  *   node scripts/dedup-database.js --delete           # Soft-delete duplicates (keeps best record)
+ *   node scripts/dedup-database.js --tiers 1,2        # Only run specific tiers
  *   node scripts/dedup-database.js --export report.csv # Export pairs to CSV
  */
 
@@ -165,13 +166,18 @@ async function main() {
   const shouldDelete = args.includes('--delete');
   const exportIdx = args.indexOf('--export');
   const exportPath = exportIdx >= 0 ? args[exportIdx + 1] : null;
+  const tiersIdx = args.indexOf('--tiers');
+  const enabledTiers = tiersIdx >= 0
+    ? new Set(args[tiersIdx + 1].split(',').map(Number))
+    : new Set([1, 2, 3]);
 
   console.log('='.repeat(60));
   console.log('DATABASE-WIDE DUPLICATE FINDER');
   console.log('='.repeat(60));
   console.log('Tier 1: Exact address + similar name (>=75%)');
   console.log('Tier 2: Base address + similar name (>=75%)');
-  console.log('Tier 3: Name + city match (>=90% similarity)');
+  console.log('Tier 3: Name + city + STATE (>=95% similarity)');
+  console.log(`Active tiers: ${[...enabledTiers].sort().join(', ')}`);
   console.log('='.repeat(60) + '\n');
 
   // Fetch all active providers (paginated)
@@ -243,86 +249,100 @@ async function main() {
   }
 
   // --- Tier 1: Exact address ---
-  console.log('Tier 1: Exact address matching...');
-  const addrGroups = {};
-  for (const p of providers) {
-    if (!p.addressKey) continue;
-    (addrGroups[p.addressKey] ||= []).push(p);
-  }
-
   let tier1 = 0;
-  for (const group of Object.values(addrGroups)) {
-    if (group.length < 2) continue;
-    for (let i = 0; i < group.length; i++) {
-      for (let j = i + 1; j < group.length; j++) {
-        const before = pairs.length;
-        addPair(group[i], group[j], 'exact_address');
-        if (pairs.length > before) tier1++;
+  if (enabledTiers.has(1)) {
+    console.log('Tier 1: Exact address matching...');
+    const addrGroups = {};
+    for (const p of providers) {
+      if (!p.addressKey) continue;
+      (addrGroups[p.addressKey] ||= []).push(p);
+    }
+
+    for (const group of Object.values(addrGroups)) {
+      if (group.length < 2) continue;
+      for (let i = 0; i < group.length; i++) {
+        for (let j = i + 1; j < group.length; j++) {
+          const before = pairs.length;
+          addPair(group[i], group[j], 'exact_address');
+          if (pairs.length > before) tier1++;
+        }
       }
     }
+    console.log(`  Tier 1 pairs: ${tier1}`);
+  } else {
+    console.log('Tier 1: SKIPPED');
   }
-  console.log(`  Tier 1 pairs: ${tier1}`);
 
   // --- Tier 2: Base address ---
-  console.log('Tier 2: Base address matching...');
-  const baseGroups = {};
-  for (const p of providers) {
-    if (!p.baseAddressKey) continue;
-    (baseGroups[p.baseAddressKey] ||= []).push(p);
-  }
-
   let tier2 = 0;
-  for (const group of Object.values(baseGroups)) {
-    if (group.length < 2) continue;
-    for (let i = 0; i < group.length; i++) {
-      for (let j = i + 1; j < group.length; j++) {
-        const before = pairs.length;
-        addPair(group[i], group[j], 'base_address');
-        if (pairs.length > before) tier2++;
+  if (enabledTiers.has(2)) {
+    console.log('Tier 2: Base address matching...');
+    const baseGroups = {};
+    for (const p of providers) {
+      if (!p.baseAddressKey) continue;
+      (baseGroups[p.baseAddressKey] ||= []).push(p);
+    }
+
+    for (const group of Object.values(baseGroups)) {
+      if (group.length < 2) continue;
+      for (let i = 0; i < group.length; i++) {
+        for (let j = i + 1; j < group.length; j++) {
+          const before = pairs.length;
+          addPair(group[i], group[j], 'base_address');
+          if (pairs.length > before) tier2++;
+        }
       }
     }
-  }
-  console.log(`  Tier 2 pairs (new): ${tier2}`);
-
-  // --- Tier 3: Name + city ---
-  console.log('Tier 3: Name + city matching...');
-  const cityGroups = {};
-  for (const p of providers) {
-    if (!p.cityKey) continue;
-    (cityGroups[p.cityKey] ||= []).push(p);
+    console.log(`  Tier 2 pairs (new): ${tier2}`);
+  } else {
+    console.log('Tier 2: SKIPPED');
   }
 
+  // --- Tier 3: Name + city + state ---
   let tier3 = 0;
-  let citiesChecked = 0;
-  const totalCities = Object.keys(cityGroups).length;
+  if (enabledTiers.has(3)) {
+    console.log('Tier 3: Name + city + state matching (>=95% similarity)...');
+    const cityStateGroups = {};
+    for (const p of providers) {
+      if (!p.cityKey || !p.state) continue;
+      const key = `${p.cityKey}|${(p.state || '').toLowerCase().trim()}`;
+      (cityStateGroups[key] ||= []).push(p);
+    }
 
-  for (const [cityKey, group] of Object.entries(cityGroups)) {
-    if (group.length < 2) continue;
-    citiesChecked++;
-    if (citiesChecked % 100 === 0) process.stdout.write(`  Tier 3: ${citiesChecked}/${totalCities} cities\r`);
+    let citiesChecked = 0;
+    const totalCities = Object.keys(cityStateGroups).length;
+    const NAME_CITY_THRESHOLD_STRICT = 95;
 
-    for (let i = 0; i < group.length; i++) {
-      for (let j = i + 1; j < group.length; j++) {
-        const sim = getNameSimilarity(group[i].provider_name, group[j].provider_name);
-        if (sim >= NAME_CITY_THRESHOLD) {
-          const key = [group[i].provider_id, group[j].provider_id].sort().join('|');
-          if (!seenPairs.has(key)) {
-            seenPairs.add(key);
-            pairs.push({
-              id1: group[i].provider_id, id2: group[j].provider_id,
-              name1: group[i].provider_name, name2: group[j].provider_name,
-              addr1: group[i].address, addr2: group[j].address,
-              city1: group[i].city, city2: group[j].city,
-              state1: group[i].state, state2: group[j].state,
-              similarity: sim, reason: 'name_city',
-            });
-            tier3++;
+    for (const [, group] of Object.entries(cityStateGroups)) {
+      if (group.length < 2) continue;
+      citiesChecked++;
+      if (citiesChecked % 100 === 0) process.stdout.write(`  Tier 3: ${citiesChecked}/${totalCities} city+state groups\r`);
+
+      for (let i = 0; i < group.length; i++) {
+        for (let j = i + 1; j < group.length; j++) {
+          const sim = getNameSimilarity(group[i].provider_name, group[j].provider_name);
+          if (sim >= NAME_CITY_THRESHOLD_STRICT) {
+            const key = [group[i].provider_id, group[j].provider_id].sort().join('|');
+            if (!seenPairs.has(key)) {
+              seenPairs.add(key);
+              pairs.push({
+                id1: group[i].provider_id, id2: group[j].provider_id,
+                name1: group[i].provider_name, name2: group[j].provider_name,
+                addr1: group[i].address, addr2: group[j].address,
+                city1: group[i].city, city2: group[j].city,
+                state1: group[i].state, state2: group[j].state,
+                similarity: sim, reason: 'name_city_state',
+              });
+              tier3++;
+            }
           }
         }
       }
     }
+    console.log(`  Tier 3 pairs (new): ${tier3}                    `);
+  } else {
+    console.log('Tier 3: SKIPPED');
   }
-  console.log(`  Tier 3 pairs (new): ${tier3}                    `);
 
   // --- Results ---
   console.log('\n' + '='.repeat(60));
@@ -331,7 +351,7 @@ async function main() {
   console.log(`Total duplicate pairs: ${pairs.length}`);
   console.log(`  Tier 1 (exact address): ${tier1}`);
   console.log(`  Tier 2 (base address): ${tier2}`);
-  console.log(`  Tier 3 (name + city): ${tier3}`);
+  console.log(`  Tier 3 (name + city + state): ${tier3}`);
 
   if (pairs.length === 0) {
     console.log('\nNo duplicates found!');

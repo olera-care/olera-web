@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { useAuth } from "@/components/auth/AuthProvider";
 import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import CandidateFilters from "@/components/medjobs/CandidateFilters";
@@ -11,6 +12,11 @@ import Pagination from "@/components/ui/Pagination";
 const PAGE_SIZE = 12;
 
 export default function ProviderCandidateBrowsePage() {
+  const { activeProfile } = useAuth();
+
+  // Verification check
+  const isVerified = activeProfile?.verification_state === "verified";
+  const verificationState = activeProfile?.verification_state;
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
@@ -119,6 +125,10 @@ export default function ProviderCandidateBrowsePage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/* Verification banner - show if not verified */}
+        {!isVerified && (
+          <VerificationAccessBanner verificationState={verificationState} />
+        )}
         {/* Filters */}
         <CandidateFilters
           filters={filters}
@@ -176,6 +186,7 @@ export default function ProviderCandidateBrowsePage() {
                   key={candidate.id}
                   candidate={candidate}
                   basePath="/provider/medjobs/candidates"
+                  isVerified={isVerified}
                 />
               ))}
             </div>
@@ -197,5 +208,52 @@ export default function ProviderCandidateBrowsePage() {
         )}
       </div>
     </main>
+  );
+}
+
+function VerificationAccessBanner({
+  verificationState,
+}: {
+  verificationState?: string;
+}) {
+  const isPending = verificationState === "pending";
+
+  return (
+    <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-5">
+      <div className="flex items-start gap-4">
+        <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+          {isPending ? (
+            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          )}
+        </div>
+        <div className="flex-1">
+          <h3 className="text-base font-semibold text-gray-900">
+            {isPending ? "Verification in Progress" : "Limited Access Mode"}
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            {isPending
+              ? "We're reviewing your verification request. Once approved, you'll see full candidate profiles and be able to contact caregivers directly."
+              : "You're seeing limited information. Verify your business to unlock full profiles, contact details, and hiring features."}
+          </p>
+          {!isPending && (
+            <Link
+              href="/provider"
+              className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-amber-700 hover:text-amber-800"
+            >
+              Complete verification
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

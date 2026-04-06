@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { CandidateData } from "./CandidateRow";
@@ -27,15 +28,25 @@ function getAvatarColor(id: string) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
+function getFirstName(name: string): string {
+  if (!name) return "Someone";
+  const firstName = name.trim().split(" ")[0];
+  return firstName || "Someone";
+}
+
 interface CandidateCardProps {
   candidate: CandidateData;
   basePath: string;
+  /** If false, shows limited info and prompts verification on click */
+  isVerified?: boolean;
 }
 
 export default function CandidateCard({
   candidate,
   basePath,
+  isVerified = true, // Default to true for public pages that don't pass this
 }: CandidateCardProps) {
+  const [showVerifyPrompt, setShowVerifyPrompt] = useState(false);
   const meta = candidate.metadata;
   const trackLabel = getTrackLabel(meta);
   const availLabel = formatAvailability(meta);
@@ -46,6 +57,7 @@ export default function CandidateCard({
   const verifiedHours = meta.total_verified_hours ?? 0;
 
   const profileUrl = `${basePath}/${candidate.slug}`;
+  const firstName = getFirstName(candidate.display_name);
 
   // Determine the single most important trust signal to highlight
   const primaryBadge = verifiedHours > 0
@@ -56,111 +68,209 @@ export default function CandidateCard({
     ? { label: certs[0].split(" (")[0], type: "cert" as const }
     : null;
 
-  return (
-    <Link
-      href={profileUrl}
-      className="group relative flex flex-col bg-white rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
-    >
-      <div className="flex flex-col p-6 flex-1">
-        {/* Avatar + Name row */}
-        <div className="flex items-start gap-4 mb-4">
-          <div className="relative w-14 h-14 rounded-full overflow-hidden shadow-sm shrink-0">
-            {candidate.image_url ? (
-              <Image
-                src={candidate.image_url}
-                alt={candidate.display_name}
-                fill
-                className="object-cover"
-                sizes="56px"
-              />
-            ) : (
-              <div
-                className={`w-full h-full ${getAvatarColor(candidate.id)} flex items-center justify-center`}
-              >
-                <span className="text-xl font-medium">
-                  {candidate.display_name?.charAt(0)?.toUpperCase() || "?"}
-                </span>
-              </div>
-            )}
-          </div>
+  // Handle card click for unverified users
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (!isVerified) {
+      e.preventDefault();
+      setShowVerifyPrompt(true);
+    }
+  };
 
-          <div className="min-w-0 flex-1 pt-0.5">
-            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-gray-700 transition-colors leading-tight truncate">
-              {candidate.display_name}
-            </h3>
-            <p className="text-sm text-gray-500 mt-0.5 truncate">
-              {meta.university || "University not specified"}
-            </p>
-          </div>
-        </div>
-
-        {/* Key info — clean two-line layout */}
-        <div className="space-y-2 mb-4">
-          {/* Track + Location */}
-          <div className="flex items-center gap-3 text-sm">
-            {trackLabel && (
-              <span className="font-medium text-gray-900">{trackLabel}</span>
-            )}
-            {trackLabel && location && (
-              <span className="text-gray-300">·</span>
-            )}
-            {location && (
-              <span className="text-gray-500">{location}</span>
-            )}
-          </div>
-
-          {/* Availability */}
-          {(availLabel || hoursLabel) && (
-            <div className="flex items-center gap-3 text-sm text-gray-500">
-              {availLabel && <span>{availLabel}</span>}
-              {availLabel && hoursLabel && (
-                <span className="text-gray-300">·</span>
-              )}
-              {hoursLabel && <span>{hoursLabel}</span>}
+  const cardContent = (
+    <div className="flex flex-col p-6 flex-1">
+      {/* Avatar + Name row */}
+      <div className="flex items-start gap-4 mb-4">
+        <div className="relative w-14 h-14 rounded-full overflow-hidden shadow-sm shrink-0">
+          {isVerified && candidate.image_url ? (
+            <Image
+              src={candidate.image_url}
+              alt={candidate.display_name}
+              fill
+              className="object-cover"
+              sizes="56px"
+            />
+          ) : isVerified ? (
+            <div
+              className={`w-full h-full ${getAvatarColor(candidate.id)} flex items-center justify-center`}
+            >
+              <span className="text-xl font-medium">
+                {candidate.display_name?.charAt(0)?.toUpperCase() || "?"}
+              </span>
+            </div>
+          ) : (
+            // Unverified: show person silhouette
+            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+              <svg className="w-7 h-7 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
             </div>
           )}
         </div>
 
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* Bottom row: Primary badge + secondary certs */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          {/* Primary trust signal */}
-          {primaryBadge ? (
-            <span
-              className={`inline-flex items-center gap-1.5 text-sm font-medium ${
-                primaryBadge.type === "verified"
-                  ? "text-emerald-600"
-                  : primaryBadge.type === "video"
-                  ? "text-blue-600"
-                  : "text-gray-600"
-              }`}
-            >
-              {primaryBadge.type === "verified" && (
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                </svg>
-              )}
-              {primaryBadge.type === "video" && (
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3.25 4A2.25 2.25 0 001 6.25v7.5A2.25 2.25 0 003.25 16h7.5A2.25 2.25 0 0013 13.75v-7.5A2.25 2.25 0 0010.75 4h-7.5zM19 4.75a.75.75 0 00-1.28-.53l-3 3a.75.75 0 00-.22.53v4.5c0 .199.079.39.22.53l3 3a.75.75 0 001.28-.53V4.75z" />
-                </svg>
-              )}
-              {primaryBadge.label}
-            </span>
-          ) : (
-            <span />
-          )}
-
-          {/* Secondary: cert count if we have more */}
-          {certs.length > (primaryBadge?.type === "cert" ? 1 : 0) && (
-            <span className="text-xs text-gray-400">
-              {certs.length} certification{certs.length !== 1 ? "s" : ""}
-            </span>
-          )}
+        <div className="min-w-0 flex-1 pt-0.5">
+          <h3 className="text-lg font-semibold text-gray-900 group-hover:text-gray-700 transition-colors leading-tight truncate">
+            {isVerified ? candidate.display_name : firstName}
+          </h3>
+          <p className="text-sm text-gray-500 mt-0.5 truncate">
+            {isVerified
+              ? (meta.university || "University not specified")
+              : "Details available after verification"}
+          </p>
         </div>
       </div>
-    </Link>
+
+      {/* Key info — clean two-line layout */}
+      <div className="space-y-2 mb-4">
+        {/* Track + Location */}
+        <div className="flex items-center gap-3 text-sm">
+          {trackLabel && (
+            <span className="font-medium text-gray-900">{trackLabel}</span>
+          )}
+          {isVerified && trackLabel && location && (
+            <span className="text-gray-300">·</span>
+          )}
+          {isVerified && location && (
+            <span className="text-gray-500">{location}</span>
+          )}
+        </div>
+
+        {/* Availability - show even for unverified (generic info) */}
+        {(availLabel || hoursLabel) && (
+          <div className="flex items-center gap-3 text-sm text-gray-500">
+            {availLabel && <span>{availLabel}</span>}
+            {availLabel && hoursLabel && (
+              <span className="text-gray-300">·</span>
+            )}
+            {hoursLabel && <span>{hoursLabel}</span>}
+          </div>
+        )}
+      </div>
+
+      {/* Spacer */}
+      <div className="flex-1" />
+
+      {/* Bottom row: Primary badge + secondary certs */}
+      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+        {/* Primary trust signal - only show for verified */}
+        {isVerified && primaryBadge ? (
+          <span
+            className={`inline-flex items-center gap-1.5 text-sm font-medium ${
+              primaryBadge.type === "verified"
+                ? "text-emerald-600"
+                : primaryBadge.type === "video"
+                ? "text-blue-600"
+                : "text-gray-600"
+            }`}
+          >
+            {primaryBadge.type === "verified" && (
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+              </svg>
+            )}
+            {primaryBadge.type === "video" && (
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M3.25 4A2.25 2.25 0 001 6.25v7.5A2.25 2.25 0 003.25 16h7.5A2.25 2.25 0 0013 13.75v-7.5A2.25 2.25 0 0010.75 4h-7.5zM19 4.75a.75.75 0 00-1.28-.53l-3 3a.75.75 0 00-.22.53v4.5c0 .199.079.39.22.53l3 3a.75.75 0 001.28-.53V4.75z" />
+              </svg>
+            )}
+            {primaryBadge.label}
+          </span>
+        ) : !isVerified ? (
+          // Unverified: show lock indicator
+          <span className="inline-flex items-center gap-1.5 text-sm text-gray-400">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Verify to view profile
+          </span>
+        ) : (
+          <span />
+        )}
+
+        {/* Secondary: cert count if we have more - only for verified */}
+        {isVerified && certs.length > (primaryBadge?.type === "cert" ? 1 : 0) && (
+          <span className="text-xs text-gray-400">
+            {certs.length} certification{certs.length !== 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <Link
+        href={isVerified ? profileUrl : "#"}
+        onClick={handleCardClick}
+        className="group relative flex flex-col bg-white rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+      >
+        {cardContent}
+      </Link>
+
+      {/* Verification prompt modal */}
+      {showVerifyPrompt && (
+        <VerifyToViewModal
+          candidateName={firstName}
+          onClose={() => setShowVerifyPrompt(false)}
+        />
+      )}
+    </>
+  );
+}
+
+function VerifyToViewModal({
+  candidateName,
+  onClose,
+}: {
+  candidateName: string;
+  onClose: () => void;
+}) {
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/50 z-40"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Icon */}
+          <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+
+          {/* Content */}
+          <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+            Verify to view {candidateName}&apos;s profile
+          </h3>
+          <p className="text-sm text-gray-500 text-center mb-6">
+            Complete a quick verification to unlock full candidate profiles, contact info, and hiring features. Most verifications are approved within 1-2 business days.
+          </p>
+
+          {/* Actions */}
+          <div className="space-y-3">
+            <Link
+              href="/provider"
+              className="block w-full py-3 text-center text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-xl transition-colors"
+            >
+              Complete Verification
+            </Link>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full py-3 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Maybe later
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

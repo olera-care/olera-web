@@ -360,51 +360,106 @@ function ProviderOnboardingContent() {
             try {
               const supabase = (await import("@/lib/supabase/client")).createClient();
 
-              let query = supabase
+              // === Query 1: olera-providers (scraped listings) ===
+              let providerQuery = supabase
                 .from("olera-providers")
                 .select("*")
                 .not("deleted", "is", true);
 
               if (name) {
-                query = query.ilike("provider_name", `%${name}%`);
+                providerQuery = providerQuery.ilike("provider_name", `%${name}%`);
               }
-
               if (loc) {
                 const parts = loc.split(",").map((s: string) => s.trim());
                 if (parts.length >= 2 && parts[1].length <= 3) {
-                  query = query.ilike("city", `%${parts[0]}%`);
-                  query = query.ilike("state", `%${parts[1]}%`);
+                  providerQuery = providerQuery.ilike("city", `%${parts[0]}%`);
+                  providerQuery = providerQuery.ilike("state", `%${parts[1]}%`);
                 } else {
-                  query = query.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
+                  providerQuery = providerQuery.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
                 }
               }
 
-              const { data: providers, error: providerErr } = await query.limit(20);
+              // === Query 2: business_profiles (created from scratch) ===
+              let bpQuery = supabase
+                .from("business_profiles")
+                .select("id, display_name, image_url, city, state, slug, account_id, source_provider_id")
+                .is("source_provider_id", null);
 
-              if (providerErr) {
-                setSearchError(`Search failed: ${providerErr.message}`);
-                setSearchResults([]);
-              } else {
-                const results = (providers as Provider[]) || [];
-                setSearchResults(results);
-
-                if (results.length > 0) {
-                  const ids = results.map((p) => p.provider_id);
-                  const { data: claimed } = await supabase
-                    .from("business_profiles")
-                    .select("source_provider_id")
-                    .in("source_provider_id", ids)
-                    .in("claim_state", ["claimed", "pending"]);
-
-                  const claimedSet = new Set<string>(
-                    (claimed || [])
-                      .map((r: { source_provider_id: string | null }) => r.source_provider_id)
-                      .filter((id): id is string => !!id)
-                  );
-                  setClaimedIds(claimedSet);
+              if (name) {
+                bpQuery = bpQuery.ilike("display_name", `%${name}%`);
+              }
+              if (loc) {
+                const parts = loc.split(",").map((s: string) => s.trim());
+                if (parts.length >= 2 && parts[1].length <= 3) {
+                  bpQuery = bpQuery.ilike("city", `%${parts[0]}%`);
+                  bpQuery = bpQuery.ilike("state", `%${parts[1]}%`);
                 } else {
-                  setClaimedIds(new Set());
+                  bpQuery = bpQuery.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
                 }
+              }
+
+              // Run both queries in parallel
+              const [providerResult, bpResult] = await Promise.all([
+                providerQuery.limit(20),
+                bpQuery.limit(10),
+              ]);
+
+              if (providerResult.error) {
+                setSearchError(`Search failed: ${providerResult.error.message}`);
+                setSearchResults([]);
+                return;
+              }
+
+              // Convert business_profiles to Provider-like shape
+              const bpAsProviders: Provider[] = (bpResult.data || []).map((bp) => ({
+                provider_id: `bp_${bp.id}`,
+                provider_name: bp.display_name,
+                provider_images: bp.image_url || "",
+                city: bp.city,
+                state: bp.state,
+                slug: bp.slug,
+                address: null,
+                zipcode: null,
+                provider_category: "Senior Care",
+                main_category: null,
+                provider_description: null,
+                phone: null,
+                email: null,
+                website: null,
+                lat: null,
+                lon: null,
+                lower_price: null,
+                upper_price: null,
+                deleted: false,
+                _isBusinessProfile: true,
+                _accountId: bp.account_id,
+              } as Provider & { _isBusinessProfile?: boolean; _accountId?: string }));
+
+              // Merge results (business_profiles first, then olera-providers)
+              const allResults = [...bpAsProviders, ...(providerResult.data as Provider[] || [])];
+              setSearchResults(allResults);
+
+              // Check which olera-providers have been claimed
+              const oleraProviderIds = (providerResult.data || []).map((p: Provider) => p.provider_id);
+              if (oleraProviderIds.length > 0) {
+                const { data: claimed } = await supabase
+                  .from("business_profiles")
+                  .select("source_provider_id")
+                  .in("source_provider_id", oleraProviderIds)
+                  .in("claim_state", ["claimed", "pending"]);
+
+                const claimedSet = new Set<string>(
+                  (claimed || [])
+                    .map((r: { source_provider_id: string | null }) => r.source_provider_id)
+                    .filter((id): id is string => !!id)
+                );
+                // Also mark all business_profile results as claimed
+                bpAsProviders.forEach((bp) => claimedSet.add(bp.provider_id));
+                setClaimedIds(claimedSet);
+              } else {
+                // Just mark business_profiles as claimed
+                const claimedSet = new Set<string>(bpAsProviders.map((bp) => bp.provider_id));
+                setClaimedIds(claimedSet);
               }
             } catch {
               setSearchError("Search failed. Please try again.");

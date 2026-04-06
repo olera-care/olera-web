@@ -13,6 +13,8 @@ import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
 import Pagination from "@/components/ui/Pagination";
 import OtpInput from "@/components/auth/OtpInput";
+import VerificationFormModal from "@/components/provider/VerificationFormModal";
+import type { VerificationSubmission } from "@/components/provider/VerificationFormModal";
 import type { Provider } from "@/lib/types/provider";
 
 type Step = "search" | "verify" | "create" | "potential-matches";
@@ -112,6 +114,11 @@ function ProviderOnboardingContent() {
   const [businessProfileMatches, setBusinessProfileMatches] = useState<BusinessProfileMatch[]>([]);
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
   const [showAllMatches, setShowAllMatches] = useState(false);
+
+  // Verification modal state
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [pendingProfileId, setPendingProfileId] = useState<string | null>(null);
+  const [pendingProfileName, setPendingProfileName] = useState<string>("");
 
   // Location input state (separate from name search) - initialize from URL params
   const [locationQuery, setLocationQuery] = useState(urlLocationQuery);
@@ -938,7 +945,7 @@ function ProviderOnboardingContent() {
         return;
       }
 
-      const { profileId } = result;
+      const { profileId, verificationState } = result;
 
       // Clear any saved form data
       try {
@@ -954,6 +961,14 @@ function ProviderOnboardingContent() {
         switchProfile(profileId);
       }
 
+      // If not auto-verified, show verification modal before redirecting
+      if (verificationState === "unverified") {
+        setPendingProfileId(profileId);
+        setPendingProfileName(data.displayName);
+        setShowVerificationModal(true);
+        return;
+      }
+
       // If coming from MedJobs hire flow, return to the candidate page
       if (nextUrl) {
         router.replace(nextUrl);
@@ -964,6 +979,42 @@ function ProviderOnboardingContent() {
       setSubmitError("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Handle verification form submission
+  const handleVerificationSubmit = async (submission: VerificationSubmission) => {
+    if (!pendingProfileId) return;
+
+    const res = await fetch("/api/provider/verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        profileId: pendingProfileId,
+        submission,
+      }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || "Failed to submit verification");
+    }
+
+    // Navigate to dashboard after successful submission
+    if (nextUrl) {
+      router.replace(nextUrl);
+    } else {
+      router.replace("/provider");
+    }
+  };
+
+  // Handle verification dismissal (provisional access)
+  const handleVerificationDismiss = () => {
+    // Navigate to dashboard with provisional access (unverified)
+    if (nextUrl) {
+      router.replace(nextUrl);
+    } else {
+      router.replace("/provider");
     }
   };
 
@@ -2071,6 +2122,16 @@ function ProviderOnboardingContent() {
         })()}
 
       </div>
+
+      {/* Verification Modal */}
+      <VerificationFormModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        onSubmit={handleVerificationSubmit}
+        businessName={pendingProfileName}
+        allowDismiss={true}
+        onDismiss={handleVerificationDismiss}
+      />
     </div>
   );
 }

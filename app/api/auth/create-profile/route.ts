@@ -135,9 +135,9 @@ export async function POST(request: Request) {
         // First, check if profile exists and is available for claiming
         const { data: existing, error: fetchErr } = await db
           .from("business_profiles")
-          .select("account_id, display_name, city, state, zip, care_types, description, phone")
+          .select("account_id, display_name, city, state, zip, care_types, description, phone, email, website")
           .eq("id", claimedProfileId)
-          .single<Profile & { account_id: string | null }>();
+          .single<Profile & { account_id: string | null; email: string | null; website: string | null }>();
 
         if (fetchErr || !existing) {
           return NextResponse.json(
@@ -158,10 +158,40 @@ export async function POST(request: Request) {
         if (existing.account_id === accountId) {
           profileId = claimedProfileId;
         } else {
+          // Check if user's email matches the email on file for auto-verification
+          const profileEmail = existing.email;
+          const profileWebsite = existing.website;
+          const userEmail = user.email?.toLowerCase();
+
+          // Auto-verify conditions:
+          // 1. User's email matches the email on file
+          const emailMatches = profileEmail && userEmail && profileEmail.toLowerCase() === userEmail;
+
+          // 2. User's email domain matches the business website domain
+          // e.g., john@sunriseseniorliving.com matches sunriseseniorliving.com
+          let domainMatches = false;
+          if (userEmail && profileWebsite) {
+            try {
+              const emailDomain = userEmail.split("@")[1];
+              // Extract domain from website URL (handle with/without protocol)
+              const websiteUrl = profileWebsite.startsWith("http")
+                ? profileWebsite
+                : `https://${profileWebsite}`;
+              const websiteDomain = new URL(websiteUrl).hostname.replace(/^www\./, "");
+              domainMatches = emailDomain === websiteDomain;
+            } catch {
+              // Invalid URL, skip domain matching
+            }
+          }
+
+          const shouldAutoVerify = emailMatches || domainMatches;
+
           // Atomic claim: only update if account_id is still NULL
           const claimUpdate: Record<string, unknown> = {
             account_id: accountId,
-            claim_state: "pending",
+            claim_state: shouldAutoVerify ? "claimed" : "pending",
+            // Auto-verify if email or domain matches
+            verification_state: shouldAutoVerify ? "verified" : "unverified",
           };
 
           if (!existing.display_name?.trim() && (orgName || sanitizedDisplayName))
@@ -463,7 +493,17 @@ export async function POST(request: Request) {
       // Non-blocking
     }
 
-    return NextResponse.json({ profileId });
+    // Fetch the final verification state to return to frontend
+    const { data: finalProfile } = await db
+      .from("business_profiles")
+      .select("verification_state")
+      .eq("id", profileId)
+      .single();
+
+    return NextResponse.json({
+      profileId,
+      verificationState: finalProfile?.verification_state || "unverified",
+    });
   } catch (err) {
     console.error("Create profile error:", err);
     return NextResponse.json(

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useClickOutside } from "@/hooks/use-click-outside";
@@ -20,6 +20,7 @@ import { useInterestedProviders } from "@/hooks/useInterestedProviders";
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFindCareOpen, setIsFindCareOpen] = useState(false);
   const megaMenuCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -76,6 +77,9 @@ export default function Navbar() {
   }, [user]);
 
   const isPortal = pathname.startsWith("/portal");
+  const isInboxPage = pathname.startsWith("/portal/inbox");
+  // Check if unified inbox is in provider mode
+  const isInboxProviderMode = isInboxPage && searchParams.get("role") === "provider";
   const isProviderPortal =
     pathname === "/provider" ||
     pathname.startsWith("/provider/connections") ||
@@ -90,8 +94,9 @@ export default function Navbar() {
     pathname.startsWith("/provider/account") ||
     pathname.startsWith("/provider/medjobs") ||
     // Claim/onboard flow shows provider portal nav
-    (pathname.startsWith("/provider/") && pathname.endsWith("/onboard"));
-  const isInboxPage = pathname.startsWith("/portal/inbox");
+    (pathname.startsWith("/provider/") && pathname.endsWith("/onboard")) ||
+    // Unified inbox with role=provider param
+    isInboxProviderMode;
   const isMinimalNav = pathname.startsWith("/welcome") || pathname.startsWith("/provider/welcome");
   // Auth-gated provider hub routes — the layout gate guarantees the user is signed in,
   // so we can safely render signed-in UI without waiting for hasSession

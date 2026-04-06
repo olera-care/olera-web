@@ -7,6 +7,7 @@ import {
 } from "@/lib/power-pages";
 import { allStates } from "@/data/waiver-library";
 import { buildStateUrl, buildProgramUrl } from "@/lib/texas-slug-map";
+import { allEpisodes } from "@/lib/aging-in-america-data";
 
 export const dynamic = "force-dynamic";
 
@@ -96,9 +97,15 @@ export async function GET(request: Request) {
         { path: "/medjobs", priority: 0.8, freq: "weekly" },
         { path: "/medjobs/candidates", priority: 0.7, freq: "daily" },
         { path: "/medjobs/apply", priority: 0.7, freq: "monthly" },
+        { path: "/aging-in-america", priority: 0.7, freq: "weekly" },
       ];
       for (const p of staticPages) {
         entries.push(xmlEntry(`${SITE_URL}${p.path}`, p.priority, p.freq));
+      }
+
+      // Aging in America episode pages
+      for (const ep of allEpisodes) {
+        entries.push(xmlEntry(`${SITE_URL}/aging-in-america/${ep.slug}`, 0.6, "monthly"));
       }
 
       // Waiver library

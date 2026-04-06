@@ -5,11 +5,11 @@ import InterviewCalendar from "@/components/medjobs/InterviewCalendar";
 import type { Interview } from "@/lib/types";
 
 type InterviewWithProfiles = Interview & {
-  provider?: { id: string; display_name: string; image_url?: string; city?: string; state?: string; email?: string; phone?: string };
-  student?: { id: string; slug?: string; display_name: string; image_url?: string };
+  provider?: { id: string; display_name: string; image_url?: string };
+  student?: { id: string; slug?: string; display_name: string; image_url?: string; email?: string; metadata?: Record<string, unknown> };
 };
 
-export default function InterviewsPage() {
+export default function ProviderCaregiversPage() {
   const [interviews, setInterviews] = useState<InterviewWithProfiles[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -42,13 +42,13 @@ export default function InterviewsPage() {
     <main className="min-h-screen bg-[#FAFAF8]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">Interviews</h1>
-          <p className="text-sm text-gray-500 mt-1">View and manage your scheduled interviews with organizations.</p>
+          <h1 className="text-2xl font-semibold text-gray-900">Caregivers</h1>
+          <p className="text-sm text-gray-500 mt-1">Track interview requests and scheduled meetings with candidates.</p>
         </div>
 
         <InterviewCalendar
           interviews={interviews}
-          perspective="student"
+          perspective="provider"
           loading={loading}
           onUpdateStatus={updateStatus}
           actionLoading={actionLoading}

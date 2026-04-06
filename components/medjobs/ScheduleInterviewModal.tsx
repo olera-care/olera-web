@@ -3,15 +3,20 @@
 import { useState } from "react";
 
 interface ScheduleInterviewModalProps {
-  studentProfileId: string;
-  studentName: string;
+  /** Provider → Student: pass the student's profile ID */
+  studentProfileId?: string;
+  /** Student → Provider: pass the provider's profile ID */
+  providerProfileId?: string;
+  /** Name of the other party (shown in the modal header) */
+  otherName: string;
   onClose: () => void;
   onScheduled: () => void;
 }
 
 export default function ScheduleInterviewModal({
   studentProfileId,
-  studentName,
+  providerProfileId,
+  otherName,
   onClose,
   onScheduled,
 }: ScheduleInterviewModalProps) {
@@ -23,6 +28,8 @@ export default function ScheduleInterviewModal({
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const isStudentInitiated = !!providerProfileId;
 
   const handleSubmit = async () => {
     if (!date || !time) { setError("Please select a date and time."); return; }
@@ -37,7 +44,7 @@ export default function ScheduleInterviewModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          studentProfileId,
+          ...(studentProfileId ? { studentProfileId } : { providerProfileId }),
           type,
           proposedTime,
           alternativeTime,
@@ -57,8 +64,10 @@ export default function ScheduleInterviewModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">Schedule Interview</h2>
-        <p className="text-sm text-gray-500 mb-5">with {studentName}</p>
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">
+          {isStudentInitiated ? "Request Interview" : "Schedule Interview"}
+        </h2>
+        <p className="text-sm text-gray-500 mb-5">with {otherName}</p>
 
         {error && <div className="mb-4 p-3 bg-red-50 rounded-lg text-sm text-red-700">{error}</div>}
 
@@ -107,7 +116,7 @@ export default function ScheduleInterviewModal({
         <div className="mb-5">
           <label className="block text-xs text-gray-400 uppercase tracking-wide font-medium mb-2">Notes (optional)</label>
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
-            placeholder="Any details for the candidate..."
+            placeholder={isStudentInitiated ? "Introduce yourself briefly..." : "Any details for the candidate..."}
             rows={2}
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-gray-900 outline-none resize-none" />
         </div>
@@ -120,7 +129,7 @@ export default function ScheduleInterviewModal({
           </button>
           <button type="button" onClick={handleSubmit} disabled={submitting || !date || !time}
             className="flex-1 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 disabled:opacity-40 rounded-lg text-sm font-medium text-white transition-colors">
-            {submitting ? "Scheduling..." : "Send Invite"}
+            {submitting ? "Sending..." : isStudentInitiated ? "Send Request" : "Send Invite"}
           </button>
         </div>
       </div>

@@ -2,7 +2,7 @@ import Link from "next/link"
 
 export default function CtaSection() {
   return (
-    <section className="py-20 md:py-28 border-t border-gray-800/50">
+    <section className="py-24 md:py-32 border-t border-gray-800/30">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
         <h2 className="font-display text-3xl sm:text-4xl text-white mb-4">
           Every story matters

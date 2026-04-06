@@ -2,12 +2,16 @@ import { seasons, allEpisodes, seriesMeta } from "@/lib/aging-in-america-data"
 import HeroSection from "@/components/aging-in-america/HeroSection"
 import FeaturedTrailer from "@/components/aging-in-america/FeaturedTrailer"
 import AboutSection from "@/components/aging-in-america/AboutSection"
-import SeasonAccordion from "@/components/aging-in-america/SeasonAccordion"
+import SeasonSection from "@/components/aging-in-america/SeasonSection"
 import CtaSection from "@/components/aging-in-america/CtaSection"
 
 export default function AgingInAmericaPage() {
   // Latest published episode for hero CTA
   const latestEpisode = allEpisodes.find((ep) => ep.status === "published")
+
+  // Separate seasons for the new layout: S2 → Trailer → S1
+  const season2 = seasons.find((s) => s.number === 2)!
+  const season1 = seasons.find((s) => s.number === 1)!
 
   // JSON-LD structured data
   const jsonLd = {
@@ -47,9 +51,10 @@ export default function AgingInAmericaPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <HeroSection latestEpisodeSlug={latestEpisode?.slug} />
+      <SeasonSection season={season2} />
       <FeaturedTrailer />
+      <SeasonSection season={season1} />
       <AboutSection />
-      <SeasonAccordion seasons={seasons} />
       <CtaSection />
     </>
   )

@@ -4,7 +4,7 @@ export default function AboutSection() {
   const paragraphs = seriesMeta.aboutBody.split("\n\n")
 
   return (
-    <section className="py-20 md:py-28 border-t border-gray-800/50">
+    <section className="py-24 md:py-32 border-t border-gray-800/30">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20">
           {/* Left — Headline */}

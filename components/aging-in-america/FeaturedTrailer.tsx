@@ -9,7 +9,7 @@ export default function FeaturedTrailer() {
   const handlePlay = useCallback(() => setPlaying(true), [])
 
   return (
-    <section className="py-16 md:py-20">
+    <section className="py-20 md:py-28 border-t border-gray-800/30">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         <p className="text-xs tracking-widest text-gray-500 uppercase mb-6">
           Season 2 Trailer

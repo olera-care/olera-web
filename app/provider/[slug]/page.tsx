@@ -512,8 +512,8 @@ export default async function ProviderPage({
   sectionItems.push({ id: "highlights", label: "Highlights" });
   const hasGoogleReviews = (googleReviewsData?.reviews?.length ?? 0) > 0;
   if (hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
-  sectionItems.push({ id: "services", label: "Services" });
   sectionItems.push({ id: "qa", label: "Q&A" });
+  sectionItems.push({ id: "services", label: "Services" });
   if (!hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
   if (cmsData?.overall_rating && cmsData.overall_rating >= 4) sectionItems.push({ id: "quality", label: "Quality" });
   if (aiTrustSignals && aiTrustSignals.summary_score > 0) sectionItems.push({ id: "trust-signals", label: "Verified" });
@@ -880,8 +880,25 @@ export default async function ProviderPage({
                 </div>
               )}
 
+              {/* ── Customer Questions & Answers ── */}
+              <div id="qa" className={`py-8 scroll-mt-20 ${(googleReviewsData?.reviews?.length ?? 0) > 0 ? "border-t border-gray-200" : ""}`}>
+                <QASectionV2
+                  providerId={profile.slug}
+                  providerName={profile.display_name}
+                  providerImage={images[0]}
+                  questions={answeredQuestions.map((q) => ({
+                    id: q.id,
+                    question: q.question,
+                    answer: q.answer,
+                    asker_name: q.asker_name,
+                    created_at: q.created_at,
+                  }))}
+                  suggestedQuestions={getSuggestedQuestions(profile.category)}
+                />
+              </div>
+
               {/* ── Care Services ── */}
-              <div id="services" className={`py-8 scroll-mt-20 ${(googleReviewsData?.reviews?.length ?? 0) > 0 ? "border-t border-gray-200" : ""}`}>
+              <div id="services" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Care Services</h2>
                 <CareServicesList services={careServices} initialCount={6} />
               </div>
@@ -904,23 +921,6 @@ export default async function ProviderPage({
                   </div>
                 </div>
               )}
-
-              {/* ── Customer Questions & Answers ── */}
-              <div id="qa" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <QASectionV2
-                  providerId={profile.slug}
-                  providerName={profile.display_name}
-                  providerImage={images[0]}
-                  questions={answeredQuestions.map((q) => ({
-                    id: q.id,
-                    question: q.question,
-                    answer: q.answer,
-                    asker_name: q.asker_name,
-                    created_at: q.created_at,
-                  }))}
-                  suggestedQuestions={getSuggestedQuestions(profile.category)}
-                />
-              </div>
 
               {/* ── What families are saying (below Q&A when no reviews — empty state) ── */}
               {(googleReviewsData?.reviews?.length ?? 0) === 0 && (

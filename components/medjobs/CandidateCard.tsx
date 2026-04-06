@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { CandidateData } from "./CandidateRow";
@@ -46,7 +45,6 @@ export default function CandidateCard({
   basePath,
   isVerified = true, // Default to true for public pages that don't pass this
 }: CandidateCardProps) {
-  const [showVerifyPrompt, setShowVerifyPrompt] = useState(false);
   const meta = candidate.metadata;
   const trackLabel = getTrackLabel(meta);
   const availLabel = formatAvailability(meta);
@@ -68,13 +66,7 @@ export default function CandidateCard({
     ? { label: certs[0].split(" (")[0], type: "cert" as const }
     : null;
 
-  // Handle card click for unverified users
-  const handleCardClick = (e: React.MouseEvent) => {
-    if (!isVerified) {
-      e.preventDefault();
-      setShowVerifyPrompt(true);
-    }
-  };
+  // No click gate - Airbnb pattern: browse freely, actions gated at detail page
 
   const cardContent = (
     <div className="flex flex-col p-6 flex-1">
@@ -175,12 +167,12 @@ export default function CandidateCard({
             {primaryBadge.label}
           </span>
         ) : !isVerified ? (
-          // Unverified: show lock indicator
+          // Unverified: show hint that contact requires verification
           <span className="inline-flex items-center gap-1.5 text-sm text-gray-400">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
-            Verify to view profile
+            Verify to contact
           </span>
         ) : (
           <span />
@@ -197,80 +189,12 @@ export default function CandidateCard({
   );
 
   return (
-    <>
-      <Link
-        href={isVerified ? profileUrl : "#"}
-        onClick={handleCardClick}
-        className="group relative flex flex-col bg-white rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
-      >
-        {cardContent}
-      </Link>
-
-      {/* Verification prompt modal */}
-      {showVerifyPrompt && (
-        <VerifyToViewModal
-          candidateName={firstName}
-          onClose={() => setShowVerifyPrompt(false)}
-        />
-      )}
-    </>
+    <Link
+      href={profileUrl}
+      className="group relative flex flex-col bg-white rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+    >
+      {cardContent}
+    </Link>
   );
 }
 
-function VerifyToViewModal({
-  candidateName,
-  onClose,
-}: {
-  candidateName: string;
-  onClose: () => void;
-}) {
-  return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/50 z-40"
-        onClick={onClose}
-      />
-
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div
-          className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Icon */}
-          <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-
-          {/* Content */}
-          <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
-            Verify to view {candidateName}&apos;s profile
-          </h3>
-          <p className="text-sm text-gray-500 text-center mb-6">
-            Complete a quick verification to unlock full candidate profiles, contact info, and hiring features. Most verifications are approved within 1-2 business days.
-          </p>
-
-          {/* Actions */}
-          <div className="space-y-3">
-            <Link
-              href="/provider"
-              className="block w-full py-3 text-center text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-xl transition-colors"
-            >
-              Complete Verification
-            </Link>
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-full py-3 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              Maybe later
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}

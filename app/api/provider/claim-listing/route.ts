@@ -132,15 +132,19 @@ export async function POST(request: Request) {
 
     if (existingProfile) {
       // User already has a provider profile
-      // If they already have a source_provider_id linked, don't overwrite it
-      if (existingProfile.source_provider_id && existingProfile.source_provider_id !== providerId) {
+      // Block if they're trying to claim a DIFFERENT listing than the one already linked
+      // This includes the case where source_provider_id is NULL (self-created profile)
+      if (existingProfile.source_provider_id !== providerId) {
         return NextResponse.json(
-          { error: "Your account is already linked to a different listing. Contact support to change it." },
+          {
+            error: "You already have a business profile. You can only manage one listing per account.",
+            code: "PROFILE_EXISTS"
+          },
           { status: 409 }
         );
       }
 
-      // Link the source_provider_id to existing profile
+      // Re-claiming the same listing they already own - update verification status
       // Check email match for verification
       const userEmail = user.email?.toLowerCase();
       const listingEmail = providerEmail?.toLowerCase();

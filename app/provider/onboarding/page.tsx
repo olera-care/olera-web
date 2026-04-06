@@ -68,25 +68,6 @@ function getProviderImage(provider: Provider): string | null {
   return first || null;
 }
 
-function formatAddress(provider: Provider): string {
-  return [provider.address, provider.city, provider.state, provider.zipcode]
-    .filter(Boolean)
-    .join(", ");
-}
-
-const ONBOARDING_HIGHLIGHTS: Record<string, string[]> = {
-  "Home Care (Non-medical)": ["In-Home Care", "Certified Caregivers", "Companionship"],
-  "Home Health Care": ["Skilled Nursing", "Health Monitoring", "In-Home Care"],
-  "Hospice": ["Nursing Care", "Wellness Support", "Community Resources"],
-  "Assisted Living": ["Licensed Community", "Social Activities", "Health Services"],
-  "Memory Care": ["Licensed Community", "Certified Staff", "Health Monitoring"],
-  "Independent Living": ["Community Living", "Social Activities", "Wellness Programs"],
-  "Nursing Home": ["Skilled Nursing", "Licensed Facility", "Medical Care"],
-};
-
-function getProviderHighlights(provider: Provider): string[] {
-  return ONBOARDING_HIGHLIGHTS[provider.provider_category] ?? ["Senior Care", "Professional Staff", "Quality Services"];
-}
 
 export default function ProviderOnboardingPage() {
   return (
@@ -1057,8 +1038,7 @@ function ProviderOnboardingContent() {
                   <div className="space-y-4">
                     {paginatedResults.map((provider) => {
                       const image = getProviderImage(provider);
-                      const address = formatAddress(provider);
-                      const highlights = getProviderHighlights(provider);
+                      const locationText = [provider.city, provider.state].filter(Boolean).join(", ");
                       const isClaimed = claimedIds.has(provider.provider_id);
 
                       return (
@@ -1068,7 +1048,7 @@ function ProviderOnboardingContent() {
                         >
                           <div className="flex">
                             {/* Image */}
-                            <div className="w-40 min-h-[160px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
+                            <div className="w-32 sm:w-40 min-h-[120px] sm:min-h-[140px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
                               {image ? (
                                 <Image
                                   src={image}
@@ -1079,8 +1059,8 @@ function ProviderOnboardingContent() {
                                 />
                               ) : (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                  <div className="w-12 h-12 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
-                                    <span className="text-lg font-bold text-primary-400">
+                                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+                                    <span className="text-base sm:text-lg font-bold text-primary-400">
                                       {(provider.provider_name || "")
                                         .split(/\s+/)
                                         .map((w) => w[0])
@@ -1095,45 +1075,58 @@ function ProviderOnboardingContent() {
                             </div>
 
                             {/* Content */}
-                            <div className="flex-1 p-5 min-w-0">
-                              {address && (
-                                <p className="text-sm text-gray-500 mb-1 tracking-wide">{address}</p>
+                            <div className="flex-1 p-4 sm:p-5 min-w-0 flex flex-col">
+                              {locationText && (
+                                <p className="text-xs sm:text-sm text-gray-500 mb-0.5">{locationText}</p>
                               )}
-                              <div className="flex items-start justify-between gap-3 mb-1.5">
-                                <h3 className="text-lg font-bold text-gray-900 leading-snug line-clamp-1">
-                                  {provider.provider_name}
-                                </h3>
-                                {isClaimed && (
-                                  <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-500 ring-1 ring-gray-200">
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                    </svg>
-                                    Claimed
-                                  </span>
-                                )}
-                              </div>
+                              <h3 className="text-base sm:text-lg font-bold text-gray-900 leading-snug line-clamp-1">
+                                {provider.provider_name}
+                              </h3>
 
-                              {/* Checkmark highlights */}
-                              {highlights.length > 0 && (
-                                <div className="flex flex-wrap gap-x-3 gap-y-0.5 mb-2">
-                                  {highlights.slice(0, 3).map((h) => (
-                                    <span key={h} className="flex items-center gap-1 text-sm text-gray-600">
-                                      <svg className="w-3 h-3 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                      </svg>
-                                      {h}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
+                              {/* Helper text */}
+                              <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                                {isClaimed ? "Sign in to manage this page." : "Claim this page to manage it."}
+                              </p>
 
-                              {/* Action — unclaimed */}
-                              {!isClaimed && (
-                                <div className="flex justify-end mt-2">
+                              {/* Spacer */}
+                              <div className="flex-1 min-h-2" />
+
+                              {/* Actions */}
+                              <div className="flex items-center justify-end gap-3">
+                                {isClaimed ? (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}&state=already-claimed`);
+                                      }}
+                                      className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                                    >
+                                      Not yours?
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        openAuth({
+                                          defaultMode: "sign-in",
+                                          headline: "Sign in to manage this page",
+                                          intent: "provider",
+                                          providerType: "organization",
+                                          deferred: {
+                                            action: "claim_profile",
+                                            returnUrl: "/provider",
+                                          },
+                                        });
+                                      }}
+                                      className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
+                                    >
+                                      Sign in →
+                                    </button>
+                                  </>
+                                ) : (
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      // Cache provider data for instant UI on claim page
                                       try {
                                         sessionStorage.setItem(
                                           "olera_claim_provider_cache",
@@ -1150,30 +1143,12 @@ function ProviderOnboardingContent() {
                                       } catch {}
                                       router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}`);
                                     }}
-                                    className="px-4 sm:px-5 py-2.5 text-sm sm:text-base font-semibold text-primary-600 rounded-xl ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
+                                    className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
                                   >
-                                    <span className="sm:hidden">Claim &rarr;</span>
-                                    <span className="hidden sm:inline">Claim this page &rarr;</span>
+                                    Claim →
                                   </button>
-                                </div>
-                              )}
-
-                              {/* Action — claimed (dispute) → redirects to onboard page */}
-                              {isClaimed && (
-                                <div className="mt-1">
-                                  <div className="flex justify-end">
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}&state=already-claimed`);
-                                      }}
-                                      className="text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
-                                    >
-                                      Dispute ownership
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>

@@ -138,7 +138,7 @@ const season2Episodes: Episode[] = [
       "Young Caregivers",
     ],
     releaseDate: "2026-04-07",
-    status: "published",
+    status: "coming-soon",
   },
   {
     slug: "jason-goldstein",

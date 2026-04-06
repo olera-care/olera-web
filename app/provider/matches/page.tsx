@@ -22,6 +22,8 @@ import { useCitySearch } from "@/hooks/use-city-search";
 type MatchesTab = "best_match" | "most_recent" | "most_urgent" | "reached_out";
 import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
 import Pagination from "@/components/ui/Pagination";
+import VerificationFormModal from "@/components/provider/VerificationFormModal";
+import type { VerificationSubmission } from "@/components/provider/VerificationFormModal";
 
 
 // ── Timeline config ──
@@ -1593,6 +1595,9 @@ export default function ProviderMatchesPage() {
   const hasFetchedOnceRef = useRef(false);
   const [totalCount, setTotalCount] = useState(0);
 
+  // Verification modal state
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+
   // Verification-based access control: only verified providers see full details
   const isVerified = providerProfile?.verification_state === "verified";
   const hasFullAccess = isVerified;
@@ -1613,6 +1618,30 @@ export default function ProviderMatchesPage() {
     const meta = (dashboardMetadata || providerProfile.metadata || {}) as ExtendedMetadata;
     return calculateProfileCompleteness(providerProfile, meta).overall;
   }, [providerProfile, dashboardMetadata]);
+
+  // ── Verification handler ──
+
+  const handleVerificationSubmit = useCallback(async (data: VerificationSubmission) => {
+    if (!providerProfile?.id) return;
+
+    const response = await fetch("/api/provider/verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        profileId: providerProfile.id,
+        submission: data,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || "Failed to submit verification");
+    }
+
+    // Close modal and refresh the page to update verification state
+    setShowVerificationModal(false);
+    window.location.reload();
+  }, [providerProfile?.id]);
 
   // ── Drawer handlers ──
 
@@ -2079,7 +2108,10 @@ export default function ProviderMatchesPage() {
         <div className="flex-1 min-w-0">
           {/* Verification Banner - show if provider is not verified */}
           {!isVerified && (
-            <VerificationAccessBanner verificationState={providerProfile?.verification_state} />
+            <VerificationAccessBanner
+              verificationState={providerProfile?.verification_state}
+              onVerifyClick={() => setShowVerificationModal(true)}
+            />
           )}
 
           {/* Discovery Banner - separate entity */}
@@ -2250,6 +2282,16 @@ export default function ProviderMatchesPage() {
         sending={sending}
         sendError={sendError}
       />
+
+      {/* ── Verification Modal ── */}
+      <VerificationFormModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        onSubmit={handleVerificationSubmit}
+        businessName={providerProfile?.display_name || "Your Business"}
+        allowDismiss={true}
+        onDismiss={() => setShowVerificationModal(false)}
+      />
     </div>
     </div>
   );
@@ -2257,8 +2299,10 @@ export default function ProviderMatchesPage() {
 
 function VerificationAccessBanner({
   verificationState,
+  onVerifyClick,
 }: {
   verificationState?: string;
+  onVerifyClick?: () => void;
 }) {
   const isPending = verificationState === "pending";
 
@@ -2285,16 +2329,17 @@ function VerificationAccessBanner({
               ? "We're reviewing your verification request. Once approved, you'll see full family profiles and contact info."
               : "You're seeing limited information. Verify your business to unlock full profiles and connect with families."}
           </p>
-          {!isPending && (
-            <Link
-              href="/provider/verification"
+          {!isPending && onVerifyClick && (
+            <button
+              type="button"
+              onClick={onVerifyClick}
               className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-amber-700 hover:text-amber-800"
             >
               Complete verification
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </Link>
+            </button>
           )}
         </div>
       </div>

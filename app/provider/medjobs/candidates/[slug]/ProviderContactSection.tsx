@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
@@ -13,6 +12,7 @@ interface ProviderContactSectionProps {
   studentPhone: string | null;
   studentSlug: string;
   variant?: "sidebar" | "sticky" | "inline";
+  onVerifyClick?: () => void;
 }
 
 export default function ProviderContactSection({
@@ -22,6 +22,7 @@ export default function ProviderContactSection({
   studentPhone,
   studentSlug,
   variant = "sidebar",
+  onVerifyClick,
 }: ProviderContactSectionProps) {
   const pathname = usePathname();
   const { activeProfile, user, openAuth } = useAuth();
@@ -63,13 +64,14 @@ export default function ProviderContactSection({
     if (user && activeProfile && !isVerified) {
       return (
         <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
-          <Link
-            href="/provider/verification"
+          <button
+            type="button"
+            onClick={onVerifyClick}
             className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
           >
             <LockIcon />
             Verify to Contact {firstName}
-          </Link>
+          </button>
         </div>
       );
     }
@@ -166,14 +168,15 @@ export default function ProviderContactSection({
         </div>
 
         {/* CTA */}
-        {!isPending && (
-          <Link
-            href="/provider/verification"
+        {!isPending && onVerifyClick && (
+          <button
+            type="button"
+            onClick={onVerifyClick}
             className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
           >
             <LockIcon />
             Complete Verification
-          </Link>
+          </button>
         )}
       </div>
     );

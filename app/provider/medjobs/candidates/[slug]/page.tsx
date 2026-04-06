@@ -14,7 +14,7 @@ import {
   getYouTubeId,
   INTENDED_SCHOOL_LABELS,
 } from "@/lib/medjobs-helpers";
-import ProviderContactSection from "./ProviderContactSection";
+import CandidateDetailClientWrapper from "./CandidateDetailClientWrapper";
 import { VerifiedInfoGate, VerifiedNameDisplay } from "./VerifiedInfoGate";
 
 function getSupabase() {
@@ -640,7 +640,7 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
           <div className="hidden lg:block">
             <div className="sticky top-6">
               <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6">
-                <ProviderContactSection
+                <CandidateDetailClientWrapper
                   studentId={profile.id}
                   studentName={profile.display_name}
                   studentEmail={profile.email}
@@ -658,7 +658,7 @@ export default async function ProviderStudentProfilePage({ params }: PageProps) 
           MOBILE STICKY CTA
           ═══════════════════════════════════════════════════════════════════ */}
       <div className="lg:hidden">
-        <ProviderContactSection
+        <CandidateDetailClientWrapper
           studentId={profile.id}
           studentName={profile.display_name}
           studentEmail={profile.email}

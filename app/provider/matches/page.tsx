@@ -49,9 +49,9 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(diffDays / 30)}mo ago`;
 }
 
-function blurName(name: string): string {
-  if (!name) return "***";
-  return name.charAt(0) + "***";
+function getFirstName(name: string): string {
+  if (!name) return "User";
+  return name.split(" ")[0];
 }
 
 function getInitials(name: string): string {

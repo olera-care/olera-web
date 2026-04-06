@@ -1085,44 +1085,24 @@ function ProviderOnboardingContent() {
 
                               {/* Helper text */}
                               <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                                {isClaimed ? "Sign in to manage this page." : "Claim this page to manage it."}
+                                {isClaimed ? "Already managed." : "Unclaimed page."}
                               </p>
 
                               {/* Spacer */}
                               <div className="flex-1 min-h-2" />
 
                               {/* Actions */}
-                              <div className="flex items-center justify-end gap-3">
+                              <div className="flex items-center justify-end">
                                 {isClaimed ? (
-                                  <>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}&state=already-claimed`);
-                                      }}
-                                      className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                                    >
-                                      Not yours?
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        openAuth({
-                                          defaultMode: "sign-in",
-                                          headline: "Sign in to manage this page",
-                                          intent: "provider",
-                                          providerType: "organization",
-                                          deferred: {
-                                            action: "claim",
-                                            returnUrl: "/provider",
-                                          },
-                                        });
-                                      }}
-                                      className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
-                                    >
-                                      Sign in →
-                                    </button>
-                                  </>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}&state=already-claimed`);
+                                    }}
+                                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                                  >
+                                    Dispute →
+                                  </button>
                                 ) : (
                                   <button
                                     type="button"

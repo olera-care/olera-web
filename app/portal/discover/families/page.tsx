@@ -25,11 +25,18 @@ export default function DiscoverFamiliesPage() {
   const isProvider =
     activeProfile?.type === "organization" ||
     activeProfile?.type === "caregiver";
-  const hasAccess = canEngage(
+
+  // Verification check - only verified providers get full access
+  const isVerified = activeProfile?.verification_state === "verified";
+  const verificationState = activeProfile?.verification_state;
+
+  // Full access requires both verification AND membership access
+  const hasMembershipAccess = canEngage(
     activeProfile?.type,
     membership,
     "view_inquiry_details"
   );
+  const hasFullAccess = isVerified && hasMembershipAccess;
 
   const profileId = activeProfile?.id;
 
@@ -96,7 +103,13 @@ export default function DiscoverFamiliesPage() {
         </p>
       </div>
 
-      {!hasAccess && (
+      {/* Verification prompt - show if not verified */}
+      {!isVerified && (
+        <VerificationAccessBanner verificationState={verificationState} />
+      )}
+
+      {/* Membership upgrade prompt - only show if verified but no membership access */}
+      {isVerified && !hasMembershipAccess && (
         <div className="mb-8">
           <UpgradePrompt context="browse family profiles and initiate contact" />
         </div>
@@ -117,7 +130,8 @@ export default function DiscoverFamiliesPage() {
               <FamilyCard
                 key={family.id}
                 family={family}
-                hasAccess={hasAccess}
+                hasFullAccess={hasFullAccess}
+                isVerified={isVerified}
                 fromProfileId={activeProfile?.id}
               />
             ))}
@@ -131,13 +145,16 @@ export default function DiscoverFamiliesPage() {
 
 function FamilyCard({
   family,
-  hasAccess,
+  hasFullAccess,
+  isVerified,
   fromProfileId,
 }: {
   family: Profile;
-  hasAccess: boolean;
+  hasFullAccess: boolean;
+  isVerified: boolean;
   fromProfileId?: string;
 }) {
+  const [showVerifyPrompt, setShowVerifyPrompt] = useState(false);
   const meta = family.metadata as FamilyMetadata;
   const locationStr = [family.city, family.state].filter(Boolean).join(", ");
   const timeline = meta?.timeline
@@ -145,19 +162,36 @@ function FamilyCard({
     : null;
   const careNeeds = meta?.care_needs || family.care_types || [];
 
+  // Get first name only for limited access
+  const firstName = getFirstName(family.display_name);
+
+  // Determine what to show based on access level
+  const showFullDetails = isVerified;
+
   const cardBody = (
     <>
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 bg-secondary-100 text-secondary-700 rounded-full flex items-center justify-center text-sm font-semibold">
-          {hasAccess ? family.display_name.charAt(0).toUpperCase() : "?"}
+        {/* Avatar - person silhouette for unverified, initial for verified */}
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
+          showFullDetails
+            ? "bg-secondary-100 text-secondary-700"
+            : "bg-gray-100 text-gray-400"
+        }`}>
+          {showFullDetails ? (
+            family.display_name.charAt(0).toUpperCase()
+          ) : (
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+          )}
         </div>
         <div>
           <h3 className="text-lg font-semibold text-gray-900">
-            {hasAccess ? family.display_name : blurName(family.display_name)}
+            {showFullDetails ? family.display_name : firstName}
           </h3>
           {locationStr && (
             <p className="text-sm text-gray-500">
-              {hasAccess ? locationStr : "***"}
+              {showFullDetails ? locationStr : "Location available after verification"}
             </p>
           )}
         </div>
@@ -181,49 +215,174 @@ function FamilyCard({
           ))}
         </div>
       )}
-
-      {!hasAccess && (
-        <p className="text-sm text-warm-600 font-medium mt-3">
-          Upgrade to Pro to view full details and reach out.
-        </p>
-      )}
-
-      {hasAccess && (
-        <p className="mt-3 text-primary-600 font-medium text-sm">
-          View profile &rarr;
-        </p>
-      )}
     </>
   );
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 hover:shadow-md hover:border-primary-200 transition-shadow duration-200 cursor-pointer">
-      {hasAccess ? (
-        <Link href={`/profile/${family.id}`} target="_blank" className="block p-6">
+    <>
+      <div className="bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-colors duration-200">
+        {/* Card content - not clickable since no profile page exists */}
+        <div className="p-6">
           {cardBody}
-        </Link>
-      ) : (
-        <div className="p-6">{cardBody}</div>
-      )}
-
-      {hasAccess && fromProfileId && (
-        <div className="px-6 pb-6 -mt-2">
-          <ConnectButton
-            fromProfileId={fromProfileId}
-            toProfileId={family.id}
-            toName={family.display_name}
-            connectionType="inquiry"
-            label="Initiate Contact"
-            sentLabel="Contact Sent"
-            fullWidth
-          />
         </div>
+
+        {/* Contact button area */}
+        {fromProfileId && (
+          <div className="px-6 pb-6 -mt-2">
+            {hasFullAccess ? (
+              <ConnectButton
+                fromProfileId={fromProfileId}
+                toProfileId={family.id}
+                toName={family.display_name}
+                connectionType="inquiry"
+                label="Initiate Contact"
+                sentLabel="Contact Sent"
+                fullWidth
+              />
+            ) : isVerified ? (
+              // Verified but no membership - link to upgrade page
+              <Link
+                href="/provider/pro"
+                className="block w-full py-2.5 text-sm font-medium text-center text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
+              >
+                Upgrade to contact
+              </Link>
+            ) : (
+              // Not verified - show locked button that opens verify prompt
+              <button
+                type="button"
+                onClick={() => setShowVerifyPrompt(true)}
+                className="w-full py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Contact {firstName}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Verification prompt modal */}
+      {showVerifyPrompt && (
+        <VerifyToContactModal
+          familyName={firstName}
+          onClose={() => setShowVerifyPrompt(false)}
+        />
       )}
+    </>
+  );
+}
+
+function getFirstName(name: string): string {
+  if (!name) return "Someone";
+  // Trim and split by space, take first part
+  const firstName = name.trim().split(" ")[0];
+  return firstName || "Someone";
+}
+
+function VerificationAccessBanner({
+  verificationState,
+}: {
+  verificationState?: string;
+}) {
+  const isPending = verificationState === "pending";
+
+  return (
+    <div className="mb-8 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-5">
+      <div className="flex items-start gap-4">
+        <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+          {isPending ? (
+            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          )}
+        </div>
+        <div className="flex-1">
+          <h3 className="text-base font-semibold text-gray-900">
+            {isPending ? "Verification in Progress" : "Limited Access Mode"}
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            {isPending
+              ? "We're reviewing your verification request. Once approved, you'll see full family details and be able to initiate contact."
+              : "You're seeing limited information. Verify your business to unlock full family details, locations, and the ability to initiate contact."}
+          </p>
+          {!isPending && (
+            <Link
+              href="/provider"
+              className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-amber-700 hover:text-amber-800"
+            >
+              Complete verification
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-function blurName(name: string): string {
-  if (!name) return "***";
-  return name.charAt(0) + "***";
+function VerifyToContactModal({
+  familyName,
+  onClose,
+}: {
+  familyName: string;
+  onClose: () => void;
+}) {
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/50 z-40"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Icon */}
+          <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+
+          {/* Content */}
+          <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+            Verify to contact {familyName}
+          </h3>
+          <p className="text-sm text-gray-500 text-center mb-6">
+            Complete a quick verification to unlock messaging and see full family details. Most verifications are approved within 1-2 business days.
+          </p>
+
+          {/* Actions */}
+          <div className="space-y-3">
+            <Link
+              href="/provider"
+              className="block w-full py-3 text-center text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-xl transition-colors"
+            >
+              Complete Verification
+            </Link>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full py-3 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Maybe later
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }

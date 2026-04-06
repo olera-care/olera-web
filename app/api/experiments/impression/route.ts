@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/client";
+import { getServiceClient } from "@/lib/admin";
 
 /**
  * POST /api/experiments/impression
  *
  * Fire-and-forget impression counter. Called on CTA mount.
  * Upserts a daily counter per variant — no PII, no auth required.
+ * Uses service role client to bypass RLS (server-side route).
  */
 export async function POST(request: Request) {
   try {
@@ -15,37 +16,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false }, { status: 400 });
     }
 
-    const supabase = createClient();
+    const admin = getServiceClient();
+    const today = new Date().toISOString().split("T")[0];
 
-    // Upsert: increment today's count for this variant
-    // Uses the unique(variant_id, date) constraint
-    const { error } = await supabase.rpc("increment_impression", {
-      p_variant_id: variantId,
-    });
+    // Try update first (most common path — row already exists for today)
+    const { data: existing } = await admin
+      .from("cta_impressions")
+      .select("id, count")
+      .eq("variant_id", variantId)
+      .eq("date", today)
+      .single();
 
-    if (error) {
-      // Fallback: try manual upsert if RPC doesn't exist yet
-      const today = new Date().toISOString().split("T")[0];
-
-      const { data: existing } = await supabase
+    if (existing) {
+      await admin
         .from("cta_impressions")
-        .select("id, count")
-        .eq("variant_id", variantId)
-        .eq("date", today)
-        .single();
-
-      if (existing) {
-        await supabase
-          .from("cta_impressions")
-          .update({ count: existing.count + 1 })
-          .eq("id", existing.id);
-      } else {
-        await supabase.from("cta_impressions").insert({
-          variant_id: variantId,
-          date: today,
-          count: 1,
-        });
-      }
+        .update({ count: existing.count + 1 })
+        .eq("id", existing.id);
+    } else {
+      await admin.from("cta_impressions").insert({
+        variant_id: variantId,
+        date: today,
+        count: 1,
+      });
     }
 
     return NextResponse.json({ ok: true });

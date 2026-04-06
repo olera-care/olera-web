@@ -122,27 +122,34 @@ export default function ExperimentsPage() {
 
   async function toggleStatus(expId: string, currentStatus: string) {
     setSaving(true);
-    const newStatus = currentStatus === "active" ? "paused" : "active"; // draft → active, paused → active, active → paused
-    const { error } = await supabase
-      .from("experiments")
-      .update({ status: newStatus })
-      .eq("id", expId);
-
-    if (error) {
-      setError(error.message);
+    try {
+      const res = await fetch("/api/experiments/admin", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "toggle_status", experimentId: expId, currentStatus }),
+      });
+      const data = await res.json();
+      if (!res.ok) setError(data.error || "Failed to toggle status");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to toggle status");
     }
     setSaving(false);
     fetchData();
   }
 
   async function updateWeight(variantId: string, weight: number) {
-    const { error } = await supabase
-      .from("experiment_variants")
-      .update({ weight: Math.max(0, Math.min(100, weight)) })
-      .eq("id", variantId);
-
-    if (error) setError(error.message);
-    else fetchData();
+    try {
+      const res = await fetch("/api/experiments/admin", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update_weight", variantId, weight }),
+      });
+      const data = await res.json();
+      if (!res.ok) setError(data.error || "Failed to update weight");
+      else fetchData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update weight");
+    }
   }
 
   // Statistical significance between first two variants

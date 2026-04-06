@@ -20,6 +20,9 @@ import PricingCard from "./PricingCard";
 import PaymentInsuranceCard from "./PaymentInsuranceCard";
 import OwnerCard from "./OwnerCard";
 import ProfileCompletenessSidebar from "./ProfileCompletenessSidebar";
+import VerificationStatusBadge from "./VerificationStatusBadge";
+import VerificationFormModal from "@/components/provider/VerificationFormModal";
+import type { VerificationSubmission, ExistingVerificationData } from "@/components/provider/VerificationFormModal";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
 import EditGalleryModal from "./edit-modals/EditGalleryModal";
 import EditCareServicesModal from "./edit-modals/EditCareServicesModal";
@@ -120,6 +123,40 @@ function DashboardContent({
 }) {
   const guided = useGuidedOnboarding(completeness);
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [verificationExistingData, setVerificationExistingData] = useState<ExistingVerificationData | undefined>();
+  const [isVerificationUpdate, setIsVerificationUpdate] = useState(false);
+
+  // Open verification modal (can be called with existing data for updates)
+  const handleOpenVerificationModal = useCallback((existingData?: ExistingVerificationData) => {
+    setVerificationExistingData(existingData);
+    setIsVerificationUpdate(!!existingData);
+    setShowVerificationModal(true);
+  }, []);
+
+  // Handle verification submission
+  const handleVerificationSubmit = useCallback(async (data: VerificationSubmission) => {
+    const response = await fetch("/api/provider/verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        profileId: profile.id,
+        submission: data,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to submit verification");
+    }
+
+    // Refresh profile data to get updated verification state
+    await refreshAccountData();
+    setShowVerificationModal(false);
+    // Reset state for next time
+    setVerificationExistingData(undefined);
+    setIsVerificationUpdate(false);
+  }, [profile.id, refreshAccountData]);
 
   const handleEdit = useCallback(
     (sectionId: SectionId) => setEditingSection(sectionId),
@@ -174,7 +211,10 @@ function DashboardContent({
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <DashboardHeader slug={profile.slug} />
+      <DashboardHeader
+          profile={profile}
+          onRequestVerification={handleOpenVerificationModal}
+        />
 
       {/* Guided onboarding banner */}
       {guided.shouldPrompt && !guided.isGuidedActive && (
@@ -317,6 +357,26 @@ function DashboardContent({
       {editingSection === "pricing" && <EditPricingModal {...modalProps} />}
       {editingSection === "payment" && <EditPaymentModal {...modalProps} />}
       {editingSection === "owner" && <EditOwnerModal {...modalProps} />}
+
+      {/* Verification Modal */}
+      <VerificationFormModal
+        isOpen={showVerificationModal}
+        onClose={() => {
+          setShowVerificationModal(false);
+          setVerificationExistingData(undefined);
+          setIsVerificationUpdate(false);
+        }}
+        onSubmit={handleVerificationSubmit}
+        businessName={profile.display_name}
+        allowDismiss={!isVerificationUpdate}
+        onDismiss={() => {
+          setShowVerificationModal(false);
+          setVerificationExistingData(undefined);
+          setIsVerificationUpdate(false);
+        }}
+        existingData={verificationExistingData}
+        isUpdate={isVerificationUpdate}
+      />
     </div>
     </div>
   );
@@ -324,8 +384,14 @@ function DashboardContent({
 
 // ── Page header with action buttons ──
 
-function DashboardHeader({ slug }: { slug: string | null }) {
+interface DashboardHeaderProps {
+  profile: NonNullable<ReturnType<typeof useProviderProfile>>;
+  onRequestVerification: (existingData?: ExistingVerificationData) => void;
+}
+
+function DashboardHeader({ profile, onRequestVerification }: DashboardHeaderProps) {
   const [copied, setCopied] = useState(false);
+  const slug = profile.slug;
 
   const handleShare = () => {
     if (!slug) return;
@@ -339,8 +405,15 @@ function DashboardHeader({ slug }: { slug: string | null }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 lg:gap-4 mb-4 lg:mb-8">
       <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display">Your listing</h1>
-        <p className="text-sm lg:text-[15px] text-gray-500 mt-0.5 lg:mt-1">Manage your profile and how families find you</p>
+        <div className="flex items-center gap-3 mb-0.5 lg:mb-1">
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display">Your listing</h1>
+          <VerificationStatusBadge
+            verificationState={profile.verification_state}
+            profileId={profile.id}
+            onRequestVerification={onRequestVerification}
+          />
+        </div>
+        <p className="text-sm lg:text-[15px] text-gray-500">Manage your profile and how families find you</p>
       </div>
 
       {slug && (

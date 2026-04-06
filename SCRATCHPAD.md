@@ -7,14 +7,43 @@
 
 ## Current Focus
 
-- **CTA Experimentation Infrastructure** — PLANNING
+- **CTA Experimentation Infrastructure** (branch: `glad-wu`) — BUILT, NEEDS DEPLOY
   - Plan: `plans/cta-experimentation-plan.md`
-  - Need to merge `fine-dijkstra` (CTA redesign) first as baseline
-  - Phase 1: DB tables + cookie assignment + impression tracking + variant rendering (2 variants: pricing vs old baseline)
-  - Phase 2: Admin dashboard at `/admin/experiments`
-  - Phase 3: Build new post-submit flows (eligibility, availability, matches) one at a time
-  - Meeting notes (Apr 6): Logan proposed "Check Eligibility" and "Check Availability" angles
-  - TJ wants to test form field combos (email-only vs phone vs both) independently of copy
+  - **All Phase 1-3 code complete + build passing**
+  - Committed: `77d54994` — 18 files, 1805 insertions
+  - 3 variants seeded (33/33/34 traffic split):
+    - `contact` (control): old "Get in Touch" with 4 fields, no enrichment
+    - `pricing`: current "What does this cost?" email-only, pricing post-submit
+    - `eligibility`: "See if you qualify" email-only, eligibility-framed post-submit with funding options shown expanded
+  - **To go live:**
+    1. Push branch + create PR to staging
+    2. Run `scripts/migrate-experiments.sql` in Supabase SQL editor
+    3. Set experiment to `active` via `/admin/experiments` or SQL
+  - **Key files created:**
+    - `lib/experiments.ts` — core library (assignment, cookies, stats)
+    - `components/providers/ExperimentProvider.tsx` — `useExperiment()` hook
+    - `components/providers/ExperimentCTAs.tsx` — desktop + mobile wrappers
+    - `components/providers/connection-card/EligibilityEnrichment.tsx` — eligibility post-submit
+    - `app/admin/experiments/page.tsx` — admin dashboard with significance testing
+    - `app/api/experiments/impression/route.ts` — impression tracking
+    - `scripts/migrate-experiments.sql` — DB migration + seed data
+  - **Key files modified:**
+    - `connection-card/types.ts`, `InquiryForm.tsx`, `index.tsx`, `use-connection-card.ts` — variant-aware CTA
+    - `MobileStickyBottomCTA.tsx` — variant-aware sticky bar + sheet
+    - `ConnectionCardWithRedirect.tsx` — passes variant props through
+    - `app/provider/[slug]/page.tsx` — uses `ExperimentDesktopCTA` + `ExperimentMobileCTA`
+    - `app/api/connections/request/route.ts` — persists `experiment_variant_id` on connections
+  - **Architecture decisions:**
+    - Cookie-based assignment (`olera_exp`, 30-day, no PII) — no third-party tools needed
+    - Server component page stays ISR; client wrappers handle experiment resolution
+    - `postSubmitFlow` config drives which enrichment component renders
+    - `basic` flow (old CTA) skips enrichment entirely → connected state
+    - Impression tracking is fire-and-forget (best-effort, non-blocking)
+  - **Next: availability + matches variants (Phase 4 in plan), form field variation tests**
+
+- **Provider Page CTA Conversion Redesign — 2026-04-02** — MERGED TO STAGING (`fine-dijkstra`)
+  - Now the `pricing` variant in the experiment system
+  - Email-only form, post-submit enrichment with localized pricing, care report email
 
 - **Homepage De-Jank + Mega Menu + Search Bar Polish** (branch: `gifted-rosalind`) — READY FOR QA
   - Fixed mega menu flicker: redesigned hover architecture — backdrop `onMouseEnter` as leave detector instead of fragile `onMouseLeave` on panel
@@ -34,11 +63,9 @@
   - Backlog: custom domain `images.olera.care` → [Notion ticket](https://www.notion.so/3375903a0ffe8199b1f6e381b3f4c87a)
   - **Next: run `classify-provider-images.mjs` to pick hero images**
 
-- **Provider Page CTA Conversion Redesign — 2026-04-02** — PUSHED TO `fine-dijkstra`, TESTING ON VERCEL PREVIEW
-  - **Problem**: Provider page CTA converts at 0.44%. Getting to 3% = 329 connections/month (6.9x increase).
-  - Email-only form, post-submit enrichment with localized pricing, care report email
-  - **Branch**: `fine-dijkstra` — 10 commits, pushed to origin
-  - **Next**: PR to staging → QA → monitor conversion vs 0.44% baseline
+- **Provider Page CTA Conversion Redesign — 2026-04-02** — MERGED TO STAGING ✅
+  - Now the `pricing` variant in the CTA experiment system above
+  - 0.44% baseline → targeting 2-5% via A/B testing
 
 - **City Expansion Batch — 2026-04-04** — DONE ✅
   - 193 new cities processed end-to-end via batch pipeline

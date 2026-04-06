@@ -30,7 +30,6 @@ export default function ProviderContactSection({
   const [scheduled, setScheduled] = useState(false);
 
   const requiresAuth = !user;
-  const requiresProviderProfile = user && !activeProfile;
 
   // Verification check - providers must be verified to see contact info and schedule
   const isVerified = activeProfile?.verification_state === "verified";
@@ -49,12 +48,12 @@ export default function ProviderContactSection({
   }, [openAuth, studentName, pathname]);
 
   const handleScheduleClick = useCallback(() => {
-    if (requiresAuth || requiresProviderProfile) {
+    if (requiresAuth) {
       handleAuthRequired();
       return;
     }
     setShowModal(true);
-  }, [requiresAuth, requiresProviderProfile, handleAuthRequired]);
+  }, [requiresAuth, handleAuthRequired]);
 
   const firstName = studentName.split(" ")[0];
 
@@ -117,8 +116,8 @@ export default function ProviderContactSection({
     ? "space-y-4"
     : "bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4";
 
-  // If not authenticated, show auth-gated UI
-  if (requiresAuth || requiresProviderProfile) {
+  // If not authenticated at all, show auth-gated UI
+  if (requiresAuth) {
     return (
       <div className={wrapperClass}>
         <div className={isInline ? "" : "text-center py-2"}>

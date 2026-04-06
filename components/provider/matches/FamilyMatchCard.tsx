@@ -246,10 +246,10 @@ export default function FamilyMatchCard({
           {/* Name + Location + Time */}
           <div className="flex-1 min-w-0">
             <h3 className="text-[14.5px] font-medium text-gray-900 truncate leading-tight">
-              {hasFullAccess ? displayName : displayName.charAt(0) + "***"}
+              {hasFullAccess ? displayName : displayName.split(" ")[0]}
             </h3>
             <p className="text-xs text-gray-500 truncate mt-0.5">
-              {hasFullAccess ? location : "***"} · {timeAgo(publishedAt)}
+              {hasFullAccess ? location : (family.city || "Nearby")} · {timeAgo(publishedAt)}
             </p>
           </div>
 

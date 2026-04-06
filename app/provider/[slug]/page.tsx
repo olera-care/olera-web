@@ -34,6 +34,7 @@ import {
   getCategoryDescription,
   getCategoryServices,
   getSimilarProviders,
+  getSuggestedQuestions,
 } from "@/lib/provider-utils";
 
 // Cache provider detail pages for 1 hour (ISR) — reduces Supabase query volume
@@ -917,6 +918,7 @@ export default async function ProviderPage({
                     asker_name: q.asker_name,
                     created_at: q.created_at,
                   }))}
+                  suggestedQuestions={getSuggestedQuestions(profile.category)}
                 />
               </div>
 

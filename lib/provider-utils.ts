@@ -278,6 +278,136 @@ export function getDefaultQA(
 }
 
 // ============================================================
+// Suggested Q&A questions (category-specific)
+// ============================================================
+
+/**
+ * Returns 4-5 emotionally resonant suggested questions for the Q&A section,
+ * tailored to the provider's category. These are the primary UI element
+ * when a provider has 0 existing questions.
+ */
+export function getSuggestedQuestions(
+  category: ProfileCategory | null
+): string[] {
+  switch (category) {
+    case "home_care_agency":
+      return [
+        "Can I meet the caregiver before they start?",
+        "What happens if my caregiver calls in sick?",
+        "Do you have a minimum number of hours per visit?",
+        "Are your caregivers background-checked?",
+        "Can caregivers help with medication reminders?",
+      ];
+
+    case "home_health_agency":
+      return [
+        "Does Medicare cover your services?",
+        "How quickly can a nurse start visiting?",
+        "Can you coordinate with my doctor's office?",
+        "What happens after my insurance authorization ends?",
+        "Do you offer physical therapy at home?",
+      ];
+
+    case "hospice_agency":
+      return [
+        "Is hospice really free for families?",
+        "Can my loved one stay at home for hospice?",
+        "How quickly can services start?",
+        "What support do you offer family caregivers?",
+        "What if my loved one improves — can they leave hospice?",
+      ];
+
+    case "assisted_living":
+      return [
+        "Can I tour the community before deciding?",
+        "What's included in the monthly cost?",
+        "How do you handle medical emergencies?",
+        "Can residents bring their own furniture?",
+        "What activities and outings do you offer?",
+      ];
+
+    case "memory_care":
+      return [
+        "How do you keep residents with dementia safe?",
+        "What's the staff-to-resident ratio?",
+        "Can my parent still go outside?",
+        "How do you handle sundowning behavior?",
+        "What training do your caregivers receive?",
+      ];
+
+    case "nursing_home":
+      return [
+        "Does Medicare or Medicaid cover the stay?",
+        "Can I visit anytime?",
+        "What's the staff-to-patient ratio?",
+        "How do you handle a change in care needs?",
+        "What are the options for rehab-to-long-term transitions?",
+      ];
+
+    case "independent_living":
+      return [
+        "What's included in the monthly fee?",
+        "Are there options if I need more help later?",
+        "What social activities are available?",
+        "Can I bring my pet?",
+        "Is there a waitlist?",
+      ];
+
+    case "inpatient_hospice":
+      return [
+        "When is inpatient hospice the right choice?",
+        "Can family stay overnight?",
+        "Is this covered by Medicare?",
+        "How is pain managed for patients?",
+        "What support do you offer the family?",
+      ];
+
+    case "rehab_facility":
+      return [
+        "How long does the average stay last?",
+        "What does a typical day look like?",
+        "Will insurance cover my rehab stay?",
+        "Can family visit during therapy hours?",
+        "What's the transition plan for going home?",
+      ];
+
+    case "adult_day_care":
+      return [
+        "What hours are you open?",
+        "Do you offer transportation?",
+        "Can you accommodate special dietary needs?",
+        "What activities do participants do during the day?",
+        "Do you accept Medicaid or VA benefits?",
+      ];
+
+    case "wellness_center":
+      return [
+        "What programs do you offer for seniors?",
+        "Do I need a referral to join?",
+        "Are group classes available?",
+        "What does a first visit look like?",
+      ];
+
+    case "private_caregiver":
+      return [
+        "Are you available on weekends?",
+        "Can you help with bathing and personal care?",
+        "Do you have experience with dementia patients?",
+        "What are your rates?",
+        "Can you provide references?",
+      ];
+
+    default:
+      return [
+        "What services do you provide?",
+        "What are your rates or pricing?",
+        "How quickly can you get started?",
+        "Do you accept insurance or Medicaid?",
+      ];
+  }
+}
+
+// ============================================================
 // Similar providers (fetched from Supabase)
 // ============================================================
 

@@ -6,16 +6,15 @@ import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
 import CandidateFilters from "@/components/medjobs/CandidateFilters";
 import type { CandidateFilterValues } from "@/components/medjobs/CandidateFilters";
+import Pagination from "@/components/ui/Pagination";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 12;
 
 export default function ProviderCandidateBrowsePage() {
   const [candidates, setCandidates] = useState<CandidateData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<CandidateFilterValues>({
     search: "",
     state: "",
@@ -23,19 +22,13 @@ export default function ProviderCandidateBrowsePage() {
     sort: "newest",
   });
 
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
   const fetchCandidates = useCallback(
-    async (pageNum: number, append: boolean) => {
-      if (append) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
-      }
+    async (page: number) => {
+      setLoading(true);
 
       try {
         const params = new URLSearchParams({
-          page: String(pageNum),
+          page: String(page - 1), // API uses 0-indexed pages
           pageSize: String(PAGE_SIZE),
           sort: filters.sort,
         });
@@ -46,21 +39,13 @@ export default function ProviderCandidateBrowsePage() {
         const res = await fetch(`/api/medjobs/candidates?${params}`);
         const data = await res.json();
 
-        const newCandidates = data.candidates || [];
-
-        if (append) {
-          setCandidates((prev) => [...prev, ...newCandidates]);
-        } else {
-          setCandidates(newCandidates);
-        }
-
+        setCandidates(data.candidates || []);
         setTotal(data.total || 0);
-        setHasMore(newCandidates.length === PAGE_SIZE);
+        setCurrentPage(page);
       } catch (err) {
         console.error("[provider/medjobs/candidates] fetch error:", err);
       } finally {
         setLoading(false);
-        setLoadingMore(false);
       }
     },
     [filters]
@@ -68,28 +53,8 @@ export default function ProviderCandidateBrowsePage() {
 
   // Initial load + filter changes
   useEffect(() => {
-    setPage(0);
-    fetchCandidates(0, false);
+    fetchCandidates(1);
   }, [fetchCandidates]);
-
-  // Infinite scroll — intersection observer
-  useEffect(() => {
-    if (!sentinelRef.current || !hasMore || loadingMore) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore) {
-          const nextPage = page + 1;
-          setPage(nextPage);
-          fetchCandidates(nextPage, true);
-        }
-      },
-      { rootMargin: "200px" }
-    );
-
-    observer.observe(sentinelRef.current);
-    return () => observer.disconnect();
-  }, [hasMore, loadingMore, page, fetchCandidates]);
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const handleFilterChange = useCallback(
@@ -106,6 +71,13 @@ export default function ProviderCandidateBrowsePage() {
     },
     [filters.search]
   );
+
+  const handlePageChange = (page: number) => {
+    fetchCandidates(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <main className="min-h-screen bg-[#FAFAF8]">
@@ -209,22 +181,17 @@ export default function ProviderCandidateBrowsePage() {
               ))}
             </div>
 
-            {/* Loading more indicator */}
-            {loadingMore && (
-              <div className="flex justify-center py-8">
-                <div className="w-6 h-6 border-2 border-gray-300 border-t-primary-600 rounded-full animate-spin" />
-              </div>
-            )}
-
-            {/* Infinite scroll sentinel */}
-            {hasMore && !loadingMore && <div ref={sentinelRef} className="h-1" />}
-
-            {/* End of list */}
-            {!hasMore && candidates.length > 0 && (
-              <div className="mt-8 text-center">
-                <p className="text-sm text-gray-400">
-                  Showing all {total} candidate{total !== 1 ? "s" : ""}
-                </p>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={total}
+                  itemsPerPage={PAGE_SIZE}
+                  onPageChange={handlePageChange}
+                  itemLabel="caregivers"
+                />
               </div>
             )}
           </>

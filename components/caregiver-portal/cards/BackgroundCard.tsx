@@ -7,19 +7,10 @@ interface BackgroundCardProps {
 }
 
 const EXPERIENCE_LABELS: Record<number, string> = {
-  0: "New",
-  1: "1-2 yrs",
-  3: "3+ yrs",
+  0: "New to caregiving",
+  1: "1-2 years experience",
+  3: "3+ years experience",
 };
-
-function DetailPill({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center rounded-xl bg-warm-25 border border-warm-100/60 px-4 py-2.5 min-w-[80px]">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">{label}</span>
-      <span className="text-[17px] font-bold text-gray-900 mt-0.5">{value}</span>
-    </div>
-  );
-}
 
 export default function BackgroundCard({ meta, onEdit }: BackgroundCardProps) {
   const hasExperience = meta.years_caregiving != null;
@@ -48,80 +39,49 @@ export default function BackgroundCard({ meta, onEdit }: BackgroundCardProps) {
           }
         />
       ) : (
-        <div className="space-y-4">
-          {/* Experience level + Languages count as pills */}
-          <div className="flex flex-wrap gap-2.5">
-            {hasExperience && (
-              <DetailPill
-                label="Experience"
-                value={EXPERIENCE_LABELS[meta.years_caregiving as number] || `${meta.years_caregiving}y`}
-              />
-            )}
-            {hasLanguages && (
-              <DetailPill
-                label="Languages"
-                value={String(meta.languages!.length)}
-              />
-            )}
-            {hasCerts && (
-              <DetailPill
-                label="Certs"
-                value={String(meta.certifications!.length)}
-              />
+        <div className="space-y-3">
+          {/* Experience level — single prominent line */}
+          {hasExperience && (
+            <p className="text-sm font-medium text-gray-900">
+              {EXPERIENCE_LABELS[meta.years_caregiving as number] || `${meta.years_caregiving} years experience`}
+            </p>
+          )}
+
+          {/* All tags in one flowing section — unified gray style */}
+          <div className="flex flex-wrap gap-1.5">
+            {/* Certifications first (most important) */}
+            {hasCerts && meta.certifications!.map((cert) => (
+              <span key={cert} className="text-xs px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full">
+                {cert}
+              </span>
+            ))}
+            {/* Care types */}
+            {hasCareTypes && meta.care_experience_types!.slice(0, 4).map((type) => (
+              <span key={type} className="text-xs px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full">
+                {type}
+              </span>
+            ))}
+            {hasCareTypes && meta.care_experience_types!.length > 4 && (
+              <span className="text-xs px-2.5 py-1 bg-gray-50 text-gray-500 rounded-full">
+                +{meta.care_experience_types!.length - 4} more
+              </span>
             )}
           </div>
 
-          {/* Certifications */}
-          {hasCerts && (
-            <div>
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Certifications</p>
-              <div className="flex flex-wrap gap-1.5">
-                {meta.certifications!.map((cert) => (
-                  <span key={cert} className="text-xs px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full font-medium">
-                    {cert}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Care types */}
-          {hasCareTypes && (
-            <div>
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Care Experience</p>
-              <div className="flex flex-wrap gap-1.5">
-                {meta.care_experience_types!.slice(0, 4).map((type) => (
-                  <span key={type} className="text-xs px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full">
-                    {type}
-                  </span>
-                ))}
-                {meta.care_experience_types!.length > 4 && (
-                  <span className="text-xs px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full">
-                    +{meta.care_experience_types!.length - 4} more
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Languages */}
+          {/* Languages — separate line with icon */}
           {hasLanguages && (
-            <div>
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Languages</p>
-              <div className="flex flex-wrap gap-1.5">
-                {meta.languages!.map((lang) => (
-                  <span key={lang} className="text-xs px-2.5 py-1 bg-purple-50 text-purple-700 rounded-full font-medium">
-                    {lang}
-                  </span>
-                ))}
-              </div>
+            <div className="flex items-center gap-1.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 016-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 01-3.827-5.802" />
+              </svg>
+              <span>{meta.languages!.join(", ")}</span>
             </div>
           )}
 
           {/* Missing items indicator */}
           {!isComplete && (
-            <div className="pt-3 border-t border-gray-100">
-              <p className="text-xs text-amber-600 font-medium">
+            <div className="pt-2 border-t border-gray-100">
+              <p className="text-xs text-amber-600">
                 Missing: {!hasExperience && "experience level"}{!hasExperience && (!hasCareTypes || !hasLanguages) && ", "}
                 {!hasCareTypes && "care types"}{!hasCareTypes && !hasLanguages && ", "}
                 {!hasLanguages && "languages"}

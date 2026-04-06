@@ -1,4 +1,3 @@
-import { useState } from "react";
 import type { StudentMetadata } from "@/lib/types";
 import CaregiverSectionCard, { EmptyState } from "./CaregiverSectionCard";
 import { parseSchedule } from "@/components/medjobs/ScheduleBuilder";
@@ -16,24 +15,13 @@ interface ScheduleCardProps {
   onEdit?: () => void;
 }
 
-type DayAvailability = "full" | "partial" | "none";
-
 export default function ScheduleCard({ meta, onEdit }: ScheduleCardProps) {
-  const [showDetails, setShowDetails] = useState(false);
   const hasSchedule = !!meta.course_schedule_grid;
   const grid = parseSchedule(meta.course_schedule_grid);
 
   // Check if a slot has a class (busy = not available)
   const isBusy = (day: string, slot: string) => !!grid[`${day}-${slot}`];
   const isAvailable = (day: string, slot: string) => !isBusy(day, slot);
-
-  // Calculate availability per day
-  const getDayAvailability = (day: string): DayAvailability => {
-    const availableCount = SLOTS.filter((slot) => isAvailable(day, slot)).length;
-    if (availableCount === SLOTS.length) return "full";
-    if (availableCount === 0) return "none";
-    return "partial";
-  };
 
   // Calculate total available hours (assuming 2hr blocks)
   const totalAvailableSlots = DAYS.reduce((acc, day) => {
@@ -43,7 +31,9 @@ export default function ScheduleCard({ meta, onEdit }: ScheduleCardProps) {
 
   // Generate natural language summary
   const getAvailabilitySummary = () => {
-    const availableDays = DAYS.filter((day) => getDayAvailability(day) !== "none");
+    const availableDays = DAYS.filter((day) =>
+      SLOTS.some((slot) => isAvailable(day, slot))
+    );
 
     if (availableDays.length === 0) return "Not available";
     if (availableDays.length === 5) {
@@ -93,31 +83,59 @@ export default function ScheduleCard({ meta, onEdit }: ScheduleCardProps) {
         />
       ) : (
         <div className="space-y-4">
-          {/* Day availability dots */}
-          <div className="flex justify-between items-start px-2">
-            {DAYS.map((day) => {
-              const availability = getDayAvailability(day);
-              return (
-                <div key={day} className="flex flex-col items-center gap-2">
-                  <span className="text-xs font-medium text-gray-400">{day.slice(0, 1)}</span>
-                  <div className="relative">
-                    {availability === "full" && (
-                      <div className="w-5 h-5 rounded-full bg-emerald-400" />
-                    )}
-                    {availability === "partial" && (
-                      <div className="w-5 h-5 rounded-full bg-gradient-to-r from-emerald-400 from-50% to-gray-200 to-50%" />
-                    )}
-                    {availability === "none" && (
-                      <div className="w-5 h-5 rounded-full border-2 border-gray-200" />
-                    )}
-                  </div>
+          {/* Mini schedule grid — shows actual availability at a glance */}
+          <div className="space-y-1">
+            {/* Day headers */}
+            <div className="grid grid-cols-[32px_repeat(5,1fr)] gap-0.5">
+              <div />
+              {DAYS.map((day) => (
+                <div key={day} className="text-center text-[10px] font-medium text-gray-400">
+                  {day.slice(0, 1)}
                 </div>
-              );
-            })}
+              ))}
+            </div>
+            {/* Time slots grid */}
+            <div className="grid grid-cols-[32px_repeat(5,1fr)] gap-0.5">
+              {/* Time labels - simplified */}
+              <div className="flex flex-col justify-between py-0.5">
+                <span className="text-[9px] text-gray-300">AM</span>
+                <span className="text-[9px] text-gray-300">PM</span>
+              </div>
+              {/* Grid cells for each day */}
+              {DAYS.map((day) => (
+                <div key={day} className="flex flex-col gap-0.5">
+                  {SLOTS.map((slot) => {
+                    const available = isAvailable(day, slot);
+                    return (
+                      <div
+                        key={`${day}-${slot}`}
+                        className={`h-2.5 rounded-sm ${
+                          available
+                            ? "bg-gray-100"
+                            : "bg-gray-700"
+                        }`}
+                        title={`${day} ${slot}: ${available ? "Available" : "Class"}`}
+                      />
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+            {/* Legend */}
+            <div className="flex items-center gap-3 pt-1">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-sm bg-gray-100 border border-gray-200" />
+                <span className="text-[10px] text-gray-400">Available</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-sm bg-gray-700" />
+                <span className="text-[10px] text-gray-400">Class</span>
+              </div>
+            </div>
           </div>
 
           {/* Summary text */}
-          <div className="space-y-1">
+          <div className="pt-3 border-t border-gray-100 space-y-1">
             <p className="text-sm font-medium text-gray-900">
               {getAvailabilitySummary()}
             </p>
@@ -126,40 +144,6 @@ export default function ScheduleCard({ meta, onEdit }: ScheduleCardProps) {
               {meta.course_schedule_semester && ` · ${meta.course_schedule_semester}`}
             </p>
           </div>
-
-          {/* Expandable details */}
-          <button
-            type="button"
-            onClick={() => setShowDetails(!showDetails)}
-            className="text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors"
-          >
-            {showDetails ? "Hide details" : "See full schedule"}
-          </button>
-
-          {showDetails && (
-            <div className="pt-3 border-t border-gray-100 space-y-2">
-              {DAYS.map((day) => {
-                const availableSlots = SLOTS.filter((slot) => isAvailable(day, slot));
-                if (availableSlots.length === 0) return null;
-
-                return (
-                  <div key={day} className="flex items-center gap-3 text-xs">
-                    <span className="w-8 font-medium text-gray-500">{day}</span>
-                    <div className="flex flex-wrap gap-1">
-                      {availableSlots.map((slot) => (
-                        <span
-                          key={slot}
-                          className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded"
-                        >
-                          {slot}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
       )}
     </CaregiverSectionCard>

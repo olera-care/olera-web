@@ -1647,6 +1647,12 @@ export default function ProviderMatchesPage() {
 
   const handleReachOut = useCallback(
     (family: Profile) => {
+      // Gate: unverified providers must complete verification first
+      if (!isVerified) {
+        setShowVerificationModal(true);
+        return;
+      }
+
       if (!isProfileShareable(providerProfile)) {
         const gaps = getProfileCompletionGaps(providerProfile);
         setProfileGapWarning(gaps);
@@ -1670,7 +1676,7 @@ export default function ProviderMatchesPage() {
       }
       setDrawerFamily(family);
     },
-    [providerProfile],
+    [providerProfile, isVerified],
   );
 
   const handleCloseDrawer = useCallback(() => {
@@ -2220,6 +2226,7 @@ export default function ProviderMatchesPage() {
                       key={family.id}
                       family={family}
                       hasFullAccess={hasFullAccess}
+                      isVerified={isVerified}
                       providerCareTypes={providerCareTypes}
                       providerPaymentMethods={providerPaymentMethods}
                       contacted={contactedIds.has(family.id)}

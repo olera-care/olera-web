@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData, CMSData, AiTrustSignals, StaffInfo } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
 import type { Provider as IOSProvider } from "@/lib/types/provider";
-import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
+import { ExperimentDesktopCTA, ExperimentMobileCTA } from "@/components/providers/ExperimentCTAs";
 import ProviderHeroGallery from "@/components/providers/ProviderHeroGallery";
 import Breadcrumbs from "@/components/providers/Breadcrumbs";
 import ExpandableText from "@/components/providers/ExpandableText";
@@ -17,7 +17,7 @@ import SectionNav from "@/components/providers/SectionNav";
 import type { SectionItem } from "@/components/providers/SectionNav";
 import ClaimBadge from "@/components/providers/ClaimBadge";
 import MobileGalleryActionBar from "@/components/providers/MobileGalleryActionBar";
-import MobileStickyBottomCTA from "@/components/providers/MobileStickyBottomCTA";
+// MobileStickyBottomCTA now rendered via ExperimentMobileCTA
 import MobileClaimLink from "@/components/providers/MobileClaimLink";
 import PriceEstimate from "@/components/providers/PriceEstimate";
 import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
@@ -1087,7 +1087,7 @@ export default async function ProviderPage({
           {/* ========== Right Column — Sticky Sidebar (hidden on mobile) ========== */}
           <div className="hidden md:block lg:col-span-1 self-stretch">
             <div id="connection-card" className="sticky top-24">
-              <ConnectionCardWithRedirect
+              <ExperimentDesktopCTA
                 providerId={profile.id}
                 providerName={profile.display_name}
                 providerSlug={profile.slug}
@@ -1098,7 +1098,6 @@ export default async function ProviderPage({
                 careTypes={profile.care_types}
                 city={profile.city}
                 state={profile.state}
-                responseTime={null}
                 providerCategory={profile.category}
                 providerCity={profile.city}
                 providerState={profile.state}
@@ -1125,7 +1124,7 @@ export default async function ProviderPage({
       </div>
 
       {/* Mobile sticky bottom CTA — opens bottom sheet with ConnectionCard */}
-      <MobileStickyBottomCTA
+      <ExperimentMobileCTA
         providerName={profile.display_name}
         priceRange={priceRange}
         providerId={profile.id}

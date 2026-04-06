@@ -7,6 +7,15 @@
 
 ## Current Focus
 
+- **CTA Experimentation Infrastructure** — PLANNING
+  - Plan: `plans/cta-experimentation-plan.md`
+  - Need to merge `fine-dijkstra` (CTA redesign) first as baseline
+  - Phase 1: DB tables + cookie assignment + impression tracking + variant rendering (2 variants: pricing vs old baseline)
+  - Phase 2: Admin dashboard at `/admin/experiments`
+  - Phase 3: Build new post-submit flows (eligibility, availability, matches) one at a time
+  - Meeting notes (Apr 6): Logan proposed "Check Eligibility" and "Check Availability" angles
+  - TJ wants to test form field combos (email-only vs phone vs both) independently of copy
+
 - **Homepage De-Jank + Mega Menu + Search Bar Polish** (branch: `gifted-rosalind`) — READY FOR QA
   - Fixed mega menu flicker: redesigned hover architecture — backdrop `onMouseEnter` as leave detector instead of fragile `onMouseLeave` on panel
   - Fixed search bar height shift: `truncate` on care type label prevents "Independent Living" from wrapping

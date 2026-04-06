@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import ConnectionCard from "@/components/providers/connection-card";
 import type { ConnectionCardProps } from "@/components/providers/connection-card/types";
+import type { VariantConfig } from "@/lib/experiments";
 
 /**
  * Thin wrapper around ConnectionCard that redirects to the
@@ -13,6 +14,8 @@ export default function ConnectionCardWithRedirect(
     providerCategory?: string | null;
     providerCity?: string | null;
     providerState?: string | null;
+    variantConfig?: VariantConfig;
+    experimentVariantId?: string;
   }
 ) {
   const router = useRouter();

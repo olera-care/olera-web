@@ -8,7 +8,7 @@ import {
 
 interface InquiryFormProps {
   providerName: string;
-  onSubmit: (data: { email: string }) => void;
+  onSubmit: (data: { email: string; phone?: string; name?: string; message?: string }) => void;
   submitting?: boolean;
   error?: string;
   initialEmail?: string;
@@ -17,6 +17,7 @@ interface InquiryFormProps {
   priceRange?: string | null;
   city?: string | null;
   state?: string | null;
+  variantConfig?: import("@/lib/experiments").VariantConfig;
 }
 
 export default function InquiryForm({
@@ -30,10 +31,20 @@ export default function InquiryForm({
   priceRange = null,
   city = null,
   state = null,
+  variantConfig,
 }: InquiryFormProps) {
   const [email, setEmail] = useState(initialEmail);
+  const [phone, setPhone] = useState("");
+  const [name, setName] = useState("");
+  const [message, setMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [localError, setLocalError] = useState("");
+
+  // Variant-driven copy
+  const fields = variantConfig?.fields ?? ["email"];
+  const headlineText = variantConfig?.headline;
+  const buttonText = variantConfig?.buttonText ?? "Request details";
+  const trustLineText = variantConfig?.trustLine ?? "No spam. No sales calls.";
 
   // Resolve pricing from care types
   const pricing = getPricingForProviderSync(careTypes);
@@ -44,19 +55,47 @@ export default function InquiryForm({
   const validateEmail = (val: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
 
+  const validatePhone = (val: string) =>
+    /^[\d\s()+-]{7,}$/.test(val);
+
   const handleSubmit = useCallback(() => {
     setLocalError("");
     if (honeypot) return;
-    if (!email.trim()) {
-      setLocalError("Please enter your email address.");
+
+    // Validate required fields based on variant config
+    if (fields.includes("email")) {
+      if (!email.trim()) {
+        setLocalError("Please enter your email address.");
+        return;
+      }
+      if (!validateEmail(email)) {
+        setLocalError("Please enter a valid email address.");
+        return;
+      }
+    }
+    if (fields.includes("phone") && !email.trim()) {
+      // If phone is required and no email, validate phone
+      if (!phone.trim()) {
+        setLocalError("Please enter your phone number.");
+        return;
+      }
+      if (!validatePhone(phone)) {
+        setLocalError("Please enter a valid phone number.");
+        return;
+      }
+    }
+    if (fields.includes("name") && !name.trim()) {
+      setLocalError("Please enter your name.");
       return;
     }
-    if (!validateEmail(email)) {
-      setLocalError("Please enter a valid email address.");
-      return;
-    }
-    onSubmit({ email: email.trim().toLowerCase() });
-  }, [email, honeypot, onSubmit]);
+
+    onSubmit({
+      email: email.trim().toLowerCase(),
+      ...(fields.includes("phone") && phone.trim() ? { phone: phone.trim() } : {}),
+      ...(fields.includes("name") && name.trim() ? { name: name.trim() } : {}),
+      ...(fields.includes("message") && message.trim() ? { message: message.trim() } : {}),
+    });
+  }, [email, phone, name, message, honeypot, onSubmit, fields]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -140,20 +179,61 @@ export default function InquiryForm({
 
       {/* ── CTA section ── */}
       <p className="text-[15px] font-semibold text-gray-900 mb-3">
-        {pricing.medicareCoverage ? "Check coverage & availability" : "Get actual pricing & availability"}
+        {headlineText ?? (pricing.medicareCoverage ? "Check coverage & availability" : "Get actual pricing & availability")}
       </p>
 
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Your email address"
-        autoComplete="email"
-        className={`w-full px-3.5 py-3 border rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150 ${
-          displayError ? "border-red-300" : "border-gray-200"
-        }`}
-      />
+      {/* ── Form fields (variant-driven) ── */}
+      {fields.includes("name") && (
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Your name"
+          autoComplete="name"
+          className={`w-full px-3.5 py-3 border rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150 mb-2 ${
+            displayError && !name.trim() ? "border-red-300" : "border-gray-200"
+          }`}
+        />
+      )}
+
+      {fields.includes("email") && (
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Your email address"
+          autoComplete="email"
+          className={`w-full px-3.5 py-3 border rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150 ${
+            fields.includes("phone") || fields.includes("message") ? "mb-2" : ""
+          } ${displayError && !email.trim() ? "border-red-300" : "border-gray-200"}`}
+        />
+      )}
+
+      {fields.includes("phone") && (
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Your phone number"
+          autoComplete="tel"
+          className={`w-full px-3.5 py-3 border rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150 ${
+            fields.includes("message") ? "mb-2" : ""
+          } ${displayError && fields.includes("phone") && !phone.trim() && !email.trim() ? "border-red-300" : "border-gray-200"}`}
+        />
+      )}
+
+      {fields.includes("message") && (
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Tell us about your care needs..."
+          rows={3}
+          className="w-full px-3.5 py-3 border border-gray-200 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150 resize-none"
+        />
+      )}
 
       {/* Honeypot */}
       <input
@@ -181,7 +261,7 @@ export default function InquiryForm({
         {submitting && (
           <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
         )}
-        {submitting ? "Requesting..." : "Request details"}
+        {submitting ? "Requesting..." : buttonText}
       </button>
 
       {/* Trust signal */}
@@ -189,7 +269,7 @@ export default function InquiryForm({
         <svg className="w-3.5 h-3.5 text-primary-600 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
         </svg>
-        No spam. No sales calls.
+        {trustLineText}
       </p>
 
       {connectionCount != null && connectionCount >= 10 && (

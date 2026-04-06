@@ -51,6 +51,7 @@ interface GuestConnectionParams {
   };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   admin: any;
+  experimentVariantId?: string;
 }
 
 async function handleGuestConnection({
@@ -62,6 +63,7 @@ async function handleGuestConnection({
   providerSlug,
   intentData,
   admin,
+  experimentVariantId,
 }: GuestConnectionParams) {
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -698,6 +700,7 @@ async function handleGuestConnection({
       message: messagePayload,
       metadata: connectionMetadata,
       guest_email: normalizedEmail, // For rate limiting
+      ...(experimentVariantId ? { experiment_variant_id: experimentVariantId } : {}),
     })
     .select("id, created_at")
     .single();
@@ -1089,6 +1092,7 @@ export async function POST(request: Request) {
       guestEmail,
       formData,
       website, // Honeypot field
+      experimentVariantId,
     } = body as {
       providerId: string;
       providerName: string;
@@ -1104,6 +1108,7 @@ export async function POST(request: Request) {
       guestEmail?: string;
       formData?: { fullName?: string; phone?: string; message?: string };
       website?: string; // Honeypot
+      experimentVariantId?: string;
     };
 
     if (!providerId || !providerName) {
@@ -1136,6 +1141,7 @@ export async function POST(request: Request) {
         providerSlug,
         intentData,
         admin,
+        experimentVariantId,
       });
     }
 
@@ -1547,6 +1553,7 @@ export async function POST(request: Request) {
         status: "pending",
         message: messagePayload,
         metadata: connectionMetadata,
+        ...(experimentVariantId ? { experiment_variant_id: experimentVariantId } : {}),
       })
       .select("id")
       .single();

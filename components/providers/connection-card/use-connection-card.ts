@@ -524,6 +524,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // ── Submit inquiry form (v3.0 — email-only, optimistic enrichment) ──
   const submitInquiryForm = useCallback(async (formData: {
     email: string;
+    phone?: string;
+    name?: string;
+    message?: string;
   }) => {
     if (enrichmentLock.current) return; // Prevent double-submit
     setError("");
@@ -531,7 +534,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
     // ── OPTIMISTIC: Show enrichment instantly (before API) ──
     enrichmentLock.current = true;
     postEnrichmentRedirect.current = `/welcome?provider=${providerSlug}`;
-    setCardState("enrichment");
+    // "basic" flow (old Get in Touch): skip enrichment, go straight to connected
+    const flow = props.variantConfig?.postSubmitFlow;
+    setCardState(flow === "basic" ? "connected" : "enrichment");
 
     // ── BACKGROUND: Fire API without blocking the UI ──
     // Name, phone, message no longer collected upfront — moved to enrichment
@@ -554,10 +559,11 @@ export function useConnectionCard(props: ConnectionCardProps) {
             providerSlug,
             intentData: formIntentData,
             formData: {
-              fullName: "",
-              phone: "",
-              message: "",
+              fullName: formData.name || "",
+              phone: formData.phone || "",
+              message: formData.message || "",
             },
+            experimentVariantId: props.experimentVariantId || undefined,
           }),
         });
 
@@ -588,10 +594,11 @@ export function useConnectionCard(props: ConnectionCardProps) {
             guest: true,
             guestEmail: formData.email,
             formData: {
-              fullName: "",
-              phone: "",
-              message: "",
+              fullName: formData.name || "",
+              phone: formData.phone || "",
+              message: formData.message || "",
             },
+            experimentVariantId: props.experimentVariantId || undefined,
           }),
         });
 

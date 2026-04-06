@@ -1,10 +1,13 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useConnectionCard } from "./use-connection-card";
 import CardBottomSection from "./CardBottomSection";
 import InquiryForm from "./InquiryForm";
 import EnrichmentState from "./EnrichmentState";
+import EligibilityEnrichment from "./EligibilityEnrichment";
 import ConnectedState from "./ConnectedState";
+import { trackImpression } from "@/lib/experiments";
 import type { ConnectionCardProps } from "./types";
 
 export type { ConnectionCardProps } from "./types";
@@ -17,6 +20,15 @@ export default function ConnectionCard(props: ConnectionCardProps) {
   } = props;
 
   const hook = useConnectionCard(props);
+
+  // Track impression (once per mount, only if experiment active)
+  const impressionFired = useRef(false);
+  useEffect(() => {
+    if (props.experimentVariantId && !impressionFired.current) {
+      impressionFired.current = true;
+      trackImpression(props.experimentVariantId);
+    }
+  }, [props.experimentVariantId]);
 
   // Block non-family profiles from sending care inquiries
   if (hook.isNonFamilyProfile) {
@@ -74,6 +86,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
               priceRange={props.priceRange}
               city={props.city}
               state={props.state}
+              variantConfig={props.variantConfig}
             />
           ) : (
             /* Guest: email-only form */
@@ -88,19 +101,31 @@ export default function ConnectionCard(props: ConnectionCardProps) {
               priceRange={props.priceRange}
               city={props.city}
               state={props.state}
+              variantConfig={props.variantConfig}
             />
           )
         )}
 
         {hook.cardState === "enrichment" && (
-          <EnrichmentState
-            providerName={providerName}
-            onSave={hook.saveEnrichment}
-            onSkip={hook.skipEnrichment}
-            saving={hook.submitting}
-            careTypes={props.careTypes}
-            priceRange={props.priceRange}
-          />
+          props.variantConfig?.postSubmitFlow === "eligibility" ? (
+            <EligibilityEnrichment
+              providerName={providerName}
+              onSave={hook.saveEnrichment}
+              onSkip={hook.skipEnrichment}
+              saving={hook.submitting}
+              careTypes={props.careTypes}
+              priceRange={props.priceRange}
+            />
+          ) : (
+            <EnrichmentState
+              providerName={providerName}
+              onSave={hook.saveEnrichment}
+              onSkip={hook.skipEnrichment}
+              saving={hook.submitting}
+              careTypes={props.careTypes}
+              priceRange={props.priceRange}
+            />
+          )
         )}
 
         {hook.cardState === "connected" && (

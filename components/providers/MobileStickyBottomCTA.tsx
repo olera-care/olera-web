@@ -9,6 +9,7 @@ import PhoneButton from "@/components/providers/connection-card/PhoneButton";
 import Pill from "@/components/providers/connection-card/Pill";
 import StepIndicator from "@/components/providers/connection-card/StepIndicator";
 import EnrichmentState from "@/components/providers/connection-card/EnrichmentState";
+import EligibilityEnrichment from "@/components/providers/connection-card/EligibilityEnrichment";
 import {
   RECIPIENT_OPTIONS,
   URGENCY_OPTIONS,
@@ -210,6 +211,9 @@ interface MobileStickyBottomCTAProps {
   providerCategory?: string | null;
   providerCity?: string | null;
   providerState?: string | null;
+  // Experiment props
+  variantConfig?: import("@/lib/experiments").VariantConfig;
+  experimentVariantId?: string;
 }
 
 export default function MobileStickyBottomCTA({
@@ -224,6 +228,8 @@ export default function MobileStickyBottomCTA({
   providerCategory,
   providerCity,
   providerState,
+  variantConfig,
+  experimentVariantId,
 }: MobileStickyBottomCTAProps) {
   const router = useRouter();
   const [visible, setVisible] = useState(false);
@@ -257,6 +263,8 @@ export default function MobileStickyBottomCTA({
     careTypes,
     responseTime: null,
     onConnectionCreated: handleConnectionCreated,
+    variantConfig,
+    experimentVariantId,
   });
 
   // ── Scroll visibility for sticky bar ──
@@ -285,12 +293,13 @@ export default function MobileStickyBottomCTA({
   }, []);
 
   // ── Dynamic Modal title ──
+  const ctaHeadline = variantConfig?.headline ?? "What does this cost?";
   const sheetTitle = (() => {
     switch (hook.cardState) {
       case "loading":
-        return "What does this cost?";
+        return ctaHeadline;
       case "default":
-        return "What does this cost?";
+        return ctaHeadline;
       case "intent":
         return hook.intentStep === 0
           ? "Who needs care?"
@@ -302,7 +311,7 @@ export default function MobileStickyBottomCTA({
       case "connected":
         return undefined;
       case "returning":
-        return "What does this cost?";
+        return ctaHeadline;
     }
   })();
 
@@ -346,7 +355,7 @@ export default function MobileStickyBottomCTA({
                   {hook.submitting && (
                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   )}
-                  {hook.submitting ? "Checking..." : "Check cost & availability"}
+                  {hook.submitting ? "Checking..." : (variantConfig?.buttonText ?? "Check cost & availability")}
                 </button>
               </>
             ) : (
@@ -362,7 +371,7 @@ export default function MobileStickyBottomCTA({
               </p>
             )}
             <p className="text-[12px] text-gray-500 text-center font-medium">
-              No spam. No sales calls.
+              {variantConfig?.trustLine ?? "No spam. No sales calls."}
             </p>
           </div>
         );
@@ -480,10 +489,10 @@ export default function MobileStickyBottomCTA({
           <div className="flex items-center gap-4 px-4 py-3.5">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-gray-900 truncate">
-                What does this cost?
+                {ctaHeadline}
               </p>
               <p className="text-[11px] text-gray-400">
-                No spam. No sales calls.
+                {variantConfig?.trustLine ?? "No spam. No sales calls."}
               </p>
             </div>
 
@@ -491,7 +500,7 @@ export default function MobileStickyBottomCTA({
               onClick={() => setSheetOpen(true)}
               className="flex-shrink-0 px-5 py-3 bg-primary-600 hover:bg-primary-500 active:bg-primary-700 text-white rounded-xl text-[13px] font-semibold transition-colors"
             >
-              Check cost
+              {(variantConfig?.buttonText ?? "Check cost & availability").split(" ").slice(0, 2).join(" ")}
             </button>
           </div>
         </div>
@@ -627,14 +636,25 @@ export default function MobileStickyBottomCTA({
         {/* ── Enrichment: post-submission questions ── */}
         {!hook.isNonFamilyProfile && hook.cardState === "enrichment" && (
           <div className="py-4 animate-step-in">
-            <EnrichmentState
-              providerName={providerName}
-              onSave={hook.saveEnrichment}
-              onSkip={hook.skipEnrichment}
-              saving={hook.submitting}
-              careTypes={careTypes}
-              priceRange={priceRange}
-            />
+            {variantConfig?.postSubmitFlow === "eligibility" ? (
+              <EligibilityEnrichment
+                providerName={providerName}
+                onSave={hook.saveEnrichment}
+                onSkip={hook.skipEnrichment}
+                saving={hook.submitting}
+                careTypes={careTypes}
+                priceRange={priceRange}
+              />
+            ) : (
+              <EnrichmentState
+                providerName={providerName}
+                onSave={hook.saveEnrichment}
+                onSkip={hook.skipEnrichment}
+                saving={hook.submitting}
+                careTypes={careTypes}
+                priceRange={priceRange}
+              />
+            )}
           </div>
         )}
 

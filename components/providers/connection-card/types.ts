@@ -52,4 +52,8 @@ export interface ConnectionCardProps {
   responseTime: string | null; // null in v1
   /** Called after a new connection is successfully created (not on duplicates). */
   onConnectionCreated?: (connectionId: string) => void;
+  /** Experiment variant config — controls CTA copy, fields, and flow */
+  variantConfig?: import("@/lib/experiments").VariantConfig;
+  /** Experiment variant ID — passed through to connection for attribution */
+  experimentVariantId?: string;
 }

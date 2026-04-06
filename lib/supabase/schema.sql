@@ -405,3 +405,76 @@ create policy "Service role has full access"
 create trigger content_articles_updated_at
   before update on public.content_articles
   for each row execute function public.update_updated_at();
+
+-- ============================================================
+-- EXPERIMENTS (CTA A/B Testing)
+-- ============================================================
+
+create table public.experiments (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique,
+  status text not null default 'draft' check (status in ('draft', 'active', 'paused', 'completed')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table public.experiment_variants (
+  id uuid primary key default gen_random_uuid(),
+  experiment_id uuid not null references public.experiments(id) on delete cascade,
+  name text not null,
+  config jsonb not null default '{}',
+  weight int not null default 50 check (weight >= 0 and weight <= 100),
+  created_at timestamptz not null default now(),
+  unique(experiment_id, name)
+);
+
+create table public.cta_impressions (
+  id uuid primary key default gen_random_uuid(),
+  variant_id uuid not null references public.experiment_variants(id) on delete cascade,
+  date date not null default current_date,
+  count int not null default 0,
+  unique(variant_id, date)
+);
+
+-- Attribution: link connections to the CTA variant that produced them
+alter table public.connections
+  add column if not exists experiment_variant_id uuid references public.experiment_variants(id);
+
+-- RLS: experiments are public-read (variants rendered client-side)
+alter table public.experiments enable row level security;
+alter table public.experiment_variants enable row level security;
+alter table public.cta_impressions enable row level security;
+
+create policy "Public can read active experiments"
+  on public.experiments for select using (true);
+
+create policy "Service role manages experiments"
+  on public.experiments for all
+  using (auth.role() = 'service_role')
+  with check (auth.role() = 'service_role');
+
+create policy "Public can read variants"
+  on public.experiment_variants for select using (true);
+
+create policy "Service role manages variants"
+  on public.experiment_variants for all
+  using (auth.role() = 'service_role')
+  with check (auth.role() = 'service_role');
+
+create policy "Public can insert impressions"
+  on public.cta_impressions for insert with check (true);
+
+create policy "Public can read impressions"
+  on public.cta_impressions for select using (true);
+
+create policy "Service role manages impressions"
+  on public.cta_impressions for all
+  using (auth.role() = 'service_role')
+  with check (auth.role() = 'service_role');
+
+create policy "Public can update impressions"
+  on public.cta_impressions for update using (true);
+
+create trigger experiments_updated_at
+  before update on public.experiments
+  for each row execute function public.update_updated_at();

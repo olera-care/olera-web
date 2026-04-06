@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import CandidateCard from "@/components/medjobs/CandidateCard";
 import type { CandidateData } from "@/components/medjobs/CandidateRow";
@@ -115,20 +114,6 @@ export default function ProviderCandidateBrowsePage() {
       {/* Hero header */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-8 sm:pt-8 sm:pb-10">
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-4">
-            <Link
-              href="/provider"
-              className="hover:text-primary-600 transition-colors"
-            >
-              Dashboard
-            </Link>
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            <span className="text-gray-600">Hire Staff</span>
-          </nav>
-
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 font-display">
             Hire Local Caregivers
           </h1>

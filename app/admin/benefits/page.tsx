@@ -78,7 +78,7 @@ function ProgressBar({ value, total }: { value: number; total: number }) {
   );
 }
 
-function ProgramPreview({ program }: { program: WaiverProgram }) {
+function ProgramPreview({ program, stateId }: { program: WaiverProgram; stateId: string }) {
   return (
     <div className="mt-4 pt-4 border-t border-gray-100 space-y-5">
       {/* Description */}
@@ -124,8 +124,16 @@ function ProgramPreview({ program }: { program: WaiverProgram }) {
         </div>
       )}
 
-      {/* Verification metadata */}
+      {/* Links & verification metadata */}
       <div className="flex flex-wrap gap-x-6 gap-y-2 pt-2 border-t border-gray-50">
+        <a
+          href={`/waiver-library/${stateId}/${program.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs font-medium text-gray-900 hover:text-primary-700 underline underline-offset-2 decoration-gray-300"
+        >
+          View live page &#8599;
+        </a>
         {program.sourceUrl && (
           <a
             href={program.sourceUrl}
@@ -176,7 +184,7 @@ function ProgramPreview({ program }: { program: WaiverProgram }) {
   );
 }
 
-function ProgramRow({ program }: { program: WaiverProgram }) {
+function ProgramRow({ program, stateId }: { program: WaiverProgram; stateId: string }) {
   const [expanded, setExpanded] = useState(false);
   const category = inferCategory(program);
   const isVerified = !!program.lastVerifiedDate;
@@ -222,7 +230,7 @@ function ProgramRow({ program }: { program: WaiverProgram }) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
         </svg>
       </button>
-      {expanded && <ProgramPreview program={program} />}
+      {expanded && <ProgramPreview program={program} stateId={stateId} />}
     </div>
   );
 }
@@ -313,7 +321,7 @@ function StateDetail({
       {/* Program list */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden divide-y divide-gray-100">
         {state.programs.map((program) => (
-          <ProgramRow key={program.id} program={program} />
+          <ProgramRow key={program.id} program={program} stateId={state.id} />
         ))}
       </div>
     </div>

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Modal from "@/components/ui/Modal";
 import { useCitySearch } from "@/hooks/use-city-search";
-import { useClickOutside } from "@/hooks/use-click-outside";
 import type { StudentMetadata } from "@/lib/types";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -124,14 +124,42 @@ function StyledDropdown({
   label: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  useClickOutside(dropdownRef, () => setIsOpen(false));
+
+  // Update position when opening
+  useEffect(() => {
+    if (isOpen && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + 8,
+        left: rect.left,
+        width: rect.width,
+      });
+    }
+  }, [isOpen]);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (
+        triggerRef.current?.contains(e.target as Node) ||
+        dropdownRef.current?.contains(e.target as Node)
+      ) return;
+      setIsOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [isOpen]);
 
   const selectedOption = options.find(opt => opt.value === value);
 
   return (
-    <div ref={dropdownRef} className="relative">
+    <div className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         aria-haspopup="listbox"
@@ -157,10 +185,17 @@ function StyledDropdown({
         </svg>
       </button>
 
-      {isOpen && (
+      {isOpen && createPortal(
         <div
+          ref={dropdownRef}
           role="listbox"
-          className="absolute left-0 right-0 bottom-full mb-2 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto overscroll-contain"
+          style={{
+            position: "fixed",
+            top: position.top,
+            left: position.left,
+            width: position.width,
+          }}
+          className="bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-[100] max-h-[280px] overflow-y-auto overscroll-contain"
         >
           {options.map((opt) => (
             <button
@@ -183,7 +218,8 @@ function StyledDropdown({
               {opt.label}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -219,8 +255,35 @@ export default function QuickScheduleModal({
 
   // City search
   const { results: cityResults } = useCitySearch(city);
+  const cityInputRef = useRef<HTMLInputElement>(null);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
-  useClickOutside(cityDropdownRef, () => setShowCityDropdown(false));
+  const [cityDropdownPosition, setCityDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+
+  // Update city dropdown position
+  useEffect(() => {
+    if (showCityDropdown && cityInputRef.current) {
+      const rect = cityInputRef.current.getBoundingClientRect();
+      setCityDropdownPosition({
+        top: rect.bottom + 8,
+        left: rect.left,
+        width: rect.width,
+      });
+    }
+  }, [showCityDropdown]);
+
+  // Close city dropdown on click outside
+  useEffect(() => {
+    if (!showCityDropdown) return;
+    const handleClick = (e: MouseEvent) => {
+      if (
+        cityInputRef.current?.contains(e.target as Node) ||
+        cityDropdownRef.current?.contains(e.target as Node)
+      ) return;
+      setShowCityDropdown(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showCityDropdown]);
 
   // Submission state
   const [submitting, setSubmitting] = useState(false);
@@ -504,9 +567,10 @@ export default function QuickScheduleModal({
         <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-3">
           City
         </label>
-        <div ref={cityDropdownRef} className="relative">
+        <div className="relative">
           <div className="relative">
             <input
+              ref={cityInputRef}
               id="city"
               type="text"
               value={city}
@@ -529,8 +593,17 @@ export default function QuickScheduleModal({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          {showCityDropdown && cityResults.length > 0 && (
-            <div className="absolute left-0 right-0 bottom-full mb-2 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 max-h-[200px] overflow-y-auto overscroll-contain">
+          {showCityDropdown && cityResults.length > 0 && createPortal(
+            <div
+              ref={cityDropdownRef}
+              style={{
+                position: "fixed",
+                top: cityDropdownPosition.top,
+                left: cityDropdownPosition.left,
+                width: cityDropdownPosition.width,
+              }}
+              className="bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-[100] max-h-[200px] overflow-y-auto overscroll-contain"
+            >
               {cityResults.map((c) => (
                 <button
                   key={`${c.city}-${c.state}`}
@@ -545,7 +618,8 @@ export default function QuickScheduleModal({
                   <span className="text-gray-700">{c.city}, {c.state}</span>
                 </button>
               ))}
-            </div>
+            </div>,
+            document.body
           )}
           {state && (
             <p className="mt-2 text-sm text-gray-500">{city}, {state}</p>

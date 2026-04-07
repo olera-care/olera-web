@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/ui/Modal";
@@ -21,6 +21,20 @@ interface ProviderOnboardingModalProps {
   candidateName: string;
 }
 
+// Represent both olera-providers and business_profiles in search results
+interface SearchResult {
+  id: string;
+  name: string;
+  city: string | null;
+  state: string | null;
+  imageUrl: string | null;
+  source: "olera-providers" | "business_profiles";
+  providerId?: string; // For olera-providers
+  profileId?: string;  // For business_profiles
+  claimState?: "claimed" | "pending" | "unclaimed";
+  ownerEmail?: string; // Email hint for sign-in
+}
+
 function getProviderImage(provider: Provider): string | null {
   if (!provider.provider_images) return null;
   const first = provider.provider_images.split("|")[0].trim();
@@ -34,16 +48,15 @@ export default function ProviderOnboardingModal({
   candidateName,
 }: ProviderOnboardingModalProps) {
   const router = useRouter();
-  const { refreshAccountData } = useAuth();
+  const { user, refreshAccountData } = useAuth();
 
   // Step state
   const [step, setStep] = useState<Step>("search");
 
-  // Search state - mirrors onboarding page exactly
+  // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<(Provider & { _isBusinessProfile?: boolean; _accountId?: string })[]>([]);
-  const [claimedIds, setClaimedIds] = useState<Set<string>>(new Set());
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState("");
@@ -51,11 +64,11 @@ export default function ProviderOnboardingModal({
   // Location dropdown
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const locationDropdownRef = useRef<HTMLDivElement>(null);
-  const { results: cityResults, preload: preloadCities } = useCitySearch(locationQuery);
+  const { results: cityResults } = useCitySearch(locationQuery);
   useClickOutside(locationDropdownRef, () => setShowLocationDropdown(false));
 
   // Claim state
-  const [claimingProvider, setClaimingProvider] = useState<Provider | null>(null);
+  const [claimingProvider, setClaimingProvider] = useState<SearchResult | null>(null);
   const [claimSession] = useState(() => crypto.randomUUID());
   const [verifyCode, setVerifyCode] = useState("");
   const [verifyEmailHint, setVerifyEmailHint] = useState("");
@@ -72,13 +85,7 @@ export default function ProviderOnboardingModal({
   const [createError, setCreateError] = useState("");
   const [createSubmitting, setCreateSubmitting] = useState(false);
 
-  // City picker for create form
-  const [showCityPicker, setShowCityPicker] = useState(false);
-  const cityPickerRef = useRef<HTMLDivElement>(null);
-  const { results: cityPickerResults, preload: preloadCityPicker } = useCitySearch(createCity);
-  useClickOutside(cityPickerRef, () => setShowCityPicker(false));
-
-  // Auth state (inline auth after creating account or signing into claimed listing)
+  // Auth state (after creating account)
   const [authEmail, setAuthEmail] = useState("");
   const [authCode, setAuthCode] = useState("");
   const [authSending, setAuthSending] = useState(false);
@@ -89,19 +96,25 @@ export default function ProviderOnboardingModal({
   const [finalizingProfile, setFinalizingProfile] = useState(false);
 
   // Claimed listing sign-in state
-  const [signingInToClaimedListing, setSigningInToClaimedListing] = useState<Provider | null>(null);
+  const [signingInToClaimedListing, setSigningInToClaimedListing] = useState<SearchResult | null>(null);
+
+  // City picker for create form
+  const [showCityPicker, setShowCityPicker] = useState(false);
+  const cityPickerRef = useRef<HTMLDivElement>(null);
+  const { results: cityPickerResults } = useCitySearch(createCity);
+  useClickOutside(cityPickerRef, () => setShowCityPicker(false));
 
   const firstName = candidateName.split(" ")[0];
 
-  // Reset all state when modal closes
+  // Reset all state when modal closes (Bug fix #4)
   useEffect(() => {
     if (!isOpen) {
+      // Small delay to let close animation finish
       const timer = setTimeout(() => {
         setStep("search");
         setSearchQuery("");
         setLocationQuery("");
         setSearchResults([]);
-        setClaimedIds(new Set());
         setSearching(false);
         setHasSearched(false);
         setSearchError("");
@@ -132,7 +145,7 @@ export default function ProviderOnboardingModal({
     }
   }, [isOpen]);
 
-  // Resend cooldown timer
+  // Resend cooldown timer (Bug fix #5)
   useEffect(() => {
     if (resendCooldown > 0) {
       const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
@@ -140,7 +153,7 @@ export default function ProviderOnboardingModal({
     }
   }, [resendCooldown]);
 
-  // Search handler - EXACT copy from onboarding page
+  // Handle search (Bug fix #2: search both olera-providers AND business_profiles)
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     const name = searchQuery.trim();
@@ -154,8 +167,9 @@ export default function ProviderOnboardingModal({
 
     try {
       const supabase = createClient();
+      const results: SearchResult[] = [];
 
-      // === Query 1: olera-providers (scraped listings) ===
+      // 1. Search olera-providers (unclaimed listings)
       let providerQuery = supabase
         .from("olera-providers")
         .select("*")
@@ -165,7 +179,7 @@ export default function ProviderOnboardingModal({
         providerQuery = providerQuery.ilike("provider_name", `%${name}%`);
       }
       if (loc) {
-        const parts = loc.split(",").map((s: string) => s.trim());
+        const parts = loc.split(",").map((s) => s.trim());
         if (parts.length >= 2 && parts[1].length <= 3) {
           providerQuery = providerQuery.ilike("city", `%${parts[0]}%`);
           providerQuery = providerQuery.ilike("state", `%${parts[1]}%`);
@@ -174,88 +188,120 @@ export default function ProviderOnboardingModal({
         }
       }
 
-      // === Query 2: business_profiles (created from scratch, no source_provider_id) ===
-      let bpQuery = supabase
-        .from("business_profiles")
-        .select("id, display_name, image_url, city, state, slug, account_id, source_provider_id")
-        .is("source_provider_id", null);
+      const { data: providers, error: providerError } = await providerQuery.limit(10);
 
-      if (name) {
-        bpQuery = bpQuery.ilike("display_name", `%${name}%`);
-      }
-      if (loc) {
-        const parts = loc.split(",").map((s: string) => s.trim());
-        if (parts.length >= 2 && parts[1].length <= 3) {
-          bpQuery = bpQuery.ilike("city", `%${parts[0]}%`);
-          bpQuery = bpQuery.ilike("state", `%${parts[1]}%`);
-        } else {
-          bpQuery = bpQuery.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
-        }
-      }
-
-      // Run both queries in parallel
-      const [providerResult, bpResult] = await Promise.all([
-        providerQuery.limit(20),
-        bpQuery.limit(10),
-      ]);
-
-      if (providerResult.error) {
-        setSearchError(`Search failed: ${providerResult.error.message}`);
+      if (providerError) {
+        setSearchError("Search failed. Please try again.");
         setSearchResults([]);
         return;
       }
 
-      // Convert business_profiles to Provider-like shape for unified display
-      const bpAsProviders: (Provider & { _isBusinessProfile?: boolean; _accountId?: string })[] = (bpResult.data || []).map((bp) => ({
-        provider_id: `bp_${bp.id}`,
-        provider_name: bp.display_name,
-        provider_images: bp.image_url || "",
-        city: bp.city,
-        state: bp.state,
-        slug: bp.slug,
-        address: null,
-        zipcode: null,
-        provider_category: "Senior Care",
-        main_category: null,
-        provider_description: null,
-        phone: null,
-        email: null,
-        website: null,
-        lat: null,
-        lon: null,
-        lower_price: null,
-        upper_price: null,
-        deleted: false,
-        _isBusinessProfile: true,
-        _accountId: bp.account_id,
-      } as Provider & { _isBusinessProfile?: boolean; _accountId?: string }));
+      // Get claim states for these providers
+      const providerIds = (providers || []).map((p: Provider) => p.provider_id);
+      let claimMap = new Map<string, { state: "claimed" | "pending"; email?: string }>();
 
-      // Merge results (business_profiles first, then olera-providers)
-      const allResults = [...bpAsProviders, ...(providerResult.data as Provider[] || [])];
-      setSearchResults(allResults);
-
-      // Check which olera-providers have been claimed
-      const oleraProviderIds = (providerResult.data || []).map((p: Provider) => p.provider_id);
-      if (oleraProviderIds.length > 0) {
-        const { data: claimed } = await supabase
+      if (providerIds.length > 0) {
+        const { data: claimedData } = await supabase
           .from("business_profiles")
-          .select("source_provider_id")
-          .in("source_provider_id", oleraProviderIds)
+          .select("source_provider_id, claim_state, user_id")
+          .in("source_provider_id", providerIds)
           .in("claim_state", ["claimed", "pending"]);
 
-        const claimedSet = new Set<string>(
-          (claimed || [])
-            .map((r: { source_provider_id: string | null }) => r.source_provider_id)
-            .filter((id): id is string => !!id)
-        );
-        // Also mark all business_profile results as claimed
-        bpAsProviders.forEach((bp) => claimedSet.add(bp.provider_id));
-        setClaimedIds(claimedSet);
-      } else {
-        // Just mark business_profiles as claimed
-        const claimedSet = new Set<string>(bpAsProviders.map((bp) => bp.provider_id));
-        setClaimedIds(claimedSet);
+        // Get owner emails for claimed listings
+        if (claimedData && claimedData.length > 0) {
+          const userIds = claimedData.map((c: { user_id: string }) => c.user_id).filter(Boolean);
+          const { data: users } = await supabase
+            .from("users")
+            .select("id, email")
+            .in("id", userIds);
+
+          const userEmailMap = new Map((users || []).map((u: { id: string; email: string }) => [u.id, u.email]));
+
+          for (const claim of claimedData) {
+            if (claim.source_provider_id) {
+              const email = userEmailMap.get(claim.user_id);
+              claimMap.set(claim.source_provider_id, {
+                state: claim.claim_state as "claimed" | "pending",
+                email: email ? `${email.slice(0, 2)}***@${email.split("@")[1]}` : undefined,
+              });
+            }
+          }
+        }
       }
+
+      // Convert providers to SearchResult
+      for (const p of (providers as Provider[]) || []) {
+        const claimInfo = claimMap.get(p.provider_id);
+        results.push({
+          id: p.provider_id,
+          name: p.provider_name,
+          city: p.city,
+          state: p.state,
+          imageUrl: getProviderImage(p),
+          source: "olera-providers",
+          providerId: p.provider_id,
+          claimState: claimInfo?.state || "unclaimed",
+          ownerEmail: claimInfo?.email,
+        });
+      }
+
+      // 2. Search business_profiles (manually created profiles)
+      let profileQuery = supabase
+        .from("business_profiles")
+        .select("id, display_name, city, state, claim_state, user_id, avatar_url")
+        .eq("type", "organization");
+
+      if (name) {
+        profileQuery = profileQuery.ilike("display_name", `%${name}%`);
+      }
+      if (loc) {
+        const parts = loc.split(",").map((s) => s.trim());
+        if (parts.length >= 2 && parts[1].length <= 3) {
+          profileQuery = profileQuery.ilike("city", `%${parts[0]}%`);
+          profileQuery = profileQuery.ilike("state", `%${parts[1]}%`);
+        } else {
+          profileQuery = profileQuery.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
+        }
+      }
+
+      const { data: profiles } = await profileQuery.limit(10);
+
+      // Get owner emails for these profiles
+      if (profiles && profiles.length > 0) {
+        const userIds = profiles.map((p: { user_id: string }) => p.user_id).filter(Boolean);
+        const { data: users } = await supabase
+          .from("users")
+          .select("id, email")
+          .in("id", userIds);
+
+        const userEmailMap = new Map((users || []).map((u: { id: string; email: string }) => [u.id, u.email]));
+
+        for (const p of profiles) {
+          const email = userEmailMap.get(p.user_id);
+          results.push({
+            id: p.id,
+            name: p.display_name,
+            city: p.city,
+            state: p.state,
+            imageUrl: p.avatar_url,
+            source: "business_profiles",
+            profileId: p.id,
+            claimState: "claimed", // business_profiles are always "owned"
+            ownerEmail: email ? `${email.slice(0, 2)}***@${email.split("@")[1]}` : undefined,
+          });
+        }
+      }
+
+      // Dedupe by name (prefer olera-providers)
+      const seen = new Set<string>();
+      const dedupedResults = results.filter((r) => {
+        const key = r.name.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      setSearchResults(dedupedResults.slice(0, 10));
     } catch {
       setSearchError("Search failed. Please try again.");
       setSearchResults([]);
@@ -266,8 +312,10 @@ export default function ProviderOnboardingModal({
   };
 
   // Start claim flow (for unclaimed olera-providers)
-  const handleStartClaim = async (provider: Provider) => {
-    setClaimingProvider(provider);
+  const handleStartClaim = async (result: SearchResult) => {
+    if (!result.providerId) return;
+
+    setClaimingProvider(result);
     setVerifyCode("");
     setVerifyError("");
     setVerifyNoEmail(false);
@@ -278,7 +326,7 @@ export default function ProviderOnboardingModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          providerId: provider.provider_id,
+          providerId: result.providerId,
           sessionId: claimSession,
         }),
       });
@@ -302,19 +350,20 @@ export default function ProviderOnboardingModal({
     }
   };
 
-  // Sign in to claimed listing
-  const handleSignInToClaimedListing = (provider: Provider) => {
-    setSigningInToClaimedListing(provider);
-    setAuthEmail("");
-    setAuthCode("");
-    setAuthError("");
-    setAuthSent(false);
+  // Sign in to claimed listing (Bug fix #3)
+  const handleSignInToClaimedListing = (result: SearchResult) => {
+    setSigningInToClaimedListing(result);
+    // Pre-fill auth email if we have a hint
+    if (result.ownerEmail) {
+      // Don't set the masked email, let user type their full email
+      setAuthEmail("");
+    }
     setStep("auth");
   };
 
   // Verify claim code
   const handleVerifyCode = async () => {
-    if (!claimingProvider?.provider_id || verifyCode.length !== 6) return;
+    if (!claimingProvider?.providerId || verifyCode.length !== 6) return;
 
     setVerifyChecking(true);
     setVerifyError("");
@@ -324,7 +373,7 @@ export default function ProviderOnboardingModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          providerId: claimingProvider.provider_id,
+          providerId: claimingProvider.providerId,
           sessionId: claimSession,
           code: verifyCode,
         }),
@@ -348,7 +397,7 @@ export default function ProviderOnboardingModal({
 
   // Finalize claim after code verification
   const handleFinalizeClaim = async () => {
-    if (!claimingProvider?.provider_id) return;
+    if (!claimingProvider?.providerId) return;
 
     setFinalizingProfile(true);
 
@@ -357,7 +406,7 @@ export default function ProviderOnboardingModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          providerId: claimingProvider.provider_id,
+          providerId: claimingProvider.providerId,
           sessionId: claimSession,
         }),
       });
@@ -365,6 +414,7 @@ export default function ProviderOnboardingModal({
       const data = await res.json();
 
       if (!res.ok) {
+        // User needs to authenticate
         if (data.requiresAuth) {
           setAuthEmail(data.email || "");
           setStep("auth");
@@ -377,6 +427,7 @@ export default function ProviderOnboardingModal({
         return;
       }
 
+      // Successfully claimed - refresh and redirect to portal
       await refreshAccountData();
       router.push(`/provider/medjobs/candidates/${candidateSlug}?schedule=true`);
     } catch {
@@ -394,12 +445,13 @@ export default function ProviderOnboardingModal({
     setCreateSubmitting(true);
     setCreateError("");
 
+    // Save to auth flow
     setAuthEmail(createEmail.trim());
     setStep("auth");
     setCreateSubmitting(false);
   };
 
-  // Send OTP
+  // Send OTP (with cooldown - Bug fix #5)
   const handleSendOtp = async () => {
     if (!authEmail || resendCooldown > 0) return;
 
@@ -419,7 +471,7 @@ export default function ProviderOnboardingModal({
         setAuthError(error.message);
       } else {
         setAuthSent(true);
-        setResendCooldown(60);
+        setResendCooldown(60); // 60 second cooldown
       }
     } catch {
       setAuthError("Failed to send code");
@@ -428,7 +480,7 @@ export default function ProviderOnboardingModal({
     }
   };
 
-  // Verify OTP
+  // Verify OTP (Bug fix #6: better loading state during profile creation)
   const handleVerifyOtp = async () => {
     if (!authEmail || authCode.length !== 6) return;
 
@@ -449,6 +501,7 @@ export default function ProviderOnboardingModal({
         return;
       }
 
+      // Successfully authenticated - show better loading state
       setFinalizingProfile(true);
 
       // If signing into a claimed listing, just refresh and redirect
@@ -459,7 +512,7 @@ export default function ProviderOnboardingModal({
       }
 
       // If we were claiming, finalize claim
-      if (claimingProvider?.provider_id) {
+      if (claimingProvider?.providerId) {
         await handleFinalizeClaim();
         return;
       }
@@ -501,381 +554,191 @@ export default function ProviderOnboardingModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, authEmail]);
 
+  // Bug fix #1: REMOVED the problematic useEffect that redirected on user change
+  // This was causing a race condition where redirect happened before profile creation completed.
+  // The redirect now happens at the END of handleVerifyOtp/handleFinalizeClaim.
+
   const renderStep = () => {
     switch (step) {
       case "search":
         return (
-          <div className="h-full flex flex-col">
-            {/* ── State A: Initial search form ── */}
-            {!hasSearched && (
-              <div className="flex-1 flex items-center justify-center px-4">
-                <div className="w-full max-w-xl">
-                  <div className="text-center mb-8 lg:mb-14">
-                    <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
-                      Schedule an interview with {firstName}
-                    </h1>
-                    <p className="text-gray-500 mt-4 lg:mt-6 text-base lg:text-xl leading-relaxed">
-                      Find your business or create an account to get started
-                    </p>
-                  </div>
-
-                  {/* Pill-style search - EXACT copy from onboarding page */}
-                  <form onSubmit={handleSearch}>
-                    <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg ring-1 ring-gray-200/80 p-3 flex flex-col sm:flex-row sm:items-center gap-3">
-                      {/* Location input with dropdown */}
-                      <div ref={locationDropdownRef} className="relative flex-1">
-                        <div className={`flex items-center px-4 py-3 bg-gray-50 rounded-xl border transition-colors ${
-                          showLocationDropdown ? "border-primary-400 ring-2 ring-primary-100" : "border-gray-200 hover:border-gray-300"
-                        }`}>
-                          <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          <input
-                            type="text"
-                            aria-label="City or state"
-                            value={locationQuery}
-                            onChange={(e) => {
-                              setLocationQuery(e.target.value);
-                              setShowLocationDropdown(true);
-                            }}
-                            onFocus={() => {
-                              preloadCities();
-                              setShowLocationDropdown(true);
-                            }}
-                            placeholder="City or state"
-                            className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
-                          />
-                        </div>
-
-                        {/* Location suggestions dropdown */}
-                        {showLocationDropdown && cityResults.length > 0 && (
-                          <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
-                            {!locationQuery.trim() && (
-                              <div className="px-4 pt-1 pb-2">
-                                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
-                              </div>
-                            )}
-                            {cityResults.map((loc) => (
-                              <button
-                                key={loc.full}
-                                type="button"
-                                onClick={() => {
-                                  setLocationQuery(loc.full);
-                                  setShowLocationDropdown(false);
-                                }}
-                                className="flex items-center gap-3 w-full px-4 py-3 text-left text-base hover:bg-gray-50 transition-colors"
-                              >
-                                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                <span className="font-medium text-gray-700">{loc.full}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Divider */}
-                      <div className="hidden sm:block w-px h-8 bg-gray-200 shrink-0" />
-
-                      {/* Name input */}
-                      <div className="flex items-center flex-1 px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
-                        <input
-                          type="text"
-                          aria-label="Organization name"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          placeholder="Organization name"
-                          className="w-full bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
-                        />
-                      </div>
-
-                      {/* Search button */}
-                      <button
-                        type="submit"
-                        disabled={searching || (!searchQuery.trim() && !locationQuery.trim())}
-                        className="px-7 py-3 text-base font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all sm:shrink-0"
-                      >
-                        {searching ? (
-                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
-                        ) : (
-                          "Search"
-                        )}
-                      </button>
-                    </div>
-
-                    {searchError && (
-                      <p className="text-base text-red-600 mt-3 text-center">{searchError}</p>
-                    )}
-                  </form>
-
-                  <p className="text-center mt-6 text-base text-gray-500">
-                    or{" "}
-                    <button
-                      type="button"
-                      onClick={() => setStep("create")}
-                      className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
-                    >
-                      create a new account
-                    </button>
-                  </p>
-                </div>
+          <div className="space-y-8">
+            {/* Header - matches onboarding page style */}
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
               </div>
-            )}
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
+                Schedule an interview with {firstName}
+              </h1>
+              <p className="text-gray-500 mt-3 text-base sm:text-lg leading-relaxed">
+                Find your business or create an account to get started
+              </p>
+            </div>
 
-            {/* ── State B: Results found ── */}
-            {hasSearched && searchResults.length > 0 && (
-              <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Sticky search bar */}
-                <div className="shrink-0 bg-vanilla-100/95 backdrop-blur-sm border-b border-gray-200/60 px-4 py-3">
-                  <div className="max-w-2xl mx-auto">
-                    <form onSubmit={handleSearch}>
-                      <div className="bg-white rounded-xl shadow-sm ring-1 ring-gray-200/80 p-2.5 flex items-center gap-2.5">
-                        {/* Location input */}
-                        <div ref={locationDropdownRef} className="relative flex-1 min-w-0">
-                          <div className={`flex items-center px-3.5 py-2.5 bg-gray-50 rounded-lg border transition-colors ${
-                            showLocationDropdown ? "border-primary-400 ring-1 ring-primary-100" : "border-gray-200 hover:border-gray-300"
-                          }`}>
-                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <input
-                              type="text"
-                              aria-label="City or state"
-                              value={locationQuery}
-                              onChange={(e) => {
-                                setLocationQuery(e.target.value);
-                                setShowLocationDropdown(true);
-                              }}
-                              onFocus={() => {
-                                preloadCities();
-                                setShowLocationDropdown(true);
-                              }}
-                              placeholder="City or state"
-                              className="w-full ml-2.5 bg-transparent border-none text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
-                            />
-                          </div>
+            {/* Search form */}
+            <form onSubmit={handleSearch} className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Business name
+                </label>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="e.g., Sunrise Senior Living"
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                  autoFocus
+                />
+              </div>
 
-                          {/* Location suggestions dropdown */}
-                          {showLocationDropdown && cityResults.length > 0 && (
-                            <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
-                              {!locationQuery.trim() && (
-                                <div className="px-4 pt-1 pb-2">
-                                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
-                                </div>
-                              )}
-                              {cityResults.map((loc) => (
-                                <button
-                                  key={loc.full}
-                                  type="button"
-                                  onClick={() => {
-                                    setLocationQuery(loc.full);
-                                    setShowLocationDropdown(false);
-                                  }}
-                                  className="flex items-center gap-3 w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors"
-                                >
-                                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                  </svg>
-                                  <span className="font-medium text-gray-700">{loc.full}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Divider */}
-                        <div className="w-px h-7 bg-gray-200 shrink-0" />
-
-                        {/* Name input */}
-                        <div className="flex items-center flex-1 min-w-0 px-3.5 py-2.5 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-1 focus-within:ring-primary-100 transition-colors">
-                          <input
-                            type="text"
-                            aria-label="Organization name"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Organization name"
-                            className="w-full bg-transparent border-none text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
-                          />
-                        </div>
-
-                        {/* Search button - icon only */}
-                        <button
-                          type="submit"
-                          disabled={searching || (!searchQuery.trim() && !locationQuery.trim())}
-                          className="w-11 h-11 flex items-center justify-center text-white bg-primary-600 rounded-lg hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all shrink-0"
-                          aria-label="Search"
-                        >
-                          {searching ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                          )}
-                        </button>
-                      </div>
-                    </form>
-                    <div className="mt-2.5">
-                      <p className="text-sm text-gray-500">
-                        {searchResults.length} result{searchResults.length !== 1 ? "s" : ""}{searchQuery.trim() || locationQuery.trim() ? <> for {[searchQuery.trim(), locationQuery.trim()].filter(Boolean).join(" in ")}</> : ""}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Results grid - scrollable */}
-                <div className="flex-1 overflow-y-auto bg-vanilla-100 px-4 py-6">
-                  <div className="max-w-2xl mx-auto space-y-4">
-                    {searchResults.map((provider) => {
-                      const image = getProviderImage(provider);
-                      const locationText = [provider.city, provider.state].filter(Boolean).join(", ");
-                      const isClaimed = claimedIds.has(provider.provider_id);
-
-                      return (
-                        <div
-                          key={provider.provider_id}
-                          className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
-                        >
-                          <div className="flex">
-                            {/* Image */}
-                            <div className="w-32 sm:w-40 min-h-[120px] sm:min-h-[140px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
-                              {image ? (
-                                <Image
-                                  src={image}
-                                  alt={provider.provider_name}
-                                  fill
-                                  className="object-cover"
-                                  sizes="160px"
-                                />
-                              ) : (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
-                                    <span className="text-base sm:text-lg font-bold text-primary-400">
-                                      {(provider.provider_name || "")
-                                        .split(/\s+/)
-                                        .map((w) => w[0])
-                                        .filter(Boolean)
-                                        .slice(0, 2)
-                                        .join("")
-                                        .toUpperCase()}
-                                    </span>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Content */}
-                            <div className="flex-1 p-4 sm:p-5 min-w-0 flex flex-col">
-                              {locationText && (
-                                <p className="text-xs sm:text-sm text-gray-500 mb-0.5">{locationText}</p>
-                              )}
-                              <h3 className="text-base sm:text-lg font-bold text-gray-900 leading-snug line-clamp-1">
-                                {provider.provider_name}
-                              </h3>
-
-                              {/* Helper text */}
-                              <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                                {isClaimed ? "Already managed." : "Unclaimed page."}
-                              </p>
-
-                              {/* Spacer */}
-                              <div className="flex-1 min-h-2" />
-
-                              {/* Actions */}
-                              <div className="flex items-center justify-end">
-                                {isClaimed ? (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleSignInToClaimedListing(provider)}
-                                    className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
-                                  >
-                                    Sign in →
-                                  </button>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleStartClaim(provider)}
-                                    className="px-4 py-2 text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-lg transition-all"
-                                  >
-                                    This is me →
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-
-                    {/* CTA: Don't see your organization? */}
-                    <div className="mt-6 text-center py-8 bg-white rounded-xl border border-gray-200">
-                      <p className="text-lg font-semibold text-gray-900 mb-1">
-                        Don&apos;t see your organization?
-                      </p>
-                      <p className="text-base text-gray-500 mb-5">
-                        Create a new listing from scratch
-                      </p>
+              <div className="relative" ref={locationDropdownRef}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  City or state <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={locationQuery}
+                  onChange={(e) => {
+                    setLocationQuery(e.target.value);
+                    setShowLocationDropdown(true);
+                  }}
+                  onFocus={() => setShowLocationDropdown(true)}
+                  placeholder="e.g., Dallas, TX"
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                />
+                {showLocationDropdown && cityResults.length > 0 && (
+                  <div className="absolute z-50 mt-1 w-full bg-white rounded-xl border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
+                    {cityResults.map((c) => (
                       <button
+                        key={`${c.city}-${c.state}`}
                         type="button"
                         onClick={() => {
-                          setCreateName(searchQuery);
-                          setStep("create");
+                          setLocationQuery(`${c.city}, ${c.state}`);
+                          setShowLocationDropdown(false);
                         }}
-                        className="px-7 py-3 text-base font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-500 transition-all shadow-sm"
+                        className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
                       >
-                        Set up a new page
+                        {c.city}, {c.state}
                       </button>
-                    </div>
+                    ))}
                   </div>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full py-3.5 text-base"
+                disabled={searching || (!searchQuery.trim() && !locationQuery.trim())}
+              >
+                {searching ? "Searching..." : "Search"}
+              </Button>
+            </form>
+
+            {/* Search results */}
+            {hasSearched && (
+              <div className="space-y-4 mt-8">
+                {searchError && (
+                  <p className="text-sm text-red-600 text-center">{searchError}</p>
+                )}
+
+                {searchResults.length > 0 ? (
+                  <>
+                    <p className="text-sm text-gray-500 text-center">
+                      {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} found
+                    </p>
+                    <div className="space-y-3 max-h-[280px] overflow-y-auto">
+                      {searchResults.map((result) => {
+                        const isClaimed = result.claimState === "claimed" || result.claimState === "pending";
+                        return (
+                          <div
+                            key={result.id}
+                            className="flex items-center gap-4 p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
+                          >
+                            <div className="w-14 h-14 rounded-xl bg-gray-200 overflow-hidden shrink-0">
+                              {result.imageUrl ? (
+                                <Image
+                                  src={result.imageUrl}
+                                  alt={result.name}
+                                  width={56}
+                                  height={56}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xl font-semibold bg-gradient-to-br from-primary-50 to-gray-100">
+                                  {result.name.charAt(0)}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-gray-900 truncate">
+                                {result.name}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {[result.city, result.state].filter(Boolean).join(", ") || "Location not specified"}
+                              </p>
+                            </div>
+                            {isClaimed ? (
+                              <button
+                                type="button"
+                                onClick={() => handleSignInToClaimedListing(result)}
+                                className="px-4 py-2 text-sm font-semibold text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors shrink-0"
+                              >
+                                Sign in
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleStartClaim(result)}
+                                className="px-4 py-2 text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-xl transition-colors shrink-0"
+                              >
+                                This is me
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-6">
+                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                      </svg>
+                    </div>
+                    <p className="text-gray-500">No businesses found matching your search.</p>
+                  </div>
+                )}
+
+                {/* Create new option */}
+                <div className="pt-6 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCreateName(searchQuery);
+                      setStep("create");
+                    }}
+                    className="w-full text-center text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                  >
+                    Don&apos;t see your business? Create a new account →
+                  </button>
                 </div>
               </div>
             )}
 
-            {/* ── State C: No results ── */}
-            {hasSearched && searchResults.length === 0 && (
-              <div className="flex-1 flex items-center justify-center px-4">
-                <div className="w-full max-w-md text-center">
-                  <div className="w-14 h-14 rounded-full bg-white shadow-sm flex items-center justify-center mx-auto mb-6">
-                    <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  </div>
-
-                  <h2 className="text-2xl font-display font-semibold text-gray-900 mb-2">
-                    No matches found
-                  </h2>
-                  <p className="text-gray-500 text-base leading-relaxed mb-8">
-                    We couldn&apos;t find any listings{(searchQuery.trim() || locationQuery.trim()) ? <> for {[searchQuery.trim(), locationQuery.trim()].filter(Boolean).join(" in ")}</> : ""}
-                  </p>
-
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setHasSearched(false);
-                        setSearchResults([]);
-                      }}
-                      className="px-6 py-2.5 text-sm font-semibold text-gray-700 bg-white rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors"
-                    >
-                      Try a different search
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCreateName(searchQuery);
-                        setStep("create");
-                      }}
-                      className="px-6 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-500 transition-colors"
-                    >
-                      Create new listing
-                    </button>
-                  </div>
-                </div>
+            {/* Direct create option */}
+            {!hasSearched && (
+              <div className="pt-6 border-t border-gray-100 text-center">
+                <button
+                  type="button"
+                  onClick={() => setStep("create")}
+                  className="text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                >
+                  Skip search and create account →
+                </button>
               </div>
             )}
           </div>
@@ -885,29 +748,246 @@ export default function ProviderOnboardingModal({
         // Show finalizing state when creating profile
         if (finalizingProfile) {
           return (
-            <div className="h-full flex items-center justify-center px-4">
-              <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
-                  <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
-                  Claiming your business...
-                </h1>
-                <p className="text-gray-500 mt-3 text-base sm:text-lg">This will only take a moment</p>
+            <div className="text-center py-12">
+              <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
+                <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
               </div>
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
+                Claiming your business...
+              </h1>
+              <p className="text-gray-500 mt-3 text-base sm:text-lg">This will only take a moment</p>
             </div>
           );
         }
 
         return (
-          <div className="h-full flex items-center justify-center px-4">
-            <div className="w-full max-w-lg space-y-8">
-              {/* Back button */}
+          <div className="space-y-8">
+            {/* Back button */}
+            <button
+              type="button"
+              onClick={() => {
+                setStep("search");
+                setClaimingProvider(null);
+              }}
+              className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to search
+            </button>
+
+            {/* Header */}
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                </svg>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
+                Verify your business
+              </h1>
+              {claimingProvider && (
+                <p className="text-gray-500 mt-3 text-base sm:text-lg">
+                  Claiming <strong className="text-gray-700">{claimingProvider.name}</strong>
+                </p>
+              )}
+            </div>
+
+            {verifySending ? (
+              <div className="text-center py-8">
+                <div className="w-10 h-10 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto" />
+                <p className="text-gray-500 mt-4 text-base">Sending verification code...</p>
+              </div>
+            ) : verifyNoEmail ? (
+              <div className="text-center py-6 px-4 bg-amber-50 rounded-xl border border-amber-100">
+                <svg className="w-10 h-10 text-amber-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                <p className="text-amber-800 font-medium">
+                  We don&apos;t have an email on file for this business.
+                </p>
+                <p className="text-amber-700 mt-2">
+                  Please contact us at{" "}
+                  <a href="mailto:hello@olera.care" className="font-medium underline hover:no-underline">
+                    hello@olera.care
+                  </a>{" "}
+                  to verify your ownership.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <p className="text-gray-500 text-center text-base">
+                  We sent a 6-digit code to{" "}
+                  <strong className="text-gray-700">{verifyEmailHint || "your email"}</strong>
+                </p>
+
+                <div className="flex justify-center">
+                  <OtpInput
+                    length={6}
+                    value={verifyCode}
+                    onChange={setVerifyCode}
+                    disabled={verifyChecking}
+                  />
+                </div>
+
+                {verifyError && (
+                  <p className="text-sm text-red-600 text-center">{verifyError}</p>
+                )}
+
+                <Button
+                  onClick={handleVerifyCode}
+                  disabled={verifyCode.length !== 6 || verifyChecking}
+                  className="w-full py-3.5 text-base"
+                >
+                  {verifyChecking ? "Verifying..." : "Verify & Continue"}
+                </Button>
+              </div>
+            )}
+          </div>
+        );
+
+      case "create":
+        return (
+          <div className="space-y-8">
+            {/* Back button */}
+            <button
+              type="button"
+              onClick={() => setStep("search")}
+              className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to search
+            </button>
+
+            {/* Header */}
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
+                Create your account
+              </h1>
+              <p className="text-gray-500 mt-3 text-base sm:text-lg leading-relaxed">
+                Set up a provider account to schedule interviews
+              </p>
+            </div>
+
+            <form onSubmit={handleCreateSubmit} className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Business email
+                </label>
+                <input
+                  type="email"
+                  value={createEmail}
+                  onChange={(e) => setCreateEmail(e.target.value)}
+                  placeholder="you@company.com"
+                  required
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                  autoFocus
+                />
+                <p className="text-xs text-gray-400 mt-2">
+                  Use your work email for faster verification
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Business name
+                </label>
+                <input
+                  type="text"
+                  value={createName}
+                  onChange={(e) => setCreateName(e.target.value)}
+                  placeholder="Your company name"
+                  required
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                />
+              </div>
+
+              <div className="relative" ref={cityPickerRef}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  City <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={createCity}
+                  onChange={(e) => {
+                    setCreateCity(e.target.value);
+                    setShowCityPicker(true);
+                  }}
+                  onFocus={() => setShowCityPicker(true)}
+                  placeholder="e.g., Dallas"
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                />
+                {showCityPicker && cityPickerResults.length > 0 && (
+                  <div className="absolute z-50 mt-1 w-full bg-white rounded-xl border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
+                    {cityPickerResults.map((c) => (
+                      <button
+                        key={`${c.city}-${c.state}`}
+                        type="button"
+                        onClick={() => {
+                          setCreateCity(c.city);
+                          setCreateState(c.state);
+                          setShowCityPicker(false);
+                        }}
+                        className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
+                      >
+                        {c.city}, {c.state}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {createError && (
+                <p className="text-sm text-red-600 text-center">{createError}</p>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full py-3.5 text-base"
+                disabled={!createEmail.trim() || !createName.trim() || createSubmitting}
+              >
+                {createSubmitting ? "Creating..." : "Continue"}
+              </Button>
+            </form>
+          </div>
+        );
+
+      case "auth":
+        // Show better loading state during profile setup
+        if (finalizingProfile) {
+          return (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
+                <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
+                Setting up your account...
+              </h1>
+              <p className="text-gray-500 mt-3 text-base sm:text-lg">This will only take a moment</p>
+            </div>
+          );
+        }
+
+        return (
+          <div className="space-y-8">
+            {/* Back button */}
+            {signingInToClaimedListing && (
               <button
                 type="button"
                 onClick={() => {
+                  setSigningInToClaimedListing(null);
                   setStep("search");
-                  setClaimingProvider(null);
+                  setAuthSent(false);
+                  setAuthCode("");
+                  setAuthEmail("");
                 }}
                 className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
               >
@@ -916,342 +996,114 @@ export default function ProviderOnboardingModal({
                 </svg>
                 Back to search
               </button>
+            )}
 
-              {/* Header */}
-              <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
-                  <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                  </svg>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
-                  Verify your business
-                </h1>
-                {claimingProvider && (
-                  <p className="text-gray-500 mt-3 text-base sm:text-lg">
-                    Claiming <strong className="text-gray-700">{claimingProvider.provider_name}</strong>
-                  </p>
-                )}
+            {/* Header */}
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                </svg>
               </div>
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
+                {signingInToClaimedListing ? "Sign in to your account" : "Verify your email"}
+              </h1>
+              {signingInToClaimedListing && (
+                <p className="text-gray-600 mt-2 font-medium">
+                  {signingInToClaimedListing.name}
+                </p>
+              )}
+              <p className="text-gray-500 mt-3 text-base sm:text-lg">
+                {authSent
+                  ? <>Enter the code sent to <strong className="text-gray-700">{authEmail}</strong></>
+                  : signingInToClaimedListing?.ownerEmail
+                    ? <>Enter your email <span className="text-gray-400">(hint: {signingInToClaimedListing.ownerEmail})</span></>
+                    : "We'll send a verification code to your email"}
+              </p>
+            </div>
 
-              {verifySending ? (
-                <div className="text-center py-8">
-                  <div className="w-10 h-10 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                  <p className="text-gray-500 mt-4 text-base">Sending verification code...</p>
-                </div>
-              ) : verifyNoEmail ? (
-                <div className="text-center py-6 px-4 bg-amber-50 rounded-xl border border-amber-100">
-                  <svg className="w-10 h-10 text-amber-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                  </svg>
-                  <p className="text-amber-800 font-medium">
-                    We don&apos;t have an email on file for this business.
-                  </p>
-                  <p className="text-amber-700 mt-2">
-                    Please contact us at{" "}
-                    <a href="mailto:hello@olera.care" className="font-medium underline hover:no-underline">
-                      hello@olera.care
-                    </a>{" "}
-                    to verify your ownership.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <p className="text-gray-500 text-center text-base">
-                    We sent a 6-digit code to{" "}
-                    <strong className="text-gray-700">{verifyEmailHint || "your email"}</strong>
-                  </p>
-
-                  <div className="flex justify-center">
-                    <OtpInput
-                      length={6}
-                      value={verifyCode}
-                      onChange={setVerifyCode}
-                      disabled={verifyChecking}
+            {!authSent ? (
+              <div className="space-y-5">
+                {/* Email input */}
+                {signingInToClaimedListing && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email address
+                    </label>
+                    <input
+                      type="email"
+                      value={authEmail}
+                      onChange={(e) => setAuthEmail(e.target.value)}
+                      placeholder="you@company.com"
+                      className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                      autoFocus
                     />
                   </div>
+                )}
 
-                  {verifyError && (
-                    <p className="text-sm text-red-600 text-center">{verifyError}</p>
-                  )}
-
-                  <Button
-                    onClick={handleVerifyCode}
-                    disabled={verifyCode.length !== 6 || verifyChecking}
-                    className="w-full py-3.5 text-base"
-                  >
-                    {verifyChecking ? "Verifying..." : "Verify & Continue"}
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-
-      case "create":
-        return (
-          <div className="h-full flex items-center justify-center px-4">
-            <div className="w-full max-w-lg space-y-8">
-              {/* Back button */}
-              <button
-                type="button"
-                onClick={() => setStep("search")}
-                className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Back to search
-              </button>
-
-              {/* Header */}
-              <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
-                  <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
-                  Create your account
-                </h1>
-                <p className="text-gray-500 mt-3 text-base sm:text-lg leading-relaxed">
-                  Set up a provider account to schedule interviews
-                </p>
+                {authSending ? (
+                  <div className="text-center py-8">
+                    <div className="w-10 h-10 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-gray-500 mt-4 text-base">Sending verification code...</p>
+                  </div>
+                ) : (
+                  <>
+                    {authError && (
+                      <p className="text-sm text-red-600 text-center">{authError}</p>
+                    )}
+                    <Button
+                      onClick={handleSendOtp}
+                      className="w-full py-3.5 text-base"
+                      disabled={!authEmail || resendCooldown > 0}
+                    >
+                      {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Send verification code"}
+                    </Button>
+                  </>
+                )}
               </div>
-
-              <form onSubmit={handleCreateSubmit} className="space-y-5">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Business email
-                  </label>
-                  <input
-                    type="email"
-                    value={createEmail}
-                    onChange={(e) => setCreateEmail(e.target.value)}
-                    placeholder="you@company.com"
-                    required
-                    className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                    autoFocus
-                  />
-                  <p className="text-xs text-gray-400 mt-2">
-                    Use your work email for faster verification
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Business name
-                  </label>
-                  <input
-                    type="text"
-                    value={createName}
-                    onChange={(e) => setCreateName(e.target.value)}
-                    placeholder="Your company name"
-                    required
-                    className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+            ) : (
+              <div className="space-y-6">
+                <div className="flex justify-center">
+                  <OtpInput
+                    length={6}
+                    value={authCode}
+                    onChange={setAuthCode}
+                    disabled={authVerifying}
                   />
                 </div>
 
-                <div className="relative" ref={cityPickerRef}>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    City <span className="text-gray-400 font-normal">(optional)</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={createCity}
-                    onChange={(e) => {
-                      setCreateCity(e.target.value);
-                      setShowCityPicker(true);
-                    }}
-                    onFocus={() => {
-                      preloadCityPicker();
-                      setShowCityPicker(true);
-                    }}
-                    placeholder="e.g., Dallas"
-                    className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                  />
-                  {showCityPicker && cityPickerResults.length > 0 && (
-                    <div className="absolute z-50 mt-1 w-full bg-white rounded-xl border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
-                      {cityPickerResults.map((c) => (
-                        <button
-                          key={c.full}
-                          type="button"
-                          onClick={() => {
-                            setCreateCity(c.city);
-                            setCreateState(c.state);
-                            setShowCityPicker(false);
-                          }}
-                          className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
-                        >
-                          {c.full}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {createError && (
-                  <p className="text-sm text-red-600 text-center">{createError}</p>
+                {authError && (
+                  <p className="text-sm text-red-600 text-center">{authError}</p>
                 )}
 
                 <Button
-                  type="submit"
+                  onClick={handleVerifyOtp}
+                  disabled={authCode.length !== 6 || authVerifying}
                   className="w-full py-3.5 text-base"
-                  disabled={!createEmail.trim() || !createName.trim() || createSubmitting}
                 >
-                  {createSubmitting ? "Creating..." : "Continue"}
+                  {authVerifying ? "Verifying..." : "Verify & Continue"}
                 </Button>
-              </form>
-            </div>
-          </div>
-        );
 
-      case "auth":
-        // Show better loading state during profile setup
-        if (finalizingProfile) {
-          return (
-            <div className="h-full flex items-center justify-center px-4">
-              <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
-                  <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
-                  Setting up your account...
-                </h1>
-                <p className="text-gray-500 mt-3 text-base sm:text-lg">This will only take a moment</p>
-              </div>
-            </div>
-          );
-        }
-
-        return (
-          <div className="h-full flex items-center justify-center px-4">
-            <div className="w-full max-w-lg space-y-8">
-              {/* Back button */}
-              {signingInToClaimedListing && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSigningInToClaimedListing(null);
-                    setStep("search");
-                    setAuthSent(false);
-                    setAuthCode("");
-                    setAuthEmail("");
-                  }}
-                  className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                  Back to search
-                </button>
-              )}
-
-              {/* Header */}
-              <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
-                  <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                  </svg>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
-                  {signingInToClaimedListing ? "Sign in to your account" : "Verify your email"}
-                </h1>
-                {signingInToClaimedListing && (
-                  <p className="text-gray-600 mt-2 font-medium">
-                    {signingInToClaimedListing.provider_name}
-                  </p>
-                )}
-                <p className="text-gray-500 mt-3 text-base sm:text-lg">
-                  {authSent
-                    ? <>Enter the code sent to <strong className="text-gray-700">{authEmail}</strong></>
-                    : "We'll send a verification code to your email"}
-                </p>
-              </div>
-
-              {!authSent ? (
-                <div className="space-y-5">
-                  {/* Email input for claimed listing sign-in */}
-                  {signingInToClaimedListing && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email address
-                      </label>
-                      <input
-                        type="email"
-                        value={authEmail}
-                        onChange={(e) => setAuthEmail(e.target.value)}
-                        placeholder="you@company.com"
-                        className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                        autoFocus
-                      />
-                    </div>
-                  )}
-
-                  {authSending ? (
-                    <div className="text-center py-8">
-                      <div className="w-10 h-10 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                      <p className="text-gray-500 mt-4 text-base">Sending verification code...</p>
-                    </div>
+                {/* Resend with cooldown */}
+                <div className="text-center">
+                  {resendCooldown > 0 ? (
+                    <p className="text-sm text-gray-400">Resend code in {resendCooldown}s</p>
                   ) : (
-                    <>
-                      {authError && (
-                        <p className="text-sm text-red-600 text-center">{authError}</p>
-                      )}
-                      <Button
-                        onClick={handleSendOtp}
-                        className="w-full py-3.5 text-base"
-                        disabled={!authEmail || resendCooldown > 0}
-                      >
-                        {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Send verification code"}
-                      </Button>
-                    </>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthSent(false);
+                        setAuthCode("");
+                        handleSendOtp();
+                      }}
+                      className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                    >
+                      Didn&apos;t receive code? Send again
+                    </button>
                   )}
                 </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="flex justify-center">
-                    <OtpInput
-                      length={6}
-                      value={authCode}
-                      onChange={setAuthCode}
-                      disabled={authVerifying}
-                    />
-                  </div>
-
-                  {authError && (
-                    <p className="text-sm text-red-600 text-center">{authError}</p>
-                  )}
-
-                  <Button
-                    onClick={handleVerifyOtp}
-                    disabled={authCode.length !== 6 || authVerifying}
-                    className="w-full py-3.5 text-base"
-                  >
-                    {authVerifying ? "Verifying..." : "Verify & Continue"}
-                  </Button>
-
-                  {/* Resend with cooldown */}
-                  <div className="text-center">
-                    {resendCooldown > 0 ? (
-                      <p className="text-sm text-gray-400">Resend code in {resendCooldown}s</p>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAuthSent(false);
-                          setAuthCode("");
-                          handleSendOtp();
-                        }}
-                        className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
-                      >
-                        Didn&apos;t receive code? Send again
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         );
     }
@@ -1264,8 +1116,11 @@ export default function ProviderOnboardingModal({
       size="fullscreen"
       hideHeader
     >
-      <div className={`h-full ${hasSearched && searchResults.length > 0 ? "bg-vanilla-100" : "bg-white"}`}>
-        {renderStep()}
+      {/* Centered content wrapper - matches onboarding page aesthetic */}
+      <div className="h-full flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-lg">
+          {renderStep()}
+        </div>
       </div>
     </Modal>
   );

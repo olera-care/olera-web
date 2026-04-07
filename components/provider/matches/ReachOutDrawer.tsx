@@ -16,6 +16,10 @@ interface ReachOutDrawerProps {
   providerPaymentMethods?: string[];
   sending?: boolean;
   sendError?: string | null;
+  /** Whether the provider is verified */
+  isVerified?: boolean;
+  /** Callback when provider wants to verify */
+  onVerifyClick?: () => void;
 }
 
 // ── Helpers ──
@@ -203,6 +207,8 @@ export default function ReachOutDrawer({
   providerProfile,
   sending = false,
   sendError,
+  isVerified = false,
+  onVerifyClick,
 }: ReachOutDrawerProps) {
   const [message, setMessage] = useState("");
   const [saveAsDefault, setSaveAsDefault] = useState(false);
@@ -527,7 +533,14 @@ export default function ReachOutDrawer({
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{providerName}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-medium text-gray-900 truncate">{providerName}</p>
+                  {isVerified && (
+                    <svg className="w-4 h-4 text-[#2a7a6e] shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                      <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
                 {providerLocation && (
                   <p className="text-xs text-gray-500 truncate">{providerLocation}</p>
                 )}
@@ -539,6 +552,23 @@ export default function ReachOutDrawer({
                 Your profile
               </Link>
             </div>
+
+            {/* Soft verification nudge for unverified providers */}
+            {!isVerified && (
+              <button
+                type="button"
+                onClick={onVerifyClick}
+                className="w-full mt-2.5 flex items-center justify-center gap-1.5 px-3 py-2 text-xs text-gray-500 hover:text-[#2a7a6e] bg-white border border-gray-200 hover:border-[#2a7a6e]/30 rounded-lg transition-colors group"
+              >
+                <svg className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#2a7a6e] transition-colors" viewBox="0 0 24 24" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                </svg>
+                <span>Verified providers get 2x more responses</span>
+                <svg className="w-3 h-3 text-gray-400 group-hover:text-[#2a7a6e] transition-colors" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 

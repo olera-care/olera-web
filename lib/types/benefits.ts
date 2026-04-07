@@ -229,6 +229,12 @@ export interface BenefitProgram {
   state_code: string | null;
   savings_range: string | null;
   waiver_library_url: string | null;
+  // Verification metadata
+  source_url: string | null;
+  last_verified_date: string | null;
+  verified_by: string | null;
+  savings_source: string | null;
+  savings_verified: boolean;
 }
 
 /** Matches the Supabase `sbf_area_agencies` schema */

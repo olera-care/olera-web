@@ -1,0 +1,1003 @@
+{
+  "state": "MI",
+  "stateName": "Michigan",
+  "diveAt": "2026-04-07T01:01:37.176Z",
+  "total": 16,
+  "parsed": 16,
+  "programs": [
+    {
+      "name": "MI Health Link",
+      "eligibility": {
+        "age": 21,
+        "income_limits": "Must qualify for full Medicaid benefits (dually eligible with Medicare); no specific dollar amounts listed for MI Health Link as it requires full Medicaid eligibility. General Michigan Medicaid income limits are approximately $18,000 for an individual or $24,000 for a couple (at or below 133% FPL), but MI Health Link excludes those with spend down. Spousal allowances: minimum $2,643.75/month, maximum $3,948/month (2025 figures).[1][2][6]",
+        "asset_limits": "Must meet full Medicaid asset limits (not explicitly quantified here); home equity exempt up to $730,000 if applicant lives there or intends to return, spouse lives there, or dependent child lives there. Other standard Medicaid asset rules apply.[1]",
+        "other_requirements": [
+          "Dually eligible for both full Medicare and full Medicaid",
+          "Live in specific counties: Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, Macomb, St. Joseph, Van Buren, Wayne, or any Upper Peninsula county",
+          "Not residing in a state-operated veteran's home",
+          "Not currently enrolled in hospice",
+          "Not eligible if enrolled in PACE or MI Choice (must leave those programs)",
+          "People with Medicaid spend down are not eligible",
+          "Nursing Facility Level of Care (NFLOC) required for HCBS, determined by Michigan Medicaid LOCD tool (assesses ADLs, cognition, behavior)[1][2][3][4]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Integrated care including: no co-pays or deductibles for in-network services; medications (replaces Medicare Part D); care coordination; behavioral health care; dental care; hearing care; Medicare-covered care; vision care; home and community-based services (HCBS); nursing home care. Personal care services determined by ICO based on needs assessment, including paid family caregivers.[2][7]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Automatic: Eligible individuals receive enrollment options letter from Michigan ENROLLS[2]",
+          "Contact MI ENROLLS for assistance (specific phone/website not in results; apply via Medicaid channels or local MDHHS office)",
+          "Forms: Authorization to Disclose Protected Health Information (DCH-1183), Behavioral Health Consent Form (MDHHS-5515)[2]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": null,
+        "forms": [
+          "DCH-1183 (Authorization to Disclose Protected Health Information)",
+          "MDHHS-5515 (Behavioral Health Consent Form)"
+        ],
+        "documents": [
+          "Proof of Medicare and Medicaid eligibility",
+          "Proof of residency in eligible county",
+          "Medical documentation for NFLOC if seeking HCBS",
+          "Consent forms (DCH-1183, MDHHS-5515)"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Limited to counties: Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, Macomb, St. Joseph, Van Buren, Wayne, or any Upper Peninsula county",
+        "regional_variations": "Operates in four regions with different providers; services coordinated through regional Integrated Care Organizations (ICOs)[2][3]",
+        "offices_or_providers": [
+          "Regional ICOs varying by eligible counties"
+        ]
+      },
+      "official_source": "https://www.michigan.gov/mdhhs/doing-business/providers/integrated",
+      "gotchas": [
+        "Must leave PACE or MI Choice programs to join",
+        "Medicaid spend down disqualifies",
+        "MI Health Link Part D replaces Medicare Part D drug plan",
+        "Nursing home residents must continue paying patient pay amount",
+        "Limited to specific counties only—not statewide",
+        "Requires NFLOC for HCBS, assessed via LOCD tool"
+      ],
+      "data_shape_notes": "County-restricted to specific lower peninsula counties plus entire Upper Peninsula; dual eligibility mandatory with full Medicaid (no spend down); regional ICO providers; automatic enrollment outreach via Michigan ENROLLS",
+      "_raw": "{\n  \"name\": \"MI Health Link\",\n  \"eligibility\": {\n    \"age\": 21,\n    \"income_limits\": \"Must qualify for full Medicaid benefits (dually eligible with Medicare); no specific dollar amounts listed for MI Health Link as it requires full Medicaid eligibility. General Michigan Medicaid income limits are approximately $18,000 for an individual or $24,000 for a couple (at or below 133% FPL), but MI Health Link excludes those with spend down. Spousal allowances: minimum $2,643.75/month, maximum $3,948/month (2025 figures).[1][2][6]\",\n    \"asset_limits\": \"Must meet full Medicaid asset limits (not explicitly quantified here); home equity exempt up to $730,000 if applicant lives there or intends to return, spouse lives there, or dependent child lives there. Other standard Medicaid asset rules apply.[1]\",\n    \"other_requirements\": [\n      \"Dually eligible for both full Medicare and full Medicaid\",\n      \"Live in specific counties: Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, Macomb, St. Joseph, Van Buren, Wayne, or any Upper Peninsula county\",\n      \"Not residing in a state-operated veteran's home\",\n      \"Not currently enrolled in hospice\",\n      \"Not eligible if enrolled in PACE or MI Choice (must leave those programs)\",\n      \"People with Medicaid spend down are not eligible\",\n      \"Nursing Facility Level of Care (NFLOC) required for HCBS, determined by Michigan Medicaid LOCD tool (assesses ADLs, cognition, behavior)[1][2][3][4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Integrated care including: no co-pays or deductibles for in-network services; medications (replaces Medicare Part D); care coordination; behavioral health care; dental care; hearing care; Medicare-covered care; vision care; home and community-based services (HCBS); nursing home care. Personal care services determined by ICO based on needs assessment, including paid family caregivers.[2][7]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Automatic: Eligible individuals receive enrollment options letter from Michigan ENROLLS[2]\",\n      \"Contact MI ENROLLS for assistance (specific phone/website not in results; apply via Medicaid channels or local MDHHS office)\",\n      \"Forms: Authorization to Disclose Protected Health Information (DCH-1183), Behavioral Health Consent Form (MDHHS-5515)[2]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"DCH-1183 (Authorization to Disclose Protected Health Information)\",\n      \"MDHHS-5515 (Behavioral Health Consent Form)\"\n    ],\n    \"documents\": [\n      \"Proof of Medicare and Medicaid eligibility\",\n      \"Proof of residency in eligible county\",\n      \"Medical documentation for NFLOC if seeking HCBS\",\n      \"Consent forms (DCH-1183, MDHHS-5515)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to counties: Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, Macomb, St. Joseph, Van Buren, Wayne, or any Upper Peninsula county\",\n    \"regional_variations\": \"Operates in four regions with different providers; services coordinated through regional Integrated Care Organizations (ICOs)[2][3]\",\n    \"offices_or_providers\": [\"Regional ICOs varying by eligible counties\"]\n  },\n  \"official_source\": \"https://www.michigan.gov/mdhhs/doing-business/providers/integrated\",\n  \"gotchas\": [\n    \"Must leave PACE or MI Choice programs to join\",\n    \"Medicaid spend down disqualifies\",\n    \"MI Health Link Part D replaces Medicare Part D drug plan\",\n    \"Nursing home residents must continue paying patient pay amount\",\n    \"Limited to specific counties only—not statewide\",\n    \"Requires NFLOC for HCBS, assessed via LOCD tool\"\n  ],\n  \"data_shape_notes\": \"County-restricted to specific lower peninsula counties plus entire Upper Peninsula; dual eligibility mandatory with full Medicaid (no spend down); regional ICO providers; automatic enrollment outreach via Michigan ENROLLS\"\n}"
+    },
+    {
+      "name": "MI Choice Medicaid Waiver",
+      "eligibility": {
+        "age": "65 or older, or 18-64 with a disability",
+        "income_limits": "Monthly income up to 300% of the Federal Benefit Rate (FBR), which adjusts annually. In 2025: $2,901 per applicant regardless of marital status (each spouse assessed individually if both apply). Recent regional figures: $2,982 (2026 estimate based on sources).[1][3][8]",
+        "asset_limits": "Countable assets limited to approximately $9,950 (excludes primary residence, one vehicle). Assets given away or sold below fair market value within 60 months trigger a Look-Back Rule penalty period. Home exempt during benefits but subject to Medicaid Estate Recovery. Federal spousal protection rules apply for married couples.[1][3][8]",
+        "other_requirements": [
+          "Nursing Facility Level of Care (NFLOC) determined via in-person Michigan Medicaid LOCD assessment (activities of daily living, cognitive abilities, behavior).",
+          "Must require supports coordination plus at least one other waiver service.",
+          "Medicaid-eligible financially and medically for long-term care."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home and community-based services equivalent to nursing home level: supports coordination, adult day health, respite, specialized medical equipment/supplies, private duty nursing/respiratory care, personal emergency response system (PERS), home delivered meals, chore services, community living supports, community transportation, counseling, environmental accessibility adaptations, training, vehicle modifications, fiscal intermediary, goods/services, supports brokerage, community health worker, residential services, nursing services. Provided by home health agencies, community health workers, or paid family caregivers. Person-centered plan developed by nurse/social worker team.[2][4][7][8]",
+        "varies_by": "individualized_plan_based_on_assessed_needs"
+      },
+      "application": {
+        "methods": [
+          "Phone: Regional MI Choice agencies (e.g., AAANM 1-800-442-1713, Area Agency on Aging 800-654-2810, The Senior Alliance 734.722.2830, or local Access and Eligibility Specialists).[3][8][9]",
+          "Online referral forms: Agency-specific (e.g., The Senior Alliance referral form).[8]",
+          "In-person or in-home: Assessment by Supports Coordinator (nurse/social worker) after phone screening."
+        ],
+        "processing_time": "Initial phone screening followed by in-home assessment if qualified; timeline not specified statewide.",
+        "waitlist": "Possible if program at capacity in region; placement after screening.[3]",
+        "forms": [
+          "MI Choice Waiver Renewal Application (for renewals); agency-specific referral forms for initial intake.[6][8]"
+        ],
+        "documents": [
+          "Income verification (e.g., benefit statements, pay stubs).",
+          "Asset documentation (bank statements, property deeds excluding exempt items).",
+          "Medical records or health history for LOCD assessment.",
+          "Proof of residency and Medicaid status."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available in all Michigan counties since October 1, 1998, but accessed via regional agencies.",
+        "regional_variations": "Administered by local Area Agencies on Aging (AAAs) or providers with varying contact points, services emphasis, and waitlists (e.g., AAANM for northern counties like Antrim/Grand Traverse; CareWell for southwest like Kalamazoo; The Senior Alliance for southeast). Income/asset figures may reflect minor regional updates.[2][3][4][8]",
+        "offices_or_providers": [
+          "Regional AAAs and partners (e.g., AAANM, CareWell Services, The Senior Alliance, Area Agency on Aging)."
+        ]
+      },
+      "official_source": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver",
+      "gotchas": [
+        "Income limit applies per applicant ($2,901+ in 2025), not household total; spousal rules differ.",
+        "Must need supports coordination + one waiver service beyond basic Medicaid.",
+        "60-month Look-Back Rule penalties for asset transfers; home vulnerable to Estate Recovery post-death.",
+        "Dementia diagnosis alone insufficient—must meet NFLOC via full assessment.",
+        "Regional waitlists and agency-specific processes; not direct nursing home alternative without waiver approval.",
+        "Annual income/asset limits adjust with Federal Benefit Rate."
+      ],
+      "data_shape_notes": "Administered regionally via local AAAs with individualized service plans; no fixed dollar/hour caps but NFLOC-based; statewide since 1998 with agency variations in access/wait times.",
+      "_raw": "{\n  \"name\": \"MI Choice Medicaid Waiver\",\n  \"eligibility\": {\n    \"age\": \"65 or older, or 18-64 with a disability\",\n    \"income_limits\": \"Monthly income up to 300% of the Federal Benefit Rate (FBR), which adjusts annually. In 2025: $2,901 per applicant regardless of marital status (each spouse assessed individually if both apply). Recent regional figures: $2,982 (2026 estimate based on sources).[1][3][8]\",\n    \"asset_limits\": \"Countable assets limited to approximately $9,950 (excludes primary residence, one vehicle). Assets given away or sold below fair market value within 60 months trigger a Look-Back Rule penalty period. Home exempt during benefits but subject to Medicaid Estate Recovery. Federal spousal protection rules apply for married couples.[1][3][8]\",\n    \"other_requirements\": [\n      \"Nursing Facility Level of Care (NFLOC) determined via in-person Michigan Medicaid LOCD assessment (activities of daily living, cognitive abilities, behavior).\",\n      \"Must require supports coordination plus at least one other waiver service.\",\n      \"Medicaid-eligible financially and medically for long-term care.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home and community-based services equivalent to nursing home level: supports coordination, adult day health, respite, specialized medical equipment/supplies, private duty nursing/respiratory care, personal emergency response system (PERS), home delivered meals, chore services, community living supports, community transportation, counseling, environmental accessibility adaptations, training, vehicle modifications, fiscal intermediary, goods/services, supports brokerage, community health worker, residential services, nursing services. Provided by home health agencies, community health workers, or paid family caregivers. Person-centered plan developed by nurse/social worker team.[2][4][7][8]\",\n    \"varies_by\": \"individualized_plan_based_on_assessed_needs\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Regional MI Choice agencies (e.g., AAANM 1-800-442-1713, Area Agency on Aging 800-654-2810, The Senior Alliance 734.722.2830, or local Access and Eligibility Specialists).[3][8][9]\",\n      \"Online referral forms: Agency-specific (e.g., The Senior Alliance referral form).[8]\",\n      \"In-person or in-home: Assessment by Supports Coordinator (nurse/social worker) after phone screening.\"\n    ],\n    \"processing_time\": \"Initial phone screening followed by in-home assessment if qualified; timeline not specified statewide.\",\n    \"waitlist\": \"Possible if program at capacity in region; placement after screening.[3]\",\n    \"forms\": [\"MI Choice Waiver Renewal Application (for renewals); agency-specific referral forms for initial intake.[6][8]\"],\n    \"documents\": [\n      \"Income verification (e.g., benefit statements, pay stubs).\",\n      \"Asset documentation (bank statements, property deeds excluding exempt items).\",\n      \"Medical records or health history for LOCD assessment.\",\n      \"Proof of residency and Medicaid status.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in all Michigan counties since October 1, 1998, but accessed via regional agencies.\",\n    \"regional_variations\": \"Administered by local Area Agencies on Aging (AAAs) or providers with varying contact points, services emphasis, and waitlists (e.g., AAANM for northern counties like Antrim/Grand Traverse; CareWell for southwest like Kalamazoo; The Senior Alliance for southeast). Income/asset figures may reflect minor regional updates.[2][3][4][8]\",\n    \"offices_or_providers\": [\"Regional AAAs and partners (e.g., AAANM, CareWell Services, The Senior Alliance, Area Agency on Aging).\"]\n  },\n  \"official_source\": \"https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver\",\n  \"gotchas\": [\n    \"Income limit applies per applicant ($2,901+ in 2025), not household total; spousal rules differ.\",\n    \"Must need supports coordination + one waiver service beyond basic Medicaid.\",\n    \"60-month Look-Back Rule penalties for asset transfers; home vulnerable to Estate Recovery post-death.\",\n    \"Dementia diagnosis alone insufficient—must meet NFLOC via full assessment.\",\n    \"Regional waitlists and agency-specific processes; not direct nursing home alternative without waiver approval.\",\n    \"Annual income/asset limits adjust with Federal Benefit Rate.\"\n  ],\n  \"data_shape_notes\": \"Administered regionally via local AAAs with individualized service plans; no fixed dollar/hour caps but NFLOC-based; statewide since 1998 with agency variations in access/wait times.\"\n}"
+    },
+    {
+      "name": "Michigan Program for All-Inclusive Care for the Elderly (PACE)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "No strict income limits for PACE enrollment; financial eligibility tied to Medicaid for no-cost coverage. Medicaid eligibility requires meeting Michigan's income and asset limits (varies by household size; PACE providers assist with Medicaid applications and assessments). Dual Medicare/Medicaid eligible pay nothing; Medicare-only pay a premium based on income/assets.",
+        "asset_limits": "No strict asset limits for PACE enrollment itself; Medicaid portion follows standard Michigan Medicaid LTC rules (assets generally under $2,000 for individual, $3,000 for couple, with exemptions for home, one vehicle, personal belongings, burial funds; PACE helps verify).",
+        "other_requirements": [
+          "Live in the service area of an approved PACE provider",
+          "Certified by the state as meeting nursing home level of care (nursing facility level of care criteria)",
+          "Able to live safely in the community (home or community setting, not nursing facility) with PACE support at time of enrollment",
+          "Not concurrently enrolled in Medicaid MIChoice waiver or HMO"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "All Medicare- and Medicaid-covered services plus additional services deemed necessary by interdisciplinary team (IDT): primary and specialty medical care, nursing, physical/occupational/recreational therapy, social services, personal care/home care, adult day health center services (primarily delivered there, supplemented by in-home/referral), acute/hospital care, prescription drugs, transportation, meals, dental/vision/hearing aids, hospice if needed. No copays/deductibles if dual eligible; private pay option if not Medicaid-eligible.",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact specific PACE provider by phone or website for intake (e.g., Ascension Living PACE: ascensionliving.org; PACE Southwest MI: paceswmi.org; PACE Southeast MI: pacesemi.org)",
+          "In-person intake assessment at PACE center",
+          "PACE assists with Medicaid application if needed",
+          "Referrals from community providers"
+        ],
+        "processing_time": "Intake assessment first, then enrollment assessment by IDT to create care plan; no statewide timeline specified (varies by provider)",
+        "waitlist": "Possible; varies by region/provider (not detailed statewide)",
+        "forms": [
+          "No specific form name/number; Medicaid application if needed, intake/enrollment assessments by PACE IDT"
+        ],
+        "documents": [
+          "Proof of age/residency",
+          "Medicare/Medicaid cards if applicable",
+          "Income/asset verification for Medicaid (pay stubs, bank statements, etc.; PACE assists)",
+          "Medical records/referrals to assess nursing home level of care"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Limited to service areas of approved PACE organizations (e.g., Ascension Living PACE specific areas; PACE Southwest MI: Berrien/Cass/Van Buren Counties; PACE Southeast MI: designated zip codes; PACE Northeast MI: Alcona/Alpena/Presque Isle/Montmorency Counties or specific Iosco zip codes; Senior Care Partners: mapped service area)",
+        "regional_variations": "Multiple providers with exclusive service areas designated by state; differs by provider (e.g., costs, assessments); wait times vary",
+        "offices_or_providers": [
+          "Ascension Living PACE Michigan",
+          "PACE of Southwest Michigan (Berrien, Cass, Van Buren Counties)",
+          "PACE Southeast Michigan",
+          "PACE Northeast Michigan (Alcona, Alpena, Presque Isle, Montmorency Counties; parts of Iosco)",
+          "Senior Care Partners P.A.C.E."
+        ]
+      },
+      "official_source": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/program-of-all-inclusive-care-for-the-elderly-pace",
+      "gotchas": [
+        "Not statewide—must live in specific provider service area; use zip code search on provider sites",
+        "Must receive ALL care through PACE (except emergencies); out-of-network/unauthorized services may cost participant",
+        "Nursing home level of care required but must live safely in community at enrollment (not in facility)",
+        "No concurrent enrollment in MIChoice waiver or HMO",
+        "Private pay premium if not Medicaid-eligible (amount based on income/assets; provider helps determine)",
+        "Exclusive provider per area designated by state"
+      ],
+      "data_shape_notes": "Multiple regional providers with exclusive service areas; no strict income/asset limits for enrollment but Medicaid determines costs; eligibility hinges on state-certified nursing home level of care assessment by PACE IDT; private pay option available",
+      "_raw": "{\n  \"name\": \"Michigan Program for All-Inclusive Care for the Elderly (PACE)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No strict income limits for PACE enrollment; financial eligibility tied to Medicaid for no-cost coverage. Medicaid eligibility requires meeting Michigan's income and asset limits (varies by household size; PACE providers assist with Medicaid applications and assessments). Dual Medicare/Medicaid eligible pay nothing; Medicare-only pay a premium based on income/assets.\",\n    \"asset_limits\": \"No strict asset limits for PACE enrollment itself; Medicaid portion follows standard Michigan Medicaid LTC rules (assets generally under $2,000 for individual, $3,000 for couple, with exemptions for home, one vehicle, personal belongings, burial funds; PACE helps verify).\",\n    \"other_requirements\": [\n      \"Live in the service area of an approved PACE provider\",\n      \"Certified by the state as meeting nursing home level of care (nursing facility level of care criteria)\",\n      \"Able to live safely in the community (home or community setting, not nursing facility) with PACE support at time of enrollment\",\n      \"Not concurrently enrolled in Medicaid MIChoice waiver or HMO\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"All Medicare- and Medicaid-covered services plus additional services deemed necessary by interdisciplinary team (IDT): primary and specialty medical care, nursing, physical/occupational/recreational therapy, social services, personal care/home care, adult day health center services (primarily delivered there, supplemented by in-home/referral), acute/hospital care, prescription drugs, transportation, meals, dental/vision/hearing aids, hospice if needed. No copays/deductibles if dual eligible; private pay option if not Medicaid-eligible.\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact specific PACE provider by phone or website for intake (e.g., Ascension Living PACE: ascensionliving.org; PACE Southwest MI: paceswmi.org; PACE Southeast MI: pacesemi.org)\",\n      \"In-person intake assessment at PACE center\",\n      \"PACE assists with Medicaid application if needed\",\n      \"Referrals from community providers\"\n    ],\n    \"processing_time\": \"Intake assessment first, then enrollment assessment by IDT to create care plan; no statewide timeline specified (varies by provider)\",\n    \"waitlist\": \"Possible; varies by region/provider (not detailed statewide)\",\n    \"forms\": [\"No specific form name/number; Medicaid application if needed, intake/enrollment assessments by PACE IDT\"],\n    \"documents\": [\n      \"Proof of age/residency\",\n      \"Medicare/Medicaid cards if applicable\",\n      \"Income/asset verification for Medicaid (pay stubs, bank statements, etc.; PACE assists)\",\n      \"Medical records/referrals to assess nursing home level of care\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to service areas of approved PACE organizations (e.g., Ascension Living PACE specific areas; PACE Southwest MI: Berrien/Cass/Van Buren Counties; PACE Southeast MI: designated zip codes; PACE Northeast MI: Alcona/Alpena/Presque Isle/Montmorency Counties or specific Iosco zip codes; Senior Care Partners: mapped service area)\",\n    \"regional_variations\": \"Multiple providers with exclusive service areas designated by state; differs by provider (e.g., costs, assessments); wait times vary\",\n    \"offices_or_providers\": [\n      \"Ascension Living PACE Michigan\",\n      \"PACE of Southwest Michigan (Berrien, Cass, Van Buren Counties)\",\n      \"PACE Southeast Michigan\",\n      \"PACE Northeast Michigan (Alcona, Alpena, Presque Isle, Montmorency Counties; parts of Iosco)\",\n      \"Senior Care Partners P.A.C.E.\"\n    ]\n  },\n  \"official_source\": \"https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/program-of-all-inclusive-care-for-the-elderly-pace\",\n  \"gotchas\": [\n    \"Not statewide—must live in specific provider service area; use zip code search on provider sites\",\n    \"Must receive ALL care through PACE (except emergencies); out-of-network/unauthorized services may cost participant\",\n    \"Nursing home level of care required but must live safely in community at enrollment (not in facility)\",\n    \"No concurrent enrollment in MIChoice waiver or HMO\",\n    \"Private pay premium if not Medicaid-eligible (amount based on income/assets; provider helps determine)\",\n    \"Exclusive provider per area designated by state\"\n  ],\n  \"data_shape_notes\": \"Multiple regional providers with exclusive service areas; no strict income/asset limits for enrollment but Medicaid determines costs; eligibility hinges on state-certified nursing home level of care assessment by PACE IDT; private pay option available\"\n}"
+    },
+    {
+      "name": "Medicare Savings Programs (MSP) - QMB, SLMB, QI",
+      "eligibility": {
+        "age": null,
+        "income_limits": {
+          "description": "Income limits are based on Federal Poverty Level (FPL) and change annually on April 1. Three tiers exist with different coverage levels. Limits shown are for 2026 in Michigan; Alaska and Hawaii have slightly higher limits. States may set more generous standards than federal minimums.[5]",
+          "QMB": {
+            "individual_monthly": "$1,350",
+            "couple_monthly": "$1,824",
+            "percentage_of_FPL": "100%"
+          },
+          "SLMB": {
+            "individual_monthly": "$1,585",
+            "couple_monthly": "$2,135",
+            "percentage_of_FPL": "100% to 120% of FPL"
+          },
+          "QI": {
+            "individual_monthly": "120% to 135% of FPL",
+            "couple_monthly": "120% to 135% of FPL",
+            "note": "Exact 2026 dollar amounts not provided in search results, but 2025 reference shows $1,761 individual/$2,379 couple at 135% FPL[8]"
+          }
+        },
+        "asset_limits": {
+          "QMB_SLMB_ALMB": {
+            "individual": "$9,950",
+            "couple": "$14,910",
+            "note": "Connecticut has no asset limit for QI as an example of state variation[1]"
+          },
+          "QDWI": {
+            "individual": "$4,000",
+            "couple": "$6,000"
+          },
+          "what_counts": "Resources/assets (specific items not detailed in search results)",
+          "what_may_be_exempt": "Search results do not specify exemptions"
+        },
+        "other_requirements": [
+          "Must be eligible for Medicare (have Medicare Part A and/or Part B)[1][5]",
+          "For SLMB and QI: Must have premium-free Medicare Part A[3][5]",
+          "For QI: Must not qualify for any other Medicaid coverage or benefits[5]",
+          "QI applicants must reapply every year[5]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "coverage_by_program": {
+          "QMB": "Pays Medicare Part A premiums (if applicable); Part B premiums, deductibles, coinsurance, and copayments for services and items Medicare covers[5]",
+          "SLMB": "Pays Medicare Part B premium only ($202.90 per month in 2026)[2]",
+          "QI": "Pays Medicare Part B premium only; also includes Extra Help for prescription drugs (no more than $12.65 per drug in 2026)[5]"
+        },
+        "varies_by": "program_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact Michigan Department of Health and Human Services (MDHHS) — specific online portal URL not provided in search results",
+          "Phone: 1-800-642-3195 or 1-866-501-5656 (TTY) for Medicaid Beneficiary Help Line[2]",
+          "Contact state Medicaid agency (MDHHS) — mail and in-person options referenced but specific addresses not provided[1]",
+          "Speak with MI Options or SHIP (State Health Insurance Assistance Program) for guidance[3]"
+        ],
+        "processing_time": {
+          "QMB": "Should not take more than 45 days; eligibility effective on the first day of the month following the month MDHHS has all information and verification[1]",
+          "SLMB": "No specific timeline provided; may be retroactive up to three months prior to application date if otherwise eligible[1]",
+          "QI": "No specific timeline provided; approved on first-come, first-served basis with priority given to previous-year QI beneficiaries[5]"
+        },
+        "waitlist": "QI program operates on first-come, first-served basis with limited availability[5]",
+        "forms": [
+          "Specific form names/numbers not provided in search results; contact MDHHS for application forms"
+        ],
+        "documents": [
+          "Medicare eligibility documentation",
+          "Income verification (Social Security benefits, pensions, wages, interest payments, dividends)[9]",
+          "Asset/resource documentation",
+          "Specific document list not fully detailed in search results; contact MDHHS for complete requirements"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "All four MSPs (QMB, SLMB, ALMB/QI, and QDWI) are available statewide in Michigan[2]",
+        "regional_variations": "States can set different eligibility requirements within federal limits[7]. Connecticut example shows no asset limit for QI[1]. Search results do not specify regional variations within Michigan itself.",
+        "offices_or_providers": "Contact MDHHS directly; specific office locations not provided in search results"
+      },
+      "official_source": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/disabilities/dualeligible/medicare-savings-programs",
+      "gotchas": [
+        "QMB coverage only goes forward from approval month — no retroactive coverage for previous months[3]",
+        "SLMB coverage can be retroactive up to three months, but only if you were income-eligible during those months[1][3]",
+        "QI coverage only starts from the calendar year MDHHS determines eligibility — even if you applied in December of the previous year, coverage begins January 1 of the approval year (with exception: if approved in April, coverage can go back to January)[3]",
+        "QI requires annual reapplication[5]",
+        "QI is only available on first-come, first-served basis with limited funding[5]",
+        "You must have premium-free Medicare Part A to qualify for SLMB or QI[3][5]",
+        "QI is only available if you don't qualify for any other Medicaid coverage[5]",
+        "If you have SSI-related Medicaid coverage, you automatically qualify for QMB — no separate application needed[4]",
+        "Income limits change every April 1[1]",
+        "States can be more generous than federal minimums but not less generous[1]"
+      ],
+      "data_shape_notes": "This program has three distinct tiers (QMB, SLMB, QI) with different income thresholds, coverage levels, and retroactivity rules. The key differentiator is retroactivity: QMB has none, SLMB has up to 3 months, QI has calendar-year-based retroactivity. QI operates on first-come, first-served basis with annual reapplication requirement, making it fundamentally different from QMB and SLMB. Income limits are tied to Federal Poverty Level and reset annually on April 1. Asset limits are uniform across QMB/SLMB/ALMB but vary by household size. Automatic enrollment exists for those with SSI-related Medicaid.",
+      "_raw": "```json\n{\n  \"name\": \"Medicare Savings Programs (MSP) - QMB, SLMB, QI\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": {\n      \"description\": \"Income limits are based on Federal Poverty Level (FPL) and change annually on April 1. Three tiers exist with different coverage levels. Limits shown are for 2026 in Michigan; Alaska and Hawaii have slightly higher limits. States may set more generous standards than federal minimums.[5]\",\n      \"QMB\": {\n        \"individual_monthly\": \"$1,350\",\n        \"couple_monthly\": \"$1,824\",\n        \"percentage_of_FPL\": \"100%\"\n      },\n      \"SLMB\": {\n        \"individual_monthly\": \"$1,585\",\n        \"couple_monthly\": \"$2,135\",\n        \"percentage_of_FPL\": \"100% to 120% of FPL\"\n      },\n      \"QI\": {\n        \"individual_monthly\": \"120% to 135% of FPL\",\n        \"couple_monthly\": \"120% to 135% of FPL\",\n        \"note\": \"Exact 2026 dollar amounts not provided in search results, but 2025 reference shows $1,761 individual/$2,379 couple at 135% FPL[8]\"\n      }\n    },\n    \"asset_limits\": {\n      \"QMB_SLMB_ALMB\": {\n        \"individual\": \"$9,950\",\n        \"couple\": \"$14,910\",\n        \"note\": \"Connecticut has no asset limit for QI as an example of state variation[1]\"\n      },\n      \"QDWI\": {\n        \"individual\": \"$4,000\",\n        \"couple\": \"$6,000\"\n      },\n      \"what_counts\": \"Resources/assets (specific items not detailed in search results)\",\n      \"what_may_be_exempt\": \"Search results do not specify exemptions\"\n    },\n    \"other_requirements\": [\n      \"Must be eligible for Medicare (have Medicare Part A and/or Part B)[1][5]\",\n      \"For SLMB and QI: Must have premium-free Medicare Part A[3][5]\",\n      \"For QI: Must not qualify for any other Medicaid coverage or benefits[5]\",\n      \"QI applicants must reapply every year[5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"coverage_by_program\": {\n      \"QMB\": \"Pays Medicare Part A premiums (if applicable); Part B premiums, deductibles, coinsurance, and copayments for services and items Medicare covers[5]\",\n      \"SLMB\": \"Pays Medicare Part B premium only ($202.90 per month in 2026)[2]\",\n      \"QI\": \"Pays Medicare Part B premium only; also includes Extra Help for prescription drugs (no more than $12.65 per drug in 2026)[5]\"\n    },\n    \"varies_by\": \"program_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact Michigan Department of Health and Human Services (MDHHS) — specific online portal URL not provided in search results\",\n      \"Phone: 1-800-642-3195 or 1-866-501-5656 (TTY) for Medicaid Beneficiary Help Line[2]\",\n      \"Contact state Medicaid agency (MDHHS) — mail and in-person options referenced but specific addresses not provided[1]\",\n      \"Speak with MI Options or SHIP (State Health Insurance Assistance Program) for guidance[3]\"\n    ],\n    \"processing_time\": {\n      \"QMB\": \"Should not take more than 45 days; eligibility effective on the first day of the month following the month MDHHS has all information and verification[1]\",\n      \"SLMB\": \"No specific timeline provided; may be retroactive up to three months prior to application date if otherwise eligible[1]\",\n      \"QI\": \"No specific timeline provided; approved on first-come, first-served basis with priority given to previous-year QI beneficiaries[5]\"\n    },\n    \"waitlist\": \"QI program operates on first-come, first-served basis with limited availability[5]\",\n    \"forms\": [\n      \"Specific form names/numbers not provided in search results; contact MDHHS for application forms\"\n    ],\n    \"documents\": [\n      \"Medicare eligibility documentation\",\n      \"Income verification (Social Security benefits, pensions, wages, interest payments, dividends)[9]\",\n      \"Asset/resource documentation\",\n      \"Specific document list not fully detailed in search results; contact MDHHS for complete requirements\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"All four MSPs (QMB, SLMB, ALMB/QI, and QDWI) are available statewide in Michigan[2]\",\n    \"regional_variations\": \"States can set different eligibility requirements within federal limits[7]. Connecticut example shows no asset limit for QI[1]. Search results do not specify regional variations within Michigan itself.\",\n    \"offices_or_providers\": \"Contact MDHHS directly; specific office locations not provided in search results\"\n  },\n  \"official_source\": \"https://www.michigan.gov/mdhhs/assistance-programs/healthcare/disabilities/dualeligible/medicare-savings-programs\",\n  \"gotchas\": [\n    \"QMB coverage only goes forward from approval month — no retroactive coverage for previous months[3]\",\n    \"SLMB coverage can be retroactive up to three months, but only if you were income-eligible during those months[1][3]\",\n    \"QI coverage only starts from the calendar year MDHHS determines eligibility — even if you applied in December of the previous year, coverage begins January 1 of the approval year (with exception: if approved in April, coverage can go back to January)[3]\",\n    \"QI requires annual reapplication[5]\",\n    \"QI is only available on first-come, first-served basis with limited funding[5]\",\n    \"You must have premium-free Medicare Part A to qualify for SLMB or QI[3][5]\",\n    \"QI is only available if you don't qualify for any other Medicaid coverage[5]\",\n    \"If you have SSI-related Medicaid coverage, you automatically qualify for QMB — no separate application needed[4]\",\n    \"Income limits change every April 1[1]\",\n    \"States can be more generous than federal minimums but not less generous[1]\"\n  ],\n  \"data_shape_notes\": \"This program has three distinct tiers (QMB, SLMB, QI) with different income thresholds, coverage levels, and retroactivity rules. The key differentiator is retroactivity: QMB has none, SLMB has up to 3 months, QI has calendar-year-based retroactivity. QI operates on first-come, first-served basis with annual reapplication requirement, making it fundamentally different from QMB and SLMB. Income limits are tied to Federal Poverty Level and reset annually on April 1. Asset limits are uniform across QMB/SLMB/ALMB but vary by household size. Automatic enrollment exists for those with SSI-related Medicaid.\"\n}\n```\n\n## Key Guidance for Families\n\n**Start here:** Call **1-800-642-3195** or **1-866-501-5656 (TTY)** to determine which program your loved one qualifies for. The tier they fall into depends entirely on their income relative to the Federal Poverty Level.\n\n**Critical timing issue:** If your loved one qualifies for QMB, understand that coverage begins the month *after* MDHHS approves them — there's no going backward. For SLMB, coverage can reach back up to three months. For QI, coverage is limited to the calendar year of approval (with a January carve-out if approved in April or later). This matters for reimbursement planning.\n\n**Automatic qualification:** If your loved one already receives SSI-related Medicaid, they automatically qualify for QMB without a separate application[4].\n\n**Annual requirement:** QI beneficiaries must reapply every year, and approval is not guaranteed — it's first-come, first-served[5].\n\n**Income verification:** Gather recent Social Security statements, pension documents, and any other income sources before calling, as MDHHS will need this to process the application[9]."
+    },
+    {
+      "name": "SNAP Food Assistance (MiCAFE for seniors)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "For seniors (60+), disabled, or disabled veterans: Gross monthly income at or below 200% of the Federal Poverty Level (FPL); Net monthly income at or below 100% FPL after deductions. Exact dollar amounts vary by household size and year; check current FPL tables via MDHHS as they are updated annually. Traditional households: Gross at or below 130% FPL.[2][5]",
+        "asset_limits": "Most Food Assistance Program (FAP/SNAP) groups have no asset limit effective March 1, 2024. Asset limit of $3,000 applies if a group member is disqualified (e.g., Intentional Program Violation, employment/training disqualification for head of household, fleeing felon); increases to $4,500 if group includes someone 60+ or disabled. Countable assets: cash, checking/savings accounts, investments, some trusts, property/real estate (excludes primary home). Household must live in Michigan and have at least one U.S. citizen or acceptable non-citizen.[5]",
+        "other_requirements": [
+          "U.S. citizen or acceptable immigrant status.",
+          "Reside in Michigan.",
+          "Household-based: all who live together, purchase, and prepare food together.",
+          "Certain deductions apply for shelter, child support, dependent care, medical expenses (for 60+ or disabled)."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "SNAP benefits via Michigan Bridge Card for purchasing food at grocery stores, supermarkets, farmers markets. Single seniors receive $23 to $292 monthly (as of available data; amounts vary by income, household size, expenses). Supplements grocery budget for nutritious food.[1][6]",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "Phone: MiCAFE Call Center at 1-877-664-2233 (Mon-Fri, 9:00 AM - 3:00 PM) for application assistance, recertification, and other benefits.[1][2][3][6]",
+          "Online: MI Bridges portal at michigan.gov/mibridges to apply for SNAP/FAP, check status, manage account.[7]",
+          "MiCAFE Network: In-home or community application assistance by trained professionals via local partners statewide.[1]",
+          "Other: Utility assistance, tax programs via MiCAFE connections.[3]"
+        ],
+        "processing_time": "Not specified in sources; standard MDHHS processing applies (typically 30 days, expedited in some cases).",
+        "waitlist": null,
+        "forms": [
+          "MI Bridges online application (no specific form number listed)."
+        ],
+        "documents": [
+          "Proof of income (wages, self-employment, rental, Social Security, veterans benefits).",
+          "Proof of expenses (shelter, utilities, medical for 60+/disabled, child support, dependent care).",
+          "ID, residency proof, immigration status if applicable.",
+          "Bank/investment statements if asset test applies."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Michigan residents only.",
+        "regional_variations": "MiCAFE Network provides statewide partners for local outreach and in-home assistance where available; call center is centralized but times may vary by program/provider (e.g., 9AM-5PM in some listings).[1][3]",
+        "offices_or_providers": [
+          "MiCAFE Network partners via Elder Law of Michigan; statewide access via 1-877-664-2233."
+        ]
+      },
+      "official_source": "https://www.michigan.gov/mdhhs/assistance-programs/food",
+      "gotchas": [
+        "MiCAFE is not a separate program—it's assistance for standard SNAP/FAP, targeted at 60+ to overcome barriers/stigma; nearly 50% of eligible seniors do not apply.[1][2][6]",
+        "Higher 200% FPL gross income limit specifically for seniors/disabled (not 130% for general households).[2]",
+        "No asset limit for most, but applies in disqualification cases—many miss deductions for medical/shelter that lower net income.[5]",
+        "Must recertify annually; MiCAFE helps with this.[1]",
+        "Work requirements changed March 1, 2026 for ages 18-64 (proof of work needed).[7]"
+      ],
+      "data_shape_notes": "MiCAFE provides application assistance for standard SNAP/FAP (not a distinct benefit program); eligibility uses household-based income/expenses with senior-specific higher gross income threshold (200% FPL) and deductions; benefits scale by household size, income, deductions; statewide with network partners.",
+      "_raw": "{\n  \"name\": \"SNAP Food Assistance (MiCAFE for seniors)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"For seniors (60+), disabled, or disabled veterans: Gross monthly income at or below 200% of the Federal Poverty Level (FPL); Net monthly income at or below 100% FPL after deductions. Exact dollar amounts vary by household size and year; check current FPL tables via MDHHS as they are updated annually. Traditional households: Gross at or below 130% FPL.[2][5]\",\n    \"asset_limits\": \"Most Food Assistance Program (FAP/SNAP) groups have no asset limit effective March 1, 2024. Asset limit of $3,000 applies if a group member is disqualified (e.g., Intentional Program Violation, employment/training disqualification for head of household, fleeing felon); increases to $4,500 if group includes someone 60+ or disabled. Countable assets: cash, checking/savings accounts, investments, some trusts, property/real estate (excludes primary home). Household must live in Michigan and have at least one U.S. citizen or acceptable non-citizen.[5]\",\n    \"other_requirements\": [\n      \"U.S. citizen or acceptable immigrant status.\",\n      \"Reside in Michigan.\",\n      \"Household-based: all who live together, purchase, and prepare food together.\",\n      \"Certain deductions apply for shelter, child support, dependent care, medical expenses (for 60+ or disabled).\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"SNAP benefits via Michigan Bridge Card for purchasing food at grocery stores, supermarkets, farmers markets. Single seniors receive $23 to $292 monthly (as of available data; amounts vary by income, household size, expenses). Supplements grocery budget for nutritious food.[1][6]\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: MiCAFE Call Center at 1-877-664-2233 (Mon-Fri, 9:00 AM - 3:00 PM) for application assistance, recertification, and other benefits.[1][2][3][6]\",\n      \"Online: MI Bridges portal at michigan.gov/mibridges to apply for SNAP/FAP, check status, manage account.[7]\",\n      \"MiCAFE Network: In-home or community application assistance by trained professionals via local partners statewide.[1]\",\n      \"Other: Utility assistance, tax programs via MiCAFE connections.[3]\"\n    ],\n    \"processing_time\": \"Not specified in sources; standard MDHHS processing applies (typically 30 days, expedited in some cases).\",\n    \"waitlist\": null,\n    \"forms\": [\"MI Bridges online application (no specific form number listed).\"],\n    \"documents\": [\n      \"Proof of income (wages, self-employment, rental, Social Security, veterans benefits).\",\n      \"Proof of expenses (shelter, utilities, medical for 60+/disabled, child support, dependent care).\",\n      \"ID, residency proof, immigration status if applicable.\",\n      \"Bank/investment statements if asset test applies.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Michigan residents only.\",\n    \"regional_variations\": \"MiCAFE Network provides statewide partners for local outreach and in-home assistance where available; call center is centralized but times may vary by program/provider (e.g., 9AM-5PM in some listings).[1][3]\",\n    \"offices_or_providers\": [\"MiCAFE Network partners via Elder Law of Michigan; statewide access via 1-877-664-2233.\"]\n  },\n  \"official_source\": \"https://www.michigan.gov/mdhhs/assistance-programs/food\",\n  \"gotchas\": [\n    \"MiCAFE is not a separate program—it's assistance for standard SNAP/FAP, targeted at 60+ to overcome barriers/stigma; nearly 50% of eligible seniors do not apply.[1][2][6]\",\n    \"Higher 200% FPL gross income limit specifically for seniors/disabled (not 130% for general households).[2]\",\n    \"No asset limit for most, but applies in disqualification cases—many miss deductions for medical/shelter that lower net income.[5]\",\n    \"Must recertify annually; MiCAFE helps with this.[1]\",\n    \"Work requirements changed March 1, 2026 for ages 18-64 (proof of work needed).[7]\"\n  ],\n  \"data_shape_notes\": \"MiCAFE provides application assistance for standard SNAP/FAP (not a distinct benefit program); eligibility uses household-based income/expenses with senior-specific higher gross income threshold (200% FPL) and deductions; benefits scale by household size, income, deductions; statewide with network partners.\"\n}"
+    },
+    {
+      "name": "Michigan LIHEAP (Energy Assistance)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Household income must be at or below 60% of State Median Income (SMI). Full table: 1 person: $36,517; 2: $47,753; 3: $58,989; 4: $70,225; 5: $81,461; 6: $92,697 annually. Adds approximately $11,236 per additional household member.[2][3][5]",
+        "asset_limits": "For some components like State Emergency Relief (SER)/LIHEAP crisis aid: up to $15,000 in cash assets and $15,000 in material assets. Specific exemptions not detailed in sources.[7]",
+        "other_requirements": [
+          "Enrollment in or receipt (past 12 months) of: SNAP, Medicaid, Home Heating Credit, State Emergency Relief, SSI, FAP, FIP, TANF, WIC, Head Start, or DHHS cash assistance automatically qualifies regardless of income.[2][4][5]",
+          "Proof of ID, Social Security Number/Card, and income verification required.[2]",
+          "Demonstration of need such as past due bill, shut-off notice, falling behind on payment plan, or need for deliverable fuel/home repair for crisis aid.[2][7]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Supplemental bill payment assistance (one-time grants or credits toward heating/electric bills, reconnection fees, deliverable fuels like propane, or energy-related home repairs). Exact amounts not fixed; varies by funding, need, and household. Part of federal LIHEAP via SER for crisis situations; state MEAP for broader assistance. Monthly bill credits available via some utility-specific programs (e.g., Michigan Gas Utilities).[1][2][3][5][6]",
+        "varies_by": "priority_tier|household_size|region"
+      },
+      "application": {
+        "methods": [
+          "Online: MI Bridges at michigan.gov/mibridges or newmichigan.gov/s/isd-find-community-partners for help.[7]",
+          "Phone: Contact local agencies via MI 211 (mi211.org), Michigan Gas Utilities at 800-401-6402, or MIHAF at 844-756-4423 (related).[1][7]",
+          "In-person/mail: Local MDHHS offices, community partners via MI 211, or utility providers. Specific forms for utility programs (e.g., Michigan Gas Utilities eligibility form).[1][2][3]"
+        ],
+        "processing_time": "Not specified; first-come, first-served with limited availability for some programs.[1]",
+        "waitlist": "Limited funds filled first-come, first-served; potential waitlist or denial if funds exhausted.[1][2]",
+        "forms": [
+          "MI Bridges online application",
+          "Utility-specific forms (e.g., Michigan Gas Utilities verification form)",
+          "Proposed LIHEAP State Plans available on MDHHS site for reference.[6]"
+        ],
+        "documents": [
+          "Proof of ID and Social Security Number/Card",
+          "Proof of income (past 12 months)",
+          "Proof of residency/utility account",
+          "Shut-off/past due notice or payment plan details",
+          "Proof of enrollment in qualifying programs (e.g., SNAP, Medicaid award letters)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Statewide via MDHHS/MEAP, but administered through local agencies and utilities; some local restrictions (e.g., specific townships for certain aids).[5][8]",
+        "regional_variations": "Administered by local providers/community action agencies; different utilities offer add-ons (e.g., Michigan Gas Utilities senior credits, Ontonagon WPP for seniors); wait times/funding availability vary by region and utility opt-in to LIEAF.[1][4][5]",
+        "offices_or_providers": [
+          "Local MDHHS offices",
+          "MI 211 community partners",
+          "Utilities like Michigan Gas Utilities, Country Lines",
+          "Thaw Fund partners[2]"
+        ]
+      },
+      "official_source": "https://www.michigan.gov/mdhhs/inside-mdhhs/reports-stats/plans-regs/plans-regs/low-income-home-energy-assistance-program-liheap-state-plans[6]",
+      "gotchas": [
+        "No longer requires SER decision letter; eligibility expanded to 60% SMI or auto-qualify via other programs—reapply if previously denied.[2][3][5]",
+        "Funds limited, first-come first-served; apply early in heating season (e.g., Nov-Mar protections).[1][4]",
+        "LIHEAP is crisis-focused via SER; MEAP is broader state program—distinguish for needs.[5][6]",
+        "Utilities opting out of LIEAF must provide equivalent aid but may have shut-off protections Nov 1-Apr 15.[5][7]",
+        "Seniors (65+) get extras like no shut-off payments in some utility Winter Protection Plans.[1][4]"
+      ],
+      "data_shape_notes": "Eligibility auto-qualifies via other MI programs (SNAP/Medicaid/SSI); income at 60% SMI with household table; crisis vs. non-crisis tiers; administered statewide but via local agencies/utilities with funding caps and first-come availability.",
+      "_raw": "{\n  \"name\": \"Michigan LIHEAP (Energy Assistance)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Household income must be at or below 60% of State Median Income (SMI). Full table: 1 person: $36,517; 2: $47,753; 3: $58,989; 4: $70,225; 5: $81,461; 6: $92,697 annually. Adds approximately $11,236 per additional household member.[2][3][5]\",\n    \"asset_limits\": \"For some components like State Emergency Relief (SER)/LIHEAP crisis aid: up to $15,000 in cash assets and $15,000 in material assets. Specific exemptions not detailed in sources.[7]\",\n    \"other_requirements\": [\n      \"Enrollment in or receipt (past 12 months) of: SNAP, Medicaid, Home Heating Credit, State Emergency Relief, SSI, FAP, FIP, TANF, WIC, Head Start, or DHHS cash assistance automatically qualifies regardless of income.[2][4][5]\",\n      \"Proof of ID, Social Security Number/Card, and income verification required.[2]\",\n      \"Demonstration of need such as past due bill, shut-off notice, falling behind on payment plan, or need for deliverable fuel/home repair for crisis aid.[2][7]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Supplemental bill payment assistance (one-time grants or credits toward heating/electric bills, reconnection fees, deliverable fuels like propane, or energy-related home repairs). Exact amounts not fixed; varies by funding, need, and household. Part of federal LIHEAP via SER for crisis situations; state MEAP for broader assistance. Monthly bill credits available via some utility-specific programs (e.g., Michigan Gas Utilities).[1][2][3][5][6]\",\n    \"varies_by\": \"priority_tier|household_size|region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: MI Bridges at michigan.gov/mibridges or newmichigan.gov/s/isd-find-community-partners for help.[7]\",\n      \"Phone: Contact local agencies via MI 211 (mi211.org), Michigan Gas Utilities at 800-401-6402, or MIHAF at 844-756-4423 (related).[1][7]\",\n      \"In-person/mail: Local MDHHS offices, community partners via MI 211, or utility providers. Specific forms for utility programs (e.g., Michigan Gas Utilities eligibility form).[1][2][3]\"\n    ],\n    \"processing_time\": \"Not specified; first-come, first-served with limited availability for some programs.[1]\",\n    \"waitlist\": \"Limited funds filled first-come, first-served; potential waitlist or denial if funds exhausted.[1][2]\",\n    \"forms\": [\"MI Bridges online application\", \"Utility-specific forms (e.g., Michigan Gas Utilities verification form)\", \"Proposed LIHEAP State Plans available on MDHHS site for reference.[6]\"],\n    \"documents\": [\n      \"Proof of ID and Social Security Number/Card\",\n      \"Proof of income (past 12 months)\",\n      \"Proof of residency/utility account\",\n      \"Shut-off/past due notice or payment plan details\",\n      \"Proof of enrollment in qualifying programs (e.g., SNAP, Medicaid award letters)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Statewide via MDHHS/MEAP, but administered through local agencies and utilities; some local restrictions (e.g., specific townships for certain aids).[5][8]\",\n    \"regional_variations\": \"Administered by local providers/community action agencies; different utilities offer add-ons (e.g., Michigan Gas Utilities senior credits, Ontonagon WPP for seniors); wait times/funding availability vary by region and utility opt-in to LIEAF.[1][4][5]\",\n    \"offices_or_providers\": [\"Local MDHHS offices\", \"MI 211 community partners\", \"Utilities like Michigan Gas Utilities, Country Lines\", \"Thaw Fund partners[2]\"]\n  },\n  \"official_source\": \"https://www.michigan.gov/mdhhs/inside-mdhhs/reports-stats/plans-regs/plans-regs/low-income-home-energy-assistance-program-liheap-state-plans[6]\",\n  \"gotchas\": [\n    \"No longer requires SER decision letter; eligibility expanded to 60% SMI or auto-qualify via other programs—reapply if previously denied.[2][3][5]\",\n    \"Funds limited, first-come first-served; apply early in heating season (e.g., Nov-Mar protections).[1][4]\",\n    \"LIHEAP is crisis-focused via SER; MEAP is broader state program—distinguish for needs.[5][6]\",\n    \"Utilities opting out of LIEAF must provide equivalent aid but may have shut-off protections Nov 1-Apr 15.[5][7]\",\n    \"Seniors (65+) get extras like no shut-off payments in some utility Winter Protection Plans.[1][4]\"\n  ],\n  \"data_shape_notes\": \"Eligibility auto-qualifies via other MI programs (SNAP/Medicaid/SSI); income at 60% SMI with household table; crisis vs. non-crisis tiers; administered statewide but via local agencies/utilities with funding caps and first-come availability.\"\n}"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Varies by region and is based on 200% of federal poverty guidelines, calculated as total gross household income over the last 3 months (or 1 month in some areas like Wayne Metro). Examples: NEMCSA - 1: $6,440 (3 mo), 2: $8,710, 3: $10,980, 4: $13,250, 5: $15,520; Wayne Metro - 1: $7,530 (3 mo)/$2,510 (1 mo), 2: $10,221/$3,407, 3: $12,909/$4,303, 4: $15,600/$5,200, 5: $18,291/$6,097. Auto-eligible for SSI, SDA, FIP recipients. Check local agency for current table.[1][3][5][7]",
+        "asset_limits": "No asset limits mentioned across sources.",
+        "other_requirements": [
+          "Homeowners or renters (landlord permission required for renters).",
+          "Home must be occupied by applicant, not for sale, in foreclosure, or undergoing remodeling.",
+          "Home not weatherized by WAP in last 15 years (or since 2006 in some areas).",
+          "Home must pass energy audit; exclusions for major repairs like damaged roof, asbestos, knob & tube wiring, mold, standing water, missing drywall/windows.",
+          "Access to basement and attic required."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free energy conservation and health/safety services based on whole-home energy audit, no guaranteed services. Includes: home energy audit, weather-stripping/caulking/air sealing, attic/foundation/wall/sill box insulation, programmable thermostat, furnace/water heater tune-up/replacement, refrigerator replacement, lightbulb replacement, door repair/replacement (some areas). Not for structural repairs, rehab, plumbing, electrical, roofs, windows, doors.[1][2][4][5]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local Community Action Agency (statewide via MDHHS contractors).",
+          "Examples: Kent County - Call 616-632-7950; Wayne Metro - Online application or Connect Center call (number not specified in results); Allegan - Mail/drop-off questionnaire.",
+          "Phone/website varies by region; no central statewide phone/form.",
+          "In-person/mail for some agencies."
+        ],
+        "processing_time": "Multi-step process taking several months.[2][3]",
+        "waitlist": "Screenings depend on available funding; funds limited, apply early.[2][6]",
+        "forms": [
+          "Program Questionnaire (e.g., Allegan County).",
+          "Weatherization Assistance Program Owner/Landlord Agreement (renters).",
+          "Weatherization Certification of Household/Individual Claiming Zero Income (notarized if applicable)."
+        ],
+        "documents": [
+          "Proof of household income (last 3 months gross: pay stubs, SS award, pensions, unemployment, etc. for all members).",
+          "Proof of home ownership or landlord permission.",
+          "Most recent electric/gas bills.",
+          "Government ID/Passport/SS card for household members 18+.",
+          "Water bill (some areas)."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Services via local Community Action Agencies by designated county/region (e.g., Kent County, Wayne Metro, NEMCSA, OLHSA, Allegan).",
+        "regional_variations": "Income tables differ slightly by agency; different providers, screening availability, exact documents/forms; wait times vary by funding.[1][2][3][5][6]",
+        "offices_or_providers": [
+          "MDHHS contracts with local agencies like Kent County (616-632-7950), Wayne Metro, NEMCSA, Community Action Allegan, OLHSA."
+        ]
+      },
+      "official_source": "https://www.michigan.gov/mdhhs/doing-business/weatherization",
+      "gotchas": [
+        "Not a repair/rehab/emergency program; major issues (roof, mold, wiring) disqualify home.",
+        "No service guaranteed; based on audit.",
+        "Funds limited, screenings only when funding available; process takes months.",
+        "Home must be 'weatherization ready' per initial screening/audit.",
+        "Renters need landlord approval; homes can't be re-weatherized within 15 years."
+      ],
+      "data_shape_notes": "Administered statewide via regional Community Action Agencies with varying income tables, providers, and screening based on local funding; eligibility heavily home-condition dependent via audit.",
+      "_raw": "{\n  \"name\": \"Weatherization Assistance Program (WAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Varies by region and is based on 200% of federal poverty guidelines, calculated as total gross household income over the last 3 months (or 1 month in some areas like Wayne Metro). Examples: NEMCSA - 1: $6,440 (3 mo), 2: $8,710, 3: $10,980, 4: $13,250, 5: $15,520; Wayne Metro - 1: $7,530 (3 mo)/$2,510 (1 mo), 2: $10,221/$3,407, 3: $12,909/$4,303, 4: $15,600/$5,200, 5: $18,291/$6,097. Auto-eligible for SSI, SDA, FIP recipients. Check local agency for current table.[1][3][5][7]\",\n    \"asset_limits\": \"No asset limits mentioned across sources.\",\n    \"other_requirements\": [\n      \"Homeowners or renters (landlord permission required for renters).\",\n      \"Home must be occupied by applicant, not for sale, in foreclosure, or undergoing remodeling.\",\n      \"Home not weatherized by WAP in last 15 years (or since 2006 in some areas).\",\n      \"Home must pass energy audit; exclusions for major repairs like damaged roof, asbestos, knob & tube wiring, mold, standing water, missing drywall/windows.\",\n      \"Access to basement and attic required.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free energy conservation and health/safety services based on whole-home energy audit, no guaranteed services. Includes: home energy audit, weather-stripping/caulking/air sealing, attic/foundation/wall/sill box insulation, programmable thermostat, furnace/water heater tune-up/replacement, refrigerator replacement, lightbulb replacement, door repair/replacement (some areas). Not for structural repairs, rehab, plumbing, electrical, roofs, windows, doors.[1][2][4][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Community Action Agency (statewide via MDHHS contractors).\",\n      \"Examples: Kent County - Call 616-632-7950; Wayne Metro - Online application or Connect Center call (number not specified in results); Allegan - Mail/drop-off questionnaire.\",\n      \"Phone/website varies by region; no central statewide phone/form.\",\n      \"In-person/mail for some agencies.\"\n    ],\n    \"processing_time\": \"Multi-step process taking several months.[2][3]\",\n    \"waitlist\": \"Screenings depend on available funding; funds limited, apply early.[2][6]\",\n    \"forms\": [\n      \"Program Questionnaire (e.g., Allegan County).\",\n      \"Weatherization Assistance Program Owner/Landlord Agreement (renters).\",\n      \"Weatherization Certification of Household/Individual Claiming Zero Income (notarized if applicable).\"\n    ],\n    \"documents\": [\n      \"Proof of household income (last 3 months gross: pay stubs, SS award, pensions, unemployment, etc. for all members).\",\n      \"Proof of home ownership or landlord permission.\",\n      \"Most recent electric/gas bills.\",\n      \"Government ID/Passport/SS card for household members 18+.\",\n      \"Water bill (some areas).\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Services via local Community Action Agencies by designated county/region (e.g., Kent County, Wayne Metro, NEMCSA, OLHSA, Allegan).\",\n    \"regional_variations\": \"Income tables differ slightly by agency; different providers, screening availability, exact documents/forms; wait times vary by funding.[1][2][3][5][6]\",\n    \"offices_or_providers\": [\n      \"MDHHS contracts with local agencies like Kent County (616-632-7950), Wayne Metro, NEMCSA, Community Action Allegan, OLHSA.\"\n    ]\n  },\n  \"official_source\": \"https://www.michigan.gov/mdhhs/doing-business/weatherization\",\n  \"gotchas\": [\n    \"Not a repair/rehab/emergency program; major issues (roof, mold, wiring) disqualify home.\",\n    \"No service guaranteed; based on audit.\",\n    \"Funds limited, screenings only when funding available; process takes months.\",\n    \"Home must be 'weatherization ready' per initial screening/audit.\",\n    \"Renters need landlord approval; homes can't be re-weatherized within 15 years.\"\n  ],\n  \"data_shape_notes\": \"Administered statewide via regional Community Action Agencies with varying income tables, providers, and screening based on local funding; eligibility heavily home-condition dependent via audit.\"\n}"
+    },
+    {
+      "name": "Michigan Medicare Assistance Program (MMAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income or asset limits for MMAP counseling services; available to all Michigan seniors, individuals with disabilities, caregivers, and those new to Medicare. Note: Counselors can screen for related Medicare Savings Programs (MSPs) with limits like QMB ($1,325/month single, $1,783 married), SLMB (up to $1,585 single, $2,135 married), QI (up to $1,781 single, $2,400 married)[1].",
+        "asset_limits": "No asset limits for MMAP itself. MSPs screened by counselors use federal limits of $9,660 single, $14,470 married (some sources note Michigan uses slightly higher $9,950/$14,910)[1].",
+        "other_requirements": [
+          "Must reside in Michigan",
+          "Open to seniors (typically 65+), people with disabilities, caregivers, and families",
+          "No restrictions on insurance affiliation; unbiased service"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free one-on-one health insurance counseling, education on Medicare Parts A/B/D, Medicaid, Medigap, Medicare Advantage, long-term care insurance, prescription drug assistance, Medicare Savings Programs (QMB/SLMB/QI), Extra Help; help with bills/claims/appeals, fraud prevention, group presentations, eligibility screening/enrollment assistance, referrals; no direct financial aid or payments[2][3][4][6].",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: Toll-free statewide hotline 1-800-803-7174 (connects to nearest office; local examples: 269-373-5158)[4][5][6][7][8]",
+          "Website: http://www.mmapinc.org or regional sites like thesenioralliance.org[6][7]",
+          "Email: Available via local offices (e.g., kalcounty.gov contact)[5]",
+          "In-person: At local MMAP offices/providers across Michigan (e.g., CareWell Services in Barry/Calhoun Counties, The Senior Alliance)[4][7]"
+        ],
+        "processing_time": "Immediate phone screening; counseling appointments scheduled promptly (no fixed timeline specified)[7]",
+        "waitlist": null,
+        "forms": [
+          "No specific forms required; eligibility screening via phone or visit"
+        ],
+        "documents": [
+          "Optional: Medicare card, bills/statements, Medicare Summary Notices, income/asset info for screenings, insurance details; not mandatory for initial counseling[2][3][4]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Delivered statewide via regional offices/providers (e.g., CareWell in Barry/Calhoun, The Senior Alliance, Kalamazoo County); same services everywhere, local counselors/volunteers[2][4][5][7]",
+        "offices_or_providers": [
+          "Statewide hotline connects to nearest; examples: CareWell Services Southwest, The Senior Alliance, local Area Agencies on Aging"
+        ]
+      },
+      "official_source": "http://www.mmapinc.org",
+      "gotchas": [
+        "Not a direct benefits payer—provides counseling/education only, not enrollment or payments itself; counselors cannot sell insurance (unbiased)[2][5][6]",
+        "People confuse with Medicare Savings Programs (MSPs) it helps screen for, which do have income/asset limits[1][3]",
+        "Volunteers handle most counseling; thorough training but availability may vary by region[4][5]",
+        "Free service funded by CMS/AoA grants—no cost, but must call hotline for local access[2][4]"
+      ],
+      "data_shape_notes": "no income/asset test for core counseling; statewide free service via regional volunteer counselors; focuses on education/enrollment help for Medicare/Medicaid rather than direct aid",
+      "_raw": "{\n  \"name\": \"Michigan Medicare Assistance Program (MMAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income or asset limits for MMAP counseling services; available to all Michigan seniors, individuals with disabilities, caregivers, and those new to Medicare. Note: Counselors can screen for related Medicare Savings Programs (MSPs) with limits like QMB ($1,325/month single, $1,783 married), SLMB (up to $1,585 single, $2,135 married), QI (up to $1,781 single, $2,400 married)[1].\",\n    \"asset_limits\": \"No asset limits for MMAP itself. MSPs screened by counselors use federal limits of $9,660 single, $14,470 married (some sources note Michigan uses slightly higher $9,950/$14,910)[1].\",\n    \"other_requirements\": [\"Must reside in Michigan\", \"Open to seniors (typically 65+), people with disabilities, caregivers, and families\", \"No restrictions on insurance affiliation; unbiased service\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free one-on-one health insurance counseling, education on Medicare Parts A/B/D, Medicaid, Medigap, Medicare Advantage, long-term care insurance, prescription drug assistance, Medicare Savings Programs (QMB/SLMB/QI), Extra Help; help with bills/claims/appeals, fraud prevention, group presentations, eligibility screening/enrollment assistance, referrals; no direct financial aid or payments[2][3][4][6].\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Toll-free statewide hotline 1-800-803-7174 (connects to nearest office; local examples: 269-373-5158)[4][5][6][7][8]\", \"Website: http://www.mmapinc.org or regional sites like thesenioralliance.org[6][7]\", \"Email: Available via local offices (e.g., kalcounty.gov contact)[5]\", \"In-person: At local MMAP offices/providers across Michigan (e.g., CareWell Services in Barry/Calhoun Counties, The Senior Alliance)[4][7]\"],\n    \"processing_time\": \"Immediate phone screening; counseling appointments scheduled promptly (no fixed timeline specified)[7]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required; eligibility screening via phone or visit\"],\n    \"documents\": [\"Optional: Medicare card, bills/statements, Medicare Summary Notices, income/asset info for screenings, insurance details; not mandatory for initial counseling[2][3][4]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Delivered statewide via regional offices/providers (e.g., CareWell in Barry/Calhoun, The Senior Alliance, Kalamazoo County); same services everywhere, local counselors/volunteers[2][4][5][7]\",\n    \"offices_or_providers\": [\"Statewide hotline connects to nearest; examples: CareWell Services Southwest, The Senior Alliance, local Area Agencies on Aging\"]\n  },\n  \"official_source\": \"http://www.mmapinc.org\",\n  \"gotchas\": [\"Not a direct benefits payer—provides counseling/education only, not enrollment or payments itself; counselors cannot sell insurance (unbiased)[2][5][6]\", \"People confuse with Medicare Savings Programs (MSPs) it helps screen for, which do have income/asset limits[1][3]\", \"Volunteers handle most counseling; thorough training but availability may vary by region[4][5]\", \"Free service funded by CMS/AoA grants—no cost, but must call hotline for local access[2][4]\"],\n  \"data_shape_notes\": \"no income/asset test for core counseling; statewide free service via regional volunteer counselors; focuses on education/enrollment help for Medicare/Medicaid rather than direct aid\"\n}"
+    },
+    {
+      "name": "Home Delivered Meals (Meals on Wheels)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No statewide income or asset limits specified; eligibility prioritizes greatest need but is not income-based for core OAA program. Medicaid-linked programs require enrollment in participating plan but no dollar amounts listed[1][6].",
+        "asset_limits": "No asset limits or counts/exemptions specified in sources[1][2][6].",
+        "other_requirements": [
+          "Homebound (difficulty leaving home unassisted regularly) or prioritized older adult[2][6][7]",
+          "Unable to prepare meals or shop independently due to physical, mental, or cognitive limitations[1][2][6]",
+          "No able/willing adult in home or vicinity to prepare all meals[4][7]",
+          "Able to feed self or with caregiver assistance[3][4][7]",
+          "Must be home for delivery or arrange ahead and notify program of absences[2][3][6][7]",
+          "Special dietary needs met by program meals without health risk[4][7]",
+          "For Medicaid/OAA/PACE: enrolled in plan, food insecure, clinical risk (e.g., diabetes, CHF, cancer, recent hospitalization)[1][5]",
+          "May extend to spouse/partner (any age), disabled household members, or caregivers if funding available[3][4][6][7]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Nutritionally sound home-delivered meals (1+ per day based on assessment); may include medically tailored meals for conditions like diabetes or post-hospitalization. No fixed dollar value; opportunity to contribute voluntarily. Regular assessments (every 6 months)[1][2][3][6].",
+        "varies_by": "priority_tier|region"
+      },
+      "application": {
+        "methods": [
+          "Contact local Area Agency on Aging (AAA) for assessment (statewide entry point; no central phone listed, use regional providers e.g., Meals on Wheels Western Michigan: (616) 459-3111)[2][6]",
+          "Staff home visit or call for needs assessment and eligibility determination[2][3]",
+          "Medicaid/MA plans: Check plan manual or provider referral (e.g., Mom's Meals via participating plans)[1][5]"
+        ],
+        "processing_time": "Within a few days of assessment if eligible[3][6]",
+        "waitlist": "Possible due to funding/availability, especially for extended eligibility; varies regionally[7]",
+        "forms": [
+          "Consent form and food allergy waiver (annual)[2]",
+          "No specific statewide form number; assessment by provider/AAA[2][3]"
+        ],
+        "documents": [
+          "Proof of age/address if requested",
+          "Medicaid enrollment or health plan details for linked programs[1]",
+          "Health/condition info for assessment (no formal list; prepare to discuss needs, allergies, absences)"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Available via local AAAs and providers; county-specific (e.g., Kent/Allegan for Meals on Wheels Western Michigan[2]; Emmet/Charlevoix/etc. for some healthy meal programs[5])",
+        "regional_variations": "Operated by local providers (e.g., Meals on Wheels Western Michigan, Southwest Michigan, Mom's Meals for Medicaid); eligibility/assessments may differ slightly; wait times/funding vary; some regions prioritize homebound over others[2][3][5][7]",
+        "offices_or_providers": [
+          "Local Area Agency on Aging (contact via michigan.gov/mdhhs)[6]",
+          "Meals on Wheels Western Michigan (Kent/Allegan Counties): mealsonwheelswesternmichigan.org, (616) 459-3111[2]",
+          "Meals on Wheels Southwest Michigan: snsmeals.org[3]",
+          "Mom's Meals for Medicaid: momsmeals.com[1]"
+        ]
+      },
+      "official_source": "https://www.michigan.gov/mdhhs/assistance-programs/other-help/food/home-delivered-meals[6]",
+      "gotchas": [
+        "Not a single centralized program—must contact local AAA/provider; eligibility varies by region/provider[2][3][6]",
+        "Homebound status strictly enforced; regular absences can disqualify[2][3]",
+        "Voluntary contributions expected but no fixed cost; private pay options if ineligible[3]",
+        "Medicaid/MA versions require plan enrollment and specific health risks—check plan manually[1][5]",
+        "Must allow in-home assessments (initial + every 6 months)[2][3]",
+        "Spouse/disabled extensions depend on funding availability[3][7]"
+      ],
+      "data_shape_notes": "Decentralized by local AAAs/providers with core OAA standards but regional variations in operation, providers, and funding; no income/asset tests; prioritizes greatest need/homebound; Medicaid tiers add clinical criteria",
+      "_raw": "{\n  \"name\": \"Home Delivered Meals (Meals on Wheels)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No statewide income or asset limits specified; eligibility prioritizes greatest need but is not income-based for core OAA program. Medicaid-linked programs require enrollment in participating plan but no dollar amounts listed[1][6].\",\n    \"asset_limits\": \"No asset limits or counts/exemptions specified in sources[1][2][6].\",\n    \"other_requirements\": [\n      \"Homebound (difficulty leaving home unassisted regularly) or prioritized older adult[2][6][7]\",\n      \"Unable to prepare meals or shop independently due to physical, mental, or cognitive limitations[1][2][6]\",\n      \"No able/willing adult in home or vicinity to prepare all meals[4][7]\",\n      \"Able to feed self or with caregiver assistance[3][4][7]\",\n      \"Must be home for delivery or arrange ahead and notify program of absences[2][3][6][7]\",\n      \"Special dietary needs met by program meals without health risk[4][7]\",\n      \"For Medicaid/OAA/PACE: enrolled in plan, food insecure, clinical risk (e.g., diabetes, CHF, cancer, recent hospitalization)[1][5]\",\n      \"May extend to spouse/partner (any age), disabled household members, or caregivers if funding available[3][4][6][7]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Nutritionally sound home-delivered meals (1+ per day based on assessment); may include medically tailored meals for conditions like diabetes or post-hospitalization. No fixed dollar value; opportunity to contribute voluntarily. Regular assessments (every 6 months)[1][2][3][6].\",\n    \"varies_by\": \"priority_tier|region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Area Agency on Aging (AAA) for assessment (statewide entry point; no central phone listed, use regional providers e.g., Meals on Wheels Western Michigan: (616) 459-3111)[2][6]\",\n      \"Staff home visit or call for needs assessment and eligibility determination[2][3]\",\n      \"Medicaid/MA plans: Check plan manual or provider referral (e.g., Mom's Meals via participating plans)[1][5]\"\n    ],\n    \"processing_time\": \"Within a few days of assessment if eligible[3][6]\",\n    \"waitlist\": \"Possible due to funding/availability, especially for extended eligibility; varies regionally[7]\",\n    \"forms\": [\n      \"Consent form and food allergy waiver (annual)[2]\",\n      \"No specific statewide form number; assessment by provider/AAA[2][3]\"\n    ],\n    \"documents\": [\n      \"Proof of age/address if requested\",\n      \"Medicaid enrollment or health plan details for linked programs[1]\",\n      \"Health/condition info for assessment (no formal list; prepare to discuss needs, allergies, absences)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Available via local AAAs and providers; county-specific (e.g., Kent/Allegan for Meals on Wheels Western Michigan[2]; Emmet/Charlevoix/etc. for some healthy meal programs[5])\",\n    \"regional_variations\": \"Operated by local providers (e.g., Meals on Wheels Western Michigan, Southwest Michigan, Mom's Meals for Medicaid); eligibility/assessments may differ slightly; wait times/funding vary; some regions prioritize homebound over others[2][3][5][7]\",\n    \"offices_or_providers\": [\n      \"Local Area Agency on Aging (contact via michigan.gov/mdhhs)[6]\",\n      \"Meals on Wheels Western Michigan (Kent/Allegan Counties): mealsonwheelswesternmichigan.org, (616) 459-3111[2]\",\n      \"Meals on Wheels Southwest Michigan: snsmeals.org[3]\",\n      \"Mom's Meals for Medicaid: momsmeals.com[1]\"\n    ]\n  },\n  \"official_source\": \"https://www.michigan.gov/mdhhs/assistance-programs/other-help/food/home-delivered-meals[6]\",\n  \"gotchas\": [\n    \"Not a single centralized program—must contact local AAA/provider; eligibility varies by region/provider[2][3][6]\",\n    \"Homebound status strictly enforced; regular absences can disqualify[2][3]\",\n    \"Voluntary contributions expected but no fixed cost; private pay options if ineligible[3]\",\n    \"Medicaid/MA versions require plan enrollment and specific health risks—check plan manually[1][5]\",\n    \"Must allow in-home assessments (initial + every 6 months)[2][3]\",\n    \"Spouse/disabled extensions depend on funding availability[3][7]\"\n  ],\n  \"data_shape_notes\": \"Decentralized by local AAAs/providers with core OAA standards but regional variations in operation, providers, and funding; no income/asset tests; prioritizes greatest need/homebound; Medicaid tiers add clinical criteria\"\n}"
+    },
+    {
+      "name": "Respite Care (via MI Choice Waiver)",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "Gross monthly income cannot exceed 300% of the SSI federal benefit rate, which varies annually (e.g., $2,982 in one source for 2025, $2,829 in 2024). Excludes spousal income for singles. Special rules apply for married couples under federal protected spousal guidelines. No full household size table specified; set federally each year.",
+        "asset_limits": "Individual assets limited to $2,000 to $9,950 (sources vary; e.g., $9,950 allowable excluding one home and one car; $2,000 in another). Home equity interest no greater than $730,000 in 2025 if living in home or intending to return. Exemptions include: primary home (if equity limit met or spouse/disabled child/minor child lives there), one car, and federal protected spousal assets.",
+        "other_requirements": [
+          "Michigan resident at risk of nursing home placement.",
+          "Medicaid eligible (categorically as aged 65+ or disabled 18+; disability determination required if under 65).",
+          "Nursing Facility Level of Care (NFLOC) via in-person Michigan Medicaid LOCD assessment (functional needs in ADLs, cognition, behavior).",
+          "Live in home/community setting (not nursing home; includes house, apartment, adult foster care, home for aged).",
+          "Must require supports coordination plus at least one other waiver service."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Respite services (temporary relief for caregivers, specific hours/dollar amounts not fixed statewide; part of array including adult day care, chore services, community living support/transportation, counseling, home-delivered meals, home modifications, medical equipment/supplies, nursing (preventative/private duty/respiratory), personal emergency response systems, supports coordination, training in independent living skills). Basic Medicaid services also covered.",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local MI Choice Agency (statewide via regional agencies; e.g., CareWell Services for specific counties at phone provided by agency, The Senior Alliance at 734.722.2830, Region 7 AAA).",
+          "Fill out MI Choice Waiver Referral Form (agency-specific).",
+          "Telephone intake assessment by agency specialists.",
+          "In-home Level of Care Determination (LOCD) by MI Choice Waiver Agency."
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Not mentioned; may vary by region/agency.",
+        "forms": [
+          "MI Choice Waiver Referral Form",
+          "MI Choice Waiver Renewal Application"
+        ],
+        "documents": [
+          "Proof of income (e.g., benefit statements excluding spousal for singles).",
+          "Proof of assets.",
+          "Medicaid eligibility documentation (disability determination if under 65).",
+          "Medical/functional assessment details for LOCD (completed in-person)."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available in all Michigan counties since October 1, 1998; excludes institutional settings like nursing homes.",
+        "regional_variations": "Administered by local MI Choice Agencies/Area Agencies on Aging with varying providers, offices, and potential wait times (e.g., CareWell in Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, St. Joseph, Van Buren counties; The Senior Alliance; Region 7 AAA).",
+        "offices_or_providers": [
+          "Local MI Choice Waiver Agencies (find via regional AAAs)",
+          "Examples: CareWell Services of Southwest Michigan, The Senior Alliance (734.722.2830), Region 7 Area Agency on Aging"
+        ]
+      },
+      "official_source": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver",
+      "gotchas": [
+        "Must need supports coordination PLUS at least one other service; dementia diagnosis alone does not qualify.",
+        "Income/asset limits change annually (300% SSI rate); home equity cap applies ($730,000 in 2025).",
+        "Not for nursing home residents; only community settings.",
+        "Financial eligibility stricter than standard Medicaid (special waiver limits).",
+        "Regional agencies handle applications—must contact local one, not central state office.",
+        "Married couples have special spousal impoverishment protections often missed."
+      ],
+      "data_shape_notes": "Administered statewide via ~16 regional MI Choice Agencies; benefits not fixed hours/dollars but personalized by assessed need/priority; strict NFLOC + dual service requirement; annual federal income/asset adjustments; home equity limit unique to waivers.",
+      "_raw": "{\n  \"name\": \"Respite Care (via MI Choice Waiver)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Gross monthly income cannot exceed 300% of the SSI federal benefit rate, which varies annually (e.g., $2,982 in one source for 2025, $2,829 in 2024). Excludes spousal income for singles. Special rules apply for married couples under federal protected spousal guidelines. No full household size table specified; set federally each year.\",\n    \"asset_limits\": \"Individual assets limited to $2,000 to $9,950 (sources vary; e.g., $9,950 allowable excluding one home and one car; $2,000 in another). Home equity interest no greater than $730,000 in 2025 if living in home or intending to return. Exemptions include: primary home (if equity limit met or spouse/disabled child/minor child lives there), one car, and federal protected spousal assets.\",\n    \"other_requirements\": [\n      \"Michigan resident at risk of nursing home placement.\",\n      \"Medicaid eligible (categorically as aged 65+ or disabled 18+; disability determination required if under 65).\",\n      \"Nursing Facility Level of Care (NFLOC) via in-person Michigan Medicaid LOCD assessment (functional needs in ADLs, cognition, behavior).\",\n      \"Live in home/community setting (not nursing home; includes house, apartment, adult foster care, home for aged).\",\n      \"Must require supports coordination plus at least one other waiver service.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Respite services (temporary relief for caregivers, specific hours/dollar amounts not fixed statewide; part of array including adult day care, chore services, community living support/transportation, counseling, home-delivered meals, home modifications, medical equipment/supplies, nursing (preventative/private duty/respiratory), personal emergency response systems, supports coordination, training in independent living skills). Basic Medicaid services also covered.\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local MI Choice Agency (statewide via regional agencies; e.g., CareWell Services for specific counties at phone provided by agency, The Senior Alliance at 734.722.2830, Region 7 AAA).\",\n      \"Fill out MI Choice Waiver Referral Form (agency-specific).\",\n      \"Telephone intake assessment by agency specialists.\",\n      \"In-home Level of Care Determination (LOCD) by MI Choice Waiver Agency.\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Not mentioned; may vary by region/agency.\",\n    \"forms\": [\n      \"MI Choice Waiver Referral Form\",\n      \"MI Choice Waiver Renewal Application\"\n    ],\n    \"documents\": [\n      \"Proof of income (e.g., benefit statements excluding spousal for singles).\",\n      \"Proof of assets.\",\n      \"Medicaid eligibility documentation (disability determination if under 65).\",\n      \"Medical/functional assessment details for LOCD (completed in-person).\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in all Michigan counties since October 1, 1998; excludes institutional settings like nursing homes.\",\n    \"regional_variations\": \"Administered by local MI Choice Agencies/Area Agencies on Aging with varying providers, offices, and potential wait times (e.g., CareWell in Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, St. Joseph, Van Buren counties; The Senior Alliance; Region 7 AAA).\",\n    \"offices_or_providers\": [\n      \"Local MI Choice Waiver Agencies (find via regional AAAs)\",\n      \"Examples: CareWell Services of Southwest Michigan, The Senior Alliance (734.722.2830), Region 7 Area Agency on Aging\"\n    ]\n  },\n  \"official_source\": \"https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver\",\n  \"gotchas\": [\n    \"Must need supports coordination PLUS at least one other service; dementia diagnosis alone does not qualify.\",\n    \"Income/asset limits change annually (300% SSI rate); home equity cap applies ($730,000 in 2025).\",\n    \"Not for nursing home residents; only community settings.\",\n    \"Financial eligibility stricter than standard Medicaid (special waiver limits).\",\n    \"Regional agencies handle applications—must contact local one, not central state office.\",\n    \"Married couples have special spousal impoverishment protections often missed.\"\n  ],\n  \"data_shape_notes\": \"Administered statewide via ~16 regional MI Choice Agencies; benefits not fixed hours/dollars but personalized by assessed need/priority; strict NFLOC + dual service requirement; annual federal income/asset adjustments; home equity limit unique to waivers.\"\n}"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Family income must be at or below 125% of the federal poverty guideline. Specific 2026 amounts: 1-person household $19,562 annually; 2-person household $26,437 annually[6]. These thresholds are updated annually based on federal poverty guidelines[4].",
+        "asset_limits": "Not specified in available search results. Contact local provider for asset limit information.",
+        "other_requirements": [
+          "Must be unemployed and actively seeking employment[4]",
+          "Must register with Michigan Works[1]",
+          "Must commit to training 19-20 hours per week[2][3]",
+          "Must participate in job search activities[2]",
+          "Must provide proof of all household income and family size documentation[1]"
+        ]
+      },
+      "benefits": {
+        "type": "employment",
+        "value": "Average 20 hours per week of paid part-time training at federal, state, or local minimum wage (whichever is highest)[3][4][5]. Includes: work experience for resume, on-the-job training in computer or vocational skills, professional job placement assistance, employment readiness training, resume writing assistance, career preparedness service, job training and related educational opportunities, yearly physical examinations, and access to American Job Centers[3][4][8].",
+        "varies_by": "fixed"
+      },
+      "application": {
+        "methods": [
+          "In-person: Contact local SCSEP provider or Michigan Works office (varies by county)[1][2]",
+          "Phone: Contact Lauren Wonsowski at The Senior Alliance (specific to their service area)[1]. Regional providers vary; contact your local Area Agency on Aging or workforce development board.",
+          "Online: Visit your regional provider's website (varies by service area)[2][5]",
+          "Mail: Submit application through local provider (address varies by region)"
+        ],
+        "processing_time": "Not specified in available search results. Contact local provider for specific timeline.",
+        "waitlist": "Not specified in available search results. Contact local provider for waitlist information.",
+        "forms": [
+          "Application form (specific form name/number not provided in search results)",
+          "Income verification documentation",
+          "Proof of unemployment",
+          "Michigan Works registration confirmation"
+        ],
+        "documents": [
+          "Proof of all household income (pay stubs, tax returns, benefit statements)[1]",
+          "Family size documentation",
+          "Proof of age (birth certificate, ID)[4]",
+          "Proof of unemployment status",
+          "Michigan Works registration confirmation[1]",
+          "Any other qualifying documents requested by provider for eligibility determination[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Program operates statewide in Michigan but administered through multiple regional providers. Some providers serve specific counties: Macomb, Oakland, and St. Clair Counties[2]; Berrien, Cass, and Van Buren Counties[3]. CWI Works operates in more than 400 counties across a dozen-plus states including Michigan[5]. The Michigan Department of Health and Human Services, Bureau of Aging, Community Living, and Support (ACLS Bureau) administers the program statewide[7].",
+        "regional_variations": "Program is administered through approximately 50 local partner organizations across Michigan[5]. Different regional providers may have different contact information, application processes, and specific services offered. Over 60% of partners serve multi-county rural regions[5]. Eligibility verification and enrollment processes are consistent statewide, but specific providers and office locations vary by region[7].",
+        "offices_or_providers": [
+          "The Senior Alliance (serves specific service area; contact Lauren Wonsowski)[1]",
+          "MSC-MW (serves Macomb, Oakland, St. Clair Counties)[2]",
+          "Area Agency on Aging (serves Berrien, Cass, Van Buren Counties)[3]",
+          "CWI Works (operates through ~50 local partner organizations)[5]",
+          "NEMCSA (serves specific regions)[6]",
+          "Contact Michigan Department of Health and Human Services, Bureau of Aging, Community Living, and Support for complete provider list"
+        ]
+      },
+      "official_source": "https://www.dol.gov/agencies/eta/seniors (U.S. Department of Labor); https://www.michigan.gov/mdhhs (Michigan Department of Health and Human Services administers statewide)",
+      "gotchas": [
+        "Income limits are strict: 125% of federal poverty level means a single person earning ~$19,562 annually qualifies, but higher earners do not[4][6]",
+        "Must be actively unemployed—not underemployed or part-time employed[4]",
+        "Enrollment priority is given to veterans and qualified spouses first, then individuals over 65, with disabilities, low literacy, limited English proficiency, rural residents, homeless/at-risk, low employment prospects, or those who failed to find employment through American Job Center[4][5]. This means non-priority applicants may face longer waits.",
+        "Program is part-time (20 hours/week average), not full-time employment[3][4][5]",
+        "Must commit to job search activities in addition to training hours[2]",
+        "Must register with Michigan Works as a requirement[1]",
+        "Program serves as a 'bridge' to unsubsidized employment—it's temporary training, not permanent employment[3][4]",
+        "No specific information provided about asset limits; families should ask about this during application",
+        "Processing time and waitlist information not publicly available—varies by region and provider",
+        "Multiple regional providers operate in Michigan; the correct contact depends on the applicant's county of residence"
+      ],
+      "data_shape_notes": "SCSEP is a statewide program administered through multiple regional providers with consistent eligibility criteria (age 55+, unemployed, income ≤125% federal poverty level) but varying application processes and contact information by region. Benefits are fixed (20 hours/week at minimum wage) and do not vary by household size or priority tier, though enrollment priority does affect waitlist placement. Income limits scale by household size but are based on federal poverty guidelines updated annually. The program is administered by the Michigan Department of Health and Human Services at the state level but delivered through approximately 50 local partner organizations across the state, creating geographic variation in accessibility and specific services offered.",
+      "_raw": "```json\n{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income must be at or below 125% of the federal poverty guideline. Specific 2026 amounts: 1-person household $19,562 annually; 2-person household $26,437 annually[6]. These thresholds are updated annually based on federal poverty guidelines[4].\",\n    \"asset_limits\": \"Not specified in available search results. Contact local provider for asset limit information.\",\n    \"other_requirements\": [\n      \"Must be unemployed and actively seeking employment[4]\",\n      \"Must register with Michigan Works[1]\",\n      \"Must commit to training 19-20 hours per week[2][3]\",\n      \"Must participate in job search activities[2]\",\n      \"Must provide proof of all household income and family size documentation[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Average 20 hours per week of paid part-time training at federal, state, or local minimum wage (whichever is highest)[3][4][5]. Includes: work experience for resume, on-the-job training in computer or vocational skills, professional job placement assistance, employment readiness training, resume writing assistance, career preparedness service, job training and related educational opportunities, yearly physical examinations, and access to American Job Centers[3][4][8].\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"In-person: Contact local SCSEP provider or Michigan Works office (varies by county)[1][2]\",\n      \"Phone: Contact Lauren Wonsowski at The Senior Alliance (specific to their service area)[1]. Regional providers vary; contact your local Area Agency on Aging or workforce development board.\",\n      \"Online: Visit your regional provider's website (varies by service area)[2][5]\",\n      \"Mail: Submit application through local provider (address varies by region)\"\n    ],\n    \"processing_time\": \"Not specified in available search results. Contact local provider for specific timeline.\",\n    \"waitlist\": \"Not specified in available search results. Contact local provider for waitlist information.\",\n    \"forms\": [\n      \"Application form (specific form name/number not provided in search results)\",\n      \"Income verification documentation\",\n      \"Proof of unemployment\",\n      \"Michigan Works registration confirmation\"\n    ],\n    \"documents\": [\n      \"Proof of all household income (pay stubs, tax returns, benefit statements)[1]\",\n      \"Family size documentation\",\n      \"Proof of age (birth certificate, ID)[4]\",\n      \"Proof of unemployment status\",\n      \"Michigan Works registration confirmation[1]\",\n      \"Any other qualifying documents requested by provider for eligibility determination[1]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Program operates statewide in Michigan but administered through multiple regional providers. Some providers serve specific counties: Macomb, Oakland, and St. Clair Counties[2]; Berrien, Cass, and Van Buren Counties[3]. CWI Works operates in more than 400 counties across a dozen-plus states including Michigan[5]. The Michigan Department of Health and Human Services, Bureau of Aging, Community Living, and Support (ACLS Bureau) administers the program statewide[7].\",\n    \"regional_variations\": \"Program is administered through approximately 50 local partner organizations across Michigan[5]. Different regional providers may have different contact information, application processes, and specific services offered. Over 60% of partners serve multi-county rural regions[5]. Eligibility verification and enrollment processes are consistent statewide, but specific providers and office locations vary by region[7].\",\n    \"offices_or_providers\": [\n      \"The Senior Alliance (serves specific service area; contact Lauren Wonsowski)[1]\",\n      \"MSC-MW (serves Macomb, Oakland, St. Clair Counties)[2]\",\n      \"Area Agency on Aging (serves Berrien, Cass, Van Buren Counties)[3]\",\n      \"CWI Works (operates through ~50 local partner organizations)[5]\",\n      \"NEMCSA (serves specific regions)[6]\",\n      \"Contact Michigan Department of Health and Human Services, Bureau of Aging, Community Living, and Support for complete provider list\"\n    ]\n  },\n  \"official_source\": \"https://www.dol.gov/agencies/eta/seniors (U.S. Department of Labor); https://www.michigan.gov/mdhhs (Michigan Department of Health and Human Services administers statewide)\",\n  \"gotchas\": [\n    \"Income limits are strict: 125% of federal poverty level means a single person earning ~$19,562 annually qualifies, but higher earners do not[4][6]\",\n    \"Must be actively unemployed—not underemployed or part-time employed[4]\",\n    \"Enrollment priority is given to veterans and qualified spouses first, then individuals over 65, with disabilities, low literacy, limited English proficiency, rural residents, homeless/at-risk, low employment prospects, or those who failed to find employment through American Job Center[4][5]. This means non-priority applicants may face longer waits.\",\n    \"Program is part-time (20 hours/week average), not full-time employment[3][4][5]\",\n    \"Must commit to job search activities in addition to training hours[2]\",\n    \"Must register with Michigan Works as a requirement[1]\",\n    \"Program serves as a 'bridge' to unsubsidized employment—it's temporary training, not permanent employment[3][4]\",\n    \"No specific information provided about asset limits; families should ask about this during application\",\n    \"Processing time and waitlist information not publicly available—varies by region and provider\",\n    \"Multiple regional providers operate in Michigan; the correct contact depends on the applicant's county of residence\"\n  ],\n  \"data_shape_notes\": \"SCSEP is a statewide program administered through multiple regional providers with consistent eligibility criteria (age 55+, unemployed, income ≤125% federal poverty level) but varying application processes and contact information by region. Benefits are fixed (20 hours/week at minimum wage) and do not vary by household size or priority tier, though enrollment priority does affect waitlist placement. Income limits scale by household size but are based on federal poverty guidelines updated annually. The program is administered by the Michigan Department of Health and Human Services at the state level but delivered through approximately 50 local partner organizations across the state, creating geographic variation in accessibility and specific services offered.\"\n}\n```\n\n## Key Guidance for Families\n\n**Start here:** Contact your local Michigan Works office or Area Agency on Aging to identify which SCSEP provider serves your county[1][2][3]. This is the critical first step because application methods and contact information vary by region.\n\n**Income verification is essential:** Gather recent pay stubs, tax returns, and benefit statements before applying. The 125% federal poverty threshold is the hard cutoff[4][6].\n\n**Understand the commitment:** Participants must work 20 hours per week at minimum wage while also participating in job search activities[2][4]. This is part-time work designed as a stepping stone to unsubsidized employment, not a permanent job[3][4].\n\n**Veterans get priority:** If your loved one is a veteran or the spouse of a veteran, they receive enrollment priority, which may reduce waitlist time[4][5].\n\n**No published processing times:** The search results do not provide specific application processing timelines or waitlist information. Contact your regional provider directly for this information."
+    },
+    {
+      "name": "Legal Assistance for Seniors",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Varies by regional provider and funding. Generally at or below 125% of Federal Poverty Level (FPL) for household income; up to 200% FPL with qualifying expenses in some cases (e.g., Legal Aid of Western Michigan). Seniors (60+) often exempt from income restrictions (e.g., Legal Services of Eastern Michigan, Lakeshore Legal Aid). No fixed dollar table provided; eligibility assessed case-by-case based on family size, income, and assets.",
+        "asset_limits": "Legal Aid of Western Michigan: No more than $15,000 in countable assets (e.g., bank accounts, recreational vehicles, rental properties). Exempt: primary home, transportation vehicles, retirement accounts. Other providers assess assets case-by-case without fixed statewide limit.",
+        "other_requirements": [
+          "Michigan resident",
+          "Low-income priority (varies)",
+          "Specific legal issues (civil matters)",
+          "Not incarcerated",
+          "Certain non-citizens excluded except domestic abuse cases"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free civil legal services including advice, representation, advocacy on issues like housing, benefits, family law, domestic violence, elder rights, foreclosure prevention, discrimination. No charge for services (e.g., LSEM, Lakeshore Legal Aid). Modest Means Program alternative: reduced fee at $75/hour after $25 consultation (State Bar of Michigan).",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Phone: Lakeshore Legal Aid (888) 783-8190",
+          "Online: MichiganLegalAid.org, LakeshoreLegalAid.org (apply online)",
+          "Regional providers: Legal Aid of Western Michigan (lawestmi.org/i-need-help/eligibility/), Legal Services of Eastern Michigan (lsem-mi.org/clients/), LSNM (lsnm.org)",
+          "State Bar Modest Means: lrs.michbar.org/LRS-Info/Modest-Means-Program"
+        ],
+        "processing_time": "Not specified; intake staff assess eligibility before advice. Modest Means: contact after application processed, then $25 fee for referral.",
+        "waitlist": "Not mentioned; depends on availability of lawyers/providers.",
+        "forms": [
+          "No specific form names/numbers; online applications via provider sites or MichiganLegalAid.org"
+        ],
+        "documents": [
+          "Proof of income, household size, assets (bank statements, etc.), identification; assessed case-by-case"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Regional non-profits cover specific areas (e.g., Legal Aid of Western Michigan: western MI; LSEM: eastern counties like Genesee, Lapeer, Shiawassee; Lakeshore Legal Aid: certain communities)",
+        "regional_variations": "Eligibility nuances differ (e.g., asset cap in west, no income test for seniors in east); different providers, intake processes, priority areas.",
+        "offices_or_providers": [
+          "Legal Aid of Western Michigan (lawestmi.org)",
+          "Legal Services of Eastern Michigan (lsem-mi.org)",
+          "Lakeshore Legal Aid (lakeshorelegalaid.org)",
+          "LSNM (lsnm.org)",
+          "State Bar of Michigan Modest Means (lrs.michbar.org)"
+        ]
+      },
+      "official_source": "https://www.michigan.gov/fyit/resources/legal (links to MichiganLegalAid.org)",
+      "gotchas": [
+        "Not a single statewide program; must contact regional provider for exact eligibility.",
+        "Seniors often qualify regardless of income, but low-income get priority.",
+        "Services limited to civil legal matters; no criminal defense.",
+        "Asset definitions vary; confirm countable vs. exempt.",
+        "Modest Means is reduced-fee, not free.",
+        "Eligibility determined case-by-case; funding restrictions apply."
+      ],
+      "data_shape_notes": "Decentralized by regional legal aid non-profits; no uniform income/asset table or statewide application; seniors (60+) prioritized or exempt from financial tests; varies significantly by provider geography and funding.",
+      "_raw": "{\n  \"name\": \"Legal Assistance for Seniors\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Varies by regional provider and funding. Generally at or below 125% of Federal Poverty Level (FPL) for household income; up to 200% FPL with qualifying expenses in some cases (e.g., Legal Aid of Western Michigan). Seniors (60+) often exempt from income restrictions (e.g., Legal Services of Eastern Michigan, Lakeshore Legal Aid). No fixed dollar table provided; eligibility assessed case-by-case based on family size, income, and assets.\",\n    \"asset_limits\": \"Legal Aid of Western Michigan: No more than $15,000 in countable assets (e.g., bank accounts, recreational vehicles, rental properties). Exempt: primary home, transportation vehicles, retirement accounts. Other providers assess assets case-by-case without fixed statewide limit.\",\n    \"other_requirements\": [\"Michigan resident\", \"Low-income priority (varies)\", \"Specific legal issues (civil matters)\", \"Not incarcerated\", \"Certain non-citizens excluded except domestic abuse cases\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free civil legal services including advice, representation, advocacy on issues like housing, benefits, family law, domestic violence, elder rights, foreclosure prevention, discrimination. No charge for services (e.g., LSEM, Lakeshore Legal Aid). Modest Means Program alternative: reduced fee at $75/hour after $25 consultation (State Bar of Michigan).\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Lakeshore Legal Aid (888) 783-8190\",\n      \"Online: MichiganLegalAid.org, LakeshoreLegalAid.org (apply online)\",\n      \"Regional providers: Legal Aid of Western Michigan (lawestmi.org/i-need-help/eligibility/), Legal Services of Eastern Michigan (lsem-mi.org/clients/), LSNM (lsnm.org)\",\n      \"State Bar Modest Means: lrs.michbar.org/LRS-Info/Modest-Means-Program\"\n    ],\n    \"processing_time\": \"Not specified; intake staff assess eligibility before advice. Modest Means: contact after application processed, then $25 fee for referral.\",\n    \"waitlist\": \"Not mentioned; depends on availability of lawyers/providers.\",\n    \"forms\": [\"No specific form names/numbers; online applications via provider sites or MichiganLegalAid.org\"],\n    \"documents\": [\"Proof of income, household size, assets (bank statements, etc.), identification; assessed case-by-case\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Regional non-profits cover specific areas (e.g., Legal Aid of Western Michigan: western MI; LSEM: eastern counties like Genesee, Lapeer, Shiawassee; Lakeshore Legal Aid: certain communities)\",\n    \"regional_variations\": \"Eligibility nuances differ (e.g., asset cap in west, no income test for seniors in east); different providers, intake processes, priority areas.\",\n    \"offices_or_providers\": [\"Legal Aid of Western Michigan (lawestmi.org)\", \"Legal Services of Eastern Michigan (lsem-mi.org)\", \"Lakeshore Legal Aid (lakeshorelegalaid.org)\", \"LSNM (lsnm.org)\", \"State Bar of Michigan Modest Means (lrs.michbar.org)\"]\n  },\n  \"official_source\": \"https://www.michigan.gov/fyit/resources/legal (links to MichiganLegalAid.org)\",\n  \"gotchas\": [\n    \"Not a single statewide program; must contact regional provider for exact eligibility.\",\n    \"Seniors often qualify regardless of income, but low-income get priority.\",\n    \"Services limited to civil legal matters; no criminal defense.\",\n    \"Asset definitions vary; confirm countable vs. exempt.\",\n    \"Modest Means is reduced-fee, not free.\",\n    \"Eligibility determined case-by-case; funding restrictions apply.\"\n  ],\n  \"data_shape_notes\": \"Decentralized by regional legal aid non-profits; no uniform income/asset table or statewide application; seniors (60+) prioritized or exempt from financial tests; varies significantly by provider geography and funding.\"\n}"
+    },
+    {
+      "name": "Nursing Home Long-Term Care Ombudsman",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; services are free and available to all qualifying residents regardless of income.",
+        "asset_limits": "No asset limits; no financial tests apply.",
+        "other_requirements": [
+          "Must be a resident of a licensed long-term care facility in Michigan, including nursing homes, homes for the aged, adult foster care homes, and assisted living facilities.",
+          "Services provided at the direction and with consent of the resident."
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Free, confidential advocacy services including investigating and resolving complaints about care or services, explaining resident rights, empowering residents to voice concerns, providing information and consultation on long-term care issues, routine visits to facilities, community education, training for resident councils or staff, and systemic advocacy for laws, regulations, and policies benefiting residents.",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Toll-free phone: 866-485-9393 (to contact local ombudsman)",
+          "State office phone: 517-827-8040",
+          "Website: https://mltcop.org (for information and materials)",
+          "Regional offices, e.g., AgeWays for specific counties at 800-852-7795",
+          "Email via MEJI or local providers"
+        ],
+        "processing_time": "Immediate response for concerns; ombudsmen provide timely assistance upon contact.",
+        "waitlist": null,
+        "forms": [],
+        "documents": [
+          "No specific documents required; provide details of the concern or facility when contacting."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Limited to residents in licensed long-term care facilities across Michigan.",
+        "regional_variations": "Program operates statewide with a network of local ombudsmen; some hosted by Area Agencies on Aging (e.g., MEJI for state-level, AgeWays for Livingston, Macomb, Monroe, Oakland, St. Clair, Washtenaw counties); contact methods and specific advocates vary by region but services are consistent.",
+        "offices_or_providers": [
+          "MEJI (state ombudsman staff)",
+          "Area Agencies on Aging statewide",
+          "AgeWays (specific counties)"
+        ]
+      },
+      "official_source": "https://mltcop.org",
+      "gotchas": [
+        "Services require resident consent and are directed by the resident's wishes; families cannot initiate action without it.",
+        "Not a regulatory or licensing body; focuses on advocacy, not enforcement or surveys.",
+        "Confidentiality means ombudsmen cannot disclose details without permission.",
+        "Not for non-residents or unlicensed facilities.",
+        "People may confuse with Medicaid or facility admission programs, which have financial eligibility."
+      ],
+      "data_shape_notes": "no income or asset test; resident consent required; statewide network of local ombudsmen with regional hosting but uniform services; advocacy-only, not financial or direct care provision.",
+      "_raw": "{\n  \"name\": \"Nursing Home Long-Term Care Ombudsman\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; services are free and available to all qualifying residents regardless of income.\",\n    \"asset_limits\": \"No asset limits; no financial tests apply.\",\n    \"other_requirements\": [\"Must be a resident of a licensed long-term care facility in Michigan, including nursing homes, homes for the aged, adult foster care homes, and assisted living facilities.\", \"Services provided at the direction and with consent of the resident.\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Free, confidential advocacy services including investigating and resolving complaints about care or services, explaining resident rights, empowering residents to voice concerns, providing information and consultation on long-term care issues, routine visits to facilities, community education, training for resident councils or staff, and systemic advocacy for laws, regulations, and policies benefiting residents.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Toll-free phone: 866-485-9393 (to contact local ombudsman)\", \"State office phone: 517-827-8040\", \"Website: https://mltcop.org (for information and materials)\", \"Regional offices, e.g., AgeWays for specific counties at 800-852-7795\", \"Email via MEJI or local providers\"],\n    \"processing_time\": \"Immediate response for concerns; ombudsmen provide timely assistance upon contact.\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": [\"No specific documents required; provide details of the concern or facility when contacting.\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Limited to residents in licensed long-term care facilities across Michigan.\",\n    \"regional_variations\": \"Program operates statewide with a network of local ombudsmen; some hosted by Area Agencies on Aging (e.g., MEJI for state-level, AgeWays for Livingston, Macomb, Monroe, Oakland, St. Clair, Washtenaw counties); contact methods and specific advocates vary by region but services are consistent.\",\n    \"offices_or_providers\": [\"MEJI (state ombudsman staff)\", \"Area Agencies on Aging statewide\", \"AgeWays (specific counties)\"]\n  },\n  \"official_source\": \"https://mltcop.org\",\n  \"gotchas\": [\"Services require resident consent and are directed by the resident's wishes; families cannot initiate action without it.\", \"Not a regulatory or licensing body; focuses on advocacy, not enforcement or surveys.\", \"Confidentiality means ombudsmen cannot disclose details without permission.\", \"Not for non-residents or unlicensed facilities.\", \"People may confuse with Medicaid or facility admission programs, which have financial eligibility.\"],\n  \"data_shape_notes\": \"no income or asset test; resident consent required; statewide network of local ombudsmen with regional hosting but uniform services; advocacy-only, not financial or direct care provision.\"\n}"
+    },
+    {
+      "name": "MI Choice Waiver Program",
+      "eligibility": {
+        "age": "65 or older, OR 18+ with documented disability",
+        "income_limits": {
+          "2026_monthly_limit": "$2,982 per month (single applicant, regardless of marital status)",
+          "couples": "Each spouse can have up to $2,982 monthly income when both are applicants",
+          "note": "Income limits are set annually by the Federal Government. Even $1 over the limit disqualifies applicants."
+        },
+        "asset_limits": {
+          "2026_individual": "$9,950",
+          "2026_couple": "$14,910",
+          "exemptions": [
+            "Primary residence (home equity interest up to $730,000 in 2025; applicant must live in home or have 'Intent to Return')",
+            "One vehicle",
+            "Personal belongings"
+          ],
+          "note": "Not all assets are counted. Home equity is calculated as current home value minus outstanding debt."
+        },
+        "other_requirements": [
+          "Must require Nursing Facility Level of Care (NFLOC) as determined by Michigan Medicaid Nursing Facility Level of Care Determination (LOCD) tool",
+          "Must require supports coordination plus at least one additional waiver service",
+          "Must qualify for Medicaid",
+          "Cannot currently reside in a nursing home (MI Choice is for community-based care)",
+          "Can live in: own home, apartment, condo, adult foster care, or home for the aged"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home and community-based services equivalent to nursing home care, including: Nursing Services (Preventative), Private Duty Nursing/Respiratory Care, Respite Care, Specialized Medical Equipment and Supplies, Supports Coordination, Training, and Personal Emergency Response Systems (PERS)",
+        "varies_by": "Individual need and assessment; specific hours/frequency not detailed in search results but determined through care coordination"
+      },
+      "application": {
+        "methods": [
+          "Phone: Contact your county's MI Choice Waiver Agency (varies by region; example: Region 7 Area Agency on Aging at 1-800-858-1637)",
+          "Phone: General information line (734) 722-2830",
+          "In-person: Assessment completed by Registered Nurse at applicant's home, hospital, or nursing home",
+          "Phone interview: Preliminary screening for Activities of Daily Living requirements, income, and asset test"
+        ],
+        "processing_time": "Initial screening conversation: 30-45 minutes; full processing timeline not specified in search results",
+        "waitlist": "Not specified in search results",
+        "forms": [
+          "Michigan Medicaid Nursing Facility Level of Care Determination (LOCD) — completed in-person by MI Choice Waiver Agency",
+          "MI Choice Waiver Renewal Application (for ongoing participants)"
+        ],
+        "documents": [
+          "Detailed financial information: income documentation and asset statements",
+          "Verification of Power of Attorney status (if applicable)",
+          "Medical/functional assessment information (Activities of Daily Living capabilities, cognitive abilities, behavioral considerations)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available in all Michigan counties as of October 1, 1998; however, specific waiver agencies serve designated regions",
+        "regional_variations": "Each county has a designated MI Choice Waiver Agency that handles applications and assessments. Different agencies serve different county groupings (e.g., Region 1C serves Wayne County except certain cities; CareWell Services serves 8 counties in southwest Michigan: Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, St. Joseph, Van Buren)",
+        "offices_or_providers": [
+          "The Senior Alliance (Region 1C, Wayne County): 5454 Venoy Road, Wayne, Michigan 48184-1755",
+          "CareWell Services of Southwest Michigan (8-county region)",
+          "Region 7 Area Agency on Aging: 1-800-858-1637",
+          "AgeWays (serves specific regions)",
+          "Contact Michigan Department of Health and Human Services (MDHHS) for your county's specific agency"
+        ]
+      },
+      "official_source": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver",
+      "gotchas": [
+        "Diagnosis alone does not qualify: Having Alzheimer's disease or dementia does not automatically meet functional criteria; applicants must demonstrate specific functional needs through the LOCD assessment",
+        "Income limit is strict: Even $1 over the $2,982 monthly limit disqualifies applicants; no exceptions",
+        "Must require two services minimum: Applicants must need supports coordination PLUS at least one other waiver service; supports coordination alone is insufficient",
+        "Cannot use while in nursing home: MI Choice is explicitly for community-based care; residents of nursing homes are ineligible",
+        "Functional assessment is rigorous: The LOCD evaluates Activities of Daily Living (transferring, mobility, eating, toileting), cognitive abilities (decision-making, memory, communication), and behavioral factors (wandering, refusing care); applicants must demonstrate genuine need",
+        "Annual income/asset limits reset: Limits are set by Federal Government each year and may change; 2026 limits differ from prior years",
+        "Regional agency variation: Application process and wait times may vary by county; contact your specific county's waiver agency for accurate timelines",
+        "Home equity cap: Home equity interest cannot exceed $730,000 (2025 figure); this may change annually"
+      ],
+      "data_shape_notes": "MI Choice is a statewide program with county-level administration through designated regional agencies. Eligibility is uniform across the state (income, asset, age, functional requirements), but application processing and service delivery vary by region. The program is Medicaid-funded with strict federal income/asset limits that reset annually. Functional eligibility is determined through a standardized assessment tool (LOCD) but requires in-person evaluation. Benefits are service-based (not cash) and tailored to individual need rather than fixed amounts. The program explicitly excludes current nursing home residents and is designed as a community-based alternative to institutionalization.",
+      "_raw": "```json\n{\n  \"name\": \"MI Choice Waiver Program\",\n  \"eligibility\": {\n    \"age\": \"65 or older, OR 18+ with documented disability\",\n    \"income_limits\": {\n      \"2026_monthly_limit\": \"$2,982 per month (single applicant, regardless of marital status)\",\n      \"couples\": \"Each spouse can have up to $2,982 monthly income when both are applicants\",\n      \"note\": \"Income limits are set annually by the Federal Government. Even $1 over the limit disqualifies applicants.\"\n    },\n    \"asset_limits\": {\n      \"2026_individual\": \"$9,950\",\n      \"2026_couple\": \"$14,910\",\n      \"exemptions\": [\n        \"Primary residence (home equity interest up to $730,000 in 2025; applicant must live in home or have 'Intent to Return')\",\n        \"One vehicle\",\n        \"Personal belongings\"\n      ],\n      \"note\": \"Not all assets are counted. Home equity is calculated as current home value minus outstanding debt.\"\n    },\n    \"other_requirements\": [\n      \"Must require Nursing Facility Level of Care (NFLOC) as determined by Michigan Medicaid Nursing Facility Level of Care Determination (LOCD) tool\",\n      \"Must require supports coordination plus at least one additional waiver service\",\n      \"Must qualify for Medicaid\",\n      \"Cannot currently reside in a nursing home (MI Choice is for community-based care)\",\n      \"Can live in: own home, apartment, condo, adult foster care, or home for the aged\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home and community-based services equivalent to nursing home care, including: Nursing Services (Preventative), Private Duty Nursing/Respiratory Care, Respite Care, Specialized Medical Equipment and Supplies, Supports Coordination, Training, and Personal Emergency Response Systems (PERS)\",\n    \"varies_by\": \"Individual need and assessment; specific hours/frequency not detailed in search results but determined through care coordination\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Contact your county's MI Choice Waiver Agency (varies by region; example: Region 7 Area Agency on Aging at 1-800-858-1637)\",\n      \"Phone: General information line (734) 722-2830\",\n      \"In-person: Assessment completed by Registered Nurse at applicant's home, hospital, or nursing home\",\n      \"Phone interview: Preliminary screening for Activities of Daily Living requirements, income, and asset test\"\n    ],\n    \"processing_time\": \"Initial screening conversation: 30-45 minutes; full processing timeline not specified in search results\",\n    \"waitlist\": \"Not specified in search results\",\n    \"forms\": [\n      \"Michigan Medicaid Nursing Facility Level of Care Determination (LOCD) — completed in-person by MI Choice Waiver Agency\",\n      \"MI Choice Waiver Renewal Application (for ongoing participants)\"\n    ],\n    \"documents\": [\n      \"Detailed financial information: income documentation and asset statements\",\n      \"Verification of Power of Attorney status (if applicable)\",\n      \"Medical/functional assessment information (Activities of Daily Living capabilities, cognitive abilities, behavioral considerations)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in all Michigan counties as of October 1, 1998; however, specific waiver agencies serve designated regions\",\n    \"regional_variations\": \"Each county has a designated MI Choice Waiver Agency that handles applications and assessments. Different agencies serve different county groupings (e.g., Region 1C serves Wayne County except certain cities; CareWell Services serves 8 counties in southwest Michigan: Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, St. Joseph, Van Buren)\",\n    \"offices_or_providers\": [\n      \"The Senior Alliance (Region 1C, Wayne County): 5454 Venoy Road, Wayne, Michigan 48184-1755\",\n      \"CareWell Services of Southwest Michigan (8-county region)\",\n      \"Region 7 Area Agency on Aging: 1-800-858-1637\",\n      \"AgeWays (serves specific regions)\",\n      \"Contact Michigan Department of Health and Human Services (MDHHS) for your county's specific agency\"\n    ]\n  },\n  \"official_source\": \"https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver\",\n  \"gotchas\": [\n    \"Diagnosis alone does not qualify: Having Alzheimer's disease or dementia does not automatically meet functional criteria; applicants must demonstrate specific functional needs through the LOCD assessment\",\n    \"Income limit is strict: Even $1 over the $2,982 monthly limit disqualifies applicants; no exceptions\",\n    \"Must require two services minimum: Applicants must need supports coordination PLUS at least one other waiver service; supports coordination alone is insufficient\",\n    \"Cannot use while in nursing home: MI Choice is explicitly for community-based care; residents of nursing homes are ineligible\",\n    \"Functional assessment is rigorous: The LOCD evaluates Activities of Daily Living (transferring, mobility, eating, toileting), cognitive abilities (decision-making, memory, communication), and behavioral factors (wandering, refusing care); applicants must demonstrate genuine need\",\n    \"Annual income/asset limits reset: Limits are set by Federal Government each year and may change; 2026 limits differ from prior years\",\n    \"Regional agency variation: Application process and wait times may vary by county; contact your specific county's waiver agency for accurate timelines\",\n    \"Home equity cap: Home equity interest cannot exceed $730,000 (2025 figure); this may change annually\"\n  ],\n  \"data_shape_notes\": \"MI Choice is a statewide program with county-level administration through designated regional agencies. Eligibility is uniform across the state (income, asset, age, functional requirements), but application processing and service delivery vary by region. The program is Medicaid-funded with strict federal income/asset limits that reset annually. Functional eligibility is determined through a standardized assessment tool (LOCD) but requires in-person evaluation. Benefits are service-based (not cash) and tailored to individual need rather than fixed amounts. The program explicitly excludes current nursing home residents and is designed as a community-based alternative to institutionalization.\"\n}\n```\n\n## Key Takeaways for Families\n\n**Start here:** Contact your county's MI Choice Waiver Agency (find it through MDHHS or call 1-800-858-1637 for Region 7). Each county has a designated agency that handles applications[1][8].\n\n**The three-part eligibility test:** Your loved one must pass an income test ($2,982/month maximum in 2026)[1][3], an asset test ($9,950 for individuals; home and car don't count)[3], and a functional assessment proving they need nursing home-level care[1][4].\n\n**The functional assessment is the gatekeeper:** This isn't automatic. A Registered Nurse will evaluate Activities of Daily Living (can they transfer from bed to chair? eat? use the toilet?), cognitive abilities, and behavioral needs[1]. A dementia diagnosis alone doesn't qualify someone[1].\n\n**What you actually get:** Not cash, but services: nursing care, respiratory care, respite care, medical equipment, care coordination, and emergency response systems—delivered at home instead of a nursing facility[2][5].\n\n**The application is regional:** You'll work with your county's specific waiver agency. Initial screening takes 30-45 minutes by phone, then an in-person assessment by a nurse[3]. Processing timelines vary by region and aren't specified in available materials[1].\n\n**Bring documentation:** Detailed income and asset statements, medical/functional information, and Power of Attorney verification if applicable[3].\n\n**The gotcha:** Even $1 over the income limit disqualifies applicants[4]. Home equity cannot exceed $730,000[1]. And applicants must need supports coordination *plus* at least one other service—coordination alone isn't enough[1]."
+    },
+    {
+      "name": "Home Help Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Single applicant: up to $1,305/month (effective 4/1/25, equivalent to 100% FPL, updates annually in April). Married couples (one or both applying): up to $1,763/month. Varies by household size and Medicaid program type; full table not specified in sources—must confirm current FPL via MDHHS as limits adjust yearly.[1][2]",
+        "asset_limits": "Home equity limit of $752,000 (2026) if intending to return home. Exemptions: primary residence if applicant/spouse/minor child/disabled child lives there; one vehicle. Other countable assets include savings, property (limits not specified numerically beyond home equity; typical Medicaid asset rules apply).[1][2]",
+        "other_requirements": [
+          "Michigan resident living in own home (or intent to return).",
+          "Enrolled in Michigan Medicaid.",
+          "Hands-on assistance needed with at least one Activity of Daily Living (ADL: eating, bathing, dressing, grooming, mobility, transferring, toilet use), assessed via Adult Services Comprehensive Assessment (MDHHS-5534).",
+          "Caregivers (family/friends/neighbors, 18+, not spouse/parent of minor): background check, training, CHAMPS enrollment; responsible relatives must be unable/unavailable.",
+          "U.S. citizen or legal resident."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "In-home personal care for ADLs (eating, bathing, dressing, grooming, mobility, transferring, toilet use) and IADLs. Up to 180 hours/month typically; additional hours based on assessed need and MDHHS approval. Pays family/friends/neighbors as caregivers (not spouses/parents of minors).",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local MDHHS county office or Area Agency on Aging.",
+          "Phone: Local MDHHS office (find via michigan.gov/mdhhs) or provider assistance lines like 833-447-3326.",
+          "In-person: Local Department of Health and Human Services office."
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": null,
+        "forms": [
+          "MDHHS-5534 (Adult Services Comprehensive Assessment).",
+          "Medicaid application via county MDHHS."
+        ],
+        "documents": [
+          "Proof of income (pay stubs, tax returns).",
+          "Proof of assets/home equity.",
+          "Proof of residency (driver's license, utility bill).",
+          "Proof of citizenship/legal residency.",
+          "Medical records or assessments showing ADL needs.",
+          "Caregiver: Background check info, separate address verification if applicable."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Administered locally via county MDHHS offices and Area Agencies on Aging; potential differences in wait times, providers, processing by county (not detailed).[3][6]",
+        "offices_or_providers": [
+          "Local MDHHS county offices",
+          "Area Agencies on Aging"
+        ]
+      },
+      "official_source": "https://www.michigan.gov/mdhhs/doing-business/providers/providers/other/homehelp[8]",
+      "gotchas": [
+        "Must be enrolled in Medicaid first—not Medicare alone.",
+        "Income limit at 100% FPL (lower than some programs' 300% SSI); updates April annually.",
+        "Caregivers cannot be spouses or parents of minors; responsible relatives must be unavailable.",
+        "Home equity limit applies ($752,000 in 2026).",
+        "Functional need assessed strictly via MDHHS-5534 form."
+      ],
+      "data_shape_notes": "Tied to Medicaid eligibility with strict ADL assessment; caregiver payments via CHAMPS; hours tiered by need (up to 180+/month); statewide but county-administered with local variations.",
+      "_raw": "{\n  \"name\": \"Home Help Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Single applicant: up to $1,305/month (effective 4/1/25, equivalent to 100% FPL, updates annually in April). Married couples (one or both applying): up to $1,763/month. Varies by household size and Medicaid program type; full table not specified in sources—must confirm current FPL via MDHHS as limits adjust yearly.[1][2]\",\n    \"asset_limits\": \"Home equity limit of $752,000 (2026) if intending to return home. Exemptions: primary residence if applicant/spouse/minor child/disabled child lives there; one vehicle. Other countable assets include savings, property (limits not specified numerically beyond home equity; typical Medicaid asset rules apply).[1][2]\",\n    \"other_requirements\": [\n      \"Michigan resident living in own home (or intent to return).\",\n      \"Enrolled in Michigan Medicaid.\",\n      \"Hands-on assistance needed with at least one Activity of Daily Living (ADL: eating, bathing, dressing, grooming, mobility, transferring, toilet use), assessed via Adult Services Comprehensive Assessment (MDHHS-5534).\",\n      \"Caregivers (family/friends/neighbors, 18+, not spouse/parent of minor): background check, training, CHAMPS enrollment; responsible relatives must be unable/unavailable.\",\n      \"U.S. citizen or legal resident.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"In-home personal care for ADLs (eating, bathing, dressing, grooming, mobility, transferring, toilet use) and IADLs. Up to 180 hours/month typically; additional hours based on assessed need and MDHHS approval. Pays family/friends/neighbors as caregivers (not spouses/parents of minors).\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local MDHHS county office or Area Agency on Aging.\",\n      \"Phone: Local MDHHS office (find via michigan.gov/mdhhs) or provider assistance lines like 833-447-3326.\",\n      \"In-person: Local Department of Health and Human Services office.\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"MDHHS-5534 (Adult Services Comprehensive Assessment).\",\n      \"Medicaid application via county MDHHS.\"\n    ],\n    \"documents\": [\n      \"Proof of income (pay stubs, tax returns).\",\n      \"Proof of assets/home equity.\",\n      \"Proof of residency (driver's license, utility bill).\",\n      \"Proof of citizenship/legal residency.\",\n      \"Medical records or assessments showing ADL needs.\",\n      \"Caregiver: Background check info, separate address verification if applicable.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Administered locally via county MDHHS offices and Area Agencies on Aging; potential differences in wait times, providers, processing by county (not detailed).[3][6]\",\n    \"offices_or_providers\": [\"Local MDHHS county offices\", \"Area Agencies on Aging\"]\n  },\n  \"official_source\": \"https://www.michigan.gov/mdhhs/doing-business/providers/providers/other/homehelp[8]\",\n  \"gotchas\": [\n    \"Must be enrolled in Medicaid first—not Medicare alone.\",\n    \"Income limit at 100% FPL (lower than some programs' 300% SSI); updates April annually.\",\n    \"Caregivers cannot be spouses or parents of minors; responsible relatives must be unavailable.\",\n    \"Home equity limit applies ($752,000 in 2026).\",\n    \"Functional need assessed strictly via MDHHS-5534 form.\"\n  ],\n  \"data_shape_notes\": \"Tied to Medicaid eligibility with strict ADL assessment; caregiver payments via CHAMPS; hours tiered by need (up to 180+/month); statewide but county-administered with local variations.\"\n}"
+    },
+    {
+      "name": "MiCAFE (Michigan's Coordinated Access to Food for the Elderly)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Based on household composition and monthly income minus medical expenses; specific dollar amounts or full table not detailed in available sources. Eligibility determined for programs like SNAP, which consider household financial situation.[1][4][6]",
+        "asset_limits": "Countable assets considered based on household composition; specific limits, what counts, or exemptions not detailed in sources.[1]",
+        "other_requirements": [
+          "Living on limited income",
+          "Primarily for individuals 60 and older",
+          "Eligibility varies by target program (e.g., SNAP, Medicare premiums, utilities) with deductions like medical expenses applied[1][2][4]"
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Application assistance for SNAP (Bridge Card/food benefits), Medicare premiums, Medicare Part D prescription drug benefits, utility assistance, medical assistance, prescriptions, and other community programs; includes outreach, education, in-home assistance where available, and annual recertification support.[1][2][3][5]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-877-664-2233 (Monday-Friday, 9:00 a.m. to 3:00 p.m.)[1][2][5][8]",
+          "Website: elderlawofmi.org/micafe[2][8]",
+          "In-home or in-community assistance via MiCAFE Network partners where available[3]"
+        ],
+        "processing_time": "Not specified; varies by target program (e.g., SNAP eligibility requirements)[5]",
+        "waitlist": null,
+        "forms": [
+          "Authorization form for information exchange during eligibility process (available via MiCAFE)[9]",
+          "Assists with signing and submitting benefits applications electronically[3]"
+        ],
+        "documents": [
+          "Not explicitly listed; prepare financial details for income, assets, medical expenses, and household composition for eligibility determination across programs[1][9]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Delivered statewide via MiCAFE Network of partners providing outreach, education, and application assistance; in-home assistance availability varies by location[3][7]",
+        "offices_or_providers": [
+          "Elder Law of Michigan, Inc. (program administrator)",
+          "MiCAFE Network partners statewide[3][7]"
+        ]
+      },
+      "official_source": "https://www.elderlawofmi.org/micafe",
+      "gotchas": [
+        "MiCAFE itself is not a direct benefit provider but an assistance program—families must qualify for underlying programs like SNAP based on household finances[1][2][6]",
+        "Nearly 50% of eligible seniors do not enroll in SNAP without assistance, so proactive application via MiCAFE is key[8]",
+        "Phone support limited to specific hours; eligibility for non-SNAP benefits (e.g., Medicare help) available even if SNAP-ineligible[2]",
+        "Focuses on reducing stigma/barriers for food assistance but extends to utilities/medical[3]"
+      ],
+      "data_shape_notes": "Advocacy-focused with eligibility tied to multiple programs (SNAP primary); no fixed MiCAFE-specific income/asset tables provided—uses program-specific rules with medical deductions; statewide network model with partner variations",
+      "_raw": "{\n  \"name\": \"MiCAFE (Michigan's Coordinated Access to Food for the Elderly)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Based on household composition and monthly income minus medical expenses; specific dollar amounts or full table not detailed in available sources. Eligibility determined for programs like SNAP, which consider household financial situation.[1][4][6]\",\n    \"asset_limits\": \"Countable assets considered based on household composition; specific limits, what counts, or exemptions not detailed in sources.[1]\",\n    \"other_requirements\": [\"Living on limited income\", \"Primarily for individuals 60 and older\", \"Eligibility varies by target program (e.g., SNAP, Medicare premiums, utilities) with deductions like medical expenses applied[1][2][4]\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Application assistance for SNAP (Bridge Card/food benefits), Medicare premiums, Medicare Part D prescription drug benefits, utility assistance, medical assistance, prescriptions, and other community programs; includes outreach, education, in-home assistance where available, and annual recertification support.[1][2][3][5]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 1-877-664-2233 (Monday-Friday, 9:00 a.m. to 3:00 p.m.)[1][2][5][8]\", \"Website: elderlawofmi.org/micafe[2][8]\", \"In-home or in-community assistance via MiCAFE Network partners where available[3]\"],\n    \"processing_time\": \"Not specified; varies by target program (e.g., SNAP eligibility requirements)[5]\",\n    \"waitlist\": null,\n    \"forms\": [\"Authorization form for information exchange during eligibility process (available via MiCAFE)[9]\", \"Assists with signing and submitting benefits applications electronically[3]\"],\n    \"documents\": [\"Not explicitly listed; prepare financial details for income, assets, medical expenses, and household composition for eligibility determination across programs[1][9]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Delivered statewide via MiCAFE Network of partners providing outreach, education, and application assistance; in-home assistance availability varies by location[3][7]\",\n    \"offices_or_providers\": [\"Elder Law of Michigan, Inc. (program administrator)\", \"MiCAFE Network partners statewide[3][7]\"]\n  },\n  \"official_source\": \"https://www.elderlawofmi.org/micafe\",\n  \"gotchas\": [\"MiCAFE itself is not a direct benefit provider but an assistance program—families must qualify for underlying programs like SNAP based on household finances[1][2][6]\", \"Nearly 50% of eligible seniors do not enroll in SNAP without assistance, so proactive application via MiCAFE is key[8]\", \"Phone support limited to specific hours; eligibility for non-SNAP benefits (e.g., Medicare help) available even if SNAP-ineligible[2]\", \"Focuses on reducing stigma/barriers for food assistance but extends to utilities/medical[3]\"],\n  \"data_shape_notes\": \"Advocacy-focused with eligibility tied to multiple programs (SNAP primary); no fixed MiCAFE-specific income/asset tables provided—uses program-specific rules with medical deductions; statewide network model with partner variations\"\n}"
+    }
+  ]
+}

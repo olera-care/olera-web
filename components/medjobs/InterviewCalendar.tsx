@@ -41,6 +41,15 @@ interface InterviewCalendarProps {
 
 /* ── Helpers ── */
 
+const STATUS_LABELS: Record<string, string> = {
+  proposed: "Pending",
+  confirmed: "Confirmed",
+  completed: "Completed",
+  cancelled: "Cancelled",
+  no_show: "No Show",
+  rescheduled: "Rescheduled",
+};
+
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
   proposed: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-400" },
   confirmed: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
@@ -403,7 +412,7 @@ function InterviewDetailModal({
             type="button"
             onClick={() => handleAction("confirmed")}
             disabled={isLoading}
-            className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 rounded-xl text-base font-semibold text-white transition-colors"
+            className="w-full py-3.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-40 rounded-xl text-base font-semibold text-white transition-colors"
           >
             {isLoading ? "Confirming..." : "Confirm Interview"}
           </button>
@@ -469,7 +478,7 @@ function InterviewDetailModal({
             )}
             <span className={`inline-flex items-center gap-1.5 mt-1 px-2.5 py-1 rounded-full text-xs font-medium ${styles.bg} ${styles.text}`}>
               <span className={`w-2 h-2 rounded-full ${styles.dot}`} />
-              {interview.status.charAt(0).toUpperCase() + interview.status.slice(1)}
+              {STATUS_LABELS[interview.status] || interview.status}
             </span>
           </div>
         </div>
@@ -502,6 +511,7 @@ function InterviewDetailModal({
               </svg>
             </div>
             <div>
+              <p className="text-xs text-gray-500 mb-0.5">Interview type</p>
               <p className="text-sm font-medium text-gray-900">{typeLabel(interview.type)}</p>
               {interview.location && (
                 <p className="text-sm text-gray-500">{interview.location}</p>

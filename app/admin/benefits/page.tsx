@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { allStates, type WaiverProgram, type StateData } from "@/data/waiver-library";
+import { pipelineData, type PipelineComparison } from "@/data/pipeline-summary";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -78,9 +79,44 @@ function ProgressBar({ value, total }: { value: number; total: number }) {
   );
 }
 
-function ProgramPreview({ program, stateId }: { program: WaiverProgram; stateId: string }) {
+function PipelineDiffs({ comparison }: { comparison: PipelineComparison }) {
+  if (!comparison.diffs.length && !comparison.novelFields.length) return null;
+
+  return (
+    <div className="mt-4 p-3 bg-amber-50/50 border border-amber-100 rounded-lg space-y-2">
+      <p className="text-[11px] font-semibold text-amber-700 uppercase tracking-wider">Pipeline Findings</p>
+      {comparison.diffs.map((diff, i) => (
+        <div key={i} className="text-xs text-amber-800 flex items-start gap-1.5">
+          <span className="text-amber-500 mt-0.5 shrink-0">&#9888;</span>
+          <span>
+            <span className="font-medium">{diff.field}</span>: ours says{" "}
+            <span className="line-through text-amber-600">{diff.ours}</span>
+            {" → "}
+            <span className="font-medium">{diff.found.length > 80 ? diff.found.slice(0, 80) + "..." : diff.found}</span>
+            {diff.source && (
+              <a href={diff.source} target="_blank" rel="noopener noreferrer" className="ml-1 text-amber-600 underline underline-offset-2">source</a>
+            )}
+          </span>
+        </div>
+      ))}
+      {comparison.novelFields.length > 0 && (
+        <div className="text-xs text-amber-700 mt-1 pt-1 border-t border-amber-100">
+          <span className="font-medium">Missing from model:</span>{" "}
+          {comparison.novelFields.map((nf) => nf.field).join(", ")}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProgramPreview({ program, stateId, pipelineComparison }: { program: WaiverProgram; stateId: string; pipelineComparison?: PipelineComparison }) {
   return (
     <div className="mt-4 pt-4 border-t border-gray-100 space-y-5">
+      {/* Pipeline diffs */}
+      {pipelineComparison && (pipelineComparison.diffs.length > 0 || pipelineComparison.novelFields.length > 0) && (
+        <PipelineDiffs comparison={pipelineComparison} />
+      )}
+
       {/* Description */}
       {program.intro && (
         <div>
@@ -184,10 +220,11 @@ function ProgramPreview({ program, stateId }: { program: WaiverProgram; stateId:
   );
 }
 
-function ProgramRow({ program, stateId }: { program: WaiverProgram; stateId: string }) {
+function ProgramRow({ program, stateId, pipelineComparison }: { program: WaiverProgram; stateId: string; pipelineComparison?: PipelineComparison }) {
   const [expanded, setExpanded] = useState(false);
   const category = inferCategory(program);
   const isVerified = !!program.lastVerifiedDate;
+  const hasDiffs = pipelineComparison && pipelineComparison.diffsFound > 0;
 
   return (
     <div
@@ -219,6 +256,11 @@ function ProgramRow({ program, stateId }: { program: WaiverProgram; stateId: str
                 Unverified
               </span>
             )}
+            {hasDiffs && (
+              <span className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded font-medium">
+                {pipelineComparison.diffsFound} diff{pipelineComparison.diffsFound > 1 ? "s" : ""}
+              </span>
+            )}
           </div>
         </div>
         <svg
@@ -230,7 +272,7 @@ function ProgramRow({ program, stateId }: { program: WaiverProgram; stateId: str
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
         </svg>
       </button>
-      {expanded && <ProgramPreview program={program} stateId={stateId} />}
+      {expanded && <ProgramPreview program={program} stateId={stateId} pipelineComparison={pipelineComparison} />}
     </div>
   );
 }
@@ -246,6 +288,7 @@ function StateCard({
 }) {
   const stats = getVerificationStats(state.programs);
   const health = getStateHealth(state);
+  const pipeline = pipelineData[state.abbreviation];
 
   return (
     <button
@@ -270,6 +313,18 @@ function StateCard({
         {state.name}
       </p>
       <ProgressBar value={stats.verified} total={stats.total} />
+      {pipeline && (
+        <div className="mt-2 pt-2 border-t border-gray-100">
+          <p className="text-[11px] text-gray-400">
+            Explored {pipeline.exploredAt}
+          </p>
+          {pipeline.diffsFound > 0 && (
+            <p className="text-[11px] text-amber-600 font-medium mt-0.5">
+              {pipeline.diffsFound} issue{pipeline.diffsFound > 1 ? "s" : ""} found
+            </p>
+          )}
+        </div>
+      )}
     </button>
   );
 }
@@ -284,6 +339,17 @@ function StateDetail({
   onBack: () => void;
 }) {
   const stats = getVerificationStats(state.programs);
+  const pipeline = pipelineData[state.abbreviation];
+  const comparisons = pipeline?.comparisons || [];
+
+  // Match pipeline comparisons to existing programs by ID or fuzzy name
+  function findComparison(program: WaiverProgram): PipelineComparison | undefined {
+    return comparisons.find((c) =>
+      c.existingId === program.id ||
+      c.name.toLowerCase().includes(program.name.toLowerCase().slice(0, 20)) ||
+      program.name.toLowerCase().includes(c.name.toLowerCase().slice(0, 20))
+    );
+  }
 
   return (
     <div>
@@ -318,10 +384,30 @@ function StateDetail({
         </div>
       </div>
 
+      {/* Pipeline summary */}
+      {pipeline && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-100 flex items-center justify-between">
+          <div className="text-xs text-gray-500">
+            Pipeline explored {pipeline.exploredAt} &middot; {pipeline.programsFound} programs found
+            {pipeline.diffsFound > 0 && (
+              <span className="text-amber-600 font-medium"> &middot; {pipeline.diffsFound} data issues</span>
+            )}
+            {pipeline.newPrograms > 0 && (
+              <span> &middot; {pipeline.newPrograms} new programs discovered</span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Program list */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden divide-y divide-gray-100">
         {state.programs.map((program) => (
-          <ProgramRow key={program.id} program={program} stateId={state.id} />
+          <ProgramRow
+            key={program.id}
+            program={program}
+            stateId={state.id}
+            pipelineComparison={findComparison(program)}
+          />
         ))}
       </div>
     </div>

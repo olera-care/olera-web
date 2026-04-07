@@ -1,11 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
 import type { OrganizationMetadata } from "@/lib/types";
-
-type StatusFilter = "pending" | "verified" | "unverified" | "all";
 
 interface VerificationSubmission {
   name: string;
@@ -47,7 +44,6 @@ export default function AdminVerificationPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<StatusFilter>("pending");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
 
@@ -55,10 +51,15 @@ export default function AdminVerificationPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/verification?status=${filter}`);
+      // Only fetch pending requests - this is the actionable queue
+      const res = await fetch("/api/admin/verification?status=pending");
       if (res.ok) {
         const data = await res.json();
-        setProviders(data.providers ?? []);
+        // Filter to only show providers with actual submissions
+        const withSubmissions = (data.providers ?? []).filter(
+          (p: Provider) => p.metadata?.verification_submission
+        );
+        setProviders(withSubmissions);
       } else {
         setError("Failed to load verification requests. Please try again.");
       }
@@ -68,7 +69,7 @@ export default function AdminVerificationPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, []);
 
   useEffect(() => {
     fetchProviders();
@@ -98,24 +99,6 @@ export default function AdminVerificationPage() {
     }
   }
 
-  const tabs: { label: string; value: StatusFilter }[] = [
-    { label: "Pending", value: "pending" },
-    { label: "Verified", value: "verified" },
-    { label: "Unverified", value: "unverified" },
-    { label: "All", value: "all" },
-  ];
-
-  function getStatusVariant(state: string): "pending" | "verified" | "default" {
-    switch (state) {
-      case "pending":
-        return "pending";
-      case "verified":
-        return "verified";
-      default:
-        return "default";
-    }
-  }
-
   // Get verification submission from metadata
   function getVerificationSubmission(provider: Provider): VerificationSubmission | null {
     return provider.metadata?.verification_submission || null;
@@ -124,28 +107,10 @@ export default function AdminVerificationPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Identity Verification</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Verification Requests</h1>
         <p className="text-lg text-gray-600 mt-1">
-          Review and approve provider identity verification requests.
+          Review and approve provider identity verification submissions.
         </p>
-      </div>
-
-      {/* Filter tabs */}
-      <div className="flex gap-2 mb-6">
-        {tabs.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => setFilter(tab.value)}
-            className={[
-              "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-              filter === tab.value
-                ? "bg-primary-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200",
-            ].join(" ")}
-          >
-            {tab.label}
-          </button>
-        ))}
       </div>
 
       {error && (
@@ -171,13 +136,9 @@ export default function AdminVerificationPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-lg font-semibold text-gray-900">
-            {filter === "pending" ? "All caught up!" : `No ${filter} providers`}
-          </p>
+          <p className="text-lg font-semibold text-gray-900">All caught up!</p>
           <p className="text-sm text-gray-500 mt-1">
-            {filter === "pending"
-              ? "No verification requests waiting for review."
-              : `No providers with "${filter}" verification status.`}
+            No verification requests waiting for review.
           </p>
         </div>
       ) : (
@@ -189,16 +150,13 @@ export default function AdminVerificationPage() {
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Provider</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Submitter</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Location</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Submitted</th>
-                  {filter === "pending" && (
-                    <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
-                  )}
+                  <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {providers.map((provider) => {
-                  const submission = getVerificationSubmission(provider);
+                  const submission = getVerificationSubmission(provider)!;
                   return (
                     <tr key={provider.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
@@ -226,61 +184,50 @@ export default function AdminVerificationPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        {submission ? (
-                          <button
-                            onClick={() => setSelectedProvider(provider)}
-                            className="text-left group"
-                          >
-                            <p className="text-sm font-medium text-gray-900 group-hover:text-primary-600 transition-colors">
-                              {submission.name}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {ROLE_LABELS[submission.role] || submission.role}
-                            </p>
-                          </button>
-                        ) : (
-                          <span className="text-sm text-gray-400">No submission</span>
-                        )}
+                        <button
+                          onClick={() => setSelectedProvider(provider)}
+                          className="text-left group"
+                        >
+                          <p className="text-sm font-medium text-gray-900 group-hover:text-primary-600 transition-colors">
+                            {submission.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {ROLE_LABELS[submission.role] || submission.role}
+                          </p>
+                        </button>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {[provider.city, provider.state].filter(Boolean).join(", ") || "—"}
                       </td>
-                      <td className="px-6 py-4">
-                        <Badge variant={getStatusVariant(provider.verification_state)}>
-                          {provider.verification_state}
-                        </Badge>
-                      </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
-                        {submission?.submitted_at
+                        {submission.submitted_at
                           ? new Date(submission.submitted_at).toLocaleDateString()
-                          : new Date(provider.updated_at).toLocaleDateString()}
+                          : "—"}
                       </td>
-                      {filter === "pending" && (
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex gap-2 justify-end">
-                            <button
-                              onClick={() => setSelectedProvider(provider)}
-                              className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-                            >
-                              Review
-                            </button>
-                            <button
-                              onClick={() => handleAction(provider.id, "approve")}
-                              disabled={actionLoading === provider.id}
-                              className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
-                            >
-                              {actionLoading === provider.id ? "..." : "Approve"}
-                            </button>
-                            <button
-                              onClick={() => handleAction(provider.id, "reject")}
-                              disabled={actionLoading === provider.id}
-                              className="px-3 py-1.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors"
-                            >
-                              {actionLoading === provider.id ? "..." : "Reject"}
-                            </button>
-                          </div>
-                        </td>
-                      )}
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex gap-2 justify-end">
+                          <button
+                            onClick={() => setSelectedProvider(provider)}
+                            className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                          >
+                            Review
+                          </button>
+                          <button
+                            onClick={() => handleAction(provider.id, "approve")}
+                            disabled={actionLoading === provider.id}
+                            className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                          >
+                            {actionLoading === provider.id ? "..." : "Approve"}
+                          </button>
+                          <button
+                            onClick={() => handleAction(provider.id, "reject")}
+                            disabled={actionLoading === provider.id}
+                            className="px-3 py-1.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors"
+                          >
+                            {actionLoading === provider.id ? "..." : "Reject"}
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}
@@ -298,7 +245,6 @@ export default function AdminVerificationPage() {
           onApprove={() => handleAction(selectedProvider.id, "approve")}
           onReject={() => handleAction(selectedProvider.id, "reject")}
           isLoading={actionLoading === selectedProvider.id}
-          showActions={filter === "pending"}
         />
       )}
     </div>
@@ -313,7 +259,6 @@ interface VerificationReviewModalProps {
   onApprove: () => void;
   onReject: () => void;
   isLoading: boolean;
-  showActions: boolean;
 }
 
 function VerificationReviewModal({
@@ -322,7 +267,6 @@ function VerificationReviewModal({
   onApprove,
   onReject,
   isLoading,
-  showActions,
 }: VerificationReviewModalProps) {
   const submission = provider.metadata?.verification_submission;
 
@@ -343,24 +287,22 @@ function VerificationReviewModal({
       title="Review Verification Request"
       size="lg"
       footer={
-        showActions ? (
-          <div className="flex gap-3">
-            <button
-              onClick={onReject}
-              disabled={isLoading}
-              className="flex-1 px-4 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-colors"
-            >
-              Reject
-            </button>
-            <button
-              onClick={onApprove}
-              disabled={isLoading}
-              className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
-            >
-              {isLoading ? "Processing..." : "Approve Verification"}
-            </button>
-          </div>
-        ) : undefined
+        <div className="flex gap-3">
+          <button
+            onClick={onReject}
+            disabled={isLoading}
+            className="flex-1 px-4 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          >
+            Reject
+          </button>
+          <button
+            onClick={onApprove}
+            disabled={isLoading}
+            className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
+          >
+            {isLoading ? "Processing..." : "Approve Verification"}
+          </button>
+        </div>
       }
     >
       {/* Provider Info */}

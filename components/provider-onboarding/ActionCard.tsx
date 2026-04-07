@@ -924,7 +924,7 @@ export default function ActionCard({
           </svg>
         </div>
         <h3 className="text-xl font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
-          Claim this listing
+          Manage this page
           <InfoTooltip
             content={TOOLTIP_CONTENT["claim-form"].text}
             showTos

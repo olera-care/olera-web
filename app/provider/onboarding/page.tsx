@@ -1389,7 +1389,7 @@ function ProviderOnboardingContent() {
                                     }}
                                     className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
                                   >
-                                    Claim →
+                                    That's me →
                                   </button>
                                 )}
                               </div>
@@ -2101,7 +2101,7 @@ function ProviderOnboardingContent() {
                               }}
                               className="px-3 py-1.5 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
                             >
-                              Claim →
+                              That's me →
                             </button>
                           </div>
                         </div>

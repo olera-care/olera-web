@@ -296,7 +296,7 @@ export default function Select({
       {label && (
         <label
           id={labelId}
-          className="block text-base font-semibold text-gray-900 mb-2"
+          className="block text-[13px] font-semibold text-gray-700 mb-1.5"
         >
           {label}
           {required && <span className="text-red-500 ml-0.5">*</span>}
@@ -322,15 +322,15 @@ export default function Select({
           "w-full pr-10 rounded-xl border text-left transition-all cursor-pointer",
           sizeClasses[size],
           isOpen
-            ? "border-primary-500 ring-2 ring-primary-500 bg-white"
+            ? "border-transparent ring-2 ring-primary-300 bg-white"
             : error
               ? "border-red-300 bg-white"
-              : "border-gray-200 bg-white hover:border-gray-300",
+              : "border-gray-200 bg-gray-50/50 hover:border-gray-300",
           disabled
-            ? "opacity-50 cursor-not-allowed bg-gray-50"
+            ? "opacity-50 cursor-not-allowed bg-gray-100"
             : "",
           !value ? "text-gray-400" : "text-gray-900",
-          "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500",
+          "focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent focus:bg-white",
         ].filter(Boolean).join(" ")}
         aria-haspopup="listbox"
         aria-expanded={isOpen}

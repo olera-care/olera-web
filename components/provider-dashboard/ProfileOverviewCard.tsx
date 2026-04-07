@@ -1,5 +1,5 @@
 import Image from "next/image";
-import type { Profile, ProfileCategory, VerificationState } from "@/lib/types";
+import type { Profile, ProfileCategory } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
 import DashboardSectionCard from "./DashboardSectionCard";
 
@@ -38,23 +38,18 @@ interface ProfileOverviewCardProps {
   profile: Profile;
   completionPercent: number;
   onEdit?: () => void;
-  onVerify?: () => void;
 }
 
 export default function ProfileOverviewCard({
   profile,
   completionPercent,
   onEdit,
-  onVerify,
 }: ProfileOverviewCardProps) {
   const location = [profile.address, profile.city, profile.state]
     .filter(Boolean)
     .join(", ");
   const initials = getInitials(profile.display_name);
-  const verificationState = profile.verification_state;
-  const isVerified = verificationState === "verified";
-  const isPending = verificationState === "pending";
-  const isUnverified = verificationState === "unverified" || !verificationState;
+  const isVerified = profile.verification_state === "verified";
 
   return (
     <DashboardSectionCard
@@ -184,14 +179,6 @@ export default function ProfileOverviewCard({
           </div>
         </div>
 
-        {/* Verification Status Section - only show for unverified/pending */}
-        {!isVerified && (
-          <VerificationSection
-            state={verificationState}
-            onVerify={onVerify}
-          />
-        )}
-
         {/* Contact Information */}
         <div className="border-t border-gray-100 pt-5 mb-5">
           <h4 className="text-[15px] font-medium text-gray-700 mb-3">
@@ -284,89 +271,6 @@ function ContactRow({
         <p className={`text-[15px] truncate ${value ? "text-gray-700" : "text-gray-400"}`}>
           {value || "N/A"}
         </p>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Elegant verification section for unverified/pending providers.
- * Modern design - subtle, informative, not alarming.
- */
-function VerificationSection({
-  state,
-  onVerify,
-}: {
-  state: VerificationState | undefined;
-  onVerify?: () => void;
-}) {
-  const isPending = state === "pending";
-
-  return (
-    <div className="mb-5 rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50/80 to-white overflow-hidden">
-      <div className="px-4 py-4 sm:px-5">
-        <div className="flex items-start gap-3.5">
-          {/* Icon */}
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-            isPending
-              ? "bg-blue-50 border border-blue-100"
-              : "bg-gray-100 border border-gray-200"
-          }`}>
-            {isPending ? (
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-              </svg>
-            )}
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h4 className="text-[15px] font-semibold text-gray-900">
-                {isPending ? "Verification in Progress" : "Verification"}
-              </h4>
-              {isPending && (
-                <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-medium text-blue-700 bg-blue-50 border border-blue-100 rounded-full">
-                  Under Review
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-gray-500 leading-relaxed">
-              {isPending
-                ? "We're reviewing your submission. This usually takes 1-2 business days."
-                : "Your contact info is hidden from families. Verified providers get 2x more inquiries."
-              }
-            </p>
-
-            {/* CTA */}
-            {!isPending && onVerify && (
-              <button
-                type="button"
-                onClick={onVerify}
-                className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors group"
-              >
-                <span>Complete verification</span>
-                <svg className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            )}
-
-            {isPending && onVerify && (
-              <button
-                type="button"
-                onClick={onVerify}
-                className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                Update submission
-              </button>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );

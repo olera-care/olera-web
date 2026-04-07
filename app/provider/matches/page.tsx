@@ -2214,7 +2214,6 @@ export default function ProviderMatchesPage() {
                       key={family.id}
                       family={family}
                       hasFullAccess={hasFullAccess}
-                      isVerified={isVerified}
                       providerCareTypes={providerCareTypes}
                       providerPaymentMethods={providerPaymentMethods}
                       contacted={contactedIds.has(family.id)}

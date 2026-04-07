@@ -143,7 +143,7 @@ export default function CandidateCard({
               primaryBadge.type === "verified"
                 ? "text-emerald-600"
                 : primaryBadge.type === "video"
-                ? "text-blue-600"
+                ? "text-gray-700"
                 : "text-gray-600"
             }`}
           >

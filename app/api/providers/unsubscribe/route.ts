@@ -67,15 +67,21 @@ export async function POST(request: NextRequest) {
 
     // Update business_profiles metadata
     const meta = (profile.metadata as Record<string, unknown>) || {};
-    meta.leads_unsubscribed = true;
-    meta.leads_unsubscribed_at = new Date().toISOString();
+    const shouldUnsubscribe = body.unsubscribe !== false; // default true for backwards compat
+    if (shouldUnsubscribe) {
+      meta.leads_unsubscribed = true;
+      meta.leads_unsubscribed_at = new Date().toISOString();
+    } else {
+      delete meta.leads_unsubscribed;
+      delete meta.leads_unsubscribed_at;
+    }
 
     await db
       .from("business_profiles")
       .update({ metadata: meta })
       .eq("id", profile.id);
 
-    return NextResponse.json({ success: true, unsubscribed: true });
+    return NextResponse.json({ success: true, unsubscribed: shouldUnsubscribe });
   } catch (err) {
     console.error("Unsubscribe error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

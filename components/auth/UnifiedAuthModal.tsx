@@ -592,7 +592,8 @@ export default function UnifiedAuthModal({
             if (res.ok) {
               // Refresh account data to pick up new profile
               await refreshAccountData();
-              router.push("/provider");
+              // Use deferred returnUrl to continue the user's flow (e.g., scheduling an interview)
+              router.push(deferred?.returnUrl || "/provider");
               return;
             } else {
               const errorData = await res.json().catch(() => ({}));

@@ -1383,7 +1383,7 @@ function ProviderOnboardingContent() {
                                           : "Use your business email for instant verification",
                                         deferred: {
                                           action: "claim-listing",
-                                          returnUrl: "/provider",
+                                          returnUrl: nextUrl || "/provider",
                                         },
                                       });
                                     }}
@@ -2095,7 +2095,7 @@ function ProviderOnboardingContent() {
                                     : "Use your business email for instant verification",
                                   deferred: {
                                     action: "claim-listing",
-                                    returnUrl: "/provider",
+                                    returnUrl: nextUrl || "/provider",
                                   },
                                 });
                               }}

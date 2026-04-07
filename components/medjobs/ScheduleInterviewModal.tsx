@@ -3,6 +3,15 @@
 import { useState } from "react";
 import Modal from "@/components/ui/Modal";
 
+export interface ScheduleFormData {
+  type: "video" | "in_person" | "phone";
+  date: string;
+  time: string;
+  altDate?: string;
+  altTime?: string;
+  notes?: string;
+}
+
 interface ScheduleInterviewModalProps {
   /** Provider → Student: pass the student's profile ID */
   studentProfileId?: string;
@@ -12,6 +21,12 @@ interface ScheduleInterviewModalProps {
   otherName: string;
   onClose: () => void;
   onScheduled: () => void;
+  /** If true, user needs auth before submitting */
+  requiresAuth?: boolean;
+  /** Called when unauthenticated user tries to submit - saves form data and triggers auth */
+  onAuthRequired?: (data: ScheduleFormData) => void;
+  /** Pre-fill form with saved data (e.g., after returning from auth) */
+  initialValues?: ScheduleFormData;
 }
 
 const INTERVIEW_TYPES = [
@@ -51,14 +66,17 @@ export default function ScheduleInterviewModal({
   otherName,
   onClose,
   onScheduled,
+  requiresAuth = false,
+  onAuthRequired,
+  initialValues,
 }: ScheduleInterviewModalProps) {
-  const [type, setType] = useState<"video" | "in_person" | "phone">("video");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [showAltTime, setShowAltTime] = useState(false);
-  const [altDate, setAltDate] = useState("");
-  const [altTime, setAltTime] = useState("");
-  const [notes, setNotes] = useState("");
+  const [type, setType] = useState<"video" | "in_person" | "phone">(initialValues?.type ?? "video");
+  const [date, setDate] = useState(initialValues?.date ?? "");
+  const [time, setTime] = useState(initialValues?.time ?? "");
+  const [showAltTime, setShowAltTime] = useState(!!initialValues?.altDate);
+  const [altDate, setAltDate] = useState(initialValues?.altDate ?? "");
+  const [altTime, setAltTime] = useState(initialValues?.altTime ?? "");
+  const [notes, setNotes] = useState(initialValues?.notes ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -68,6 +86,20 @@ export default function ScheduleInterviewModal({
   const handleSubmit = async () => {
     if (!date || !time) { setError("Please select a date and time."); return; }
     setError("");
+
+    // If user needs auth, save form data and trigger auth flow
+    if (requiresAuth && onAuthRequired) {
+      onAuthRequired({
+        type,
+        date,
+        time,
+        altDate: altDate || undefined,
+        altTime: altTime || undefined,
+        notes: notes.trim() || undefined,
+      });
+      return;
+    }
+
     setSubmitting(true);
 
     const proposedTime = new Date(`${date}T${time}`).toISOString();

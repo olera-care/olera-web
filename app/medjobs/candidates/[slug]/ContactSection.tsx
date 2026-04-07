@@ -4,7 +4,9 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
-import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
+import ScheduleInterviewModal, { ScheduleFormData } from "@/components/medjobs/ScheduleInterviewModal";
+
+const SCHEDULE_STORAGE_KEY = "medjobs_schedule_draft";
 
 export default function ContactSection({
   studentId,
@@ -28,9 +30,9 @@ export default function ContactSection({
 
   const [showModal, setShowModal] = useState(false);
   const [scheduled, setScheduled] = useState(false);
+  const [savedFormData, setSavedFormData] = useState<ScheduleFormData | undefined>();
 
   // Only organization profiles are providers (caregivers are job-seekers)
-  const isProvider = activeProfile?.type === "organization";
   const hasProviderProfile = profiles.some((p) => p.type === "organization");
 
   // Identify caregivers (they get redirected to their portal)
@@ -58,10 +60,25 @@ export default function ContactSection({
       const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
       router.replace(newUrl, { scroll: false });
 
+      // Load saved form data from sessionStorage
+      try {
+        const saved = sessionStorage.getItem(SCHEDULE_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved) as ScheduleFormData & { candidateSlug: string };
+          // Only use if it matches this candidate
+          if (parsed.candidateSlug === studentSlug) {
+            setSavedFormData(parsed);
+          }
+          sessionStorage.removeItem(SCHEDULE_STORAGE_KEY);
+        }
+      } catch {
+        // Ignore parse errors
+      }
+
       // Open modal to complete scheduling
       setShowModal(true);
     }
-  }, [searchParams, user, hasProviderProfile, pathname, router]);
+  }, [searchParams, user, hasProviderProfile, pathname, router, studentSlug]);
 
   // Redirect caregivers (not viewing own profile) to their portal
   // Families and logged-out users can stay — we'll route them to onboarding on CTA click
@@ -82,13 +99,21 @@ export default function ContactSection({
 
   const firstName = studentName.split(" ")[0];
 
-  // Handle schedule click - open modal for all users
+  // Check if user needs auth before submitting
+  const requiresAuth = !user || !hasProviderProfile;
+
+  // Handle schedule click - always open modal first
   const handleScheduleClick = useCallback(() => {
-    // If user is logged in and has a provider profile, just show modal
-    if (user && hasProviderProfile) {
-      setShowModal(true);
-      return;
-    }
+    setShowModal(true);
+  }, []);
+
+  // Handle auth required - save form data and redirect to auth/onboarding
+  const handleAuthRequired = useCallback((formData: ScheduleFormData) => {
+    // Save form data to sessionStorage with candidate slug
+    sessionStorage.setItem(SCHEDULE_STORAGE_KEY, JSON.stringify({
+      ...formData,
+      candidateSlug: studentSlug,
+    }));
 
     // If user is not logged in, prompt auth
     if (!user) {
@@ -107,17 +132,21 @@ export default function ContactSection({
     // User is logged in but no provider profile - go to onboarding
     const onboardingUrl = `/provider/onboarding?next=${encodeURIComponent(`/medjobs/candidates/${studentSlug}?schedule=pending`)}`;
     router.push(onboardingUrl);
-  }, [user, hasProviderProfile, openAuth, firstName, pathname, router, studentSlug]);
+  }, [user, openAuth, firstName, pathname, router, studentSlug]);
 
-  // Handle modal close - save data if user needs to complete onboarding
+  // Handle modal close
   const handleModalClose = useCallback(() => {
     setShowModal(false);
+    setSavedFormData(undefined);
   }, []);
 
   // Handle successful schedule
   const handleScheduled = useCallback(() => {
     setShowModal(false);
     setScheduled(true);
+    setSavedFormData(undefined);
+    // Clean up any saved data
+    sessionStorage.removeItem(SCHEDULE_STORAGE_KEY);
   }, []);
 
   // ── Own profile preview mode ──
@@ -205,6 +234,9 @@ export default function ContactSection({
             otherName={studentName}
             onClose={handleModalClose}
             onScheduled={handleScheduled}
+            requiresAuth={requiresAuth}
+            onAuthRequired={handleAuthRequired}
+            initialValues={savedFormData}
           />
         )}
       </>
@@ -219,14 +251,14 @@ export default function ContactSection({
       <div className={isInline ? "space-y-4" : "bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4"}>
         {/* Header text for non-authenticated users */}
         {!user && (
-          <>
-            <p className="text-sm font-semibold text-gray-900">
+          <div>
+            <p className="text-sm font-semibold text-gray-900 leading-snug">
               Want to connect with {firstName}?
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 mt-0.5">
               Set up a provider account to schedule an interview.
             </p>
-          </>
+          </div>
         )}
 
         {/* Schedule CTA */}
@@ -268,6 +300,9 @@ export default function ContactSection({
           otherName={studentName}
           onClose={handleModalClose}
           onScheduled={handleScheduled}
+          requiresAuth={requiresAuth}
+          onAuthRequired={handleAuthRequired}
+          initialValues={savedFormData}
         />
       )}
     </>

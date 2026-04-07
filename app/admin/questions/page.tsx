@@ -131,12 +131,59 @@ function formatDate(dateStr: string): string {
 
 const PAGE_SIZE = 50;
 
+type DatePreset = "all" | "today" | "yesterday" | "7d" | "30d" | "custom";
+
+const DATE_PRESETS: { label: string; value: DatePreset }[] = [
+  { label: "All time", value: "all" },
+  { label: "Today", value: "today" },
+  { label: "Yesterday", value: "yesterday" },
+  { label: "Last 7 days", value: "7d" },
+  { label: "Last 30 days", value: "30d" },
+];
+
+function getDateRange(preset: DatePreset, customDate?: string): { from: string | null; to: string | null } {
+  if (preset === "all") return { from: null, to: null };
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  if (preset === "today") {
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return { from: today.toISOString(), to: tomorrow.toISOString() };
+  }
+  if (preset === "yesterday") {
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    return { from: yesterday.toISOString(), to: today.toISOString() };
+  }
+  if (preset === "7d") {
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return { from: weekAgo.toISOString(), to: null };
+  }
+  if (preset === "30d") {
+    const monthAgo = new Date(today);
+    monthAgo.setDate(monthAgo.getDate() - 30);
+    return { from: monthAgo.toISOString(), to: null };
+  }
+  if (preset === "custom" && customDate) {
+    const day = new Date(customDate + "T00:00:00");
+    const nextDay = new Date(day);
+    nextDay.setDate(nextDay.getDate() + 1);
+    return { from: day.toISOString(), to: nextDay.toISOString() };
+  }
+  return { from: null, to: null };
+}
+
 export default function AdminQuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabValue>("needs_email");
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(0);
+  const [datePreset, setDatePreset] = useState<DatePreset>("all");
+  const [customDate, setCustomDate] = useState("");
   const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; archived: number }>({ pending: 0, needs_email: 0, archived: 0 });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -162,6 +209,10 @@ export default function AdminQuestionsPage() {
       } else if (activeTab) {
         params.set("status", activeTab);
       }
+      const { from, to } = getDateRange(datePreset, customDate);
+      if (from) params.set("date_from", from);
+      if (to) params.set("date_to", to);
+
       const res = await fetch(`/api/admin/questions?${params}`);
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
@@ -173,12 +224,12 @@ export default function AdminQuestionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab, page]);
+  }, [activeTab, page, datePreset, customDate]);
 
-  // Reset page when tab changes
+  // Reset page when tab or date changes
   useEffect(() => {
     setPage(0);
-  }, [activeTab]);
+  }, [activeTab, datePreset, customDate]);
 
   useEffect(() => {
     fetchQuestions();
@@ -280,6 +331,39 @@ export default function AdminQuestionsPage() {
             </button>
           );
         })}
+      </div>
+
+      {/* Date filter */}
+      <div className="flex items-center gap-2 mb-6">
+        {DATE_PRESETS.map((preset) => (
+          <button
+            key={preset.value}
+            onClick={() => { setDatePreset(preset.value); setCustomDate(""); }}
+            className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+              datePreset === preset.value && !customDate
+                ? "bg-gray-900 text-white"
+                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            }`}
+          >
+            {preset.label}
+          </button>
+        ))}
+        <div className="relative">
+          <input
+            type="date"
+            value={customDate}
+            onChange={(e) => {
+              setCustomDate(e.target.value);
+              if (e.target.value) setDatePreset("custom");
+              else setDatePreset("all");
+            }}
+            className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${
+              datePreset === "custom" && customDate
+                ? "bg-gray-900 text-white border-gray-900"
+                : "bg-gray-100 text-gray-500 border-transparent hover:bg-gray-200"
+            }`}
+          />
+        </div>
       </div>
 
       {/* Content */}

@@ -174,6 +174,7 @@ function LeadDetailDrawer({
   onRestore,
   onDelete,
   onMessage,
+  onContactReveal,
 }: {
   lead: LeadDetail | null;
   isOpen: boolean;
@@ -182,6 +183,7 @@ function LeadDetailDrawer({
   onRestore: (leadId: string) => void;
   onDelete: (leadId: string) => void;
   onMessage: (leadId: string) => void;
+  onContactReveal?: (leadId: string, contactType: "email" | "phone") => void;
 }) {
   const router = useRouter();
   const [showComposer, setShowComposer] = useState(false);
@@ -609,7 +611,7 @@ function LeadDetailDrawer({
                       <p className="text-[15px] text-gray-800 truncate">{lead.email}</p>
                       <button
                         type="button"
-                        onClick={() => navigator.clipboard.writeText(lead.email!)}
+                        onClick={() => { navigator.clipboard.writeText(lead.email!); onContactReveal?.(lead.id, "email"); }}
                         className="w-6 h-6 flex items-center justify-center rounded text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors duration-150 shrink-0"
                         title="Copy email"
                       >
@@ -630,7 +632,7 @@ function LeadDetailDrawer({
                       <p className="text-[15px] text-gray-800 truncate">{lead.phone}</p>
                       <button
                         type="button"
-                        onClick={() => navigator.clipboard.writeText(lead.phone!)}
+                        onClick={() => { navigator.clipboard.writeText(lead.phone!); onContactReveal?.(lead.id, "phone"); }}
                         className="w-6 h-6 flex items-center justify-center rounded text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors duration-150 shrink-0"
                         title="Copy phone"
                       >
@@ -1737,6 +1739,18 @@ export default function ProviderLeadsPage() {
         onRestore={handleRestoreLead}
         onDelete={handleDeleteLead}
         onMessage={handleMessageLead}
+        onContactReveal={(leadId, contactType) => {
+          if (!providerProfile) return;
+          fetch("/api/activity/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider_id: providerProfile.slug || providerProfile.id,
+              event_type: "contact_revealed",
+              metadata: { lead_id: leadId, contact_type: contactType },
+            }),
+          }).catch(() => {});
+        }}
       />
     </div>
   );

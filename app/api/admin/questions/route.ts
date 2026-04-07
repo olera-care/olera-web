@@ -24,6 +24,8 @@ export async function GET(request: NextRequest) {
     const countOnly = searchParams.get("count_only") === "true";
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const dateFrom = searchParams.get("date_from"); // ISO date string (inclusive)
+    const dateTo = searchParams.get("date_to"); // ISO date string (exclusive — next day)
 
     const db = getServiceClient();
 
@@ -32,7 +34,12 @@ export async function GET(request: NextRequest) {
       let countQuery = db.from("provider_questions").select("*", { count: "exact", head: true });
       if (status) countQuery = countQuery.eq("status", status);
       if (providerId) countQuery = countQuery.eq("provider_id", providerId);
-      if (needsEmail) countQuery = countQuery.contains("metadata", { needs_provider_email: true });
+      if (needsEmail) {
+        countQuery = countQuery.contains("metadata", { needs_provider_email: true });
+        countQuery = countQuery.neq("status", "archived").neq("status", "rejected");
+      }
+      if (dateFrom) countQuery = countQuery.gte("created_at", dateFrom);
+      if (dateTo) countQuery = countQuery.lt("created_at", dateTo);
       const { count, error } = await countQuery;
       if (error) {
         console.error("Admin questions count error:", error);
@@ -49,7 +56,12 @@ export async function GET(request: NextRequest) {
 
     if (status) query = query.eq("status", status);
     if (providerId) query = query.eq("provider_id", providerId);
-    if (needsEmail) query = query.contains("metadata", { needs_provider_email: true });
+    if (needsEmail) {
+      query = query.contains("metadata", { needs_provider_email: true });
+      query = query.neq("status", "archived").neq("status", "rejected");
+    }
+    if (dateFrom) query = query.gte("created_at", dateFrom);
+    if (dateTo) query = query.lt("created_at", dateTo);
 
     const { data: questions, count, error } = await query;
 
@@ -145,7 +157,7 @@ export async function GET(request: NextRequest) {
     // Fetch tab counts for pending, needs_email, and archived
     const [pendingCount, needsEmailCount, archivedCount] = await Promise.all([
       db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "pending"),
-      db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }),
+      db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }).neq("status", "archived").neq("status", "rejected"),
       db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "archived"),
     ]);
 

@@ -9,6 +9,7 @@ const PROVIDER_EVENT_TYPES = [
   "question_responded",
   "review_viewed",
   "one_click_access",
+  "contact_revealed",
 ] as const;
 
 const FAMILY_EVENT_TYPES = [

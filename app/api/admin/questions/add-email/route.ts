@@ -3,6 +3,7 @@ import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/l
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { questionReceivedEmail } from "@/lib/email-templates";
 import { generateProviderSlug } from "@/lib/slugify";
+import { generateNotificationUrl } from "@/lib/claim-tokens";
 
 /**
  * POST /api/admin/questions/add-email
@@ -164,6 +165,15 @@ export async function POST(request: NextRequest) {
             providerId,
           });
 
+          // Generate one-click URL with signed token for auto-sign-in
+          let providerUrl: string;
+          try {
+            providerUrl = generateNotificationUrl(providerSlug, effectiveEmail, "question", q.id, siteUrl);
+            providerUrl = appendTrackingParams(providerUrl, emailLogId);
+          } catch {
+            providerUrl = appendTrackingParams(`${siteUrl}/provider/${providerSlug}/onboard?action=question&actionId=${q.id}`, emailLogId);
+          }
+
           await sendEmail({
             to: effectiveEmail,
             subject: emailSubject,
@@ -171,7 +181,7 @@ export async function POST(request: NextRequest) {
               providerName: displayName,
               askerName: q.asker_name || "A family",
               question: q.question,
-              providerUrl: appendTrackingParams(`${siteUrl}/provider/${providerSlug}/onboard`, emailLogId),
+              providerUrl,
               providerSlug,
             }),
             emailType: "question_received",

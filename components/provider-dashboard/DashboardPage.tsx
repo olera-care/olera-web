@@ -328,6 +328,7 @@ function DashboardContent({
               metadata={meta}
               onEdit={() => handleEdit("owner")}
             />,
+            <NotificationPreferencesCard key="notifications" profileSlug={profile.slug} profileMetadata={meta} />,
           ].map((card, i) => (
             <div
               key={i}
@@ -730,5 +731,70 @@ function MobileCompletenessSheet({
         }
       `}</style>
     </>
+  );
+}
+
+// ── Notification preferences card ──
+
+function NotificationPreferencesCard({
+  profileSlug,
+  profileMetadata,
+}: {
+  profileSlug: string | null;
+  profileMetadata: ExtendedMetadata;
+}) {
+  const [unsubscribed, setUnsubscribed] = useState(!!(profileMetadata as Record<string, unknown>)?.leads_unsubscribed);
+  const [saving, setSaving] = useState(false);
+
+  const handleToggle = async () => {
+    if (!profileSlug) return;
+    setSaving(true);
+    const newValue = !unsubscribed;
+    try {
+      const res = await fetch("/api/providers/unsubscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: profileSlug, unsubscribe: newValue }),
+      });
+      if (res.ok) {
+        setUnsubscribed(newValue);
+      }
+    } catch {
+      // revert on failure
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+      <h3 className="text-lg font-display font-bold text-gray-900 mb-1">Email preferences</h3>
+      <p className="text-sm text-gray-400 mb-5">Control which emails you receive from Olera.</p>
+
+      <div className="flex items-center justify-between py-3">
+        <div>
+          <p className="text-[15px] font-medium text-gray-900">Lead notifications</p>
+          <p className="text-sm text-gray-400 mt-0.5">
+            Get notified when families reach out to your listing
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={!unsubscribed}
+          onClick={handleToggle}
+          disabled={saving}
+          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 ${
+            !unsubscribed ? "bg-primary-600" : "bg-gray-200"
+          }`}
+        >
+          <span
+            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+              !unsubscribed ? "translate-x-5" : "translate-x-0"
+            }`}
+          />
+        </button>
+      </div>
+    </div>
   );
 }

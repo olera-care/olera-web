@@ -65,10 +65,13 @@ function offRampBlock(providerSlug?: string): string {
   const removalUrl = providerSlug
     ? `${BASE_URL}/for-providers/removal-request/${providerSlug}`
     : `mailto:support@olera.care?subject=Listing%20inquiry`;
+  const unsubscribeUrl = providerSlug
+    ? `${BASE_URL}/unsubscribe/${providerSlug}`
+    : null;
   return `
     <div style="margin:32px 0 0;padding:16px 0 0;border-top:1px solid #f3f4f6;">
       <p style="font-size:13px;color:#9ca3af;margin:0 0 6px;line-height:1.5;">Not the right contact? Please forward this to the appropriate person on your team.</p>
-      <p style="font-size:13px;color:#9ca3af;margin:0;">${secondaryLink("Manage your listing", removalUrl)}</p>
+      <p style="font-size:13px;color:#9ca3af;margin:0;">${secondaryLink("Manage your listing", removalUrl)}${unsubscribeUrl ? ` &middot; ${secondaryLink("Unsubscribe from leads", unsubscribeUrl)}` : ""}</p>
     </div>`;
 }
 

@@ -18,16 +18,25 @@ function ConfirmDeleteDialog({
 }: {
   title: string;
   message: string;
-  onConfirm: () => void;
+  onConfirm: (reason: string) => void;
   onCancel: () => void;
   deleting: boolean;
 }) {
+  const [reason, setReason] = useState("");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
         <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
         <p className="mt-2 text-sm text-gray-600">{message}</p>
-        <div className="mt-6 flex justify-end gap-3">
+        <textarea
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Reason for deletion (required)..."
+          className="w-full mt-3 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none"
+          rows={3}
+          autoFocus
+        />
+        <div className="mt-4 flex justify-end gap-3">
           <button
             onClick={onCancel}
             disabled={deleting}
@@ -36,8 +45,8 @@ function ConfirmDeleteDialog({
             Cancel
           </button>
           <button
-            onClick={onConfirm}
-            disabled={deleting}
+            onClick={() => onConfirm(reason.trim())}
+            disabled={deleting || !reason.trim()}
             className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
           >
             {deleting ? "Deleting..." : "Delete"}
@@ -326,7 +335,7 @@ export default function AdminLeadsPage() {
     });
   };
 
-  const executeDelete = async () => {
+  const executeDelete = async (reason: string) => {
     if (!confirmDelete) return;
     setDeleting(true);
     leadsBeforeDelete.current = leads;
@@ -344,7 +353,7 @@ export default function AdminLeadsPage() {
       const res = await fetch("/api/admin/leads", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: confirmDelete.ids }),
+        body: JSON.stringify({ ids: confirmDelete.ids, reason }),
       });
 
       if (!res.ok) {
@@ -752,7 +761,7 @@ export default function AdminLeadsPage() {
         <ConfirmDeleteDialog
           title={confirmDelete.ids.length === 1 ? "Delete lead" : "Delete leads"}
           message={confirmDelete.label}
-          onConfirm={executeDelete}
+          onConfirm={(reason) => executeDelete(reason)}
           onCancel={() => setConfirmDelete(null)}
           deleting={deleting}
         />

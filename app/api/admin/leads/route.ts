@@ -206,6 +206,7 @@ export async function DELETE(request: NextRequest) {
 
     const body = await request.json();
     const ids: string[] = body.ids;
+    const reason: string | undefined = body.reason;
 
     if (!Array.isArray(ids) || ids.length === 0) {
       return NextResponse.json({ error: "ids array is required" }, { status: 400 });
@@ -254,6 +255,7 @@ export async function DELETE(request: NextRequest) {
           from: (conn.from_profile as unknown as { display_name: string } | null)?.display_name,
           to: (conn.to_profile as unknown as { display_name: string } | null)?.display_name,
           created_at: conn.created_at,
+          reason: reason || null,
         },
       });
     }

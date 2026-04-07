@@ -144,7 +144,8 @@ export default function AdminQuestionsPage() {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ limit: "50" });
+      // Needs Email tab: show all so ops team sees the full queue
+      const params = new URLSearchParams({ limit: activeTab === "needs_email" ? "200" : "50" });
       if (activeTab === "needs_email") {
         params.set("needs_email", "true");
       } else if (activeTab === "unanswered") {

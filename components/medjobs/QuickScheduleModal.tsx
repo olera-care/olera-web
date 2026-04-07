@@ -1,14 +1,10 @@
 "use client";
 
 import { useState, useMemo, useRef, useCallback } from "react";
-import Image from "next/image";
 import Modal from "@/components/ui/Modal";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import type { StudentMetadata } from "@/lib/types";
-import {
-  getTrackLabel,
-} from "@/lib/medjobs-helpers";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -234,8 +230,6 @@ export default function QuickScheduleModal({
 
   // Candidate info
   const candidateFirstName = getFirstName(candidate.displayName);
-  const candidateTrack = getTrackLabel(candidate.metadata);
-  const candidateLocation = [candidate.city, candidate.state].filter(Boolean).join(", ");
 
   // Validation
   const canProceedToStep2 = selectedDate && selectedTime;
@@ -329,33 +323,11 @@ export default function QuickScheduleModal({
 
   const renderScheduleStep = () => (
     <div className="pt-4 pb-6">
-      {/* Candidate preview */}
-      <div className="flex items-center gap-3 mb-8">
-        {candidate.imageUrl ? (
-          <Image
-            src={candidate.imageUrl}
-            alt={candidate.displayName}
-            width={48}
-            height={48}
-            className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm"
-          />
-        ) : (
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center ring-2 ring-white shadow-sm">
-            <span className="text-lg font-semibold text-primary-600">
-              {candidate.displayName?.charAt(0)?.toUpperCase() || "?"}
-            </span>
-          </div>
-        )}
-        <div className="min-w-0">
-          <p className="font-semibold text-gray-900">{candidate.displayName}</p>
-          <p className="text-sm text-gray-500 mt-0.5">
-            {[candidateTrack, candidateLocation].filter(Boolean).join(" · ")}
-          </p>
-        </div>
-      </div>
+      {/* Step indicator */}
+      {renderStepIndicator()}
 
       {/* Title */}
-      <h2 className="text-xl font-semibold text-gray-900">
+      <h2 className="text-xl font-semibold text-gray-900 mt-4">
         Schedule an interview
       </h2>
       <p className="mt-1 text-sm text-gray-500">
@@ -364,7 +336,7 @@ export default function QuickScheduleModal({
 
       {/* Format */}
       <div className="mt-7">
-        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        <label className="block text-sm font-medium text-gray-700 mb-3">
           Format
         </label>
         <div className="flex flex-wrap gap-2">
@@ -388,7 +360,7 @@ export default function QuickScheduleModal({
       {/* Date & Time - side by side */}
       <div className="mt-6 grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          <label className="block text-sm font-medium text-gray-700 mb-3">
             Date
           </label>
           <StyledDropdown
@@ -400,7 +372,7 @@ export default function QuickScheduleModal({
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          <label className="block text-sm font-medium text-gray-700 mb-3">
             Time
           </label>
           <StyledDropdown
@@ -415,15 +387,15 @@ export default function QuickScheduleModal({
 
       {/* Notes */}
       <div className="mt-6">
-        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-          Notes <span className="font-normal normal-case text-gray-400">(optional)</span>
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Notes <span className="font-normal text-gray-400">(optional)</span>
         </label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Anything you'd like to discuss..."
           rows={2}
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:bg-white resize-none transition-colors"
+          className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none transition-colors"
         />
       </div>
 
@@ -447,22 +419,11 @@ export default function QuickScheduleModal({
 
   const renderInfoStep = () => (
     <div className="pt-4 pb-6">
-      {/* Summary pill */}
-      <div className="flex items-center gap-2 mb-8 px-4 py-3 bg-gray-50 rounded-xl text-sm">
-        <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-        </svg>
-        <span className="text-gray-600">
-          <span className="capitalize">{format === "in_person" ? "In person" : format}</span>
-          <span className="mx-1.5 text-gray-300">·</span>
-          {formatDateDisplay(selectedDate)}
-          <span className="mx-1.5 text-gray-300">·</span>
-          {formatTimeSlot(selectedTime)}
-        </span>
-      </div>
+      {/* Step indicator */}
+      {renderStepIndicator()}
 
       {/* Title */}
-      <h2 className="text-xl font-semibold text-gray-900">
+      <h2 className="text-xl font-semibold text-gray-900 mt-4">
         Your details
       </h2>
       <p className="mt-1 text-sm text-gray-500">
@@ -478,7 +439,7 @@ export default function QuickScheduleModal({
       {/* Name fields */}
       <div className="mt-7 grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="firstName" className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-3">
             First name
           </label>
           <input
@@ -487,11 +448,11 @@ export default function QuickScheduleModal({
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
             placeholder="Jane"
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:bg-white transition-colors min-h-[48px]"
+            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors min-h-[48px]"
           />
         </div>
         <div>
-          <label htmlFor="lastName" className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-3">
             Last name
           </label>
           <input
@@ -500,14 +461,14 @@ export default function QuickScheduleModal({
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
             placeholder="Smith"
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:bg-white transition-colors min-h-[48px]"
+            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors min-h-[48px]"
           />
         </div>
       </div>
 
       {/* Work email */}
       <div className="mt-5">
-        <label htmlFor="email" className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-3">
           Work email
         </label>
         <input
@@ -516,13 +477,13 @@ export default function QuickScheduleModal({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="jane@company.com"
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:bg-white transition-colors min-h-[48px]"
+          className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors min-h-[48px]"
         />
       </div>
 
       {/* Organization */}
       <div className="mt-5">
-        <label htmlFor="organization" className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        <label htmlFor="organization" className="block text-sm font-medium text-gray-700 mb-3">
           Organization
         </label>
         <input
@@ -531,13 +492,13 @@ export default function QuickScheduleModal({
           value={organization}
           onChange={(e) => setOrganization(e.target.value)}
           placeholder="Company or facility name"
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:bg-white transition-colors min-h-[48px]"
+          className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors min-h-[48px]"
         />
       </div>
 
       {/* City */}
       <div className="mt-5">
-        <label htmlFor="city" className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-3">
           City
         </label>
         <div ref={cityDropdownRef} className="relative">
@@ -553,7 +514,7 @@ export default function QuickScheduleModal({
             onFocus={() => setShowCityDropdown(true)}
             placeholder="Start typing..."
             autoComplete="off"
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:bg-white transition-colors min-h-[48px]"
+            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors min-h-[48px]"
           />
           {showCityDropdown && cityResults.length > 0 && (
             <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 max-h-[200px] overflow-y-auto overscroll-contain">
@@ -669,11 +630,19 @@ export default function QuickScheduleModal({
   // Main render
   // ─────────────────────────────────────────────────────────────────────────────
 
+  // Step indicator dots component
+  const renderStepIndicator = () => (
+    <div className="flex items-center justify-center gap-2 pb-2">
+      <div className={`w-2 h-2 rounded-full transition-colors ${step === "schedule" ? "bg-gray-900" : "bg-gray-200"}`} />
+      <div className={`w-2 h-2 rounded-full transition-colors ${step === "info" ? "bg-gray-900" : "bg-gray-200"}`} />
+    </div>
+  );
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      size="md"
+      size="lg"
       hideHeader
     >
       {step === "schedule" && renderScheduleStep()}

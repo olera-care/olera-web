@@ -53,6 +53,7 @@ export default function AdminVerificationPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
+  const [search, setSearch] = useState("");
 
   const fetchProviders = useCallback(async () => {
     setLoading(true);
@@ -89,6 +90,15 @@ export default function AdminVerificationPage() {
     { label: "Verified", value: "verified" },
     { label: "Rejected", value: "rejected" },
   ];
+
+  // Filter providers based on search term
+  const filteredProviders = providers.filter((provider) => {
+    if (!search.trim()) return true;
+    const searchLower = search.toLowerCase();
+    const providerName = provider.display_name?.toLowerCase() || "";
+    const submitterName = provider.metadata?.verification_submission?.name?.toLowerCase() || "";
+    return providerName.includes(searchLower) || submitterName.includes(searchLower);
+  });
 
   async function handleAction(id: string, action: "approve" | "reject" | "restore") {
     setActionLoading(id);
@@ -128,6 +138,41 @@ export default function AdminVerificationPage() {
         </p>
       </div>
 
+      {/* Search input */}
+      <div className="mb-4">
+        <div className="relative">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search by provider or submitter name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Filter tabs */}
       <div className="flex gap-2 mb-6">
         {filters.map((f) => (
@@ -162,20 +207,32 @@ export default function AdminVerificationPage() {
         <div className="flex items-center justify-center py-12">
           <div className="text-lg text-gray-500">Loading...</div>
         </div>
-      ) : providers.length === 0 ? (
+      ) : filteredProviders.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 py-16 text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-50 flex items-center justify-center">
-            <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
+            {search ? (
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            ) : (
+              <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            )}
           </div>
           <p className="text-lg font-semibold text-gray-900">
-            {filter === "pending" ? "All caught up!" : `No ${filter} providers`}
+            {search
+              ? "No results found"
+              : filter === "pending"
+                ? "All caught up!"
+                : `No ${filter} providers`}
           </p>
           <p className="text-sm text-gray-500 mt-1">
-            {filter === "pending"
-              ? "No verification requests waiting for review."
-              : `No providers with ${filter} verification status.`}
+            {search
+              ? `No providers matching "${search}"`
+              : filter === "pending"
+                ? "No verification requests waiting for review."
+                : `No providers with ${filter} verification status.`}
           </p>
         </div>
       ) : (
@@ -199,7 +256,7 @@ export default function AdminVerificationPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {providers.map((provider) => {
+                {filteredProviders.map((provider) => {
                   const submission = getVerificationSubmission(provider);
                   return (
                     <tr key={provider.id} className="hover:bg-gray-50">
@@ -293,9 +350,9 @@ export default function AdminVerificationPage() {
                           )}
                           {filter === "verified" && (
                             <button
-                              onClick={() => handleAction(provider.id, "reject")}
+                              onClick={() => handleAction(provider.id, "restore")}
                               disabled={actionLoading === provider.id}
-                              className="px-3 py-1.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors"
+                              className="px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors"
                             >
                               {actionLoading === provider.id ? "..." : "Revoke"}
                             </button>

@@ -618,11 +618,17 @@ export default async function StudentProfilePage({ params }: PageProps) {
             <div className="sticky top-6">
               <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6">
                 <ContactSection
-                  studentId={profile.id}
-                  studentName={profile.display_name}
-                  studentEmail={profile.email}
-                  studentPhone={profile.phone}
-                  studentSlug={profile.slug}
+                  candidate={{
+                    id: profile.id,
+                    slug: profile.slug,
+                    displayName: profile.display_name,
+                    email: profile.email,
+                    phone: profile.phone,
+                    imageUrl: profile.image_url,
+                    city: profile.city,
+                    state: profile.state,
+                    metadata: meta,
+                  }}
                   variant="inline"
                 />
               </div>
@@ -636,11 +642,17 @@ export default async function StudentProfilePage({ params }: PageProps) {
           ═══════════════════════════════════════════════════════════════════ */}
       <div className="lg:hidden">
         <ContactSection
-          studentId={profile.id}
-          studentName={profile.display_name}
-          studentEmail={profile.email}
-          studentPhone={profile.phone}
-          studentSlug={profile.slug}
+          candidate={{
+            id: profile.id,
+            slug: profile.slug,
+            displayName: profile.display_name,
+            email: profile.email,
+            phone: profile.phone,
+            imageUrl: profile.image_url,
+            city: profile.city,
+            state: profile.state,
+            metadata: meta,
+          }}
           variant="sticky"
         />
       </div>

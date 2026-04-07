@@ -847,3 +847,39 @@ export function careReportEmail(opts: {
     </p>
   `);
 }
+
+// ── MedJobs Interview Emails ──────────────────────────────────────
+
+/** Confirmation email sent to provider after scheduling an interview (unauthenticated flow) */
+export function interviewRequestEmail(opts: {
+  providerName: string;
+  studentName: string;
+  interviewType: string;
+  dateTime: string;
+  notes: string | null;
+  magicLinkUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your interview request was sent</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Hi ${opts.providerName}, your interview request to <strong>${opts.studentName}</strong> has been delivered. You'll be notified when they respond.
+    </p>
+    <div style="background:#f9fafb;border-radius:12px;padding:20px;margin:0 0 24px;">
+      <p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;">Interview Details</p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>Format:</strong> ${opts.interviewType}
+      </p>
+      <p style="font-size:14px;color:#374151;margin:0 0 8px;line-height:1.5;">
+        <strong>When:</strong> ${opts.dateTime}
+      </p>
+      ${opts.notes ? `<p style="font-size:14px;color:#374151;margin:0;line-height:1.5;"><strong>Notes:</strong> ${opts.notes}</p>` : ""}
+    </div>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Click below to manage your interview and complete your profile on Olera MedJobs.
+    </p>
+    <div style="margin:24px 0;">${button("View Interview", opts.magicLinkUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
+      This link expires in 72 hours. If you have any questions, just reply to this email.
+    </p>
+  `);
+}

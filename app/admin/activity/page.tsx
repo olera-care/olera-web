@@ -106,6 +106,10 @@ function providerEmailTypeLabel(type: string | null): string {
     new_review: "Review",
     add_email_notification: "Lead",
     email_click: "Email",
+    contact_revealed: "Contact Copied",
+    one_click_access: "Auto Sign-in",
+    lead_opened: "Lead Opened",
+    page_view: "Page View",
   };
   return map[type] || type;
 }
@@ -119,6 +123,10 @@ function providerEmailTypeBadgeColor(type: string | null): string {
     new_review: "bg-violet-50 text-violet-700",
     add_email_notification: "bg-blue-50 text-blue-700",
     email_click: "bg-gray-100 text-gray-600",
+    contact_revealed: "bg-green-50 text-green-700",
+    one_click_access: "bg-teal-50 text-teal-700",
+    lead_opened: "bg-sky-50 text-sky-700",
+    page_view: "bg-gray-50 text-gray-500",
   };
   return map[type] || "bg-gray-100 text-gray-600";
 }
@@ -607,6 +615,8 @@ const PROVIDER_EVENT_FILTER_OPTIONS = [
   { value: "connection_request", label: "Leads" },
   { value: "question_received", label: "Questions" },
   { value: "new_review", label: "Reviews" },
+  { value: "contact_revealed", label: "Contact copied" },
+  { value: "one_click_access", label: "Auto sign-ins" },
 ];
 
 const FAMILY_EVENT_FILTER_OPTIONS = [

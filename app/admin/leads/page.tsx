@@ -245,6 +245,9 @@ export default function AdminLeadsPage() {
   const [total, setTotal] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Engagement data
+  const [engagement, setEngagement] = useState<Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean }>>({});
+
   // Delete state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirmDelete, setConfirmDelete] = useState<{ ids: string[]; label: string } | null>(null);
@@ -391,6 +394,7 @@ export default function AdminLeadsPage() {
         const data = await res.json();
         setLeads(data.connections ?? []);
         setTotal(data.total ?? 0);
+        setEngagement(data.engagement ?? {});
       } else {
         setError("Failed to load leads. Please try again.");
       }
@@ -580,6 +584,7 @@ export default function AdminLeadsPage() {
                   const needsEmail = lead.metadata?.needs_provider_email === true;
                   const providerEditorId = lead.to_profile?.source_provider_id;
                   const providerSlug = (lead.to_profile as ConnectionProfile & { slug?: string })?.slug;
+                  const providerEngagement = engagement[providerSlug || providerEditorId || lead.to_profile?.id || ""];
 
                   // Resolve care type and urgency — prefer profile metadata, fall back to connection message
                   let careTypeDisplay: string | null = null;
@@ -656,6 +661,17 @@ export default function AdminLeadsPage() {
                           <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
                             No email
                           </span>
+                        )}
+                        {providerEngagement && (
+                          <div className="flex items-center gap-1" title={
+                            providerEngagement.contact_revealed ? "Contacted (copied info)" :
+                            providerEngagement.lead_opened ? "Opened lead" :
+                            providerEngagement.email_clicked ? "Clicked email" : ""
+                          }>
+                            <span className={`w-1.5 h-1.5 rounded-full ${providerEngagement.email_clicked ? "bg-blue-400" : "bg-gray-200"}`} />
+                            <span className={`w-1.5 h-1.5 rounded-full ${providerEngagement.lead_opened ? "bg-amber-400" : "bg-gray-200"}`} />
+                            <span className={`w-1.5 h-1.5 rounded-full ${providerEngagement.contact_revealed ? "bg-green-500" : "bg-gray-200"}`} />
+                          </div>
                         )}
                       </div>
                     </td>

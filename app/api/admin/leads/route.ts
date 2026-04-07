@@ -111,7 +111,39 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch leads" }, { status: 500 });
     }
 
-    return NextResponse.json({ connections: connections ?? [], total: total ?? 0 });
+    // Enrich with provider engagement data (batch query)
+    let engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean }> = {};
+    try {
+      const providerSlugs = [...new Set(
+        (connections ?? [])
+          .map((c) => {
+            const tp = c.to_profile as { slug?: string; source_provider_id?: string; id?: string } | null;
+            return tp?.slug || tp?.source_provider_id || tp?.id || null;
+          })
+          .filter(Boolean) as string[]
+      )];
+
+      if (providerSlugs.length > 0) {
+        const { data: events } = await db
+          .from("provider_activity")
+          .select("provider_id, event_type")
+          .in("provider_id", providerSlugs)
+          .in("event_type", ["email_click", "lead_opened", "contact_revealed"]);
+
+        for (const slug of providerSlugs) {
+          const providerEvents = (events ?? []).filter((e) => e.provider_id === slug);
+          engagement[slug] = {
+            email_clicked: providerEvents.some((e) => e.event_type === "email_click"),
+            lead_opened: providerEvents.some((e) => e.event_type === "lead_opened"),
+            contact_revealed: providerEvents.some((e) => e.event_type === "contact_revealed"),
+          };
+        }
+      }
+    } catch {
+      // Non-blocking — engagement data is supplementary
+    }
+
+    return NextResponse.json({ connections: connections ?? [], total: total ?? 0, engagement });
   } catch (err) {
     console.error("Admin leads error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

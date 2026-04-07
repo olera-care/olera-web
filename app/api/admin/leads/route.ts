@@ -50,11 +50,7 @@ export async function GET(request: NextRequest) {
     function applyFilters(q: typeof query) {
       if (status) q = q.eq("status", status);
       if (type) q = q.eq("type", type);
-      if (needsEmail) {
-        q = q.contains("metadata", { needs_provider_email: true });
-        // Only count actionable leads — exclude declined/accepted/archived-status connections
-        q = q.eq("status", "pending");
-      }
+      if (needsEmail) q = q.contains("metadata", { needs_provider_email: true });
       // Show archived OR non-archived
       if (showArchived) {
         q = q.contains("metadata", { archived: true });

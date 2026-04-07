@@ -896,6 +896,7 @@ function ProviderOnboardingContent() {
 
       openAuth({
         headline: "Verify your email to continue",
+        subline: "Use your business email for instant verification",
         intent: "provider",
         providerType: "organization",
         initialEmail: data.email || undefined,
@@ -1377,7 +1378,9 @@ function ProviderOnboardingContent() {
                                       openAuth({
                                         intent: "provider",
                                         headline: `Claim ${provider.provider_name}`,
-                                        subline: "Sign in or create an account to manage this listing",
+                                        subline: provider.email
+                                          ? `Use ${provider.email.replace(/(.{2})(.*)(@.*)/, "$1***$3")} for instant verification`
+                                          : "Use your business email for instant verification",
                                         deferred: {
                                           action: "claim-listing",
                                           returnUrl: "/provider",
@@ -1942,6 +1945,7 @@ function ProviderOnboardingContent() {
                       openAuth({
                         defaultMode: "sign-in",
                         headline: "Sign in to your account",
+                        subline: "Sign in with your business email to continue",
                         intent: "provider",
                         initialEmail: profile.email || data.email || undefined,
                       });
@@ -2086,7 +2090,9 @@ function ProviderOnboardingContent() {
                                 openAuth({
                                   intent: "provider",
                                   headline: `Claim ${provider.provider_name}`,
-                                  subline: "Sign in or create an account to manage this listing",
+                                  subline: provider.email
+                                    ? `Use ${provider.email.replace(/(.{2})(.*)(@.*)/, "$1***$3")} for instant verification`
+                                    : "Use your business email for instant verification",
                                   deferred: {
                                     action: "claim-listing",
                                     returnUrl: "/provider",

@@ -41,7 +41,7 @@ export default function ProviderContactSection({
     openAuth({
       intent: "provider",
       headline: `Connect with ${studentName.split(" ")[0]}`,
-      subline: "Sign in or create a provider account to schedule an interview",
+      subline: "Sign in with your business email for instant verification",
       deferred: {
         action: "hire-candidate",
         returnUrl: pathname,

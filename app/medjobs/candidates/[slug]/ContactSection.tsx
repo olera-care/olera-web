@@ -9,6 +9,7 @@ import QuickScheduleModal from "@/components/medjobs/QuickScheduleModal";
 import type { StudentMetadata } from "@/lib/types";
 
 const SCHEDULE_STORAGE_KEY = "medjobs_schedule_draft";
+const SCHEDULED_CANDIDATES_KEY = "medjobs_scheduled_candidates";
 
 interface CandidateData {
   id: string;
@@ -38,6 +39,21 @@ export default function ContactSection({
   const [showQuickScheduleModal, setShowQuickScheduleModal] = useState(false);
   const [scheduled, setScheduled] = useState(false);
   const [savedFormData, setSavedFormData] = useState<ScheduleFormData | undefined>();
+
+  // Load scheduled state from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(SCHEDULED_CANDIDATES_KEY);
+      if (stored) {
+        const scheduledIds = JSON.parse(stored) as string[];
+        if (scheduledIds.includes(candidate.id)) {
+          setScheduled(true);
+        }
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }, [candidate.id]);
 
   // Only organization profiles are providers (caregivers are job-seekers)
   const hasProviderProfile = profiles.some((p) => p.type === "organization");
@@ -111,14 +127,41 @@ export default function ContactSection({
     setSavedFormData(undefined);
   }, []);
 
-  // Handle successful schedule
+  // Handle successful schedule (persists to localStorage)
   const handleScheduled = useCallback(() => {
     setShowModal(false);
     setScheduled(true);
     setSavedFormData(undefined);
     // Clean up any saved data
     sessionStorage.removeItem(SCHEDULE_STORAGE_KEY);
-  }, []);
+    // Persist scheduled state to localStorage
+    try {
+      const stored = localStorage.getItem(SCHEDULED_CANDIDATES_KEY);
+      const scheduledIds = stored ? (JSON.parse(stored) as string[]) : [];
+      if (!scheduledIds.includes(candidate.id)) {
+        scheduledIds.push(candidate.id);
+        localStorage.setItem(SCHEDULED_CANDIDATES_KEY, JSON.stringify(scheduledIds));
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }, [candidate.id]);
+
+  // Handle quick schedule success
+  const handleQuickScheduled = useCallback(() => {
+    setScheduled(true);
+    // Persist scheduled state to localStorage
+    try {
+      const stored = localStorage.getItem(SCHEDULED_CANDIDATES_KEY);
+      const scheduledIds = stored ? (JSON.parse(stored) as string[]) : [];
+      if (!scheduledIds.includes(candidate.id)) {
+        scheduledIds.push(candidate.id);
+        localStorage.setItem(SCHEDULED_CANDIDATES_KEY, JSON.stringify(scheduledIds));
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }, [candidate.id]);
 
   // ── Own profile preview mode ──
   // Show a disabled preview of what providers see
@@ -190,14 +233,20 @@ export default function ContactSection({
     return (
       <>
         <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
-          <button
-            onClick={handleScheduleClick}
-            disabled={scheduled}
-            className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 disabled:bg-emerald-600 rounded-xl text-sm font-semibold text-white transition-colors"
-          >
-            <CalendarIcon />
-            {scheduled ? "Interview Requested!" : "Schedule Interview"}
-          </button>
+          {scheduled ? (
+            <div className="text-center">
+              <p className="text-sm font-medium text-emerald-700">Interview request sent!</p>
+              <p className="text-xs text-emerald-600 mt-0.5">Check your email for confirmation.</p>
+            </div>
+          ) : (
+            <button
+              onClick={handleScheduleClick}
+              className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
+            >
+              <CalendarIcon />
+              Schedule Interview
+            </button>
+          )}
         </div>
         {showModal && (
           <ScheduleInterviewModal
@@ -211,6 +260,7 @@ export default function ContactSection({
         <QuickScheduleModal
           isOpen={showQuickScheduleModal}
           onClose={() => setShowQuickScheduleModal(false)}
+          onScheduled={handleQuickScheduled}
           candidate={candidate}
         />
       </>
@@ -237,8 +287,13 @@ export default function ContactSection({
 
         {/* Schedule CTA */}
         {scheduled ? (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium text-center">
-            Interview request sent to {firstName}!
+          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
+            <p className="text-sm text-emerald-700 font-medium">
+              Interview request sent to {firstName}!
+            </p>
+            <p className="text-xs text-emerald-600 mt-1">
+              Check your email for confirmation details.
+            </p>
           </div>
         ) : (
           <button
@@ -280,6 +335,7 @@ export default function ContactSection({
       <QuickScheduleModal
         isOpen={showQuickScheduleModal}
         onClose={() => setShowQuickScheduleModal(false)}
+        onScheduled={handleQuickScheduled}
         candidate={candidate}
       />
     </>

@@ -27,6 +27,7 @@ interface CandidateInfo {
 interface QuickScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onScheduled?: () => void;
   candidate: CandidateInfo;
 }
 
@@ -159,7 +160,7 @@ function StyledDropdown({
       {isOpen && (
         <div
           role="listbox"
-          className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto overscroll-contain"
+          className="absolute left-0 right-0 bottom-full mb-2 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto overscroll-contain"
         >
           {options.map((opt) => (
             <button
@@ -195,6 +196,7 @@ function StyledDropdown({
 export default function QuickScheduleModal({
   isOpen,
   onClose,
+  onScheduled,
   candidate,
 }: QuickScheduleModalProps) {
   // Step state
@@ -284,6 +286,7 @@ export default function QuickScheduleModal({
       }
 
       setStep("confirmation");
+      onScheduled?.();
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -502,22 +505,32 @@ export default function QuickScheduleModal({
           City
         </label>
         <div ref={cityDropdownRef} className="relative">
-          <input
-            id="city"
-            type="text"
-            value={city}
-            onChange={(e) => {
-              setCity(e.target.value);
-              setState("");
-              setShowCityDropdown(true);
-            }}
-            onFocus={() => setShowCityDropdown(true)}
-            placeholder="Start typing..."
-            autoComplete="off"
-            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors min-h-[48px]"
-          />
+          <div className="relative">
+            <input
+              id="city"
+              type="text"
+              value={city}
+              onChange={(e) => {
+                setCity(e.target.value);
+                setState("");
+                setShowCityDropdown(true);
+              }}
+              onFocus={() => setShowCityDropdown(true)}
+              placeholder="Start typing..."
+              autoComplete="off"
+              className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors min-h-[48px]"
+            />
+            <svg
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
           {showCityDropdown && cityResults.length > 0 && (
-            <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 max-h-[200px] overflow-y-auto overscroll-contain">
+            <div className="absolute left-0 right-0 bottom-full mb-2 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 max-h-[200px] overflow-y-auto overscroll-contain">
               {cityResults.map((c) => (
                 <button
                   key={`${c.city}-${c.state}`}

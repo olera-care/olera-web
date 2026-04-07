@@ -32,11 +32,7 @@ export async function GET(request: NextRequest) {
       let countQuery = db.from("provider_questions").select("*", { count: "exact", head: true });
       if (status) countQuery = countQuery.eq("status", status);
       if (providerId) countQuery = countQuery.eq("provider_id", providerId);
-      if (needsEmail) {
-        countQuery = countQuery.contains("metadata", { needs_provider_email: true });
-        // Only count actionable questions — exclude archived/answered
-        countQuery = countQuery.eq("status", "pending");
-      }
+      if (needsEmail) countQuery = countQuery.contains("metadata", { needs_provider_email: true });
       const { count, error } = await countQuery;
       if (error) {
         console.error("Admin questions count error:", error);
@@ -53,10 +49,7 @@ export async function GET(request: NextRequest) {
 
     if (status) query = query.eq("status", status);
     if (providerId) query = query.eq("provider_id", providerId);
-    if (needsEmail) {
-      query = query.contains("metadata", { needs_provider_email: true });
-      query = query.eq("status", "pending");
-    }
+    if (needsEmail) query = query.contains("metadata", { needs_provider_email: true });
 
     const { data: questions, count, error } = await query;
 
@@ -152,7 +145,7 @@ export async function GET(request: NextRequest) {
     // Fetch tab counts for pending, needs_email, and archived
     const [pendingCount, needsEmailCount, archivedCount] = await Promise.all([
       db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "pending"),
-      db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }).eq("status", "pending"),
+      db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }),
       db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "archived"),
     ]);
 

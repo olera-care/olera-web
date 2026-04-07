@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 
 interface Question {
@@ -189,6 +189,9 @@ export default function AdminQuestionsPage() {
   const [error, setError] = useState<string | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<string | null>(null);
   const [archiveReason, setArchiveReason] = useState("");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchQuestions = useCallback(async () => {
     setLoading(true);
@@ -212,6 +215,7 @@ export default function AdminQuestionsPage() {
       const { from, to } = getDateRange(datePreset, customDate);
       if (from) params.set("date_from", from);
       if (to) params.set("date_to", to);
+      if (debouncedSearch) params.set("search", debouncedSearch);
 
       const res = await fetch(`/api/admin/questions?${params}`);
       if (!res.ok) throw new Error("Failed to fetch");
@@ -224,12 +228,18 @@ export default function AdminQuestionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab, page, datePreset, customDate]);
+  }, [activeTab, page, datePreset, customDate, debouncedSearch]);
 
-  // Reset page when tab or date changes
+  // Reset page when tab, date, or search changes
   useEffect(() => {
     setPage(0);
-  }, [activeTab, datePreset, customDate]);
+  }, [activeTab, datePreset, customDate, debouncedSearch]);
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedSearch(value), 300);
+  };
 
   useEffect(() => {
     fetchQuestions();
@@ -296,6 +306,41 @@ export default function AdminQuestionsPage() {
         <p className="text-sm text-gray-400 mt-1">
           Questions go live immediately. Supply provider emails and remove spam.
         </p>
+      </div>
+
+      {/* Search bar */}
+      <div className="mb-6">
+        <div className="relative">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search by provider name..."
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          />
+          {search && (
+            <button
+              onClick={() => { setSearch(""); setDebouncedSearch(""); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {error && (

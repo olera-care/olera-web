@@ -7,6 +7,14 @@ import type { OrganizationMetadata } from "@/lib/types";
 
 type StatusFilter = "pending" | "verified" | "unverified" | "all";
 
+interface VerificationSubmission {
+  name: string;
+  role: string;
+  phone?: string | null;
+  affiliation?: string | null;
+  submitted_at?: string;
+}
+
 interface Provider {
   id: string;
   display_name: string;
@@ -15,7 +23,7 @@ interface Provider {
   city: string | null;
   state: string | null;
   verification_state: string;
-  metadata: OrganizationMetadata | null;
+  metadata: (OrganizationMetadata & { verification_submission?: VerificationSubmission }) | null;
   created_at: string;
   updated_at: string;
   email: string | null;
@@ -23,6 +31,16 @@ interface Provider {
   image_url: string | null;
   slug: string | null;
 }
+
+const ROLE_LABELS: Record<string, string> = {
+  owner: "Owner",
+  administrator: "Administrator",
+  executive_director: "Executive Director",
+  office_manager: "Office Manager",
+  marketing: "Marketing / Communications",
+  staff: "Staff Member",
+  other: "Other",
+};
 
 export default function AdminVerificationPage() {
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -98,21 +116,9 @@ export default function AdminVerificationPage() {
     }
   }
 
-  // Get verification documents from metadata
-  function getVerificationDocs(provider: Provider) {
-    const meta = provider.metadata;
-    if (!meta) return [];
-    const docs: { label: string; url: string }[] = [];
-    if (meta.verification_id_image) {
-      docs.push({ label: `ID (${meta.verification_id_type || "Unknown"})`, url: meta.verification_id_image });
-    }
-    if (meta.verification_manager_photo) {
-      docs.push({ label: "Manager Photo", url: meta.verification_manager_photo });
-    }
-    if (meta.verification_affiliation_image) {
-      docs.push({ label: "Affiliation Proof", url: meta.verification_affiliation_image });
-    }
-    return docs;
+  // Get verification submission from metadata
+  function getVerificationSubmission(provider: Provider): VerificationSubmission | null {
+    return provider.metadata?.verification_submission || null;
   }
 
   return (
@@ -169,9 +175,8 @@ export default function AdminVerificationPage() {
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Provider</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Type</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Submitter</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Location</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Documents</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Submitted</th>
                   {filter === "pending" && (
@@ -181,7 +186,7 @@ export default function AdminVerificationPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {providers.map((provider) => {
-                  const docs = getVerificationDocs(provider);
+                  const submission = getVerificationSubmission(provider);
                   return (
                     <tr key={provider.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
@@ -201,32 +206,32 @@ export default function AdminVerificationPage() {
                           )}
                           <div>
                             <p className="text-sm font-medium text-gray-900">{provider.display_name}</p>
-                            {provider.email && (
-                              <p className="text-sm text-gray-500">{provider.email}</p>
-                            )}
+                            <p className="text-xs text-gray-400">
+                              {provider.type === "organization" ? "Organization" : "Caregiver"}
+                              {provider.category && ` · ${provider.category.replace(/_/g, " ")}`}
+                            </p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {provider.type === "organization" ? "Organization" : "Caregiver"}
-                        {provider.category && (
-                          <span className="text-gray-400"> / {provider.category.replace(/_/g, " ")}</span>
+                      <td className="px-6 py-4">
+                        {submission ? (
+                          <button
+                            onClick={() => setSelectedProvider(provider)}
+                            className="text-left group"
+                          >
+                            <p className="text-sm font-medium text-gray-900 group-hover:text-primary-600 transition-colors">
+                              {submission.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {ROLE_LABELS[submission.role] || submission.role}
+                            </p>
+                          </button>
+                        ) : (
+                          <span className="text-sm text-gray-400">No submission</span>
                         )}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {[provider.city, provider.state].filter(Boolean).join(", ") || "—"}
-                      </td>
-                      <td className="px-6 py-4">
-                        {docs.length > 0 ? (
-                          <button
-                            onClick={() => setSelectedProvider(provider)}
-                            className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-                          >
-                            View {docs.length} doc{docs.length > 1 ? "s" : ""}
-                          </button>
-                        ) : (
-                          <span className="text-sm text-gray-400">No documents</span>
-                        )}
                       </td>
                       <td className="px-6 py-4">
                         <Badge variant={getStatusVariant(provider.verification_state)}>
@@ -234,24 +239,25 @@ export default function AdminVerificationPage() {
                         </Badge>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
-                        {new Date(provider.updated_at).toLocaleDateString()}
+                        {submission?.submitted_at
+                          ? new Date(submission.submitted_at).toLocaleDateString()
+                          : new Date(provider.updated_at).toLocaleDateString()}
                       </td>
                       {filter === "pending" && (
                         <td className="px-6 py-4 text-right">
                           <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={() => setSelectedProvider(provider)}
+                              className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                            >
+                              Review
+                            </button>
                             <button
                               onClick={() => handleAction(provider.id, "approve")}
                               disabled={actionLoading === provider.id}
                               className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
                             >
                               Approve
-                            </button>
-                            <button
-                              onClick={() => handleAction(provider.id, "reject")}
-                              disabled={actionLoading === provider.id}
-                              className="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-                            >
-                              Reject
                             </button>
                           </div>
                         </td>
@@ -265,9 +271,9 @@ export default function AdminVerificationPage() {
         </div>
       )}
 
-      {/* Document Preview Modal */}
+      {/* Verification Review Modal */}
       {selectedProvider && (
-        <DocumentPreviewModal
+        <VerificationReviewModal
           provider={selectedProvider}
           onClose={() => setSelectedProvider(null)}
           onApprove={() => handleAction(selectedProvider.id, "approve")}
@@ -280,9 +286,9 @@ export default function AdminVerificationPage() {
   );
 }
 
-// ── Document Preview Modal ──
+// ── Verification Review Modal ──
 
-interface DocumentPreviewModalProps {
+interface VerificationReviewModalProps {
   provider: Provider;
   onClose: () => void;
   onApprove: () => void;
@@ -291,40 +297,39 @@ interface DocumentPreviewModalProps {
   showActions: boolean;
 }
 
-function DocumentPreviewModal({
+function VerificationReviewModal({
   provider,
   onClose,
   onApprove,
   onReject,
   isLoading,
   showActions,
-}: DocumentPreviewModalProps) {
-  const meta = provider.metadata;
+}: VerificationReviewModalProps) {
+  const submission = provider.metadata?.verification_submission;
 
-  const docs: { label: string; url: string }[] = [];
-  if (meta?.verification_id_image) {
-    docs.push({ label: `ID Document (${meta.verification_id_type || "Unknown type"})`, url: meta.verification_id_image });
-  }
-  if (meta?.verification_manager_photo) {
-    docs.push({ label: "Manager / Owner Photo", url: meta.verification_manager_photo });
-  }
-  if (meta?.verification_affiliation_image) {
-    docs.push({ label: "Proof of Affiliation", url: meta.verification_affiliation_image });
-  }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
 
   return (
     <Modal
       isOpen={true}
       onClose={onClose}
-      title={`Verification: ${provider.display_name}`}
-      size="xl"
+      title="Review Verification Request"
+      size="lg"
       footer={
         showActions ? (
           <div className="flex gap-3">
             <button
               onClick={onReject}
               disabled={isLoading}
-              className="flex-1 px-4 py-3 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 disabled:opacity-50 transition-colors"
+              className="flex-1 px-4 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-colors"
             >
               Reject
             </button>
@@ -333,24 +338,24 @@ function DocumentPreviewModal({
               disabled={isLoading}
               className="flex-1 px-4 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 disabled:opacity-50 transition-colors"
             >
-              Approve
+              {isLoading ? "Processing..." : "Approve Verification"}
             </button>
           </div>
         ) : undefined
       }
     >
       {/* Provider Info */}
-      <div className="mb-6 pb-4 border-b border-gray-100">
+      <div className="mb-6 pb-5 border-b border-gray-100">
         <div className="flex items-center gap-4">
           {provider.image_url ? (
             <img
               src={provider.image_url}
               alt={provider.display_name}
-              className="w-16 h-16 rounded-xl object-cover"
+              className="w-14 h-14 rounded-xl object-cover"
             />
           ) : (
-            <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center">
-              <span className="text-gray-400 text-xl font-semibold">
+            <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center">
+              <span className="text-gray-400 text-lg font-semibold">
                 {provider.display_name.charAt(0)}
               </span>
             </div>
@@ -359,50 +364,114 @@ function DocumentPreviewModal({
             <h3 className="text-lg font-semibold text-gray-900">{provider.display_name}</h3>
             <p className="text-sm text-gray-500">
               {provider.type === "organization" ? "Organization" : "Caregiver"}
-              {provider.category && ` / ${provider.category.replace(/_/g, " ")}`}
+              {provider.category && ` · ${provider.category.replace(/_/g, " ")}`}
             </p>
             <p className="text-sm text-gray-500">
               {[provider.city, provider.state].filter(Boolean).join(", ") || "No location"}
             </p>
           </div>
         </div>
-        {meta?.verification_role && (
-          <p className="mt-3 text-sm text-gray-600">
-            <span className="font-medium">Role:</span> {meta.verification_role}
-          </p>
-        )}
       </div>
 
-      {/* Documents */}
-      {docs.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          No verification documents submitted.
+      {/* Submission Details */}
+      {submission ? (
+        <div className="space-y-5">
+          <div>
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">
+              Verification Submission
+            </p>
+            <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">Submitted by</p>
+                  <p className="text-sm font-medium text-gray-900">{submission.name}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-400 mb-0.5">Role</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {ROLE_LABELS[submission.role] || submission.role}
+                  </p>
+                </div>
+              </div>
+
+              {submission.phone && (
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">Phone</p>
+                  <p className="text-sm text-gray-700">{submission.phone}</p>
+                </div>
+              )}
+
+              {submission.submitted_at && (
+                <div>
+                  <p className="text-xs text-gray-400 mb-0.5">Submitted</p>
+                  <p className="text-sm text-gray-700">{formatDate(submission.submitted_at)}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {submission.affiliation && (
+            <div>
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                Affiliation Statement
+              </p>
+              <div className="bg-gray-50 rounded-xl p-4">
+                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {submission.affiliation}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Provider Contact Info */}
+          <div>
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
+              Provider Contact
+            </p>
+            <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+              {provider.email && (
+                <div className="flex items-center gap-2 text-sm">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                  </svg>
+                  <span className="text-gray-700">{provider.email}</span>
+                </div>
+              )}
+              {provider.phone && (
+                <div className="flex items-center gap-2 text-sm">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                  </svg>
+                  <span className="text-gray-700">{provider.phone}</span>
+                </div>
+              )}
+              {provider.slug && (
+                <div className="flex items-center gap-2 text-sm">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                  </svg>
+                  <a
+                    href={`/provider/${provider.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary-600 hover:text-primary-700"
+                  >
+                    View public profile →
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       ) : (
-        <div className="space-y-6">
-          {docs.map((doc, idx) => (
-            <div key={idx}>
-              <p className="text-sm font-medium text-gray-700 mb-2">{doc.label}</p>
-              <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
-                <img
-                  src={doc.url}
-                  alt={doc.label}
-                  className="w-full max-h-80 object-contain"
-                />
-              </div>
-              <a
-                href={doc.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 mt-2 text-sm text-primary-600 hover:text-primary-700"
-              >
-                Open full size
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
-            </div>
-          ))}
+        <div className="text-center py-8">
+          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
+            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+          </div>
+          <p className="text-gray-500 text-sm">No verification submission found.</p>
+          <p className="text-gray-400 text-xs mt-1">This provider may have been marked pending manually.</p>
         </div>
       )}
     </Modal>

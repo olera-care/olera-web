@@ -1133,10 +1133,16 @@ export default function ProviderOnboardingModal({
               )}
               <p className="text-gray-500 mt-3 text-base sm:text-lg">
                 {authSent
-                  ? <>Enter the code sent to <strong className="text-gray-700">{authEmail}</strong></>
-                  : actionResult?.ownerEmail
-                    ? <>Enter your email <span className="text-gray-400">(hint: {actionResult.ownerEmail})</span></>
-                    : "We'll send a verification code to your email"}
+                  ? <>Enter the 6-digit code sent to <strong className="text-gray-700">{authEmail}</strong></>
+                  : pendingAuthAction?.type === "create-profile"
+                    ? "Enter your business email to create your account"
+                    : pendingAuthAction?.type === "claim-listing"
+                      ? actionResult?.ownerEmail
+                        ? <>Sign in with <strong className="text-gray-700">{actionResult.ownerEmail}</strong> for instant verification</>
+                        : "Sign in with your business email for instant verification"
+                      : actionResult?.ownerEmail
+                        ? <>Sign in with <strong className="text-gray-700">{actionResult.ownerEmail}</strong> for instant verification</>
+                        : "Sign in with your business email for instant verification"}
               </p>
             </div>
 

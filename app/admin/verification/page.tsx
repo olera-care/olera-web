@@ -90,7 +90,7 @@ export default function AdminVerificationPage() {
     { label: "Rejected", value: "rejected" },
   ];
 
-  async function handleAction(id: string, action: "approve" | "reject") {
+  async function handleAction(id: string, action: "approve" | "reject" | "restore") {
     setActionLoading(id);
     setActionError(null);
     try {
@@ -195,9 +195,7 @@ export default function AdminVerificationPage() {
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
                     {filter === "pending" ? "Submitted" : "Updated"}
                   </th>
-                  {filter === "pending" && (
-                    <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
-                  )}
+                  <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -267,32 +265,52 @@ export default function AdminVerificationPage() {
                           ? new Date(submission.submitted_at).toLocaleDateString()
                           : new Date(provider.updated_at).toLocaleDateString()}
                       </td>
-                      {filter === "pending" && (
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex gap-2 justify-end">
-                            <button
-                              onClick={() => setSelectedProvider(provider)}
-                              className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-                            >
-                              Review
-                            </button>
-                            <button
-                              onClick={() => handleAction(provider.id, "approve")}
-                              disabled={actionLoading === provider.id}
-                              className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
-                            >
-                              {actionLoading === provider.id ? "..." : "Approve"}
-                            </button>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex gap-2 justify-end">
+                          {filter === "pending" && (
+                            <>
+                              <button
+                                onClick={() => setSelectedProvider(provider)}
+                                className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                              >
+                                Review
+                              </button>
+                              <button
+                                onClick={() => handleAction(provider.id, "approve")}
+                                disabled={actionLoading === provider.id}
+                                className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                              >
+                                {actionLoading === provider.id ? "..." : "Approve"}
+                              </button>
+                              <button
+                                onClick={() => handleAction(provider.id, "reject")}
+                                disabled={actionLoading === provider.id}
+                                className="px-3 py-1.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors"
+                              >
+                                {actionLoading === provider.id ? "..." : "Reject"}
+                              </button>
+                            </>
+                          )}
+                          {filter === "verified" && (
                             <button
                               onClick={() => handleAction(provider.id, "reject")}
                               disabled={actionLoading === provider.id}
                               className="px-3 py-1.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors"
                             >
-                              {actionLoading === provider.id ? "..." : "Reject"}
+                              {actionLoading === provider.id ? "..." : "Revoke"}
                             </button>
-                          </div>
-                        </td>
-                      )}
+                          )}
+                          {filter === "rejected" && (
+                            <button
+                              onClick={() => handleAction(provider.id, "restore")}
+                              disabled={actionLoading === provider.id}
+                              className="px-3 py-1.5 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors"
+                            >
+                              {actionLoading === provider.id ? "..." : "Restore to Pending"}
+                            </button>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}

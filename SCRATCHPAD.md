@@ -30,11 +30,15 @@
   - **Deep links**: Added "View live page" links from admin dashboard → `/waiver-library/{state}/{program}`
   - **Plan doc**: `plans/benefits-pipeline-plan.md` — full system design for Apr 7 meeting with Chantel + Logan
   - **Pushed**: 2 commits to `noble-pare`, needs PR to staging
+  - **Pipeline v1 built** (`scripts/benefits-pipeline.js`): 5 phases, tested on Michigan (20 programs found, QA gate correctly failed at 49%)
+  - **Key pivot**: Rigid 5-shape taxonomy abandoned. Pipeline should EXPLORE first, let taxonomy emerge from real data across states. Chantel's CSV columns are her emergent taxonomy — the system should learn the same way.
+  - **Next approach**: Build exploration-first pipeline that observes what data exists per program, brings it back in flexible format, then humans + AI decide what structure to impose. The taxonomy comes AFTER exploration, not before.
   - **Next**:
-    1. PR to staging → deploy → seed → test admin dashboard live
-    2. Build `scripts/benefits-pipeline.js` (discover → verify → generate → QA → finalize)
-    3. First pipeline run: Michigan (already has 9 programs + GSC impressions)
-    4. Expand pace: ~1 state/week
+    1. Rebuild pipeline as exploration tool (observe → report → learn)
+    2. Run exploration on 3-4 diverse states (TX, MI, FL, CA)
+    3. Review output together — let patterns emerge
+    4. THEN formalize the data model from what we found
+    5. PR to staging with foundation work (dashboard, metadata, etc.)
 
 - **Aging in America** — SHIPPED (PRs #493-498 merged)
   - Rob Arnold (S2E2) YouTube ID due Apr 7
@@ -79,6 +83,7 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-04-06 | Exploration before taxonomy — don't lock in data model before exploring enough states | 5-shape taxonomy was derived from 12 TX programs. That's too small a sample. Let the pipeline observe what data exists, then formalize structure from patterns across multiple states. |
 | 2026-04-06 | Admin dashboard reads from waiver-library.ts, not Supabase | Shows source of truth (what will be seeded). Richer data (FAQs, intros, steps). Works without migration. |
 | 2026-04-06 | No Airtable — keep AI-first workflow with admin viewer | Provider data (55K records) uses Supabase + Claude Code directly, not Airtable CSVs. Benefits should follow the same pattern. The problem was viewing, not editing. |
 | 2026-04-06 | Empty string for free-service savingsRange, not "Free service" text | UI renders "Save {savingsRange}" — "Save Free service" is grammatically wrong. Empty string = badge hidden. Free-service info lives in savingsSource metadata. |

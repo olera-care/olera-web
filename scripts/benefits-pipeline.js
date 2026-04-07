@@ -1,24 +1,23 @@
 #!/usr/bin/env node
 
 /**
- * Senior Benefits Pipeline
+ * Senior Benefits Pipeline — Exploration-First
  *
- * Discovers, verifies, and quality-checks benefit programs for a state.
- * Modeled on the city pipeline (pipeline-batch.js).
+ * Explores benefit programs for a state with open-ended questions,
+ * compares against existing data, and produces human-readable reports.
+ * The taxonomy emerges from exploration — it's not predetermined.
  *
  * Usage:
- *   node scripts/benefits-pipeline.js --state TX                  # dry-run all phases
- *   node scripts/benefits-pipeline.js --state MI --run             # execute all phases
- *   node scripts/benefits-pipeline.js --state MI --phase discover  # only discover
- *   node scripts/benefits-pipeline.js --state MI --phase verify --run
- *   node scripts/benefits-pipeline.js --state MI --phase qa        # QA check only (no API calls)
+ *   node scripts/benefits-pipeline.js --state TX                  # dry-run
+ *   node scripts/benefits-pipeline.js --state MI --run             # explore Michigan
+ *   node scripts/benefits-pipeline.js --state MI --phase explore   # explore only
+ *   node scripts/benefits-pipeline.js --state MI --phase dive --run # deep dive only
  *
  * Phases:
- *   discover  — Find all programs for a state via Perplexity
- *   verify    — Check each program's claims against .gov sources
- *   generate  — Output verified data as JSON + optionally seed Supabase
- *   qa        — Automated quality checks
- *   finalize  — Summary report
+ *   explore   — Survey the landscape: what programs exist?
+ *   dive      — Deep dive each program: what data matters?
+ *   compare   — Cross-reference with our existing data, surface diffs
+ *   report    — Generate human-readable markdown report
  */
 
 const fs = require("fs");
@@ -41,58 +40,42 @@ for (const p of envPaths) {
 }
 
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // ─── CLI Parsing ────────────────────────────────────────────────────────────
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  const opts = {
-    state: null,
-    phase: "all",
-    run: false,
-  };
+  const opts = { state: null, phase: "all", run: false };
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case "--state":
-        opts.state = args[++i]?.toUpperCase();
-        break;
-      case "--phase":
-        opts.phase = args[++i];
-        break;
-      case "--run":
-        opts.run = true;
-        break;
-      case "--help":
-      case "-h":
-        printUsage();
-        process.exit(0);
+      case "--state": opts.state = args[++i]?.toUpperCase(); break;
+      case "--phase": opts.phase = args[++i]; break;
+      case "--run":   opts.run = true; break;
+      case "--help": case "-h": printUsage(); process.exit(0);
       default:
-        if (!args[i].startsWith("-")) {
-          opts.state = opts.state || args[i].toUpperCase();
-        }
+        if (!args[i].startsWith("-")) opts.state = opts.state || args[i].toUpperCase();
     }
   }
-
   return opts;
 }
 
 function printUsage() {
   console.log(`
-  Senior Benefits Pipeline
+  Senior Benefits Pipeline — Exploration-First
 
   Usage:
-    node scripts/benefits-pipeline.js --state TX              # dry-run
-    node scripts/benefits-pipeline.js --state MI --run        # execute
-    node scripts/benefits-pipeline.js --state MI --phase discover --run
+    node scripts/benefits-pipeline.js --state MI              # dry-run
+    node scripts/benefits-pipeline.js --state MI --run        # explore
+    node scripts/benefits-pipeline.js --state MI --phase dive --run
 
-  Flags:
-    --state <XX>     State abbreviation (required)
-    --phase <name>   Run only one phase: discover, verify, generate, qa, finalize
-    --run            Execute (default is dry-run preview)
-    --help           Show this help
+  Phases:
+    explore   Survey the landscape: what programs exist?
+    dive      Deep dive: what data matters for each program?
+    compare   Cross-reference with our existing data
+    report    Generate human-readable markdown report
+
+  The taxonomy emerges from exploration — it's not predetermined.
   `);
 }
 
@@ -112,62 +95,35 @@ const STATE_NAMES = {
   WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming", DC: "District of Columbia",
 };
 
-// ─── Cost Tracker ───────────────────────────────────────────────────────────
+// ─── Infrastructure ─────────────────────────────────────────────────────────
 
 class CostTracker {
   constructor() {
     this.perplexity = 0;
-    this.httpChecks = 0;
     this.startTime = Date.now();
   }
-
   addPerplexity(n = 1) { this.perplexity += n; }
-  addHttpCheck(n = 1) { this.httpChecks += n; }
-
-  get cost() {
-    return this.perplexity * 0.005;
-  }
-
-  get elapsed() {
-    return (Date.now() - this.startTime) / 1000;
-  }
-
+  get cost() { return this.perplexity * 0.005; }
+  get elapsed() { return (Date.now() - this.startTime) / 1000; }
   summary() {
     const s = this.elapsed;
-    const t = s < 60 ? `${Math.round(s)}s`
-            : s < 3600 ? `${(s / 60).toFixed(1)}m`
-            : `${Math.floor(s / 3600)}h${Math.floor((s % 3600) / 60)}m`;
-    return `$${this.cost.toFixed(3)} (${this.perplexity} Perplexity, ${this.httpChecks} URL checks, ${t})`;
+    const t = s < 60 ? `${Math.round(s)}s` : `${(s / 60).toFixed(1)}m`;
+    return `$${this.cost.toFixed(3)} (${this.perplexity} calls, ${t})`;
   }
 }
 
 const cost = new CostTracker();
 
-// ─── Rate Limiter ───────────────────────────────────────────────────────────
-
 class RateLimiter {
-  constructor(minDelayMs = 200) {
-    this.minDelay = minDelayMs;
-    this.lastCall = 0;
-  }
-
+  constructor(ms = 300) { this.min = ms; this.last = 0; }
   async wait() {
-    const now = Date.now();
-    const elapsed = now - this.lastCall;
-    if (elapsed < this.minDelay) {
-      await new Promise((r) => setTimeout(r, this.minDelay - elapsed));
-    }
-    this.lastCall = Date.now();
+    const gap = Date.now() - this.last;
+    if (gap < this.min) await new Promise((r) => setTimeout(r, this.min - gap));
+    this.last = Date.now();
   }
 }
 
 const rateLimiter = new RateLimiter(300);
-
-// ─── Retry ──────────────────────────────────────────────────────────────────
-
-function sleep(ms) {
-  return new Promise((r) => setTimeout(r, ms));
-}
 
 async function fetchWithRetry(url, opts = {}, retries = 3) {
   for (let i = 0; i < retries; i++) {
@@ -175,14 +131,11 @@ async function fetchWithRetry(url, opts = {}, retries = 3) {
       return await fetch(url, opts);
     } catch (err) {
       if (i === retries - 1) throw err;
-      const delay = 2000 * (i + 1);
-      console.log(`  [retry ${i + 1}/${retries}] ${err.message}, waiting ${delay}ms...`);
-      await sleep(delay);
+      console.log(`  [retry ${i + 1}] ${err.message}`);
+      await new Promise((r) => setTimeout(r, 2000 * (i + 1)));
     }
   }
 }
-
-// ─── Perplexity ─────────────────────────────────────────────────────────────
 
 async function perplexityChat(prompt, temperature = 0.1) {
   await rateLimiter.wait();
@@ -211,146 +164,78 @@ async function perplexityChat(prompt, temperature = 0.1) {
 }
 
 function extractJson(text) {
-  // Try to find a JSON array first, then object
   const arrayMatch = text.match(/\[[\s\S]*\]/);
-  if (arrayMatch) {
-    try { return JSON.parse(arrayMatch[0]); } catch { /* fall through */ }
-  }
+  if (arrayMatch) { try { return JSON.parse(arrayMatch[0]); } catch { /* fall through */ } }
   const objMatch = text.match(/\{[\s\S]*\}/);
-  if (objMatch) {
-    try { return JSON.parse(objMatch[0]); } catch { return null; }
-  }
+  if (objMatch) { try { return JSON.parse(objMatch[0]); } catch { return null; } }
   return null;
 }
 
-// ─── URL Checker ────────────────────────────────────────────────────────────
+// ─── File I/O ───────────────────────────────────────────────────────────────
 
-async function checkUrl(url) {
-  if (!url) return { ok: false, reason: "empty" };
-  cost.addHttpCheck();
-  try {
-    const resp = await fetchWithRetry(url, {
-      method: "HEAD",
-      redirect: "follow",
-      signal: AbortSignal.timeout(10000),
-    });
-    return { ok: resp.ok, status: resp.status };
-  } catch (err) {
-    // Some servers reject HEAD, try GET
-    try {
-      const resp = await fetchWithRetry(url, {
-        method: "GET",
-        redirect: "follow",
-        signal: AbortSignal.timeout(10000),
-      });
-      return { ok: resp.ok, status: resp.status };
-    } catch (err2) {
-      return { ok: false, reason: err2.message };
-    }
-  }
-}
-
-// ─── Pipeline Directory ─────────────────────────────────────────────────────
-
-function ensurePipelineDir(stateCode) {
+function pipelineDir(stateCode) {
   const dir = path.resolve(__dirname, "..", "data", "pipeline", stateCode);
   fs.mkdirSync(dir, { recursive: true });
   return dir;
 }
 
-function readPipelineFile(stateCode, filename) {
-  const filepath = path.join(ensurePipelineDir(stateCode), filename);
+function writeFile(stateCode, filename, content) {
+  const filepath = path.join(pipelineDir(stateCode), filename);
+  fs.writeFileSync(filepath, typeof content === "string" ? content : JSON.stringify(content, null, 2));
+  console.log(`  → ${filepath}`);
+}
+
+function readJson(stateCode, filename) {
+  const filepath = path.join(pipelineDir(stateCode), filename);
   if (!fs.existsSync(filepath)) return null;
   return JSON.parse(fs.readFileSync(filepath, "utf-8"));
 }
 
-function writePipelineFile(stateCode, filename, data) {
-  const filepath = path.join(ensurePipelineDir(stateCode), filename);
-  fs.writeFileSync(filepath, JSON.stringify(data, null, 2));
-  console.log(`  Wrote ${filepath}`);
-}
-
-// ─── Load Existing Programs from waiver-library.ts ──────────────────────────
+// ─── Load Existing Programs ─────────────────────────────────────────────────
 
 function loadExistingPrograms(stateCode) {
   try {
-    // Dynamic require of the compiled waiver library
-    // We parse the TS file directly to extract program data
     const waiverPath = path.resolve(__dirname, "..", "data", "waiver-library.ts");
     const content = fs.readFileSync(waiverPath, "utf-8");
+    const stateName = STATE_NAMES[stateCode];
+    if (!stateName) return [];
 
-    // Find the state's data in allStates array
-    const stateId = STATE_NAMES[stateCode]?.toLowerCase().replace(/\s+/g, "-");
-    if (!stateId) return [];
-
-    // Look for the state entry and extract program count
-    const stateRegex = new RegExp(
-      `\\{\\s*id:\\s*"${stateId}"[^}]*abbreviation:\\s*"${stateCode}"`,
-      "s"
-    );
-    if (!stateRegex.test(content)) {
-      console.log(`  State ${stateCode} not found in waiver-library.ts`);
-      return [];
-    }
-
-    // Find programs array for this state variable
-    const varName = STATE_NAMES[stateCode].toLowerCase().replace(/\s+/g, "");
-    const programsVarRegex = new RegExp(
-      `const\\s+${varName}Programs.*?=\\s*\\[`
-    );
-    const varMatch = content.match(programsVarRegex);
-
-    if (!varMatch) {
-      // Try alternate naming patterns
-      const altNames = [
-        stateCode.toLowerCase(),
-        STATE_NAMES[stateCode].toLowerCase().replace(/\s+/g, "_"),
-      ];
-      for (const alt of altNames) {
-        const altRegex = new RegExp(`const\\s+${alt}Programs.*?=\\s*\\[`);
-        if (altRegex.test(content)) {
-          console.log(`  Found programs var: ${alt}Programs`);
-          break;
-        }
-      }
-    }
-
-    // Extract top-level program objects by finding `{  id: "...", name: "..."` patterns
-    // that appear at the start of WaiverProgram entries (not nested forms, serviceAreas, etc.)
-    const programs = [];
     const stateSection = getStateSection(content, stateCode);
     if (!stateSection) return [];
 
-    // Match program blocks: lines starting with `    id:` followed by `    name:`
-    // Top-level programs have 4-space indent; nested objects have 6+
-    const programBlockRegex = /\{\s*\n\s{4}id:\s*"([^"]+)",\s*\n\s{4}name:\s*"([^"]+)",/g;
+    const programs = [];
+    const blockRegex = /\{\s*\n\s{4}id:\s*"([^"]+)",\s*\n\s{4}name:\s*"([^"]+)",/g;
     let match;
-    while ((match = programBlockRegex.exec(stateSection)) !== null) {
-      const id = match[1];
-      const name = match[2];
-
-      // Look ahead in the block for optional fields
+    while ((match = blockRegex.exec(stateSection)) !== null) {
       const blockStart = match.index;
       const blockEnd = stateSection.indexOf("\n  },", blockStart);
-      const block = stateSection.slice(blockStart, blockEnd > 0 ? blockEnd : blockStart + 2000);
+      const block = stateSection.slice(blockStart, blockEnd > 0 ? blockEnd : blockStart + 3000);
 
-      const savingsMatch = block.match(/savingsRange:\s*"([^"]*)"/);
-      const sourceMatch = block.match(/sourceUrl:\s*"([^"]*)"/);
-      const verifiedMatch = block.match(/lastVerifiedDate:\s*"([^"]*)"/);
-      const phoneMatch = block.match(/phone:\s*"([^"]*)"/);
-      const verifiedByMatch = block.match(/verifiedBy:\s*"([^"]*)"/);
+      const get = (field) => {
+        const m = block.match(new RegExp(`${field}:\\s*"([^"]*)"`));
+        return m?.[1] || null;
+      };
+
+      const getArray = (field) => {
+        const m = block.match(new RegExp(`${field}:\\s*\\[([^\\]]*)\\]`, "s"));
+        if (!m) return [];
+        return [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]);
+      };
 
       programs.push({
-        id,
-        name,
-        savingsRange: savingsMatch?.[1] || "",
-        sourceUrl: sourceMatch?.[1] || null,
-        lastVerifiedDate: verifiedMatch?.[1] || null,
-        verifiedBy: verifiedByMatch?.[1] || null,
-        phone: phoneMatch?.[1] || null,
+        id: match[1],
+        name: match[2],
+        shortName: get("shortName"),
+        savingsRange: get("savingsRange"),
+        description: get("description"),
+        sourceUrl: get("sourceUrl"),
+        lastVerifiedDate: get("lastVerifiedDate"),
+        verifiedBy: get("verifiedBy"),
+        savingsSource: get("savingsSource"),
+        phone: get("phone"),
+        eligibilityHighlights: getArray("eligibilityHighlights"),
       });
     }
-
     return programs;
   } catch (err) {
     console.log(`  Error loading existing programs: ${err.message}`);
@@ -361,502 +246,631 @@ function loadExistingPrograms(stateCode) {
 function getStateSection(content, stateCode) {
   const stateName = STATE_NAMES[stateCode];
   if (!stateName) return null;
-
-  // Find the section header for this state
-  const headerRegex = new RegExp(
-    `// ─── ${stateName} ─+\\n\\n`,
-    "i"
-  );
+  const headerRegex = new RegExp(`// ─── ${stateName} ─+\\n\\n`, "i");
   const headerMatch = content.match(headerRegex);
   if (!headerMatch) return null;
-
   const startIdx = headerMatch.index;
-
-  // Find the next state section header
   const nextHeaderRegex = /\n\/\/ ─── [A-Z][a-z]+ ─+/g;
   nextHeaderRegex.lastIndex = startIdx + headerMatch[0].length;
   const nextMatch = nextHeaderRegex.exec(content);
-
-  const endIdx = nextMatch ? nextMatch.index : content.length;
-  return content.slice(startIdx, endIdx);
+  return content.slice(startIdx, nextMatch ? nextMatch.index : content.length);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PHASE 1: DISCOVER
+// PHASE 1: EXPLORE — Survey the landscape
 // ═══════════════════════════════════════════════════════════════════════════
 
-async function phaseDiscover(stateCode, stateName, existingPrograms) {
-  console.log(`\n  ━━━ Phase 1: DISCOVER ━━━`);
-  console.log(`  Finding all senior benefit programs in ${stateName}...`);
-  console.log(`  Existing programs in data: ${existingPrograms.length}`);
+async function phaseExplore(stateCode, stateName) {
+  console.log(`\n  ━━━ EXPLORE: What programs exist in ${stateName}? ━━━\n`);
 
-  const prompt = `List ALL senior benefit programs available in ${stateName} (${stateCode}). Include:
-- State Medicaid programs (aged/disabled, waivers, HCBS)
-- PACE programs
-- Medicare Savings Programs (QMB, SLMB, QI)
+  // Split into two queries: federal programs administered by the state, then state-unique
+  const federalPrompt = `What are the major federal senior benefit programs as they are administered in ${stateName} (${stateCode})? I need the ${stateName}-specific name for each.
+
+Cover these categories:
+- Medicaid for seniors/disabled
+- Home and community-based services waiver
+- PACE
+- Medicare Savings (QMB, SLMB, QI)
 - SNAP/food assistance
 - LIHEAP/energy assistance
 - Weatherization
-- Respite care / caregiver support
-- Meals on Wheels or home-delivered meals
-- Senior employment programs (SCSEP)
+- Medicare counseling (SHIP)
+- Meals on Wheels
+- Caregiver/respite support
+- Senior employment (SCSEP)
 - Legal aid for seniors
 - Long-term care ombudsman
-- Senior companion/volunteer programs
-- Property tax relief for seniors
-- Any state-unique programs not in the list above
 
-For EACH program, return:
-- name: Official program name
-- type: Category (healthcare, income, food, housing, utilities, caregiver)
-- source_url: Official .gov or state website URL
-- phone: Main contact phone number (if known)
-- is_state_specific: true if only available in ${stateName}, false if federal
+For each, give: name (as used in ${stateName}), what_it_does (2 sentences), who_its_for, official_url, benefit_value.
 
-Return as a JSON array. Be comprehensive — include every program a senior in ${stateName} could apply for.`;
+Return as a JSON array: [{"name":"...","what_it_does":"...","who_its_for":"...","official_url":"...","benefit_value":"..."}]`;
 
-  const response = await perplexityChat(prompt);
-  const discovered = extractJson(response);
+  const statePrompt = `What senior benefit programs are unique to ${stateName} (${stateCode}) — programs that only exist in this state, or state-funded programs beyond the standard federal ones?
 
-  if (!discovered || !Array.isArray(discovered)) {
-    console.log(`  ERROR: Could not parse discovery response`);
-    console.log(`  Raw response: ${response.slice(0, 500)}`);
-    return [];
-  }
+Think about: property tax relief, state pharmaceutical assistance, state-funded home care, state energy credits, veteran supplements, senior housing programs, transportation programs, companion programs, anything ${stateName} offers that not every state has.
 
-  console.log(`  Discovered ${discovered.length} programs`);
+For each, give: name, what_it_does (2 sentences), who_its_for, whats_unique, official_url, benefit_value.
 
-  // Cross-reference with existing
-  const existingIds = new Set(existingPrograms.map((p) => p.id));
-  const existingNames = new Set(existingPrograms.map((p) => p.name.toLowerCase()));
+Return as a JSON array: [{"name":"...","what_it_does":"...","who_its_for":"...","whats_unique":"...","official_url":"...","benefit_value":"..."}]`;
 
-  const newPrograms = [];
-  const matched = [];
+  console.log(`  Query 1: Federal programs as administered in ${stateName}...`);
+  const fedResponse = await perplexityChat(federalPrompt, 0.2);
+  const fedPrograms = extractJson(fedResponse) || [];
+  console.log(`  Found ${fedPrograms.length} federal programs`);
 
-  for (const prog of discovered) {
-    const nameKey = (prog.name || "").toLowerCase();
-    const isExisting = existingNames.has(nameKey) ||
-      [...existingNames].some((n) =>
-        n.includes(nameKey.slice(0, 20)) || nameKey.includes(n.slice(0, 20))
-      );
+  console.log(`  Query 2: ${stateName}-unique programs...`);
+  const stateResponse = await perplexityChat(statePrompt, 0.2);
+  const statePrograms = extractJson(stateResponse) || [];
+  console.log(`  Found ${statePrograms.length} state-unique programs`);
 
-    if (isExisting) {
-      matched.push(prog);
-    } else {
-      newPrograms.push(prog);
+  // Merge and deduplicate
+  const allDiscovered = [...fedPrograms, ...statePrograms];
+  const seen = new Set();
+  const programs = [];
+  for (const p of allDiscovered) {
+    const key = (p.name || "").toLowerCase().slice(0, 30);
+    if (!seen.has(key)) {
+      seen.add(key);
+      programs.push(p);
     }
   }
 
-  console.log(`  Matched to existing: ${matched.length}`);
-  console.log(`  New programs found: ${newPrograms.length}`);
-
-  if (newPrograms.length > 0) {
-    console.log(`  New programs:`);
-    for (const p of newPrograms) {
-      console.log(`    + ${p.name} (${p.type || "unknown"})`);
-    }
+  if (!programs.length) {
+    console.log(`  ERROR: No programs found. Raw federal: ${fedResponse.slice(0, 300)}`);
+    return { programs: [], raw: fedResponse };
   }
 
-  const result = {
+  console.log(`\n  Total unique programs: ${programs.length}\n`);
+  for (const p of programs) {
+    console.log(`  • ${(p.name || "?").slice(0, 60)}`);
+    console.log(`    ${(p.what_it_does || "").slice(0, 100)}`);
+    console.log();
+  }
+
+  return {
     state: stateCode,
     stateName,
-    discoveredAt: new Date().toISOString(),
-    total: discovered.length,
-    matched: matched.length,
-    new: newPrograms.length,
-    programs: discovered,
-    newPrograms,
+    exploredAt: new Date().toISOString(),
+    programCount: programs.length,
+    programs,
   };
-
-  return result;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PHASE 2: VERIFY
+// PHASE 2: DEEP DIVE — What data matters for each program?
 // ═══════════════════════════════════════════════════════════════════════════
 
-async function phaseVerify(stateCode, stateName, discoveredData, existingPrograms) {
-  console.log(`\n  ━━━ Phase 2: VERIFY ━━━`);
+async function phaseDive(stateCode, stateName, exploreData) {
+  console.log(`\n  ━━━ DEEP DIVE: What matters for each program? ━━━\n`);
 
-  const allPrograms = discoveredData?.programs || [];
-  if (allPrograms.length === 0) {
-    console.log(`  No programs to verify. Run discover phase first.`);
+  const programs = exploreData?.programs || [];
+  if (!programs.length) {
+    console.log(`  No programs to dive into. Run explore first.`);
     return null;
   }
 
-  console.log(`  Verifying ${allPrograms.length} programs against official sources...`);
+  console.log(`  Diving into ${programs.length} programs...\n`);
+  const results = [];
 
-  const verified = [];
-
-  for (let i = 0; i < allPrograms.length; i++) {
-    const prog = allPrograms[i];
+  for (let i = 0; i < programs.length; i++) {
+    const prog = programs[i];
     const name = prog.name || `Program ${i + 1}`;
 
-    process.stdout.write(`  [${i + 1}/${allPrograms.length}] ${name.slice(0, 50).padEnd(50)} | ${cost.summary()}\r`);
+    process.stdout.write(`  [${i + 1}/${programs.length}] ${name.slice(0, 50).padEnd(50)} ${cost.summary()}\r`);
 
-    const prompt = `For the program "${name}" in ${stateName} (${stateCode}), verify these specific facts from official government sources:
+    const prompt = `I'm building a comprehensive guide to "${name}" in ${stateName} for families trying to determine if their elderly loved one qualifies and how to apply.
 
-1. INCOME LIMITS: What is the monthly income limit for a single person? For a couple? Give exact dollar amounts.
-2. AGE REQUIREMENT: Minimum age to qualify (if any)
-3. SAVINGS/BENEFIT VALUE: What is the actual dollar value of benefits received? (Not a range — the real amount from the program's benefit schedule)
-4. PHONE NUMBER: Official contact phone number
-5. APPLICATION URL: Direct URL to the application form or online portal
-6. SOURCE URL: The official .gov page describing this program's eligibility
-7. WAIT TIME: Typical processing or waitlist time
-8. WHAT IT COVERS: Brief list of services/benefits provided
+Tell me everything a family needs to know. Don't use a generic template — tell me what's SPECIFIC to this program:
+
+1. ELIGIBILITY: What are the exact requirements? If there are income limits, give the actual dollar amounts. If they vary by household size, give the full table. If there are asset limits, explain what counts and what's exempt. If there's an age requirement, state it.
+
+2. WHAT YOU GET: What does this program actually provide? Be specific — not "healthcare services" but the actual services. If there's a dollar amount or hours per week, state it. If it varies by tier or priority level, explain how.
+
+3. HOW TO APPLY: Step by step. Include the actual phone number to call, the actual website URL to visit, the actual form name/number if there is one. Include multiple application routes if they exist (online, phone, mail, in-person).
+
+4. HOW LONG IT TAKES: Processing time, waitlist, any regional variation in wait times.
+
+5. DOCUMENTS NEEDED: What should someone bring or prepare?
+
+6. REGIONAL VARIATIONS: Does this program work differently in different parts of ${stateName}? Different providers, different offices, different wait times by region?
+
+7. WHAT MAKES THIS DIFFERENT: If someone is comparing this to similar programs, what would they need to know? What's the gotcha or the thing people miss?
 
 Return as JSON:
 {
   "name": "${name}",
-  "income_limit_single": <number or null>,
-  "income_limit_couple": <number or null>,
-  "min_age": <number or null>,
-  "benefit_value": "<description of actual benefit amount>",
-  "phone": "<phone number or null>",
-  "application_url": "<url or null>",
-  "source_url": "<official .gov url>",
-  "wait_time": "<description or null>",
-  "covers": "<brief list>",
-  "verified": true,
-  "confidence": "<high|medium|low>",
-  "notes": "<any caveats or uncertainties>"
-}
-
-Only include facts you can verify from official sources. Set confidence to "low" if you're unsure.`;
+  "eligibility": {
+    "age": <number or null>,
+    "income_limits": <describe the full picture — single, couple, household table if applicable>,
+    "asset_limits": <describe if applicable, including what counts and what's exempt>,
+    "other_requirements": [<list any other requirements>]
+  },
+  "benefits": {
+    "type": "<financial|service|in_kind|advocacy|employment>",
+    "value": "<specific dollar amounts, hours, or services>",
+    "varies_by": "<household_size|priority_tier|region|fixed|not_applicable>"
+  },
+  "application": {
+    "methods": [<list: online URL, phone number, mail address, in-person office>],
+    "processing_time": "<specific timeline>",
+    "waitlist": "<description or null>",
+    "forms": [<specific form names/numbers>],
+    "documents": [<what to bring>]
+  },
+  "geography": {
+    "statewide": <true|false>,
+    "restrictions": "<county/region restrictions if any>",
+    "regional_variations": "<how it differs by region, or null>",
+    "offices_or_providers": [<specific locations if limited>]
+  },
+  "official_source": "<primary .gov URL>",
+  "gotchas": [<things people miss, common mistakes, important caveats>],
+  "data_shape_notes": "<what makes this program's data structure unique — e.g., 'benefits scale by household size', 'only available at 3 centers', 'no income test', 'county-restricted'>"
+}`;
 
     try {
       const response = await perplexityChat(prompt);
       const parsed = extractJson(response);
 
       if (parsed) {
-        parsed._originalName = name;
-        parsed._originalType = prog.type || null;
-        parsed._originalSourceUrl = prog.source_url || null;
-        verified.push(parsed);
+        parsed._raw = response;
+        results.push(parsed);
       } else {
-        console.log(`\n  WARN: Could not parse verification for "${name}"`);
-        verified.push({
+        results.push({
           name,
-          verified: false,
-          confidence: "low",
-          notes: "Failed to parse Perplexity response",
-          _originalType: prog.type || null,
+          _parseError: true,
+          _raw: response,
         });
+        console.log(`\n  WARN: Could not parse response for "${name}"`);
       }
     } catch (err) {
-      console.log(`\n  ERROR verifying "${name}": ${err.message}`);
-      verified.push({
+      results.push({
         name,
-        verified: false,
-        confidence: "low",
-        notes: `Error: ${err.message}`,
-        _originalType: prog.type || null,
+        _error: err.message,
       });
+      console.log(`\n  ERROR: "${name}": ${err.message}`);
     }
   }
 
-  console.log(`\n  Verified ${verified.filter((v) => v.verified).length}/${allPrograms.length} programs`);
-
-  // URL checks on source and application URLs
-  console.log(`  Checking URLs...`);
-  let urlsChecked = 0;
-  let urlsOk = 0;
-  let urlsBroken = 0;
-
-  for (const prog of verified) {
-    for (const field of ["source_url", "application_url"]) {
-      const url = prog[field];
-      if (url && url.startsWith("http")) {
-        const result = await checkUrl(url);
-        prog[`${field}_check`] = result;
-        urlsChecked++;
-        if (result.ok) urlsOk++;
-        else urlsBroken++;
-      }
-    }
-  }
-
-  console.log(`  URLs: ${urlsOk} ok, ${urlsBroken} broken, ${urlsChecked} total`);
-
-  const result = {
-    state: stateCode,
-    stateName,
-    verifiedAt: new Date().toISOString(),
-    total: allPrograms.length,
-    verified: verified.filter((v) => v.verified).length,
-    highConfidence: verified.filter((v) => v.confidence === "high").length,
-    urlsOk,
-    urlsBroken,
-    programs: verified,
-  };
-
-  return result;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// PHASE 3: GENERATE
-// ═══════════════════════════════════════════════════════════════════════════
-
-function phaseGenerate(stateCode, stateName, verifiedData, existingPrograms) {
-  console.log(`\n  ━━━ Phase 3: GENERATE ━━━`);
-
-  if (!verifiedData?.programs) {
-    console.log(`  No verified data. Run verify phase first.`);
-    return null;
-  }
-
-  const programs = verifiedData.programs;
-  console.log(`  Generating output for ${programs.length} programs...`);
-
-  // Build WaiverProgram-compatible objects
-  const output = programs.map((prog) => {
-    const id = slugify(prog.name);
-    const existing = existingPrograms.find(
-      (e) => e.id === id || e.name.toLowerCase() === prog.name?.toLowerCase()
-    );
-
-    return {
-      id: existing?.id || id,
-      name: prog.name,
-      category: prog._originalType || "healthcare",
-      isNew: !existing,
-      // Verified data
-      income_limit_single: prog.income_limit_single || null,
-      income_limit_couple: prog.income_limit_couple || null,
-      min_age: prog.min_age || null,
-      benefit_value: prog.benefit_value || null,
-      phone: prog.phone || existing?.phone || null,
-      application_url: prog.application_url || null,
-      source_url: prog.source_url || prog._originalSourceUrl || null,
-      source_url_ok: prog.source_url_check?.ok ?? null,
-      application_url_ok: prog.application_url_check?.ok ?? null,
-      wait_time: prog.wait_time || null,
-      covers: prog.covers || null,
-      confidence: prog.confidence || "low",
-      verified: prog.verified || false,
-      verified_date: new Date().toISOString().split("T")[0],
-      verified_by: "pipeline",
-      notes: prog.notes || null,
-      // Existing data (for comparison)
-      existing_savings: existing?.savingsRange || null,
-      existing_source: existing?.sourceUrl || null,
-      existing_verified: existing?.lastVerifiedDate || null,
-    };
-  });
-
-  const newCount = output.filter((p) => p.isNew).length;
-  const updatedCount = output.filter((p) => !p.isNew).length;
-
-  console.log(`  Generated: ${updatedCount} updates, ${newCount} new programs`);
-  console.log(`  High confidence: ${output.filter((p) => p.confidence === "high").length}`);
-  console.log(`  Medium confidence: ${output.filter((p) => p.confidence === "medium").length}`);
-  console.log(`  Low confidence: ${output.filter((p) => p.confidence === "low").length}`);
+  console.log(`\n\n  Completed deep dive on ${results.length} programs`);
+  console.log(`  Parsed: ${results.filter((r) => !r._parseError && !r._error).length}`);
+  console.log(`  Parse errors: ${results.filter((r) => r._parseError).length}`);
+  console.log(`  Errors: ${results.filter((r) => r._error).length}`);
 
   return {
     state: stateCode,
     stateName,
-    generatedAt: new Date().toISOString(),
-    total: output.length,
-    new: newCount,
-    updated: updatedCount,
-    programs: output,
-  };
-}
-
-function slugify(text) {
-  return (text || "unknown")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 80);
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// PHASE 4: QA GATE
-// ═══════════════════════════════════════════════════════════════════════════
-
-function phaseQa(stateCode, stateName, generateData) {
-  console.log(`\n  ━━━ Phase 4: QA GATE ━━━`);
-
-  if (!generateData?.programs) {
-    console.log(`  No generated data. Run generate phase first.`);
-    return null;
-  }
-
-  const programs = generateData.programs;
-  const results = [];
-  let totalPass = 0;
-  let totalFail = 0;
-
-  for (const prog of programs) {
-    const checks = [];
-
-    // Required checks
-    checks.push({
-      check: "Has source URL",
-      pass: !!prog.source_url,
-      value: prog.source_url || "MISSING",
-    });
-
-    checks.push({
-      check: "Source URL accessible",
-      pass: prog.source_url_ok === true || prog.source_url_ok === null,
-      value: prog.source_url_ok === null ? "Not checked" : prog.source_url_ok ? "OK" : "BROKEN",
-    });
-
-    checks.push({
-      check: "Verified by source",
-      pass: prog.verified === true,
-      value: prog.verified ? "Yes" : "No",
-    });
-
-    checks.push({
-      check: "Confidence level",
-      pass: prog.confidence === "high" || prog.confidence === "medium",
-      value: prog.confidence || "unknown",
-    });
-
-    checks.push({
-      check: "Has income limit or age requirement",
-      pass: prog.income_limit_single != null || prog.min_age != null,
-      value: prog.income_limit_single ? `$${prog.income_limit_single}/mo` : prog.min_age ? `${prog.min_age}+` : "MISSING",
-    });
-
-    checks.push({
-      check: "Has benefit value description",
-      pass: !!prog.benefit_value && prog.benefit_value.length > 5,
-      value: prog.benefit_value ? prog.benefit_value.slice(0, 60) : "MISSING",
-    });
-
-    if (prog.application_url) {
-      checks.push({
-        check: "Application URL accessible",
-        pass: prog.application_url_ok !== false,
-        value: prog.application_url_ok ? "OK" : "BROKEN",
-      });
-    }
-
-    if (prog.phone) {
-      checks.push({
-        check: "Phone format valid",
-        pass: /[\d\-\(\)\s]{7,}/.test(prog.phone),
-        value: prog.phone,
-      });
-    }
-
-    const passed = checks.filter((c) => c.pass).length;
-    const failed = checks.filter((c) => !c.pass).length;
-    const score = Math.round((passed / checks.length) * 100);
-
-    if (failed === 0) totalPass++;
-    else totalFail++;
-
-    results.push({
-      name: prog.name,
-      id: prog.id,
-      isNew: prog.isNew,
-      score,
-      passed,
-      failed,
-      checks,
-    });
-  }
-
-  // Sort: worst scores first so problems are visible
-  results.sort((a, b) => a.score - b.score);
-
-  const overallScore = Math.round(
-    (results.reduce((sum, r) => sum + r.score, 0) / results.length)
-  );
-
-  console.log(`\n  QA Results for ${stateName}:`);
-  console.log(`  ─────────────────────────────────`);
-
-  for (const r of results) {
-    const icon = r.failed === 0 ? "✓" : "✗";
-    const color = r.failed === 0 ? "\x1b[32m" : "\x1b[33m";
-    console.log(`  ${color}${icon}\x1b[0m ${(r.name || r.id || "Unknown").padEnd(55)} ${r.score}%${r.isNew ? " (NEW)" : ""}`);
-
-    if (r.failed > 0) {
-      for (const c of r.checks.filter((c) => !c.pass)) {
-        console.log(`    \x1b[31m✗\x1b[0m ${c.check}: ${c.value}`);
-      }
-    }
-  }
-
-  console.log(`\n  Overall: ${overallScore}% | ${totalPass} pass, ${totalFail} need attention`);
-
-  const gatePass = overallScore >= 80 && totalFail <= Math.ceil(programs.length * 0.2);
-
-  if (gatePass) {
-    console.log(`  \x1b[32m✓ QA GATE: PASS\x1b[0m — Ready for review`);
-  } else {
-    console.log(`  \x1b[31m✗ QA GATE: FAIL\x1b[0m — ${totalFail} programs need fixes before launch`);
-  }
-
-  return {
-    state: stateCode,
-    stateName,
-    qaAt: new Date().toISOString(),
-    overallScore,
-    gatePass,
-    totalPass,
-    totalFail,
+    diveAt: new Date().toISOString(),
+    total: results.length,
+    parsed: results.filter((r) => !r._parseError && !r._error).length,
     programs: results,
   };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PHASE 5: FINALIZE
+// PHASE 3: COMPARE — Cross-reference with existing data
 // ═══════════════════════════════════════════════════════════════════════════
 
-function phaseFinalize(stateCode, stateName, qaData, generateData) {
-  console.log(`\n  ━━━ Phase 5: FINALIZE ━━━`);
+function phaseCompare(stateCode, stateName, diveData, existingPrograms) {
+  console.log(`\n  ━━━ COMPARE: What's different from our data? ━━━\n`);
 
-  const summary = {
-    state: stateCode,
-    stateName,
-    completedAt: new Date().toISOString(),
-    cost: cost.summary(),
-    programs: generateData?.total || 0,
-    newPrograms: generateData?.new || 0,
-    qaScore: qaData?.overallScore || 0,
-    qaPass: qaData?.gatePass || false,
-    qaFailed: qaData?.totalFail || 0,
-  };
-
-  console.log(`\n  ┌─────────────────────────────────────────────┐`);
-  console.log(`  │  Benefits Pipeline Summary: ${stateName.padEnd(16)}│`);
-  console.log(`  ├─────────────────────────────────────────────┤`);
-  console.log(`  │  Programs:     ${String(summary.programs).padEnd(29)}│`);
-  console.log(`  │  New:          ${String(summary.newPrograms).padEnd(29)}│`);
-  console.log(`  │  QA Score:     ${(summary.qaScore + "%").padEnd(29)}│`);
-  console.log(`  │  QA Gate:      ${(summary.qaPass ? "PASS ✓" : "FAIL ✗").padEnd(29)}│`);
-  console.log(`  │  Issues:       ${String(summary.qaFailed).padEnd(29)}│`);
-  console.log(`  │  Cost:         ${cost.summary().padEnd(29)}│`);
-  console.log(`  └─────────────────────────────────────────────┘`);
-
-  if (summary.qaPass) {
-    console.log(`\n  Next steps:`);
-    console.log(`  1. Review output at: data/pipeline/${stateCode}/`);
-    console.log(`  2. Claude ingests programs_generated.json → updates waiver-library.ts`);
-    console.log(`  3. Review at /admin/benefits → click ${stateName}`);
-    console.log(`  4. Seed: /api/admin/seed-sbf-programs?state=${stateCode}&confirm=true`);
-    console.log(`  5. PR to staging → deploy → live`);
-  } else {
-    console.log(`\n  Fix ${summary.qaFailed} failing programs, then re-run:`);
-    console.log(`  node scripts/benefits-pipeline.js --state ${stateCode} --phase qa`);
+  const divePrograms = diveData?.programs?.filter((p) => !p._error && !p._parseError) || [];
+  if (!divePrograms.length) {
+    console.log(`  No dive data to compare.`);
+    return null;
   }
 
-  // Save run log
-  const logPath = path.join(ensurePipelineDir(stateCode), "run_log.json");
-  const existingLog = fs.existsSync(logPath)
-    ? JSON.parse(fs.readFileSync(logPath, "utf-8"))
-    : [];
-  existingLog.push(summary);
-  fs.writeFileSync(logPath, JSON.stringify(existingLog, null, 2));
+  console.log(`  Comparing ${divePrograms.length} explored programs against ${existingPrograms.length} existing...\n`);
 
-  return summary;
+  const comparisons = [];
+
+  for (const explored of divePrograms) {
+    const name = explored.name || "Unknown";
+    const nameLower = name.toLowerCase();
+
+    // Find matching existing program
+    const existing = existingPrograms.find((e) => {
+      const eName = e.name.toLowerCase();
+      return eName === nameLower ||
+        eName.includes(nameLower.slice(0, 25)) ||
+        nameLower.includes(eName.slice(0, 25));
+    });
+
+    const diffs = [];
+    const novelFields = [];
+
+    if (existing) {
+      // Compare eligibility
+      const exploredAge = explored.eligibility?.age;
+      const existingAge = existing.eligibilityHighlights
+        ?.find((h) => /\d{2}/.test(h))
+        ?.match(/(\d{2,3})/)?.[1];
+
+      if (exploredAge && existingAge && String(exploredAge) !== existingAge) {
+        diffs.push({
+          field: "min_age",
+          ours: existingAge,
+          found: String(exploredAge),
+          source: explored.official_source,
+        });
+      }
+
+      // Compare income limits
+      const exploredIncome = explored.eligibility?.income_limits;
+      if (exploredIncome && typeof exploredIncome === "string" && exploredIncome.includes("$")) {
+        const existingIncome = existing.eligibilityHighlights
+          ?.find((h) => h.includes("$"))
+          ?.match(/\$([\d,]+)/)?.[1];
+        const foundIncome = exploredIncome.match(/\$([\d,]+)/)?.[1];
+
+        if (existingIncome && foundIncome && existingIncome !== foundIncome) {
+          diffs.push({
+            field: "income_limit",
+            ours: `$${existingIncome}`,
+            found: `$${foundIncome}`,
+            source: explored.official_source,
+          });
+        }
+      }
+
+      // Compare savings/benefit value
+      if (explored.benefits?.value && existing.savingsRange) {
+        if (explored.benefits.value !== existing.savingsRange) {
+          diffs.push({
+            field: "benefit_value",
+            ours: existing.savingsRange,
+            found: explored.benefits.value,
+            source: explored.official_source,
+          });
+        }
+      }
+
+      // Note source URL status
+      if (!existing.sourceUrl && explored.official_source) {
+        diffs.push({
+          field: "source_url",
+          ours: "MISSING",
+          found: explored.official_source,
+        });
+      }
+
+      // Check for data our model doesn't capture
+      if (explored.eligibility?.asset_limits) {
+        novelFields.push({
+          field: "asset_limits",
+          value: explored.eligibility.asset_limits,
+          note: "Our model has no asset limit fields",
+        });
+      }
+
+      if (explored.benefits?.varies_by === "household_size") {
+        novelFields.push({
+          field: "household_size_table",
+          value: explored.eligibility?.income_limits,
+          note: "Benefits/eligibility vary by household size — we store a single number",
+        });
+      }
+
+      if (explored.geography?.regional_variations) {
+        novelFields.push({
+          field: "regional_variations",
+          value: explored.geography.regional_variations,
+          note: "Program varies by region — our model doesn't capture this",
+        });
+      }
+
+      if (explored.application?.waitlist) {
+        novelFields.push({
+          field: "waitlist",
+          value: explored.application.waitlist,
+          note: "Has waitlist info — our model has no wait time field",
+        });
+      }
+
+      if (explored.application?.documents?.length > 0) {
+        novelFields.push({
+          field: "documents_required",
+          value: explored.application.documents,
+          note: "Has document checklist — our model doesn't store per-program documents",
+        });
+      }
+    }
+
+    comparisons.push({
+      name,
+      isNew: !existing,
+      existingId: existing?.id || null,
+      existingVerified: existing?.lastVerifiedDate || null,
+      diffsFound: diffs.length,
+      diffs,
+      novelFields,
+      dataShapeNotes: explored.data_shape_notes || null,
+      gotchas: explored.gotchas || [],
+      benefitType: explored.benefits?.type || "unknown",
+      benefitVariesBy: explored.benefits?.varies_by || null,
+      officialSource: explored.official_source || null,
+    });
+  }
+
+  // Summary
+  const newPrograms = comparisons.filter((c) => c.isNew);
+  const withDiffs = comparisons.filter((c) => c.diffsFound > 0);
+  const withNovelFields = comparisons.filter((c) => c.novelFields.length > 0);
+
+  console.log(`  New programs not in our data: ${newPrograms.length}`);
+  console.log(`  Programs with data discrepancies: ${withDiffs.length}`);
+  console.log(`  Programs with data our model can't capture: ${withNovelFields.length}`);
+
+  if (withDiffs.length > 0) {
+    console.log(`\n  Data discrepancies:`);
+    for (const c of withDiffs) {
+      for (const d of c.diffs) {
+        console.log(`    ${c.name}: ${d.field} — ours: ${d.ours} → found: ${d.found}`);
+      }
+    }
+  }
+
+  // Collect all novel field types across programs
+  const novelFieldSummary = {};
+  for (const c of comparisons) {
+    for (const nf of c.novelFields) {
+      if (!novelFieldSummary[nf.field]) {
+        novelFieldSummary[nf.field] = { count: 0, programs: [], note: nf.note };
+      }
+      novelFieldSummary[nf.field].count++;
+      novelFieldSummary[nf.field].programs.push(c.name);
+    }
+  }
+
+  if (Object.keys(novelFieldSummary).length > 0) {
+    console.log(`\n  Data fields our model doesn't capture:`);
+    for (const [field, info] of Object.entries(novelFieldSummary)) {
+      console.log(`    ${field} (${info.count} programs): ${info.note}`);
+    }
+  }
+
+  // Collect benefit types and variation patterns
+  const benefitTypes = {};
+  const variationPatterns = {};
+  for (const c of comparisons) {
+    benefitTypes[c.benefitType] = (benefitTypes[c.benefitType] || 0) + 1;
+    if (c.benefitVariesBy) {
+      variationPatterns[c.benefitVariesBy] = (variationPatterns[c.benefitVariesBy] || 0) + 1;
+    }
+  }
+
+  console.log(`\n  Benefit types found: ${JSON.stringify(benefitTypes)}`);
+  console.log(`  Variation patterns: ${JSON.stringify(variationPatterns)}`);
+
+  return {
+    state: stateCode,
+    stateName,
+    comparedAt: new Date().toISOString(),
+    total: comparisons.length,
+    newPrograms: newPrograms.length,
+    withDiffs: withDiffs.length,
+    withNovelFields: withNovelFields.length,
+    benefitTypes,
+    variationPatterns,
+    novelFieldSummary,
+    comparisons,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 4: REPORT — Human-readable markdown
+// ═══════════════════════════════════════════════════════════════════════════
+
+function phaseReport(stateCode, stateName, exploreData, diveData, compareData) {
+  console.log(`\n  ━━━ REPORT: Generating markdown report ━━━\n`);
+
+  const lines = [];
+  const ln = (s = "") => lines.push(s);
+
+  ln(`# ${stateName} Benefits Exploration Report`);
+  ln();
+  ln(`> Generated ${new Date().toISOString().split("T")[0]} by benefits-pipeline.js`);
+  ln(`> Cost: ${cost.summary()}`);
+  ln();
+  ln(`---`);
+  ln();
+
+  // Summary
+  ln(`## Summary`);
+  ln();
+  ln(`| Metric | Value |`);
+  ln(`|--------|-------|`);
+  ln(`| Programs discovered | ${exploreData?.programCount || "?"} |`);
+  ln(`| Programs deep-dived | ${diveData?.parsed || "?"} |`);
+  if (compareData) {
+    ln(`| New (not in our data) | ${compareData.newPrograms} |`);
+    ln(`| Data discrepancies | ${compareData.withDiffs} |`);
+    ln(`| Fields our model can't capture | ${compareData.withNovelFields} |`);
+  }
+  ln();
+
+  // Data model gaps
+  if (compareData?.novelFieldSummary && Object.keys(compareData.novelFieldSummary).length > 0) {
+    ln(`## Data Model Gaps`);
+    ln();
+    ln(`These data fields appeared across programs but don't exist in our current model:`);
+    ln();
+    ln(`| Field | Programs | Note |`);
+    ln(`|-------|----------|------|`);
+    for (const [field, info] of Object.entries(compareData.novelFieldSummary)) {
+      ln(`| \`${field}\` | ${info.count} | ${info.note} |`);
+    }
+    ln();
+  }
+
+  // Benefit type distribution
+  if (compareData?.benefitTypes) {
+    ln(`## Program Types`);
+    ln();
+    for (const [type, count] of Object.entries(compareData.benefitTypes)) {
+      ln(`- **${type}**: ${count} programs`);
+    }
+    ln();
+  }
+
+  // Data discrepancies
+  if (compareData?.comparisons?.filter((c) => c.diffsFound > 0).length > 0) {
+    ln(`## Data Discrepancies`);
+    ln();
+    ln(`Our data differs from what official sources say:`);
+    ln();
+    for (const c of compareData.comparisons.filter((c) => c.diffsFound > 0)) {
+      ln(`### ${c.name}`);
+      ln();
+      for (const d of c.diffs) {
+        ln(`- **${d.field}**: Ours says \`${d.ours}\` → Source says \`${d.found}\`${d.source ? ` ([source](${d.source}))` : ""}`);
+      }
+      ln();
+    }
+  }
+
+  // New programs
+  const newProgs = compareData?.comparisons?.filter((c) => c.isNew) || [];
+  if (newProgs.length > 0) {
+    ln(`## New Programs (Not in Our Data)`);
+    ln();
+    for (const c of newProgs) {
+      ln(`- **${c.name}** — ${c.benefitType}${c.officialSource ? ` ([source](${c.officialSource}))` : ""}`);
+      if (c.dataShapeNotes) ln(`  - Shape notes: ${c.dataShapeNotes}`);
+    }
+    ln();
+  }
+
+  // Per-program details
+  ln(`## Program Details`);
+  ln();
+
+  const divePrograms = diveData?.programs?.filter((p) => !p._error && !p._parseError) || [];
+  for (const prog of divePrograms) {
+    const compare = compareData?.comparisons?.find(
+      (c) => c.name === prog.name
+    );
+
+    ln(`### ${prog.name || "Unknown"}`);
+    ln();
+
+    if (compare?.isNew) ln(`> **NEW** — not currently in our data`);
+    if (compare?.existingVerified) ln(`> Last verified: ${compare.existingVerified}`);
+    ln();
+
+    // Eligibility
+    if (prog.eligibility) {
+      ln(`**Eligibility:**`);
+      if (prog.eligibility.age) ln(`- Age: ${prog.eligibility.age}+`);
+      if (prog.eligibility.income_limits) {
+        const inc = prog.eligibility.income_limits;
+        ln(`- Income: ${typeof inc === "string" ? inc : JSON.stringify(inc)}`);
+      }
+      if (prog.eligibility.asset_limits) {
+        const ast = prog.eligibility.asset_limits;
+        ln(`- Assets: ${typeof ast === "string" ? ast : JSON.stringify(ast)}`);
+      }
+      if (prog.eligibility.other_requirements?.length > 0) {
+        for (const r of prog.eligibility.other_requirements) {
+          ln(`- ${r}`);
+        }
+      }
+      ln();
+    }
+
+    // Benefits
+    if (prog.benefits) {
+      ln(`**Benefits:** ${prog.benefits.value || "N/A"}`);
+      if (prog.benefits.varies_by && prog.benefits.varies_by !== "not_applicable") {
+        ln(`- Varies by: ${prog.benefits.varies_by}`);
+      }
+      ln();
+    }
+
+    // Application
+    if (prog.application) {
+      if (prog.application.methods?.length > 0) {
+        ln(`**How to apply:**`);
+        for (const m of prog.application.methods) {
+          ln(`- ${m}`);
+        }
+        ln();
+      }
+      if (prog.application.processing_time) {
+        ln(`**Timeline:** ${prog.application.processing_time}`);
+      }
+      if (prog.application.waitlist) {
+        ln(`**Waitlist:** ${prog.application.waitlist}`);
+      }
+      ln();
+    }
+
+    // Gotchas
+    if (prog.gotchas?.length > 0) {
+      ln(`**Watch out for:**`);
+      for (const g of prog.gotchas) ln(`- ${g}`);
+      ln();
+    }
+
+    // Data shape
+    if (prog.data_shape_notes) {
+      ln(`**Data shape:** ${prog.data_shape_notes}`);
+      ln();
+    }
+
+    // Novel fields
+    if (compare?.novelFields?.length > 0) {
+      ln(`**Our model can't capture:**`);
+      for (const nf of compare.novelFields) ln(`- \`${nf.field}\`: ${nf.note}`);
+      ln();
+    }
+
+    if (prog.official_source) {
+      ln(`**Source:** ${prog.official_source}`);
+      ln();
+    }
+
+    ln(`---`);
+    ln();
+  }
+
+  // Learning section
+  ln(`## What We Learned`);
+  ln();
+  ln(`### Patterns Observed`);
+  ln();
+  if (compareData?.variationPatterns) {
+    ln(`How benefits vary across these programs:`);
+    for (const [pattern, count] of Object.entries(compareData.variationPatterns)) {
+      ln(`- **${pattern}**: ${count} programs`);
+    }
+    ln();
+  }
+
+  ln(`### Data Shape Notes`);
+  ln();
+  ln(`Unique structural observations from each program:`);
+  ln();
+  for (const prog of divePrograms) {
+    if (prog.data_shape_notes) {
+      ln(`- **${prog.name}**: ${prog.data_shape_notes}`);
+    }
+  }
+  ln();
+
+  ln(`### Questions for Chantel's Review`);
+  ln();
+  ln(`1. Are the data discrepancies above correct? (Our data may be outdated)`);
+  ln(`2. For new programs found — are these real programs we should add?`);
+  ln(`3. What data fields are we missing that matter most for families?`);
+  ln(`4. Are there programs NOT found that should exist in ${stateName}?`);
+  ln();
+
+  const report = lines.join("\n");
+  writeFile(stateCode, "exploration_report.md", report);
+
+  console.log(`  Report: ${lines.length} lines`);
+  return report;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -867,7 +881,7 @@ async function main() {
   const opts = parseArgs();
 
   if (!opts.state || !STATE_NAMES[opts.state]) {
-    console.error(`  Error: Valid --state required (e.g., --state TX)`);
+    console.error(`  Error: Valid --state required (e.g., --state MI)`);
     printUsage();
     process.exit(1);
   }
@@ -881,99 +895,76 @@ async function main() {
   const stateName = STATE_NAMES[stateCode];
   const shouldRun = (phase) => opts.phase === "all" || opts.phase === phase;
 
-  console.log(`\n  Senior Benefits Pipeline`);
+  console.log(`\n  Senior Benefits Pipeline — Exploration-First`);
   console.log(`  State: ${stateName} (${stateCode})`);
   console.log(`  Phase: ${opts.phase}`);
   console.log(`  Mode:  ${opts.run ? "EXECUTE" : "DRY RUN"}`);
-  console.log(`  ─────────────────────────────────`);
 
   // Load existing data
-  const existingPrograms = loadExistingPrograms(stateCode);
-  console.log(`  Existing programs in waiver-library.ts: ${existingPrograms.length}`);
+  const existing = loadExistingPrograms(stateCode);
+  console.log(`  Existing in waiver-library.ts: ${existing.length} programs`);
 
   if (!opts.run) {
     console.log(`\n  This is a dry run. To execute, add --run:`);
-    console.log(`  node scripts/benefits-pipeline.js --state ${stateCode} --run`);
+    console.log(`  node scripts/benefits-pipeline.js --state ${stateCode} --run\n`);
 
-    if (existingPrograms.length > 0) {
-      console.log(`\n  Current ${stateCode} programs:`);
-      for (const p of existingPrograms) {
-        const verified = p.lastVerifiedDate ? `✓ ${p.lastVerifiedDate}` : "✗ unverified";
-        console.log(`    ${p.name.padEnd(55)} ${verified}`);
+    if (existing.length > 0) {
+      console.log(`  Current programs:`);
+      for (const p of existing) {
+        const v = p.lastVerifiedDate ? `✓ ${p.lastVerifiedDate}` : "✗ unverified";
+        console.log(`    ${p.name.padEnd(55)} ${v}`);
       }
     }
 
-    console.log(`\n  Pipeline would:`);
-    if (shouldRun("discover")) console.log(`    1. DISCOVER: Query Perplexity for all ${stateName} programs`);
-    if (shouldRun("verify"))   console.log(`    2. VERIFY:   Check each program against .gov sources`);
-    if (shouldRun("generate")) console.log(`    3. GENERATE: Output verified data as JSON`);
-    if (shouldRun("qa"))       console.log(`    4. QA:       Run automated quality checks`);
-    if (shouldRun("finalize")) console.log(`    5. FINALIZE: Summary report + run log`);
-
-    const estCalls = existingPrograms.length + 1; // 1 discover + 1 per program verify
-    console.log(`\n  Estimated cost: ~$${(estCalls * 0.005).toFixed(3)} (${estCalls} Perplexity calls)`);
-
+    const estCalls = 1 + (existing.length || 10); // 1 explore + N dives
+    console.log(`\n  Would make ~${estCalls} Perplexity calls (~$${(estCalls * 0.005).toFixed(3)})`);
+    console.log(`  Output: data/pipeline/${stateCode}/exploration_report.md`);
     process.exit(0);
   }
 
-  // ─── Execute phases ───────────────────────────────────────────────────
+  // ─── Execute ─────────────────────────────────────────────────────────
 
-  let discoveredData = readPipelineFile(stateCode, "programs_discovered.json");
-  let verifiedData = readPipelineFile(stateCode, "programs_verified.json");
-  let generatedData = readPipelineFile(stateCode, "programs_generated.json");
-  let qaData = readPipelineFile(stateCode, "qa_report.json");
+  let exploreData = readJson(stateCode, "explore.json");
+  let diveData = readJson(stateCode, "dive.json");
+  let compareData = readJson(stateCode, "compare.json");
 
-  // Phase 1: Discover
-  if (shouldRun("discover")) {
-    discoveredData = await phaseDiscover(stateCode, stateName, existingPrograms);
-    writePipelineFile(stateCode, "programs_discovered.json", discoveredData);
+  if (shouldRun("explore")) {
+    exploreData = await phaseExplore(stateCode, stateName);
+    writeFile(stateCode, "explore.json", exploreData);
   }
 
-  // Phase 2: Verify
-  if (shouldRun("verify")) {
-    if (!discoveredData) {
-      discoveredData = readPipelineFile(stateCode, "programs_discovered.json");
-    }
-    verifiedData = await phaseVerify(stateCode, stateName, discoveredData, existingPrograms);
-    if (verifiedData) {
-      writePipelineFile(stateCode, "programs_verified.json", verifiedData);
+  if (shouldRun("dive")) {
+    if (!exploreData) exploreData = readJson(stateCode, "explore.json");
+    if (!exploreData?.programs?.length) {
+      console.log(`\n  No explore data. Run: --phase explore --run`);
+    } else {
+      diveData = await phaseDive(stateCode, stateName, exploreData);
+      writeFile(stateCode, "dive.json", diveData);
     }
   }
 
-  // Phase 3: Generate
-  if (shouldRun("generate")) {
-    if (!verifiedData) {
-      verifiedData = readPipelineFile(stateCode, "programs_verified.json");
-    }
-    generatedData = phaseGenerate(stateCode, stateName, verifiedData, existingPrograms);
-    if (generatedData) {
-      writePipelineFile(stateCode, "programs_generated.json", generatedData);
-    }
-  }
-
-  // Phase 4: QA
-  if (shouldRun("qa")) {
-    if (!generatedData) {
-      generatedData = readPipelineFile(stateCode, "programs_generated.json");
-    }
-    qaData = phaseQa(stateCode, stateName, generatedData);
-    if (qaData) {
-      writePipelineFile(stateCode, "qa_report.json", qaData);
+  if (shouldRun("compare")) {
+    if (!diveData) diveData = readJson(stateCode, "dive.json");
+    if (!diveData?.programs?.length) {
+      console.log(`\n  No dive data. Run: --phase dive --run`);
+    } else {
+      compareData = phaseCompare(stateCode, stateName, diveData, existing);
+      writeFile(stateCode, "compare.json", compareData);
     }
   }
 
-  // Phase 5: Finalize
-  if (shouldRun("finalize")) {
-    if (!qaData) qaData = readPipelineFile(stateCode, "qa_report.json");
-    if (!generatedData) generatedData = readPipelineFile(stateCode, "programs_generated.json");
-    phaseFinalize(stateCode, stateName, qaData, generatedData);
+  if (shouldRun("report")) {
+    if (!exploreData) exploreData = readJson(stateCode, "explore.json");
+    if (!diveData) diveData = readJson(stateCode, "dive.json");
+    if (!compareData) compareData = readJson(stateCode, "compare.json");
+    phaseReport(stateCode, stateName, exploreData, diveData, compareData);
   }
 
   console.log(`\n  Done. ${cost.summary()}\n`);
 }
 
 main().catch((err) => {
-  console.error(`\n  Fatal error: ${err.message}`);
+  console.error(`\n  Fatal: ${err.message}`);
   console.error(err.stack);
   process.exit(1);
 });

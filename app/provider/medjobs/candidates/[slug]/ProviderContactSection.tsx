@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -14,6 +14,8 @@ interface ProviderContactSectionProps {
   studentSlug: string;
   variant?: "sidebar" | "sticky" | "inline";
   onVerifyClick?: () => void;
+  /** Pre-fetched: whether an interview has already been scheduled */
+  initialScheduled?: boolean;
 }
 
 export default function ProviderContactSection({
@@ -24,11 +26,17 @@ export default function ProviderContactSection({
   studentSlug,
   variant = "sidebar",
   onVerifyClick,
+  initialScheduled = false,
 }: ProviderContactSectionProps) {
   const pathname = usePathname();
   const { activeProfile, user, openAuth } = useAuth();
   const [showModal, setShowModal] = useState(false);
-  const [scheduled, setScheduled] = useState(false);
+  const [scheduled, setScheduled] = useState(initialScheduled);
+
+  // If initial state changes (e.g., parent fetched interviews), update
+  useEffect(() => {
+    if (initialScheduled) setScheduled(true);
+  }, [initialScheduled]);
 
   const requiresAuth = !user;
 

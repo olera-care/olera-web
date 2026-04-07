@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ProviderContactSection from "./ProviderContactSection";
 import VerificationFormModal from "@/components/provider/VerificationFormModal";
@@ -23,8 +23,33 @@ export default function CandidateDetailClientWrapper({
   studentSlug,
   variant,
 }: CandidateDetailClientWrapperProps) {
-  const { activeProfile } = useAuth();
+  const { activeProfile, user } = useAuth();
   const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [hasExistingInterview, setHasExistingInterview] = useState(false);
+
+  // Fetch existing interviews to check if provider already contacted this student
+  useEffect(() => {
+    if (!user) return;
+
+    const checkExistingInterview = async () => {
+      try {
+        const res = await fetch("/api/medjobs/interviews");
+        if (!res.ok) return;
+        const data = await res.json();
+        // Check if there's an interview with this student
+        const hasInterview = (data.interviews || []).some(
+          (interview: { student_profile_id: string; proposed_by: string; provider_profile_id: string }) =>
+            interview.student_profile_id === studentId &&
+            interview.proposed_by === interview.provider_profile_id
+        );
+        setHasExistingInterview(hasInterview);
+      } catch {
+        // Silently fail
+      }
+    };
+
+    checkExistingInterview();
+  }, [user, studentId]);
 
   const handleVerificationSubmit = useCallback(async (data: VerificationSubmission) => {
     if (!activeProfile?.id) return;
@@ -57,6 +82,7 @@ export default function CandidateDetailClientWrapper({
         studentSlug={studentSlug}
         variant={variant}
         onVerifyClick={() => setShowVerificationModal(true)}
+        initialScheduled={hasExistingInterview}
       />
       <VerificationFormModal
         isOpen={showVerificationModal}

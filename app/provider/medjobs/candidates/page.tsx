@@ -12,8 +12,10 @@ import type { VerificationSubmission } from "@/components/provider/VerificationF
 
 const PAGE_SIZE = 12;
 
+type FilterTab = "all" | "contacted";
+
 export default function ProviderCandidateBrowsePage() {
-  const { activeProfile } = useAuth();
+  const { activeProfile, user } = useAuth();
 
   // Verification check
   const isVerified = activeProfile?.verification_state === "verified";
@@ -29,6 +31,34 @@ export default function ProviderCandidateBrowsePage() {
     track: "",
     sort: "newest",
   });
+  const [activeTab, setActiveTab] = useState<FilterTab>("all");
+  const [contacted, setContacted] = useState<Set<string>>(new Set());
+
+  // Fetch existing interviews to know which candidates have been contacted
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchExistingInterviews = async () => {
+      try {
+        const res = await fetch("/api/medjobs/interviews");
+        if (!res.ok) return;
+        const data = await res.json();
+        // Build set of student IDs that provider has already contacted
+        const contactedIds = new Set<string>();
+        for (const interview of data.interviews || []) {
+          // Only count interviews initiated by the provider (provider → student)
+          if (interview.proposed_by === interview.provider_profile_id) {
+            contactedIds.add(interview.student_profile_id);
+          }
+        }
+        setContacted(contactedIds);
+      } catch {
+        // Silently fail
+      }
+    };
+
+    fetchExistingInterviews();
+  }, [user]);
 
   const fetchCandidates = useCallback(
     async (page: number) => {
@@ -135,6 +165,34 @@ export default function ProviderCandidateBrowsePage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/* Filter tabs */}
+        {!loading && candidates.length > 0 && (
+          <div className="flex gap-2 mb-6">
+            <button
+              type="button"
+              onClick={() => setActiveTab("all")}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                activeTab === "all"
+                  ? "bg-gray-900 text-white"
+                  : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
+              }`}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("contacted")}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                activeTab === "contacted"
+                  ? "bg-gray-900 text-white"
+                  : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
+              }`}
+            >
+              Contacted{contacted.size > 0 ? ` (${contacted.size})` : ""}
+            </button>
+          </div>
+        )}
+
         {/* Filters */}
         <CandidateFilters
           filters={filters}
@@ -184,34 +242,67 @@ export default function ProviderCandidateBrowsePage() {
               Try broadening your search or removing some filters.
             </p>
           </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {candidates.map((candidate) => (
-                <CandidateCard
-                  key={candidate.id}
-                  candidate={candidate}
-                  basePath="/provider/medjobs/candidates"
-                  isVerified={isVerified}
-                />
-              ))}
-            </div>
+        ) : (() => {
+          // Filter candidates based on active tab
+          const filteredCandidates = activeTab === "contacted"
+            ? candidates.filter((c) => contacted.has(c.id))
+            : candidates;
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-8">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalItems={total}
-                  itemsPerPage={PAGE_SIZE}
-                  onPageChange={handlePageChange}
-                  itemLabel="caregivers"
-                />
+          if (filteredCandidates.length === 0 && activeTab === "contacted") {
+            return (
+              <div className="text-center py-20">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                  <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                  </svg>
+                </div>
+                <p className="text-gray-500 text-sm font-medium">
+                  No candidates contacted yet.
+                </p>
+                <p className="text-gray-400 text-sm mt-1">
+                  Browse caregivers and schedule interviews to get started.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("all")}
+                  className="mt-4 inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-700"
+                >
+                  View all caregivers &rarr;
+                </button>
               </div>
-            )}
-          </>
-        )}
+            );
+          }
+
+          return (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredCandidates.map((candidate) => (
+                  <CandidateCard
+                    key={candidate.id}
+                    candidate={candidate}
+                    basePath="/provider/medjobs/candidates"
+                    isVerified={isVerified}
+                    isContacted={contacted.has(candidate.id)}
+                  />
+                ))}
+              </div>
+
+              {/* Pagination - only show for "All" tab */}
+              {activeTab === "all" && totalPages > 1 && (
+                <div className="mt-8">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={total}
+                    itemsPerPage={PAGE_SIZE}
+                    onPageChange={handlePageChange}
+                    itemLabel="caregivers"
+                  />
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
       {/* ── Verification Modal ── */}
       <VerificationFormModal

@@ -38,12 +38,15 @@ interface CandidateCardProps {
   basePath: string;
   /** If false, shows limited info and prompts verification on click */
   isVerified?: boolean;
+  /** Whether the provider has already contacted this candidate */
+  isContacted?: boolean;
 }
 
 export default function CandidateCard({
   candidate,
   basePath,
   isVerified = true, // Default to true for public pages that don't pass this
+  isContacted = false,
 }: CandidateCardProps) {
   const meta = candidate.metadata;
   const trackLabel = getTrackLabel(meta);
@@ -178,6 +181,17 @@ export default function CandidateCard({
       href={profileUrl}
       className="group relative flex flex-col bg-white rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
     >
+      {/* Contacted badge */}
+      {isContacted && (
+        <div className="absolute top-3 right-3 z-10">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-primary-50 text-primary-700 rounded-full">
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+            </svg>
+            Contacted
+          </span>
+        </div>
+      )}
       {cardContent}
     </Link>
   );

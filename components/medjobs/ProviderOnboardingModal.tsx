@@ -14,6 +14,16 @@ import type { Provider } from "@/lib/types/provider";
 
 type Step = "search" | "verify" | "create" | "auth";
 
+const CARE_TYPES = [
+  "Assisted Living",
+  "Memory Care",
+  "Independent Living",
+  "Skilled Nursing",
+  "Home Care",
+  "Home Health",
+  "Hospice",
+];
+
 // Track what action to perform after successful authentication
 // (Copied from onboarding page)
 type PendingAuthAction =
@@ -89,6 +99,7 @@ export default function ProviderOnboardingModal({
   const [createName, setCreateName] = useState("");
   const [createCity, setCreateCity] = useState("");
   const [createState, setCreateState] = useState("");
+  const [createCareTypes, setCreateCareTypes] = useState<string[]>([]);
   const [createError, setCreateError] = useState("");
   const [createSubmitting, setCreateSubmitting] = useState(false);
 
@@ -113,6 +124,13 @@ export default function ProviderOnboardingModal({
 
   const firstName = candidateName.split(" ")[0];
 
+  // Toggle care type selection (matches onboarding)
+  const toggleCareType = (ct: string) => {
+    setCreateCareTypes((prev) =>
+      prev.includes(ct) ? prev.filter((t) => t !== ct) : [...prev, ct]
+    );
+  };
+
   // Reset all state when modal closes (Bug fix #4)
   useEffect(() => {
     if (!isOpen) {
@@ -136,6 +154,7 @@ export default function ProviderOnboardingModal({
         setCreateName("");
         setCreateCity("");
         setCreateState("");
+        setCreateCareTypes([]);
         setCreateError("");
         setCreateSubmitting(false);
         setAuthEmail("");
@@ -523,6 +542,7 @@ export default function ProviderOnboardingModal({
               displayName: createName.trim(),
               city: createCity || undefined,
               state: createState || undefined,
+              careTypes: createCareTypes.length ? createCareTypes : undefined,
             }),
           });
 
@@ -1089,6 +1109,40 @@ export default function ProviderOnboardingModal({
                 </div>
               </div>
 
+              {/* Type of care - matches onboarding exactly */}
+              <div className="space-y-3">
+                <label className="block text-base font-medium text-gray-700">
+                  Type of care <span className="font-normal text-gray-400">(select at least one)</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {CARE_TYPES.map((ct) => {
+                    const selected = createCareTypes.includes(ct);
+                    return (
+                      <button
+                        key={ct}
+                        type="button"
+                        role="switch"
+                        aria-checked={selected}
+                        onClick={() => toggleCareType(ct)}
+                        className={[
+                          "inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200",
+                          selected
+                            ? "bg-primary-50 border-primary-500 text-primary-700"
+                            : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
+                        ].join(" ")}
+                      >
+                        {selected && (
+                          <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                        {ct}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {createError && (
                 <div className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-sm" role="alert">
                   {createError}
@@ -1106,7 +1160,7 @@ export default function ProviderOnboardingModal({
                 </button>
                 <Button
                   type="submit"
-                  disabled={!createEmail.trim() || !createName.trim() || !createCity.trim() || createSubmitting}
+                  disabled={!createEmail.trim() || !createName.trim() || !createCity.trim() || createCareTypes.length === 0 || createSubmitting}
                 >
                   {createSubmitting ? "Creating..." : "Create profile"}
                 </Button>

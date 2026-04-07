@@ -18,6 +18,8 @@ interface ReachOutDrawerProps {
   sendError?: string | null;
   /** Whether the provider is verified */
   isVerified?: boolean;
+  /** The provider's verification state (unverified, pending, verified, rejected) */
+  verificationState?: string;
   /** Callback when provider wants to verify */
   onVerifyClick?: () => void;
 }
@@ -208,8 +210,10 @@ export default function ReachOutDrawer({
   sending = false,
   sendError,
   isVerified = false,
+  verificationState,
   onVerifyClick,
 }: ReachOutDrawerProps) {
+  const isPending = verificationState === "pending";
   const [message, setMessage] = useState("");
   const [saveAsDefault, setSaveAsDefault] = useState(false);
   const [activeTone, setActiveTone] = useState<ToneType>("introduce");
@@ -595,7 +599,12 @@ export default function ReachOutDrawer({
           </div>
           <p className="text-[11px] text-center text-gray-400 mt-3">
             {firstName} will see your profile
-            {!isVerified && (
+            {!isVerified && isPending && (
+              <span className="text-amber-600 font-medium">
+                {" · "}Verification in progress
+              </span>
+            )}
+            {!isVerified && !isPending && (
               <>
                 {" · "}
                 <button

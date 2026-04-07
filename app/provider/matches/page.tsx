@@ -2276,6 +2276,7 @@ export default function ProviderMatchesPage() {
         sending={sending}
         sendError={sendError}
         isVerified={isVerified}
+        verificationState={providerProfile?.verification_state}
         onVerifyClick={() => setShowVerificationModal(true)}
       />
 

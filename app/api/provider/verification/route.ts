@@ -65,9 +65,10 @@ export async function POST(request: NextRequest) {
     // Prepare verification submission data
     const verificationSubmission = {
       name: submission.name,
+      email: submission.email || null,
       role: submission.role,
       phone: submission.phone || null,
-      affiliation: submission.affiliation || null,
+      notes: submission.notes || null,
       document_url: submission.documentUrl || null,
       submitted_at: new Date().toISOString(),
     };

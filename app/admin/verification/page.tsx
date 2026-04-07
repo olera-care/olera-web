@@ -6,8 +6,11 @@ import type { OrganizationMetadata } from "@/lib/types";
 
 interface VerificationSubmission {
   name: string;
+  email?: string | null;
   role: string;
   phone?: string | null;
+  notes?: string | null;
+  // Legacy field for backwards compatibility
   affiliation?: string | null;
   submitted_at?: string;
 }
@@ -285,7 +288,7 @@ function VerificationReviewModal({
       isOpen={true}
       onClose={onClose}
       title="Review Verification Request"
-      size="lg"
+      size="xl"
       footer={
         <div className="flex gap-3">
           <button
@@ -342,12 +345,12 @@ function VerificationReviewModal({
               Verification Submission
             </p>
             <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-              <div className="flex justify-between items-start">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs text-gray-400 mb-0.5">Submitted by</p>
                   <p className="text-sm font-medium text-gray-900">{submission.name}</p>
                 </div>
-                <div className="text-right">
+                <div>
                   <p className="text-xs text-gray-400 mb-0.5">Role</p>
                   <p className="text-sm font-medium text-gray-900">
                     {ROLE_LABELS[submission.role] || submission.role}
@@ -355,12 +358,20 @@ function VerificationReviewModal({
                 </div>
               </div>
 
-              {submission.phone && (
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Phone</p>
-                  <p className="text-sm text-gray-700">{submission.phone}</p>
-                </div>
-              )}
+              <div className="grid grid-cols-2 gap-4">
+                {submission.email && (
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Email</p>
+                    <p className="text-sm text-gray-700">{submission.email}</p>
+                  </div>
+                )}
+                {submission.phone && (
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Phone</p>
+                    <p className="text-sm text-gray-700">{submission.phone}</p>
+                  </div>
+                )}
+              </div>
 
               {submission.submitted_at && (
                 <div>
@@ -371,14 +382,15 @@ function VerificationReviewModal({
             </div>
           </div>
 
-          {submission.affiliation && (
+          {/* Show notes (new field) or affiliation (legacy field) */}
+          {(submission.notes || submission.affiliation) && (
             <div>
               <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
-                Affiliation Statement
+                Additional Notes
               </p>
               <div className="bg-gray-50 rounded-xl p-4">
                 <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                  {submission.affiliation}
+                  {submission.notes || submission.affiliation}
                 </p>
               </div>
             </div>

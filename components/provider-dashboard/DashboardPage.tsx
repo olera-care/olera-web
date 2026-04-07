@@ -35,7 +35,7 @@ import EditOwnerModal from "./edit-modals/EditOwnerModal";
 export default function DashboardPage() {
   const profile = useProviderProfile();
   const { metadata } = useProviderDashboardData(profile);
-  const { refreshAccountData } = useAuth();
+  const { user, refreshAccountData } = useAuth();
 
   // Modal state
   const [editingSection, setEditingSection] = useState<SectionId | null>(null);
@@ -98,6 +98,7 @@ export default function DashboardPage() {
       editingSection={editingSection}
       setEditingSection={setEditingSection}
       refreshAccountData={refreshAccountData}
+      userEmail={user?.email}
     />
   );
 }
@@ -112,6 +113,7 @@ function DashboardContent({
   editingSection,
   setEditingSection,
   refreshAccountData,
+  userEmail,
 }: {
   profile: NonNullable<ReturnType<typeof useProviderProfile>>;
   meta: ExtendedMetadata;
@@ -119,6 +121,7 @@ function DashboardContent({
   sectionPercent: (id: string) => number;
   editingSection: SectionId | null;
   setEditingSection: (s: SectionId | null) => void;
+  userEmail?: string;
   refreshAccountData: () => Promise<void>;
 }) {
   const guided = useGuidedOnboarding(completeness);
@@ -382,6 +385,7 @@ function DashboardContent({
         }}
         onSubmit={handleVerificationSubmit}
         businessName={profile.display_name}
+        userEmail={userEmail}
         allowDismiss={!isVerificationUpdate}
         onDismiss={() => {
           setShowVerificationModal(false);

@@ -6,16 +6,20 @@ import Select from "@/components/ui/Select";
 
 export interface VerificationSubmission {
   name: string;
+  email: string;
   role: string;
   phone: string;
-  affiliation: string;
+  notes: string;
   documentUrl: string | null;
 }
 
 export interface ExistingVerificationData {
   name: string;
+  email?: string | null;
   role: string;
   phone?: string | null;
+  notes?: string | null;
+  // Legacy field for backwards compatibility
   affiliation?: string | null;
   submitted_at?: string;
 }
@@ -25,6 +29,8 @@ interface VerificationFormModalProps {
   onClose: () => void;
   onSubmit: (data: VerificationSubmission) => Promise<void>;
   businessName: string;
+  /** User's email from auth (pre-filled) */
+  userEmail?: string;
   /** If true, shows "I'll do this later" option */
   allowDismiss?: boolean;
   onDismiss?: () => void;
@@ -49,15 +55,17 @@ export default function VerificationFormModal({
   onClose,
   onSubmit,
   businessName,
+  userEmail,
   allowDismiss = true,
   onDismiss,
   existingData,
   isUpdate = false,
 }: VerificationFormModalProps) {
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [role, setRole] = useState("");
   const [phone, setPhone] = useState("");
-  const [affiliation, setAffiliation] = useState("");
+  const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,13 +74,15 @@ export default function VerificationFormModal({
     if (isOpen) {
       // Pre-fill with existing data if available (for updates)
       setName(existingData?.name || "");
+      setEmail(existingData?.email || userEmail || "");
       setRole(existingData?.role || "");
       setPhone(existingData?.phone || "");
-      setAffiliation(existingData?.affiliation || "");
+      // Support both new 'notes' and legacy 'affiliation' field
+      setNotes(existingData?.notes || existingData?.affiliation || "");
       setError(null);
       setSubmitting(false);
     }
-  }, [isOpen, existingData]);
+  }, [isOpen, existingData, userEmail]);
 
   const isValid = name.trim().length > 0 && role.length > 0;
 
@@ -86,9 +96,10 @@ export default function VerificationFormModal({
     try {
       await onSubmit({
         name: name.trim(),
+        email: email.trim(),
         role,
         phone: phone.trim(),
-        affiliation: affiliation.trim(),
+        notes: notes.trim(),
         documentUrl: null, // Document upload to be added later
       });
       // Note: Parent handles navigation after successful submit, no need to call onClose()
@@ -111,7 +122,7 @@ export default function VerificationFormModal({
       isOpen={isOpen}
       onClose={onClose}
       title={isUpdate ? "Update Verification" : "Verify Your Business"}
-      size="lg"
+      size="xl"
       footer={
         <div className="space-y-3 pt-5 border-t border-gray-100">
           <button
@@ -161,59 +172,79 @@ export default function VerificationFormModal({
           </p>
         </div>
 
-        {/* Name */}
-        <div className="space-y-1.5">
-          <label htmlFor="ver-name" className="block text-[13px] font-semibold text-gray-700">
-            Full name <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="ver-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Your full name"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px]"
+        {/* Name and Email - two columns */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Name */}
+          <div className="space-y-1.5">
+            <label htmlFor="ver-name" className="block text-[13px] font-semibold text-gray-700">
+              Full name <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="ver-name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your full name"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px]"
+              required
+            />
+          </div>
+
+          {/* Email */}
+          <div className="space-y-1.5">
+            <label htmlFor="ver-email" className="block text-[13px] font-semibold text-gray-700">
+              Email
+            </label>
+            <input
+              id="ver-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@company.com"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px]"
+            />
+          </div>
+        </div>
+
+        {/* Role and Phone - two columns */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Role - using custom Select */}
+          <Select
+            label="Your role"
             required
+            options={ROLE_OPTIONS}
+            value={role}
+            onChange={setRole}
+            placeholder="Select your role..."
           />
+
+          {/* Phone */}
+          <div className="space-y-1.5">
+            <label htmlFor="ver-phone" className="block text-[13px] font-semibold text-gray-700">
+              Phone number <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            <input
+              id="ver-phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="(555) 123-4567"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px]"
+            />
+          </div>
         </div>
 
-        {/* Role - using custom Select */}
-        <Select
-          label="Your role"
-          required
-          options={ROLE_OPTIONS}
-          value={role}
-          onChange={setRole}
-          placeholder="Select your role..."
-        />
-
-        {/* Phone */}
+        {/* Notes (optional) */}
         <div className="space-y-1.5">
-          <label htmlFor="ver-phone" className="block text-[13px] font-semibold text-gray-700">
-            Phone number
-          </label>
-          <input
-            id="ver-phone"
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="(555) 123-4567"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px]"
-          />
-          <p className="text-xs text-gray-400 mt-1">Optional, but helps us reach you faster.</p>
-        </div>
-
-        {/* Affiliation */}
-        <div className="space-y-1.5">
-          <label htmlFor="ver-affiliation" className="block text-[13px] font-semibold text-gray-700">
-            How are you affiliated with this business?
+          <label htmlFor="ver-notes" className="block text-[13px] font-semibold text-gray-700">
+            Anything else we should know? <span className="text-gray-400 font-normal">(optional)</span>
           </label>
           <textarea
-            id="ver-affiliation"
-            value={affiliation}
-            onChange={(e) => setAffiliation(e.target.value)}
-            placeholder="I'm the owner and have been operating this facility since 2018..."
-            rows={3}
+            id="ver-notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Any additional context that might help us verify your connection to this business..."
+            rows={2}
             className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white resize-none transition-all"
           />
         </div>

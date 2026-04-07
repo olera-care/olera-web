@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       if (providerId) countQuery = countQuery.eq("provider_id", providerId);
       if (needsEmail) {
         countQuery = countQuery.contains("metadata", { needs_provider_email: true });
-        countQuery = countQuery.neq("status", "archived");
+        countQuery = countQuery.not("status", "in", '("archived","rejected")');
       }
       if (dateFrom) countQuery = countQuery.gte("created_at", dateFrom);
       if (dateTo) countQuery = countQuery.lt("created_at", dateTo);
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     if (providerId) query = query.eq("provider_id", providerId);
     if (needsEmail) {
       query = query.contains("metadata", { needs_provider_email: true });
-      query = query.neq("status", "archived");
+      query = query.not("status", "in", '("archived","rejected")');
     }
     if (dateFrom) query = query.gte("created_at", dateFrom);
     if (dateTo) query = query.lt("created_at", dateTo);
@@ -157,7 +157,7 @@ export async function GET(request: NextRequest) {
     // Fetch tab counts for pending, needs_email, and archived
     const [pendingCount, needsEmailCount, archivedCount] = await Promise.all([
       db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "pending"),
-      db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }).neq("status", "archived"),
+      db.from("provider_questions").select("*", { count: "exact", head: true }).contains("metadata", { needs_provider_email: true }).not("status", "in", '("archived","rejected")'),
       db.from("provider_questions").select("*", { count: "exact", head: true }).eq("status", "archived"),
     ]);
 

@@ -166,9 +166,9 @@ export default async function StudentProfilePage({ params }: PageProps) {
             {/* ─── HERO CARD: Identity Only ─── */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
               <div className="flex flex-col sm:flex-row gap-5 sm:gap-6">
-                {/* Photo - show silhouette for non-verified providers */}
+                {/* Photo - always show actual photo */}
                 <div className="flex-shrink-0 flex justify-center sm:justify-start">
-                  {isVerifiedProvider && profile.image_url ? (
+                  {profile.image_url ? (
                     <Image
                       src={profile.image_url}
                       alt={profile.display_name}
@@ -176,17 +176,11 @@ export default async function StudentProfilePage({ params }: PageProps) {
                       height={120}
                       className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover shadow-md ring-4 ring-white"
                     />
-                  ) : isVerifiedProvider ? (
+                  ) : (
                     <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shadow-md ring-4 ring-white">
                       <span className="text-3xl sm:text-4xl font-bold text-primary-600">
                         {profile.display_name?.charAt(0)?.toUpperCase() || "?"}
                       </span>
-                    </div>
-                  ) : (
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gray-100 flex items-center justify-center shadow-md ring-4 ring-white">
-                      <svg className="w-12 h-12 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                      </svg>
                     </div>
                   )}
                 </div>
@@ -196,7 +190,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   {/* Name + Status */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-wrap justify-center sm:justify-start">
                     <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
-                      {isVerifiedProvider ? profile.display_name : firstName}
+                      {firstName}
                     </h1>
                     {meta.seeking_status === "actively_looking" && (
                       <span className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 w-fit mx-auto sm:mx-0">
@@ -206,26 +200,21 @@ export default async function StudentProfilePage({ params }: PageProps) {
                     )}
                   </div>
 
-                  {/* University + Track + Location - limited for non-verified */}
+                  {/* University (hidden) + Track + Location - show track and location */}
                   <div className="mt-2 space-y-0.5">
-                    {isVerifiedProvider && meta.university && (
-                      <p className="text-base text-gray-700 font-medium">{meta.university}</p>
+                    {meta.university && (
+                      <p className="text-base text-gray-400 font-medium">University hidden</p>
                     )}
                     <p className="text-sm text-gray-500">
-                      {isVerifiedProvider
-                        ? [trackLabel, profile.city && profile.state ? `${profile.city}, ${profile.state}` : null]
-                            .filter(Boolean)
-                            .join(" · ")
-                        : trackLabel || "Healthcare Student"}
+                      {[trackLabel, profile.city && profile.state ? `${profile.city}, ${profile.state}` : null]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </p>
-                    {!isVerifiedProvider && (
-                      <p className="text-sm text-gray-400 mt-1">Full details available after verification</p>
-                    )}
                   </div>
 
-                  {/* Trust Signals */}
+                  {/* Trust Signals - show for all users */}
                   <div className="mt-3 flex flex-wrap items-center gap-2 justify-center sm:justify-start">
-                    {candidateIsVerified && isVerifiedProvider && (
+                    {candidateIsVerified && (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -233,7 +222,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                         Verified
                       </span>
                     )}
-                    {isVerifiedProvider && videoAvailable && (
+                    {videoAvailable && (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 text-primary-700 border border-primary-200">
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
@@ -241,13 +230,13 @@ export default async function StudentProfilePage({ params }: PageProps) {
                         Video Intro
                       </span>
                     )}
-                    {isVerifiedProvider && lastUpdated && (
+                    {lastUpdated && (
                       <span className="text-xs text-gray-400">{lastUpdated}</span>
                     )}
                   </div>
 
-                  {/* Highlight Chips - only for verified providers */}
-                  {isVerifiedProvider && displayHighlights.length > 0 && (
+                  {/* Highlight Chips - show for all users */}
+                  {displayHighlights.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2 justify-center sm:justify-start">
                       {displayHighlights.map((fact) => (
                         <span
@@ -259,84 +248,13 @@ export default async function StudentProfilePage({ params }: PageProps) {
                       ))}
                     </div>
                   )}
-
-                  {/* Quick Links - only for verified providers */}
-                  {isVerifiedProvider && (resumeUrl || meta.linkedin_url) && (
-                    <div className="mt-4 flex flex-wrap gap-3 justify-center sm:justify-start">
-                      {resumeUrl && (
-                        <a
-                          href={resumeUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="group inline-flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm rounded-lg text-sm font-medium text-gray-700 transition-all duration-200"
-                        >
-                          <svg className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                          </svg>
-                          Resume
-                        </a>
-                      )}
-                      {meta.linkedin_url && (
-                        <a
-                          href={meta.linkedin_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="group inline-flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-white border border-gray-200 hover:border-[#0A66C2]/30 hover:shadow-sm rounded-lg text-sm font-medium text-gray-700 transition-all duration-200"
-                        >
-                          <svg className="w-4 h-4 text-[#0A66C2]" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                          </svg>
-                          LinkedIn
-                        </a>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
 
-            {/* ─── VERIFICATION CTA: For non-verified providers ─── */}
-            {!isVerifiedProvider && (
-              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-200 p-6 sm:p-8">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                    <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      Verify your business to see full details
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Get access to {firstName}&apos;s complete profile including photo, full name, university, certifications, video intro, resume, and contact information.
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      <Link
-                        href="/provider/onboarding"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
-                      >
-                        Get Verified
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                      </Link>
-                      <Link
-                        href="/provider/medjobs/candidates"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl border border-gray-200 transition-colors"
-                      >
-                        Browse as Provider
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* ─── RESUME CARD: All Content Sections with Dividers ─── */}
             {/* Section order optimized for provider screening: practical filters first, personality later */}
-            {/* Only show for verified providers */}
-            {isVerifiedProvider && (
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
 
               {/* ── Video Section ── */}
@@ -457,8 +375,8 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   Qualifications
                 </h2>
 
-                {/* Verification Banner - only show to verified providers */}
-                {candidateIsVerified && isVerifiedProvider && (
+                {/* Verification Banner - show candidate's verification status */}
+                {candidateIsVerified && (
                   <div className="flex items-center gap-3 p-4 bg-emerald-50 rounded-xl border border-emerald-100 mb-6">
                     <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
                       <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -477,8 +395,7 @@ export default async function StudentProfilePage({ params }: PageProps) {
                   {meta.university && (
                     <div>
                       <dt className="text-sm font-medium text-gray-500 mb-1">University</dt>
-                      <dd className="text-base font-semibold text-gray-900">{meta.university}</dd>
-                      {meta.major && <dd className="text-sm text-gray-600 mt-0.5">{meta.major}</dd>}
+                      <dd className="text-base text-gray-400">Hidden</dd>
                     </div>
                   )}
                   <div>
@@ -693,16 +610,15 @@ export default async function StudentProfilePage({ params }: PageProps) {
                 </div>
               )}
             </div>
-            )}
 
           </div>
 
           {/* ─── RIGHT COLUMN: Sticky CTA Sidebar (Desktop Only) ─── */}
-          {isVerifiedProvider && (
           <div className="hidden lg:block">
             <div className="sticky top-6">
               <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6">
                 <ContactSection
+                  studentId={profile.id}
                   studentName={profile.display_name}
                   studentEmail={profile.email}
                   studentPhone={profile.phone}
@@ -712,16 +628,15 @@ export default async function StudentProfilePage({ params }: PageProps) {
               </div>
             </div>
           </div>
-          )}
         </div>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          MOBILE STICKY CTA - only for verified providers
+          MOBILE STICKY CTA
           ═══════════════════════════════════════════════════════════════════ */}
-      {isVerifiedProvider && (
       <div className="lg:hidden">
         <ContactSection
+          studentId={profile.id}
           studentName={profile.display_name}
           studentEmail={profile.email}
           studentPhone={profile.phone}
@@ -729,7 +644,6 @@ export default async function StudentProfilePage({ params }: PageProps) {
           variant="sticky"
         />
       </div>
-      )}
     </main>
   );
 }

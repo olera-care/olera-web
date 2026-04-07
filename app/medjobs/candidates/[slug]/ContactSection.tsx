@@ -1,17 +1,20 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
+import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
 
 export default function ContactSection({
+  studentId,
   studentName,
   studentEmail,
   studentPhone,
   studentSlug,
   variant = "sidebar",
 }: {
+  studentId: string;
   studentName: string;
   studentEmail: string | null;
   studentPhone: string | null;
@@ -19,7 +22,12 @@ export default function ContactSection({
   variant?: "sidebar" | "sticky" | "inline";
 }) {
   const router = useRouter();
-  const { user, activeProfile, profiles } = useAuth();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { user, activeProfile, profiles, openAuth } = useAuth();
+
+  const [showModal, setShowModal] = useState(false);
+  const [scheduled, setScheduled] = useState(false);
 
   // Only organization profiles are providers (caregivers are job-seekers)
   const isProvider = activeProfile?.type === "organization";
@@ -33,6 +41,27 @@ export default function ContactSection({
     (p) => (p.type === "student" || p.type === "caregiver") && p.slug === studentSlug
   );
   const isViewingOwnProfile = !!ownCaregiverProfile;
+
+  // Auto-open modal after returning from onboarding with ?schedule=pending
+  const hasHandledPending = useRef(false);
+  useEffect(() => {
+    // Only run once to avoid infinite loops
+    if (hasHandledPending.current) return;
+
+    const schedulePending = searchParams.get("schedule");
+    if (schedulePending === "pending" && user && hasProviderProfile) {
+      hasHandledPending.current = true;
+
+      // Clear the query param from URL
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("schedule");
+      const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+      router.replace(newUrl, { scroll: false });
+
+      // Open modal to complete scheduling
+      setShowModal(true);
+    }
+  }, [searchParams, user, hasProviderProfile, pathname, router]);
 
   // Redirect caregivers (not viewing own profile) to their portal
   // Families and logged-out users can stay — we'll route them to onboarding on CTA click
@@ -53,26 +82,43 @@ export default function ContactSection({
 
   const firstName = studentName.split(" ")[0];
 
-  const providerName = activeProfile?.display_name || "";
-  const subject = isProvider
-    ? `Interview — ${providerName} × ${studentName}`
-    : `Interested in hiring — ${studentName}`;
-  const body = isProvider
-    ? `Hi ${firstName},\n\nWe'd like to schedule a brief interview to learn more about your availability and experience. Are you free this week for a 15-minute call?\n\nBest,\n${providerName}`
-    : `Hi ${firstName},\n\nI came across your profile on Olera MedJobs and I'm interested in learning more about your availability. Would you be free for a quick call this week?\n\nBest`;
+  // Handle schedule click - open modal for all users
+  const handleScheduleClick = useCallback(() => {
+    // If user is logged in and has a provider profile, just show modal
+    if (user && hasProviderProfile) {
+      setShowModal(true);
+      return;
+    }
 
-  // Only show contact info to providers
-  const scheduleHref = isProvider && studentEmail
-    ? `mailto:${studentEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-    : null;
+    // If user is not logged in, prompt auth
+    if (!user) {
+      openAuth({
+        intent: "provider",
+        headline: `Connect with ${firstName}`,
+        subline: "Sign in or create a provider account to schedule an interview",
+        deferred: {
+          action: "hire-candidate",
+          returnUrl: `${pathname}?schedule=pending`,
+        },
+      });
+      return;
+    }
 
-  // Route to onboarding for users without provider profile
-  // Onboarding handles auth, duplicate detection, and returns them to the candidate
-  const onboardingUrl = `/provider/onboarding?next=${encodeURIComponent(`/provider/medjobs/candidates/${studentSlug}`)}`;
-
-  const handleHireClick = () => {
+    // User is logged in but no provider profile - go to onboarding
+    const onboardingUrl = `/provider/onboarding?next=${encodeURIComponent(`/medjobs/candidates/${studentSlug}?schedule=pending`)}`;
     router.push(onboardingUrl);
-  };
+  }, [user, hasProviderProfile, openAuth, firstName, pathname, router, studentSlug]);
+
+  // Handle modal close - save data if user needs to complete onboarding
+  const handleModalClose = useCallback(() => {
+    setShowModal(false);
+  }, []);
+
+  // Handle successful schedule
+  const handleScheduled = useCallback(() => {
+    setShowModal(false);
+    setScheduled(true);
+  }, []);
 
   // ── Own profile preview mode ──
   // Show a disabled preview of what providers see
@@ -139,134 +185,92 @@ export default function ContactSection({
     );
   }
 
-  // Users who need to go through onboarding (no provider profile)
-  const needsOnboarding = !user || (user && !hasProviderProfile);
-
   // ── Sticky mobile bar ──
   if (variant === "sticky") {
-    // Guest or Family without provider: route to onboarding
-    if (needsOnboarding) {
-      return (
+    return (
+      <>
         <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
           <button
-            onClick={handleHireClick}
-            className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
+            onClick={handleScheduleClick}
+            disabled={scheduled}
+            className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 disabled:bg-emerald-600 rounded-xl text-sm font-semibold text-white transition-colors"
           >
             <CalendarIcon />
-            Schedule Interview
+            {scheduled ? "Interview Requested!" : "Schedule Interview"}
           </button>
         </div>
-      );
-    }
-
-    // Provider: show contact options
-    return (
-      <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
-        {scheduleHref ? (
-          <a
-            href={scheduleHref}
-            className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
-          >
-            <CalendarIcon />
-            Schedule Interview
-          </a>
-        ) : (
-          <Link
-            href={`/provider/medjobs/candidates/${studentSlug}`}
-            className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
-          >
-            View Full Profile
-          </Link>
+        {showModal && (
+          <ScheduleInterviewModal
+            studentProfileId={studentId}
+            otherName={studentName}
+            onClose={handleModalClose}
+            onScheduled={handleScheduled}
+          />
         )}
-      </div>
+      </>
     );
   }
 
   // ── Sidebar/Inline variant (desktop) ──
   const isInline = variant === "inline";
-  const wrapperClass = isInline
-    ? "space-y-3"
-    : "bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-3";
 
-  // Guest or Family without provider: route to onboarding
-  if (needsOnboarding) {
-    return (
-      <div className={isInline ? "" : "bg-white rounded-2xl shadow-sm border border-gray-100 p-5"}>
-        <p className="text-sm font-semibold text-gray-900">
-          Want to connect with {firstName}?
-        </p>
-        <p className="mt-1 text-xs text-gray-500">
-          Set up a provider account to see contact info and schedule an interview.
-        </p>
-        <button
-          onClick={handleHireClick}
-          className="mt-3 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
-        >
-          <CalendarIcon />
-          Schedule Interview
-        </button>
-        {!isInline && (
-          <p className="mt-2 text-center text-xs text-gray-400">
+  return (
+    <>
+      <div className={isInline ? "space-y-4" : "bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4"}>
+        {/* Header text for non-authenticated users */}
+        {!user && (
+          <>
+            <p className="text-sm font-semibold text-gray-900">
+              Want to connect with {firstName}?
+            </p>
+            <p className="text-xs text-gray-500">
+              Set up a provider account to schedule an interview.
+            </p>
+          </>
+        )}
+
+        {/* Schedule CTA */}
+        {scheduled ? (
+          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium text-center">
+            Interview request sent to {firstName}!
+          </div>
+        ) : (
+          <button
+            onClick={handleScheduleClick}
+            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
+          >
+            <CalendarIcon />
+            Schedule Interview
+          </button>
+        )}
+
+        {/* Verification nudge for unverified providers */}
+        {user && hasProviderProfile && activeProfile?.verification_state !== "verified" && !scheduled && (
+          <p className="text-xs text-gray-500 text-center">
+            <Link href="/provider/verification" className="text-primary-600 hover:text-primary-700 font-medium">
+              Verify your business
+            </Link>
+            {" "}to see contact info
+          </p>
+        )}
+
+        {/* Takes less than a minute helper text for non-users */}
+        {!user && !isInline && (
+          <p className="text-center text-xs text-gray-400">
             Takes less than a minute to get started.
           </p>
         )}
       </div>
-    );
-  }
 
-  // Provider: show contact info and schedule options
-  return (
-    <div className={wrapperClass}>
-      {/* Contact info — only for providers */}
-      {(studentEmail || studentPhone) && (
-        <div className="space-y-1.5">
-          {studentEmail && (
-            <a href={`mailto:${studentEmail}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary-600 transition-colors">
-              <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-              </svg>
-              <span className="truncate">{studentEmail}</span>
-            </a>
-          )}
-          {studentPhone && (
-            <a href={`tel:${studentPhone}`} className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary-600 transition-colors">
-              <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-              </svg>
-              {studentPhone}
-            </a>
-          )}
-        </div>
+      {showModal && (
+        <ScheduleInterviewModal
+          studentProfileId={studentId}
+          otherName={studentName}
+          onClose={handleModalClose}
+          onScheduled={handleScheduled}
+        />
       )}
-
-      {/* Primary CTA */}
-      {scheduleHref ? (
-        <a
-          href={scheduleHref}
-          className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
-        >
-          <CalendarIcon />
-          Schedule Interview
-        </a>
-      ) : (
-        <Link
-          href={`/provider/medjobs/candidates/${studentSlug}`}
-          className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
-        >
-          View Full Profile
-        </Link>
-      )}
-
-      {/* Provider view link */}
-      {hasProviderProfile && (
-        <Link
-          href={`/provider/medjobs/candidates/${studentSlug}`}
-          className="block w-full text-center px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-xl transition-colors"
-        >
-          Full Provider View
-        </Link>
-      )}
-    </div>
+    </>
   );
 }
 

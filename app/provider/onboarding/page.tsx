@@ -91,7 +91,10 @@ function ProviderOnboardingContent() {
   const initialStep = searchParams.get("step");
   const rawNextUrl = searchParams.get("next");
   // Validate nextUrl to prevent open redirect - only allow known safe paths
-  const nextUrl = rawNextUrl?.startsWith("/provider/medjobs/candidates/") ? rawNextUrl : null;
+  const nextUrl = (
+    rawNextUrl?.startsWith("/provider/medjobs/candidates/") ||
+    rawNextUrl?.startsWith("/medjobs/candidates/")
+  ) ? rawNextUrl : null;
   // URL-based search state (for back button preservation)
   const urlSearchQuery = searchParams.get("q") || "";
   const urlLocationQuery = searchParams.get("loc") || "";

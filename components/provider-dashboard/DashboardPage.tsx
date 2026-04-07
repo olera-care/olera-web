@@ -275,6 +275,7 @@ function DashboardContent({
               profile={profile}
               completionPercent={sectionPercent("overview")}
               onEdit={() => handleEdit("overview")}
+              onVerify={() => handleOpenVerificationModal()}
             />,
             <GalleryCard
               key="gallery"

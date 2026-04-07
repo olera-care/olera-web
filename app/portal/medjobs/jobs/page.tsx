@@ -48,10 +48,15 @@ export default function OpenJobsPage() {
       if (!res.ok) return;
       const data = await res.json();
       // Build set of provider IDs that student has already requested
+      // Exclude cancelled/no_show interviews so user can re-request
       const requestedIds = new Set<string>();
+      const activeStatuses = ["proposed", "confirmed", "rescheduled", "completed"];
       for (const interview of data.interviews || []) {
-        // Only count interviews initiated by the student (student → provider requests)
-        if (interview.proposed_by === interview.student_profile_id) {
+        // Only count active interviews initiated by the student (student → provider requests)
+        if (
+          interview.proposed_by === interview.student_profile_id &&
+          activeStatuses.includes(interview.status)
+        ) {
           requestedIds.add(interview.provider_profile_id);
         }
       }

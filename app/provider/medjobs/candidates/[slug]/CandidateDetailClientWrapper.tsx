@@ -36,11 +36,14 @@ export default function CandidateDetailClientWrapper({
         const res = await fetch("/api/medjobs/interviews");
         if (!res.ok) return;
         const data = await res.json();
-        // Check if there's an interview with this student
+        // Check if there's an active interview with this student
+        // Exclude cancelled/no_show so provider can re-schedule
+        const activeStatuses = ["proposed", "confirmed", "rescheduled", "completed"];
         const hasInterview = (data.interviews || []).some(
-          (interview: { student_profile_id: string; proposed_by: string; provider_profile_id: string }) =>
+          (interview: { student_profile_id: string; proposed_by: string; provider_profile_id: string; status: string }) =>
             interview.student_profile_id === studentId &&
-            interview.proposed_by === interview.provider_profile_id
+            interview.proposed_by === interview.provider_profile_id &&
+            activeStatuses.includes(interview.status)
         );
         setHasExistingInterview(hasInterview);
       } catch {

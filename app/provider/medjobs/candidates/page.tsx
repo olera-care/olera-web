@@ -44,10 +44,15 @@ export default function ProviderCandidateBrowsePage() {
         if (!res.ok) return;
         const data = await res.json();
         // Build set of student IDs that provider has already contacted
+        // Exclude cancelled/no_show interviews so provider can re-schedule
         const contactedIds = new Set<string>();
+        const activeStatuses = ["proposed", "confirmed", "rescheduled", "completed"];
         for (const interview of data.interviews || []) {
-          // Only count interviews initiated by the provider (provider → student)
-          if (interview.proposed_by === interview.provider_profile_id) {
+          // Only count active interviews initiated by the provider (provider → student)
+          if (
+            interview.proposed_by === interview.provider_profile_id &&
+            activeStatuses.includes(interview.status)
+          ) {
             contactedIds.add(interview.student_profile_id);
           }
         }

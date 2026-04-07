@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import Pagination from "@/components/ui/Pagination";
 import OtpInput from "@/components/auth/OtpInput";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -13,6 +14,8 @@ import { useClickOutside } from "@/hooks/use-click-outside";
 import type { Provider } from "@/lib/types/provider";
 
 type Step = "search" | "verify" | "create" | "auth";
+
+const RESULTS_PER_PAGE = 6;
 
 const CARE_TYPES = [
   "Assisted Living",
@@ -77,6 +80,7 @@ export default function ProviderOnboardingModal({
   const [searching, setSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Location dropdown
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
@@ -143,6 +147,7 @@ export default function ProviderOnboardingModal({
         setSearching(false);
         setHasSearched(false);
         setSearchError("");
+        setCurrentPage(1);
         setClaimingProvider(null);
         setVerifyCode("");
         setVerifyEmailHint("");
@@ -214,7 +219,7 @@ export default function ProviderOnboardingModal({
         }
       }
 
-      const { data: providers, error: providerError } = await providerQuery.limit(10);
+      const { data: providers, error: providerError } = await providerQuery.limit(20);
 
       if (providerError) {
         setSearchError("Search failed. Please try again.");
@@ -363,7 +368,8 @@ export default function ProviderOnboardingModal({
         return true;
       });
 
-      setSearchResults(dedupedResults.slice(0, 10));
+      setSearchResults(dedupedResults);
+      setCurrentPage(1); // Reset to first page on new search
     } catch {
       setSearchError("Search failed. Please try again.");
       setSearchResults([]);
@@ -743,21 +749,111 @@ export default function ProviderOnboardingModal({
             )}
 
             {/* ── State B: Results found ── */}
-            {hasSearched && searchResults.length > 0 && (
+            {hasSearched && searchResults.length > 0 && (() => {
+              const totalPages = Math.ceil(searchResults.length / RESULTS_PER_PAGE);
+              const paginatedResults = searchResults.slice(
+                (currentPage - 1) * RESULTS_PER_PAGE,
+                currentPage * RESULTS_PER_PAGE
+              );
+
+              return (
               <div className="flex-1 flex flex-col overflow-hidden bg-white">
-                {/* Results header */}
-                <div className="shrink-0 bg-white/95 backdrop-blur-sm border-b border-gray-200/60 px-4 py-4">
-                  <div className="max-w-2xl mx-auto">
-                    <p className="text-sm text-gray-500">
-                      {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} found
-                    </p>
+                {/* Sticky search bar - matches onboarding */}
+                <div className="shrink-0 bg-white/95 backdrop-blur-sm border-b border-gray-200/60 px-4">
+                  <div className="max-w-2xl mx-auto py-3">
+                    <form onSubmit={handleSearch}>
+                      <div className="bg-white rounded-xl shadow-sm ring-1 ring-gray-200/80 p-2.5 flex items-center gap-2.5">
+                        {/* Location input with dropdown */}
+                        <div ref={locationDropdownRef} className="relative flex-1 min-w-0">
+                          <div className={`flex items-center px-3.5 py-2.5 bg-gray-50 rounded-lg border transition-colors ${
+                            showLocationDropdown ? "border-primary-400 ring-1 ring-primary-100" : "border-gray-200 hover:border-gray-300"
+                          }`}>
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <input
+                              type="text"
+                              aria-label="City or state"
+                              value={locationQuery}
+                              onChange={(e) => {
+                                setLocationQuery(e.target.value);
+                                setShowLocationDropdown(true);
+                              }}
+                              onFocus={() => setShowLocationDropdown(true)}
+                              placeholder="City or state"
+                              className="w-full ml-2.5 bg-transparent border-none text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
+                            />
+                          </div>
+
+                          {/* Location suggestions dropdown */}
+                          {showLocationDropdown && cityResults.length > 0 && (
+                            <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
+                              {cityResults.map((c) => (
+                                <button
+                                  key={`${c.city}-${c.state}`}
+                                  type="button"
+                                  onClick={() => {
+                                    setLocationQuery(`${c.city}, ${c.state}`);
+                                    setShowLocationDropdown(false);
+                                  }}
+                                  className="flex items-center gap-3 w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors"
+                                >
+                                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  </svg>
+                                  <span className="font-medium text-gray-700">{c.city}, {c.state}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Divider */}
+                        <div className="w-px h-7 bg-gray-200 shrink-0" />
+
+                        {/* Name input */}
+                        <div className="flex items-center flex-1 min-w-0 px-3.5 py-2.5 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-1 focus-within:ring-primary-100 transition-colors">
+                          <input
+                            type="text"
+                            aria-label="Organization name"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Organization name"
+                            className="w-full bg-transparent border-none text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
+                          />
+                        </div>
+
+                        {/* Search button — icon only to save space */}
+                        <button
+                          type="submit"
+                          disabled={searching || (!searchQuery.trim() && !locationQuery.trim())}
+                          className="w-11 h-11 flex items-center justify-center text-white bg-primary-600 rounded-lg hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all shrink-0"
+                          aria-label="Search"
+                        >
+                          {searching ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                    <div className="mt-2.5">
+                      <p className="text-sm text-gray-500">
+                        {searchResults.length} result{searchResults.length !== 1 ? "s" : ""}{searchQuery.trim() || locationQuery.trim() ? <> for {[searchQuery.trim(), locationQuery.trim()].filter(Boolean).join(" in ")}</> : ""}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
                 {/* Results grid - scrollable */}
                 <div className="flex-1 overflow-y-auto px-4 py-6">
                   <div className="max-w-2xl mx-auto space-y-4">
-                    {searchResults.map((result) => {
+                    {paginatedResults.map((result) => {
                       const isBusinessProfile = result.source === "business_profiles";
                       const isClaimed = result.claimState === "claimed" || result.claimState === "pending";
                       const locationText = [result.city, result.state].filter(Boolean).join(", ");
@@ -878,10 +974,30 @@ export default function ProviderOnboardingModal({
                         Set up a new page
                       </button>
                     </div>
+
+                    {/* Pagination */}
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      totalItems={searchResults.length}
+                      itemsPerPage={RESULTS_PER_PAGE}
+                      onPageChange={(page) => {
+                        setCurrentPage(page);
+                        // Scroll to top of results
+                        const scrollContainer = document.querySelector('[data-modal-scroll]');
+                        if (scrollContainer) {
+                          scrollContainer.scrollTop = 0;
+                        }
+                      }}
+                      itemLabel="listings"
+                      showItemCount={false}
+                      className="justify-center"
+                    />
                   </div>
                 </div>
               </div>
-            )}
+              );
+            })()}
 
             {/* ── State C: No results ── */}
             {hasSearched && searchResults.length === 0 && (

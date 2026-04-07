@@ -26,8 +26,22 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get("offset") || "0", 10);
     const dateFrom = searchParams.get("date_from"); // ISO date string (inclusive)
     const dateTo = searchParams.get("date_to"); // ISO date string (exclusive — next day)
+    const search = searchParams.get("search")?.trim() || "";
 
     const db = getServiceClient();
+
+    // If searching, find matching provider slugs first
+    let searchSlugs: string[] | null = null;
+    if (search) {
+      const [{ data: bpMatches }, { data: iosMatches }] = await Promise.all([
+        db.from("business_profiles").select("slug").in("type", ["organization", "caregiver"]).ilike("display_name", `%${search}%`).limit(200),
+        db.from("olera-providers").select("slug").ilike("provider_name", `%${search}%`).not("deleted", "is", true).limit(200),
+      ]);
+      const slugs = new Set<string>();
+      for (const p of bpMatches ?? []) if (p.slug) slugs.add(p.slug);
+      for (const p of iosMatches ?? []) if (p.slug) slugs.add(p.slug);
+      searchSlugs = Array.from(slugs);
+    }
 
     // Fast path: return only the count (used by admin dashboard overview)
     if (countOnly) {
@@ -37,6 +51,10 @@ export async function GET(request: NextRequest) {
       if (needsEmail) {
         countQuery = countQuery.contains("metadata", { needs_provider_email: true });
         countQuery = countQuery.neq("status", "archived").neq("status", "rejected");
+      }
+      if (searchSlugs) {
+        if (searchSlugs.length === 0) return NextResponse.json({ count: 0 });
+        countQuery = countQuery.in("provider_id", searchSlugs);
       }
       if (dateFrom) countQuery = countQuery.gte("created_at", dateFrom);
       if (dateTo) countQuery = countQuery.lt("created_at", dateTo);
@@ -59,6 +77,10 @@ export async function GET(request: NextRequest) {
     if (needsEmail) {
       query = query.contains("metadata", { needs_provider_email: true });
       query = query.neq("status", "archived").neq("status", "rejected");
+    }
+    if (searchSlugs) {
+      if (searchSlugs.length === 0) return NextResponse.json({ questions: [], count: 0 });
+      query = query.in("provider_id", searchSlugs);
     }
     if (dateFrom) query = query.gte("created_at", dateFrom);
     if (dateTo) query = query.lt("created_at", dateTo);

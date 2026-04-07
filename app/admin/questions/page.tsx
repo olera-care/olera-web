@@ -129,11 +129,14 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+const PAGE_SIZE = 50;
+
 export default function AdminQuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabValue>("needs_email");
   const [count, setCount] = useState(0);
+  const [page, setPage] = useState(0);
   const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; archived: number }>({ pending: 0, needs_email: 0, archived: 0 });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -144,8 +147,10 @@ export default function AdminQuestionsPage() {
     setLoading(true);
     setError(null);
     try {
-      // Needs Email tab: show all so ops team sees the full queue
-      const params = new URLSearchParams({ limit: activeTab === "needs_email" ? "200" : "50" });
+      const params = new URLSearchParams({
+        limit: String(PAGE_SIZE),
+        offset: String(page * PAGE_SIZE),
+      });
       if (activeTab === "needs_email") {
         params.set("needs_email", "true");
       } else if (activeTab === "unanswered") {
@@ -168,6 +173,11 @@ export default function AdminQuestionsPage() {
     } finally {
       setLoading(false);
     }
+  }, [activeTab, page]);
+
+  // Reset page when tab changes
+  useEffect(() => {
+    setPage(0);
   }, [activeTab]);
 
   useEffect(() => {
@@ -420,8 +430,31 @@ export default function AdminQuestionsPage() {
       )}
 
       {!loading && questions.length > 0 && (
-        <div className="mt-6 text-xs text-gray-300 text-right">
-          {count} {activeTab === "needs_email" ? "needing email" : activeTab === "unanswered" ? "unanswered" : activeTab === "removed" ? "removed" : activeTab === "archived" ? "archived" : "total"}
+        <div className="flex items-center justify-between mt-6 px-2">
+          <p className="text-sm text-gray-500">
+            {count <= PAGE_SIZE
+              ? `${count} ${activeTab === "needs_email" ? "needing email" : activeTab === "unanswered" ? "unanswered" : activeTab === "removed" ? "removed" : activeTab === "archived" ? "archived" : "total"}`
+              : `${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, count)} of ${count}`
+            }
+          </p>
+          {count > PAGE_SIZE && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={(page + 1) * PAGE_SIZE >= count}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       )}
 

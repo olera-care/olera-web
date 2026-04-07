@@ -232,21 +232,24 @@ export default function ContactSection({
   if (variant === "sticky") {
     return (
       <>
-        <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
-          {scheduled ? (
-            <div className="text-center">
-              <p className="text-sm font-medium text-emerald-700">Interview request sent!</p>
-              <p className="text-xs text-emerald-600 mt-0.5">Check your email for confirmation.</p>
+        <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb space-y-2">
+          {/* Success banner */}
+          {scheduled && (
+            <div className="flex items-center justify-center gap-2 text-sm text-emerald-700">
+              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Request sent — check your email</span>
             </div>
-          ) : (
-            <button
-              onClick={handleScheduleClick}
-              className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
-            >
-              <CalendarIcon />
-              Schedule Interview
-            </button>
           )}
+          {/* CTA - always visible */}
+          <button
+            onClick={handleScheduleClick}
+            className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
+          >
+            <CalendarIcon />
+            {scheduled ? "Schedule Another" : "Schedule Interview"}
+          </button>
         </div>
         {showModal && (
           <ScheduleInterviewModal
@@ -285,25 +288,24 @@ export default function ContactSection({
           </div>
         )}
 
-        {/* Schedule CTA */}
-        {scheduled ? (
-          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
-            <p className="text-sm text-emerald-700 font-medium">
-              Interview request sent to {firstName}!
-            </p>
-            <p className="text-xs text-emerald-600 mt-1">
-              Check your email for confirmation details.
-            </p>
+        {/* Success banner */}
+        {scheduled && (
+          <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-sm text-emerald-700">
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Request sent — check your email</span>
           </div>
-        ) : (
-          <button
-            onClick={handleScheduleClick}
-            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
-          >
-            <CalendarIcon />
-            Schedule Interview
-          </button>
         )}
+
+        {/* Schedule CTA - always visible */}
+        <button
+          onClick={handleScheduleClick}
+          className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
+        >
+          <CalendarIcon />
+          {scheduled ? "Schedule Another" : "Schedule Interview"}
+        </button>
 
         {/* Verification nudge for unverified providers */}
         {user && hasProviderProfile && activeProfile?.verification_state !== "verified" && !scheduled && (

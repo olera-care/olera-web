@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Modal from "@/components/ui/Modal";
+import Badge from "@/components/ui/Badge";
 import type { OrganizationMetadata } from "@/lib/types";
 
 interface VerificationSubmission {
@@ -42,7 +43,10 @@ const ROLE_LABELS: Record<string, string> = {
   other: "Other",
 };
 
+type StatusFilter = "pending" | "verified" | "rejected";
+
 export default function AdminVerificationPage() {
+  const [filter, setFilter] = useState<StatusFilter>("pending");
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,15 +58,17 @@ export default function AdminVerificationPage() {
     setLoading(true);
     setError(null);
     try {
-      // Only fetch pending requests - this is the actionable queue
-      const res = await fetch("/api/admin/verification?status=pending");
+      const res = await fetch(`/api/admin/verification?status=${filter}`);
       if (res.ok) {
         const data = await res.json();
-        // Filter to only show providers with actual submissions
-        const withSubmissions = (data.providers ?? []).filter(
-          (p: Provider) => p.metadata?.verification_submission
-        );
-        setProviders(withSubmissions);
+        let results = data.providers ?? [];
+        // For pending tab, only show providers with actual submissions
+        if (filter === "pending") {
+          results = results.filter(
+            (p: Provider) => p.metadata?.verification_submission
+          );
+        }
+        setProviders(results);
       } else {
         setError("Failed to load verification requests. Please try again.");
       }
@@ -72,11 +78,17 @@ export default function AdminVerificationPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [filter]);
 
   useEffect(() => {
     fetchProviders();
   }, [fetchProviders]);
+
+  const filters: { label: string; value: StatusFilter }[] = [
+    { label: "Pending", value: "pending" },
+    { label: "Verified", value: "verified" },
+    { label: "Rejected", value: "rejected" },
+  ];
 
   async function handleAction(id: string, action: "approve" | "reject") {
     setActionLoading(id);
@@ -116,6 +128,24 @@ export default function AdminVerificationPage() {
         </p>
       </div>
 
+      {/* Filter tabs */}
+      <div className="flex gap-2 mb-6">
+        {filters.map((f) => (
+          <button
+            key={f.value}
+            type="button"
+            onClick={() => setFilter(f.value)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === f.value
+                ? "bg-primary-600 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
           {error}
@@ -139,9 +169,13 @@ export default function AdminVerificationPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-lg font-semibold text-gray-900">All caught up!</p>
+          <p className="text-lg font-semibold text-gray-900">
+            {filter === "pending" ? "All caught up!" : `No ${filter} providers`}
+          </p>
           <p className="text-sm text-gray-500 mt-1">
-            No verification requests waiting for review.
+            {filter === "pending"
+              ? "No verification requests waiting for review."
+              : `No providers with ${filter} verification status.`}
           </p>
         </div>
       ) : (
@@ -151,15 +185,24 @@ export default function AdminVerificationPage() {
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Provider</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Submitter</th>
+                  {filter === "pending" && (
+                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Submitter</th>
+                  )}
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Location</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Submitted</th>
-                  <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
+                  {filter !== "pending" && (
+                    <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
+                  )}
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">
+                    {filter === "pending" ? "Submitted" : "Updated"}
+                  </th>
+                  {filter === "pending" && (
+                    <th className="text-right px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {providers.map((provider) => {
-                  const submission = getVerificationSubmission(provider)!;
+                  const submission = getVerificationSubmission(provider);
                   return (
                     <tr key={provider.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
@@ -186,51 +229,70 @@ export default function AdminVerificationPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => setSelectedProvider(provider)}
-                          className="text-left group"
-                        >
-                          <p className="text-sm font-medium text-gray-900 group-hover:text-primary-600 transition-colors">
-                            {submission.name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {ROLE_LABELS[submission.role] || submission.role}
-                          </p>
-                        </button>
-                      </td>
+                      {filter === "pending" && submission && (
+                        <td className="px-6 py-4">
+                          <button
+                            onClick={() => setSelectedProvider(provider)}
+                            className="text-left group"
+                          >
+                            <p className="text-sm font-medium text-gray-900 group-hover:text-primary-600 transition-colors">
+                              {submission.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {ROLE_LABELS[submission.role] || submission.role}
+                            </p>
+                          </button>
+                        </td>
+                      )}
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {[provider.city, provider.state].filter(Boolean).join(", ") || "—"}
                       </td>
+                      {filter !== "pending" && (
+                        <td className="px-6 py-4">
+                          <Badge
+                            variant={
+                              provider.verification_state === "verified"
+                                ? "verified"
+                                : provider.verification_state === "rejected"
+                                ? "rejected"
+                                : "pending"
+                            }
+                          >
+                            {provider.verification_state}
+                          </Badge>
+                        </td>
+                      )}
                       <td className="px-6 py-4 text-sm text-gray-500">
-                        {submission.submitted_at
+                        {filter === "pending" && submission?.submitted_at
                           ? new Date(submission.submitted_at).toLocaleDateString()
-                          : "—"}
+                          : new Date(provider.updated_at).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex gap-2 justify-end">
-                          <button
-                            onClick={() => setSelectedProvider(provider)}
-                            className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
-                          >
-                            Review
-                          </button>
-                          <button
-                            onClick={() => handleAction(provider.id, "approve")}
-                            disabled={actionLoading === provider.id}
-                            className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
-                          >
-                            {actionLoading === provider.id ? "..." : "Approve"}
-                          </button>
-                          <button
-                            onClick={() => handleAction(provider.id, "reject")}
-                            disabled={actionLoading === provider.id}
-                            className="px-3 py-1.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors"
-                          >
-                            {actionLoading === provider.id ? "..." : "Reject"}
-                          </button>
-                        </div>
-                      </td>
+                      {filter === "pending" && (
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={() => setSelectedProvider(provider)}
+                              className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                            >
+                              Review
+                            </button>
+                            <button
+                              onClick={() => handleAction(provider.id, "approve")}
+                              disabled={actionLoading === provider.id}
+                              className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                            >
+                              {actionLoading === provider.id ? "..." : "Approve"}
+                            </button>
+                            <button
+                              onClick={() => handleAction(provider.id, "reject")}
+                              disabled={actionLoading === provider.id}
+                              className="px-3 py-1.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors"
+                            >
+                              {actionLoading === provider.id ? "..." : "Reject"}
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}

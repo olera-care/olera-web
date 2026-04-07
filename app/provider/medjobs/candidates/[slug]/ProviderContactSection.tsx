@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
@@ -29,6 +29,8 @@ export default function ProviderContactSection({
   initialScheduled = false,
 }: ProviderContactSectionProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { activeProfile, user, openAuth } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [scheduled, setScheduled] = useState(initialScheduled);
@@ -37,6 +39,26 @@ export default function ProviderContactSection({
   useEffect(() => {
     if (initialScheduled) setScheduled(true);
   }, [initialScheduled]);
+
+  // Auto-open schedule modal when arriving from inline onboarding flow
+  const hasHandledScheduleParam = useRef(false);
+  useEffect(() => {
+    if (hasHandledScheduleParam.current) return;
+
+    const scheduleParam = searchParams.get("schedule");
+    if (scheduleParam === "true" && user) {
+      hasHandledScheduleParam.current = true;
+
+      // Clear the query param from URL
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("schedule");
+      const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+      router.replace(newUrl, { scroll: false });
+
+      // Open the schedule modal
+      setShowModal(true);
+    }
+  }, [searchParams, user, pathname, router]);
 
   const requiresAuth = !user;
 

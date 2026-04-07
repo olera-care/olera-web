@@ -5,6 +5,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ScheduleInterviewModal, { ScheduleFormData } from "@/components/medjobs/ScheduleInterviewModal";
+import ProviderOnboardingModal from "@/components/medjobs/ProviderOnboardingModal";
 
 const SCHEDULE_STORAGE_KEY = "medjobs_schedule_draft";
 
@@ -29,6 +30,7 @@ export default function ContactSection({
   const { user, activeProfile, profiles } = useAuth();
 
   const [showModal, setShowModal] = useState(false);
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
   const [scheduled, setScheduled] = useState(false);
   const [savedFormData, setSavedFormData] = useState<ScheduleFormData | undefined>();
 
@@ -86,30 +88,17 @@ export default function ContactSection({
   // Check if user needs auth before submitting
   const requiresAuth = !user || !hasProviderProfile;
 
-  // Handle schedule click - always open modal first
+  // Handle schedule click
+  // For unauthenticated users: show inline onboarding modal
+  // For authenticated providers: show schedule modal directly
   const handleScheduleClick = useCallback(() => {
-    setShowModal(true);
-  }, []);
-
-  // Handle auth required - save form data and redirect to provider onboarding
-  // This takes the user through the full onboarding flow:
-  // 1. Search for their business
-  // 2. Claim existing listing OR create new account
-  // 3. Return to candidate page with ?schedule=pending to complete scheduling
-  const handleAuthRequired = useCallback((formData: ScheduleFormData) => {
-    // Save form data to sessionStorage with candidate slug
-    sessionStorage.setItem(SCHEDULE_STORAGE_KEY, JSON.stringify({
-      ...formData,
-      candidateSlug: studentSlug,
-    }));
-
-    // Close the modal before redirecting
-    setShowModal(false);
-
-    // Redirect to provider onboarding with return URL
-    const returnUrl = `${pathname}?schedule=pending`;
-    router.push(`/provider/onboarding?next=${encodeURIComponent(returnUrl)}`);
-  }, [router, pathname, studentSlug]);
+    if (requiresAuth) {
+      // Show inline onboarding modal instead of redirecting
+      setShowOnboardingModal(true);
+    } else {
+      setShowModal(true);
+    }
+  }, [requiresAuth]);
 
   // Handle modal close
   const handleModalClose = useCallback(() => {
@@ -211,9 +200,15 @@ export default function ContactSection({
             otherName={studentName}
             onClose={handleModalClose}
             onScheduled={handleScheduled}
-            requiresAuth={requiresAuth}
-            onAuthRequired={handleAuthRequired}
             initialValues={savedFormData}
+          />
+        )}
+        {showOnboardingModal && (
+          <ProviderOnboardingModal
+            isOpen={showOnboardingModal}
+            onClose={() => setShowOnboardingModal(false)}
+            candidateSlug={studentSlug}
+            candidateName={studentName}
           />
         )}
       </>
@@ -277,9 +272,15 @@ export default function ContactSection({
           otherName={studentName}
           onClose={handleModalClose}
           onScheduled={handleScheduled}
-          requiresAuth={requiresAuth}
-          onAuthRequired={handleAuthRequired}
           initialValues={savedFormData}
+        />
+      )}
+      {showOnboardingModal && (
+        <ProviderOnboardingModal
+          isOpen={showOnboardingModal}
+          onClose={() => setShowOnboardingModal(false)}
+          candidateSlug={studentSlug}
+          candidateName={studentName}
         />
       )}
     </>

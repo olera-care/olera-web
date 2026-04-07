@@ -265,7 +265,7 @@ export default function ManagePageCTA({
                 </div>
                 {/* Title with tooltip */}
                 <h2 className="text-lg font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
-                  Claim this listing
+                  Manage this page
                   <InfoTooltip content="Sign in with your business email. If it matches our records, you'll get instant access to manage this listing." />
                 </h2>
                 {/* Conditional subtitle */}
@@ -279,7 +279,7 @@ export default function ManagePageCTA({
                   onClick={handleClaimClick}
                   className="w-full py-3.5 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] flex items-center justify-center gap-1.5"
                 >
-                  Claim this listing
+                  Get started
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>

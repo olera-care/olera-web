@@ -12,7 +12,14 @@ import { useCitySearch } from "@/hooks/use-city-search";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import type { Provider } from "@/lib/types/provider";
 
-type Step = "search" | "claim-verify" | "create" | "auth";
+type Step = "search" | "verify" | "create" | "auth";
+
+// Track what action to perform after successful authentication
+// (Copied from onboarding page)
+type PendingAuthAction =
+  | { type: "create-profile" }
+  | { type: "claim-listing"; result: SearchResult }
+  | { type: "sign-in"; result: SearchResult };
 
 interface ProviderOnboardingModalProps {
   isOpen: boolean;
@@ -95,8 +102,8 @@ export default function ProviderOnboardingModal({
   const [resendCooldown, setResendCooldown] = useState(0);
   const [finalizingProfile, setFinalizingProfile] = useState(false);
 
-  // Claimed listing sign-in state
-  const [signingInToClaimedListing, setSigningInToClaimedListing] = useState<SearchResult | null>(null);
+  // Pending auth action (copied from onboarding page)
+  const [pendingAuthAction, setPendingAuthAction] = useState<PendingAuthAction | null>(null);
 
   // City picker for create form
   const [showCityPicker, setShowCityPicker] = useState(false);
@@ -139,7 +146,7 @@ export default function ProviderOnboardingModal({
         setAuthSent(false);
         setResendCooldown(0);
         setFinalizingProfile(false);
-        setSigningInToClaimedListing(null);
+        setPendingAuthAction(null);
       }, 200);
       return () => clearTimeout(timer);
     }
@@ -311,15 +318,27 @@ export default function ProviderOnboardingModal({
     }
   };
 
-  // Start claim flow (for unclaimed olera-providers)
-  const handleStartClaim = async (result: SearchResult) => {
+  // Transition to inline auth step (copied from onboarding page)
+  const startInlineAuth = (action: PendingAuthAction, email?: string) => {
+    setPendingAuthAction(action);
+    setAuthEmail(email || "");
+    setAuthCode("");
+    setAuthError("");
+    setAuthSent(false);
+    setAuthSending(false);
+    setAuthVerifying(false);
+    setFinalizingProfile(false);
+    setStep("auth");
+  };
+
+  // Send verification code to business email (fallback after deferred claim fails)
+  const handleSendVerificationCode = async (result: SearchResult) => {
     if (!result.providerId) return;
 
-    setClaimingProvider(result);
-    setVerifyCode("");
-    setVerifyError("");
-    setVerifyNoEmail(false);
     setVerifySending(true);
+    setVerifyError("");
+    setVerifyCode("");
+    setVerifyNoEmail(false);
 
     try {
       const res = await fetch("/api/claim/send-code", {
@@ -334,7 +353,7 @@ export default function ProviderOnboardingModal({
       const data = await res.json();
 
       if (!res.ok) {
-        if (data.noEmail) {
+        if (data.noEmail || res.status === 422) {
           setVerifyNoEmail(true);
         } else {
           setVerifyError(data.error || "Failed to send code");
@@ -346,22 +365,10 @@ export default function ProviderOnboardingModal({
       setVerifyError("Failed to send verification code");
     } finally {
       setVerifySending(false);
-      setStep("claim-verify");
     }
   };
 
-  // Sign in to claimed listing (Bug fix #3)
-  const handleSignInToClaimedListing = (result: SearchResult) => {
-    setSigningInToClaimedListing(result);
-    // Pre-fill auth email if we have a hint
-    if (result.ownerEmail) {
-      // Don't set the masked email, let user type their full email
-      setAuthEmail("");
-    }
-    setStep("auth");
-  };
-
-  // Verify claim code
+  // Verify claim code (business email verification)
   const handleVerifyCode = async () => {
     if (!claimingProvider?.providerId || verifyCode.length !== 6) return;
 
@@ -381,59 +388,18 @@ export default function ProviderOnboardingModal({
 
       const data = await res.json();
 
-      if (!res.ok) {
-        setVerifyError(data.error || "Invalid code");
+      if (!res.ok || !data.verified) {
+        setVerifyError(data.error || "Incorrect code. Please try again.");
         setVerifyChecking(false);
         return;
       }
 
-      // Code verified - now finalize claim
-      await handleFinalizeClaim();
-    } catch {
-      setVerifyError("Verification failed");
-      setVerifyChecking(false);
-    }
-  };
-
-  // Finalize claim after code verification
-  const handleFinalizeClaim = async () => {
-    if (!claimingProvider?.providerId) return;
-
-    setFinalizingProfile(true);
-
-    try {
-      const res = await fetch("/api/claim/finalize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerId: claimingProvider.providerId,
-          sessionId: claimSession,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        // User needs to authenticate
-        if (data.requiresAuth) {
-          setAuthEmail(data.email || "");
-          setStep("auth");
-          setFinalizingProfile(false);
-          return;
-        }
-        setVerifyError(data.error || "Failed to complete claim");
-        setVerifyChecking(false);
-        setFinalizingProfile(false);
-        return;
-      }
-
-      // Successfully claimed - refresh and redirect to portal
+      // Verified — refresh and redirect
       await refreshAccountData();
       router.push(`/provider/medjobs/candidates/${candidateSlug}?schedule=true`);
     } catch {
-      setVerifyError("Failed to complete claim");
+      setVerifyError("Verification failed");
       setVerifyChecking(false);
-      setFinalizingProfile(false);
     }
   };
 
@@ -445,9 +411,8 @@ export default function ProviderOnboardingModal({
     setCreateSubmitting(true);
     setCreateError("");
 
-    // Save to auth flow
-    setAuthEmail(createEmail.trim());
-    setStep("auth");
+    // Go to auth flow with create-profile action
+    startInlineAuth({ type: "create-profile" }, createEmail.trim());
     setCreateSubmitting(false);
   };
 
@@ -480,9 +445,9 @@ export default function ProviderOnboardingModal({
     }
   };
 
-  // Verify OTP (Bug fix #6: better loading state during profile creation)
+  // Verify OTP and execute pending action (copied from onboarding page)
   const handleVerifyOtp = async () => {
-    if (!authEmail || authCode.length !== 6) return;
+    if (!authEmail || authCode.length !== 6 || !pendingAuthAction) return;
 
     setAuthVerifying(true);
     setAuthError("");
@@ -501,44 +466,74 @@ export default function ProviderOnboardingModal({
         return;
       }
 
-      // Successfully authenticated - show better loading state
+      // Successfully authenticated - execute pending action
       setFinalizingProfile(true);
 
-      // If signing into a claimed listing, just refresh and redirect
-      if (signingInToClaimedListing) {
-        await refreshAccountData();
-        router.push(`/provider/medjobs/candidates/${candidateSlug}?schedule=true`);
-        return;
+      switch (pendingAuthAction.type) {
+        case "create-profile": {
+          // Create the profile
+          const res = await fetch("/api/auth/create-profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "organization",
+              displayName: createName.trim(),
+              city: createCity || undefined,
+              state: createState || undefined,
+            }),
+          });
+
+          if (!res.ok) {
+            const data = await res.json();
+            setAuthError(data.error || "Failed to create profile");
+            setAuthVerifying(false);
+            setFinalizingProfile(false);
+            return;
+          }
+
+          await refreshAccountData();
+          router.push(`/provider/medjobs/candidates/${candidateSlug}?schedule=true`);
+          break;
+        }
+
+        case "claim-listing": {
+          const result = pendingAuthAction.result;
+          // Try to claim via deferred action (checks if user's email domain matches)
+          try {
+            const claimRes = await fetch("/api/claim/deferred", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                providerId: result.providerId,
+              }),
+            });
+
+            if (claimRes.ok) {
+              await refreshAccountData();
+              router.push(`/provider/medjobs/candidates/${candidateSlug}?schedule=true`);
+            } else {
+              // If deferred claim fails, go to verify step (send code to business email)
+              setClaimingProvider(result);
+              setStep("verify");
+              setFinalizingProfile(false);
+              await handleSendVerificationCode(result);
+            }
+          } catch {
+            // Fall back to verify step
+            setClaimingProvider(result);
+            setStep("verify");
+            setFinalizingProfile(false);
+            await handleSendVerificationCode(result);
+          }
+          break;
+        }
+
+        case "sign-in": {
+          await refreshAccountData();
+          router.push(`/provider/medjobs/candidates/${candidateSlug}?schedule=true`);
+          break;
+        }
       }
-
-      // If we were claiming, finalize claim
-      if (claimingProvider?.providerId) {
-        await handleFinalizeClaim();
-        return;
-      }
-
-      // Creating new account - call create profile API
-      const res = await fetch("/api/auth/create-profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "organization",
-          displayName: createName.trim(),
-          city: createCity || undefined,
-          state: createState || undefined,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setAuthError(data.error || "Failed to create profile");
-        setAuthVerifying(false);
-        setFinalizingProfile(false);
-        return;
-      }
-
-      await refreshAccountData();
-      router.push(`/provider/medjobs/candidates/${candidateSlug}?schedule=true`);
     } catch {
       setAuthError("Verification failed");
       setAuthVerifying(false);
@@ -690,8 +685,19 @@ export default function ProviderOnboardingModal({
                 <div className="flex-1 overflow-y-auto px-4 py-6">
                   <div className="max-w-2xl mx-auto space-y-4">
                     {searchResults.map((result) => {
+                      const isBusinessProfile = result.source === "business_profiles";
                       const isClaimed = result.claimState === "claimed" || result.claimState === "pending";
                       const locationText = [result.city, result.state].filter(Boolean).join(", ");
+
+                      // Determine helper text and button based on source/state
+                      // - business_profiles: "Sign in to manage." + "Sign in →"
+                      // - olera-providers claimed: "Already managed." + "Dispute →"
+                      // - olera-providers unclaimed: "Unclaimed page." + "Manage →"
+                      const helperText = isBusinessProfile
+                        ? "Sign in to manage."
+                        : isClaimed
+                          ? "Already managed."
+                          : "Unclaimed page.";
 
                       return (
                         <div
@@ -737,7 +743,7 @@ export default function ProviderOnboardingModal({
 
                               {/* Helper text */}
                               <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                                {isClaimed ? "Already managed." : "Unclaimed page."}
+                                {helperText}
                               </p>
 
                               {/* Spacer */}
@@ -745,21 +751,32 @@ export default function ProviderOnboardingModal({
 
                               {/* Actions */}
                               <div className="flex items-center justify-end">
-                                {isClaimed ? (
+                                {isBusinessProfile ? (
+                                  // Business profiles: user might be the owner, show "Sign in →"
                                   <button
                                     type="button"
-                                    onClick={() => handleSignInToClaimedListing(result)}
+                                    onClick={() => startInlineAuth({ type: "sign-in", result })}
                                     className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
                                   >
                                     Sign in →
                                   </button>
-                                ) : (
+                                ) : isClaimed ? (
+                                  // olera-providers claimed by someone else
                                   <button
                                     type="button"
-                                    onClick={() => handleStartClaim(result)}
-                                    className="px-4 py-2 text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-lg transition-all"
+                                    onClick={() => startInlineAuth({ type: "sign-in", result })}
+                                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
                                   >
-                                    This is me →
+                                    Dispute →
+                                  </button>
+                                ) : (
+                                  // olera-providers unclaimed
+                                  <button
+                                    type="button"
+                                    onClick={() => startInlineAuth({ type: "claim-listing", result })}
+                                    className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
+                                  >
+                                    Manage →
                                   </button>
                                 )}
                               </div>
@@ -838,7 +855,7 @@ export default function ProviderOnboardingModal({
           </div>
         );
 
-      case "claim-verify":
+      case "verify":
         // Show finalizing state when creating profile
         if (finalizingProfile) {
           return (
@@ -1070,14 +1087,20 @@ export default function ProviderOnboardingModal({
           );
         }
 
+        // Helper to get result from pending action (for sign-in or claim-listing)
+        const actionResult = pendingAuthAction?.type === "sign-in" || pendingAuthAction?.type === "claim-listing"
+          ? pendingAuthAction.result
+          : null;
+        const isSignIn = pendingAuthAction?.type === "sign-in";
+
         return (
           <div className="space-y-8">
             {/* Back button */}
-            {signingInToClaimedListing && (
+            {actionResult && (
               <button
                 type="button"
                 onClick={() => {
-                  setSigningInToClaimedListing(null);
+                  setPendingAuthAction(null);
                   setStep("search");
                   setAuthSent(false);
                   setAuthCode("");
@@ -1100,40 +1123,41 @@ export default function ProviderOnboardingModal({
                 </svg>
               </div>
               <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
-                {signingInToClaimedListing ? "Sign in to your account" : "Verify your email"}
+                {isSignIn ? "Sign in to continue" : "Verify your email"}
               </h1>
-              {signingInToClaimedListing && (
+              {actionResult && (
                 <p className="text-gray-600 mt-2 font-medium">
-                  {signingInToClaimedListing.name}
+                  {actionResult.name}
                 </p>
               )}
               <p className="text-gray-500 mt-3 text-base sm:text-lg">
                 {authSent
                   ? <>Enter the code sent to <strong className="text-gray-700">{authEmail}</strong></>
-                  : signingInToClaimedListing?.ownerEmail
-                    ? <>Enter your email <span className="text-gray-400">(hint: {signingInToClaimedListing.ownerEmail})</span></>
+                  : actionResult?.ownerEmail
+                    ? <>Enter your email <span className="text-gray-400">(hint: {actionResult.ownerEmail})</span></>
                     : "We'll send a verification code to your email"}
               </p>
             </div>
 
             {!authSent ? (
               <div className="space-y-5">
-                {/* Email input */}
-                {signingInToClaimedListing && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email address
-                    </label>
-                    <input
-                      type="email"
-                      value={authEmail}
-                      onChange={(e) => setAuthEmail(e.target.value)}
-                      placeholder="you@company.com"
-                      className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                      autoFocus
-                    />
-                  </div>
-                )}
+                {/* Email input - always shown so user can enter/change email */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email address
+                  </label>
+                  <input
+                    type="email"
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                    placeholder="you@company.com"
+                    className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                    autoFocus
+                  />
+                  <p className="text-xs text-gray-400 mt-2">
+                    Use your work email for faster verification
+                  </p>
+                </div>
 
                 {authSending ? (
                   <div className="text-center py-8">

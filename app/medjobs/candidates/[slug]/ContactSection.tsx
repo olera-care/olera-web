@@ -26,7 +26,7 @@ export default function ContactSection({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { user, activeProfile, profiles, openAuth } = useAuth();
+  const { user, activeProfile, profiles } = useAuth();
 
   const [showModal, setShowModal] = useState(false);
   const [scheduled, setScheduled] = useState(false);
@@ -91,10 +91,11 @@ export default function ContactSection({
     setShowModal(true);
   }, []);
 
-  // Handle auth required - save form data and prompt auth
-  // Always use openAuth to ensure proper account type checking:
-  // - Guest users: sign up/in with business email
-  // - Family/Caregiver users: must sign in with a DIFFERENT business email (separate account)
+  // Handle auth required - save form data and redirect to provider onboarding
+  // This takes the user through the full onboarding flow:
+  // 1. Search for their business
+  // 2. Claim existing listing OR create new account
+  // 3. Return to candidate page with ?schedule=pending to complete scheduling
   const handleAuthRequired = useCallback((formData: ScheduleFormData) => {
     // Save form data to sessionStorage with candidate slug
     sessionStorage.setItem(SCHEDULE_STORAGE_KEY, JSON.stringify({
@@ -102,22 +103,13 @@ export default function ContactSection({
       candidateSlug: studentSlug,
     }));
 
-    // Always go through auth flow - this handles:
-    // 1. Guest users → sign up/in
-    // 2. Family users → prompted to use different email (account separation enforced in auth modal)
-    // 3. Caregiver users → same as family, need separate provider account
-    openAuth({
-      intent: "provider",
-      headline: `Connect with ${firstName}`,
-      subline: user
-        ? "Sign in with your business email to continue as a provider"
-        : "Sign in with your business email for instant verification",
-      deferred: {
-        action: "hire-candidate",
-        returnUrl: `${pathname}?schedule=pending`,
-      },
-    });
-  }, [user, openAuth, firstName, pathname, studentSlug]);
+    // Close the modal before redirecting
+    setShowModal(false);
+
+    // Redirect to provider onboarding with return URL
+    const returnUrl = `${pathname}?schedule=pending`;
+    router.push(`/provider/onboarding?next=${encodeURIComponent(returnUrl)}`);
+  }, [router, pathname, studentSlug]);
 
   // Handle modal close
   const handleModalClose = useCallback(() => {

@@ -579,10 +579,11 @@ async function handleGuestConnection({
   let providerCity: string | null = null;
   let providerState: string | null = null;
   let providerCategoryForWa: string | null = null;
+  let providerLeadsUnsubscribed = false;
   try {
     const { data: bp } = await db
       .from("business_profiles")
-      .select("email, display_name, city, state, category")
+      .select("email, display_name, city, state, category, metadata")
       .eq("id", toProfileId)
       .single();
     providerCategoryForWa = bp?.category || null;
@@ -590,6 +591,8 @@ async function handleGuestConnection({
     providerDisplayName = bp?.display_name || null;
     providerCity = bp?.city || null;
     providerState = bp?.state || null;
+    const bpMeta = (bp?.metadata as Record<string, unknown>) || {};
+    providerLeadsUnsubscribed = !!bpMeta.leads_unsubscribed;
 
     // Fallback to olera-providers for email and location
     if (!providerEmail || !providerCity) {
@@ -768,7 +771,7 @@ async function handleGuestConnection({
 
   // Provider notifications (fire-and-forget)
   try {
-    if (providerEmail) {
+    if (providerEmail && !providerLeadsUnsubscribed) {
       const careTypeMap: Record<string, string> = {
         home_care: "Home Care",
         home_health: "Home Health Care",
@@ -1412,10 +1415,11 @@ export async function POST(request: Request) {
     let providerCity: string | null = null;
     let providerState: string | null = null;
     let providerCategoryAuth: string | null = null;
+    let providerLeadsUnsubscribedAuth = false;
     try {
       const { data: bp } = await db
         .from("business_profiles")
-        .select("email, display_name, city, state, category")
+        .select("email, display_name, city, state, category, metadata")
         .eq("id", toProfileId)
         .single();
       providerEmail = bp?.email || null;
@@ -1423,6 +1427,8 @@ export async function POST(request: Request) {
       providerCity = bp?.city || null;
       providerCategoryAuth = bp?.category || null;
       providerState = bp?.state || null;
+      const bpMeta = (bp?.metadata as Record<string, unknown>) || {};
+      providerLeadsUnsubscribedAuth = !!bpMeta.leads_unsubscribed;
 
       // Fallback to olera-providers for email and location
       if (!providerEmail || !providerCity) {
@@ -1620,7 +1626,7 @@ export async function POST(request: Request) {
 
     // 9b. Email notification to provider (fire-and-forget)
     try {
-      if (providerEmail && admin) {
+      if (providerEmail && admin && !providerLeadsUnsubscribedAuth) {
         const careTypeMap: Record<string, string> = {
           home_care: "Home Care",
           home_health: "Home Health Care",

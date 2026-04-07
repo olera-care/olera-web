@@ -28,6 +28,10 @@ export default function AdminProvidersPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [filter, setFilter] = useState<StatusFilter>("pending");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
 
   const fetchProviders = useCallback(async () => {
     setLoading(true);
@@ -49,6 +53,7 @@ export default function AdminProvidersPage() {
   }, [filter]);
 
   useEffect(() => {
+    setSelectedIds(new Set());
     fetchProviders();
   }, [fetchProviders]);
 
@@ -63,6 +68,11 @@ export default function AdminProvidersPage() {
       });
       if (res.ok) {
         setProviders((prev) => prev.filter((p) => p.id !== id));
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
       } else {
         const data = await res.json().catch(() => ({}));
         setActionError(data.error || `Failed to ${action} provider. Please try again.`);
@@ -75,6 +85,89 @@ export default function AdminProvidersPage() {
     }
   }
 
+  async function handleBulkAction(action: "approve" | "reject" | "delete") {
+    if (selectedIds.size === 0) return;
+    setBulkLoading(true);
+    setActionError(null);
+
+    try {
+      if (action === "delete") {
+        const res = await fetch("/api/admin/providers", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: Array.from(selectedIds) }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setActionError(data.error || "Failed to delete providers.");
+          return;
+        }
+      } else {
+        const res = await fetch("/api/admin/providers", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: Array.from(selectedIds), action }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setActionError(data.error || `Failed to ${action} providers.`);
+          return;
+        }
+      }
+      setSelectedIds(new Set());
+      fetchProviders();
+    } catch {
+      setActionError("Network error during bulk action.");
+    } finally {
+      setBulkLoading(false);
+    }
+  }
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const res = await fetch(`/api/admin/providers/export?status=${filter}`);
+      if (!res.ok) {
+        setActionError("Failed to export claims.");
+        return;
+      }
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition") || "";
+      const filenameMatch = disposition.match(/filename="?([^"]+)"?/);
+      const filename = filenameMatch?.[1] || `olera-claims-${filter}.csv`;
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      setActionError("Failed to export claims.");
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === providers.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(providers.map((p) => p.id)));
+    }
+  };
+
   const tabs: { label: string; value: StatusFilter }[] = [
     { label: "Pending", value: "pending" },
     { label: "Approved", value: "claimed" },
@@ -85,10 +178,21 @@ export default function AdminProvidersPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Claims</h1>
-        <p className="text-lg text-gray-600 mt-1">
-          Review and manage provider claim requests.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Claims</h1>
+            <p className="text-lg text-gray-600 mt-1">
+              Review and manage provider claim requests.
+            </p>
+          </div>
+          <button
+            onClick={handleExport}
+            disabled={exporting || loading}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            {exporting ? "Exporting..." : "Export CSV"}
+          </button>
+        </div>
       </div>
 
       {/* Filter tabs */}
@@ -108,6 +212,46 @@ export default function AdminProvidersPage() {
           </button>
         ))}
       </div>
+
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 mb-4 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
+          <span className="text-sm font-medium text-gray-800">
+            {selectedIds.size} selected
+          </span>
+          {filter === "pending" && (
+            <>
+              <button
+                onClick={() => handleBulkAction("approve")}
+                disabled={bulkLoading}
+                className="px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+              >
+                Approve selected
+              </button>
+              <button
+                onClick={() => handleBulkAction("reject")}
+                disabled={bulkLoading}
+                className="px-3 py-1.5 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+              >
+                Reject selected
+              </button>
+            </>
+          )}
+          <button
+            onClick={() => setConfirmBulkDelete(true)}
+            disabled={bulkLoading}
+            className="px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+          >
+            Delete selected
+          </button>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Clear
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
@@ -135,6 +279,14 @@ export default function AdminProvidersPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="w-10 px-3 py-3">
+                    <input
+                      type="checkbox"
+                      checked={providers.length > 0 && selectedIds.size === providers.length}
+                      onChange={toggleSelectAll}
+                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                  </th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Name</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Type</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Location</th>
@@ -147,7 +299,15 @@ export default function AdminProvidersPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {providers.map((provider) => (
-                  <tr key={provider.id} className="hover:bg-gray-50">
+                  <tr key={provider.id} className={`hover:bg-gray-50 ${selectedIds.has(provider.id) ? "bg-blue-50" : ""}`}>
+                    <td className="w-10 px-3 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(provider.id)}
+                        onChange={() => toggleSelect(provider.id)}
+                        className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <p className="text-sm font-medium text-gray-900">{provider.display_name}</p>
                       {provider.email && (
@@ -170,7 +330,7 @@ export default function AdminProvidersPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {[provider.city, provider.state].filter(Boolean).join(", ") || "—"}
+                      {[provider.city, provider.state].filter(Boolean).join(", ") || "\u2014"}
                     </td>
                     <td className="px-6 py-4">
                       <Badge variant={getStatusVariant(provider.claim_state)}>
@@ -204,6 +364,34 @@ export default function AdminProvidersPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk delete confirmation */}
+      {confirmBulkDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-semibold text-gray-900">Delete {selectedIds.size} provider{selectedIds.size === 1 ? "" : "s"}</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              This will permanently delete the selected provider profiles. This cannot be undone.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmBulkDelete(false)}
+                disabled={bulkLoading}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { setConfirmBulkDelete(false); handleBulkAction("delete"); }}
+                disabled={bulkLoading}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {bulkLoading ? "Deleting..." : "Delete"}
+              </button>
+            </div>
           </div>
         </div>
       )}

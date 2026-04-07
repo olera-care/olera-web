@@ -50,7 +50,11 @@ export async function GET(request: NextRequest) {
     function applyFilters(q: typeof query) {
       if (status) q = q.eq("status", status);
       if (type) q = q.eq("type", type);
-      if (needsEmail) q = q.contains("metadata", { needs_provider_email: true });
+      if (needsEmail) {
+        q = q.contains("metadata", { needs_provider_email: true });
+        // Only count actionable leads — exclude declined/accepted/archived-status connections
+        q = q.eq("status", "pending");
+      }
       // Show archived OR non-archived
       if (showArchived) {
         q = q.contains("metadata", { archived: true });
@@ -206,6 +210,7 @@ export async function DELETE(request: NextRequest) {
 
     const body = await request.json();
     const ids: string[] = body.ids;
+    const reason: string | undefined = body.reason;
 
     if (!Array.isArray(ids) || ids.length === 0) {
       return NextResponse.json({ error: "ids array is required" }, { status: 400 });
@@ -254,6 +259,7 @@ export async function DELETE(request: NextRequest) {
           from: (conn.from_profile as unknown as { display_name: string } | null)?.display_name,
           to: (conn.to_profile as unknown as { display_name: string } | null)?.display_name,
           created_at: conn.created_at,
+          reason: reason || null,
         },
       });
     }

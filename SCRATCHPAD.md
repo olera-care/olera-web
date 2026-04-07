@@ -7,40 +7,24 @@
 
 ## Current Focus
 
-- **Senior Benefits Pipeline & Data Quality System** (branch: `noble-pare`) — READY FOR PR
-  - Exploration-first pipeline for benefits data: explore → dive → compare → report
-  - **7 commits on `noble-pare`**, not yet PR'd to staging
-  - **What's built**:
-    - Verification metadata on types (`WaiverProgram`, `BenefitProgram`): `sourceUrl`, `lastVerifiedDate`, `verifiedBy`, `savingsSource`, `savingsVerified`
-    - Chantel's Texas audit ingested: 12 programs corrected (SNAP income $1,729→$2,152, MEPD $994→$967, free services fixed, etc.)
-    - SQL migration `034_sbf_verification_metadata.sql` — run on Supabase
-    - Seed endpoint passes verification fields + dry_run shows coverage stats
-    - `/admin/benefits` dashboard: state grid → program detail → content preview → deep links to live pages
-    - Pipeline findings surfaced inline in dashboard (diffs, novel fields, explored date)
-    - `scripts/benefits-pipeline.js` — exploration-first pipeline (explore → dive → compare → report)
-    - Auto-generates `data/pipeline-summary.ts` so dashboard sees findings without manual updates
-    - Michigan test run: 16 programs, 4 data errors found, 5 novel fields, 765-line report
-  - **Key files**:
-    - `scripts/benefits-pipeline.js` — The pipeline script
-    - `data/pipeline-summary.ts` — Auto-generated, imported by admin dashboard
-    - `data/pipeline/MI/` — Michigan exploration output (explore.json, dive.json, compare.json, exploration_report.md)
-    - `app/admin/benefits/page.tsx` — Admin dashboard
-    - `data/waiver-library.ts` — Source of truth (528 programs, 12 TX verified)
-    - `plans/benefits-pipeline-plan.md` — System design doc
-    - `plans/benefits-data-model-plan.md` — Data model redesign plan (deferred — taxonomy comes after exploration)
-  - **Pipeline usage**:
-    - `node scripts/benefits-pipeline.js --state MI` — dry-run preview
-    - `node scripts/benefits-pipeline.js --state MI --run` — full exploration (~3 min, $0.09)
-    - `node scripts/benefits-pipeline.js --state MI --phase explore --run` — single phase
-    - Output: `data/pipeline/{STATE}/exploration_report.md` + auto-updated `pipeline-summary.ts`
-  - **Next**:
-    1. PR to staging → deploy → test dashboard live
-    2. Run pipeline on FL and CA to see patterns across states
-    3. Review reports with Chantel + Logan → decide what data model changes are needed
-    4. Seed TX programs: `/api/admin/seed-sbf-programs?state=TX&confirm=true`
+- **Admin Panel 2.0 QA Fixes** (branch: `noble-yalow`) — IN PROGRESS
+  - From Apr 7 meeting with Graize & Cecille
+  - **Bug fixes**:
+    - [x] Fix "Needs Email" counter — added status=pending filter to exclude non-actionable leads
+    - [x] Restore delete-reason modal — required free-text reason field, logged in audit
+  - **Claims page enhancements**:
+    - [x] CSV export for provider claims — new /api/admin/providers/export endpoint + Export CSV button
+    - [x] Multi-select + bulk approve/reject/delete on claims — checkboxes, bulk action bar
+  - **Provider portal UX**:
+    - [x] Fix auto-sign-in from lead notification emails — deferred send now uses `generateNotificationUrl` with `otk` token
+    - [x] Provider engagement tracking — added `contact_revealed` event type, tracks email/phone copy clicks
+    - [x] Provider unsubscribe/opt-out — `/unsubscribe/[slug]` page, API endpoint, email off-ramp link, send gating
+  - **Manual (non-code)**:
+    - [ ] Purchase Perplexity AI premium subscription for ops team
+
+- **Senior Benefits Pipeline** (branch: `noble-pare`) — MERGED (PR #502)
 
 - **Aging in America** — SHIPPED (PRs #493-498 merged)
-  - Rob Arnold (S2E2) YouTube ID due Apr 7
 
 - **Homepage De-Jank + Mega Menu + Search Bar Polish** (branch: `gifted-rosalind`) — READY FOR QA
 
@@ -66,16 +50,14 @@
 
 ## Next Up
 
-1. PR `noble-pare` to staging → deploy → test admin dashboard live
-2. Run pipeline on FL + CA → compare patterns across 3 states
-3. Review reports with Chantel + Logan (Apr 7 meeting)
-4. Seed TX: `/api/admin/seed-sbf-programs?state=TX&confirm=true`
-5. Based on multi-state patterns → formalize data model changes
-6. Rob Arnold YouTube ID (due Apr 7)
-7. MedJobs candidates detail page taste pass
-8. SEO city-specific content sections
-9. Merge PR #463 (user account separation)
-10. Continue staging → main promotion
+1. **Admin Panel 2.0 QA** — work through all 7 action items (current session)
+2. Run benefits pipeline on FL + CA → compare patterns across 3 states
+3. Seed TX: `/api/admin/seed-sbf-programs?state=TX&confirm=true`
+4. Rob Arnold YouTube ID (due Apr 7)
+5. MedJobs candidates detail page taste pass
+6. SEO city-specific content sections
+7. Merge PR #463 (user account separation)
+8. Continue staging → main promotion
 
 ---
 
@@ -110,6 +92,24 @@
 ---
 
 ## Session Log
+
+### 2026-04-07 (Session 69) — Admin Panel 2.0 QA Fixes
+
+**Branch:** `noble-yalow` | **From Apr 7 meeting with Graize & Cecille**
+
+**Bug Fixes:**
+- Fixed "Needs Email" counter: added `status=pending` filter to exclude non-actionable leads
+- Restored delete-reason modal: required free-text reason, logged in audit trail
+
+**Claims Page Enhancements:**
+- CSV export via `/api/admin/providers/export` + Export CSV button
+- Multi-select with checkboxes + bulk approve/reject/delete bar
+- Bulk API endpoints: PATCH + DELETE on `/api/admin/providers`
+
+**Provider Portal UX:**
+- Fixed auto-sign-in: deferred lead emails now use `generateNotificationUrl` with `otk` token
+- Added `contact_revealed` event tracking on email/phone copy buttons
+- Built unsubscribe flow: `/unsubscribe/[slug]` page + API + email link + send gating
 
 ### 2026-04-06 (Session 68) — Senior Benefits Data Quality System
 

@@ -21,6 +21,20 @@ interface ProviderOnboardingModalProps {
   candidateName: string;
 }
 
+// Represent both olera-providers and business_profiles in search results
+interface SearchResult {
+  id: string;
+  name: string;
+  city: string | null;
+  state: string | null;
+  imageUrl: string | null;
+  source: "olera-providers" | "business_profiles";
+  providerId?: string; // For olera-providers
+  profileId?: string;  // For business_profiles
+  claimState?: "claimed" | "pending" | "unclaimed";
+  ownerEmail?: string; // Email hint for sign-in
+}
+
 function getProviderImage(provider: Provider): string | null {
   if (!provider.provider_images) return null;
   const first = provider.provider_images.split("|")[0].trim();
@@ -42,8 +56,7 @@ export default function ProviderOnboardingModal({
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<Provider[]>([]);
-  const [claimedIds, setClaimedIds] = useState<Set<string>>(new Set());
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState("");
@@ -55,7 +68,7 @@ export default function ProviderOnboardingModal({
   useClickOutside(locationDropdownRef, () => setShowLocationDropdown(false));
 
   // Claim state
-  const [claimingProvider, setClaimingProvider] = useState<Provider | null>(null);
+  const [claimingProvider, setClaimingProvider] = useState<SearchResult | null>(null);
   const [claimSession] = useState(() => crypto.randomUUID());
   const [verifyCode, setVerifyCode] = useState("");
   const [verifyEmailHint, setVerifyEmailHint] = useState("");
@@ -79,6 +92,11 @@ export default function ProviderOnboardingModal({
   const [authVerifying, setAuthVerifying] = useState(false);
   const [authError, setAuthError] = useState("");
   const [authSent, setAuthSent] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [finalizingProfile, setFinalizingProfile] = useState(false);
+
+  // Claimed listing sign-in state
+  const [signingInToClaimedListing, setSigningInToClaimedListing] = useState<SearchResult | null>(null);
 
   // City picker for create form
   const [showCityPicker, setShowCityPicker] = useState(false);
@@ -88,7 +106,54 @@ export default function ProviderOnboardingModal({
 
   const firstName = candidateName.split(" ")[0];
 
-  // Handle search
+  // Reset all state when modal closes (Bug fix #4)
+  useEffect(() => {
+    if (!isOpen) {
+      // Small delay to let close animation finish
+      const timer = setTimeout(() => {
+        setStep("search");
+        setSearchQuery("");
+        setLocationQuery("");
+        setSearchResults([]);
+        setSearching(false);
+        setHasSearched(false);
+        setSearchError("");
+        setClaimingProvider(null);
+        setVerifyCode("");
+        setVerifyEmailHint("");
+        setVerifyNoEmail(false);
+        setVerifySending(false);
+        setVerifyChecking(false);
+        setVerifyError("");
+        setCreateEmail("");
+        setCreateName("");
+        setCreateCity("");
+        setCreateState("");
+        setCreateError("");
+        setCreateSubmitting(false);
+        setAuthEmail("");
+        setAuthCode("");
+        setAuthSending(false);
+        setAuthVerifying(false);
+        setAuthError("");
+        setAuthSent(false);
+        setResendCooldown(0);
+        setFinalizingProfile(false);
+        setSigningInToClaimedListing(null);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  // Resend cooldown timer (Bug fix #5)
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  // Handle search (Bug fix #2: search both olera-providers AND business_profiles)
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     const name = searchQuery.trim();
@@ -102,52 +167,141 @@ export default function ProviderOnboardingModal({
 
     try {
       const supabase = createClient();
+      const results: SearchResult[] = [];
 
-      let query = supabase
+      // 1. Search olera-providers (unclaimed listings)
+      let providerQuery = supabase
         .from("olera-providers")
         .select("*")
         .not("deleted", "is", true);
 
       if (name) {
-        query = query.ilike("provider_name", `%${name}%`);
+        providerQuery = providerQuery.ilike("provider_name", `%${name}%`);
       }
       if (loc) {
         const parts = loc.split(",").map((s) => s.trim());
         if (parts.length >= 2 && parts[1].length <= 3) {
-          query = query.ilike("city", `%${parts[0]}%`);
-          query = query.ilike("state", `%${parts[1]}%`);
+          providerQuery = providerQuery.ilike("city", `%${parts[0]}%`);
+          providerQuery = providerQuery.ilike("state", `%${parts[1]}%`);
         } else {
-          query = query.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
+          providerQuery = providerQuery.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
         }
       }
 
-      const { data, error } = await query.limit(10);
+      const { data: providers, error: providerError } = await providerQuery.limit(10);
 
-      if (error) {
+      if (providerError) {
         setSearchError("Search failed. Please try again.");
         setSearchResults([]);
         return;
       }
 
-      setSearchResults((data as Provider[]) || []);
+      // Get claim states for these providers
+      const providerIds = (providers || []).map((p: Provider) => p.provider_id);
+      let claimMap = new Map<string, { state: "claimed" | "pending"; email?: string }>();
 
-      // Check which are already claimed
-      const providerIds = (data || []).map((p: Provider) => p.provider_id);
       if (providerIds.length > 0) {
-        const { data: claimed } = await supabase
+        const { data: claimedData } = await supabase
           .from("business_profiles")
-          .select("source_provider_id")
+          .select("source_provider_id, claim_state, user_id")
           .in("source_provider_id", providerIds)
           .in("claim_state", ["claimed", "pending"]);
 
-        setClaimedIds(
-          new Set(
-            (claimed || [])
-              .map((r: { source_provider_id: string | null }) => r.source_provider_id)
-              .filter((id): id is string => !!id)
-          )
-        );
+        // Get owner emails for claimed listings
+        if (claimedData && claimedData.length > 0) {
+          const userIds = claimedData.map((c: { user_id: string }) => c.user_id).filter(Boolean);
+          const { data: users } = await supabase
+            .from("users")
+            .select("id, email")
+            .in("id", userIds);
+
+          const userEmailMap = new Map((users || []).map((u: { id: string; email: string }) => [u.id, u.email]));
+
+          for (const claim of claimedData) {
+            if (claim.source_provider_id) {
+              const email = userEmailMap.get(claim.user_id);
+              claimMap.set(claim.source_provider_id, {
+                state: claim.claim_state as "claimed" | "pending",
+                email: email ? `${email.slice(0, 2)}***@${email.split("@")[1]}` : undefined,
+              });
+            }
+          }
+        }
       }
+
+      // Convert providers to SearchResult
+      for (const p of (providers as Provider[]) || []) {
+        const claimInfo = claimMap.get(p.provider_id);
+        results.push({
+          id: p.provider_id,
+          name: p.provider_name,
+          city: p.city,
+          state: p.state,
+          imageUrl: getProviderImage(p),
+          source: "olera-providers",
+          providerId: p.provider_id,
+          claimState: claimInfo?.state || "unclaimed",
+          ownerEmail: claimInfo?.email,
+        });
+      }
+
+      // 2. Search business_profiles (manually created profiles)
+      let profileQuery = supabase
+        .from("business_profiles")
+        .select("id, display_name, city, state, claim_state, user_id, avatar_url")
+        .eq("type", "organization");
+
+      if (name) {
+        profileQuery = profileQuery.ilike("display_name", `%${name}%`);
+      }
+      if (loc) {
+        const parts = loc.split(",").map((s) => s.trim());
+        if (parts.length >= 2 && parts[1].length <= 3) {
+          profileQuery = profileQuery.ilike("city", `%${parts[0]}%`);
+          profileQuery = profileQuery.ilike("state", `%${parts[1]}%`);
+        } else {
+          profileQuery = profileQuery.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
+        }
+      }
+
+      const { data: profiles } = await profileQuery.limit(10);
+
+      // Get owner emails for these profiles
+      if (profiles && profiles.length > 0) {
+        const userIds = profiles.map((p: { user_id: string }) => p.user_id).filter(Boolean);
+        const { data: users } = await supabase
+          .from("users")
+          .select("id, email")
+          .in("id", userIds);
+
+        const userEmailMap = new Map((users || []).map((u: { id: string; email: string }) => [u.id, u.email]));
+
+        for (const p of profiles) {
+          const email = userEmailMap.get(p.user_id);
+          results.push({
+            id: p.id,
+            name: p.display_name,
+            city: p.city,
+            state: p.state,
+            imageUrl: p.avatar_url,
+            source: "business_profiles",
+            profileId: p.id,
+            claimState: "claimed", // business_profiles are always "owned"
+            ownerEmail: email ? `${email.slice(0, 2)}***@${email.split("@")[1]}` : undefined,
+          });
+        }
+      }
+
+      // Dedupe by name (prefer olera-providers)
+      const seen = new Set<string>();
+      const dedupedResults = results.filter((r) => {
+        const key = r.name.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      setSearchResults(dedupedResults.slice(0, 10));
     } catch {
       setSearchError("Search failed. Please try again.");
       setSearchResults([]);
@@ -157,9 +311,11 @@ export default function ProviderOnboardingModal({
     }
   };
 
-  // Start claim flow
-  const handleStartClaim = async (provider: Provider) => {
-    setClaimingProvider(provider);
+  // Start claim flow (for unclaimed olera-providers)
+  const handleStartClaim = async (result: SearchResult) => {
+    if (!result.providerId) return;
+
+    setClaimingProvider(result);
     setVerifyCode("");
     setVerifyError("");
     setVerifyNoEmail(false);
@@ -170,7 +326,7 @@ export default function ProviderOnboardingModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          providerId: provider.provider_id,
+          providerId: result.providerId,
           sessionId: claimSession,
         }),
       });
@@ -194,9 +350,20 @@ export default function ProviderOnboardingModal({
     }
   };
 
+  // Sign in to claimed listing (Bug fix #3)
+  const handleSignInToClaimedListing = (result: SearchResult) => {
+    setSigningInToClaimedListing(result);
+    // Pre-fill auth email if we have a hint
+    if (result.ownerEmail) {
+      // Don't set the masked email, let user type their full email
+      setAuthEmail("");
+    }
+    setStep("auth");
+  };
+
   // Verify claim code
   const handleVerifyCode = async () => {
-    if (!claimingProvider || verifyCode.length !== 6) return;
+    if (!claimingProvider?.providerId || verifyCode.length !== 6) return;
 
     setVerifyChecking(true);
     setVerifyError("");
@@ -206,7 +373,7 @@ export default function ProviderOnboardingModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          providerId: claimingProvider.provider_id,
+          providerId: claimingProvider.providerId,
           sessionId: claimSession,
           code: verifyCode,
         }),
@@ -230,14 +397,16 @@ export default function ProviderOnboardingModal({
 
   // Finalize claim after code verification
   const handleFinalizeClaim = async () => {
-    if (!claimingProvider) return;
+    if (!claimingProvider?.providerId) return;
+
+    setFinalizingProfile(true);
 
     try {
       const res = await fetch("/api/claim/finalize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          providerId: claimingProvider.provider_id,
+          providerId: claimingProvider.providerId,
           sessionId: claimSession,
         }),
       });
@@ -249,10 +418,12 @@ export default function ProviderOnboardingModal({
         if (data.requiresAuth) {
           setAuthEmail(data.email || "");
           setStep("auth");
+          setFinalizingProfile(false);
           return;
         }
         setVerifyError(data.error || "Failed to complete claim");
         setVerifyChecking(false);
+        setFinalizingProfile(false);
         return;
       }
 
@@ -262,6 +433,7 @@ export default function ProviderOnboardingModal({
     } catch {
       setVerifyError("Failed to complete claim");
       setVerifyChecking(false);
+      setFinalizingProfile(false);
     }
   };
 
@@ -279,9 +451,9 @@ export default function ProviderOnboardingModal({
     setCreateSubmitting(false);
   };
 
-  // Send OTP
+  // Send OTP (with cooldown - Bug fix #5)
   const handleSendOtp = async () => {
-    if (!authEmail) return;
+    if (!authEmail || resendCooldown > 0) return;
 
     setAuthSending(true);
     setAuthError("");
@@ -299,6 +471,7 @@ export default function ProviderOnboardingModal({
         setAuthError(error.message);
       } else {
         setAuthSent(true);
+        setResendCooldown(60); // 60 second cooldown
       }
     } catch {
       setAuthError("Failed to send code");
@@ -307,7 +480,7 @@ export default function ProviderOnboardingModal({
     }
   };
 
-  // Verify OTP
+  // Verify OTP (Bug fix #6: better loading state during profile creation)
   const handleVerifyOtp = async () => {
     if (!authEmail || authCode.length !== 6) return;
 
@@ -328,36 +501,48 @@ export default function ProviderOnboardingModal({
         return;
       }
 
-      // Successfully authenticated
-      // If we were claiming, finalize claim
-      if (claimingProvider) {
-        await handleFinalizeClaim();
-      } else {
-        // Creating new account - call create profile API
-        const res = await fetch("/api/auth/create-profile", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "organization",
-            displayName: createName.trim(),
-            city: createCity || undefined,
-            state: createState || undefined,
-          }),
-        });
+      // Successfully authenticated - show better loading state
+      setFinalizingProfile(true);
 
-        if (!res.ok) {
-          const data = await res.json();
-          setAuthError(data.error || "Failed to create profile");
-          setAuthVerifying(false);
-          return;
-        }
-
+      // If signing into a claimed listing, just refresh and redirect
+      if (signingInToClaimedListing) {
         await refreshAccountData();
         router.push(`/provider/medjobs/candidates/${candidateSlug}?schedule=true`);
+        return;
       }
+
+      // If we were claiming, finalize claim
+      if (claimingProvider?.providerId) {
+        await handleFinalizeClaim();
+        return;
+      }
+
+      // Creating new account - call create profile API
+      const res = await fetch("/api/auth/create-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "organization",
+          displayName: createName.trim(),
+          city: createCity || undefined,
+          state: createState || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setAuthError(data.error || "Failed to create profile");
+        setAuthVerifying(false);
+        setFinalizingProfile(false);
+        return;
+      }
+
+      await refreshAccountData();
+      router.push(`/provider/medjobs/candidates/${candidateSlug}?schedule=true`);
     } catch {
       setAuthError("Verification failed");
       setAuthVerifying(false);
+      setFinalizingProfile(false);
     }
   };
 
@@ -369,33 +554,34 @@ export default function ProviderOnboardingModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, authEmail]);
 
-  // If user is already authenticated during the flow, redirect
-  useEffect(() => {
-    if (user && isOpen) {
-      // User authenticated mid-flow, redirect to portal
-      router.push(`/provider/medjobs/candidates/${candidateSlug}?schedule=true`);
-    }
-  }, [user, isOpen, router, candidateSlug]);
+  // Bug fix #1: REMOVED the problematic useEffect that redirected on user change
+  // This was causing a race condition where redirect happened before profile creation completed.
+  // The redirect now happens at the END of handleVerifyOtp/handleFinalizeClaim.
 
   const renderStep = () => {
     switch (step) {
       case "search":
         return (
-          <div className="space-y-6">
-            {/* Header */}
+          <div className="space-y-8">
+            {/* Header - matches onboarding page style */}
             <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-900">
+              <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
                 Schedule an interview with {firstName}
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
+              </h1>
+              <p className="text-gray-500 mt-3 text-base sm:text-lg leading-relaxed">
                 Find your business or create an account to get started
               </p>
             </div>
 
             {/* Search form */}
-            <form onSubmit={handleSearch} className="space-y-4">
+            <form onSubmit={handleSearch} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Business name
                 </label>
                 <input
@@ -403,13 +589,14 @@ export default function ProviderOnboardingModal({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="e.g., Sunrise Senior Living"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                  autoFocus
                 />
               </div>
 
               <div className="relative" ref={locationDropdownRef}>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  City or state <span className="text-gray-400">(optional)</span>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  City or state <span className="text-gray-400 font-normal">(optional)</span>
                 </label>
                 <input
                   type="text"
@@ -420,10 +607,10 @@ export default function ProviderOnboardingModal({
                   }}
                   onFocus={() => setShowLocationDropdown(true)}
                   placeholder="e.g., Dallas, TX"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
                 />
                 {showLocationDropdown && cityResults.length > 0 && (
-                  <div className="absolute z-50 mt-1 w-full bg-white rounded-lg border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
+                  <div className="absolute z-50 mt-1 w-full bg-white rounded-xl border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
                     {cityResults.map((c) => (
                       <button
                         key={`${c.city}-${c.state}`}
@@ -432,7 +619,7 @@ export default function ProviderOnboardingModal({
                           setLocationQuery(`${c.city}, ${c.state}`);
                           setShowLocationDropdown(false);
                         }}
-                        className="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors"
+                        className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
                       >
                         {c.city}, {c.state}
                       </button>
@@ -443,7 +630,7 @@ export default function ProviderOnboardingModal({
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full py-3.5 text-base"
                 disabled={searching || (!searchQuery.trim() && !locationQuery.trim())}
               >
                 {searching ? "Searching..." : "Search"}
@@ -452,57 +639,60 @@ export default function ProviderOnboardingModal({
 
             {/* Search results */}
             {hasSearched && (
-              <div className="space-y-3">
+              <div className="space-y-4 mt-8">
                 {searchError && (
-                  <p className="text-sm text-red-600">{searchError}</p>
+                  <p className="text-sm text-red-600 text-center">{searchError}</p>
                 )}
 
                 {searchResults.length > 0 ? (
                   <>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 text-center">
                       {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} found
                     </p>
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {searchResults.map((provider) => {
-                        const isClaimed = claimedIds.has(provider.provider_id);
-                        const imgUrl = getProviderImage(provider);
+                    <div className="space-y-3 max-h-[280px] overflow-y-auto">
+                      {searchResults.map((result) => {
+                        const isClaimed = result.claimState === "claimed" || result.claimState === "pending";
                         return (
                           <div
-                            key={provider.provider_id}
-                            className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"
+                            key={result.id}
+                            className="flex items-center gap-4 p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
                           >
-                            <div className="w-12 h-12 rounded-lg bg-gray-200 overflow-hidden shrink-0">
-                              {imgUrl ? (
+                            <div className="w-14 h-14 rounded-xl bg-gray-200 overflow-hidden shrink-0">
+                              {result.imageUrl ? (
                                 <Image
-                                  src={imgUrl}
-                                  alt={provider.provider_name}
-                                  width={48}
-                                  height={48}
+                                  src={result.imageUrl}
+                                  alt={result.name}
+                                  width={56}
+                                  height={56}
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-400 text-lg font-medium">
-                                  {provider.provider_name.charAt(0)}
+                                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xl font-semibold bg-gradient-to-br from-primary-50 to-gray-100">
+                                  {result.name.charAt(0)}
                                 </div>
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-900 truncate">
-                                {provider.provider_name}
+                              <p className="font-semibold text-gray-900 truncate">
+                                {result.name}
                               </p>
-                              <p className="text-xs text-gray-500">
-                                {[provider.city, provider.state].filter(Boolean).join(", ")}
+                              <p className="text-sm text-gray-500">
+                                {[result.city, result.state].filter(Boolean).join(", ") || "Location not specified"}
                               </p>
                             </div>
                             {isClaimed ? (
-                              <span className="text-xs text-gray-400 px-2 py-1 bg-gray-100 rounded">
-                                Claimed
-                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleSignInToClaimedListing(result)}
+                                className="px-4 py-2 text-sm font-semibold text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors shrink-0"
+                              >
+                                Sign in
+                              </button>
                             ) : (
                               <button
                                 type="button"
-                                onClick={() => handleStartClaim(provider)}
-                                className="px-3 py-1.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-lg transition-colors"
+                                onClick={() => handleStartClaim(result)}
+                                className="px-4 py-2 text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-xl transition-colors shrink-0"
                               >
                                 This is me
                               </button>
@@ -513,18 +703,25 @@ export default function ProviderOnboardingModal({
                     </div>
                   </>
                 ) : (
-                  <p className="text-sm text-gray-500">No businesses found.</p>
+                  <div className="text-center py-6">
+                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                      </svg>
+                    </div>
+                    <p className="text-gray-500">No businesses found matching your search.</p>
+                  </div>
                 )}
 
                 {/* Create new option */}
-                <div className="pt-4 border-t border-gray-200">
+                <div className="pt-6 border-t border-gray-100">
                   <button
                     type="button"
                     onClick={() => {
                       setCreateName(searchQuery);
                       setStep("create");
                     }}
-                    className="w-full text-center text-sm font-medium text-primary-600 hover:text-primary-700"
+                    className="w-full text-center text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
                   >
                     Don&apos;t see your business? Create a new account →
                   </button>
@@ -534,11 +731,11 @@ export default function ProviderOnboardingModal({
 
             {/* Direct create option */}
             {!hasSearched && (
-              <div className="pt-4 border-t border-gray-200 text-center">
+              <div className="pt-6 border-t border-gray-100 text-center">
                 <button
                   type="button"
                   onClick={() => setStep("create")}
-                  className="text-sm font-medium text-primary-600 hover:text-primary-700"
+                  className="text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
                 >
                   Skip search and create account →
                 </button>
@@ -548,56 +745,81 @@ export default function ProviderOnboardingModal({
         );
 
       case "claim-verify":
+        // Show finalizing state when creating profile
+        if (finalizingProfile) {
+          return (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
+                <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
+                Claiming your business...
+              </h1>
+              <p className="text-gray-500 mt-3 text-base sm:text-lg">This will only take a moment</p>
+            </div>
+          );
+        }
+
         return (
-          <div className="space-y-6">
+          <div className="space-y-8">
+            {/* Back button */}
             <button
               type="button"
               onClick={() => {
                 setStep("search");
                 setClaimingProvider(null);
               }}
-              className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+              className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Back
+              Back to search
             </button>
 
+            {/* Header */}
             <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-900">
+              <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                </svg>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
                 Verify your business
-              </h2>
+              </h1>
               {claimingProvider && (
-                <p className="text-sm text-gray-500 mt-1">
-                  Claiming: {claimingProvider.provider_name}
+                <p className="text-gray-500 mt-3 text-base sm:text-lg">
+                  Claiming <strong className="text-gray-700">{claimingProvider.name}</strong>
                 </p>
               )}
             </div>
 
             {verifySending ? (
               <div className="text-center py-8">
-                <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                <p className="text-sm text-gray-500 mt-3">Sending verification code...</p>
+                <div className="w-10 h-10 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto" />
+                <p className="text-gray-500 mt-4 text-base">Sending verification code...</p>
               </div>
             ) : verifyNoEmail ? (
-              <div className="text-center py-4">
-                <p className="text-sm text-gray-600">
+              <div className="text-center py-6 px-4 bg-amber-50 rounded-xl border border-amber-100">
+                <svg className="w-10 h-10 text-amber-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                <p className="text-amber-800 font-medium">
                   We don&apos;t have an email on file for this business.
                 </p>
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-amber-700 mt-2">
                   Please contact us at{" "}
-                  <a href="mailto:hello@olera.care" className="text-primary-600 hover:underline">
+                  <a href="mailto:hello@olera.care" className="font-medium underline hover:no-underline">
                     hello@olera.care
                   </a>{" "}
                   to verify your ownership.
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
-                <p className="text-sm text-gray-600 text-center">
+              <div className="space-y-6">
+                <p className="text-gray-500 text-center text-base">
                   We sent a 6-digit code to{" "}
-                  <span className="font-medium">{verifyEmailHint || "your email"}</span>
+                  <strong className="text-gray-700">{verifyEmailHint || "your email"}</strong>
                 </p>
 
                 <div className="flex justify-center">
@@ -616,7 +838,7 @@ export default function ProviderOnboardingModal({
                 <Button
                   onClick={handleVerifyCode}
                   disabled={verifyCode.length !== 6 || verifyChecking}
-                  className="w-full"
+                  className="w-full py-3.5 text-base"
                 >
                   {verifyChecking ? "Verifying..." : "Verify & Continue"}
                 </Button>
@@ -627,30 +849,37 @@ export default function ProviderOnboardingModal({
 
       case "create":
         return (
-          <div className="space-y-6">
+          <div className="space-y-8">
+            {/* Back button */}
             <button
               type="button"
               onClick={() => setStep("search")}
-              className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+              className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Back
+              Back to search
             </button>
 
+            {/* Header */}
             <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-900">
+              <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
                 Create your account
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
+              </h1>
+              <p className="text-gray-500 mt-3 text-base sm:text-lg leading-relaxed">
                 Set up a provider account to schedule interviews
               </p>
             </div>
 
-            <form onSubmit={handleCreateSubmit} className="space-y-4">
+            <form onSubmit={handleCreateSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Business email
                 </label>
                 <input
@@ -659,15 +888,16 @@ export default function ProviderOnboardingModal({
                   onChange={(e) => setCreateEmail(e.target.value)}
                   placeholder="you@company.com"
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                  autoFocus
                 />
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-gray-400 mt-2">
                   Use your work email for faster verification
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Business name
                 </label>
                 <input
@@ -676,13 +906,13 @@ export default function ProviderOnboardingModal({
                   onChange={(e) => setCreateName(e.target.value)}
                   placeholder="Your company name"
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
                 />
               </div>
 
               <div className="relative" ref={cityPickerRef}>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  City <span className="text-gray-400">(optional)</span>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  City <span className="text-gray-400 font-normal">(optional)</span>
                 </label>
                 <input
                   type="text"
@@ -693,10 +923,10 @@ export default function ProviderOnboardingModal({
                   }}
                   onFocus={() => setShowCityPicker(true)}
                   placeholder="e.g., Dallas"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
                 />
                 {showCityPicker && cityPickerResults.length > 0 && (
-                  <div className="absolute z-50 mt-1 w-full bg-white rounded-lg border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
+                  <div className="absolute z-50 mt-1 w-full bg-white rounded-xl border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
                     {cityPickerResults.map((c) => (
                       <button
                         key={`${c.city}-${c.state}`}
@@ -706,7 +936,7 @@ export default function ProviderOnboardingModal({
                           setCreateState(c.state);
                           setShowCityPicker(false);
                         }}
-                        className="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors"
+                        className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
                       >
                         {c.city}, {c.state}
                       </button>
@@ -716,12 +946,12 @@ export default function ProviderOnboardingModal({
               </div>
 
               {createError && (
-                <p className="text-sm text-red-600">{createError}</p>
+                <p className="text-sm text-red-600 text-center">{createError}</p>
               )}
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full py-3.5 text-base"
                 disabled={!createEmail.trim() || !createName.trim() || createSubmitting}
               >
                 {createSubmitting ? "Creating..." : "Continue"}
@@ -731,39 +961,108 @@ export default function ProviderOnboardingModal({
         );
 
       case "auth":
+        // Show better loading state during profile setup
+        if (finalizingProfile) {
+          return (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
+                <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900">
+                Setting up your account...
+              </h1>
+              <p className="text-gray-500 mt-3 text-base sm:text-lg">This will only take a moment</p>
+            </div>
+          );
+        }
+
         return (
-          <div className="space-y-6">
+          <div className="space-y-8">
+            {/* Back button */}
+            {signingInToClaimedListing && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSigningInToClaimedListing(null);
+                  setStep("search");
+                  setAuthSent(false);
+                  setAuthCode("");
+                  setAuthEmail("");
+                }}
+                className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to search
+              </button>
+            )}
+
+            {/* Header */}
             <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Verify your email
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
+              <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                </svg>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
+                {signingInToClaimedListing ? "Sign in to your account" : "Verify your email"}
+              </h1>
+              {signingInToClaimedListing && (
+                <p className="text-gray-600 mt-2 font-medium">
+                  {signingInToClaimedListing.name}
+                </p>
+              )}
+              <p className="text-gray-500 mt-3 text-base sm:text-lg">
                 {authSent
-                  ? `Enter the code sent to ${authEmail}`
-                  : `We'll send a code to ${authEmail}`}
+                  ? <>Enter the code sent to <strong className="text-gray-700">{authEmail}</strong></>
+                  : signingInToClaimedListing?.ownerEmail
+                    ? <>Enter your email <span className="text-gray-400">(hint: {signingInToClaimedListing.ownerEmail})</span></>
+                    : "We'll send a verification code to your email"}
               </p>
             </div>
 
             {!authSent ? (
-              <div className="space-y-4">
+              <div className="space-y-5">
+                {/* Email input */}
+                {signingInToClaimedListing && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email address
+                    </label>
+                    <input
+                      type="email"
+                      value={authEmail}
+                      onChange={(e) => setAuthEmail(e.target.value)}
+                      placeholder="you@company.com"
+                      className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                      autoFocus
+                    />
+                  </div>
+                )}
+
                 {authSending ? (
                   <div className="text-center py-8">
-                    <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                    <p className="text-sm text-gray-500 mt-3">Sending code...</p>
+                    <div className="w-10 h-10 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-gray-500 mt-4 text-base">Sending verification code...</p>
                   </div>
                 ) : (
                   <>
                     {authError && (
                       <p className="text-sm text-red-600 text-center">{authError}</p>
                     )}
-                    <Button onClick={handleSendOtp} className="w-full">
-                      Send verification code
+                    <Button
+                      onClick={handleSendOtp}
+                      className="w-full py-3.5 text-base"
+                      disabled={!authEmail || resendCooldown > 0}
+                    >
+                      {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Send verification code"}
                     </Button>
                   </>
                 )}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="flex justify-center">
                   <OtpInput
                     length={6}
@@ -780,21 +1079,29 @@ export default function ProviderOnboardingModal({
                 <Button
                   onClick={handleVerifyOtp}
                   disabled={authCode.length !== 6 || authVerifying}
-                  className="w-full"
+                  className="w-full py-3.5 text-base"
                 >
                   {authVerifying ? "Verifying..." : "Verify & Continue"}
                 </Button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthSent(false);
-                    setAuthCode("");
-                  }}
-                  className="w-full text-sm text-gray-500 hover:text-gray-700"
-                >
-                  Didn&apos;t receive code? Send again
-                </button>
+                {/* Resend with cooldown */}
+                <div className="text-center">
+                  {resendCooldown > 0 ? (
+                    <p className="text-sm text-gray-400">Resend code in {resendCooldown}s</p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthSent(false);
+                        setAuthCode("");
+                        handleSendOtp();
+                      }}
+                      className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                    >
+                      Didn&apos;t receive code? Send again
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -806,11 +1113,14 @@ export default function ProviderOnboardingModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title=""
-      size="lg"
+      size="fullscreen"
+      hideHeader
     >
-      <div className="py-2">
-        {renderStep()}
+      {/* Centered content wrapper - matches onboarding page aesthetic */}
+      <div className="h-full flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-lg">
+          {renderStep()}
+        </div>
       </div>
     </Modal>
   );

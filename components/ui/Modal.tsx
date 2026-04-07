@@ -10,11 +10,13 @@ interface ModalProps {
   title?: ReactNode;
   children: ReactNode;
   /** Maximum width of the modal content. Default: "md" */
-  size?: "sm" | "md" | "lg" | "xl" | "2xl";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "fullscreen";
   /** Optional back button handler. Shows a small circular back arrow in the header. */
   onBack?: () => void;
   /** Sticky footer content (pinned below scrollable body). */
   footer?: ReactNode;
+  /** Hide the default header (title, close button). Use for custom layouts. */
+  hideHeader?: boolean;
 }
 
 const sizeClasses: Record<string, string> = {
@@ -23,6 +25,7 @@ const sizeClasses: Record<string, string> = {
   lg: "max-w-lg",
   xl: "max-w-xl",
   "2xl": "max-w-[640px]",
+  fullscreen: "max-w-none",
 };
 
 /**
@@ -41,7 +44,9 @@ export default function Modal({
   size = "md",
   onBack,
   footer,
+  hideHeader = false,
 }: ModalProps) {
+  const isFullscreen = size === "fullscreen";
   const overlayRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
@@ -169,58 +174,84 @@ export default function Modal({
         ref={contentRef}
         className={[
           "relative bg-white shadow-2xl w-full flex flex-col",
-          // Mobile: bottom sheet - use dvh for proper mobile Safari support
-          "rounded-t-2xl max-h-[92dvh] animate-sheet-up",
-          // Desktop: centered modal
-          "sm:rounded-2xl sm:min-h-[50vh] sm:max-h-[85dvh] sm:animate-modal-pop",
+          isFullscreen
+            ? [
+                // Fullscreen: near full viewport with small margins
+                "rounded-2xl m-3 sm:m-4 lg:m-6",
+                "h-[calc(100dvh-24px)] sm:h-[calc(100dvh-32px)] lg:h-[calc(100dvh-48px)]",
+                "animate-modal-pop",
+              ].join(" ")
+            : [
+                // Mobile: bottom sheet - use dvh for proper mobile Safari support
+                "rounded-t-2xl max-h-[92dvh] animate-sheet-up",
+                // Desktop: centered modal
+                "sm:rounded-2xl sm:min-h-[50vh] sm:max-h-[85dvh] sm:animate-modal-pop",
+              ].join(" "),
           sizeClasses[size],
         ].join(" ")}
         // Extend the white sheet into the iPhone safe-area zone so the
         // home indicator doesn't create a transparent gap at the bottom.
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
-        {/* Drag handle — mobile only */}
-        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0">
-          <div className="w-10 h-1 rounded-full bg-gray-300" />
-        </div>
+        {/* Drag handle — mobile only, not for fullscreen */}
+        {!isFullscreen && (
+          <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0">
+            <div className="w-10 h-1 rounded-full bg-gray-300" />
+          </div>
+        )}
 
         {/* Header — pinned top */}
-        <div className="flex items-center gap-3 px-5 sm:px-7 pt-4 sm:pt-6 pb-0 shrink-0">
-          {/* Back button */}
-          {onBack && (
+        {hideHeader ? (
+          /* Minimal close button for fullscreen/custom layouts */
+          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-10">
             <button
-              onClick={onBack}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors shrink-0"
-              aria-label="Go back"
+              onClick={handleClose}
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors"
+              aria-label="Close"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-          )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 px-5 sm:px-7 pt-4 sm:pt-6 pb-0 shrink-0">
+            {/* Back button */}
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors shrink-0"
+                aria-label="Go back"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            )}
 
-          {/* Title (left-aligned) — can be string or ReactNode */}
-          {title ? (
-            typeof title === "string" ? (
-              <h2 className="text-xl sm:text-[28px] font-semibold text-gray-900 flex-1">{title}</h2>
+            {/* Title (left-aligned) — can be string or ReactNode */}
+            {title ? (
+              typeof title === "string" ? (
+                <h2 className="text-xl sm:text-[28px] font-semibold text-gray-900 flex-1">{title}</h2>
+              ) : (
+                <div className="flex-1">{title}</div>
+              )
             ) : (
-              <div className="flex-1">{title}</div>
-            )
-          ) : (
-            <div className="flex-1" />
-          )}
+              <div className="flex-1" />
+            )}
 
-          {/* Close button */}
-          <button
-            onClick={handleClose}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors shrink-0"
-            aria-label="Close"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+            {/* Close button */}
+            <button
+              onClick={handleClose}
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors shrink-0"
+              aria-label="Close"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
 
         {/* Scrollable body */}
         <div

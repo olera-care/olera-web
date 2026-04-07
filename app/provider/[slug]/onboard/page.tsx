@@ -56,7 +56,7 @@ export default function ProviderOnboardPage() {
   // Link Tracking Protection which strips params named "token" from URLs
   const tokenParam = searchParams.get("otk");
   const router = useRouter();
-  const { user, account, openAuth, refreshAccountData, switchProfile } = useAuth();
+  const { user, account, profiles, openAuth, refreshAccountData, switchProfile } = useAuth();
 
   // Track email click if this visit came from an email link (fire-and-forget)
   useEffect(() => {
@@ -619,9 +619,11 @@ export default function ProviderOnboardPage() {
 
   // Handle claim button click - open auth modal for authentication-based claim flow
   // After auth, the API will check if email matches provider's email for auto-verification
+  const hasProviderProfile = (profiles || []).some((p) => p.type === "organization");
+
   const handleClaimClick = useCallback(async () => {
-    // If user is already signed in, call claim-listing API directly
-    if (user) {
+    // If user is signed in AND has a provider profile, call claim-listing API directly
+    if (user && hasProviderProfile) {
       setStep("finalizing");
       try {
         const res = await fetch("/api/provider/claim-listing", {
@@ -667,21 +669,25 @@ export default function ProviderOnboardPage() {
     }));
 
     // Open auth modal with claim intent
+    // For users signed in with family/caregiver account, they'll see error and can try different email
+    // For guests, they sign up/in with business email
     // The claim-listing API will handle email matching for verification status
     openAuth({
       intent: "provider",
       providerType: "organization",
       headline: "Sign in to claim this listing",
-      subline: provider?.email
-        ? `Use ${provider.email.replace(/(.{2})(.*)(@.*)/, "$1***$3")} for instant verification`
-        : "Use your business email to claim and manage this listing",
+      subline: user
+        ? "Sign in with your business email to claim this listing"
+        : provider?.email
+          ? `Use ${provider.email.replace(/(.{2})(.*)(@.*)/, "$1***$3")} for instant verification`
+          : "Use your business email to claim and manage this listing",
       deferred: {
         action: "claim-listing",
         returnUrl: `${window.location.pathname}?provider_id=${provider?.provider_id}`,
       },
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, openAuth, provider?.provider_id, provider?.provider_name, provider?.slug, provider?.email, provider?.city, provider?.state, refreshAccountData, switchProfile]);
+  }, [user, hasProviderProfile, openAuth, provider?.provider_id, provider?.provider_name, provider?.slug, provider?.email, provider?.city, provider?.state, refreshAccountData, switchProfile]);
 
   // Loading state
   if (step === "loading") {

@@ -283,11 +283,11 @@ export default function ProviderOnboardingModal({
         });
       }
 
-      // 2. Search business_profiles (created from scratch, no source_provider_id)
+      // 2. Search business_profiles (both from scratch AND auto-linked)
+      // We include all profiles and dedupe against olera-providers by source_provider_id
       let profileQuery = supabase
         .from("business_profiles")
-        .select("id, display_name, city, state, avatar_url, slug, account_id")
-        .is("source_provider_id", null) // Only profiles created from scratch
+        .select("id, display_name, city, state, avatar_url, slug, account_id, source_provider_id")
         .eq("type", "organization") // Only provider organizations
         .eq("is_active", true); // Only active profiles
 
@@ -327,7 +327,17 @@ export default function ProviderOnboardingModal({
 
         const userEmailMap = new Map((users || []).map((u: { id: string; email: string }) => [u.id, u.email]));
 
+        // Collect provider IDs already in results to avoid duplicates
+        const existingProviderIds = new Set(
+          results.filter((r) => r.source === "olera-providers").map((r) => r.providerId)
+        );
+
         for (const p of profiles) {
+          // Skip if this profile is linked to an olera-provider already in results
+          if (p.source_provider_id && existingProviderIds.has(p.source_provider_id)) {
+            continue;
+          }
+
           const userId = accountUserMap.get(p.account_id);
           const email = userId ? userEmailMap.get(userId) : undefined;
           results.push({
@@ -344,7 +354,7 @@ export default function ProviderOnboardingModal({
         }
       }
 
-      // Dedupe by name (prefer olera-providers)
+      // Dedupe by name (prefer olera-providers, then first occurrence)
       const seen = new Set<string>();
       const dedupedResults = results.filter((r) => {
         const key = r.name.toLowerCase();

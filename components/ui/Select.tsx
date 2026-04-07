@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useId } from "react";
+import { createPortal } from "react-dom";
 
 // ============================================================
 // Types
@@ -77,6 +78,13 @@ export default function Select({
   const [openUpward, setOpenUpward] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
+  const [mounted, setMounted] = useState(false);
+
+  // Track client-side mount for portal
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -125,17 +133,31 @@ export default function Select({
 
   useEffect(() => {
     if (isOpen && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const dropdownHeight = Math.min(filteredOptions.length * 48 + (searchable ? 56 : 16), 320);
+
+      let shouldOpenUpward = false;
       if (dropdownDirection === "down") {
-        setOpenUpward(false);
+        shouldOpenUpward = false;
       } else if (dropdownDirection === "up") {
-        setOpenUpward(true);
+        shouldOpenUpward = true;
       } else {
         // Auto: calculate based on available space
-        const rect = triggerRef.current.getBoundingClientRect();
         const spaceBelow = window.innerHeight - rect.bottom;
-        const dropdownHeight = Math.min(filteredOptions.length * 48 + (searchable ? 56 : 16), 320);
-        setOpenUpward(spaceBelow < dropdownHeight && rect.top > dropdownHeight);
+        shouldOpenUpward = spaceBelow < dropdownHeight && rect.top > dropdownHeight;
       }
+
+      setOpenUpward(shouldOpenUpward);
+
+      // Calculate fixed position for portal
+      setDropdownStyle({
+        position: "fixed",
+        left: rect.left,
+        width: rect.width,
+        ...(shouldOpenUpward
+          ? { bottom: window.innerHeight - rect.top + 6 }
+          : { top: rect.bottom + 6 }),
+      });
     }
   }, [isOpen, filteredOptions.length, dropdownDirection, searchable]);
 
@@ -354,19 +376,16 @@ export default function Select({
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
       </svg>
 
-      {/* Dropdown menu */}
-      {isOpen && (
+      {/* Dropdown menu - rendered in portal to escape overflow containers */}
+      {isOpen && mounted && createPortal(
         <div
           ref={listRef}
           id={listboxId}
           role="listbox"
           aria-labelledby={label ? labelId : undefined}
           aria-activedescendant={focusedIndex >= 0 ? `${listboxId}-option-${focusedIndex}` : undefined}
-          className={[
-            "absolute left-0 right-0 z-50 bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden max-h-[320px] flex flex-col",
-            openUpward ? "bottom-full mb-1.5" : "top-full mt-1.5",
-          ].join(" ")}
-          style={{ animation: "fade-in 0.15s ease-out" }}
+          className="z-[100] bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden max-h-[320px] flex flex-col"
+          style={{ ...dropdownStyle, animation: "fade-in 0.15s ease-out" }}
         >
           {/* Search input */}
           {searchable && (
@@ -450,7 +469,8 @@ export default function Select({
               })
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Error message */}

@@ -210,13 +210,24 @@ export default function ProviderOnboardingModal({
       if (providerIds.length > 0) {
         const { data: claimedData } = await supabase
           .from("business_profiles")
-          .select("source_provider_id, claim_state, user_id")
+          .select("source_provider_id, claim_state, account_id")
           .in("source_provider_id", providerIds)
           .in("claim_state", ["claimed", "pending"]);
 
-        // Get owner emails for claimed listings
+        // Get owner emails for claimed listings (business_profiles → accounts → users)
         if (claimedData && claimedData.length > 0) {
-          const userIds = claimedData.map((c: { user_id: string }) => c.user_id).filter(Boolean);
+          const accountIds = claimedData.map((c: { account_id: string }) => c.account_id).filter(Boolean);
+
+          // Get user_ids from accounts
+          const { data: accounts } = await supabase
+            .from("accounts")
+            .select("id, user_id")
+            .in("id", accountIds);
+
+          const accountUserMap = new Map((accounts || []).map((a: { id: string; user_id: string }) => [a.id, a.user_id]));
+          const userIds = (accounts || []).map((a: { user_id: string }) => a.user_id).filter(Boolean);
+
+          // Get emails from users
           const { data: users } = await supabase
             .from("users")
             .select("id, email")
@@ -226,7 +237,8 @@ export default function ProviderOnboardingModal({
 
           for (const claim of claimedData) {
             if (claim.source_provider_id) {
-              const email = userEmailMap.get(claim.user_id);
+              const userId = accountUserMap.get(claim.account_id);
+              const email = userId ? userEmailMap.get(userId) : undefined;
               claimMap.set(claim.source_provider_id, {
                 state: claim.claim_state as "claimed" | "pending",
                 email: email ? `${email.slice(0, 2)}***@${email.split("@")[1]}` : undefined,
@@ -255,8 +267,10 @@ export default function ProviderOnboardingModal({
       // 2. Search business_profiles (created from scratch, no source_provider_id)
       let profileQuery = supabase
         .from("business_profiles")
-        .select("id, display_name, city, state, user_id, avatar_url, slug, account_id")
-        .is("source_provider_id", null); // Only profiles created from scratch
+        .select("id, display_name, city, state, avatar_url, slug, account_id")
+        .is("source_provider_id", null) // Only profiles created from scratch
+        .eq("type", "organization") // Only provider organizations
+        .eq("is_active", true); // Only active profiles
 
       if (name) {
         profileQuery = profileQuery.ilike("display_name", `%${name}%`);
@@ -273,9 +287,20 @@ export default function ProviderOnboardingModal({
 
       const { data: profiles } = await profileQuery.limit(10);
 
-      // Get owner emails for these profiles
+      // Get owner emails for these profiles (business_profiles → accounts → users)
       if (profiles && profiles.length > 0) {
-        const userIds = profiles.map((p: { user_id: string }) => p.user_id).filter(Boolean);
+        const accountIds = profiles.map((p: { account_id: string }) => p.account_id).filter(Boolean);
+
+        // Get user_ids from accounts
+        const { data: accounts } = await supabase
+          .from("accounts")
+          .select("id, user_id")
+          .in("id", accountIds);
+
+        const accountUserMap = new Map((accounts || []).map((a: { id: string; user_id: string }) => [a.id, a.user_id]));
+        const userIds = (accounts || []).map((a: { user_id: string }) => a.user_id).filter(Boolean);
+
+        // Get emails from users
         const { data: users } = await supabase
           .from("users")
           .select("id, email")
@@ -284,7 +309,8 @@ export default function ProviderOnboardingModal({
         const userEmailMap = new Map((users || []).map((u: { id: string; email: string }) => [u.id, u.email]));
 
         for (const p of profiles) {
-          const email = userEmailMap.get(p.user_id);
+          const userId = accountUserMap.get(p.account_id);
+          const email = userId ? userEmailMap.get(userId) : undefined;
           results.push({
             id: p.id,
             name: p.display_name,
@@ -394,7 +420,24 @@ export default function ProviderOnboardingModal({
         return;
       }
 
-      // Verified — refresh and redirect
+      // Code verified — now finalize the claim
+      const finalizeRes = await fetch("/api/claim/finalize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId: claimingProvider.providerId,
+          claimSession,
+        }),
+      });
+
+      if (!finalizeRes.ok) {
+        const finalizeData = await finalizeRes.json();
+        setVerifyError(finalizeData.error || "Failed to claim listing");
+        setVerifyChecking(false);
+        return;
+      }
+
+      // Claimed successfully — refresh and redirect
       await refreshAccountData();
       router.push(`/provider/medjobs/candidates/${candidateSlug}?schedule=true`);
     } catch {
@@ -1096,25 +1139,24 @@ export default function ProviderOnboardingModal({
 
         return (
           <div className="space-y-8">
-            {/* Back button */}
-            {actionResult && (
-              <button
-                type="button"
-                onClick={() => {
-                  setPendingAuthAction(null);
-                  setStep("search");
-                  setAuthSent(false);
-                  setAuthCode("");
-                  setAuthEmail("");
-                }}
-                className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Back to search
-              </button>
-            )}
+            {/* Back button - always show */}
+            <button
+              type="button"
+              onClick={() => {
+                setPendingAuthAction(null);
+                // Go back to create step if coming from create flow, otherwise search
+                setStep(pendingAuthAction?.type === "create-profile" ? "create" : "search");
+                setAuthSent(false);
+                setAuthCode("");
+                setAuthEmail("");
+              }}
+              className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              {pendingAuthAction?.type === "create-profile" ? "Back to form" : "Back to search"}
+            </button>
 
             {/* Header */}
             <div className="text-center">

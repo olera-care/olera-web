@@ -13,9 +13,18 @@ import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
 import Pagination from "@/components/ui/Pagination";
 import OtpInput from "@/components/auth/OtpInput";
+import VerificationFormModal from "@/components/provider/VerificationFormModal";
+import type { VerificationSubmission } from "@/components/provider/VerificationFormModal";
 import type { Provider } from "@/lib/types/provider";
 
-type Step = "search" | "verify" | "create" | "potential-matches";
+type Step = "search" | "verify" | "create" | "potential-matches" | "auth";
+
+// Track what action to perform after successful authentication
+type PendingAuthAction =
+  | { type: "create-profile" }
+  | { type: "claim-listing"; provider: Provider }
+  | { type: "sign-in"; redirectTo?: string }
+  | { type: "manage-claimed"; profile: BusinessProfileMatch };
 
 const RESULTS_PER_PAGE = 6;
 
@@ -89,12 +98,15 @@ function ProviderOnboardingContent() {
   const initialStep = searchParams.get("step");
   const rawNextUrl = searchParams.get("next");
   // Validate nextUrl to prevent open redirect - only allow known safe paths
-  const nextUrl = rawNextUrl?.startsWith("/provider/medjobs/candidates/") ? rawNextUrl : null;
+  const nextUrl = (
+    rawNextUrl?.startsWith("/provider/medjobs/candidates/") ||
+    rawNextUrl?.startsWith("/medjobs/candidates/")
+  ) ? rawNextUrl : null;
   // URL-based search state (for back button preservation)
   const urlSearchQuery = searchParams.get("q") || "";
   const urlLocationQuery = searchParams.get("loc") || "";
   const urlSearched = searchParams.get("searched") === "true";
-  const { user, account, profiles, isLoading, refreshAccountData, switchProfile, openAuth } = useAuth();
+  const { user, account, profiles, isLoading, refreshAccountData, switchProfile } = useAuth();
   const [step, setStep] = useState<Step>("search");
   const [data, setData] = useState<WizardData>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
@@ -112,6 +124,11 @@ function ProviderOnboardingContent() {
   const [businessProfileMatches, setBusinessProfileMatches] = useState<BusinessProfileMatch[]>([]);
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
   const [showAllMatches, setShowAllMatches] = useState(false);
+
+  // Verification modal state
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [pendingProfileId, setPendingProfileId] = useState<string | null>(null);
+  const [pendingProfileName, setPendingProfileName] = useState<string>("");
 
   // Location input state (separate from name search) - initialize from URL params
   const [locationQuery, setLocationQuery] = useState(urlLocationQuery);
@@ -146,6 +163,18 @@ function ProviderOnboardingContent() {
   const [noAccessEmail, setNoAccessEmail] = useState("");
   const [noAccessSubmitting, setNoAccessSubmitting] = useState(false);
   const [noAccessSuccess, setNoAccessSuccess] = useState(false);
+
+  // Inline auth state (replaces openAuth modal)
+  const [authEmail, setAuthEmail] = useState("");
+  const [authCode, setAuthCode] = useState("");
+  const [authSending, setAuthSending] = useState(false);
+  const [authVerifying, setAuthVerifying] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [authSent, setAuthSent] = useState(false);
+  const [authResendCooldown, setAuthResendCooldown] = useState(0);
+  const [finalizingProfile, setFinalizingProfile] = useState(false);
+  const [pendingAuthAction, setPendingAuthAction] = useState<PendingAuthAction | null>(null);
+  const [previousStep, setPreviousStep] = useState<Step>("search");
 
   // Redirect if user already has a provider profile (unless adding another)
   useEffect(() => {
@@ -360,51 +389,106 @@ function ProviderOnboardingContent() {
             try {
               const supabase = (await import("@/lib/supabase/client")).createClient();
 
-              let query = supabase
+              // === Query 1: olera-providers (scraped listings) ===
+              let providerQuery = supabase
                 .from("olera-providers")
                 .select("*")
                 .not("deleted", "is", true);
 
               if (name) {
-                query = query.ilike("provider_name", `%${name}%`);
+                providerQuery = providerQuery.ilike("provider_name", `%${name}%`);
               }
-
               if (loc) {
                 const parts = loc.split(",").map((s: string) => s.trim());
                 if (parts.length >= 2 && parts[1].length <= 3) {
-                  query = query.ilike("city", `%${parts[0]}%`);
-                  query = query.ilike("state", `%${parts[1]}%`);
+                  providerQuery = providerQuery.ilike("city", `%${parts[0]}%`);
+                  providerQuery = providerQuery.ilike("state", `%${parts[1]}%`);
                 } else {
-                  query = query.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
+                  providerQuery = providerQuery.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
                 }
               }
 
-              const { data: providers, error: providerErr } = await query.limit(20);
+              // === Query 2: business_profiles (created from scratch) ===
+              let bpQuery = supabase
+                .from("business_profiles")
+                .select("id, display_name, image_url, city, state, slug, account_id, source_provider_id")
+                .is("source_provider_id", null);
 
-              if (providerErr) {
-                setSearchError(`Search failed: ${providerErr.message}`);
-                setSearchResults([]);
-              } else {
-                const results = (providers as Provider[]) || [];
-                setSearchResults(results);
-
-                if (results.length > 0) {
-                  const ids = results.map((p) => p.provider_id);
-                  const { data: claimed } = await supabase
-                    .from("business_profiles")
-                    .select("source_provider_id")
-                    .in("source_provider_id", ids)
-                    .in("claim_state", ["claimed", "pending"]);
-
-                  const claimedSet = new Set<string>(
-                    (claimed || [])
-                      .map((r: { source_provider_id: string | null }) => r.source_provider_id)
-                      .filter((id): id is string => !!id)
-                  );
-                  setClaimedIds(claimedSet);
+              if (name) {
+                bpQuery = bpQuery.ilike("display_name", `%${name}%`);
+              }
+              if (loc) {
+                const parts = loc.split(",").map((s: string) => s.trim());
+                if (parts.length >= 2 && parts[1].length <= 3) {
+                  bpQuery = bpQuery.ilike("city", `%${parts[0]}%`);
+                  bpQuery = bpQuery.ilike("state", `%${parts[1]}%`);
                 } else {
-                  setClaimedIds(new Set());
+                  bpQuery = bpQuery.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
                 }
+              }
+
+              // Run both queries in parallel
+              const [providerResult, bpResult] = await Promise.all([
+                providerQuery.limit(20),
+                bpQuery.limit(10),
+              ]);
+
+              if (providerResult.error) {
+                setSearchError(`Search failed: ${providerResult.error.message}`);
+                setSearchResults([]);
+                return;
+              }
+
+              // Convert business_profiles to Provider-like shape
+              const bpAsProviders: Provider[] = (bpResult.data || []).map((bp) => ({
+                provider_id: `bp_${bp.id}`,
+                provider_name: bp.display_name,
+                provider_images: bp.image_url || "",
+                city: bp.city,
+                state: bp.state,
+                slug: bp.slug,
+                address: null,
+                zipcode: null,
+                provider_category: "Senior Care",
+                main_category: null,
+                provider_description: null,
+                phone: null,
+                email: null,
+                website: null,
+                lat: null,
+                lon: null,
+                lower_price: null,
+                upper_price: null,
+                deleted: false,
+                _isBusinessProfile: true,
+                _accountId: bp.account_id,
+              } as Provider & { _isBusinessProfile?: boolean; _accountId?: string }));
+
+              // Merge results (business_profiles first, then olera-providers)
+              const allResults = [...bpAsProviders, ...(providerResult.data as Provider[] || [])];
+              setSearchResults(allResults);
+
+              // Check which olera-providers have been claimed
+              const oleraProviderIds = (providerResult.data || []).map((p: Provider) => p.provider_id);
+              if (oleraProviderIds.length > 0) {
+                const { data: claimed } = await supabase
+                  .from("business_profiles")
+                  .select("source_provider_id")
+                  .in("source_provider_id", oleraProviderIds)
+                  .in("claim_state", ["claimed", "pending"]);
+
+                const claimedSet = new Set<string>(
+                  (claimed || [])
+                    .map((r: { source_provider_id: string | null }) => r.source_provider_id)
+                    .filter((id): id is string => !!id)
+                );
+                // Also mark all business_profile results as claimed
+                bpAsProviders.forEach((bp) => claimedSet.add(bp.provider_id));
+                setClaimedIds(claimedSet);
+              } else {
+                // Just mark business_profiles as claimed
+                const claimedSet = new Set<string>(bpAsProviders.map((bp) => bp.provider_id));
+                setClaimedIds(claimedSet);
               }
             } catch {
               setSearchError("Search failed. Please try again.");
@@ -441,6 +525,215 @@ function ProviderOnboardingContent() {
       return () => clearTimeout(timer);
     }
   }, [verifyResendCooldown]);
+
+  // Resend cooldown timer for inline auth
+  useEffect(() => {
+    if (authResendCooldown > 0) {
+      const timer = setTimeout(() => setAuthResendCooldown((c) => c - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [authResendCooldown]);
+
+  // Transition to inline auth step (replaces openAuth)
+  const startInlineAuth = (action: PendingAuthAction, email?: string) => {
+    setPendingAuthAction(action);
+    setPreviousStep(step);
+    setAuthEmail(email || data.email || "");
+    setAuthCode("");
+    setAuthError("");
+    setAuthSent(false);
+    setAuthSending(false);
+    setAuthVerifying(false);
+    setFinalizingProfile(false);
+    setStep("auth");
+  };
+
+  // Send OTP for inline auth
+  const handleAuthSendOtp = async () => {
+    if (!authEmail || authResendCooldown > 0) return;
+
+    setAuthSending(true);
+    setAuthError("");
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOtp({
+        email: authEmail,
+        options: {
+          shouldCreateUser: true,
+        },
+      });
+
+      if (error) {
+        setAuthError(error.message);
+      } else {
+        setAuthSent(true);
+        setAuthResendCooldown(60);
+      }
+    } catch {
+      setAuthError("Failed to send code");
+    } finally {
+      setAuthSending(false);
+    }
+  };
+
+  // Verify OTP and execute pending action
+  const handleAuthVerifyOtp = async () => {
+    if (!authEmail || authCode.length !== 6 || !pendingAuthAction) return;
+
+    setAuthVerifying(true);
+    setAuthError("");
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.verifyOtp({
+        email: authEmail,
+        token: authCode,
+        type: "email",
+      });
+
+      if (error) {
+        setAuthError(error.message);
+        setAuthVerifying(false);
+        return;
+      }
+
+      // Successfully authenticated - execute pending action
+      setFinalizingProfile(true);
+
+      switch (pendingAuthAction.type) {
+        case "create-profile": {
+          // Ensure account exists
+          const ensureRes = await fetch("/api/auth/ensure-account", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ display_name: data.displayName }),
+          });
+
+          if (!ensureRes.ok) {
+            const errorData = await ensureRes.json().catch(() => ({}));
+            setAuthError(errorData.error || "Failed to set up account");
+            setAuthVerifying(false);
+            setFinalizingProfile(false);
+            return;
+          }
+
+          // Create the profile
+          const res = await fetch("/api/auth/create-profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              intent: "provider",
+              providerType: "organization",
+              displayName: data.displayName,
+              orgName: data.displayName,
+              city: data.city || undefined,
+              state: data.state || undefined,
+              email: data.email || undefined,
+              careTypes: data.careTypes.length ? data.careTypes : undefined,
+            }),
+          });
+
+          if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            setAuthError(errorData.error || "Failed to create profile");
+            setAuthVerifying(false);
+            setFinalizingProfile(false);
+            return;
+          }
+
+          const result = await res.json();
+          await refreshAccountData();
+
+          // Check if verification is needed
+          if (result.profile?.id && result.profile?.verification_state !== "verified") {
+            setPendingProfileId(result.profile.id);
+            setPendingProfileName(data.displayName);
+            setShowVerificationModal(true);
+            setFinalizingProfile(false);
+            return;
+          }
+
+          // Redirect to dashboard
+          if (nextUrl) {
+            router.replace(nextUrl);
+          } else {
+            router.replace("/provider");
+          }
+          break;
+        }
+
+        case "claim-listing": {
+          const provider = pendingAuthAction.provider;
+          // Try to claim via deferred action
+          try {
+            const claimRes = await fetch("/api/claim/deferred", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                providerId: provider.provider_id,
+              }),
+            });
+
+            if (claimRes.ok) {
+              await refreshAccountData();
+              if (nextUrl) {
+                router.replace(nextUrl);
+              } else {
+                router.replace("/provider");
+              }
+            } else {
+              // If deferred claim fails, go to verify step
+              setClaimingProvider(provider);
+              setStep("verify");
+              await handleSendVerificationCode(provider);
+            }
+          } catch {
+            // Fall back to verify step
+            setClaimingProvider(provider);
+            setStep("verify");
+            await handleSendVerificationCode(provider);
+          }
+          break;
+        }
+
+        case "sign-in": {
+          await refreshAccountData();
+          if (pendingAuthAction.redirectTo) {
+            router.replace(pendingAuthAction.redirectTo);
+          } else if (nextUrl) {
+            router.replace(nextUrl);
+          } else {
+            router.replace("/provider");
+          }
+          break;
+        }
+
+        case "manage-claimed": {
+          await refreshAccountData();
+          const profile = pendingAuthAction.profile;
+          if (profile.source_provider_id) {
+            router.push(`/provider/${profile.slug || profile.source_provider_id}/onboard?provider_id=${profile.source_provider_id}&state=already-claimed`);
+          } else {
+            router.push(`/contact?subject=${encodeURIComponent(`Ownership dispute: ${profile.display_name}`)}&profile_id=${profile.id}`);
+          }
+          break;
+        }
+      }
+    } catch {
+      setAuthError("Verification failed");
+      setAuthVerifying(false);
+      setFinalizingProfile(false);
+    }
+  };
+
+  // Auto-send OTP when entering auth step with email pre-filled
+  useEffect(() => {
+    if (step === "auth" && authEmail && !authSent && !authSending) {
+      handleAuthSendOtp();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, authEmail]);
 
   const handleSendVerificationCode = async (provider: Provider) => {
     setVerifySending(true);
@@ -820,25 +1113,9 @@ function ProviderOnboardingContent() {
       setCheckingDuplicates(false);
     }
 
-    // Auth check: if not logged in, prompt to create account first
+    // Auth check: if not logged in, use inline auth
     if (!user) {
-      // Save form data to sessionStorage so it persists through auth redirect
-      try {
-        sessionStorage.setItem(CREATE_FORM_STORAGE_KEY, JSON.stringify(data));
-      } catch {
-        // sessionStorage unavailable — proceed anyway, user will have to re-enter
-      }
-
-      openAuth({
-        headline: "Verify your email to continue",
-        intent: "provider",
-        providerType: "organization",
-        initialEmail: data.email || undefined,
-        deferred: {
-          action: "create_profile",
-          returnUrl: window.location.pathname + window.location.search,
-        },
-      });
+      startInlineAuth({ type: "create-profile" }, data.email || undefined);
       return;
     }
 
@@ -883,7 +1160,7 @@ function ProviderOnboardingContent() {
         return;
       }
 
-      const { profileId } = result;
+      const { profileId, verificationState } = result;
 
       // Clear any saved form data
       try {
@@ -899,6 +1176,14 @@ function ProviderOnboardingContent() {
         switchProfile(profileId);
       }
 
+      // If not auto-verified, show verification modal before redirecting
+      if (verificationState === "unverified") {
+        setPendingProfileId(profileId);
+        setPendingProfileName(data.displayName);
+        setShowVerificationModal(true);
+        return;
+      }
+
       // If coming from MedJobs hire flow, return to the candidate page
       if (nextUrl) {
         router.replace(nextUrl);
@@ -909,6 +1194,42 @@ function ProviderOnboardingContent() {
       setSubmitError("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Handle verification form submission
+  const handleVerificationSubmit = async (submission: VerificationSubmission) => {
+    if (!pendingProfileId) return;
+
+    const res = await fetch("/api/provider/verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        profileId: pendingProfileId,
+        submission,
+      }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || "Failed to submit verification");
+    }
+
+    // Navigate to dashboard after successful submission
+    if (nextUrl) {
+      router.replace(nextUrl);
+    } else {
+      router.replace("/provider");
+    }
+  };
+
+  // Handle verification dismissal (provisional access)
+  const handleVerificationDismiss = () => {
+    // Navigate to dashboard with provisional access (unverified)
+    if (nextUrl) {
+      router.replace(nextUrl);
+    } else {
+      router.replace("/provider");
     }
   };
 
@@ -1248,25 +1569,15 @@ function ProviderOnboardingContent() {
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      try {
-                                        sessionStorage.setItem(
-                                          "olera_claim_provider_cache",
-                                          JSON.stringify({
-                                            provider_id: provider.provider_id,
-                                            provider_name: provider.provider_name,
-                                            provider_images: provider.provider_images,
-                                            address: provider.address,
-                                            city: provider.city,
-                                            state: provider.state,
-                                            slug: provider.slug,
-                                          })
-                                        );
-                                      } catch {}
-                                      router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}`);
+                                      // Use inline auth for claim flow
+                                      startInlineAuth(
+                                        { type: "claim-listing", provider },
+                                        provider.email || undefined
+                                      );
                                     }}
                                     className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
                                   >
-                                    Claim →
+                                    Manage →
                                   </button>
                                 )}
                               </div>
@@ -1809,23 +2120,20 @@ function ProviderOnboardingContent() {
 
                   const handleBusinessProfileClick = () => {
                     if (isOwnedBySomeoneElse) {
-                      if (profile.source_provider_id) {
-                        router.push(`/provider/${profile.slug || profile.source_provider_id}/onboard?provider_id=${profile.source_provider_id}&state=already-claimed`);
-                      } else {
-                        router.push(`/contact?subject=${encodeURIComponent(`Ownership dispute: ${profile.display_name}`)}&profile_id=${profile.id}`);
-                      }
+                      // Use inline auth to sign in then handle dispute
+                      startInlineAuth(
+                        { type: "manage-claimed", profile },
+                        profile.email || data.email || undefined
+                      );
                     } else {
-                      openAuth({
-                        defaultMode: "sign-in",
-                        headline: "Sign in to manage this page",
-                        intent: "provider",
-                        providerType: "organization",
-                        initialEmail: profile.email || data.email || undefined,
-                        deferred: {
-                          action: "create_profile",
-                          returnUrl: "/provider",
-                        },
-                      });
+                      // Just sign them in — no profile creation
+                      // After sign-in, normal routing takes over:
+                      // - If they have a provider profile → /provider
+                      // - If not → /provider/onboarding
+                      startInlineAuth(
+                        { type: "sign-in" },
+                        profile.email || data.email || undefined
+                      );
                     }
                   };
 
@@ -1947,25 +2255,15 @@ function ProviderOnboardingContent() {
                             <button
                               type="button"
                               onClick={() => {
-                                try {
-                                  sessionStorage.setItem(
-                                    "olera_claim_provider_cache",
-                                    JSON.stringify({
-                                      provider_id: provider.provider_id,
-                                      provider_name: provider.provider_name,
-                                      provider_images: provider.provider_images,
-                                      address: provider.address,
-                                      city: provider.city,
-                                      state: provider.state,
-                                      slug: provider.slug,
-                                    })
-                                  );
-                                } catch {}
-                                router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}`);
+                                // Use inline auth for claim flow
+                                startInlineAuth(
+                                  { type: "claim-listing", provider },
+                                  provider.email || undefined
+                                );
                               }}
                               className="px-3 py-1.5 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
                             >
-                              Claim →
+                              Manage →
                             </button>
                           </div>
                         </div>
@@ -2016,7 +2314,157 @@ function ProviderOnboardingContent() {
           );
         })()}
 
+        {/* Inline Auth Step */}
+        {step === "auth" && pendingAuthAction && (
+          <div className="max-w-lg mx-auto px-4 sm:px-0">
+            {/* Header */}
+            <div className="text-center mb-8 lg:mb-10">
+              <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-5 lg:mb-6">
+                <svg className="w-7 h-7 lg:w-8 lg:h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
+                {pendingAuthAction.type === "sign-in" ? "Sign in to continue" : "Verify your email"}
+              </h1>
+              <p className="text-gray-500 mt-3 lg:mt-4 text-base lg:text-lg leading-relaxed">
+                {authSent
+                  ? <>Enter the 6-digit code sent to <strong className="text-gray-600">{authEmail}</strong></>
+                  : pendingAuthAction.type === "create-profile"
+                    ? "Enter your business email to create your account"
+                    : pendingAuthAction.type === "claim-listing"
+                      ? `Enter your business email to claim ${pendingAuthAction.provider.provider_name}`
+                      : "Enter your email to sign in"
+                }
+              </p>
+            </div>
+
+            {/* Finalizing profile state */}
+            {finalizingProfile ? (
+              <div className="text-center py-12">
+                <div className="w-12 h-12 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto" />
+                <p className="text-lg font-medium text-gray-900 mt-6">Setting up your account...</p>
+                <p className="text-sm text-gray-500 mt-2">This will only take a moment</p>
+              </div>
+            ) : !authSent ? (
+              /* Email input step */
+              <div className="space-y-6">
+                <div>
+                  <label htmlFor="auth-email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email address
+                  </label>
+                  <input
+                    id="auth-email"
+                    type="email"
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                    placeholder="you@company.com"
+                    className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                    autoFocus
+                  />
+                  <p className="text-xs text-gray-400 mt-2">
+                    Use your work email for faster verification
+                  </p>
+                </div>
+
+                {authError && (
+                  <p className="text-sm text-red-600 text-center" role="alert">{authError}</p>
+                )}
+
+                <div className="flex flex-col gap-3">
+                  <Button
+                    onClick={handleAuthSendOtp}
+                    disabled={!authEmail || authSending || authResendCooldown > 0}
+                    className="w-full py-3.5"
+                  >
+                    {authSending ? "Sending code..." : authResendCooldown > 0 ? `Resend in ${authResendCooldown}s` : "Continue"}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep(previousStep);
+                      setPendingAuthAction(null);
+                    }}
+                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    ← Go back
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* OTP verification step */
+              <div className="space-y-6">
+                <fieldset>
+                  <legend className="sr-only">Enter your 6-digit verification code</legend>
+                  <OtpInput
+                    length={6}
+                    value={authCode}
+                    onChange={setAuthCode}
+                    disabled={authVerifying}
+                    error={!!authError}
+                  />
+                </fieldset>
+
+                {authError && (
+                  <p className="text-sm text-red-600 text-center" role="alert">{authError}</p>
+                )}
+
+                <div className="flex flex-col gap-3">
+                  <Button
+                    onClick={handleAuthVerifyOtp}
+                    disabled={authCode.length !== 6 || authVerifying}
+                    className="w-full py-3.5"
+                  >
+                    {authVerifying ? "Verifying..." : "Verify & Continue"}
+                  </Button>
+
+                  {/* Resend */}
+                  <div className="text-center">
+                    {authResendCooldown > 0 ? (
+                      <p className="text-sm text-gray-500">Resend code in {authResendCooldown}s</p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthCode("");
+                          handleAuthSendOtp();
+                        }}
+                        disabled={authSending}
+                        className="text-sm font-medium text-primary-600 hover:text-primary-700 disabled:opacity-50 transition-colors"
+                      >
+                        Didn&apos;t receive code? Resend
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthSent(false);
+                      setAuthCode("");
+                      setAuthError("");
+                    }}
+                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    ← Change email
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
+
+      {/* Verification Modal */}
+      <VerificationFormModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        onSubmit={handleVerificationSubmit}
+        businessName={pendingProfileName}
+        allowDismiss={true}
+        onDismiss={handleVerificationDismiss}
+      />
     </div>
   );
 }

@@ -46,6 +46,12 @@ export interface WaiverProgram {
   phone?: string;
   intro?: string;
   faqs?: { question: string; answer: string }[];
+  // Verification metadata
+  sourceUrl?: string;
+  lastVerifiedDate?: string; // ISO date (e.g., "2026-04-04")
+  verifiedBy?: string; // e.g., "chantel", "pipeline"
+  savingsSource?: string; // Where the savings estimate came from
+  savingsVerified?: boolean; // true = researched, false/undefined = category estimate
 }
 
 export interface StateData {
@@ -9193,6 +9199,11 @@ const texasPrograms: WaiverProgram[] = [
         answer: "Application processing typically takes 30 to 90 days from the date Texas Health and Human Services receives your completed application and all supporting documents. Incomplete applications or missing documents are the most common cause of delays, so use the document checklist above to make sure everything is ready before you submit.",
       },
     ],
+    sourceUrl: "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-programs-services/star-plus",
+    lastVerifiedDate: "2026-04-04",
+    verifiedBy: "chantel",
+    savingsSource: "Category estimate based on typical HCBS waiver value",
+    savingsVerified: false,
   },
   {
     id: "texas-medicare-savings-programs",
@@ -9238,20 +9249,25 @@ const texasPrograms: WaiverProgram[] = [
         answer: "The biggest difference is what each program covers. QMB is the most comprehensive, paying for your Medicare premiums, deductibles, and copays, which means Medicare providers cannot bill you for any remaining costs on covered services. SLMB and QI only cover your monthly Part B premium and do not help with deductibles, copays, or coinsurance. QMB has the lowest income limit of the three, while QI allows higher incomes but is funded on a first-come, first-served basis, so applying early in the year is recommended.",
       },
     ],
+    sourceUrl: "https://www.yourtexasbenefits.com",
+    lastVerifiedDate: "2026-04-04",
+    verifiedBy: "chantel",
+    savingsSource: "Category estimate based on Medicare premium ranges",
+    savingsVerified: false,
   },
   {
     id: "texas-snap-food-benefits",
     name: "Texas SNAP Food Benefits",
     shortName: "SNAP/Food",
     tagline: "Monthly benefits loaded onto a Lone Star Card to buy groceries. Seniors 60+ can apply with simplified rules.",
-    savingsRange: "$1,500 – $3,600/year in 2026",
+    savingsRange: "$3,576 – $21,468/year in 2026",
     description: "Monthly benefits loaded onto a Lone Star Card to buy groceries. Seniors 60+ can apply with simplified rules.",
     intro: "Texas SNAP Food Benefits provide monthly grocery assistance loaded directly onto a Lone Star Card, helping seniors and families across Texas put nutritious food on the table. Older adults aged 60 and above can apply through simplified rules that make the process easier. For many Texas seniors living on a fixed income, SNAP benefits are a vital lifeline that helps stretch every dollar.",
     eligibilityHighlights: [
-      "Income below $1,729/month",
+      "Income below $2,152/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Verify your household income is below $1,729/month. Seniors 60+ qualify under simplified rules." },
+      { step: 1, title: "Check your eligibility", description: "Verify your household income is below $2,152/month. Seniors 60+ qualify under simplified rules." },
       { step: 2, title: "Gather required documents", description: "Prepare your Texas ID, pay stubs or Social Security statements, rent/mortgage receipts, and utility bills." },
       { step: 3, title: "Download forms", description: "Download the Texas SNAP Application or apply directly online at YourTexasBenefits.com." },
       { step: 4, title: "Submit your application", description: "Submit online, by mail, or in person. Complete a phone interview within 30 days to receive your Lone Star Card." },
@@ -9262,7 +9278,7 @@ const texasPrograms: WaiverProgram[] = [
     faqs: [
       {
         question: "What is the income limit for Texas SNAP benefits for seniors over 60?",
-        answer: "For 2026, a single person in Texas can earn up to $1,729 per month (130% of the federal poverty level) and still qualify for SNAP benefits. Seniors aged 60 and older may qualify under simplified rules with fewer reporting requirements, making the process easier. Texas also uses broad-based categorical eligibility, which means there is no asset or resource test for most applicants. The average monthly benefit for a single senior is around $100 to $200.",
+        answer: "For 2026, a single person in Texas can earn up to $2,152 per month and still qualify for SNAP benefits. Seniors aged 60 and older may qualify under simplified rules with fewer reporting requirements, making the process easier. Texas also uses broad-based categorical eligibility, which means there is no asset or resource test for most applicants. The average monthly benefit for a single senior is around $100 to $300.",
       },
       {
         question: "How long does it take to get a Texas SNAP Lone Star Card after you apply?",
@@ -9284,21 +9300,26 @@ const texasPrograms: WaiverProgram[] = [
       { name: "Lubbock / Amarillo", description: "Lubbock, Potter, Randall counties" },
     ],
     serviceAreasHeading: "SNAP Office Locations in Texas",
+    sourceUrl: "https://www.hhs.texas.gov/services/food/snap-food-benefits",
+    lastVerifiedDate: "2026-04-04",
+    verifiedBy: "chantel",
+    savingsSource: "USDA SNAP benefit table: $298–$1,789/month based on household size",
+    savingsVerified: true,
   },
   {
     id: "texas-medicaid-for-the-elderly-and-people-with-disabilities",
     name: "Texas Medicaid for the Elderly and People with Disabilities",
-    shortName: "Texas Medicaid for the",
+    shortName: "MEPD",
     tagline: "Full Medicaid coverage for seniors 65+ and people with disabilities with limited income.",
-    savingsRange: "$5,000 – $20,000/year in 2026",
+    savingsRange: "$5,000 – $20,000+/year in 2026",
     description: "Full Medicaid coverage for seniors 65+ and people with disabilities with limited income.",
     intro: "Texas Medicaid for the Elderly and People with Disabilities provides comprehensive health coverage to older Texans and individuals living with disabilities who have limited income. This program covers doctor visits, hospital stays, prescriptions, and long-term care services that would otherwise be unaffordable. It is one of the most important safety-net programs in Texas for seniors who need ongoing medical care.",
     eligibilityHighlights: [
       "Age 65 or older",
-      "Income below $994/month",
+      "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Confirm you are 65+ or have a qualifying disability, and that your income is below $994/month (SSI level)." },
+      { step: 1, title: "Check your eligibility", description: "Confirm you are 65+ or have a qualifying disability, and that your income is below $967/month." },
       { step: 2, title: "Gather required documents", description: "Collect your birth certificate or passport, Social Security card, bank statements, and proof of Texas residency." },
       { step: 3, title: "Download forms", description: "Download the Texas Medicaid Application from YourTexasBenefits.com or request a paper copy by calling 2-1-1." },
       { step: 4, title: "Submit your application", description: "Submit online, by mail, or at your local HHS office. Expect a decision within 45 days of submitting all documents." },
@@ -9318,7 +9339,7 @@ const texasPrograms: WaiverProgram[] = [
     faqs: [
       {
         question: "What are the income and asset limits for Texas Medicaid for the Elderly and People with Disabilities in 2026?",
-        answer: "For a single individual, the income limit for Texas MEPD is $994 per month (the SSI federal benefit rate), and countable assets must be $2,000 or less. For a married couple, the combined income limit is $1,491 per month with a $3,000 asset limit. Countable assets include bank accounts, retirement accounts, stocks, bonds, and certificates of deposit. You must also be a Texas resident and a U.S. citizen or qualified non-citizen to be eligible.",
+        answer: "For a single individual, the income limit for Texas MEPD is $967 per month, and countable assets must be $2,000 or less. For a married couple, the combined income limit is $1,450 per month with a $3,000 asset limit. Countable assets include bank accounts, retirement accounts, stocks, bonds, and certificates of deposit. You must also be a Texas resident and a U.S. citizen or qualified non-citizen to be eligible.",
       },
       {
         question: "How long does it take to get approved for Texas Medicaid for the Elderly and People with Disabilities?",
@@ -9329,6 +9350,11 @@ const texasPrograms: WaiverProgram[] = [
         answer: "MEPD is the eligibility category that determines whether you qualify for Medicaid based on age (65+) or disability, while STAR+PLUS is the managed care delivery system through which most MEPD beneficiaries actually receive their healthcare services. MEPD itself is an entitlement, meaning anyone who meets the requirements is guaranteed coverage by law with no waiting list. The STAR+PLUS Home and Community-Based Services waiver, on the other hand, has limited enrollment slots and may place additional applicants on a waitlist. In short, MEPD gets you approved for Medicaid, and STAR+PLUS is how Texas delivers the care.",
       },
     ],
+    sourceUrl: "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-programs-services/programs-children-adults-disabilities/medicaid-elderly-people-disabilities",
+    lastVerifiedDate: "2026-04-04",
+    verifiedBy: "chantel",
+    savingsSource: "HHS estimate: nursing homes average $3,000–$7,000+/month; processing 45-90 days",
+    savingsVerified: true,
   },
   {
     id: "texas-ship-medicare-counseling",
@@ -9370,7 +9396,7 @@ const texasPrograms: WaiverProgram[] = [
     name: "Texas Comprehensive Energy Assistance Program (CEAP/LIHEAP)",
     shortName: "CEAP/LIHEAP",
     tagline: "Helps pay heating and cooling bills. One-time payment sent directly to your utility company.",
-    savingsRange: "$500 – $2,000/year in 2026",
+    savingsRange: "$300 – $1,500/year in 2026",
     description: "Helps pay heating and cooling bills. One-time payment sent directly to your utility company.",
     intro: "The Texas Comprehensive Energy Assistance Program (CEAP), funded through the federal LIHEAP program, helps low-income Texas households pay their heating and cooling bills. Eligible families receive a one-time payment sent directly to their utility company, providing critical relief during extreme weather months. With Texas summers and winters putting strain on energy costs, this program helps vulnerable households keep the lights and air conditioning on.",
     eligibilityHighlights: [
@@ -9399,6 +9425,11 @@ const texasPrograms: WaiverProgram[] = [
         answer: "CEAP provides a one-time payment that is sent directly to your utility company, not to you personally. The program covers both heating and cooling costs, which is especially important in Texas where summer electricity bills can spike due to extreme heat. It is not an ongoing monthly benefit, so the single payment is meant to help you get caught up or get ahead on your energy bills. The program generally cannot be used for propane tank purchases or to cover utility security deposits.",
       },
     ],
+    sourceUrl: "https://www.tdhca.texas.gov/comprehensive-energy-assistance-program-ceap",
+    lastVerifiedDate: "2026-04-04",
+    verifiedBy: "chantel",
+    savingsSource: "TDHCA: typically $300-$1,500/year; HVAC emergency repairs $3,000-$5,000",
+    savingsVerified: true,
   },
   {
     id: "primary-home-care-community-care",
@@ -9444,13 +9475,18 @@ const texasPrograms: WaiverProgram[] = [
         answer: "Texas Primary Home Care is a Medicaid entitlement program, meaning anyone who meets the eligibility criteria is guaranteed services with no waitlist. It focuses specifically on personal attendant services like bathing, dressing, grooming, meal preparation, and light housekeeping, all delivered by personal attendants rather than nurses. STAR+PLUS HCBS, by contrast, is a waiver program that requires a nursing facility level of care and offers a broader range of services including home modifications, adaptive aids, and respite care. PHC is also limited to the individual's own home, while STAR+PLUS allows services in settings like assisted living facilities.",
       },
     ],
+    sourceUrl: "https://www.hhs.texas.gov/handbooks/community-care-services-eligibility-handbook/4600-primary-home-care-community-attendant-services",
+    lastVerifiedDate: "2026-04-04",
+    verifiedBy: "chantel",
+    savingsSource: "Compared to private pay rates in 2026: $1,000–$5,000/year",
+    savingsVerified: true,
   },
   {
     id: "texas-respite-care-services",
     name: "Texas Respite Care Services",
     shortName: "Respite Care",
     tagline: "Temporary relief for family caregivers. Someone else cares for your loved one so you can rest.",
-    savingsRange: "$2,000 – $8,000/year in 2026",
+    savingsRange: "Up to $3,600/year in 2026",
     description: "Temporary relief for family caregivers. Someone else cares for your loved one so you can rest.",
     intro: "Texas Respite Care Services provide temporary relief to family caregivers by arranging for a trained substitute to look after their loved one. Whether you need a few hours to run errands or a longer break to recharge, respite care ensures your family member continues to receive quality attention. For the thousands of Texas families providing unpaid care to aging or disabled relatives, this program offers essential support to prevent caregiver burnout.",
     eligibilityHighlights: [
@@ -9488,6 +9524,11 @@ const texasPrograms: WaiverProgram[] = [
         answer: "Texas respite care funded through the NFCSP is designed specifically to give temporary relief to unpaid family caregivers, not to serve as ongoing care for the recipient. Regular home care focuses on the daily needs of the person receiving care and is typically a long-term arrangement, while respite care provides short-term breaks so caregivers can rest, handle personal matters, or avoid burnout. Respite care is also more flexible in delivery, and can include an in-home aide, adult day care, or a short-term facility stay depending on the family's needs. Because its primary goal is caregiver wellbeing rather than long-term patient care, respite services are time-limited and meant to supplement the unpaid care a family member is already providing.",
       },
     ],
+    sourceUrl: "https://aaact.org/respite/",
+    lastVerifiedDate: "2026-04-04",
+    verifiedBy: "chantel",
+    savingsSource: "State-funded cap: $3,600/year; standard voucher: $800–$1,000 per episode",
+    savingsVerified: true,
   },
   {
     id: "texas-meals-on-wheels",
@@ -9540,6 +9581,11 @@ const texasPrograms: WaiverProgram[] = [
       { label: "Meals on Wheels Austin", lat: 30.2672, lng: -97.7431 },
       { label: "Meals on Wheels Fort Worth", lat: 32.7555, lng: -97.3308 },
     ],
+    sourceUrl: "https://www.mealsonwheelstexas.org/",
+    lastVerifiedDate: "2026-04-04",
+    verifiedBy: "chantel",
+    savingsSource: "Program value: $1,500–$3,600/year based on meal delivery frequency",
+    savingsVerified: true,
     faqs: [
       {
         question: "Who is eligible for Meals on Wheels Texas and do you have to meet income requirements?",
@@ -9599,13 +9645,18 @@ const texasPrograms: WaiverProgram[] = [
         answer: "Texas PACE is designed specifically to keep people who qualify for nursing home placement living in their own communities instead. Unlike traditional Medicaid long-term care, PACE becomes the sole source of all Medicare and Medicaid benefits, bundling medical care, prescriptions, adult day services, transportation, and even dental and vision into one coordinated program. An interdisciplinary team at your local Texas PACE center creates a personalized care plan, and roughly 95% of participants continue living at home rather than in a facility. There is no copayment for participants who are dually eligible for Medicare and Medicaid.",
       },
     ],
+    sourceUrl: "https://www.medicare.gov/plan-compare/#/pace/states/TX",
+    lastVerifiedDate: "2026-04-04",
+    verifiedBy: "chantel",
+    savingsSource: "Medicare.gov: $2,800/month per participant ($33,600 annually)",
+    savingsVerified: true,
   },
   {
     id: "texas-long-term-care-ombudsman",
     name: "Texas Long-Term Care Ombudsman",
     shortName: "LTC Ombudsman",
     tagline: "Free advocates who resolve complaints and protect the rights of people in nursing homes.",
-    savingsRange: "$10,000 – $30,000/year in 2026",
+    savingsRange: "",
     description: "Free advocates who resolve complaints and protect the rights of people in nursing homes.",
     intro: "The Texas Long-Term Care Ombudsman program provides free, trained advocates who investigate complaints and protect the rights of residents in nursing homes and assisted living facilities. If you or a loved one in Texas is experiencing issues with care quality, dignity, or safety in a long-term care setting, an ombudsman can step in to help resolve the problem. This program plays a critical role in ensuring that vulnerable Texans receive the standard of care they deserve.",
     eligibilityHighlights: [
@@ -9634,13 +9685,18 @@ const texasPrograms: WaiverProgram[] = [
         answer: "The Texas Long-Term Care Ombudsman program is different because ombudsmen are trained advocates who work on behalf of residents, not regulators or law enforcement officers. While Adult Protective Services investigates abuse and neglect, and law enforcement handles criminal matters, ombudsmen focus on resolving a broader range of concerns like care quality, rights violations, discharge disputes, and billing problems through advocacy and mediation. The program offers a confidential complaint process and ombudsmen can often resolve issues without formal legal or regulatory action. In serious cases an ombudsman can also help you understand when involving APS or law enforcement may be appropriate.",
       },
     ],
+    sourceUrl: "https://ltco.texas.gov/",
+    lastVerifiedDate: "2026-04-04",
+    verifiedBy: "chantel",
+    savingsSource: "Free advocacy service — no direct financial benefit",
+    savingsVerified: true,
   },
   {
     id: "texas-weatherization-assistance-program",
     name: "Texas Weatherization Assistance Program",
     shortName: "Weatherization",
     tagline: "Free home improvements to reduce energy costs including insulation, weather stripping, and furnace repair.",
-    savingsRange: "$500 – $2,000/year in 2026",
+    savingsRange: "$5,000 – $8,000 in free improvements",
     description: "Free home improvements to reduce energy costs including insulation, weather stripping, and furnace repair.",
     intro: "The Texas Weatherization Assistance Program provides free home improvements — such as insulation, weather stripping, and furnace repairs — designed to lower energy costs for low-income households. By making homes more energy efficient, the program helps Texas families save money on utility bills year-round while also improving comfort and safety. Priority is given to seniors, people with disabilities, and families with young children.",
     eligibilityHighlights: [
@@ -9669,13 +9725,18 @@ const texasPrograms: WaiverProgram[] = [
         answer: "The Texas Weatherization Assistance Program provides free physical improvements to your home, such as insulation, weather stripping, caulking, window repairs, and furnace or AC repair or replacement, all aimed at making your home more energy efficient. This is different from CEAP (the Comprehensive Energy Assistance Program), which helps pay your current utility bills but does not fix the underlying problems causing high energy costs. Weatherization addresses the root cause by reducing how much energy your home wastes, which lowers your bills long term. Both homeowners and renters can qualify, though renters will need their landlord's written permission before work can begin.",
       },
     ],
+    sourceUrl: "https://www.tdhca.texas.gov/ca/wap",
+    lastVerifiedDate: "2026-04-04",
+    verifiedBy: "chantel",
+    savingsSource: "TDHCA: $372+/year in energy savings; $5,000–$8,000 in free improvements per household",
+    savingsVerified: true,
   },
   {
     id: "texas-legal-services-for-seniors",
     name: "Texas Legal Services for Seniors",
     shortName: "Senior Legal Aid",
     tagline: "Free legal help for seniors 60+ on issues like benefits denials, housing disputes, and elder abuse.",
-    savingsRange: "$500 – $3,000/year in 2026",
+    savingsRange: "",
     description: "Free legal help for seniors 60+ on issues like benefits denials, housing disputes, and elder abuse.",
     intro: "Texas Legal Services for Seniors provides free legal assistance to Texans aged 60 and older who are facing issues such as benefits denials, housing disputes, consumer fraud, and elder abuse. Experienced attorneys and legal aid workers help seniors navigate the legal system without the burden of costly fees. This program ensures that older adults in Texas have access to justice when they need it most.",
     eligibilityHighlights: [
@@ -9713,13 +9774,18 @@ const texasPrograms: WaiverProgram[] = [
         answer: "Texas Legal Services for Seniors focuses on civil legal matters that commonly affect older adults, including benefits denials, housing disputes, consumer fraud, elder abuse, and guardianship issues. Attorneys can provide legal advice, help with paperwork, negotiate on your behalf, and in certain situations represent you in court. The program does not typically handle criminal cases or fee-generating cases such as personal injury lawsuits, since those cases can be taken by private attorneys on a contingency basis. This focus on civil matters allows the program to direct its limited resources toward legal problems where seniors would otherwise have no access to representation.",
       },
     ],
+    sourceUrl: "https://www.tlsc.org/seniors",
+    lastVerifiedDate: "2026-04-04",
+    verifiedBy: "chantel",
+    savingsSource: "Free legal service — no direct financial benefit",
+    savingsVerified: true,
   },
   {
     id: "texas-senior-companion-program",
     name: "Texas Senior Companion Program",
     shortName: "Texas Senior Companion Program",
     tagline: "Trained volunteers visit seniors who are homebound to provide companionship and light assistance.",
-    savingsRange: "$2,000 – $8,000/year in 2026",
+    savingsRange: "",
     description: "Trained volunteers visit seniors who are homebound to provide companionship and light assistance.",
     intro: "The Texas Senior Companion Program pairs trained volunteers with homebound seniors to provide regular companionship and light assistance with daily tasks. Volunteers visit on a consistent schedule, offering social connection that helps reduce isolation and improve well-being. For older Texans living alone, the Senior Companion Program provides meaningful human interaction and a reassuring presence.",
     eligibilityHighlights: [
@@ -9759,6 +9825,11 @@ const texasPrograms: WaiverProgram[] = [
         answer: "The program is completely free to the older adults who receive visits. Unlike home care or home health services, Senior Companions do not provide medical care, personal care, or clinical support. Instead, they offer friendship, conversation, and light assistance such as help with errands or accompaniment to appointments. It is a volunteer-driven program focused on reducing isolation rather than delivering professional caregiving.",
       },
     ],
+    sourceUrl: "https://theseniorsource.org/volunteer/opportunities-seniors/senior-companions/",
+    lastVerifiedDate: "2026-04-04",
+    verifiedBy: "chantel",
+    savingsSource: "Free companion service — no direct financial benefit",
+    savingsVerified: true,
   },
   {
     id: "senior-community-service-employment-program-scsep",
@@ -9795,6 +9866,11 @@ const texasPrograms: WaiverProgram[] = [
         answer: "SCSEP is the only federally funded job training program in the United States designed exclusively for low-income adults aged 55 and older, making it unique among workforce development programs. Unlike other training programs, SCSEP places participants directly into paid community service assignments at nonprofits and public agencies, so they earn income while building skills rather than attending classroom-only instruction. In Texas, the program is administered by TWC alongside national grantees such as AARP Foundation, Goodwill Industries, SER National, and National Able Network. The program also provides wraparound assistance like help with transportation, work clothing, health checkups, and GED preparation.",
       },
     ],
+    sourceUrl: "https://www.twc.texas.gov/programs/senior-community-service-employment",
+    lastVerifiedDate: "2026-04-04",
+    verifiedBy: "chantel",
+    savingsSource: "Job training program — paid stipend at minimum wage, 20hrs/week",
+    savingsVerified: false,
   },
 ];
 

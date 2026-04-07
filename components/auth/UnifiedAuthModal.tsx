@@ -564,6 +564,50 @@ export default function UnifiedAuthModal({
     if (options.intent === "provider") {
       onClose();
 
+      // Handle claim-listing deferred action — link account to existing listing
+      if (deferred?.action === "claim-listing") {
+        try {
+          // Read cached provider data from sessionStorage
+          const cached = sessionStorage.getItem("olera_claim_provider_cache");
+          if (cached) {
+            const providerData = JSON.parse(cached);
+
+            // Call API to claim the listing
+            const res = await fetch("/api/provider/claim-listing", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                providerId: providerData.provider_id,
+                providerName: providerData.provider_name,
+                providerSlug: providerData.slug,
+                providerEmail: providerData.email,
+                city: providerData.city,
+                state: providerData.state,
+              }),
+            });
+
+            // Clear the cache regardless of result
+            sessionStorage.removeItem("olera_claim_provider_cache");
+
+            if (res.ok) {
+              // Refresh account data to pick up new profile
+              await refreshAccountData();
+              // Use deferred returnUrl to continue the user's flow (e.g., scheduling an interview)
+              router.push(deferred?.returnUrl || "/provider");
+              return;
+            } else {
+              const errorData = await res.json().catch(() => ({}));
+              console.error("Claim listing failed:", errorData.error);
+              // Fall through to normal routing - they can try again from dashboard
+            }
+          }
+        } catch (err) {
+          console.error("Claim listing error:", err);
+          // Clear cache and fall through to normal routing
+          try { sessionStorage.removeItem("olera_claim_provider_cache"); } catch {}
+        }
+      }
+
       // Query fresh profile data from DB (cached `profiles` state may be stale
       // after sign-out + sign-in of a different account)
       let freshProviderProfile = null;
@@ -619,17 +663,29 @@ export default function UnifiedAuthModal({
         } else {
           router.push("/provider");
         }
-      } else if (existingProfileType === "family") {
-        // Existing family account — can't become provider with same email, redirect to home
-        router.push("/");
-      } else if (existingProfileType === "student" || existingProfileType === "caregiver") {
-        // Existing caregiver account — can't become provider with same email, redirect to their dashboard
-        router.push("/portal/medjobs");
+      } else if (existingProfileType === "family" || existingProfileType === "student" || existingProfileType === "caregiver") {
+        // Existing family/caregiver account — can't become provider with same email
+        // Stay on modal and show error so they can try a different email
+        const accountTypeName = existingProfileType === "family" ? "family" : "caregiver";
+        setError(
+          `This email is linked to a ${accountTypeName} account. To continue as a provider, please sign in with a different business email.`
+        );
+        setEmail("");
+        setStep("entry");
+        setLoading(false);
+        return;
       } else {
         // New signup or no profile — go to provider onboarding
-        // If coming from MedJobs hire flow, skip to search step and preserve return URL
-        if (deferred?.action === "hire-candidate" && deferred?.returnUrl?.startsWith("/provider/medjobs/candidates/")) {
-          router.push(`/provider/onboarding?step=search&next=${encodeURIComponent(deferred.returnUrl)}`);
+        // If coming from MedJobs hire flow, preserve return URL so they can complete scheduling
+        const isMedJobsHireFlow = deferred?.action === "hire-candidate" && (
+          deferred?.returnUrl?.startsWith("/medjobs/candidates/") ||
+          deferred?.returnUrl?.startsWith("/provider/medjobs/candidates/")
+        );
+        if (isMedJobsHireFlow && deferred?.returnUrl) {
+          router.push(`/provider/onboarding?next=${encodeURIComponent(deferred.returnUrl)}`);
+        } else if (deferred?.returnUrl?.startsWith("/provider/onboarding")) {
+          // For create_profile flow, returnUrl already has the next param - use it directly
+          router.push(deferred.returnUrl);
         } else {
           router.push("/provider/onboarding");
         }

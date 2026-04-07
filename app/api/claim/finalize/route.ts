@@ -115,28 +115,26 @@ export async function POST(request: Request) {
 
     const accountId = account!.id as string;
 
-    // Ensure baseline family profile exists
-    const { data: existingFamily } = await db
+    // STRICT ACCOUNT SEPARATION: Check if user already has a profile of a different type
+    // One email = one account type (family, provider, caregiver are separate)
+    // Do NOT create family profiles for provider claims
+    const { data: existingProfileOfDifferentType } = await db
       .from("business_profiles")
-      .select("id")
+      .select("id, type")
       .eq("account_id", accountId)
-      .eq("type", "family")
+      .neq("type", "organization")
+      .eq("is_active", true)
       .limit(1)
       .maybeSingle();
 
-    if (!existingFamily) {
-      await db.from("business_profiles").insert({
-        account_id: accountId,
-        slug: `family-${accountId.slice(0, 8)}`,
-        type: "family",
-        display_name: user.email?.split("@")[0] || "My Family",
-        care_types: [],
-        claim_state: "claimed",
-        verification_state: "unverified",
-        source: "user_created",
-        is_active: true,
-        metadata: {},
-      });
+    if (existingProfileOfDifferentType) {
+      return NextResponse.json(
+        {
+          error: "This email is already used for a different account type. Please use a different email to claim this listing.",
+          code: "ACCOUNT_TYPE_MISMATCH"
+        },
+        { status: 409 }
+      );
     }
 
     // 3. Check if business_profile already exists for this provider

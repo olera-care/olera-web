@@ -5,6 +5,11 @@ import { parseSchedule } from "@/components/medjobs/ScheduleBuilder";
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"] as const;
 const SLOTS = ["8am", "10am", "12pm", "2pm", "4pm", "6pm"] as const;
 
+// Time periods for summary
+const MORNING_SLOTS = ["8am", "10am"];
+const AFTERNOON_SLOTS = ["12pm", "2pm"];
+const EVENING_SLOTS = ["4pm", "6pm"];
+
 interface ScheduleCardProps {
   meta: StudentMetadata;
   onEdit?: () => void;
@@ -14,17 +19,54 @@ export default function ScheduleCard({ meta, onEdit }: ScheduleCardProps) {
   const hasSchedule = !!meta.course_schedule_grid;
   const grid = parseSchedule(meta.course_schedule_grid);
 
-  // Count busy slots (class times)
-  const busySlots = Object.values(grid).filter(Boolean).length;
-  const totalSlots = DAYS.length * SLOTS.length;
-  const availableSlots = totalSlots - busySlots;
-
-  // Check if a slot has a class
+  // Check if a slot has a class (busy = not available)
   const isBusy = (day: string, slot: string) => !!grid[`${day}-${slot}`];
+  const isAvailable = (day: string, slot: string) => !isBusy(day, slot);
+
+  // Calculate total available hours (assuming 2hr blocks)
+  const totalAvailableSlots = DAYS.reduce((acc, day) => {
+    return acc + SLOTS.filter((slot) => isAvailable(day, slot)).length;
+  }, 0);
+  const estimatedHours = totalAvailableSlots * 2;
+
+  // Generate natural language summary
+  const getAvailabilitySummary = () => {
+    const availableDays = DAYS.filter((day) =>
+      SLOTS.some((slot) => isAvailable(day, slot))
+    );
+
+    if (availableDays.length === 0) return "Not available";
+    if (availableDays.length === 5) {
+      // Check time patterns
+      const hasMornings = DAYS.some((day) =>
+        MORNING_SLOTS.some((slot) => isAvailable(day, slot))
+      );
+      const hasAfternoons = DAYS.some((day) =>
+        AFTERNOON_SLOTS.some((slot) => isAvailable(day, slot))
+      );
+      const hasEvenings = DAYS.some((day) =>
+        EVENING_SLOTS.some((slot) => isAvailable(day, slot))
+      );
+
+      const times = [];
+      if (hasMornings) times.push("mornings");
+      if (hasAfternoons) times.push("afternoons");
+      if (hasEvenings) times.push("evenings");
+
+      if (times.length === 3) return "Weekdays, flexible hours";
+      if (times.length > 0) return `Weekdays, ${times.join(" & ")}`;
+      return "Weekdays";
+    }
+
+    // Format day ranges
+    if (availableDays.length === 1) return availableDays[0];
+    if (availableDays.length === 2) return availableDays.join(" & ");
+    return `${availableDays.slice(0, -1).join(", ")} & ${availableDays[availableDays.length - 1]}`;
+  };
 
   return (
     <CaregiverSectionCard
-      title="Semester Schedule"
+      title="Availability"
       isComplete={hasSchedule}
       id="schedule"
       onEdit={onEdit}
@@ -40,37 +82,68 @@ export default function ScheduleCard({ meta, onEdit }: ScheduleCardProps) {
           }
         />
       ) : (
-        <div className="space-y-3">
-          {/* Mini schedule visualization */}
-          <div className="grid grid-cols-5 gap-1">
-            {DAYS.map((day) => (
-              <div key={day} className="text-center">
-                <span className="text-[10px] font-medium text-gray-400 uppercase">{day.slice(0, 1)}</span>
-                <div className="flex flex-col gap-0.5 mt-1">
-                  {SLOTS.map((slot) => (
-                    <div
-                      key={slot}
-                      className={`h-1.5 rounded-sm ${
-                        isBusy(day, slot) ? "bg-gray-300" : "bg-emerald-200"
-                      }`}
-                    />
-                  ))}
+        <div className="space-y-4">
+          {/* Mini schedule grid — shows actual availability at a glance */}
+          <div className="space-y-1">
+            {/* Day headers */}
+            <div className="grid grid-cols-[32px_repeat(5,1fr)] gap-0.5">
+              <div />
+              {DAYS.map((day) => (
+                <div key={day} className="text-center text-[10px] font-medium text-gray-400">
+                  {day.slice(0, 1)}
                 </div>
+              ))}
+            </div>
+            {/* Time slots grid */}
+            <div className="grid grid-cols-[32px_repeat(5,1fr)] gap-0.5">
+              {/* Time labels - simplified */}
+              <div className="flex flex-col justify-between py-0.5">
+                <span className="text-[9px] text-gray-300">AM</span>
+                <span className="text-[9px] text-gray-300">PM</span>
               </div>
-            ))}
+              {/* Grid cells for each day */}
+              {DAYS.map((day) => (
+                <div key={day} className="flex flex-col gap-0.5">
+                  {SLOTS.map((slot) => {
+                    const available = isAvailable(day, slot);
+                    return (
+                      <div
+                        key={`${day}-${slot}`}
+                        className={`h-2.5 rounded-sm ${
+                          available
+                            ? "bg-gray-100"
+                            : "bg-gray-700"
+                        }`}
+                        title={`${day} ${slot}: ${available ? "Available" : "Class"}`}
+                      />
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+            {/* Legend */}
+            <div className="flex items-center gap-3 pt-1">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-sm bg-gray-100 border border-gray-200" />
+                <span className="text-[10px] text-gray-400">Available</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-sm bg-gray-700" />
+                <span className="text-[10px] text-gray-400">Class</span>
+              </div>
+            </div>
           </div>
 
-          {/* Summary */}
-          <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-100">
-            <span className="text-gray-500">Available time blocks</span>
-            <span className="font-medium text-gray-900">{availableSlots} / {totalSlots}</span>
-          </div>
-
-          {meta.course_schedule_semester && (
-            <p className="text-xs text-gray-400">
-              Schedule for {meta.course_schedule_semester}
+          {/* Summary text */}
+          <div className="pt-3 border-t border-gray-100 space-y-1">
+            <p className="text-sm font-medium text-gray-900">
+              {getAvailabilitySummary()}
             </p>
-          )}
+            <p className="text-xs text-gray-400">
+              ~{estimatedHours} hours/week
+              {meta.course_schedule_semester && ` · ${meta.course_schedule_semester}`}
+            </p>
+          </div>
         </div>
       )}
     </CaregiverSectionCard>

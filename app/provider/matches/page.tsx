@@ -22,6 +22,8 @@ import { useCitySearch } from "@/hooks/use-city-search";
 type MatchesTab = "best_match" | "most_recent" | "most_urgent" | "reached_out";
 import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
 import Pagination from "@/components/ui/Pagination";
+import VerificationFormModal from "@/components/provider/VerificationFormModal";
+import type { VerificationSubmission } from "@/components/provider/VerificationFormModal";
 
 
 // ── Timeline config ──
@@ -49,9 +51,9 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(diffDays / 30)}mo ago`;
 }
 
-function blurName(name: string): string {
-  if (!name) return "***";
-  return name.charAt(0) + "***";
+function getFirstName(name: string): string {
+  if (!name) return "User";
+  return name.split(" ")[0];
 }
 
 function getInitials(name: string): string {
@@ -1593,11 +1595,12 @@ export default function ProviderMatchesPage() {
   const hasFetchedOnceRef = useRef(false);
   const [totalCount, setTotalCount] = useState(0);
 
-  const hasFullAccess = canEngage(
-    providerProfile?.type,
-    membership,
-    "view_inquiry_details"
-  );
+  // Verification modal state
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+
+  // Verification-based access control: only verified providers see full details
+  const isVerified = providerProfile?.verification_state === "verified";
+  const hasFullAccess = isVerified;
 
   const freeRemaining = getFreeConnectionsRemaining(membership);
   const isFreeTier = freeRemaining !== null;
@@ -1616,10 +1619,36 @@ export default function ProviderMatchesPage() {
     return calculateProfileCompleteness(providerProfile, meta).overall;
   }, [providerProfile, dashboardMetadata]);
 
+  // ── Verification handler ──
+
+  const handleVerificationSubmit = useCallback(async (data: VerificationSubmission) => {
+    if (!providerProfile?.id) return;
+
+    const response = await fetch("/api/provider/verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        profileId: providerProfile.id,
+        submission: data,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || "Failed to submit verification");
+    }
+
+    // Close modal and refresh the page to update verification state
+    setShowVerificationModal(false);
+    window.location.reload();
+  }, [providerProfile?.id]);
+
   // ── Drawer handlers ──
 
   const handleReachOut = useCallback(
     (family: Profile) => {
+      // Allow all providers to reach out - verification is soft-nudged in the drawer
+
       if (!isProfileShareable(providerProfile)) {
         const gaps = getProfileCompletionGaps(providerProfile);
         setProfileGapWarning(gaps);
@@ -2079,7 +2108,7 @@ export default function ProviderMatchesPage() {
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
         {/* ── LEFT COLUMN: Banner + Filters + Content ── */}
         <div className="flex-1 min-w-0">
-          {/* Discovery Banner - separate entity */}
+          {/* Discovery Banner */}
           <div className="mb-8">
             <DiscoveryBanner
               familyCount={filteredFamilies.length}
@@ -2246,6 +2275,19 @@ export default function ProviderMatchesPage() {
         providerPaymentMethods={providerPaymentMethods}
         sending={sending}
         sendError={sendError}
+        isVerified={isVerified}
+        verificationState={providerProfile?.verification_state}
+        onVerifyClick={() => setShowVerificationModal(true)}
+      />
+
+      {/* ── Verification Modal ── */}
+      <VerificationFormModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        onSubmit={handleVerificationSubmit}
+        businessName={providerProfile?.display_name || "Your Business"}
+        allowDismiss={true}
+        onDismiss={() => setShowVerificationModal(false)}
       />
     </div>
     </div>

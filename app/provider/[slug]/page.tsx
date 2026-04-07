@@ -375,7 +375,7 @@ export default async function ProviderPage({
             const supabase = await createClient();
             const { data: bp } = await supabase
               .from("business_profiles")
-              .select("claim_state, account_id, metadata")
+              .select("claim_state, account_id, metadata, verification_state")
               .eq("source_provider_id", profile.source_provider_id!)
               .maybeSingle();
             return bp;
@@ -420,15 +420,25 @@ export default async function ProviderPage({
 
   let actualClaimState = profile.claim_state;
   let claimAccountId: string | null = profile.account_id;
+  // For native business_profiles, use profile.verification_state directly
+  // For iOS providers, this may be undefined but claimResult will override
+  let actualVerificationState: string | null = profile.verification_state ?? null;
   if (claimResult) {
     actualClaimState = claimResult.claim_state;
     claimAccountId = claimResult.account_id;
+    actualVerificationState = claimResult.verification_state ?? actualVerificationState;
     // Merge staff/owner data from business_profiles metadata (iOS metadata doesn't have it)
     const bpMeta = claimResult.metadata as ExtendedMetadata | null;
     if (bpMeta?.staff) {
       staff = bpMeta.staff;
     }
   }
+
+  // Only show "Claimed" badge when provider is BOTH claimed AND verified
+  // This prevents the trust signal from appearing before verification is complete
+  const displayClaimState = (actualClaimState === "claimed" && actualVerificationState === "verified")
+    ? "claimed"
+    : "unclaimed";
 
   const answeredQuestions = qaResult.questions as { id: string; question: string; answer: string; asker_name: string; created_at: string }[];
   const realReviewCount = qaResult.reviewCount;
@@ -674,7 +684,7 @@ export default async function ProviderPage({
               {images.length > 0 && (
                 <div className="absolute top-4 left-4 z-20 hidden md:block">
                   <ClaimBadge
-                    claimState={profile.claim_state}
+                    claimState={displayClaimState}
                     providerName={profile.display_name}
                     claimUrl={`/provider/${profile.slug}/onboard`}
                   />
@@ -746,7 +756,7 @@ export default async function ProviderPage({
 
                 {/* Row 3: Claim status */}
                 <MobileClaimLink
-                  claimState={profile.claim_state}
+                  claimState={displayClaimState}
                   providerName={profile.display_name}
                   claimUrl={`/provider/${profile.slug}/onboard`}
                 />
@@ -818,6 +828,12 @@ export default async function ProviderPage({
                 providerSlug={profile.slug}
                 providerName={profile.display_name}
                 providerId={profile.id}
+                sourceProviderId={profile.source_provider_id}
+                providerEmail={profile.email}
+                providerCity={profile.city}
+                providerState={profile.state}
+                isClaimed={actualClaimState === "claimed"}
+                claimAccountId={claimAccountId}
               />
 
               {/* Managed by — only show when staff data exists */}
@@ -831,7 +847,7 @@ export default async function ProviderPage({
                         <span className="text-[10px] font-semibold text-gray-500">{getInitials(staff!.name)}</span>
                       </div>
                     )}
-                    {actualClaimState === "claimed" && (
+                    {displayClaimState === "claimed" && (
                       <svg className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
                         <circle cx="10" cy="10" r="10" fill="white" />
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
@@ -1042,7 +1058,7 @@ export default async function ProviderPage({
                             <span className="text-3xl font-bold text-gray-500">{getInitials(staff!.name)}</span>
                           </div>
                         )}
-                        {actualClaimState === "claimed" && (
+                        {displayClaimState === "claimed" && (
                           <svg className="absolute bottom-0 right-0 w-6 h-6 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
                             <circle cx="10" cy="10" r="10" fill="white" />
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />

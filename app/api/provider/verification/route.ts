@@ -1,0 +1,161 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
+
+function getAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) return null;
+  return createClient(url, serviceKey);
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    // Authenticate the user
+    const supabase = await createServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { profileId, submission } = body;
+
+    if (!profileId) {
+      return NextResponse.json({ error: "Profile ID required" }, { status: 400 });
+    }
+
+    if (!submission?.name || !submission?.role) {
+      return NextResponse.json({ error: "Name and role are required" }, { status: 400 });
+    }
+
+    const admin = getAdminClient();
+    if (!admin) {
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+    }
+
+    // Get user's account
+    const { data: account } = await admin
+      .from("accounts")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!account) {
+      return NextResponse.json({ error: "Account not found" }, { status: 403 });
+    }
+
+    // Get profile and verify ownership
+    const { data: profile, error: fetchError } = await admin
+      .from("business_profiles")
+      .select("metadata, account_id")
+      .eq("id", profileId)
+      .single();
+
+    if (fetchError || !profile) {
+      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+    }
+
+    // Verify the user owns this profile
+    if (profile.account_id !== account.id) {
+      return NextResponse.json({ error: "You don't have permission to update this profile" }, { status: 403 });
+    }
+
+    // Prepare verification submission data
+    const verificationSubmission = {
+      name: submission.name,
+      email: submission.email || null,
+      role: submission.role,
+      phone: submission.phone || null,
+      notes: submission.notes || null,
+      document_url: submission.documentUrl || null,
+      submitted_at: new Date().toISOString(),
+    };
+
+    // Merge with existing metadata
+    const updatedMetadata = {
+      ...(profile.metadata || {}),
+      verification_submission: verificationSubmission,
+    };
+
+    // Update profile with verification data and set state to pending
+    const { error: updateError } = await admin
+      .from("business_profiles")
+      .update({
+        metadata: updatedMetadata,
+        verification_state: "pending",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", profileId);
+
+    if (updateError) {
+      console.error("Failed to update profile:", updateError);
+      return NextResponse.json({ error: "Failed to save verification" }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Verification submission error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+// GET endpoint to check verification status
+export async function GET(request: NextRequest) {
+  try {
+    // Authenticate the user
+    const supabase = await createServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const profileId = searchParams.get("profileId");
+
+    if (!profileId) {
+      return NextResponse.json({ error: "Profile ID required" }, { status: 400 });
+    }
+
+    const admin = getAdminClient();
+    if (!admin) {
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+    }
+
+    // Get user's account
+    const { data: account } = await admin
+      .from("accounts")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!account) {
+      return NextResponse.json({ error: "Account not found" }, { status: 403 });
+    }
+
+    const { data: profile, error } = await admin
+      .from("business_profiles")
+      .select("verification_state, metadata, account_id")
+      .eq("id", profileId)
+      .single();
+
+    if (error || !profile) {
+      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+    }
+
+    // Verify ownership
+    if (profile.account_id !== account.id) {
+      return NextResponse.json({ error: "You don't have permission to view this profile" }, { status: 403 });
+    }
+
+    return NextResponse.json({
+      verificationState: profile.verification_state,
+      submission: (profile.metadata as Record<string, unknown>)?.verification_submission || null,
+    });
+  } catch (error) {
+    console.error("Verification status check error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

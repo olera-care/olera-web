@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import type { Provider } from "@/lib/types/provider";
 import Link from "next/link";
@@ -39,11 +39,8 @@ export interface NotificationData {
 }
 
 export type ActionCardState =
-  | "verify-form"
-  | "verify-code"
+  | "claim-form"
   | "pre-verified"
-  | "no-access"
-  | "no-access-success"
   | "already-claimed"
   | "dispute-submitted"
   // Notification states (from email links)
@@ -53,9 +50,9 @@ export type ActionCardState =
 
 interface ActionCardProps {
   provider: Provider;
-  claimSession: string;
   initialState?: ActionCardState;
-  onVerificationComplete: (verifiedEmail?: string) => void;
+  /** Called when user clicks claim button - parent should open auth modal */
+  onClaimClick: () => void;
   /** Pre-verified email hint from token validation */
   preVerifiedEmail?: string;
   /** Whether to highlight the card (attention state) */
@@ -82,41 +79,31 @@ const ROLE_OPTIONS = [
 
 // Tooltip content for each state
 const TOOLTIP_CONTENT: Record<ActionCardState, { text: string; showTos?: boolean }> = {
-  "verify-form": {
-    text: "We'll send a verification code to confirm you have access to this business email.",
+  "claim-form": {
+    text: "Sign in with your business email. If it matches our records, you'll get instant access to manage this listing.",
     showTos: true,
-  },
-  "verify-code": {
-    text: "Check your inbox (and spam folder) for the 6-digit code. Codes expire after 10 minutes.",
   },
   "pre-verified": {
     text: "Your email has been verified. Sign in to complete the claim process.",
     showTos: true,
   },
-  "no-access": {
-    text: "We'll review your information and reach out within 2–3 business days to verify your connection.",
-    showTos: true,
-  },
-  "no-access-success": {
-    text: "Our team will review your request and contact you at the email provided.",
-  },
   "already-claimed": {
-    text: "This listing is managed by someone else. Submit a dispute and we'll review within 2–3 business days.",
+    text: "Someone else has verified ownership of this listing. If you believe this is incorrect, submit a dispute and we'll review within 2–3 business days.",
     showTos: true,
   },
   "dispute-submitted": {
     text: "Our team will review your dispute and contact you at the email provided.",
   },
   "notification-lead": {
-    text: "A family is interested in your services. Verify your email to respond.",
+    text: "A family is interested in your services. Sign in to respond.",
     showTos: true,
   },
   "notification-question": {
-    text: "Someone asked a question about your listing. Verify your email to answer.",
+    text: "Someone asked a question about your listing. Sign in to answer.",
     showTos: true,
   },
   "notification-review": {
-    text: "Someone left a review for your listing. Verify your email to respond.",
+    text: "Someone left a review for your listing. Sign in to respond.",
     showTos: true,
   },
 };
@@ -388,9 +375,8 @@ function maskEmail(email: string): string {
 
 export default function ActionCard({
   provider,
-  claimSession,
-  initialState = "verify-form",
-  onVerificationComplete,
+  initialState = "claim-form",
+  onClaimClick,
   preVerifiedEmail,
   highlighted = false,
   notificationData,
@@ -400,22 +386,7 @@ export default function ActionCard({
   const [state, setState] = useState<ActionCardState>(initialState);
 
   // Form state
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-
-  // Code verification state
-  const [code, setCode] = useState("");
-  const [emailHint, setEmailHint] = useState(preVerifiedEmail || "");
-  const [verifying, setVerifying] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
-
-  // No-access form state
-  const [noAccessName, setNoAccessName] = useState("");
-  const [noAccessEmail, setNoAccessEmail] = useState("");
-  const [noAccessPhone, setNoAccessPhone] = useState("");
-  const [noAccessRole, setNoAccessRole] = useState("");
-  const [noAccessNotes, setNoAccessNotes] = useState("");
-  const [noAccessSubmitting, setNoAccessSubmitting] = useState(false);
 
   // Dispute form state
   const [disputeName, setDisputeName] = useState("");
@@ -425,219 +396,13 @@ export default function ActionCard({
   const [disputeReason, setDisputeReason] = useState("");
   const [disputeSubmitting, setDisputeSubmitting] = useState(false);
 
-  // Track if user clicked to show identity form (when no email on file)
-  const [showIdentityForm, setShowIdentityForm] = useState(false);
   // Track if user clicked to show dispute form (when already claimed)
   const [showDisputeForm, setShowDisputeForm] = useState(false);
-
-  // Refs for auto-submit
-  const codeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const autoSubmitRef = useRef(false);
 
   // Sync initial state
   useEffect(() => {
     setState(initialState);
   }, [initialState]);
-
-  // Resend cooldown timer
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const t = setInterval(
-      () => setResendCooldown((c) => Math.max(0, c - 1)),
-      1000
-    );
-    return () => clearInterval(t);
-  }, [resendCooldown]);
-
-  // ────────────────────────────────────────────────────────────
-  // Verify Form Handlers
-  // ────────────────────────────────────────────────────────────
-
-  const handleSubmitVerifyForm = async () => {
-    setSubmitting(true);
-    setError("");
-
-    try {
-      const res = await fetch("/api/claim/send-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerId: provider.provider_id,
-          claimSession,
-        }),
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 422) {
-          // No email on file - go to manual request form
-          setState("no-access");
-        } else {
-          setError(result.error || "Failed to send verification code.");
-        }
-        return;
-      }
-
-      setEmailHint(result.emailHint);
-      setResendCooldown(60);
-      setState("verify-code");
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // ────────────────────────────────────────────────────────────
-  // Code Verification Handlers
-  // ────────────────────────────────────────────────────────────
-
-  const handleVerifyCode = useCallback(async () => {
-    if (code.length !== 6) return;
-
-    setVerifying(true);
-    setError("");
-
-    try {
-      const res = await fetch("/api/claim/verify-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerId: provider.provider_id,
-          code,
-          claimSession,
-        }),
-      });
-
-      const result = await res.json();
-
-      if (!res.ok || !result.verified) {
-        setError(result.error || "Incorrect code. Please try again.");
-        setCode("");
-        codeInputRefs.current[0]?.focus();
-        return;
-      }
-
-      // Code verified — pass the verified email for auto-sign-in
-      onVerificationComplete(emailHint || undefined);
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setVerifying(false);
-    }
-  }, [code, provider.provider_id, claimSession, onVerificationComplete, emailHint]);
-
-  // Auto-submit code when 6 digits entered
-  useEffect(() => {
-    if (code.length === 6 && !verifying && !autoSubmitRef.current) {
-      autoSubmitRef.current = true;
-      handleVerifyCode();
-    }
-    if (code.length < 6) {
-      autoSubmitRef.current = false;
-    }
-  }, [code, verifying, handleVerifyCode]);
-
-  const handleResend = async () => {
-    if (resendCooldown > 0) return;
-
-    setError("");
-    setCode("");
-
-    try {
-      const res = await fetch("/api/claim/send-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerId: provider.provider_id,
-          claimSession,
-        }),
-      });
-
-      if (res.ok) {
-        setResendCooldown(60);
-      } else {
-        const result = await res.json();
-        setError(result.error || "Failed to resend code.");
-      }
-    } catch {
-      setError("Failed to resend code.");
-    }
-  };
-
-  const handleCodeChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
-
-    const newCode = code.split("");
-    newCode[index] = value.slice(-1);
-    const joined = newCode.join("").slice(0, 6);
-    setCode(joined);
-
-    if (value && index < 5) {
-      codeInputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleCodeKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !code[index] && index > 0) {
-      codeInputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleCodePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    setCode(pasted);
-    if (pasted.length === 6) {
-      codeInputRefs.current[5]?.focus();
-    } else {
-      codeInputRefs.current[pasted.length]?.focus();
-    }
-  };
-
-  // ────────────────────────────────────────────────────────────
-  // No-Access Form Handlers
-  // ────────────────────────────────────────────────────────────
-
-  const handleNoAccessSubmit = async () => {
-    if (!noAccessName.trim() || !noAccessRole || !noAccessEmail.trim() || !noAccessPhone.trim()) {
-      setError("Please fill in all required fields.");
-      return;
-    }
-
-    setNoAccessSubmitting(true);
-    setError("");
-
-    try {
-      const res = await fetch("/api/claim/no-access", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerId: provider.provider_id,
-          providerName: provider.provider_name,
-          contactName: noAccessName,
-          contactPhone: noAccessPhone,
-          reason: noAccessNotes
-            ? `${noAccessRole} — ${noAccessNotes}`
-            : noAccessRole,
-          alternativeEmail: noAccessEmail,
-        }),
-      });
-
-      if (!res.ok) {
-        const result = await res.json().catch(() => ({}));
-        setError(result.error || "Failed to submit request.");
-        return;
-      }
-
-      setState("no-access-success");
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setNoAccessSubmitting(false);
-    }
-  };
 
   // ────────────────────────────────────────────────────────────
   // Dispute Form Handlers
@@ -698,7 +463,6 @@ export default function ActionCard({
 
   if (state === "notification-lead" && notificationData) {
     const rawName = notificationData.from_profile?.display_name || "A family";
-    const rawImage = notificationData.from_profile?.image_url || null;
     const rawLocation = [notificationData.from_profile?.city, notificationData.from_profile?.state].filter(Boolean).join(", ");
     const careType = notificationData.metadata?.care_type;
     const rawMessage = notificationData.metadata?.auto_intro;
@@ -707,7 +471,7 @@ export default function ActionCard({
     // Always mask seeker info on the onboard page — full details revealed in /provider/connections
     // after the provider verifies ownership. This protects seekers if email goes to wrong recipient.
     const personName = rawName.split(" ")[0] || "A family";
-    const personImage: string | null = null;
+    const personImage: string | null = null; // Always masked on onboard page
     const location = rawLocation ? rawLocation.split(",")[0]?.trim() : "";
     const message = rawMessage ? rawMessage.slice(0, 40) + "..." : null;
 
@@ -763,10 +527,10 @@ export default function ActionCard({
         ) : (
           <>
             <button
-              onClick={() => setState("verify-form")}
+              onClick={onClaimClick}
               className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
             >
-              Verify to respond
+              Sign in to respond
             </button>
             <p className="text-xs text-gray-400 mt-3 text-center">
               Olera connects families with quality senior care providers.
@@ -825,10 +589,10 @@ export default function ActionCard({
         ) : (
           <>
             <button
-              onClick={() => setState("verify-form")}
+              onClick={onClaimClick}
               className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
             >
-              Verify to answer
+              Sign in to answer
             </button>
             <p className="text-xs text-gray-400 mt-3 text-center">
               Olera connects families with quality senior care providers.
@@ -901,10 +665,10 @@ export default function ActionCard({
         ) : (
           <>
             <button
-              onClick={() => setState("verify-form")}
+              onClick={onClaimClick}
               className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
             >
-              Verify to respond
+              Sign in to respond
             </button>
             <p className="text-xs text-gray-400 mt-3 text-center">
               Olera connects families with quality senior care providers.
@@ -933,51 +697,20 @@ export default function ActionCard({
             <InfoTooltip content={TOOLTIP_CONTENT["pre-verified"].text} showTos={TOOLTIP_CONTENT["pre-verified"].showTos} />
           </h3>
           <p className="text-[15px] text-gray-500">
-            <span className="font-semibold text-gray-700">{emailHint || preVerifiedEmail}</span> is verified. Sign in to continue.
+            <span className="font-semibold text-gray-700">{preVerifiedEmail}</span> is verified. Sign in to continue.
           </p>
         </div>
 
         <button
-          onClick={() => onVerificationComplete(emailHint || preVerifiedEmail || undefined)}
+          onClick={onClaimClick}
           className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
         >
-          Claim this listing
+          Get started
         </button>
       </div>
     );
   }
 
-  // ════════════════════════════════════════════════════════════
-  // RENDER: No-Access Success State
-  // ════════════════════════════════════════════════════════════
-
-  if (state === "no-access-success") {
-    return (
-      <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
-            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
-            Request submitted
-            <InfoTooltip content={TOOLTIP_CONTENT["no-access-success"].text} />
-          </h3>
-          <p className="text-[15px] text-gray-500">
-            We&apos;ll review and respond within 2–3 business days.
-          </p>
-        </div>
-
-        <Link
-          href={`/provider/${provider.slug || provider.provider_id}`}
-          className="block w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 active:scale-[0.99] transition-all min-h-[48px] text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
-        >
-          Return to listing
-        </Link>
-      </div>
-    );
-  }
 
   // ════════════════════════════════════════════════════════════
   // RENDER: Dispute Submitted State
@@ -1011,201 +744,13 @@ export default function ActionCard({
     );
   }
 
-  // ════════════════════════════════════════════════════════════
-  // RENDER: No-Access / No-Email States
-  // ════════════════════════════════════════════════════════════
-
-  // Check email availability
-  const businessEmail = provider.email;
-  const hasEmailOnFile = !!businessEmail;
-
-  // Determine what to show:
-  // 1. "no-access" state (user clicked "I don't have access") -> show identity form
-  // 2. "verify-form" state with no email on file AND user clicked button -> show identity form
-  // 3. "verify-form" state with no email on file but hasn't clicked -> show prompt card
-  const showNoAccessForm = state === "no-access" || (state === "verify-form" && !hasEmailOnFile && showIdentityForm);
-  const showNoEmailPrompt = state === "verify-form" && !hasEmailOnFile && !showIdentityForm;
-
-  // ════════════════════════════════════════════════════════════
-  // RENDER: No Email Prompt Card (intermediate step)
-  // ════════════════════════════════════════════════════════════
-
-  if (showNoEmailPrompt) {
-    return (
-      <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
-            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
-            We don&apos;t have your email
-            <InfoTooltip content="We don't have an email on file for this listing. You'll need to verify your identity manually so we can confirm your connection." showTos />
-          </h3>
-          <p className="text-[15px] text-gray-500">
-            Send us your business email so we can verify your connection to this listing.
-          </p>
-        </div>
-
-        <button
-          onClick={() => setShowIdentityForm(true)}
-          className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 block"
-        >
-          Verify your identity
-        </button>
-      </div>
-    );
-  }
-
-  // ════════════════════════════════════════════════════════════
-  // RENDER: No-Access Form State (full identity form)
-  // ════════════════════════════════════════════════════════════
-
-  if (showNoAccessForm) {
-    // Determine if we came from "no email" prompt or "I don't have access" link
-    const cameFromNoEmailPrompt = !hasEmailOnFile && showIdentityForm;
-
-    return (
-      <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
-            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
-            Verify your identity
-            <InfoTooltip content={TOOLTIP_CONTENT["no-access"].text} showTos={TOOLTIP_CONTENT["no-access"].showTos} />
-          </h3>
-          <p className="text-[15px] text-gray-500">
-            Tell us about yourself and your role at this organization.
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          {/* Full name - full width */}
-          <div className="space-y-1.5">
-            <label htmlFor="no-access-name" className={labelClasses}>
-              Full name <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="no-access-name"
-              type="text"
-              value={noAccessName}
-              onChange={(e) => setNoAccessName(e.target.value)}
-              placeholder="Your full name"
-              autoComplete="name"
-              className={inputClasses}
-            />
-          </div>
-
-          {/* Email and Phone - 2 columns */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="space-y-1.5">
-              <label htmlFor="no-access-email" className={labelClasses}>
-                Email <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="no-access-email"
-                type="email"
-                value={noAccessEmail}
-                onChange={(e) => setNoAccessEmail(e.target.value)}
-                placeholder="you@example.com"
-                autoComplete="email"
-                className={inputClasses}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label htmlFor="no-access-phone" className={labelClasses}>
-                Phone <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="no-access-phone"
-                type="tel"
-                value={noAccessPhone}
-                onChange={(e) => setNoAccessPhone(e.target.value)}
-                placeholder="(555) 123-4567"
-                autoComplete="tel"
-                className={inputClasses}
-              />
-            </div>
-          </div>
-
-          {/* Your role dropdown */}
-          <div className="space-y-1.5">
-            <label id="no-access-role-label" className={labelClasses}>
-              Your role <span className="text-red-500">*</span>
-            </label>
-            <RoleDropdown
-              value={noAccessRole}
-              onChange={setNoAccessRole}
-            />
-          </div>
-
-          {/* Additional notes - optional */}
-          <div className="space-y-1.5">
-            <label htmlFor="no-access-notes" className={labelClasses}>
-              Additional notes <span className="text-gray-400 font-normal">(optional)</span>
-            </label>
-            <textarea
-              id="no-access-notes"
-              value={noAccessNotes}
-              onChange={(e) => setNoAccessNotes(e.target.value)}
-              placeholder="Anything else we should know?"
-              rows={3}
-              className={`${inputClasses} resize-none`}
-            />
-          </div>
-
-          {error && (
-            <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg">
-              <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-              </svg>
-              <p className="text-sm text-red-700" role="alert">{error}</p>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between pt-3">
-            <button
-              type="button"
-              onClick={() => {
-                if (cameFromNoEmailPrompt) {
-                  // Go back to the prompt card
-                  setShowIdentityForm(false);
-                } else {
-                  // Go back to verify-form (has email)
-                  setState("verify-form");
-                }
-                setError("");
-              }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back
-            </button>
-            <button
-              onClick={handleNoAccessSubmit}
-              disabled={!noAccessName.trim() || !noAccessRole || !noAccessEmail.trim() || !noAccessPhone.trim() || noAccessSubmitting}
-              className="px-6 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[48px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
-            >
-              {noAccessSubmitting ? "Submitting..." : "Submit request"}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // ════════════════════════════════════════════════════════════
   // RENDER: Already Claimed State (Compact + Dispute Form)
   // ════════════════════════════════════════════════════════════
 
   if (state === "already-claimed") {
-    // Compact view - just show info and "Dispute listing" button
+    // Compact view - show "Dispute" (primary) + "Sign in" (secondary teal link)
     if (!showDisputeForm) {
       return (
         <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
@@ -1230,6 +775,15 @@ export default function ActionCard({
           >
             Dispute listing
           </button>
+          <p className="w-full sm:max-w-[280px] sm:mx-auto mt-4 text-sm text-gray-500 text-center">
+            This is yours?{" "}
+            <button
+              onClick={onClaimClick}
+              className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+            >
+              Sign in
+            </button>
+          </p>
         </div>
       );
     }
@@ -1360,109 +914,37 @@ export default function ActionCard({
     );
   }
 
-  // ════════════════════════════════════════════════════════════
-  // RENDER: Verify Code State
-  // ════════════════════════════════════════════════════════════
-
-  if (state === "verify-code") {
-    return (
-      <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        {/* Header - centered style */}
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
-            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
-            Enter verification code
-            <InfoTooltip content={TOOLTIP_CONTENT["verify-code"].text} />
-          </h3>
-          <p className="text-[15px] text-gray-500">
-            We sent a 6-digit code to <span className="font-semibold text-gray-700">{emailHint}</span>
-          </p>
-        </div>
-
-        {/* Code input */}
-        <div className="flex justify-center gap-2 sm:gap-3 mb-6" onPaste={handleCodePaste}>
-          {[0, 1, 2, 3, 4, 5].map((i) => (
-            <input
-              key={i}
-              ref={(el) => { codeInputRefs.current[i] = el; }}
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              autoComplete="one-time-code"
-              maxLength={1}
-              value={code[i] || ""}
-              onChange={(e) => handleCodeChange(i, e.target.value)}
-              onKeyDown={(e) => handleCodeKeyDown(i, e)}
-              disabled={verifying}
-              aria-label={`Digit ${i + 1} of 6`}
-              className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-200 bg-gray-50/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 focus:bg-white disabled:opacity-50 transition-all"
-            />
-          ))}
-        </div>
-
-        {error && (
-          <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg mb-4">
-            <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-            </svg>
-            <p className="text-sm text-red-700" role="alert">{error}</p>
-          </div>
-        )}
-
-        <div className="text-center">
-          <button
-            onClick={handleResend}
-            disabled={resendCooldown > 0}
-            className="text-sm font-semibold text-primary-600 hover:text-primary-700 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors min-h-[44px] focus:outline-none focus-visible:underline"
-          >
-            {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
-          </button>
-        </div>
-
-        <div className="mt-5 pt-4 border-t border-gray-100">
-          <button
-            onClick={() => setState("no-access")}
-            className="w-full text-sm font-medium text-gray-500 hover:text-gray-700 text-center transition-colors min-h-[44px] focus:outline-none focus-visible:text-gray-900 focus-visible:underline"
-          >
-            I don&apos;t have access to this email
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   // ════════════════════════════════════════════════════════════
-  // RENDER: Verify Form State (Default) - Only shown when email exists
+  // RENDER: Claim Form State (Default) - Auth-based claim design
   // ════════════════════════════════════════════════════════════
 
-  // Note: If no email on file, showNoAccessForm above will be true and we won't reach here
-  const verifyEmail = provider.email!;
+  const providerEmail = provider.email;
+  const hasEmail = !!providerEmail;
 
   return (
     <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-      {/* Centered header with email */}
+      {/* Shield icon + Claim heading */}
       <div className="text-center mb-6">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
-          <svg className="w-6 h-6 text-primary-600" fill="none" viewBox="0 0 24 24">
-            <path
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-            />
+        {/* Shield Icon */}
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-600 to-primary-700 flex items-center justify-center mx-auto mb-4 shadow-sm">
+          <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+            <path fillRule="evenodd" d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08zm3.094 8.016a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
           </svg>
         </div>
         <h3 className="text-xl font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
-          Verify your email
-          <InfoTooltip content={TOOLTIP_CONTENT["verify-form"].text} showTos={TOOLTIP_CONTENT["verify-form"].showTos} />
+          Manage this page
+          <InfoTooltip
+            content={TOOLTIP_CONTENT["claim-form"].text}
+            showTos
+          />
         </h3>
-        <p className="text-[15px] text-gray-500">
-          We&apos;ll send a code to <span className="font-semibold text-gray-700">{maskEmail(verifyEmail)}</span>
+        <p className="text-[15px] text-gray-500 leading-relaxed">
+          {hasEmail ? (
+            <>Sign in with <span className="font-semibold text-gray-700">{maskEmail(providerEmail)}</span> for instant access.</>
+          ) : (
+            "Use your business email for instant verification."
+          )}
         </p>
       </div>
 
@@ -1475,35 +957,16 @@ export default function ActionCard({
         </div>
       )}
 
-      {/* Primary action */}
+      {/* Primary action - triggers auth modal */}
       <button
-        onClick={handleSubmitVerifyForm}
-        disabled={submitting}
-        className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 block"
+        onClick={onClaimClick}
+        className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center justify-center gap-1.5"
       >
-        {submitting ? (
-          <span className="inline-flex items-center justify-center gap-2">
-            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            Sending...
-          </span>
-        ) : (
-          "Send verification code"
-        )}
+        Get started
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
       </button>
-
-      {/* No access link */}
-      <div className="mt-5 pt-4 border-t border-gray-100">
-        <button
-          type="button"
-          onClick={() => setState("no-access")}
-          className="w-full text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors min-h-[44px] focus:outline-none focus-visible:text-gray-900 focus-visible:underline"
-        >
-          I don&apos;t have access to the business email
-        </button>
-      </div>
     </div>
   );
 }

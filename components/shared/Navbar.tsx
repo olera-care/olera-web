@@ -76,6 +76,10 @@ export default function Navbar() {
   }, [user]);
 
   const isPortal = pathname.startsWith("/portal");
+  const isInboxPage = pathname.startsWith("/portal/inbox");
+  // Check if unified inbox is in provider mode - use activeProfile type instead of URL param
+  // This avoids useSearchParams which requires Suspense boundary
+  const isInboxProviderMode = isInboxPage && activeProfile?.type === "organization";
   const isProviderPortal =
     pathname === "/provider" ||
     pathname.startsWith("/provider/connections") ||
@@ -86,12 +90,12 @@ export default function Navbar() {
     pathname.startsWith("/provider/matches") ||
     pathname.startsWith("/provider/pro") ||
     pathname.startsWith("/provider/qna") ||
-    pathname.startsWith("/provider/verification") ||
     pathname.startsWith("/provider/account") ||
     pathname.startsWith("/provider/medjobs") ||
     // Claim/onboard flow shows provider portal nav
-    (pathname.startsWith("/provider/") && pathname.endsWith("/onboard"));
-  const isInboxPage = pathname.startsWith("/portal/inbox");
+    (pathname.startsWith("/provider/") && pathname.endsWith("/onboard")) ||
+    // Unified inbox when active profile is a provider
+    isInboxProviderMode;
   const isMinimalNav = pathname.startsWith("/welcome") || pathname.startsWith("/provider/welcome");
   // Auth-gated provider hub routes — the layout gate guarantees the user is signed in,
   // so we can safely render signed-in UI without waiting for hasSession
@@ -102,8 +106,7 @@ export default function Navbar() {
     pathname.startsWith("/provider/matches") ||
     pathname.startsWith("/provider/pro") ||
     pathname.startsWith("/provider/qna") ||
-    pathname.startsWith("/provider/medjobs") ||
-    pathname.startsWith("/provider/verification");
+    pathname.startsWith("/provider/medjobs");
   const isProviderWelcome = pathname.startsWith("/provider/welcome");
 
   // Show auth pill as soon as we know a user session exists.
@@ -211,11 +214,11 @@ export default function Navbar() {
   // Logo destination based on profile type (use has* checks for faster detection after login)
   // Priority: Provider > Student > Family/logged-out
   // If user has multiple profile types, provider takes precedence (they can use mode switcher)
-  const logoHref = hasProviderProfile
-    ? "/provider"
-    : hasStudentProfile
+  const logoHref = hasStudentProfile
     ? "/portal/medjobs"
-    : "/";
+    : (isProviderPortal || isProviderOnlyAccount)
+      ? "/provider"
+      : "/";
 
   useEffect(() => {
     if (isMobileMenuOpen && hasSession) {
@@ -313,6 +316,7 @@ export default function Navbar() {
                 { label: "Inbox", href: "/portal/inbox?role=provider", badge: providerInboxCount, icon: "M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" },
                 { label: "Q&A", href: "/provider/qna", badge: qnaCount, icon: "M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" },
                 { label: "Leads", href: "/provider/connections", badge: newLeadsCount, icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" },
+                { label: "Caregivers", href: "/provider/caregivers", badge: 0, icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" },
               ] as const).map((item) => (
                 <Link
                   key={item.label}
@@ -654,7 +658,7 @@ export default function Navbar() {
                 ) : (isProviderPortal || activeProfile?.type === "organization") ? (
                   /* Provider Hub nav links - shown on /provider/* URLs or for organization users (e.g., in inbox) */
                   <>
-                    {/* Home */}
+                    {/* Profile */}
                     <Link
                       href="/provider"
                       data-wizard-target="dashboard"
@@ -664,7 +668,7 @@ export default function Navbar() {
                           : "text-gray-700 hover:text-gray-900"
                       }`}
                     >
-                      Home
+                      Profile
                     </Link>
 
                     {/* Find Families */}
@@ -680,7 +684,7 @@ export default function Navbar() {
                       Find Families
                     </Link>
 
-                    {/* Hire Staff */}
+                    {/* Hire Caregivers */}
                     <Link
                       href="/provider/medjobs/candidates"
                       className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
@@ -689,7 +693,7 @@ export default function Navbar() {
                           : "text-gray-700 hover:text-gray-900"
                       }`}
                     >
-                      Hire Staff
+                      Hire Caregivers
                     </Link>
                   </>
                 ) : (
@@ -1055,12 +1059,13 @@ export default function Navbar() {
                         {mobileAccordion === "hub" && (
                           <div className="mt-1 space-y-0.5">
                             {([
-                              { label: "Home", href: "/provider", match: "/provider", badge: 0, icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
+                              { label: "Profile", href: "/provider", match: "/provider", badge: 0, icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
                               { label: "Find Families", href: "/provider/matches", match: "/provider/matches", badge: 0, icon: "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" },
-                              { label: "Hire Staff", href: "/provider/medjobs/candidates", match: "/provider/medjobs", badge: 0, icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" },
+                              { label: "Hire Caregivers", href: "/provider/medjobs/candidates", match: "/provider/medjobs", badge: 0, icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" },
                               { label: "Inbox", href: "/portal/inbox?role=provider", match: "/portal/inbox", badge: providerInboxCount, icon: "M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" },
                               { label: "Q&A", href: "/provider/qna", match: "/provider/qna", badge: qnaCount, icon: "M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" },
                               { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount, icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" },
+                              { label: "Caregivers", href: "/provider/caregivers", match: "/provider/caregivers", badge: 0, icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" },
                             ] as const).map((item) => {
                               const active = item.match === "/provider" ? pathname === "/provider" : pathname.startsWith(item.match);
                               return (

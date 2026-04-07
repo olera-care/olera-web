@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { connectionRequestEmail } from "@/lib/email-templates";
+import { generateNotificationUrl } from "@/lib/claim-tokens";
 
 /**
  * POST /api/admin/leads/add-email
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     // Get the business profile
     const { data: profile, error: profileErr } = await db
       .from("business_profiles")
-      .select("id, display_name, email, source_provider_id, slug")
+      .select("id, display_name, email, source_provider_id, slug, metadata")
       .eq("id", profileId)
       .single();
 
@@ -68,6 +69,35 @@ export async function POST(request: NextRequest) {
           .update({ email: effectiveEmail })
           .eq("provider_id", profile.source_provider_id);
       }
+    }
+
+    // Check if provider has opted out of lead emails
+    const profileMeta = (profile.metadata as Record<string, unknown>) || {};
+    if (profileMeta.leads_unsubscribed) {
+      // Still clear flags and update email, but don't send notification emails
+      const { data: flagged } = await db
+        .from("connections")
+        .select("id, metadata")
+        .eq("to_profile_id", profileId)
+        .eq("status", "pending")
+        .contains("metadata", { needs_provider_email: true });
+
+      for (const conn of flagged ?? []) {
+        const meta = (conn.metadata as Record<string, unknown>) || {};
+        delete meta.needs_provider_email;
+        meta.email_skipped_unsubscribed = true;
+        await db.from("connections").update({ metadata: meta }).eq("id", conn.id);
+      }
+
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "add_provider_email",
+        targetType: "business_profile",
+        targetId: profileId,
+        details: { email: effectiveEmail, providerName: profile.display_name, emailsSent: 0, flagsCleared: flagged?.length ?? 0, skippedReason: "provider_unsubscribed" },
+      });
+
+      return NextResponse.json({ success: true, emailsSent: 0, skipped: "unsubscribed" });
     }
 
     // Find and process flagged connections
@@ -125,6 +155,17 @@ export async function POST(request: NextRequest) {
             providerId: profileId,
           });
 
+          // Generate one-click URL with signed token for auto-sign-in
+          const providerSlug = profile.slug || profile.source_provider_id || profileId;
+          let viewUrl: string;
+          try {
+            viewUrl = generateNotificationUrl(providerSlug, effectiveEmail, "lead", conn.id, siteUrl);
+            viewUrl = appendTrackingParams(viewUrl, emailLogId);
+          } catch {
+            // Fallback: direct URL without token
+            viewUrl = appendTrackingParams(`${siteUrl}/provider/${providerSlug}/onboard?action=lead&actionId=${conn.id}`, emailLogId);
+          }
+
           await sendEmail({
             to: effectiveEmail,
             subject: emailSubject,
@@ -133,7 +174,8 @@ export async function POST(request: NextRequest) {
               familyName,
               careType,
               message: additionalNotes,
-              viewUrl: appendTrackingParams(`${siteUrl}/provider/connections`, emailLogId),
+              viewUrl,
+              providerSlug,
             }),
             emailType: "add_email_notification",
             recipientType: "provider",

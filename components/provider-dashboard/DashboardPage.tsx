@@ -20,6 +20,9 @@ import PricingCard from "./PricingCard";
 import PaymentInsuranceCard from "./PaymentInsuranceCard";
 import OwnerCard from "./OwnerCard";
 import ProfileCompletenessSidebar from "./ProfileCompletenessSidebar";
+import VerificationStatusCard from "./VerificationStatusCard";
+import VerificationFormModal from "@/components/provider/VerificationFormModal";
+import type { VerificationSubmission, ExistingVerificationData } from "@/components/provider/VerificationFormModal";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
 import EditGalleryModal from "./edit-modals/EditGalleryModal";
 import EditCareServicesModal from "./edit-modals/EditCareServicesModal";
@@ -32,7 +35,7 @@ import EditOwnerModal from "./edit-modals/EditOwnerModal";
 export default function DashboardPage() {
   const profile = useProviderProfile();
   const { metadata } = useProviderDashboardData(profile);
-  const { refreshAccountData } = useAuth();
+  const { user, refreshAccountData } = useAuth();
 
   // Modal state
   const [editingSection, setEditingSection] = useState<SectionId | null>(null);
@@ -95,6 +98,7 @@ export default function DashboardPage() {
       editingSection={editingSection}
       setEditingSection={setEditingSection}
       refreshAccountData={refreshAccountData}
+      userEmail={user?.email}
     />
   );
 }
@@ -109,6 +113,7 @@ function DashboardContent({
   editingSection,
   setEditingSection,
   refreshAccountData,
+  userEmail,
 }: {
   profile: NonNullable<ReturnType<typeof useProviderProfile>>;
   meta: ExtendedMetadata;
@@ -116,10 +121,45 @@ function DashboardContent({
   sectionPercent: (id: string) => number;
   editingSection: SectionId | null;
   setEditingSection: (s: SectionId | null) => void;
+  userEmail?: string;
   refreshAccountData: () => Promise<void>;
 }) {
   const guided = useGuidedOnboarding(completeness);
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [verificationExistingData, setVerificationExistingData] = useState<ExistingVerificationData | undefined>();
+  const [isVerificationUpdate, setIsVerificationUpdate] = useState(false);
+
+  // Open verification modal (can be called with existing data for updates)
+  const handleOpenVerificationModal = useCallback((existingData?: ExistingVerificationData) => {
+    setVerificationExistingData(existingData);
+    setIsVerificationUpdate(!!existingData);
+    setShowVerificationModal(true);
+  }, []);
+
+  // Handle verification submission
+  const handleVerificationSubmit = useCallback(async (data: VerificationSubmission) => {
+    const response = await fetch("/api/provider/verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        profileId: profile.id,
+        submission: data,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to submit verification");
+    }
+
+    // Refresh profile data to get updated verification state
+    await refreshAccountData();
+    setShowVerificationModal(false);
+    // Reset state for next time
+    setVerificationExistingData(undefined);
+    setIsVerificationUpdate(false);
+  }, [profile.id, refreshAccountData]);
 
   const handleEdit = useCallback(
     (sectionId: SectionId) => setEditingSection(sectionId),
@@ -174,7 +214,7 @@ function DashboardContent({
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <DashboardHeader slug={profile.slug} />
+      <DashboardHeader profile={profile} />
 
       {/* Guided onboarding banner */}
       {guided.shouldPrompt && !guided.isGuidedActive && (
@@ -209,6 +249,16 @@ function DashboardContent({
               Get Started
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Mobile verification card - hidden on desktop, shown for unverified/pending */}
+      {profile.verification_state !== "verified" && (
+        <div className="lg:hidden mb-4">
+          <MobileVerificationCard
+            verificationState={profile.verification_state}
+            onVerify={() => handleOpenVerificationModal()}
+          />
         </div>
       )}
 
@@ -278,6 +328,7 @@ function DashboardContent({
               metadata={meta}
               onEdit={() => handleEdit("owner")}
             />,
+            <NotificationPreferencesCard key="notifications" profileSlug={profile.slug} profileMetadata={meta} />,
           ].map((card, i) => (
             <div
               key={i}
@@ -294,12 +345,19 @@ function DashboardContent({
         {/* Sidebar - hidden on mobile */}
         <div className="hidden lg:block lg:col-span-1">
           <div
-            className="sticky top-24"
+            className="sticky top-24 space-y-4"
             style={{
               animation: "card-enter 0.25s ease-out both",
               animationDelay: "450ms",
             }}
           >
+            {/* Verification card - shown only for unverified/pending */}
+            <VerificationStatusCard
+              verificationState={profile.verification_state}
+              profileId={profile.id}
+              onRequestVerification={handleOpenVerificationModal}
+            />
+
             <ProfileCompletenessSidebar
               completeness={completeness}
               lastUpdated={profile.updated_at}
@@ -317,6 +375,27 @@ function DashboardContent({
       {editingSection === "pricing" && <EditPricingModal {...modalProps} />}
       {editingSection === "payment" && <EditPaymentModal {...modalProps} />}
       {editingSection === "owner" && <EditOwnerModal {...modalProps} />}
+
+      {/* Verification Modal */}
+      <VerificationFormModal
+        isOpen={showVerificationModal}
+        onClose={() => {
+          setShowVerificationModal(false);
+          setVerificationExistingData(undefined);
+          setIsVerificationUpdate(false);
+        }}
+        onSubmit={handleVerificationSubmit}
+        businessName={profile.display_name}
+        userEmail={userEmail}
+        allowDismiss={!isVerificationUpdate}
+        onDismiss={() => {
+          setShowVerificationModal(false);
+          setVerificationExistingData(undefined);
+          setIsVerificationUpdate(false);
+        }}
+        existingData={verificationExistingData}
+        isUpdate={isVerificationUpdate}
+      />
     </div>
     </div>
   );
@@ -324,8 +403,13 @@ function DashboardContent({
 
 // ── Page header with action buttons ──
 
-function DashboardHeader({ slug }: { slug: string | null }) {
+interface DashboardHeaderProps {
+  profile: NonNullable<ReturnType<typeof useProviderProfile>>;
+}
+
+function DashboardHeader({ profile }: DashboardHeaderProps) {
   const [copied, setCopied] = useState(false);
+  const slug = profile.slug;
 
   const handleShare = () => {
     if (!slug) return;
@@ -339,8 +423,8 @@ function DashboardHeader({ slug }: { slug: string | null }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 lg:gap-4 mb-4 lg:mb-8">
       <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display">Your listing</h1>
-        <p className="text-sm lg:text-[15px] text-gray-500 mt-0.5 lg:mt-1">Manage your profile and how families find you</p>
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display mb-0.5 lg:mb-1">Your profile</h1>
+        <p className="text-sm lg:text-[15px] text-gray-500">Manage your profile and how families find you</p>
       </div>
 
       {slug && (
@@ -434,6 +518,65 @@ function MobileProgressBanner({
         </svg>
       </div>
     </button>
+  );
+}
+
+// ── Mobile verification card (visible only on mobile for unverified/pending) ──
+
+function MobileVerificationCard({
+  verificationState,
+  onVerify,
+}: {
+  verificationState: string;
+  onVerify: () => void;
+}) {
+  const isPending = verificationState === "pending";
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="flex items-start gap-3">
+        {/* Icon */}
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+          isPending
+            ? "bg-blue-100"
+            : "bg-gray-100"
+        }`}>
+          {isPending ? (
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+            </svg>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <h4 className="text-[15px] font-semibold text-gray-900">
+            {isPending ? "Verification Pending" : "Verify Your Business"}
+          </h4>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {isPending
+              ? "Under review (1-2 business days)"
+              : "Unlock full features and reach more families"
+            }
+          </p>
+          <button
+            type="button"
+            onClick={onVerify}
+            className={`mt-3 w-full py-2.5 text-sm font-semibold rounded-xl transition-colors ${
+              isPending
+                ? "text-gray-700 bg-gray-100 hover:bg-gray-200"
+                : "text-white bg-gray-900 hover:bg-gray-800"
+            }`}
+          >
+            {isPending ? "Update Submission" : "Complete Verification"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -588,5 +731,70 @@ function MobileCompletenessSheet({
         }
       `}</style>
     </>
+  );
+}
+
+// ── Notification preferences card ──
+
+function NotificationPreferencesCard({
+  profileSlug,
+  profileMetadata,
+}: {
+  profileSlug: string | null;
+  profileMetadata: ExtendedMetadata;
+}) {
+  const [unsubscribed, setUnsubscribed] = useState(!!(profileMetadata as Record<string, unknown>)?.leads_unsubscribed);
+  const [saving, setSaving] = useState(false);
+
+  const handleToggle = async () => {
+    if (!profileSlug) return;
+    setSaving(true);
+    const newValue = !unsubscribed;
+    try {
+      const res = await fetch("/api/providers/unsubscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: profileSlug, unsubscribe: newValue }),
+      });
+      if (res.ok) {
+        setUnsubscribed(newValue);
+      }
+    } catch {
+      // revert on failure
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+      <h3 className="text-lg font-display font-bold text-gray-900 mb-1">Email preferences</h3>
+      <p className="text-sm text-gray-400 mb-5">Control which emails you receive from Olera.</p>
+
+      <div className="flex items-center justify-between py-3">
+        <div>
+          <p className="text-[15px] font-medium text-gray-900">Lead notifications</p>
+          <p className="text-sm text-gray-400 mt-0.5">
+            Get notified when families reach out to your listing
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={!unsubscribed}
+          onClick={handleToggle}
+          disabled={saving}
+          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 ${
+            !unsubscribed ? "bg-primary-600" : "bg-gray-200"
+          }`}
+        >
+          <span
+            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+              !unsubscribed ? "translate-x-5" : "translate-x-0"
+            }`}
+          />
+        </button>
+      </div>
+    </div>
   );
 }

@@ -18,16 +18,25 @@ function ConfirmDeleteDialog({
 }: {
   title: string;
   message: string;
-  onConfirm: () => void;
+  onConfirm: (reason: string) => void;
   onCancel: () => void;
   deleting: boolean;
 }) {
+  const [reason, setReason] = useState("");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
         <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
         <p className="mt-2 text-sm text-gray-600">{message}</p>
-        <div className="mt-6 flex justify-end gap-3">
+        <textarea
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Reason for deletion (required)..."
+          className="w-full mt-3 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none"
+          rows={3}
+          autoFocus
+        />
+        <div className="mt-4 flex justify-end gap-3">
           <button
             onClick={onCancel}
             disabled={deleting}
@@ -36,8 +45,8 @@ function ConfirmDeleteDialog({
             Cancel
           </button>
           <button
-            onClick={onConfirm}
-            disabled={deleting}
+            onClick={() => onConfirm(reason.trim())}
+            disabled={deleting || !reason.trim()}
             className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
           >
             {deleting ? "Deleting..." : "Delete"}
@@ -236,6 +245,9 @@ export default function AdminLeadsPage() {
   const [total, setTotal] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Engagement data
+  const [engagement, setEngagement] = useState<Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean }>>({});
+
   // Delete state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirmDelete, setConfirmDelete] = useState<{ ids: string[]; label: string } | null>(null);
@@ -326,7 +338,7 @@ export default function AdminLeadsPage() {
     });
   };
 
-  const executeDelete = async () => {
+  const executeDelete = async (reason: string) => {
     if (!confirmDelete) return;
     setDeleting(true);
     leadsBeforeDelete.current = leads;
@@ -344,7 +356,7 @@ export default function AdminLeadsPage() {
       const res = await fetch("/api/admin/leads", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: confirmDelete.ids }),
+        body: JSON.stringify({ ids: confirmDelete.ids, reason }),
       });
 
       if (!res.ok) {
@@ -382,6 +394,7 @@ export default function AdminLeadsPage() {
         const data = await res.json();
         setLeads(data.connections ?? []);
         setTotal(data.total ?? 0);
+        setEngagement(data.engagement ?? {});
       } else {
         setError("Failed to load leads. Please try again.");
       }
@@ -571,6 +584,7 @@ export default function AdminLeadsPage() {
                   const needsEmail = lead.metadata?.needs_provider_email === true;
                   const providerEditorId = lead.to_profile?.source_provider_id;
                   const providerSlug = (lead.to_profile as ConnectionProfile & { slug?: string })?.slug;
+                  const providerEngagement = engagement[providerSlug || providerEditorId || lead.to_profile?.id || ""];
 
                   // Resolve care type and urgency — prefer profile metadata, fall back to connection message
                   let careTypeDisplay: string | null = null;
@@ -647,6 +661,17 @@ export default function AdminLeadsPage() {
                           <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
                             No email
                           </span>
+                        )}
+                        {providerEngagement && (
+                          <div className="flex items-center gap-1" title={
+                            providerEngagement.contact_revealed ? "Contacted (copied info)" :
+                            providerEngagement.lead_opened ? "Opened lead" :
+                            providerEngagement.email_clicked ? "Clicked email" : ""
+                          }>
+                            <span className={`w-1.5 h-1.5 rounded-full ${providerEngagement.email_clicked ? "bg-blue-400" : "bg-gray-200"}`} />
+                            <span className={`w-1.5 h-1.5 rounded-full ${providerEngagement.lead_opened ? "bg-amber-400" : "bg-gray-200"}`} />
+                            <span className={`w-1.5 h-1.5 rounded-full ${providerEngagement.contact_revealed ? "bg-green-500" : "bg-gray-200"}`} />
+                          </div>
                         )}
                       </div>
                     </td>
@@ -752,7 +777,7 @@ export default function AdminLeadsPage() {
         <ConfirmDeleteDialog
           title={confirmDelete.ids.length === 1 ? "Delete lead" : "Delete leads"}
           message={confirmDelete.label}
-          onConfirm={executeDelete}
+          onConfirm={(reason) => executeDelete(reason)}
           onCancel={() => setConfirmDelete(null)}
           deleting={deleting}
         />

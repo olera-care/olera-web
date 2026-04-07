@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 
 interface Question {
@@ -129,22 +129,78 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+const PAGE_SIZE = 50;
+
+type DatePreset = "all" | "today" | "yesterday" | "7d" | "30d" | "custom";
+
+const DATE_PRESETS: { label: string; value: DatePreset }[] = [
+  { label: "All time", value: "all" },
+  { label: "Today", value: "today" },
+  { label: "Yesterday", value: "yesterday" },
+  { label: "Last 7 days", value: "7d" },
+  { label: "Last 30 days", value: "30d" },
+];
+
+function getDateRange(preset: DatePreset, customDate?: string): { from: string | null; to: string | null } {
+  if (preset === "all") return { from: null, to: null };
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  if (preset === "today") {
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return { from: today.toISOString(), to: tomorrow.toISOString() };
+  }
+  if (preset === "yesterday") {
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    return { from: yesterday.toISOString(), to: today.toISOString() };
+  }
+  if (preset === "7d") {
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return { from: weekAgo.toISOString(), to: null };
+  }
+  if (preset === "30d") {
+    const monthAgo = new Date(today);
+    monthAgo.setDate(monthAgo.getDate() - 30);
+    return { from: monthAgo.toISOString(), to: null };
+  }
+  if (preset === "custom" && customDate) {
+    const day = new Date(customDate + "T00:00:00");
+    const nextDay = new Date(day);
+    nextDay.setDate(nextDay.getDate() + 1);
+    return { from: day.toISOString(), to: nextDay.toISOString() };
+  }
+  return { from: null, to: null };
+}
+
 export default function AdminQuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabValue>("needs_email");
   const [count, setCount] = useState(0);
+  const [page, setPage] = useState(0);
+  const [datePreset, setDatePreset] = useState<DatePreset>("all");
+  const [customDate, setCustomDate] = useState("");
   const [tabCounts, setTabCounts] = useState<{ pending: number; needs_email: number; archived: number }>({ pending: 0, needs_email: 0, archived: 0 });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<string | null>(null);
   const [archiveReason, setArchiveReason] = useState("");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchQuestions = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ limit: "50" });
+      const params = new URLSearchParams({
+        limit: String(PAGE_SIZE),
+        offset: String(page * PAGE_SIZE),
+      });
       if (activeTab === "needs_email") {
         params.set("needs_email", "true");
       } else if (activeTab === "unanswered") {
@@ -156,6 +212,11 @@ export default function AdminQuestionsPage() {
       } else if (activeTab) {
         params.set("status", activeTab);
       }
+      const { from, to } = getDateRange(datePreset, customDate);
+      if (from) params.set("date_from", from);
+      if (to) params.set("date_to", to);
+      if (debouncedSearch) params.set("search", debouncedSearch);
+
       const res = await fetch(`/api/admin/questions?${params}`);
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
@@ -167,7 +228,18 @@ export default function AdminQuestionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab]);
+  }, [activeTab, page, datePreset, customDate, debouncedSearch]);
+
+  // Reset page when tab, date, or search changes
+  useEffect(() => {
+    setPage(0);
+  }, [activeTab, datePreset, customDate, debouncedSearch]);
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedSearch(value), 300);
+  };
 
   useEffect(() => {
     fetchQuestions();
@@ -236,6 +308,41 @@ export default function AdminQuestionsPage() {
         </p>
       </div>
 
+      {/* Search bar */}
+      <div className="mb-6">
+        <div className="relative">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search by provider name..."
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          />
+          {search && (
+            <button
+              onClick={() => { setSearch(""); setDebouncedSearch(""); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
       {error && (
         <div className="mb-5 px-4 py-3 bg-red-50 rounded-xl text-sm text-red-600">
           {error}
@@ -269,6 +376,39 @@ export default function AdminQuestionsPage() {
             </button>
           );
         })}
+      </div>
+
+      {/* Date filter */}
+      <div className="flex items-center gap-2 mb-6">
+        {DATE_PRESETS.map((preset) => (
+          <button
+            key={preset.value}
+            onClick={() => { setDatePreset(preset.value); setCustomDate(""); }}
+            className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+              datePreset === preset.value && !customDate
+                ? "bg-gray-900 text-white"
+                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            }`}
+          >
+            {preset.label}
+          </button>
+        ))}
+        <div className="relative">
+          <input
+            type="date"
+            value={customDate}
+            onChange={(e) => {
+              setCustomDate(e.target.value);
+              if (e.target.value) setDatePreset("custom");
+              else setDatePreset("all");
+            }}
+            className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer ${
+              datePreset === "custom" && customDate
+                ? "bg-gray-900 text-white border-gray-900"
+                : "bg-gray-100 text-gray-500 border-transparent hover:bg-gray-200"
+            }`}
+          />
+        </div>
       </div>
 
       {/* Content */}
@@ -419,8 +559,31 @@ export default function AdminQuestionsPage() {
       )}
 
       {!loading && questions.length > 0 && (
-        <div className="mt-6 text-xs text-gray-300 text-right">
-          {count} {activeTab === "needs_email" ? "needing email" : activeTab === "unanswered" ? "unanswered" : activeTab === "removed" ? "removed" : activeTab === "archived" ? "archived" : "total"}
+        <div className="flex items-center justify-between mt-6 px-2">
+          <p className="text-sm text-gray-500">
+            {count <= PAGE_SIZE
+              ? `${count} ${activeTab === "needs_email" ? "needing email" : activeTab === "unanswered" ? "unanswered" : activeTab === "removed" ? "removed" : activeTab === "archived" ? "archived" : "total"}`
+              : `${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, count)} of ${count}`
+            }
+          </p>
+          {count > PAGE_SIZE && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={(page + 1) * PAGE_SIZE >= count}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       )}
 

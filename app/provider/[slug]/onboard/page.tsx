@@ -56,7 +56,7 @@ export default function ProviderOnboardPage() {
   // Link Tracking Protection which strips params named "token" from URLs
   const tokenParam = searchParams.get("otk");
   const router = useRouter();
-  const { user, account, openAuth, refreshAccountData, switchProfile } = useAuth();
+  const { user, account, profiles, openAuth, refreshAccountData, switchProfile } = useAuth();
 
   // Track email click if this visit came from an email link (fire-and-forget)
   useEffect(() => {
@@ -87,7 +87,7 @@ export default function ProviderOnboardPage() {
   const [provider, setProvider] = useState<Provider | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [session, setSession] = useState<ClaimSessionData | null>(null);
-  const [actionCardState, setActionCardState] = useState<ActionCardState>("verify-form");
+  const [actionCardState, setActionCardState] = useState<ActionCardState>("claim-form");
   const [notificationData, setNotificationData] = useState<NotificationData | null>(null);
   const [preVerifiedEmail, setPreVerifiedEmail] = useState<string | null>(null);
   const initRef = useRef(false);
@@ -487,7 +487,7 @@ export default function ProviderOnboardPage() {
             question: "notification-question",
             review: "notification-review",
           };
-          setActionCardState(notificationStateMap[actionParam] || "verify-form");
+          setActionCardState(notificationStateMap[actionParam] || "claim-form");
           setStep("dashboard");
           return;
         }
@@ -503,9 +503,10 @@ export default function ProviderOnboardPage() {
         return;
       }
 
-      // Check recovered session state
+      // Check recovered session state - if previously verified, go to finalize
       if (claimSessionData.step === "verified" || claimSessionData.step === "code-sent") {
-        setActionCardState("verify-code");
+        // Old OTP flow states - now just show claim form
+        setActionCardState("claim-form");
         setStep("dashboard");
         return;
       }
@@ -533,7 +534,7 @@ export default function ProviderOnboardPage() {
       // Set initial state based on context:
       // 1. Notification from email (lead/question/review) → show notification card
       // 2. State param provided (e.g., from dispute link) → use that state
-      // 3. Default → verify-form
+      // 3. Default → claim-form
       if (actionParam) {
         // Map action param to notification state
         const notificationStateMap: Record<string, ActionCardState> = {
@@ -542,13 +543,13 @@ export default function ProviderOnboardPage() {
           question: "notification-question",
           review: "notification-review",
         };
-        setActionCardState(notificationStateMap[actionParam] || "verify-form");
+        setActionCardState(notificationStateMap[actionParam] || "claim-form");
       } else {
-        const validStates: ActionCardState[] = ["verify-form", "already-claimed", "no-access"];
+        const validStates: ActionCardState[] = ["claim-form", "already-claimed"];
         if (stateParam && validStates.includes(stateParam)) {
           setActionCardState(stateParam);
         } else {
-          setActionCardState("verify-form");
+          setActionCardState("claim-form");
         }
       }
       setStep("dashboard");
@@ -616,91 +617,77 @@ export default function ProviderOnboardPage() {
     }
   };
 
-  // Handle verification complete (called from ActionCard via SmartDashboardShell)
-  const handleVerificationComplete = useCallback(async (verifiedEmail?: string) => {
-    markSessionVerified(verifiedEmail);
-    setSession(prev => prev ? { ...prev, verified: true, emailHint: verifiedEmail } : null);
+  // Handle claim button click - open auth modal for authentication-based claim flow
+  // After auth, the API will check if email matches provider's email for auto-verification
+  const hasProviderProfile = (profiles || []).some((p) => p.type === "organization");
 
-    if (user) {
+  const handleClaimClick = useCallback(async () => {
+    // If user is signed in AND has a provider profile, call claim-listing API directly
+    if (user && hasProviderProfile) {
       setStep("finalizing");
-      handleFinalize();
+      try {
+        const res = await fetch("/api/provider/claim-listing", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            providerId: provider?.provider_id,
+            providerName: provider?.provider_name,
+            providerSlug: provider?.slug || provider?.provider_id,
+            providerEmail: provider?.email,
+            city: provider?.city,
+            state: provider?.state,
+          }),
+        });
+        const result = await res.json();
+
+        if (!res.ok) {
+          setErrorMsg(result.error || "Failed to claim listing.");
+          setStep("error");
+          return;
+        }
+
+        await refreshAccountData();
+        if (result.profileId) {
+          switchProfile(result.profileId);
+        }
+        setStep("success");
+      } catch {
+        setErrorMsg("Something went wrong. Please try again.");
+        setStep("error");
+      }
       return;
     }
 
-    // Auto-sign-in with the verified email — no auth modal needed
-    const email = verifiedEmail || session?.emailHint || preVerifiedEmail;
-    if (!email) {
-      // Fallback to auth modal if we somehow don't have the email
-      openAuth({
-        deferred: {
-          action: "claim",
-          returnUrl: `${window.location.pathname}?provider_id=${provider?.provider_id}`,
-        },
-      });
-      return;
-    }
+    // Store provider data in sessionStorage for UnifiedAuthModal to read after auth
+    sessionStorage.setItem("olera_claim_provider_cache", JSON.stringify({
+      provider_id: provider?.provider_id,
+      provider_name: provider?.provider_name,
+      slug: provider?.slug || provider?.provider_id,
+      email: provider?.email,
+      city: provider?.city,
+      state: provider?.state,
+    }));
 
-    setStep("finalizing");
-    try {
-      const res = await fetch("/api/auth/auto-sign-in", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          claimSession: session?.sessionId || "verified",
-        }),
-      });
-      const data = await res.json();
-
-      if (!res.ok || !data.tokenHash) {
-        // Auto-sign-in failed — fall back to auth modal
-        openAuth({
-          deferred: {
-            action: "claim",
-            returnUrl: `${window.location.pathname}?provider_id=${provider?.provider_id}`,
-          },
-        });
-        return;
-      }
-
-      // Use implicit-flow client to avoid PKCE code_verifier mismatch
-      const authClient = createAuthClient();
-      const { data: otpData, error: otpError } = await authClient.auth.verifyOtp({
-        token_hash: data.tokenHash,
-        type: "magiclink",
-      });
-
-      if (otpError || !otpData?.session) {
-        console.error("Auto-sign-in OTP error:", otpError?.message);
-        openAuth({
-          deferred: {
-            action: "claim",
-            returnUrl: `${window.location.pathname}?provider_id=${provider?.provider_id}`,
-          },
-        });
-        return;
-      }
-
-      // Transfer session to SSR client
-      await createClient().auth.setSession({
-        access_token: otpData.session.access_token,
-        refresh_token: otpData.session.refresh_token,
-      });
-
-      // Session established — refresh auth state and finalize
-      await refreshAccountData();
-      handleFinalize();
-    } catch (err) {
-      console.error("Auto-sign-in failed:", err);
-      openAuth({
-        deferred: {
-          action: "claim",
-          returnUrl: `${window.location.pathname}?provider_id=${provider?.provider_id}`,
-        },
-      });
-    }
+    // Open auth modal with claim intent
+    // For users signed in with family/caregiver account, they'll see error and can try different email
+    // For guests, they sign up/in with business email
+    // The claim-listing API will handle email matching for verification status
+    openAuth({
+      intent: "provider",
+      providerType: "organization",
+      headline: "Sign in to claim this listing",
+      subline: user
+        ? "Sign in with your business email to claim this listing"
+        : provider?.email
+          ? `Use ${provider.email.replace(/(.{2})(.*)(@.*)/, "$1***$3")} for instant verification`
+          : "Use your business email to claim and manage this listing",
+      deferred: {
+        action: "claim-listing",
+        returnUrl: `${window.location.pathname}?provider_id=${provider?.provider_id}`,
+      },
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, openAuth, provider?.provider_id, session?.emailHint, session?.sessionId, preVerifiedEmail]);
+  }, [user, hasProviderProfile, openAuth, provider?.provider_id, provider?.provider_name, provider?.slug, provider?.email, provider?.city, provider?.state, refreshAccountData, switchProfile]);
 
   // Loading state
   if (step === "loading") {
@@ -816,8 +803,7 @@ export default function ProviderOnboardPage() {
   return (
     <SmartDashboardShell
       provider={provider}
-      claimSession={claimSession}
-      onVerificationComplete={handleVerificationComplete}
+      onClaimClick={handleClaimClick}
       initialActionState={actionCardState}
       notificationData={notificationData}
       isSignedIn={!!user}

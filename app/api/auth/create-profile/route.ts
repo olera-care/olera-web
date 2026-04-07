@@ -127,17 +127,38 @@ export async function POST(request: Request) {
     const accountId = account.id;
     let profileId: string;
 
+    // STRICT ACCOUNT SEPARATION: Check if user already has a profile of a different type
+    // One email = one account type (family, provider, caregiver are separate)
+    const { data: anyExistingProfile } = await db
+      .from("business_profiles")
+      .select("id, type")
+      .eq("account_id", accountId)
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle();
+
     if (intent === "provider") {
       const profileType = providerType === "caregiver" ? "caregiver" : "organization";
+
+      // Block if user has a different profile type (family, or different provider type)
+      if (anyExistingProfile && anyExistingProfile.type !== profileType) {
+        return NextResponse.json(
+          {
+            error: "This email is already used for a different account type. Please use a different email to create a provider account.",
+            code: "ACCOUNT_TYPE_MISMATCH"
+          },
+          { status: 409 }
+        );
+      }
 
       if (claimedProfileId) {
         // Claiming an existing seeded profile
         // First, check if profile exists and is available for claiming
         const { data: existing, error: fetchErr } = await db
           .from("business_profiles")
-          .select("account_id, display_name, city, state, zip, care_types, description, phone")
+          .select("account_id, display_name, city, state, zip, care_types, description, phone, email, website")
           .eq("id", claimedProfileId)
-          .single<Profile & { account_id: string | null }>();
+          .single<Profile & { account_id: string | null; email: string | null; website: string | null }>();
 
         if (fetchErr || !existing) {
           return NextResponse.json(
@@ -158,10 +179,40 @@ export async function POST(request: Request) {
         if (existing.account_id === accountId) {
           profileId = claimedProfileId;
         } else {
+          // Check if user's email matches the email on file for auto-verification
+          const profileEmail = existing.email;
+          const profileWebsite = existing.website;
+          const userEmail = user.email?.toLowerCase();
+
+          // Auto-verify conditions:
+          // 1. User's email matches the email on file
+          const emailMatches = profileEmail && userEmail && profileEmail.toLowerCase() === userEmail;
+
+          // 2. User's email domain matches the business website domain
+          // e.g., john@sunriseseniorliving.com matches sunriseseniorliving.com
+          let domainMatches = false;
+          if (userEmail && profileWebsite) {
+            try {
+              const emailDomain = userEmail.split("@")[1];
+              // Extract domain from website URL (handle with/without protocol)
+              const websiteUrl = profileWebsite.startsWith("http")
+                ? profileWebsite
+                : `https://${profileWebsite}`;
+              const websiteDomain = new URL(websiteUrl).hostname.replace(/^www\./, "");
+              domainMatches = emailDomain === websiteDomain;
+            } catch {
+              // Invalid URL, skip domain matching
+            }
+          }
+
+          const shouldAutoVerify = emailMatches || domainMatches;
+
           // Atomic claim: only update if account_id is still NULL
           const claimUpdate: Record<string, unknown> = {
             account_id: accountId,
-            claim_state: "pending",
+            claim_state: shouldAutoVerify ? "claimed" : "pending",
+            // Auto-verify if email or domain matches
+            verification_state: shouldAutoVerify ? "verified" : "unverified",
           };
 
           if (!existing.display_name?.trim() && (orgName || sanitizedDisplayName))
@@ -204,6 +255,30 @@ export async function POST(request: Request) {
       } else {
         // Create new provider profile
         const name = providerType === "organization" ? (orgName?.trim().slice(0, 100) || sanitizedDisplayName) : sanitizedDisplayName;
+
+        // Check for duplicate email before creating
+        // This prevents users from creating a new profile with an email that already exists
+        // Check both auth email and form-submitted email
+        const userEmail = user.email?.toLowerCase();
+        const formEmail = (body.email as string | undefined)?.toLowerCase();
+        const emailsToCheck = [...new Set([userEmail, formEmail].filter(Boolean))];
+
+        for (const emailToCheck of emailsToCheck) {
+          const { data: existingByEmail } = await db
+            .from("business_profiles")
+            .select("id, display_name")
+            .ilike("email", emailToCheck!)
+            .limit(1)
+            .maybeSingle();
+
+          if (existingByEmail) {
+            return NextResponse.json(
+              { error: "An account with this email already exists. Please sign in instead." },
+              { status: 409 }
+            );
+          }
+        }
+
         const slug = await generateUniqueSlug(db, name, city || "", state || "");
 
         const { data: newProfile, error: insertErr } = await db
@@ -303,6 +378,17 @@ export async function POST(request: Request) {
       // NOTE: We no longer auto-create family profiles for providers.
       // Each account type is now separate - providers only get their provider profile.
     } else {
+      // Family intent - check for account type mismatch
+      if (anyExistingProfile && anyExistingProfile.type !== "family") {
+        return NextResponse.json(
+          {
+            error: "This email is already used for a different account type. Please use a different email to create a family account.",
+            code: "ACCOUNT_TYPE_MISMATCH"
+          },
+          { status: 409 }
+        );
+      }
+
       // Family profile — check if a baseline one already exists (created by ensure-account)
       const { data: existingFamilyProfile } = await db
         .from("business_profiles")
@@ -463,7 +549,17 @@ export async function POST(request: Request) {
       // Non-blocking
     }
 
-    return NextResponse.json({ profileId });
+    // Fetch the final verification state to return to frontend
+    const { data: finalProfile } = await db
+      .from("business_profiles")
+      .select("verification_state")
+      .eq("id", profileId)
+      .single();
+
+    return NextResponse.json({
+      profileId,
+      verificationState: finalProfile?.verification_state || "unverified",
+    });
   } catch (err) {
     console.error("Create profile error:", err);
     return NextResponse.json(

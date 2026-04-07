@@ -30,14 +30,23 @@ export async function PATCH(
     const body = await request.json();
     const action = body.action as string;
 
-    if (!["approve", "reject"].includes(action)) {
+    if (!["approve", "reject", "restore"].includes(action)) {
       return NextResponse.json(
-        { error: "Invalid action. Must be 'approve' or 'reject'." },
+        { error: "Invalid action. Must be 'approve', 'reject', or 'restore'." },
         { status: 400 }
       );
     }
 
-    const newState = action === "approve" ? "verified" : "unverified";
+    // Determine new verification state based on action
+    let newState: string;
+    if (action === "approve") {
+      newState = "verified";
+    } else if (action === "reject") {
+      newState = "rejected";
+    } else {
+      // restore - move back to pending for re-review
+      newState = "pending";
+    }
     const db = getServiceClient();
 
     const { data: profile, error: updateError } = await db
@@ -53,9 +62,14 @@ export async function PATCH(
     }
 
     // Log audit action
+    const auditAction = action === "approve"
+      ? "approve_verification"
+      : action === "reject"
+        ? "reject_verification"
+        : "restore_verification";
     await logAuditAction({
       adminUserId: adminUser.id,
-      action: action === "approve" ? "approve_verification" : "reject_verification",
+      action: auditAction,
       targetType: "business_profile",
       targetId: id,
       details: {
@@ -66,16 +80,18 @@ export async function PATCH(
 
     // Slack alert (fire-and-forget)
     try {
-      const emoji = action === "approve" ? ":white_check_mark:" : ":x:";
-      const text = `${emoji} *Verification ${action}d* — ${profile?.display_name || id} by ${user.email}`;
+      const emoji = action === "approve" ? ":white_check_mark:" : action === "reject" ? ":x:" : ":arrows_counterclockwise:";
+      const actionText = action === "restore" ? "restored to pending" : `${action}d`;
+      const text = `${emoji} *Verification ${actionText}* — ${profile?.display_name || id} by ${user.email}`;
       await sendSlackAlert(text);
     } catch {
       // Non-blocking
     }
 
     // Email + Loops notification to provider (fire-and-forget)
+    // Only send emails for approve/reject decisions, not restore (which just moves to pending)
     try {
-      if (profile?.account_id) {
+      if (profile?.account_id && action !== "restore") {
         const { data: account } = await db
           .from("accounts")
           .select("user_id")

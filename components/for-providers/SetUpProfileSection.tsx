@@ -10,7 +10,7 @@ import { useCitySearch } from "@/hooks/use-city-search";
 const PREFILL_KEY = "olera_provider_search_prefill";
 
 export default function SetUpProfileSection() {
-  const { user, openAuth } = useAuth();
+  const { user, profiles } = useAuth();
   const router = useRouter();
   const [businessName, setBusinessName] = useState("");
   const [cityInput, setCityInput] = useState("");
@@ -26,6 +26,11 @@ export default function SetUpProfileSection() {
     setSelectedCity(cityFull);
     setShowCityDropdown(false);
   };
+
+  // Check if user already has a provider profile
+  const hasProviderProfile = (profiles || []).some(
+    (p) => p.type === "organization" || p.type === "caregiver"
+  );
 
   const handleGetStarted = () => {
     const name = businessName.trim();
@@ -44,11 +49,12 @@ export default function SetUpProfileSection() {
       }
     }
 
-    if (user) {
-      router.push("/provider/onboarding");
-    } else {
-      openAuth({ intent: "provider" });
-    }
+    // Navigate directly to onboarding (auth handled there)
+    const targetUrl = (user && hasProviderProfile)
+      ? "/provider/onboarding?adding=true"
+      : "/provider/onboarding";
+
+    router.push(targetUrl);
   };
 
   const showCitySuggestions = showCityDropdown && cityResults.length > 0;

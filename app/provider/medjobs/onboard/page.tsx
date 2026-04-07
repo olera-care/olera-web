@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -30,7 +30,28 @@ interface InterviewData {
   };
 }
 
+// Loading fallback for Suspense
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center px-4">
+        <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
+        <p className="mt-4 text-gray-500">Loading your interview...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main page wrapper with Suspense boundary
 export default function MedJobsOnboardPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <MedJobsOnboardContent />
+    </Suspense>
+  );
+}
+
+function MedJobsOnboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, refreshAccountData, switchProfile } = useAuth();

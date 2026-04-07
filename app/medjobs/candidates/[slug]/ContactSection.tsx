@@ -35,9 +35,6 @@ export default function ContactSection({
   // Only organization profiles are providers (caregivers are job-seekers)
   const hasProviderProfile = profiles.some((p) => p.type === "organization");
 
-  // Identify caregivers (they get redirected to their portal)
-  const isCaregiver = activeProfile?.type === "student" || activeProfile?.type === "caregiver";
-
   // Check if caregiver is viewing their own profile
   const ownCaregiverProfile = profiles.find(
     (p) => (p.type === "student" || p.type === "caregiver") && p.slug === studentSlug
@@ -80,22 +77,9 @@ export default function ContactSection({
     }
   }, [searchParams, user, hasProviderProfile, pathname, router, studentSlug]);
 
-  // Redirect caregivers (not viewing own profile) to their portal
-  // Families and logged-out users can stay — we'll route them to onboarding on CTA click
-  useEffect(() => {
-    if (!user || hasProviderProfile || isViewingOwnProfile) return;
-
-    // Only redirect caregivers viewing other profiles
-    if (isCaregiver) {
-      router.replace("/portal/medjobs");
-    }
-    // Families stay on page — they'll be routed to onboarding when they click CTA
-  }, [user, hasProviderProfile, isCaregiver, isViewingOwnProfile, router]);
-
-  // Don't render while redirecting caregivers (except when viewing own profile)
-  if (user && isCaregiver && !hasProviderProfile && !isViewingOwnProfile) {
-    return null;
-  }
+  // Note: We no longer redirect caregivers away. They can view candidate profiles
+  // and attempt to schedule — they'll be prompted to sign in with a business email
+  // (separate account) when they try to submit.
 
   const firstName = studentName.split(" ")[0];
 
@@ -107,7 +91,10 @@ export default function ContactSection({
     setShowModal(true);
   }, []);
 
-  // Handle auth required - save form data and redirect to auth/onboarding
+  // Handle auth required - save form data and prompt auth
+  // Always use openAuth to ensure proper account type checking:
+  // - Guest users: sign up/in with business email
+  // - Family/Caregiver users: must sign in with a DIFFERENT business email (separate account)
   const handleAuthRequired = useCallback((formData: ScheduleFormData) => {
     // Save form data to sessionStorage with candidate slug
     sessionStorage.setItem(SCHEDULE_STORAGE_KEY, JSON.stringify({
@@ -115,24 +102,22 @@ export default function ContactSection({
       candidateSlug: studentSlug,
     }));
 
-    // If user is not logged in, prompt auth
-    if (!user) {
-      openAuth({
-        intent: "provider",
-        headline: `Connect with ${firstName}`,
-        subline: "Sign in with your business email for instant verification",
-        deferred: {
-          action: "hire-candidate",
-          returnUrl: `${pathname}?schedule=pending`,
-        },
-      });
-      return;
-    }
-
-    // User is logged in but no provider profile - go to onboarding
-    const onboardingUrl = `/provider/onboarding?next=${encodeURIComponent(`/medjobs/candidates/${studentSlug}?schedule=pending`)}`;
-    router.push(onboardingUrl);
-  }, [user, openAuth, firstName, pathname, router, studentSlug]);
+    // Always go through auth flow - this handles:
+    // 1. Guest users → sign up/in
+    // 2. Family users → prompted to use different email (account separation enforced in auth modal)
+    // 3. Caregiver users → same as family, need separate provider account
+    openAuth({
+      intent: "provider",
+      headline: `Connect with ${firstName}`,
+      subline: user
+        ? "Sign in with your business email to continue as a provider"
+        : "Sign in with your business email for instant verification",
+      deferred: {
+        action: "hire-candidate",
+        returnUrl: `${pathname}?schedule=pending`,
+      },
+    });
+  }, [user, openAuth, firstName, pathname, studentSlug]);
 
   // Handle modal close
   const handleModalClose = useCallback(() => {

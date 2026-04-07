@@ -960,113 +960,114 @@ export default function ProviderOnboardingModal({
 
       case "create":
         return (
-          <div className="space-y-8">
-            {/* Back button */}
-            <button
-              type="button"
-              onClick={() => setStep("search")}
-              className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to search
-            </button>
-
-            {/* Header */}
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
-                Create your account
+          <div className="space-y-6">
+            {/* Header - matches onboarding */}
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 tracking-tight">
+                Let&apos;s set you up
               </h1>
-              <p className="text-gray-500 mt-3 text-base sm:text-lg leading-relaxed">
-                Set up a provider account to schedule interviews
+              <p className="text-gray-500 mt-2 text-base">
+                Create your provider profile in seconds.
               </p>
             </div>
 
-            <form onSubmit={handleCreateSubmit} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+            <form onSubmit={handleCreateSubmit} className="space-y-6">
+              {/* Organization name - first, like onboarding */}
+              <div className="space-y-1.5">
+                <label className="block text-base font-medium text-gray-700">
+                  Organization name
+                </label>
+                <input
+                  type="text"
+                  value={createName}
+                  onChange={(e) => setCreateName(e.target.value)}
+                  placeholder="e.g. Sunrise Senior Living"
+                  required
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] placeholder:text-gray-400"
+                  autoFocus
+                />
+              </div>
+
+              {/* Business email */}
+              <div className="space-y-1.5">
+                <label className="block text-base font-medium text-gray-700">
                   Business email
                 </label>
                 <input
                   type="email"
                   value={createEmail}
                   onChange={(e) => setCreateEmail(e.target.value)}
-                  placeholder="you@company.com"
+                  placeholder="you@yourcompany.com"
                   required
-                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                  autoFocus
-                />
-                <p className="text-xs text-gray-400 mt-2">
-                  Use your work email for faster verification
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Business name
-                </label>
-                <input
-                  type="text"
-                  value={createName}
-                  onChange={(e) => setCreateName(e.target.value)}
-                  placeholder="Your company name"
-                  required
-                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] placeholder:text-gray-400"
                 />
               </div>
 
-              <div className="relative" ref={cityPickerRef}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  City <span className="text-gray-400 font-normal">(optional)</span>
+              {/* City picker - matches onboarding style */}
+              <div className="space-y-1.5">
+                <label className="block text-base font-medium text-gray-700">
+                  City
                 </label>
-                <input
-                  type="text"
-                  value={createCity}
-                  onChange={(e) => {
-                    setCreateCity(e.target.value);
-                    setShowCityPicker(true);
-                  }}
-                  onFocus={() => setShowCityPicker(true)}
-                  placeholder="e.g., Dallas"
-                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                />
-                {showCityPicker && cityPickerResults.length > 0 && (
-                  <div className="absolute z-50 mt-1 w-full bg-white rounded-xl border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
-                    {cityPickerResults.map((c) => (
-                      <button
-                        key={`${c.city}-${c.state}`}
-                        type="button"
-                        onClick={() => {
-                          setCreateCity(c.city);
-                          setCreateState(c.state);
-                          setShowCityPicker(false);
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
-                      >
-                        {c.city}, {c.state}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <div ref={cityPickerRef} className="relative">
+                  <input
+                    type="text"
+                    value={createCity}
+                    onChange={(e) => {
+                      setCreateCity(e.target.value);
+                      setShowCityPicker(true);
+                    }}
+                    onFocus={() => setShowCityPicker(true)}
+                    placeholder="e.g. Houston"
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] placeholder:text-gray-400"
+                  />
+                  {showCityPicker && cityPickerResults.length > 0 && (
+                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-xl shadow-xl ring-1 ring-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
+                      {cityPickerResults.map((c) => (
+                        <button
+                          key={`${c.city}-${c.state}`}
+                          type="button"
+                          onClick={() => {
+                            setCreateCity(c.city);
+                            setCreateState(c.state);
+                            setShowCityPicker(false);
+                          }}
+                          className="flex items-center gap-3 w-full px-4 py-3 text-left text-base hover:bg-gray-50 transition-colors"
+                        >
+                          <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <span className="font-medium text-gray-700">{c.city}, {c.state}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {createError && (
-                <p className="text-sm text-red-600 text-center">{createError}</p>
+                <div className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-sm" role="alert">
+                  {createError}
+                </div>
               )}
 
-              <Button
-                type="submit"
-                className="w-full py-3.5 text-base"
-                disabled={!createEmail.trim() || !createName.trim() || createSubmitting}
-              >
-                {createSubmitting ? "Creating..." : "Continue"}
-              </Button>
+              {/* Action buttons - matches onboarding style */}
+              <div className="flex items-center justify-between pt-4">
+                <button
+                  type="button"
+                  onClick={() => setStep("search")}
+                  className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
+                >
+                  Back
+                </button>
+                <Button
+                  type="submit"
+                  disabled={!createEmail.trim() || !createName.trim() || !createCity.trim() || createSubmitting}
+                >
+                  {createSubmitting ? "Creating..." : "Create profile"}
+                </Button>
+              </div>
             </form>
           </div>
         );

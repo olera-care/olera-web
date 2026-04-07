@@ -171,6 +171,90 @@ function extractJson(text) {
   return null;
 }
 
+// ─── Name Normalization & Dedup ──────────────────────────────────────────────
+
+/**
+ * Normalize a program name for comparison.
+ * Strips state name, common prefixes/suffixes, parentheticals, and whitespace
+ * so "MI Choice Medicaid Waiver", "Michigan's Choice Waiver Program", and
+ * "MI Choice Program" all become something like "choice waiver".
+ */
+function normalizeForMatch(name, stateName = "") {
+  let n = (name || "").toLowerCase();
+
+  // Remove state name, possessive forms, and abbreviation
+  const stateAbbr = Object.entries(STATE_NAMES).find(([, v]) => v === stateName)?.[0]?.toLowerCase() || "";
+  const stateLower = (stateName || "").toLowerCase();
+  if (stateLower) {
+    n = n.replace(new RegExp(`${stateLower}'?s?`, "g"), "");
+  }
+  if (stateAbbr) n = n.replace(new RegExp(`\\b${stateAbbr}\\b`, "g"), "");
+
+  // Expand common acronyms before stripping
+  const acronyms = {
+    pace: "all inclusive care elderly",
+    snap: "food nutrition",
+    liheap: "energy heating",
+    scsep: "senior employment",
+    ship: "health insurance counseling",
+    hcbs: "home community based",
+    mmap: "medicare counseling",
+  };
+  for (const [acr, expansion] of Object.entries(acronyms)) {
+    if (n.match(new RegExp(`\\b${acr}\\b`))) {
+      n += ` ${expansion}`;
+    }
+  }
+
+  // Remove common filler words
+  const fillers = ["program", "programs", "the", "for", "of", "and", "in", "a", "an", "state", "federal", "services", "service", "assistance"];
+  for (const f of fillers) {
+    n = n.replace(new RegExp(`\\b${f}\\b`, "g"), "");
+  }
+
+  // Remove parenthetical content
+  n = n.replace(/\([^)]*\)/g, "");
+
+  // Remove special chars and collapse whitespace
+  n = n.replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+
+  return n;
+}
+
+function deduplicatePrograms(programs, stateName) {
+  const result = [];
+  const seenNormalized = new Map(); // normalized → index in result
+
+  for (const p of programs) {
+    const norm = normalizeForMatch(p.name, stateName);
+    if (!norm) continue;
+
+    // Check if any existing normalized name is a subset or superset
+    let isDupe = false;
+    for (const [existingNorm, existingIdx] of seenNormalized.entries()) {
+      if (
+        existingNorm === norm ||
+        existingNorm.includes(norm) ||
+        norm.includes(existingNorm)
+      ) {
+        // Keep the one with the longer original name (likely more specific)
+        if ((p.name || "").length > (result[existingIdx].name || "").length) {
+          result[existingIdx] = p;
+        }
+        isDupe = true;
+        break;
+      }
+    }
+
+    if (!isDupe) {
+      seenNormalized.set(norm, result.length);
+      result.push(p);
+    }
+  }
+
+  return result;
+}
+
 // ─── File I/O ───────────────────────────────────────────────────────────────
 
 function pipelineDir(stateCode) {
@@ -303,17 +387,9 @@ Return as a JSON array: [{"name":"...","what_it_does":"...","who_its_for":"...",
   const statePrograms = extractJson(stateResponse) || [];
   console.log(`  Found ${statePrograms.length} state-unique programs`);
 
-  // Merge and deduplicate
+  // Merge and deduplicate with semantic normalization
   const allDiscovered = [...fedPrograms, ...statePrograms];
-  const seen = new Set();
-  const programs = [];
-  for (const p of allDiscovered) {
-    const key = (p.name || "").toLowerCase().slice(0, 30);
-    if (!seen.has(key)) {
-      seen.add(key);
-      programs.push(p);
-    }
-  }
+  const programs = deduplicatePrograms(allDiscovered, stateName);
 
   if (!programs.length) {
     console.log(`  ERROR: No programs found. Raw federal: ${fedResponse.slice(0, 300)}`);
@@ -468,12 +544,16 @@ function phaseCompare(stateCode, stateName, diveData, existingPrograms) {
     const name = explored.name || "Unknown";
     const nameLower = name.toLowerCase();
 
-    // Find matching existing program
+    // Find matching existing program using normalized names
+    const normExplored = normalizeForMatch(name, stateName);
     const existing = existingPrograms.find((e) => {
-      const eName = e.name.toLowerCase();
-      return eName === nameLower ||
-        eName.includes(nameLower.slice(0, 25)) ||
-        nameLower.includes(eName.slice(0, 25));
+      const normExisting = normalizeForMatch(e.name, stateName);
+      return normExisting === normExplored ||
+        normExisting.includes(normExplored) ||
+        normExplored.includes(normExisting) ||
+        // Also check direct substring on original names
+        e.name.toLowerCase().includes(nameLower.slice(0, 20)) ||
+        nameLower.includes(e.name.toLowerCase().slice(0, 20));
     });
 
     const diffs = [];
@@ -960,7 +1040,102 @@ async function main() {
     phaseReport(stateCode, stateName, exploreData, diveData, compareData);
   }
 
+  // Auto-generate pipeline-summary.ts for the admin dashboard
+  generatePipelineSummary();
+
   console.log(`\n  Done. ${cost.summary()}\n`);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Auto-generate data/pipeline-summary.ts from all pipeline compare.json files
+// ═══════════════════════════════════════════════════════════════════════════
+
+function generatePipelineSummary() {
+  const pipelineRoot = path.resolve(__dirname, "..", "data", "pipeline");
+  if (!fs.existsSync(pipelineRoot)) return;
+
+  const states = fs.readdirSync(pipelineRoot).filter((d) => {
+    const compareFile = path.join(pipelineRoot, d, "compare.json");
+    return fs.existsSync(compareFile) && /^[A-Z]{2}$/.test(d);
+  });
+
+  if (!states.length) return;
+
+  const entries = {};
+  for (const stateCode of states) {
+    const compare = JSON.parse(
+      fs.readFileSync(path.join(pipelineRoot, stateCode, "compare.json"), "utf-8")
+    );
+
+    // Build summary with comparisons that have diffs or novel fields
+    const comparisons = (compare.comparisons || [])
+      .filter((c) => c.diffsFound > 0 || (c.novelFields && c.novelFields.length > 0))
+      .map((c) => ({
+        name: c.name,
+        isNew: c.isNew,
+        existingId: c.existingId || null,
+        diffsFound: c.diffsFound || 0,
+        diffs: (c.diffs || []).map((d) => ({
+          field: d.field,
+          ours: d.ours,
+          found: typeof d.found === "string" && d.found.length > 100 ? d.found.slice(0, 100) + "..." : d.found,
+          source: d.source || undefined,
+        })),
+        novelFields: (c.novelFields || []).map((nf) => ({
+          field: nf.field,
+          note: nf.note,
+        })),
+      }));
+
+    entries[stateCode] = {
+      exploredAt: (compare.comparedAt || "").split("T")[0],
+      programsFound: compare.total || 0,
+      newPrograms: compare.newPrograms || 0,
+      diffsFound: compare.withDiffs || 0,
+      novelFieldCount: Object.keys(compare.novelFieldSummary || {}).length,
+      comparisons,
+    };
+  }
+
+  // Write TypeScript file
+  const tsContent = `/**
+ * Pipeline exploration summary — AUTO-GENERATED by benefits-pipeline.js
+ * Do not edit manually. Regenerated after each pipeline run.
+ *
+ * Last updated: ${new Date().toISOString()}
+ */
+
+export interface PipelineDiff {
+  field: string;
+  ours: string;
+  found: string;
+  source?: string;
+}
+
+export interface PipelineComparison {
+  name: string;
+  isNew: boolean;
+  existingId: string | null;
+  diffsFound: number;
+  diffs: PipelineDiff[];
+  novelFields: { field: string; note: string }[];
+}
+
+export interface PipelineStateSummary {
+  exploredAt: string;
+  programsFound: number;
+  newPrograms: number;
+  diffsFound: number;
+  novelFieldCount: number;
+  comparisons: PipelineComparison[];
+}
+
+export const pipelineData: Record<string, PipelineStateSummary> = ${JSON.stringify(entries, null, 2)};
+`;
+
+  const outPath = path.resolve(__dirname, "..", "data", "pipeline-summary.ts");
+  fs.writeFileSync(outPath, tsContent);
+  console.log(`\n  → Updated ${outPath} (${states.length} state${states.length > 1 ? "s" : ""})`);
 }
 
 main().catch((err) => {

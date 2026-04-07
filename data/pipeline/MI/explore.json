@@ -1,139 +1,123 @@
 {
   "state": "MI",
   "stateName": "Michigan",
-  "exploredAt": "2026-04-07T00:16:15.599Z",
-  "programCount": 18,
+  "exploredAt": "2026-04-07T00:58:31.229Z",
+  "programCount": 16,
   "programs": [
     {
       "name": "MI Health Link",
-      "what_it_does": "MI Health Link combines Medicare and Medicaid services into a single managed care plan for eligible seniors, streamlining healthcare delivery and reducing out-of-pocket costs. Participants receive all healthcare services, including prescription medications, with no copayments or deductibles for in-network care.[1]",
-      "who_its_for": "Dual eligible individuals aged 21 or above residing in one of 25 participating counties, with active Medicare Parts A, B, and D, full Medicaid qualification, no hospice care, and not enrolled in MI Choice Waiver or PACE.[1]",
-      "official_url": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors",
-      "benefit_value": "No copayments or deductibles for covered services; significant savings on healthcare costs for thousands of participants.[1]"
+      "what_it_does": "MI Health Link combines Medicare and Medicaid services into a single managed care plan for eligible seniors. It eliminates copayments or deductibles for in-network care, including prescription medications, streamlining healthcare delivery.[1]",
+      "who_its_for": "Dual eligible individuals aged 21 or above residing in one of 25 participating counties, with active Medicare Parts A, B, and D, full Medicaid benefits, not in hospice, MI Choice Waiver, or PACE.[1]",
+      "official_url": "https://www.michigan.gov/mdhhs",
+      "benefit_value": "No copays or deductibles for covered services; reduces out-of-pocket costs.[1]"
     },
     {
       "name": "MI Choice Medicaid Waiver",
-      "what_it_does": "The MI Choice Medicaid Waiver provides home and community-based services to help seniors avoid nursing home placement. It includes care management, personal care, homemaking, respite, nursing, and other supports through Area Agencies on Aging.[2]",
-      "who_its_for": "Seniors aged 55+ meeting Medicaid long-term care criteria, often at risk of nursing facility placement.[2][9]",
-      "official_url": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors",
-      "benefit_value": "Varies by need; covers in-home services like personal care, respite, meals, and transportation to support aging in place.[2]"
+      "what_it_does": "MI Choice Medicaid Waiver provides home and community-based long-term care services as an alternative to nursing homes. It funds services like personal care, homemaking, respite care, nursing, and assistive devices through area agencies on aging.[2]",
+      "who_its_for": "Seniors and disabled individuals qualifying for nursing home level care but preferring home-based services; income and asset limits apply via Medicaid.[2]",
+      "official_url": "https://www.michigan.gov/mdhhs",
+      "benefit_value": "Varies by need; covers in-home services, care management, and self-determination options to prevent institutionalization.[2]"
     },
     {
-      "name": "Michigan PACE Program",
-      "what_it_does": "Michigan's Program of All-Inclusive Care for the Elderly (PACE) delivers comprehensive medical and social services to eligible seniors in community settings. It coordinates all needed care, including adult day health, transportation, and home care, through interdisciplinary teams.[1]",
-      "who_its_for": "Seniors aged 55+ certified for nursing home level care, able to live safely in the community, in participating areas.[1]",
-      "official_url": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors",
-      "benefit_value": "Full coverage of approved services with no copays for dual eligibles; prevents institutionalization.[1]"
+      "name": "Michigan Program for All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "PACE delivers comprehensive medical and social services to eligible seniors in community settings, including adult day health care. It coordinates all Medicare and Medicaid benefits through a single provider to support aging in place.[1]",
+      "who_its_for": "Seniors aged 55+ certified for nursing facility level of care, able to live safely in the community, in participating PACE service areas.[1]",
+      "official_url": "https://www.michigan.gov/mdhhs",
+      "benefit_value": "Full coverage of approved services with no copays for participants; prevents or delays nursing home placement.[1]"
     },
     {
-      "name": "Medicaid Medicare Premium Payment (QMB, SLMB, QI) Programs",
-      "what_it_does": "These programs pay Medicare premiums, deductibles, and copayments for eligible low-income seniors. QMB covers Part A/B premiums and more; SLMB covers Part B; QI offers partial Part B assistance.[1]",
-      "who_its_for": "Low-income Medicare beneficiaries aged 65+ or disabled, meeting specific income/asset limits (e.g., individual income ≤$2,829/month, assets ≤$2,000 as of 2024).[1]",
-      "official_url": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors",
-      "benefit_value": "Pays premiums (e.g., Part B ~$174.70/month in 2024) and cost-sharing; exemptions for home, vehicle, etc.[1]"
+      "name": "Medicare Savings Programs (MSP) - QMB, SLMB, QI",
+      "what_it_does": "These programs help pay Medicare premiums, deductibles, coinsurance, and copayments for qualifying low-income seniors. Administered via Michigan Medicaid, they include Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), and Qualifying Individual (QI).[1]",
+      "who_its_for": "Medicare enrollees aged 65+ or disabled with income up to ~$2,829/month (2024) and assets under $2,000 (single); specific income tiers per category.[1]",
+      "official_url": "https://www.michigan.gov/mdhhs",
+      "benefit_value": "Full/partial coverage of Medicare costs; e.g., QMB covers Part A/B premiums and cost-sharing up to limits.[1]"
     },
     {
-      "name": "MI Bridges Food Assistance Program (SNAP)",
-      "what_it_does": "Michigan's SNAP provides monthly benefits via EBT card for purchasing food at approved retailers. It supplements grocery budgets to ensure nutritional needs are met.[5]",
-      "who_its_for": "Low-income seniors 60+, households with elderly/disabled members; income-based eligibility via MI Bridges.[5][7]",
+      "name": "SNAP Food Assistance (MiCAFE for seniors)",
+      "what_it_does": "SNAP provides monthly benefits via Michigan Bridge Card for purchasing food at stores. MiCAFE assists seniors 60+ with application to access these benefits.[6]",
+      "who_its_for": "Seniors 60+ with low income; single seniors receive $23-$292/month; many eligible but unenrolled.[6]",
+      "official_url": "https://www.elderlawofmi.org/micafe",
+      "benefit_value": "$23-$292/month for single seniors to buy food.[6]"
+    },
+    {
+      "name": "Michigan LIHEAP (Energy Assistance)",
+      "what_it_does": "LIHEAP provides one-time payments to help with heating bills during winter. It assists eligible low-income households, including seniors, with energy costs.[8]",
+      "who_its_for": "Low-income seniors and households; specific income guidelines via MDHHS.[8]",
       "official_url": "https://www.michigan.gov/mdhhs/assistance-programs",
-      "benefit_value": "Average $200-300/month per eligible senior household; maximum varies by household size/income.[5]"
+      "benefit_value": "One-time grant; amount varies by household size, income, and fuel type (typically $200-$1,000).[8]"
     },
     {
-      "name": "Michigan Energy Assistance Program (LIHEAP)",
-      "what_it_does": "Provides cash grants to help pay heating bills and one-time crisis assistance for utility shutoffs. It also funds furnace repairs and weather-related needs.[7]",
-      "who_its_for": "Low-income households including seniors; priority for those 60+, disabled, with young children.[7]",
-      "official_url": "https://www.michigan.gov/mdhhs/assistance-programs",
-      "benefit_value": "Grants $200-1,000+ per household annually, based on income, household size, heating type.[7]"
-    },
-    {
-      "name": "Michigan Weatherization Assistance Program",
-      "what_it_does": "Insulates homes, seals leaks, and upgrades heating systems to reduce energy costs and improve safety. Services are free for eligible low-income households.[2]",
-      "who_its_for": "Low-income seniors, disabled, families in Michigan; priority for 60+ and vulnerable groups.[2]",
-      "official_url": "https://www.michigan.gov/mdhhs/assistance-programs",
-      "benefit_value": "Free home improvements saving 20-30% on energy bills long-term.[2]"
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "WAP funds energy efficiency improvements like insulation, sealing, and furnace repairs for low-income homes. It reduces energy costs and improves health/safety for seniors.[2]",
+      "who_its_for": "Low-income seniors via area agencies on aging; often tied to home repair contracts.[2]",
+      "official_url": "https://www.michigan.gov/mdhhs",
+      "benefit_value": "Free or low-cost home upgrades; long-term energy savings.[2]"
     },
     {
       "name": "Michigan Medicare Assistance Program (MMAP)",
-      "what_it_does": "Offers free, unbiased counseling on Medicare options, including Parts A/B/D, Medigap, and dual eligibility. Counselors help select plans, appeal denials, and maximize savings.[1]",
-      "who_its_for": "All Michigan Medicare beneficiaries 65+, younger disabled; no income limits.[1]",
-      "official_url": "https://mmapinc.org/",
-      "benefit_value": "Saved residents over $800,000 in prescription costs last year; personalized plan optimization.[1]"
+      "what_it_does": "MMAP offers free, unbiased counseling on Medicare options, including savings programs. It helped save over $800,000 in prescription costs last year.[1]",
+      "who_its_for": "Michigan seniors 65+, adults 18-64 with disabilities; income ≤$2,829/month, assets ≤$2,000 (exemptions apply).[1]",
+      "official_url": "https://seniorsite.org/resource/15-hidden-benefits-every-michigan-senior-should-know-in-2025/",
+      "benefit_value": "Free counseling; prescription savings averaging hundreds per participant.[1]"
     },
     {
-      "name": "Home Delivered Meals (via Area Agencies on Aging)",
-      "what_it_does": "Delivers nutritious meals to homebound seniors to promote health and independence. Often includes 1-2 meals/day, 5 days/week, with nutrition counseling.[2]",
-      "who_its_for": "Homebound seniors 60+ unable to prepare meals, often low-income or at nutritional risk.[2]",
+      "name": "Home Delivered Meals (Meals on Wheels)",
+      "what_it_does": "Provides nutritious meals delivered to homebound seniors to promote independence. Available through local Area Agencies on Aging and senior centers.[4]",
+      "who_its_for": "Homebound seniors 60+ in need of meals; low-income prioritized.[4]",
       "official_url": "https://www.michigan.gov/osa",
-      "benefit_value": "Suggested donation ~$3-5/meal; free/low-cost for eligible; serves thousands statewide.[2]"
+      "benefit_value": "1-2 meals/day, 5 days/week; suggested donation for those able.[4]"
     },
     {
-      "name": "Respite Care (MI Choice Waiver & POS)",
-      "what_it_does": "Provides temporary relief for family caregivers through in-home aides, adult day, or short-term facility stays. Helps prevent caregiver burnout while supporting care recipient safety.[2]",
-      "who_its_for": "Family caregivers of seniors/disabled enrolled in MI Choice Waiver or AAA services.[2]",
-      "official_url": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors",
-      "benefit_value": "Hours/days of paid respite based on care plan; up to 240 hours/year in some programs.[2]"
+      "name": "Respite Care (via MI Choice Waiver)",
+      "what_it_does": "Offers temporary relief for family caregivers through in-home or facility-based services. Funded under waiver programs to prevent caregiver burnout.[2]",
+      "who_its_for": "Family caregivers of waiver-eligible seniors/disabled needing short-term breaks.[2]",
+      "official_url": "https://www.aaanm.org/funding/",
+      "benefit_value": "Paid hours of substitute care; varies by assessed need.[2]"
     },
     {
       "name": "Senior Community Service Employment Program (SCSEP)",
-      "what_it_does": "Offers part-time paid training at community sites leading to unsubsidized employment. Combines work experience, skills training, and supportive services for older job seekers.[6]",
-      "who_its_for": "Unemployed low-income individuals 55+ in Michigan; income ≤125% poverty level.[6]",
-      "official_url": "https://www.michigan.gov/leo/bureaus-agencies/wd/seniors",
-      "benefit_value": "Minimum wage pay (~$7.25-10/hr) for 20 hrs/week; job placement assistance.[6]"
+      "what_it_does": "Provides part-time paid community service work training for low-income seniors to gain skills and transition to unsubsidized employment. Operated through local agencies.[7]",
+      "who_its_for": "Unemployed low-income seniors 55+ unable to find work.[7]",
+      "official_url": "https://michigan.grantwatch.com/cat/1/aging-seniors-grants.html",
+      "benefit_value": "Minimum wage training wages (up to 20 hrs/week); job placement support.[7]"
     },
     {
-      "name": "Legal Assistance for Seniors (AAA-funded)",
-      "what_it_does": "Provides free legal advice, representation for benefits, housing, consumer issues, and elder abuse. Operated through Area Agencies on Aging networks.[2]",
-      "who_its_for": "Low-income seniors 60+ facing legal barriers to services, rights protection.[2]",
-      "official_url": "https://www.michigan.gov/osa",
-      "benefit_value": "Free consultations/representation; resolves thousands of cases annually.[2]"
+      "name": "Legal Assistance for Seniors",
+      "what_it_does": "Provides free legal help for issues like benefits, housing, and consumer problems via Area Agencies on Aging. Includes counseling and representation.[2]",
+      "who_its_for": "Low-income seniors 60+ through funded local providers.[2]",
+      "official_url": "https://www.aaanm.org/funding/",
+      "benefit_value": "Free legal services; resolves benefits denials and protections.[2]"
     },
     {
-      "name": "Long-Term Care Ombudsman Program",
-      "what_it_does": "Advocates for residents in nursing homes, adult foster care, and similar facilities resolving complaints. Protects rights, investigates issues, and promotes quality care.[2]",
-      "who_its_for": "Residents/families in Michigan long-term care facilities; open to public inquiries.[2]",
-      "official_url": "https://www.michigan.gov/osa/ombudsman",
-      "benefit_value": "Free advocacy resolving 80%+ of complaints without formal action; statewide coverage.[2]"
+      "name": "Nursing Home Long-Term Care Ombudsman",
+      "what_it_does": "Advocates for residents in long-term care facilities, resolving complaints and protecting rights. Provided directly by area agencies like AAANM.[2]",
+      "who_its_for": "Seniors in nursing homes, adult foster care, or similar facilities.[2]",
+      "official_url": "https://www.aaanm.org/funding/",
+      "benefit_value": "Free advocacy and issue resolution; improves care quality.[2]"
     },
     {
-      "name": "Michigan's Choice Waiver Program",
-      "what_it_does": "Provides home and community-based services as an alternative to nursing home placement for seniors needing extensive care. It allows eligible individuals to receive long-term care support while living at home.[1]",
-      "who_its_for": "Michigan residents aged 65+ (or 18-64 with disabilities), with monthly income ≤$2,829 and assets ≤$2,000 (exemptions for home under $713,000, vehicle, burial plots).[1]",
-      "whats_unique": "State-specific Medicaid waiver program tailored to Michigan's criteria, emphasizing alternatives to institutional care with strict asset exemptions unique to MI guidelines.[1]",
-      "official_url": "https://seniorsite.org/resource/15-hidden-benefits-every-michigan-senior-should-know-in-2025/",
-      "benefit_value": "Home-based long-term care services; financial thresholds: income $2,829/mo, assets $2,000.[1]"
+      "name": "MI Choice Waiver Program",
+      "what_it_does": "The MI Choice Waiver Program provides long-term care supports and services to qualified elderly Michigan residents who require a Nursing Facility Level of Care but live in their own home, the home of a relative, an adult foster care home, or a home for the aged. It covers personal care, skilled nursing, medications, and other services but does not include room and board costs.[1]",
+      "who_its_for": "Michigan residents aged 65 and older who meet Nursing Facility Level of Care criteria and are financially eligible for Medicaid.[1]",
+      "whats_unique": "This is Michigan's state-specific HCBS Medicaid waiver program tailored for seniors needing institutional-level care in community settings, distinct from standard federal Medicaid options.[1]",
+      "official_url": "https://www.medicaidlongtermcare.org/eligibility/michigan/",
+      "benefit_value": "Varies by need; covers long-term care services equivalent to nursing home level without room/board."
     },
     {
-      "name": "MI Health Link Program",
-      "what_it_does": "Integrates Medicare and Medicaid into a single managed care plan for dual-eligible seniors, streamlining healthcare and eliminating copays/deductibles for in-network care including prescriptions. It reduces out-of-pocket costs and simplifies navigation between federal programs.[1]",
-      "who_its_for": "Age 21+, residing in 25 participating MI counties, with Medicare Parts A/B/D, full Medicaid eligibility, not in hospice, MI Choice, or PACE.[1]",
-      "whats_unique": "Michigan-specific integrated care model for dual eligibles in designated counties, combining services through state-managed plans not universally replicated.[1]",
-      "official_url": "https://seniorsite.org/resource/15-hidden-benefits-every-michigan-senior-should-know-in-2025/",
-      "benefit_value": "No copays/deductibles for covered care; serves thousands of MI dual eligibles.[1]"
-    },
-    {
-      "name": "MI Choice Program",
-      "what_it_does": "Medicaid-funded initiative delivering home and community-based services to qualified adults. It supports independent living through a range of long-term care options outside institutions.[4]",
-      "who_its_for": "Adults 60+ qualifying for Medicaid home and community-based services via AgeWays or similar agencies.[4]",
-      "whats_unique": "Michigan's branded Medicaid waiver service delivery system, coordinated through state area agencies on aging for personalized home care plans.[1][4]",
-      "official_url": "https://www.ageways.org",
-      "benefit_value": "Comprehensive home and community-based long-term care services.[4]"
-    },
-    {
-      "name": "Michigan Senior Property Tax Relief",
-      "what_it_does": "Provides property tax relief to qualifying seniors on fixed incomes. It reduces housing cost burdens through state-specific exemptions or credits.[2]",
-      "who_its_for": "Low-income seniors meeting Michigan's property tax relief eligibility, typically 65+ with income/asset limits.[2]",
-      "whats_unique": "State-funded relief program beyond federal standards, targeted at MI homeowners with unique qualification criteria.[2]",
-      "official_url": "https://seniorbenefitscarefinder.com/low-income-programs/michigan/",
-      "benefit_value": "Property tax reductions (specific amounts vary by eligibility and local assessments).[2]"
+      "name": "Home Help Program",
+      "what_it_does": "Michigan’s Home Help Program delivers hands-on personal care assistance with at least one Activity of Daily Living (such as bathing, dressing, or eating) for eligible individuals in their home or a loved one's home. It supports those with needs due to aging, illness, or cognitive issues through Michigan ABD Medicaid.[1]",
+      "who_its_for": "ABD Medicaid beneficiaries in Michigan who require assistance with one or more ADLs, regardless of the underlying reason.[1]",
+      "whats_unique": "A Michigan-specific Medicaid program providing targeted in-home help for daily activities, beyond standard federal home care waivers.[1]",
+      "official_url": "https://www.medicaidlongtermcare.org/eligibility/michigan/",
+      "benefit_value": "Hands-on personal care services; value depends on assessed hours of need."
     },
     {
       "name": "MiCAFE (Michigan's Coordinated Access to Food for the Elderly)",
-      "what_it_does": "Assists seniors in applying for food benefits like SNAP via simplified processes. It enables grocery purchases using Michigan Bridge Cards, overcoming application barriers.[6]",
-      "who_its_for": "Seniors 60+ statewide, including those who thought they had too much income or faced access issues.[6]",
-      "whats_unique": "Michigan-specific program by Elder Law of Michigan for coordinated food benefit access, serving tens of thousands with state-tailored application help.[6]",
+      "what_it_does": "MiCAFE assists seniors aged 60 and older with applying for food benefits, enabling tens of thousands to receive monthly assistance via Michigan Bridge Card for grocery purchases. It simplifies access for those who might otherwise miss out due to income misconceptions, paperwork, or transportation barriers.[6]",
+      "who_its_for": "Michigan seniors aged 60 and older eligible for food assistance benefits.[6]",
+      "whats_unique": "Michigan-specific program run by Elder Law of Michigan that streamlines food benefit applications statewide for seniors, maximizing participation in federal nutrition aid.[6]",
       "official_url": "https://www.elderlawofmi.org/micafe",
-      "benefit_value": "$23-$292/month in food benefits per single senior.[6]"
+      "benefit_value": "$23 to $292 per month for single seniors to buy food."
     }
   ]
 }

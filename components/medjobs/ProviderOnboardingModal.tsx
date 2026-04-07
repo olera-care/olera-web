@@ -562,183 +562,277 @@ export default function ProviderOnboardingModal({
     switch (step) {
       case "search":
         return (
-          <div className="space-y-8">
-            {/* Header - matches onboarding page style */}
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                </svg>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
-                Schedule an interview with {firstName}
-              </h1>
-              <p className="text-gray-500 mt-3 text-base sm:text-lg leading-relaxed">
-                Find your business or create an account to get started
-              </p>
-            </div>
-
-            {/* Search form */}
-            <form onSubmit={handleSearch} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Business name
-                </label>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="e.g., Sunrise Senior Living"
-                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                  autoFocus
-                />
-              </div>
-
-              <div className="relative" ref={locationDropdownRef}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  City or state <span className="text-gray-400 font-normal">(optional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={locationQuery}
-                  onChange={(e) => {
-                    setLocationQuery(e.target.value);
-                    setShowLocationDropdown(true);
-                  }}
-                  onFocus={() => setShowLocationDropdown(true)}
-                  placeholder="e.g., Dallas, TX"
-                  className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                />
-                {showLocationDropdown && cityResults.length > 0 && (
-                  <div className="absolute z-50 mt-1 w-full bg-white rounded-xl border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
-                    {cityResults.map((c) => (
-                      <button
-                        key={`${c.city}-${c.state}`}
-                        type="button"
-                        onClick={() => {
-                          setLocationQuery(`${c.city}, ${c.state}`);
-                          setShowLocationDropdown(false);
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
-                      >
-                        {c.city}, {c.state}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full py-3.5 text-base"
-                disabled={searching || (!searchQuery.trim() && !locationQuery.trim())}
-              >
-                {searching ? "Searching..." : "Search"}
-              </Button>
-            </form>
-
-            {/* Search results */}
-            {hasSearched && (
-              <div className="space-y-4 mt-8">
-                {searchError && (
-                  <p className="text-sm text-red-600 text-center">{searchError}</p>
-                )}
-
-                {searchResults.length > 0 ? (
-                  <>
-                    <p className="text-sm text-gray-500 text-center">
-                      {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} found
+          <div className="h-full flex flex-col">
+            {/* ── State A: Initial search form ── */}
+            {!hasSearched && (
+              <div className="flex-1 flex items-center justify-center px-4">
+                <div className="w-full max-w-xl">
+                  <div className="text-center mb-8 lg:mb-14">
+                    <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
+                      Schedule an interview with {firstName}
+                    </h1>
+                    <p className="text-gray-500 mt-4 lg:mt-6 text-base lg:text-xl leading-relaxed">
+                      Find your business or create an account to get started
                     </p>
-                    <div className="space-y-3 max-h-[280px] overflow-y-auto">
-                      {searchResults.map((result) => {
-                        const isClaimed = result.claimState === "claimed" || result.claimState === "pending";
-                        return (
-                          <div
-                            key={result.id}
-                            className="flex items-center gap-4 p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
-                          >
-                            <div className="w-14 h-14 rounded-xl bg-gray-200 overflow-hidden shrink-0">
-                              {result.imageUrl ? (
-                                <Image
-                                  src={result.imageUrl}
-                                  alt={result.name}
-                                  width={56}
-                                  height={56}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xl font-semibold bg-gradient-to-br from-primary-50 to-gray-100">
-                                  {result.name.charAt(0)}
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-gray-900 truncate">
-                                {result.name}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {[result.city, result.state].filter(Boolean).join(", ") || "Location not specified"}
-                              </p>
-                            </div>
-                            {isClaimed ? (
-                              <button
-                                type="button"
-                                onClick={() => handleSignInToClaimedListing(result)}
-                                className="px-4 py-2 text-sm font-semibold text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors shrink-0"
-                              >
-                                Sign in
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => handleStartClaim(result)}
-                                className="px-4 py-2 text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-xl transition-colors shrink-0"
-                              >
-                                This is me
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-6">
-                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                      <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                      </svg>
-                    </div>
-                    <p className="text-gray-500">No businesses found matching your search.</p>
                   </div>
-                )}
 
-                {/* Create new option */}
-                <div className="pt-6 border-t border-gray-100">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCreateName(searchQuery);
-                      setStep("create");
-                    }}
-                    className="w-full text-center text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
-                  >
-                    Don&apos;t see your business? Create a new account →
-                  </button>
+                  {/* Pill-style search form */}
+                  <form onSubmit={handleSearch}>
+                    <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg ring-1 ring-gray-200/80 p-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                      {/* Location input with dropdown */}
+                      <div ref={locationDropdownRef} className="relative flex-1">
+                        <div className={`flex items-center px-4 py-3 bg-gray-50 rounded-xl border transition-colors ${
+                          showLocationDropdown ? "border-primary-400 ring-2 ring-primary-100" : "border-gray-200 hover:border-gray-300"
+                        }`}>
+                          <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <input
+                            type="text"
+                            aria-label="City or state"
+                            value={locationQuery}
+                            onChange={(e) => {
+                              setLocationQuery(e.target.value);
+                              setShowLocationDropdown(true);
+                            }}
+                            onFocus={() => setShowLocationDropdown(true)}
+                            placeholder="City or state"
+                            className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                          />
+                        </div>
+
+                        {/* Location suggestions dropdown */}
+                        {showLocationDropdown && cityResults.length > 0 && (
+                          <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
+                            {cityResults.map((c) => (
+                              <button
+                                key={`${c.city}-${c.state}`}
+                                type="button"
+                                onClick={() => {
+                                  setLocationQuery(`${c.city}, ${c.state}`);
+                                  setShowLocationDropdown(false);
+                                }}
+                                className="flex items-center gap-3 w-full px-4 py-3 text-left text-base hover:bg-gray-50 transition-colors"
+                              >
+                                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span className="font-medium text-gray-700">{c.city}, {c.state}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Divider */}
+                      <div className="hidden sm:block w-px h-8 bg-gray-200 shrink-0" />
+
+                      {/* Name input */}
+                      <div className="flex items-center flex-1 px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
+                        <input
+                          type="text"
+                          aria-label="Organization name"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          placeholder="Organization name"
+                          className="w-full bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                        />
+                      </div>
+
+                      {/* Search button */}
+                      <button
+                        type="submit"
+                        disabled={searching || (!searchQuery.trim() && !locationQuery.trim())}
+                        className="px-7 py-3 text-base font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all sm:shrink-0"
+                      >
+                        {searching ? (
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+                        ) : (
+                          "Search"
+                        )}
+                      </button>
+                    </div>
+
+                    {searchError && (
+                      <p className="text-base text-red-600 mt-3 text-center">{searchError}</p>
+                    )}
+                  </form>
+
+                  <p className="text-center mt-6 text-base text-gray-500">
+                    or{" "}
+                    <button
+                      type="button"
+                      onClick={() => setStep("create")}
+                      className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+                    >
+                      create a new account
+                    </button>
+                  </p>
                 </div>
               </div>
             )}
 
-            {/* Direct create option */}
-            {!hasSearched && (
-              <div className="pt-6 border-t border-gray-100 text-center">
-                <button
-                  type="button"
-                  onClick={() => setStep("create")}
-                  className="text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
-                >
-                  Skip search and create account →
-                </button>
+            {/* ── State B: Results found ── */}
+            {hasSearched && searchResults.length > 0 && (
+              <div className="flex-1 flex flex-col overflow-hidden bg-vanilla-100">
+                {/* Results header */}
+                <div className="shrink-0 bg-vanilla-100/95 backdrop-blur-sm border-b border-gray-200/60 px-4 py-4">
+                  <div className="max-w-2xl mx-auto">
+                    <p className="text-sm text-gray-500">
+                      {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} found
+                    </p>
+                  </div>
+                </div>
+
+                {/* Results grid - scrollable */}
+                <div className="flex-1 overflow-y-auto px-4 py-6">
+                  <div className="max-w-2xl mx-auto space-y-4">
+                    {searchResults.map((result) => {
+                      const isClaimed = result.claimState === "claimed" || result.claimState === "pending";
+                      const locationText = [result.city, result.state].filter(Boolean).join(", ");
+
+                      return (
+                        <div
+                          key={result.id}
+                          className="bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
+                        >
+                          <div className="flex">
+                            {/* Image */}
+                            <div className="w-32 sm:w-40 min-h-[120px] sm:min-h-[140px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
+                              {result.imageUrl ? (
+                                <Image
+                                  src={result.imageUrl}
+                                  alt={result.name}
+                                  fill
+                                  className="object-cover"
+                                  sizes="160px"
+                                />
+                              ) : (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+                                    <span className="text-base sm:text-lg font-bold text-primary-400">
+                                      {(result.name || "")
+                                        .split(/\s+/)
+                                        .map((w) => w[0])
+                                        .filter(Boolean)
+                                        .slice(0, 2)
+                                        .join("")
+                                        .toUpperCase()}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 p-4 sm:p-5 min-w-0 flex flex-col">
+                              {locationText && (
+                                <p className="text-xs sm:text-sm text-gray-500 mb-0.5">{locationText}</p>
+                              )}
+                              <h3 className="text-base sm:text-lg font-bold text-gray-900 leading-snug line-clamp-1">
+                                {result.name}
+                              </h3>
+
+                              {/* Helper text */}
+                              <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                                {isClaimed ? "Already managed." : "Unclaimed page."}
+                              </p>
+
+                              {/* Spacer */}
+                              <div className="flex-1 min-h-2" />
+
+                              {/* Actions */}
+                              <div className="flex items-center justify-end">
+                                {isClaimed ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSignInToClaimedListing(result)}
+                                    className="px-4 py-2 text-sm font-semibold text-primary-600 rounded-lg ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
+                                  >
+                                    Sign in →
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleStartClaim(result)}
+                                    className="px-4 py-2 text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-lg transition-all"
+                                  >
+                                    This is me →
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* CTA: Don't see your organization? */}
+                    <div className="mt-6 text-center py-8 bg-white rounded-xl border border-gray-200">
+                      <p className="text-lg font-semibold text-gray-900 mb-1">
+                        Don&apos;t see your organization?
+                      </p>
+                      <p className="text-base text-gray-500 mb-5">
+                        Create a new listing from scratch
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCreateName(searchQuery);
+                          setStep("create");
+                        }}
+                        className="px-7 py-3 text-base font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-500 transition-all shadow-sm"
+                      >
+                        Set up a new page
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── State C: No results ── */}
+            {hasSearched && searchResults.length === 0 && (
+              <div className="flex-1 flex items-center justify-center px-4 bg-vanilla-100">
+                <div className="w-full max-w-md text-center">
+                  <div className="w-14 h-14 rounded-full bg-white shadow-sm flex items-center justify-center mx-auto mb-6">
+                    <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+
+                  <h2 className="text-2xl font-display font-semibold text-gray-900 mb-2">
+                    No matches found
+                  </h2>
+                  <p className="text-gray-500 text-base leading-relaxed mb-8">
+                    We couldn&apos;t find any listings matching your search
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHasSearched(false);
+                        setSearchResults([]);
+                      }}
+                      className="px-6 py-2.5 text-sm font-semibold text-gray-700 bg-white rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors"
+                    >
+                      Try a different search
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCreateName(searchQuery);
+                        setStep("create");
+                      }}
+                      className="px-6 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-500 transition-colors"
+                    >
+                      Create new listing
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -1109,6 +1203,9 @@ export default function ProviderOnboardingModal({
     }
   };
 
+  // Determine if we're showing results (needs full height layout)
+  const showingResults = step === "search" && hasSearched && searchResults.length > 0;
+
   return (
     <Modal
       isOpen={isOpen}
@@ -1116,12 +1213,19 @@ export default function ProviderOnboardingModal({
       size="fullscreen"
       hideHeader
     >
-      {/* Centered content wrapper - matches onboarding page aesthetic */}
-      <div className="h-full flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-lg">
+      {step === "search" ? (
+        // Search step handles its own layout (initial search vs results)
+        <div className="h-full">
           {renderStep()}
         </div>
-      </div>
+      ) : (
+        // Other steps: centered content
+        <div className="h-full flex items-center justify-center px-4 py-12">
+          <div className="w-full max-w-lg">
+            {renderStep()}
+          </div>
+        </div>
+      )}
     </Modal>
   );
 }

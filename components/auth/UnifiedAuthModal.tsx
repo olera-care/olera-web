@@ -683,6 +683,9 @@ export default function UnifiedAuthModal({
         );
         if (isMedJobsHireFlow && deferred?.returnUrl) {
           router.push(`/provider/onboarding?next=${encodeURIComponent(deferred.returnUrl)}`);
+        } else if (deferred?.returnUrl?.startsWith("/provider/onboarding")) {
+          // For create_profile flow, returnUrl already has the next param - use it directly
+          router.push(deferred.returnUrl);
         } else {
           router.push("/provider/onboarding");
         }

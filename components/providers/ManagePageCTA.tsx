@@ -227,36 +227,39 @@ export default function ManagePageCTA({
               </div>
             )}
 
-            {/* CASE 2: Claimed → Sign in (primary) + Dispute (secondary) */}
+            {/* CASE 2: Claimed → Dispute (primary) + Sign in (secondary teal link) */}
             {isClaimed && !isOwner && (
               <div className="text-center">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-600 to-primary-700 flex items-center justify-center mx-auto mb-4 shadow-sm">
-                  <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-                    <path fillRule="evenodd" d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08zm3.094 8.016a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center mx-auto mb-4 shadow-sm border border-amber-200/60">
+                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>
                 <h2 className="text-lg font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
-                  This listing is managed
-                  <InfoTooltip content="If you're the owner, sign in with your business email to access your dashboard. If someone else claimed your listing incorrectly, you can dispute it." />
+                  This listing is claimed
+                  <InfoTooltip content="Someone else has verified ownership of this listing. If you believe this is incorrect, you can submit a dispute." />
                 </h2>
                 <p className="text-[15px] text-gray-500 leading-relaxed mb-6">
-                  Sign in with your business email to manage this listing.
+                  Someone else is managing this listing.
                 </p>
                 <button
-                  onClick={handleClaimClick}
-                  className="w-full py-3.5 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] flex items-center justify-center gap-1.5"
+                  onClick={handleDispute}
+                  className="w-full py-3.5 bg-amber-600 text-white font-semibold rounded-xl hover:bg-amber-700 active:scale-[0.99] transition-all min-h-[48px] flex items-center justify-center gap-1.5"
                 >
-                  Sign in to manage
+                  Dispute this claim
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
-                <button
-                  onClick={handleDispute}
-                  className="mt-3 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  Not you? Dispute this claim →
-                </button>
+                <p className="mt-4 text-sm text-gray-500">
+                  This is yours?{" "}
+                  <button
+                    onClick={handleClaimClick}
+                    className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+                  >
+                    Sign in
+                  </button>
+                </p>
               </div>
             )}
 

@@ -252,11 +252,11 @@ export default function ProviderOnboardingModal({
         });
       }
 
-      // 2. Search business_profiles (manually created profiles)
+      // 2. Search business_profiles (created from scratch, no source_provider_id)
       let profileQuery = supabase
         .from("business_profiles")
-        .select("id, display_name, city, state, claim_state, user_id, avatar_url")
-        .eq("type", "organization");
+        .select("id, display_name, city, state, user_id, avatar_url, slug, account_id")
+        .is("source_provider_id", null); // Only profiles created from scratch
 
       if (name) {
         profileQuery = profileQuery.ilike("display_name", `%${name}%`);
@@ -671,9 +671,9 @@ export default function ProviderOnboardingModal({
 
             {/* ── State B: Results found ── */}
             {hasSearched && searchResults.length > 0 && (
-              <div className="flex-1 flex flex-col overflow-hidden bg-vanilla-100">
+              <div className="flex-1 flex flex-col overflow-hidden bg-white">
                 {/* Results header */}
-                <div className="shrink-0 bg-vanilla-100/95 backdrop-blur-sm border-b border-gray-200/60 px-4 py-4">
+                <div className="shrink-0 bg-white/95 backdrop-blur-sm border-b border-gray-200/60 px-4 py-4">
                   <div className="max-w-2xl mx-auto">
                     <p className="text-sm text-gray-500">
                       {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} found
@@ -812,7 +812,7 @@ export default function ProviderOnboardingModal({
 
             {/* ── State C: No results ── */}
             {hasSearched && searchResults.length === 0 && (
-              <div className="flex-1 flex items-center justify-center px-4 bg-vanilla-100">
+              <div className="flex-1 flex items-center justify-center px-4 bg-white">
                 <div className="w-full max-w-md text-center">
                   <div className="w-14 h-14 rounded-full bg-white shadow-sm flex items-center justify-center mx-auto mb-6">
                     <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -5,23 +5,28 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ScheduleInterviewModal, { ScheduleFormData } from "@/components/medjobs/ScheduleInterviewModal";
-import ProviderOnboardingModal from "@/components/medjobs/ProviderOnboardingModal";
+import QuickScheduleModal from "@/components/medjobs/QuickScheduleModal";
+import type { StudentMetadata } from "@/lib/types";
 
 const SCHEDULE_STORAGE_KEY = "medjobs_schedule_draft";
 
+interface CandidateData {
+  id: string;
+  slug: string;
+  displayName: string;
+  email: string | null;
+  phone: string | null;
+  imageUrl: string | null;
+  city: string | null;
+  state: string | null;
+  metadata: StudentMetadata;
+}
+
 export default function ContactSection({
-  studentId,
-  studentName,
-  studentEmail,
-  studentPhone,
-  studentSlug,
+  candidate,
   variant = "sidebar",
 }: {
-  studentId: string;
-  studentName: string;
-  studentEmail: string | null;
-  studentPhone: string | null;
-  studentSlug: string;
+  candidate: CandidateData;
   variant?: "sidebar" | "sticky" | "inline";
 }) {
   const router = useRouter();
@@ -30,7 +35,7 @@ export default function ContactSection({
   const { user, activeProfile, profiles } = useAuth();
 
   const [showModal, setShowModal] = useState(false);
-  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [showQuickScheduleModal, setShowQuickScheduleModal] = useState(false);
   const [scheduled, setScheduled] = useState(false);
   const [savedFormData, setSavedFormData] = useState<ScheduleFormData | undefined>();
 
@@ -39,7 +44,7 @@ export default function ContactSection({
 
   // Check if caregiver is viewing their own profile
   const ownCaregiverProfile = profiles.find(
-    (p) => (p.type === "student" || p.type === "caregiver") && p.slug === studentSlug
+    (p) => (p.type === "student" || p.type === "caregiver") && p.slug === candidate.slug
   );
   const isViewingOwnProfile = !!ownCaregiverProfile;
 
@@ -65,7 +70,7 @@ export default function ContactSection({
         if (saved) {
           const parsed = JSON.parse(saved) as ScheduleFormData & { candidateSlug: string };
           // Only use if it matches this candidate
-          if (parsed.candidateSlug === studentSlug) {
+          if (parsed.candidateSlug === candidate.slug) {
             setSavedFormData(parsed);
           }
           sessionStorage.removeItem(SCHEDULE_STORAGE_KEY);
@@ -77,24 +82,24 @@ export default function ContactSection({
       // Open modal to complete scheduling
       setShowModal(true);
     }
-  }, [searchParams, user, hasProviderProfile, pathname, router, studentSlug]);
+  }, [searchParams, user, hasProviderProfile, pathname, router, candidate.slug]);
 
   // Note: We no longer redirect caregivers away. They can view candidate profiles
   // and attempt to schedule — they'll be prompted to sign in with a business email
   // (separate account) when they try to submit.
 
-  const firstName = studentName.split(" ")[0];
+  const firstName = candidate.displayName.split(" ")[0];
 
   // Check if user needs auth before submitting
   const requiresAuth = !user || !hasProviderProfile;
 
   // Handle schedule click
-  // For unauthenticated users: show inline onboarding modal
+  // For unauthenticated users: show quick schedule modal (2-step flow)
   // For authenticated providers: show schedule modal directly
   const handleScheduleClick = useCallback(() => {
     if (requiresAuth) {
-      // Show inline onboarding modal instead of redirecting
-      setShowOnboardingModal(true);
+      // Show quick schedule modal for unauthenticated users
+      setShowQuickScheduleModal(true);
     } else {
       setShowModal(true);
     }
@@ -196,21 +201,18 @@ export default function ContactSection({
         </div>
         {showModal && (
           <ScheduleInterviewModal
-            studentProfileId={studentId}
-            otherName={studentName}
+            studentProfileId={candidate.id}
+            otherName={candidate.displayName}
             onClose={handleModalClose}
             onScheduled={handleScheduled}
             initialValues={savedFormData}
           />
         )}
-        {showOnboardingModal && (
-          <ProviderOnboardingModal
-            isOpen={showOnboardingModal}
-            onClose={() => setShowOnboardingModal(false)}
-            candidateSlug={studentSlug}
-            candidateName={studentName}
-          />
-        )}
+        <QuickScheduleModal
+          isOpen={showQuickScheduleModal}
+          onClose={() => setShowQuickScheduleModal(false)}
+          candidate={candidate}
+        />
       </>
     );
   }
@@ -228,7 +230,7 @@ export default function ContactSection({
               Want to connect with {firstName}?
             </p>
             <p className="text-sm text-gray-500 mt-1">
-              Set up a provider account to schedule an interview.
+              Schedule an interview to get started.
             </p>
           </div>
         )}
@@ -261,28 +263,25 @@ export default function ContactSection({
         {/* Takes less than a minute helper text for non-users */}
         {!user && !isInline && (
           <p className="text-center text-xs text-gray-400">
-            Takes less than a minute to get started.
+            Takes less than a minute.
           </p>
         )}
       </div>
 
       {showModal && (
         <ScheduleInterviewModal
-          studentProfileId={studentId}
-          otherName={studentName}
+          studentProfileId={candidate.id}
+          otherName={candidate.displayName}
           onClose={handleModalClose}
           onScheduled={handleScheduled}
           initialValues={savedFormData}
         />
       )}
-      {showOnboardingModal && (
-        <ProviderOnboardingModal
-          isOpen={showOnboardingModal}
-          onClose={() => setShowOnboardingModal(false)}
-          candidateSlug={studentSlug}
-          candidateName={studentName}
-        />
-      )}
+      <QuickScheduleModal
+        isOpen={showQuickScheduleModal}
+        onClose={() => setShowQuickScheduleModal(false)}
+        candidate={candidate}
+      />
     </>
   );
 }

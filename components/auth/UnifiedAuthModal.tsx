@@ -662,17 +662,26 @@ export default function UnifiedAuthModal({
         } else {
           router.push("/provider");
         }
-      } else if (existingProfileType === "family") {
-        // Existing family account — can't become provider with same email, redirect to home
-        router.push("/");
-      } else if (existingProfileType === "student" || existingProfileType === "caregiver") {
-        // Existing caregiver account — can't become provider with same email, redirect to their dashboard
-        router.push("/portal/medjobs");
+      } else if (existingProfileType === "family" || existingProfileType === "student" || existingProfileType === "caregiver") {
+        // Existing family/caregiver account — can't become provider with same email
+        // Stay on modal and show error so they can try a different email
+        const accountTypeName = existingProfileType === "family" ? "family" : "caregiver";
+        setError(
+          `This email is linked to a ${accountTypeName} account. To continue as a provider, please sign in with a different business email.`
+        );
+        setEmail("");
+        setStep("entry");
+        setLoading(false);
+        return;
       } else {
         // New signup or no profile — go to provider onboarding
-        // If coming from MedJobs hire flow, skip to search step and preserve return URL
-        if (deferred?.action === "hire-candidate" && deferred?.returnUrl?.startsWith("/provider/medjobs/candidates/")) {
-          router.push(`/provider/onboarding?step=search&next=${encodeURIComponent(deferred.returnUrl)}`);
+        // If coming from MedJobs hire flow, preserve return URL so they can complete scheduling
+        const isMedJobsHireFlow = deferred?.action === "hire-candidate" && (
+          deferred?.returnUrl?.startsWith("/medjobs/candidates/") ||
+          deferred?.returnUrl?.startsWith("/provider/medjobs/candidates/")
+        );
+        if (isMedJobsHireFlow && deferred?.returnUrl) {
+          router.push(`/provider/onboarding?next=${encodeURIComponent(deferred.returnUrl)}`);
         } else {
           router.push("/provider/onboarding");
         }

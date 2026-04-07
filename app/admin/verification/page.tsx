@@ -165,8 +165,20 @@ export default function AdminVerificationPage() {
           <div className="text-lg text-gray-500">Loading...</div>
         </div>
       ) : providers.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-          <p className="text-gray-500">No verification requests found.</p>
+        <div className="bg-white rounded-xl border border-gray-200 py-16 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-50 flex items-center justify-center">
+            <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <p className="text-lg font-semibold text-gray-900">
+            {filter === "pending" ? "All caught up!" : `No ${filter} providers`}
+          </p>
+          <p className="text-sm text-gray-500 mt-1">
+            {filter === "pending"
+              ? "No verification requests waiting for review."
+              : `No providers with "${filter}" verification status.`}
+          </p>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -257,7 +269,14 @@ export default function AdminVerificationPage() {
                               disabled={actionLoading === provider.id}
                               className="px-3 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
                             >
-                              Approve
+                              {actionLoading === provider.id ? "..." : "Approve"}
+                            </button>
+                            <button
+                              onClick={() => handleAction(provider.id, "reject")}
+                              disabled={actionLoading === provider.id}
+                              className="px-3 py-1.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors"
+                            >
+                              {actionLoading === provider.id ? "..." : "Reject"}
                             </button>
                           </div>
                         </td>

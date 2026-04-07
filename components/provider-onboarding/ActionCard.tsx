@@ -88,7 +88,7 @@ const TOOLTIP_CONTENT: Record<ActionCardState, { text: string; showTos?: boolean
     showTos: true,
   },
   "already-claimed": {
-    text: "This listing is managed by someone else. Submit a dispute and we'll review within 2–3 business days.",
+    text: "Someone else has verified ownership of this listing. If you believe this is incorrect, submit a dispute and we'll review within 2–3 business days.",
     showTos: true,
   },
   "dispute-submitted": {
@@ -705,7 +705,7 @@ export default function ActionCard({
           onClick={onClaimClick}
           className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
         >
-          Claim this listing
+          Get started
         </button>
       </div>
     );
@@ -750,7 +750,7 @@ export default function ActionCard({
   // ════════════════════════════════════════════════════════════
 
   if (state === "already-claimed") {
-    // Compact view - just show info and "Dispute listing" button
+    // Compact view - show "Dispute" (primary) + "Sign in" (secondary teal link)
     if (!showDisputeForm) {
       return (
         <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
@@ -775,6 +775,15 @@ export default function ActionCard({
           >
             Dispute listing
           </button>
+          <p className="w-full sm:max-w-[280px] sm:mx-auto mt-4 text-sm text-gray-500 text-center">
+            This is yours?{" "}
+            <button
+              onClick={onClaimClick}
+              className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+            >
+              Sign in
+            </button>
+          </p>
         </div>
       );
     }
@@ -924,7 +933,7 @@ export default function ActionCard({
           </svg>
         </div>
         <h3 className="text-xl font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
-          Claim this listing
+          Manage this page
           <InfoTooltip
             content={TOOLTIP_CONTENT["claim-form"].text}
             showTos
@@ -953,7 +962,7 @@ export default function ActionCard({
         onClick={onClaimClick}
         className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 flex items-center justify-center gap-1.5"
       >
-        Claim this listing
+        Get started
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
         </svg>

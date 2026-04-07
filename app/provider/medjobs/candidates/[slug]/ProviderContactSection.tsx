@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { usePathname } from "next/navigation";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
 
@@ -13,6 +14,8 @@ interface ProviderContactSectionProps {
   studentSlug: string;
   variant?: "sidebar" | "sticky" | "inline";
   onVerifyClick?: () => void;
+  /** Pre-fetched: whether an interview has already been scheduled */
+  initialScheduled?: boolean;
 }
 
 export default function ProviderContactSection({
@@ -23,23 +26,52 @@ export default function ProviderContactSection({
   studentSlug,
   variant = "sidebar",
   onVerifyClick,
+  initialScheduled = false,
 }: ProviderContactSectionProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { activeProfile, user, openAuth } = useAuth();
   const [showModal, setShowModal] = useState(false);
-  const [scheduled, setScheduled] = useState(false);
+  const [scheduled, setScheduled] = useState(initialScheduled);
+
+  // If initial state changes (e.g., parent fetched interviews), update
+  useEffect(() => {
+    if (initialScheduled) setScheduled(true);
+  }, [initialScheduled]);
+
+  // Auto-open schedule modal when arriving from inline onboarding flow
+  const hasHandledScheduleParam = useRef(false);
+  useEffect(() => {
+    if (hasHandledScheduleParam.current) return;
+
+    const scheduleParam = searchParams.get("schedule");
+    if (scheduleParam === "true" && user) {
+      hasHandledScheduleParam.current = true;
+
+      // Clear the query param from URL
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("schedule");
+      const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+      router.replace(newUrl, { scroll: false });
+
+      // Open the schedule modal
+      setShowModal(true);
+    }
+  }, [searchParams, user, pathname, router]);
 
   const requiresAuth = !user;
 
-  // Verification check - providers must be verified to see contact info and schedule
+  // Verification check - only affects contact info visibility, not scheduling
   const isVerified = activeProfile?.verification_state === "verified";
   const verificationState = activeProfile?.verification_state;
+  const isPending = verificationState === "pending";
 
   const handleAuthRequired = useCallback(() => {
     openAuth({
       intent: "provider",
       headline: `Connect with ${studentName.split(" ")[0]}`,
-      subline: "Sign in or create a provider account to schedule an interview",
+      subline: "Sign in with your business email for instant verification",
       deferred: {
         action: "hire-candidate",
         returnUrl: pathname,
@@ -59,34 +91,20 @@ export default function ProviderContactSection({
 
   // ── Sticky mobile bar ──
   if (variant === "sticky") {
-    // Unverified provider - show verification prompt
-    if (user && activeProfile && !isVerified) {
-      return (
-        <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
-          <button
-            type="button"
-            onClick={onVerifyClick}
-            className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
-          >
-            <LockIcon />
-            Verify to Contact {firstName}
-          </button>
-        </div>
-      );
-    }
-
     return (
       <>
         <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 safe-area-pb">
           <div className="flex gap-2">
             <button
               onClick={handleScheduleClick}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
+              disabled={scheduled}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 hover:bg-gray-800 disabled:bg-emerald-600 rounded-xl text-sm font-semibold text-white transition-colors"
             >
               <CalendarIcon />
               {scheduled ? "Interview Requested!" : "Schedule Interview"}
             </button>
-            {studentPhone && (
+            {/* Phone button only for verified providers */}
+            {isVerified && studentPhone && (
               <a
                 href={`tel:${studentPhone}`}
                 className="w-12 h-12 flex items-center justify-center bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors"
@@ -110,7 +128,7 @@ export default function ProviderContactSection({
     );
   }
 
-  // ── Sidebar/Inline variant (desktop) ���─
+  // ── Sidebar/Inline variant (desktop) ──
   const isInline = variant === "inline";
   const wrapperClass = isInline
     ? "space-y-4"
@@ -136,55 +154,10 @@ export default function ProviderContactSection({
     );
   }
 
-  // Logged in but not verified - show verification prompt
-  if (!isVerified) {
-    const isPending = verificationState === "pending";
-    return (
-      <div className={wrapperClass}>
-        {/* Verification banner */}
-        <div className={`rounded-xl p-4 ${isPending ? "bg-amber-50 border border-amber-200" : "bg-gray-50 border border-gray-200"}`}>
-          <div className="flex items-start gap-3">
-            <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isPending ? "bg-amber-100" : "bg-gray-200"}`}>
-              {isPending ? (
-                <svg className="w-4.5 h-4.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              ) : (
-                <LockIcon />
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900">
-                {isPending ? "Verification in Progress" : "Verify to Contact"}
-              </p>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {isPending
-                  ? "We're reviewing your request. Contact info unlocks once approved."
-                  : `Complete verification to see ${firstName}'s contact info and schedule interviews.`}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* CTA */}
-        {!isPending && onVerifyClick && (
-          <button
-            type="button"
-            onClick={onVerifyClick}
-            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
-          >
-            <LockIcon />
-            Complete Verification
-          </button>
-        )}
-      </div>
-    );
-  }
-
   return (
     <div className={wrapperClass}>
-      {/* Contact Info */}
-      {(studentEmail || studentPhone) && (
+      {/* Contact Info - only for verified providers */}
+      {isVerified && (studentEmail || studentPhone) && (
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-gray-900">Contact Info</h3>
           {studentEmail && (
@@ -212,9 +185,9 @@ export default function ProviderContactSection({
         </div>
       )}
 
-      {/* Primary CTA - Schedule Interview */}
+      {/* Primary CTA - Schedule Interview (available to all authenticated providers) */}
       {scheduled ? (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-700 font-medium text-center">
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 font-medium text-center">
           Interview request sent to {firstName}!
         </div>
       ) : (
@@ -225,6 +198,32 @@ export default function ProviderContactSection({
           <CalendarIcon />
           Schedule Interview
         </button>
+      )}
+
+      {/* Verification nudge for unverified providers */}
+      {!isVerified && !scheduled && (
+        <div className="pt-2">
+          {isPending ? (
+            <p className="text-xs text-amber-600 text-center">
+              Verification in progress. Contact info unlocks once approved.
+            </p>
+          ) : onVerifyClick ? (
+            <button
+              type="button"
+              onClick={onVerifyClick}
+              className="w-full text-xs text-gray-500 hover:text-primary-600 text-center transition-colors"
+            >
+              <span className="font-medium text-primary-600">Verify your business</span> to see contact info
+            </button>
+          ) : (
+            <Link
+              href="/provider/verification"
+              className="block text-xs text-gray-500 text-center hover:text-primary-600 transition-colors"
+            >
+              <span className="font-medium text-primary-600">Verify your business</span> to see contact info
+            </Link>
+          )}
+        </div>
       )}
 
       {showModal && (
@@ -243,14 +242,6 @@ function CalendarIcon() {
   return (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-    </svg>
-  );
-}
-
-function LockIcon() {
-  return (
-    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
     </svg>
   );
 }

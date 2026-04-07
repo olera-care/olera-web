@@ -38,12 +38,15 @@ interface CandidateCardProps {
   basePath: string;
   /** If false, shows limited info and prompts verification on click */
   isVerified?: boolean;
+  /** Whether the provider has already contacted this candidate */
+  isContacted?: boolean;
 }
 
 export default function CandidateCard({
   candidate,
   basePath,
   isVerified = true, // Default to true for public pages that don't pass this
+  isContacted = false,
 }: CandidateCardProps) {
   const meta = candidate.metadata;
   const trackLabel = getTrackLabel(meta);
@@ -73,28 +76,21 @@ export default function CandidateCard({
       {/* Avatar + Name row */}
       <div className="flex items-start gap-4 mb-4">
         <div className="relative w-14 h-14 rounded-full overflow-hidden shadow-sm shrink-0">
-          {isVerified && candidate.image_url ? (
+          {candidate.image_url ? (
             <Image
               src={candidate.image_url}
-              alt={candidate.display_name}
+              alt={firstName}
               fill
               className="object-cover"
               sizes="56px"
             />
-          ) : isVerified ? (
+          ) : (
             <div
               className={`w-full h-full ${getAvatarColor(candidate.id)} flex items-center justify-center`}
             >
               <span className="text-xl font-medium">
                 {candidate.display_name?.charAt(0)?.toUpperCase() || "?"}
               </span>
-            </div>
-          ) : (
-            // Unverified: show person silhouette
-            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-              <svg className="w-7 h-7 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-              </svg>
             </div>
           )}
         </div>
@@ -113,20 +109,20 @@ export default function CandidateCard({
 
       {/* Key info — clean two-line layout */}
       <div className="space-y-2 mb-4">
-        {/* Track + Location */}
+        {/* Track + Location - show for all users */}
         <div className="flex items-center gap-3 text-sm">
           {trackLabel && (
             <span className="font-medium text-gray-900">{trackLabel}</span>
           )}
-          {isVerified && trackLabel && location && (
+          {trackLabel && location && (
             <span className="text-gray-300">·</span>
           )}
-          {isVerified && location && (
+          {location && (
             <span className="text-gray-500">{location}</span>
           )}
         </div>
 
-        {/* Availability - show even for unverified (generic info) */}
+        {/* Availability - show for all users */}
         {(availLabel || hoursLabel) && (
           <div className="flex items-center gap-3 text-sm text-gray-500">
             {availLabel && <span>{availLabel}</span>}
@@ -141,16 +137,16 @@ export default function CandidateCard({
       {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Bottom row: Primary badge + secondary certs */}
+      {/* Bottom row: Primary badge + secondary certs - show for all users */}
       <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-        {/* Primary trust signal - only show for verified */}
-        {isVerified && primaryBadge ? (
+        {/* Primary trust signal */}
+        {primaryBadge ? (
           <span
             className={`inline-flex items-center gap-1.5 text-sm font-medium ${
               primaryBadge.type === "verified"
                 ? "text-emerald-600"
                 : primaryBadge.type === "video"
-                ? "text-blue-600"
+                ? "text-gray-700"
                 : "text-gray-600"
             }`}
           >
@@ -166,20 +162,12 @@ export default function CandidateCard({
             )}
             {primaryBadge.label}
           </span>
-        ) : !isVerified ? (
-          // Unverified: show hint that contact requires verification
-          <span className="inline-flex items-center gap-1.5 text-sm text-gray-400">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-            Verify to contact
-          </span>
         ) : (
           <span />
         )}
 
-        {/* Secondary: cert count if we have more - only for verified */}
-        {isVerified && certs.length > (primaryBadge?.type === "cert" ? 1 : 0) && (
+        {/* Secondary: cert count if we have more */}
+        {certs.length > (primaryBadge?.type === "cert" ? 1 : 0) && (
           <span className="text-xs text-gray-400">
             {certs.length} certification{certs.length !== 1 ? "s" : ""}
           </span>
@@ -193,6 +181,17 @@ export default function CandidateCard({
       href={profileUrl}
       className="group relative flex flex-col bg-white rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
     >
+      {/* Contacted badge */}
+      {isContacted && (
+        <div className="absolute top-3 right-3 z-10">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-primary-50 text-primary-700 rounded-full">
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+            </svg>
+            Contacted
+          </span>
+        </div>
+      )}
       {cardContent}
     </Link>
   );

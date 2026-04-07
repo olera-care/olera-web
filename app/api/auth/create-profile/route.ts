@@ -127,8 +127,29 @@ export async function POST(request: Request) {
     const accountId = account.id;
     let profileId: string;
 
+    // STRICT ACCOUNT SEPARATION: Check if user already has a profile of a different type
+    // One email = one account type (family, provider, caregiver are separate)
+    const { data: anyExistingProfile } = await db
+      .from("business_profiles")
+      .select("id, type")
+      .eq("account_id", accountId)
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle();
+
     if (intent === "provider") {
       const profileType = providerType === "caregiver" ? "caregiver" : "organization";
+
+      // Block if user has a different profile type (family, or different provider type)
+      if (anyExistingProfile && anyExistingProfile.type !== profileType) {
+        return NextResponse.json(
+          {
+            error: "This email is already used for a different account type. Please use a different email to create a provider account.",
+            code: "ACCOUNT_TYPE_MISMATCH"
+          },
+          { status: 409 }
+        );
+      }
 
       if (claimedProfileId) {
         // Claiming an existing seeded profile
@@ -357,6 +378,17 @@ export async function POST(request: Request) {
       // NOTE: We no longer auto-create family profiles for providers.
       // Each account type is now separate - providers only get their provider profile.
     } else {
+      // Family intent - check for account type mismatch
+      if (anyExistingProfile && anyExistingProfile.type !== "family") {
+        return NextResponse.json(
+          {
+            error: "This email is already used for a different account type. Please use a different email to create a family account.",
+            code: "ACCOUNT_TYPE_MISMATCH"
+          },
+          { status: 409 }
+        );
+      }
+
       // Family profile — check if a baseline one already exists (created by ensure-account)
       const { data: existingFamilyProfile } = await db
         .from("business_profiles")

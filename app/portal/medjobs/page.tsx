@@ -1304,19 +1304,6 @@ function StudentPortalContent({
               </div>
             </div>
 
-            {/* ── Profile Complete — Simple confirmation message (no buttons needed) ── */}
-            {completenessPercent === 100 && profile.is_active && (
-              <div className="flex items-center gap-3 px-4 py-3 bg-primary-50/60 rounded-xl border border-primary-100">
-                <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-sm text-primary-700">
-                  <span className="font-medium">Profile complete.</span>{" "}
-                  <span className="text-primary-600">Visible to providers — browse open jobs to get started.</span>
-                </p>
-              </div>
-            )}
-
             {/* Verification Card — Compact, Premium Design */}
               <div id="verification" className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-300">
                 {/* Header */}
@@ -1506,7 +1493,7 @@ function StudentPortalContent({
                   <svg className="w-[100px] h-[100px] -rotate-90" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" strokeWidth="8" />
                     <circle cx="50" cy="50" r="42" fill="none"
-                      stroke={completenessPercent >= 100 ? "#10b981" : "#0d9488"}
+                      stroke="#199087"
                       strokeWidth="8" strokeDasharray={`${completenessPercent * 2.64} 264`} strokeLinecap="round" />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">

@@ -135,7 +135,7 @@ export default function ClaimBadge({
                   href={claimUrl}
                   className="inline-flex items-center gap-1 text-primary-300 hover:text-primary-200 font-medium transition-colors"
                 >
-                  Are you the owner? Claim this page
+                  Are you the owner? Manage this page
                   <svg
                     className="w-3 h-3"
                     fill="none"

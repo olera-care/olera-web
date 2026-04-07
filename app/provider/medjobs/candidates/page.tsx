@@ -12,8 +12,10 @@ import type { VerificationSubmission } from "@/components/provider/VerificationF
 
 const PAGE_SIZE = 12;
 
+type FilterTab = "all" | "contacted";
+
 export default function ProviderCandidateBrowsePage() {
-  const { activeProfile } = useAuth();
+  const { activeProfile, user } = useAuth();
 
   // Verification check
   const isVerified = activeProfile?.verification_state === "verified";
@@ -29,6 +31,39 @@ export default function ProviderCandidateBrowsePage() {
     track: "",
     sort: "newest",
   });
+  const [activeTab, setActiveTab] = useState<FilterTab>("all");
+  const [contacted, setContacted] = useState<Set<string>>(new Set());
+
+  // Fetch existing interviews to know which candidates have been contacted
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchExistingInterviews = async () => {
+      try {
+        const res = await fetch("/api/medjobs/interviews");
+        if (!res.ok) return;
+        const data = await res.json();
+        // Build set of student IDs that provider has already contacted
+        // Exclude cancelled/no_show interviews so provider can re-schedule
+        const contactedIds = new Set<string>();
+        const activeStatuses = ["proposed", "confirmed", "rescheduled", "completed"];
+        for (const interview of data.interviews || []) {
+          // Only count active interviews initiated by the provider (provider → student)
+          if (
+            interview.proposed_by === interview.provider_profile_id &&
+            activeStatuses.includes(interview.status)
+          ) {
+            contactedIds.add(interview.student_profile_id);
+          }
+        }
+        setContacted(contactedIds);
+      } catch {
+        // Silently fail
+      }
+    };
+
+    fetchExistingInterviews();
+  }, [user]);
 
   const fetchCandidates = useCallback(
     async (page: number) => {
@@ -135,13 +170,34 @@ export default function ProviderCandidateBrowsePage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* Verification banner - show if not verified */}
-        {!isVerified && (
-          <VerificationAccessBanner
-            verificationState={verificationState}
-            onVerifyClick={() => setShowVerificationModal(true)}
-          />
+        {/* Filter tabs */}
+        {!loading && candidates.length > 0 && (
+          <div className="flex gap-2 mb-6">
+            <button
+              type="button"
+              onClick={() => setActiveTab("all")}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                activeTab === "all"
+                  ? "bg-gray-900 text-white"
+                  : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
+              }`}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("contacted")}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                activeTab === "contacted"
+                  ? "bg-gray-900 text-white"
+                  : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
+              }`}
+            >
+              Contacted{contacted.size > 0 ? ` (${contacted.size})` : ""}
+            </button>
+          </div>
         )}
+
         {/* Filters */}
         <CandidateFilters
           filters={filters}
@@ -191,34 +247,67 @@ export default function ProviderCandidateBrowsePage() {
               Try broadening your search or removing some filters.
             </p>
           </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {candidates.map((candidate) => (
-                <CandidateCard
-                  key={candidate.id}
-                  candidate={candidate}
-                  basePath="/provider/medjobs/candidates"
-                  isVerified={isVerified}
-                />
-              ))}
-            </div>
+        ) : (() => {
+          // Filter candidates based on active tab
+          const filteredCandidates = activeTab === "contacted"
+            ? candidates.filter((c) => contacted.has(c.id))
+            : candidates;
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-8">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalItems={total}
-                  itemsPerPage={PAGE_SIZE}
-                  onPageChange={handlePageChange}
-                  itemLabel="caregivers"
-                />
+          if (filteredCandidates.length === 0 && activeTab === "contacted") {
+            return (
+              <div className="text-center py-20">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                  <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                  </svg>
+                </div>
+                <p className="text-gray-500 text-sm font-medium">
+                  No candidates contacted yet.
+                </p>
+                <p className="text-gray-400 text-sm mt-1">
+                  Browse caregivers and schedule interviews to get started.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("all")}
+                  className="mt-4 inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-700"
+                >
+                  View all caregivers &rarr;
+                </button>
               </div>
-            )}
-          </>
-        )}
+            );
+          }
+
+          return (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredCandidates.map((candidate) => (
+                  <CandidateCard
+                    key={candidate.id}
+                    candidate={candidate}
+                    basePath="/provider/medjobs/candidates"
+                    isVerified={isVerified}
+                    isContacted={contacted.has(candidate.id)}
+                  />
+                ))}
+              </div>
+
+              {/* Pagination - only show for "All" tab */}
+              {activeTab === "all" && totalPages > 1 && (
+                <div className="mt-8">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={total}
+                    itemsPerPage={PAGE_SIZE}
+                    onPageChange={handlePageChange}
+                    itemLabel="caregivers"
+                  />
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
       {/* ── Verification Modal ── */}
       <VerificationFormModal
@@ -230,55 +319,5 @@ export default function ProviderCandidateBrowsePage() {
         onDismiss={() => setShowVerificationModal(false)}
       />
     </main>
-  );
-}
-
-function VerificationAccessBanner({
-  verificationState,
-  onVerifyClick,
-}: {
-  verificationState?: string;
-  onVerifyClick?: () => void;
-}) {
-  const isPending = verificationState === "pending";
-
-  return (
-    <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-5">
-      <div className="flex items-start gap-4">
-        <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-          {isPending ? (
-            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          ) : (
-            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          )}
-        </div>
-        <div className="flex-1">
-          <h3 className="text-base font-semibold text-gray-900">
-            {isPending ? "Verification in Progress" : "Limited Access Mode"}
-          </h3>
-          <p className="text-sm text-gray-600 mt-1">
-            {isPending
-              ? "We're reviewing your verification request. Once approved, you'll see full candidate profiles and be able to contact caregivers directly."
-              : "You're seeing limited information. Verify your business to unlock full profiles, contact details, and hiring features."}
-          </p>
-          {!isPending && onVerifyClick && (
-            <button
-              type="button"
-              onClick={onVerifyClick}
-              className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-amber-700 hover:text-amber-800"
-            >
-              Complete verification
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }

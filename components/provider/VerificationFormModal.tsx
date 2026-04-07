@@ -216,6 +216,7 @@ export default function VerificationFormModal({
             value={role}
             onChange={setRole}
             placeholder="Select your role..."
+            dropdownDirection="up"
           />
 
           {/* Phone */}

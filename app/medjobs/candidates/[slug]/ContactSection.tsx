@@ -229,10 +229,10 @@ export default function ContactSection({
         {/* Header text for non-authenticated users */}
         {!user && (
           <div>
-            <p className="text-sm font-semibold text-gray-900 leading-snug">
+            <p className="text-base font-semibold text-gray-900 leading-snug">
               Want to connect with {firstName}?
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-500 mt-1">
               Set up a provider account to schedule an interview.
             </p>
           </div>

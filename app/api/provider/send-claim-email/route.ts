@@ -43,6 +43,7 @@ export async function POST(request: Request) {
       state,
       phone,
       careTypes,
+      pendingClaim,
     } = body as {
       slug: string;
       email: string;
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
       state?: string;
       phone?: string;
       careTypes?: string[];
+      pendingClaim?: boolean; // If true, claim will be marked as "pending" for manual review
     };
 
     if (!slug || !email) {
@@ -123,7 +125,8 @@ export async function POST(request: Request) {
       }
 
       const token = generateClaimToken(providerSlug, normalizedEmail);
-      const verifyUrl = `${BASE_URL}/provider/${providerSlug}/onboard?action=claim&otk=${token}`;
+      const pendingParam = pendingClaim ? "&pending=true" : "";
+      const verifyUrl = `${BASE_URL}/provider/${providerSlug}/onboard?action=claim&otk=${token}${pendingParam}`;
 
       await sendEmail({
         to: normalizedEmail,
@@ -135,7 +138,7 @@ export async function POST(request: Request) {
         }),
         emailType: "claim_verification",
         recipientType: "provider",
-        metadata: { slug: providerSlug },
+        metadata: { slug: providerSlug, pendingClaim: pendingClaim || false },
       });
 
       return NextResponse.json({

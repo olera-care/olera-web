@@ -15,7 +15,7 @@ import type { Provider } from "@/lib/types/provider";
 // Types
 // ============================================================
 
-type Screen = "search" | "results" | "preview" | "check-email";
+type Screen = "search" | "results" | "preview" | "confirm-claim" | "check-email";
 
 interface FormData {
   orgName: string;
@@ -120,6 +120,10 @@ function ProviderOnboardingContent() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resending, setResending] = useState(false);
   const [resendError, setResendError] = useState("");
+
+  // Claim confirmation state (for "Manage" flow)
+  const [useAlternateEmail, setUseAlternateEmail] = useState(false);
+  const [alternateEmail, setAlternateEmail] = useState("");
 
   // Cooldown timer
   useEffect(() => {
@@ -606,7 +610,7 @@ function ProviderOnboardingContent() {
   };
 
   // Handle result card action
-  const handleResultAction = async (result: SearchResult, action: "sign-in" | "manage" | "dispute") => {
+  const handleResultAction = (result: SearchResult, action: "sign-in" | "manage" | "dispute") => {
     const slug = result._source === "olera-providers"
       ? (result.slug || result.provider_id)
       : result.slug;
@@ -614,63 +618,100 @@ function ProviderOnboardingContent() {
     // Get email - prefer result's email, fallback to search form email
     const email = result.email || formData.email;
 
-    setActionLoading(slug);
     setActionError("");
 
     if (action === "sign-in") {
       // Open auth modal for sign-in flow
-      // After auth, default routing will send them to /provider if they have a provider profile
       openAuth({
         defaultMode: "sign-in",
         initialEmail: email,
       });
-      setActionLoading(null);
     } else if (action === "manage") {
-      // Send claim verification email via API
-      try {
-        const res = await fetch("/api/provider/send-claim-email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            slug,
-            email: formData.email, // Always use the email they entered in the form
-          }),
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          // Handle specific error cases
-          if (res.status === 409) {
-            // Already claimed - redirect to sign in
-            setActionError("This listing has already been claimed. Please sign in instead.");
-            setActionLoading(null);
-            return;
-          }
-          if (res.status === 429) {
-            setActionError("Too many emails sent. Please wait a few minutes and try again.");
-            setActionLoading(null);
-            return;
-          }
-          throw new Error(data.error || "Failed to send verification email");
-        }
-
-        // Success - store selected provider and show Screen 3
-        setSelectedResult(result);
-        setActionLoading(null);
-        setActionError(""); // Clear any previous action errors
-        setResendCooldown(60); // Start cooldown since email was just sent
-        setResendError("");
-        setScreen("check-email");
-      } catch (err) {
-        console.error("[handleResultAction] Claim email error:", err);
-        setActionError(err instanceof Error ? err.message : "Failed to send verification email. Please try again.");
-        setActionLoading(null);
-      }
+      // Navigate to claim confirmation screen
+      setSelectedResult(result);
+      setUseAlternateEmail(false);
+      setAlternateEmail("");
+      setScreen("confirm-claim");
     } else if (action === "dispute") {
       // Redirect to dispute flow
       router.push(`/for-providers/dispute/${slug}`);
-      // Don't clear loading - navigating away
+    }
+  };
+
+  // Handle sending claim verification email (from confirm-claim screen)
+  const handleSendClaimEmail = async () => {
+    if (!selectedResult) return;
+
+    const slug = selectedResult._source === "olera-providers"
+      ? (selectedResult.slug || selectedResult.provider_id)
+      : selectedResult.slug;
+
+    // Determine which email to send to
+    const providerEmailOnFile = selectedResult.email;
+    const userEnteredEmail = formData.email;
+    const emailsMatch = providerEmailOnFile?.toLowerCase() === userEnteredEmail.toLowerCase();
+
+    let targetEmail: string;
+    let isPendingClaim = false;
+
+    if (useAlternateEmail) {
+      // User requested alternate email - this will be a pending claim
+      targetEmail = alternateEmail.trim().toLowerCase();
+      isPendingClaim = true;
+      if (!targetEmail || !targetEmail.includes("@")) {
+        setActionError("Please enter a valid email address.");
+        return;
+      }
+    } else if (providerEmailOnFile && !emailsMatch) {
+      // Provider has email on file that differs - send to email on file
+      targetEmail = providerEmailOnFile;
+    } else {
+      // No email on file OR emails match - send to user's email
+      targetEmail = userEnteredEmail;
+    }
+
+    setActionLoading("confirm-claim");
+    setActionError("");
+
+    try {
+      const res = await fetch("/api/provider/send-claim-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug,
+          email: targetEmail,
+          pendingClaim: isPendingClaim, // Flag for limited access
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 409) {
+          setActionError("This listing has already been claimed. Please sign in instead.");
+          setActionLoading(null);
+          return;
+        }
+        if (res.status === 429) {
+          setActionError("Too many emails sent. Please wait a few minutes and try again.");
+          setActionLoading(null);
+          return;
+        }
+        throw new Error(data.error || "Failed to send verification email");
+      }
+
+      // Success - show check email screen
+      // Store the email we sent to for display purposes
+      setFormData(prev => ({ ...prev, email: targetEmail }));
+      setActionLoading(null);
+      setActionError("");
+      setResendCooldown(60);
+      setResendError("");
+      setScreen("check-email");
+    } catch (err) {
+      console.error("[handleSendClaimEmail] Error:", err);
+      setActionError(err instanceof Error ? err.message : "Failed to send verification email. Please try again.");
+      setActionLoading(null);
     }
   };
 
@@ -1282,6 +1323,214 @@ function ProviderOnboardingContent() {
                 </Link>
               </p>
             </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────
+  // Screen 2.75: Confirm Claim (for "Manage" flow)
+  // ──────────────────────────────────────────────────────────
+
+  if (screen === "confirm-claim" && selectedResult) {
+    const providerName = selectedResult._source === "olera-providers"
+      ? selectedResult.provider_name
+      : selectedResult.display_name;
+    const location = [selectedResult.city, selectedResult.state].filter(Boolean).join(", ");
+    const providerImage = selectedResult._source === "olera-providers"
+      ? selectedResult.provider_images?.split("|")[0]?.trim() || null
+      : selectedResult.image_url;
+
+    // Email logic
+    const providerEmailOnFile = selectedResult.email;
+    const userEnteredEmail = formData.email;
+    const emailsMatch = providerEmailOnFile?.toLowerCase() === userEnteredEmail.toLowerCase();
+    const hasEmailOnFile = !!providerEmailOnFile;
+    const emailsDiffer = hasEmailOnFile && !emailsMatch;
+
+    // Determine which email will be shown (masked)
+    const maskEmail = (email: string): string => {
+      const [local, domain] = email.split("@");
+      if (!domain) return "***@***.com";
+      if (local.length <= 2) return `${local[0] || "*"}***@${domain}`;
+      return `${local.slice(0, 2)}${"*".repeat(Math.min(local.length - 2, 5))}@${domain}`;
+    };
+
+    const displayEmail = useAlternateEmail
+      ? (alternateEmail || "Enter your email")
+      : emailsDiffer
+        ? providerEmailOnFile
+        : userEnteredEmail;
+
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        {/* Minimal sticky nav */}
+        <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+          <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <Link href="/" className="flex items-center space-x-2">
+              <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
+              <span className="text-xl font-bold text-gray-900">Olera</span>
+            </Link>
+            <Link
+              href="/"
+              className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
+            >
+              Exit
+            </Link>
+          </div>
+        </nav>
+
+        <div className="flex-1 px-4 py-8 md:py-12">
+          <div className="max-w-lg mx-auto animate-fade-in">
+            {/* Back button */}
+            <button
+              onClick={() => {
+                setUseAlternateEmail(false);
+                setAlternateEmail("");
+                setActionError("");
+                setScreen("results");
+              }}
+              className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1.5 mb-6 group"
+            >
+              <svg className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to results
+            </button>
+
+            {/* Provider Card Preview */}
+            <div className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200/80 overflow-hidden">
+              {/* Provider header */}
+              <div className="flex items-center gap-4 p-5 border-b border-gray-100">
+                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative shrink-0 overflow-hidden">
+                  {providerImage ? (
+                    <Image
+                      src={providerImage}
+                      alt={providerName}
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-lg font-bold text-primary-400">
+                        {(providerName || "")
+                          .split(/\s+/)
+                          .map((w) => w[0])
+                          .filter(Boolean)
+                          .slice(0, 2)
+                          .join("")
+                          .toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-lg font-bold text-gray-900 truncate">{providerName}</h2>
+                  {location && <p className="text-sm text-gray-500">{location}</p>}
+                </div>
+              </div>
+
+              {/* Claim form */}
+              <div className="p-5 space-y-5">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Claim this listing</h3>
+                  <p className="text-gray-600">
+                    We&apos;ll send a verification link to confirm you manage this organization.
+                  </p>
+                </div>
+
+                {/* Email display */}
+                {!useAlternateEmail ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl border border-gray-200">
+                      <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      <span className="text-gray-900 font-medium">{maskEmail(displayEmail)}</span>
+                    </div>
+                    {emailsDiffer && (
+                      <p className="text-sm text-gray-500 flex items-start gap-2">
+                        <svg className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>For security, we&apos;ll send verification to the email associated with this listing.</span>
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  /* Alternate email input */
+                  <div className="space-y-3">
+                    <div className="flex items-center px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
+                      <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      <input
+                        type="email"
+                        value={alternateEmail}
+                        onChange={(e) => setAlternateEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        autoComplete="email"
+                        autoFocus
+                        className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                      />
+                    </div>
+                    <div className="flex items-start gap-2 px-3 py-2 bg-amber-50 border border-amber-100 rounded-lg">
+                      <svg className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <p className="text-sm text-amber-800">
+                        <strong>Limited access:</strong> Using a different email will require manual verification by our team before you get full access.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUseAlternateEmail(false);
+                        setAlternateEmail("");
+                      }}
+                      className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                    >
+                      ← Use original email instead
+                    </button>
+                  </div>
+                )}
+
+                {/* Error */}
+                {actionError && (
+                  <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-100 rounded-xl">
+                    <svg className="w-5 h-5 text-red-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                    </svg>
+                    <p className="text-sm text-red-700">{actionError}</p>
+                  </div>
+                )}
+
+                {/* Submit button */}
+                <Button
+                  size="lg"
+                  fullWidth
+                  onClick={handleSendClaimEmail}
+                  loading={actionLoading === "confirm-claim"}
+                >
+                  Send Verification Email
+                </Button>
+
+                {/* Don't have access link */}
+                {!useAlternateEmail && emailsDiffer && (
+                  <div className="text-center pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setUseAlternateEmail(true)}
+                      className="text-sm text-gray-500 hover:text-gray-700 underline underline-offset-2"
+                    >
+                      Don&apos;t have access to this email?
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

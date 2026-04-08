@@ -39,7 +39,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { providerId, claimSession } = body;
+    const { providerId, claimSession, pendingClaim } = body as {
+      providerId: string;
+      claimSession: string;
+      pendingClaim?: boolean; // If true, set claim_state to "pending" for manual review
+    };
 
     if (!providerId || !claimSession) {
       return NextResponse.json(
@@ -47,6 +51,9 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // Determine claim state based on pendingClaim flag
+    const claimState = pendingClaim ? "pending" : "claimed";
 
     if (!UUID_RE.test(claimSession)) {
       return NextResponse.json({ error: "Invalid claim session." }, { status: 400 });
@@ -170,7 +177,7 @@ export async function POST(request: Request) {
       // Update existing unclaimed profile
       const { error: updateErr } = await db
         .from("business_profiles")
-        .update({ account_id: accountId, claim_state: "claimed" })
+        .update({ account_id: accountId, claim_state: claimState })
         .eq("id", existingProfile.id);
 
       if (updateErr) {
@@ -222,8 +229,8 @@ export async function POST(request: Request) {
           city: provider.city,
           state: provider.state,
           zip: provider.zipcode?.toString() || null,
-          claim_state: "claimed",
-          verification_state: "verified",
+          claim_state: claimState,
+          verification_state: pendingClaim ? "unverified" : "verified",
           // Real provider claimed from directory - NOT seeded test data
           source: "claimed_from_directory",
           is_active: true,

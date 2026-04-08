@@ -612,6 +612,7 @@ const PAGE_SIZE = 40;
 
 const PROVIDER_EVENT_FILTER_OPTIONS = [
   { value: "", label: "All types" },
+  { value: "email_click", label: "Email clicks" },
   { value: "connection_request", label: "Leads" },
   { value: "question_received", label: "Questions" },
   { value: "new_review", label: "Reviews" },

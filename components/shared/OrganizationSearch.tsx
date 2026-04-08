@@ -21,6 +21,8 @@ interface OrganizationSearchProps {
   onSelect: (org: SelectedOrg | null) => void; // null = create new
   placeholder?: string;
   disabled?: boolean;
+  /** "light" for light backgrounds (default), "dark" for dark backgrounds (solid white input) */
+  variant?: "light" | "dark";
 }
 
 interface SearchResult extends SelectedOrg {
@@ -33,6 +35,7 @@ export default function OrganizationSearch({
   onSelect,
   placeholder = "Search for your organization...",
   disabled = false,
+  variant = "light",
 }: OrganizationSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -261,7 +264,11 @@ export default function OrganizationSearch({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px] pr-10"
+          className={`w-full px-4 py-3 rounded-xl border text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 transition-all min-h-[48px] pr-10 ${
+            variant === "dark"
+              ? "border-gray-200 bg-white text-gray-900"
+              : "border-gray-200 bg-gray-50/50 focus:bg-white"
+          }`}
           autoComplete="off"
         />
         {loading && (

@@ -708,6 +708,17 @@ function ProviderOnboardingContent() {
       setActionLoading(null);
       return;
     }
+    // Phone validation (optional field, but validate format if provided)
+    if (formData.phone.trim()) {
+      // Accept: digits, spaces, dashes, parentheses, dots, plus sign
+      // Must have at least 10 digits
+      const digitsOnly = formData.phone.replace(/\D/g, "");
+      if (digitsOnly.length < 10 || digitsOnly.length > 15) {
+        setActionError("Please enter a valid phone number (10-15 digits).");
+        setActionLoading(null);
+        return;
+      }
+    }
 
     try {
       const res = await fetch("/api/provider/send-claim-email", {
@@ -1372,13 +1383,13 @@ function ProviderOnboardingContent() {
               }
             </Button>
 
-            {/* Back link */}
+            {/* Back link - context-aware based on flow */}
             <div className="mt-6">
               <button
-                onClick={() => setScreen("results")}
+                onClick={() => setScreen(selectedResult ? "results" : "preview")}
                 className="text-primary-600 hover:text-primary-700 font-medium text-base"
               >
-                &larr; Back to results
+                {selectedResult ? "← Back to results" : "← Back"}
               </button>
             </div>
           </div>

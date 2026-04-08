@@ -6,9 +6,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { useCitySearch } from "@/hooks/use-city-search";
-import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Button from "@/components/ui/Button";
+import OrganizationSearch, { type SelectedOrg } from "@/components/shared/OrganizationSearch";
 import type { Provider } from "@/lib/types/provider";
 
 // ============================================================
@@ -89,7 +89,6 @@ export default function ProviderOnboardingPage() {
 
 function ProviderOnboardingContent() {
   const router = useRouter();
-  const { openAuth } = useAuth();
 
   // Screen state
   const [screen, setScreen] = useState<Screen>("search");
@@ -103,6 +102,9 @@ function ProviderOnboardingContent() {
   const [searchError, setSearchError] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
+
+  // Organization autocomplete state
+  const [selectedOrg, setSelectedOrg] = useState<SelectedOrg | null>(null);
 
   // City picker state
   const [showCityDropdown, setShowCityDropdown] = useState(false);
@@ -121,9 +123,6 @@ function ProviderOnboardingContent() {
   const [resending, setResending] = useState(false);
   const [resendError, setResendError] = useState("");
 
-  // Claim confirmation state (for "Manage" flow)
-  const [useAlternateEmail, setUseAlternateEmail] = useState(false);
-  const [alternateEmail, setAlternateEmail] = useState("");
 
   // Cooldown timer
   useEffect(() => {
@@ -181,6 +180,26 @@ function ProviderOnboardingContent() {
     setShowCityDropdown(false);
   }, []);
 
+  // Handle organization selection from autocomplete
+  const handleOrgSelect = useCallback((org: SelectedOrg | null) => {
+    setSelectedOrg(org);
+    if (org) {
+      // Auto-fill city/state from selected org
+      if (org.city && org.state) {
+        setFormData(prev => ({ ...prev, city: org.city!, state: org.state! }));
+        setCityQuery(`${org.city}, ${org.state}`);
+      } else {
+        // Org doesn't have city/state - clear fields so user knows to fill them
+        setFormData(prev => ({ ...prev, city: "", state: "" }));
+        setCityQuery("");
+      }
+    } else {
+      // "Create new" selected - clear city/state so user must enter them
+      setFormData(prev => ({ ...prev, city: "", state: "" }));
+      setCityQuery("");
+    }
+  }, []);
+
   const handleSearch = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -212,6 +231,55 @@ function ProviderOnboardingContent() {
     }
     if (!email.trim() || !email.includes("@")) {
       setSearchError("A valid email is required.");
+      return;
+    }
+
+    // If user selected "Create new" from autocomplete, go directly to preview
+    if (selectedOrg === null && formData.orgName.trim()) {
+      // Check if they actually interacted with autocomplete (typed enough to trigger it)
+      // If selectedOrg is explicitly null (from handleOrgSelect), they chose "Create new"
+      // We need to distinguish between "never interacted" and "chose create new"
+      // For now, continue with search to find matches
+    }
+
+    // If user selected an existing org from autocomplete, create result directly
+    if (selectedOrg) {
+      const normalizedEmail = email.trim().toLowerCase();
+      const emailMatch = selectedOrg.email?.toLowerCase() === normalizedEmail;
+      const isClaimed = selectedOrg.claimState === "claimed";
+
+      // Create a search result from the selected org
+      const result: SearchResult = selectedOrg.source === "olera-providers"
+        ? {
+            provider_id: selectedOrg.providerId || selectedOrg.slug,
+            provider_name: selectedOrg.name,
+            slug: selectedOrg.slug,
+            city: selectedOrg.city,
+            state: selectedOrg.state,
+            email: selectedOrg.email,
+            provider_images: selectedOrg.imageUrl || undefined, // For getProviderImage()
+            _source: "olera-providers" as const,
+            _claimed: isClaimed,
+            _emailMatch: emailMatch,
+          } as ProviderMatch
+        : {
+            id: selectedOrg.providerId || selectedOrg.slug,
+            display_name: selectedOrg.name,
+            slug: selectedOrg.slug,
+            city: selectedOrg.city,
+            state: selectedOrg.state,
+            email: selectedOrg.email,
+            image_url: selectedOrg.imageUrl || null,
+            account_id: isClaimed ? "claimed" : null, // Simplified - just need to know if claimed
+            source_provider_id: selectedOrg.providerId || null,
+            claim_state: selectedOrg.claimState,
+            _source: "business_profiles" as const,
+            _claimed: isClaimed,
+            _emailMatch: emailMatch,
+          } as BusinessProfileMatch;
+
+      setSearchResults([result]);
+      setScreen("results");
       return;
     }
 
@@ -437,26 +505,34 @@ function ProviderOnboardingContent() {
 
             {/* Search Form Card */}
             <form onSubmit={handleSearch} className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg ring-1 ring-gray-200/80 p-6 md:p-8 space-y-5">
-              {/* Organization Name */}
+              {/* Organization Name - Autocomplete */}
               <div className="space-y-2">
-                <label htmlFor="orgName" className="block text-base font-semibold text-gray-900">
+                <label className="block text-base font-semibold text-gray-900">
                   Organization name
                 </label>
-                <div className="flex items-center px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
-                  <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  <input
-                    id="orgName"
-                    type="text"
-                    value={formData.orgName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, orgName: e.target.value }))}
-                    placeholder="e.g., Sunrise Senior Living"
-                    autoComplete="organization"
-                    className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
-                    required
-                  />
-                </div>
+                <OrganizationSearch
+                  value={formData.orgName}
+                  onChange={(value) => {
+                    setFormData(prev => ({ ...prev, orgName: value }));
+                    // Clear selected org when user types (they're searching again)
+                    if (selectedOrg && value !== selectedOrg.name) {
+                      setSelectedOrg(null);
+                    }
+                  }}
+                  onSelect={handleOrgSelect}
+                  placeholder="e.g., Sunrise Senior Living"
+                />
+                {selectedOrg && (
+                  <p className="text-sm text-primary-600 flex items-center gap-1.5">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Selected: {selectedOrg.name}
+                    {selectedOrg.claimState === "claimed" && (
+                      <span className="text-amber-600 font-medium">(Claimed)</span>
+                    )}
+                  </p>
+                )}
               </div>
 
               {/* City, State */}
@@ -587,50 +663,35 @@ function ProviderOnboardingContent() {
     return first || null;
   };
 
-  // Determine button action based on email match + claimed status
+  // Determine button action based on claim state
+  // Simplified logic per plan: Unclaimed → Manage, Claimed → Dispute
   const getResultAction = (result: SearchResult): {
     label: string;
     variant: "primary" | "secondary" | "ghost";
-    action: "sign-in" | "manage" | "dispute";
+    action: "manage" | "dispute";
   } => {
-    if (result._emailMatch && result._claimed) {
-      // Email matches AND already claimed = they own it, sign in
-      return { label: "Sign In", variant: "primary", action: "sign-in" };
+    if (result._claimed) {
+      // Claimed by someone → Dispute flow
+      return { label: "Dispute", variant: "ghost", action: "dispute" };
     }
-    if (result._emailMatch && !result._claimed) {
-      // Email matches but not claimed = high priority manage
+    // Unclaimed → Manage flow (primary if email matches, secondary otherwise)
+    if (result._emailMatch) {
       return { label: "Manage", variant: "primary", action: "manage" };
     }
-    if (!result._emailMatch && !result._claimed) {
-      // Name match, unclaimed = can manage
-      return { label: "Manage", variant: "secondary", action: "manage" };
-    }
-    // Name match but claimed by someone else = dispute
-    return { label: "Dispute", variant: "ghost", action: "dispute" };
+    return { label: "Manage", variant: "secondary", action: "manage" };
   };
 
   // Handle result card action
-  const handleResultAction = (result: SearchResult, action: "sign-in" | "manage" | "dispute") => {
+  const handleResultAction = (result: SearchResult, action: "manage" | "dispute") => {
     const slug = result._source === "olera-providers"
       ? (result.slug || result.provider_id)
       : result.slug;
 
-    // Get email - prefer result's email, fallback to search form email
-    const email = result.email || formData.email;
-
     setActionError("");
 
-    if (action === "sign-in") {
-      // Open auth modal for sign-in flow
-      openAuth({
-        defaultMode: "sign-in",
-        initialEmail: email,
-      });
-    } else if (action === "manage") {
+    if (action === "manage") {
       // Navigate to claim confirmation screen
       setSelectedResult(result);
-      setUseAlternateEmail(false);
-      setAlternateEmail("");
       setScreen("confirm-claim");
     } else if (action === "dispute") {
       // Redirect to dispute flow
@@ -639,6 +700,7 @@ function ProviderOnboardingContent() {
   };
 
   // Handle sending claim verification email (from confirm-claim screen)
+  // Always sends to the user's entered email (collected in search form)
   const handleSendClaimEmail = async () => {
     if (!selectedResult) return;
 
@@ -646,29 +708,16 @@ function ProviderOnboardingContent() {
       ? (selectedResult.slug || selectedResult.provider_id)
       : selectedResult.slug;
 
-    // Determine which email to send to
-    const providerEmailOnFile = selectedResult.email;
-    const userEnteredEmail = formData.email;
-    const emailsMatch = providerEmailOnFile?.toLowerCase() === userEnteredEmail.toLowerCase();
+    // Always send to user's entered email
+    const targetEmail = formData.email.trim().toLowerCase();
 
-    let targetEmail: string;
-    let isPendingClaim = false;
-
-    if (useAlternateEmail) {
-      // User requested alternate email - this will be a pending claim
-      targetEmail = alternateEmail.trim().toLowerCase();
-      isPendingClaim = true;
-      if (!targetEmail || !targetEmail.includes("@")) {
-        setActionError("Please enter a valid email address.");
-        return;
-      }
-    } else if (providerEmailOnFile && !emailsMatch) {
-      // Provider has email on file that differs - send to email on file
-      targetEmail = providerEmailOnFile;
-    } else {
-      // No email on file OR emails match - send to user's email
-      targetEmail = userEnteredEmail;
-    }
+    // Check if email matches what's on file - determines verification state
+    // Verified = email matches what's on file
+    // Unverified = no email on file OR email doesn't match (safer default)
+    const providerEmailOnFile = selectedResult.email?.toLowerCase();
+    const emailsMatch = providerEmailOnFile && providerEmailOnFile === targetEmail;
+    // If emails don't match OR there's no email on file, this becomes a pending claim
+    const isPendingClaim = !emailsMatch;
 
     setActionLoading("confirm-claim");
     setActionError("");
@@ -680,7 +729,7 @@ function ProviderOnboardingContent() {
         body: JSON.stringify({
           slug,
           email: targetEmail,
-          pendingClaim: isPendingClaim, // Flag for limited access
+          pendingClaim: isPendingClaim, // Flag for limited access if email doesn't match
         }),
       });
 
@@ -701,8 +750,6 @@ function ProviderOnboardingContent() {
       }
 
       // Success - show check email screen
-      // Store the email we sent to for display purposes
-      setFormData(prev => ({ ...prev, email: targetEmail }));
       setActionLoading(null);
       setActionError("");
       setResendCooldown(60);
@@ -1342,26 +1389,8 @@ function ProviderOnboardingContent() {
       ? selectedResult.provider_images?.split("|")[0]?.trim() || null
       : selectedResult.image_url;
 
-    // Email logic
-    const providerEmailOnFile = selectedResult.email;
-    const userEnteredEmail = formData.email;
-    const emailsMatch = providerEmailOnFile?.toLowerCase() === userEnteredEmail.toLowerCase();
-    const hasEmailOnFile = !!providerEmailOnFile;
-    const emailsDiffer = hasEmailOnFile && !emailsMatch;
-
-    // Determine which email will be shown (masked)
-    const maskEmail = (email: string): string => {
-      const [local, domain] = email.split("@");
-      if (!domain) return "***@***.com";
-      if (local.length <= 2) return `${local[0] || "*"}***@${domain}`;
-      return `${local.slice(0, 2)}${"*".repeat(Math.min(local.length - 2, 5))}@${domain}`;
-    };
-
-    const displayEmail = useAlternateEmail
-      ? (alternateEmail || "Enter your email")
-      : emailsDiffer
-        ? providerEmailOnFile
-        : userEnteredEmail;
+    // Simple confirmation: always send to the email the user entered in the search form
+    const userEmail = formData.email;
 
     return (
       <div className="min-h-screen flex flex-col bg-white">
@@ -1386,8 +1415,6 @@ function ProviderOnboardingContent() {
             {/* Back button */}
             <button
               onClick={() => {
-                setUseAlternateEmail(false);
-                setAlternateEmail("");
                 setActionError("");
                 setScreen("results");
               }}
@@ -1432,7 +1459,7 @@ function ProviderOnboardingContent() {
                 </div>
               </div>
 
-              {/* Claim form */}
+              {/* Claim confirmation */}
               <div className="p-5 space-y-5">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">Claim this listing</h3>
@@ -1441,61 +1468,13 @@ function ProviderOnboardingContent() {
                   </p>
                 </div>
 
-                {/* Email display */}
-                {!useAlternateEmail ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl border border-gray-200">
-                      <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                      <span className="text-gray-900 font-medium">{maskEmail(displayEmail)}</span>
-                    </div>
-                    {emailsDiffer && (
-                      <p className="text-sm text-gray-500 flex items-start gap-2">
-                        <svg className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>For security, we&apos;ll send verification to the email associated with this listing.</span>
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  /* Alternate email input */
-                  <div className="space-y-3">
-                    <div className="flex items-center px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
-                      <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                      <input
-                        type="email"
-                        value={alternateEmail}
-                        onChange={(e) => setAlternateEmail(e.target.value)}
-                        placeholder="your@email.com"
-                        autoComplete="email"
-                        autoFocus
-                        className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
-                      />
-                    </div>
-                    <div className="flex items-start gap-2 px-3 py-2 bg-amber-50 border border-amber-100 rounded-lg">
-                      <svg className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                      <p className="text-sm text-amber-800">
-                        <strong>Limited access:</strong> Using a different email will require manual verification by our team before you get full access.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setUseAlternateEmail(false);
-                        setAlternateEmail("");
-                      }}
-                      className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-                    >
-                      ← Use original email instead
-                    </button>
-                  </div>
-                )}
+                {/* Email confirmation display */}
+                <div className="flex items-center gap-3 px-4 py-3 bg-primary-50 rounded-xl border border-primary-200">
+                  <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-gray-900 font-medium">{userEmail}</span>
+                </div>
 
                 {/* Error */}
                 {actionError && (
@@ -1516,19 +1495,6 @@ function ProviderOnboardingContent() {
                 >
                   Send Verification Email
                 </Button>
-
-                {/* Don't have access link */}
-                {!useAlternateEmail && emailsDiffer && (
-                  <div className="text-center pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setUseAlternateEmail(true)}
-                      className="text-sm text-gray-500 hover:text-gray-700 underline underline-offset-2"
-                    >
-                      Don&apos;t have access to this email?
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           </div>

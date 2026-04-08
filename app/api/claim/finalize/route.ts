@@ -175,9 +175,14 @@ export async function POST(request: Request) {
         );
       }
       // Update existing unclaimed profile
+      // Set verification_state based on pendingClaim flag (email match check)
       const { error: updateErr } = await db
         .from("business_profiles")
-        .update({ account_id: accountId, claim_state: claimState })
+        .update({
+          account_id: accountId,
+          claim_state: claimState,
+          verification_state: pendingClaim ? "unverified" : "verified",
+        })
         .eq("id", existingProfile.id);
 
       if (updateErr) {

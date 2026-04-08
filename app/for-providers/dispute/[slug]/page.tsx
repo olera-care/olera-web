@@ -24,13 +24,15 @@ export default function DisputePage() {
 
   // Form state
   const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [role, setRole] = useState("");
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
-  const canSubmit = !!fullName.trim() && !!role && !!reason.trim();
+  const isValidEmail = email.includes("@") && email.includes(".");
+  const canSubmit = !!fullName.trim() && !!email.trim() && isValidEmail && !!role && !!reason.trim();
 
   async function handleSubmit() {
     if (!canSubmit) {
@@ -49,6 +51,7 @@ export default function DisputePage() {
           provider_id: providerId,
           provider_name: providerName,
           claimant_name: fullName.trim(),
+          claimant_email: email.trim().toLowerCase(),
           claimant_role: role,
           reason: reason.trim(),
         }),
@@ -158,6 +161,22 @@ export default function DisputePage() {
               placeholder="Your full name"
               className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px]"
             />
+          </div>
+
+          {/* Email */}
+          <div className="space-y-1.5">
+            <label htmlFor="dispute-email" className="block text-[13px] font-semibold text-gray-700">
+              Email <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="dispute-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px]"
+            />
+            <p className="text-xs text-gray-500">We&apos;ll use this to contact you about your dispute</p>
           </div>
 
           {/* Role */}

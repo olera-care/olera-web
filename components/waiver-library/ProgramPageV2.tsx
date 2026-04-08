@@ -140,22 +140,18 @@ function ApplicationSection({ guide }: { guide: ApplicationGuide }) {
         </ol>
       )}
 
-      {/* Processing time + waitlist */}
-      {(guide.processingTime || guide.waitlist) && (
-        <div className="flex flex-wrap gap-4 text-sm text-gray-500 pt-2">
+      {/* Timeline, waitlist, and tip as a single quiet block */}
+      {(guide.processingTime || guide.waitlist || guide.tip) && (
+        <div className="text-sm text-gray-600 leading-relaxed space-y-1.5 pt-1">
           {guide.processingTime && (
-            <span>Processing: <span className="font-medium text-gray-700">{guide.processingTime}</span></span>
+            <p>{guide.processingTime}{guide.waitlist ? `. ${guide.waitlist}.` : ""}</p>
           )}
-          {guide.waitlist && (
-            <span className="text-amber-600">Waitlist: <span className="font-medium">{guide.waitlist}</span></span>
+          {!guide.processingTime && guide.waitlist && (
+            <p>{guide.waitlist}</p>
           )}
-        </div>
-      )}
-
-      {/* Tip */}
-      {guide.tip && (
-        <div className="p-3.5 rounded-lg bg-blue-50/60 border-l-2 border-blue-400">
-          <p className="text-sm text-gray-700 leading-relaxed">{guide.tip}</p>
+          {guide.tip && (
+            <p className="text-gray-500 italic">{guide.tip}</p>
+          )}
         </div>
       )}
 
@@ -417,15 +413,31 @@ export function ProgramPageV2({ program, state }: ProgramPageV2Props) {
           )}
 
           {/* Content sections */}
-          {program.contentSections && program.contentSections.length > 0 && (
-            <>
-              {program.contentSections.map((section, i) => (
-                <section key={i}>
-                  <RenderContentSection section={section} />
-                </section>
-              ))}
-            </>
-          )}
+          {program.contentSections && program.contentSections.length > 0 && (() => {
+            // Group consecutive callouts into a single "Things to know" section
+            const callouts = program.contentSections!.filter((s) => s.type === "callout");
+            const nonCallouts = program.contentSections!.filter((s) => s.type !== "callout");
+
+            return (
+              <>
+                {nonCallouts.map((section, i) => (
+                  <section key={`nc-${i}`}>
+                    <RenderContentSection section={section} />
+                  </section>
+                ))}
+                {callouts.length > 0 && (
+                  <section>
+                    <SectionLabel>Things to know</SectionLabel>
+                    <div className="text-sm text-gray-700 leading-relaxed space-y-3">
+                      {callouts.map((section, i) => (
+                        <p key={i}>{"text" in section ? String(section.text) : ""}</p>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </>
+            );
+          })()}
 
           {/* Source + contact */}
           {(program.sourceUrl || program.phone) && (

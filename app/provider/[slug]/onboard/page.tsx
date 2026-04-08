@@ -204,7 +204,22 @@ export default function ProviderOnboardPage() {
       // Fetch notification data if action params provided (lead/review/question from email)
       // Track locally so we can use it later in this same function (state isn't readable until re-render)
       let fetchedNotificationData: NotificationData | null = null;
-      if (actionParam && actionIdParam) {
+
+      // For claim/signup, we don't need actionId - provider info IS the notification data
+      // Handle these separately since their URLs don't include actionId
+      if (actionParam === "claim" || actionParam === "signup") {
+        fetchedNotificationData = {
+          type: actionParam,
+          id: foundProvider.provider_id || foundProvider.slug || slug,
+          created_at: new Date().toISOString(),
+          provider_name: foundProvider.provider_name,
+          provider_city: foundProvider.city || null,
+          provider_state: foundProvider.state || null,
+          provider_image: foundProvider.provider_images?.split("|")[0]?.trim() || null,
+        };
+        setNotificationData(fetchedNotificationData);
+      } else if (actionParam && actionIdParam) {
+        // For lead/question/review/interview, we need to fetch data using actionId
         try {
           if (actionParam === "lead") {
             // Fetch connection (lead) data
@@ -280,17 +295,6 @@ export default function ProviderOnboardPage() {
                 reviewer_name: review.reviewer_name,
               };
             }
-          } else if (actionParam === "claim" || actionParam === "signup") {
-            // For claim/signup, provider info IS the notification data
-            fetchedNotificationData = {
-              type: actionParam,
-              id: foundProvider.provider_id || foundProvider.slug || slug,
-              created_at: new Date().toISOString(),
-              provider_name: foundProvider.provider_name,
-              provider_city: foundProvider.city || null,
-              provider_state: foundProvider.state || null,
-              provider_image: foundProvider.provider_images?.split("|")[0]?.trim() || null,
-            };
           } else if (actionParam === "interview") {
             // Fetch interview data with student details
             const { data: interview } = await supabase

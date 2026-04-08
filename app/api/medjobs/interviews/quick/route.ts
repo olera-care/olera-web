@@ -75,19 +75,21 @@ export async function POST(request: NextRequest) {
     const normalizedEmail = provider.email.trim().toLowerCase();
     const { data: existingProfile } = await admin
       .from("business_profiles")
-      .select("id, account_id, display_name")
+      .select("id, account_id, display_name, slug")
       .eq("email", normalizedEmail)
       .in("type", ["organization", "caregiver"])
       .maybeSingle();
 
     let providerProfileId: string;
     let providerDisplayName: string;
+    let providerSlug: string;
     let isNewProfile = false;
 
     if (existingProfile) {
       // Use existing profile
       providerProfileId = existingProfile.id;
       providerDisplayName = existingProfile.display_name;
+      providerSlug = existingProfile.slug;
     } else {
       // Create a new business_profile without account_id
       const slug = generateSlug(provider.organization, provider.city);
@@ -119,6 +121,7 @@ export async function POST(request: NextRequest) {
 
       providerProfileId = newProfile.id;
       providerDisplayName = displayName;
+      providerSlug = slug;
       isNewProfile = true;
     }
 
@@ -148,7 +151,7 @@ export async function POST(request: NextRequest) {
 
     // Generate magic link URL for the confirmation email
     const magicLinkUrl = generateMedJobsNotificationUrl(
-      providerProfileId,
+      providerSlug,
       normalizedEmail,
       "interview",
       interview.id

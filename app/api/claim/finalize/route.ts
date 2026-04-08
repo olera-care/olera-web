@@ -138,11 +138,24 @@ export async function POST(request: Request) {
     }
 
     // 3. Check if business_profile already exists for this provider
-    const { data: existingProfile } = await db
+    // First try by source_provider_id (olera-providers linked profiles)
+    let existingProfile = await db
       .from("business_profiles")
       .select("id, claim_state, account_id, slug")
       .eq("source_provider_id", providerId)
-      .maybeSingle();
+      .maybeSingle()
+      .then((r: { data: { id: string; claim_state: string | null; account_id: string | null; slug: string } | null }) => r.data);
+
+    // Fallback: try by BP id directly (MedJobs ghost profiles and other BP-only providers)
+    if (!existingProfile && UUID_RE.test(providerId)) {
+      existingProfile = await db
+        .from("business_profiles")
+        .select("id, claim_state, account_id, slug")
+        .eq("id", providerId)
+        .in("type", ["organization", "caregiver"])
+        .maybeSingle()
+        .then((r: { data: { id: string; claim_state: string | null; account_id: string | null; slug: string } | null }) => r.data);
+    }
 
     let profileSlug: string;
     let profileId: string;

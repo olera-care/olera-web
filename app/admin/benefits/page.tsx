@@ -395,25 +395,39 @@ function ProgramPreview({ program, stateId, pipelineComparison, draft }: { progr
 
   return (
     <div className="mt-4 pt-4 border-t border-gray-100 space-y-5">
-      {/* Draft toggle */}
+      {/* Draft toggle + preview */}
       {draft && (
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowDraft(true)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              showDraft ? "bg-blue-100 text-blue-700" : "text-gray-500 hover:bg-gray-100"
-            }`}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowDraft(true)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                showDraft ? "bg-blue-100 text-blue-700" : "text-gray-500 hover:bg-gray-100"
+              }`}
+            >
+              Draft Content
+            </button>
+            <button
+              onClick={() => setShowDraft(false)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                !showDraft ? "bg-gray-200 text-gray-700" : "text-gray-500 hover:bg-gray-100"
+              }`}
+            >
+              Current Content
+            </button>
+          </div>
+          <a
+            href={`/waiver-library/${stateId}/${program.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            Draft Content
-          </button>
-          <button
-            onClick={() => setShowDraft(false)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              !showDraft ? "bg-gray-200 text-gray-700" : "text-gray-500 hover:bg-gray-100"
-            }`}
-          >
-            Current Content
-          </button>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Preview
+          </a>
         </div>
       )}
 

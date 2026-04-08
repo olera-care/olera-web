@@ -38,6 +38,8 @@ function getActionRedirectUrl(
         return `/provider/qna?id=${actionId}`;
       case "review":
         return `/provider/reviews?id=${actionId}`;
+      case "interview":
+        return "/provider/caregivers";
     }
   }
   return "/provider";
@@ -67,6 +69,7 @@ export default function ProviderOnboardPage() {
         lead: "connection_request",
         review: "new_review",
         question: "question_received",
+        interview: "interview_request",
       };
       fetch("/api/activity/track", {
         method: "POST",
@@ -269,6 +272,26 @@ export default function ProviderOnboardPage() {
                 reviewer_name: review.reviewer_name,
               };
             }
+          } else if (actionParam === "interview") {
+            // Fetch interview data with student details
+            const { data: interview } = await supabase
+              .from("interviews")
+              .select("id, type, proposed_time, notes, status, created_at, student:business_profiles!interviews_student_profile_id_fkey(display_name, image_url)")
+              .eq("id", actionIdParam)
+              .single();
+            if (interview) {
+              const student = interview.student as unknown as { display_name: string; image_url: string | null } | null;
+              fetchedNotificationData = {
+                type: "interview",
+                id: interview.id,
+                created_at: interview.created_at,
+                candidate_name: student?.display_name || "A candidate",
+                candidate_image: student?.image_url || null,
+                interview_format: interview.type,
+                proposed_time: interview.proposed_time,
+                notes: interview.notes,
+              };
+            }
           }
         } catch (err) {
           console.error("[ProviderOnboard] Failed to fetch notification data:", err);
@@ -313,6 +336,7 @@ export default function ProviderOnboardPage() {
               const notificationStateMap: Record<string, ActionCardState> = {
                 lead: "notification-lead", message: "notification-lead",
                 question: "notification-question", review: "notification-review",
+                interview: "notification-interview",
               };
 
               // Use notification data from validate-token (fetched server-side
@@ -428,7 +452,7 @@ export default function ProviderOnboardPage() {
             // For campaign or fallback: show pre-verified state
             setPreVerifiedEmail(verifiedEmail);
             setActionCardState(actionParam && actionParam !== "campaign"
-              ? (({ lead: "notification-lead", message: "notification-lead", question: "notification-question", review: "notification-review" } as Record<string, ActionCardState>)[actionParam] || "pre-verified")
+              ? (({ lead: "notification-lead", message: "notification-lead", question: "notification-question", review: "notification-review", interview: "notification-interview" } as Record<string, ActionCardState>)[actionParam] || "pre-verified")
               : "pre-verified"
             );
             setStep("dashboard");

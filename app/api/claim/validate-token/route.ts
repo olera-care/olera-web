@@ -211,6 +211,25 @@ export async function POST(request: Request) {
               reviewer_name: review.reviewer_name,
             };
           }
+        } else if (action === "interview") {
+          const { data: interview } = await db
+            .from("interviews")
+            .select("id, type, proposed_time, notes, status, created_at, student:business_profiles!interviews_student_profile_id_fkey(display_name, image_url)")
+            .eq("id", actionId)
+            .single();
+          if (interview) {
+            const student = interview.student as unknown as { display_name: string; image_url: string | null } | null;
+            notificationData = {
+              type: "interview",
+              id: interview.id,
+              created_at: interview.created_at,
+              candidate_name: student?.display_name || "A candidate",
+              candidate_image: student?.image_url || null,
+              interview_format: interview.type,
+              proposed_time: interview.proposed_time,
+              notes: interview.notes,
+            };
+          }
         }
       } catch (err) {
         console.error("Failed to fetch notification data:", err);

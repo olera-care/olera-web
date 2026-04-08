@@ -60,6 +60,9 @@ export default function ProviderOnboardPage() {
   // Named "otk" (one-time key) instead of "token" to avoid Apple Mail's
   // Link Tracking Protection which strips params named "token" from URLs
   const tokenParam = searchParams.get("otk");
+  // Pending claim flag - when true, claim_state will be "pending" for manual review
+  // (used when user claims with alternate email they don't have access to the email on file)
+  const pendingClaimParam = searchParams.get("pending") === "true";
   const router = useRouter();
   const { user, account, profiles, openAuth, refreshAccountData, switchProfile } = useAuth();
 
@@ -431,9 +434,10 @@ export default function ProviderOnboardPage() {
                       body: JSON.stringify({
                         providerId: foundProvider.provider_id,
                         claimSession: claimSessionData.sessionId,
+                        pendingClaim: pendingClaimParam, // For alternate email claims
                       }),
                     });
-                    console.log("[OneClick] Finalize:", finalizeRes.ok ? "success" : finalizeRes.status);
+                    console.log("[OneClick] Finalize:", finalizeRes.ok ? "success" : finalizeRes.status, pendingClaimParam ? "(pending)" : "");
                   }
 
                   // Refresh auth state + switch to provider profile
@@ -633,6 +637,7 @@ export default function ProviderOnboardPage() {
         body: JSON.stringify({
           providerId: pid,
           claimSession,
+          pendingClaim: pendingClaimParam, // For alternate email claims
         }),
       });
       const result = await res.json();

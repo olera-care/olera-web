@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 
 function getDb() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -8,11 +9,24 @@ function getDb() {
   return createClient(url, key);
 }
 
+async function requireAuth(): Promise<{ user: { id: string; email?: string } } | null> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    return user ? { user } : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * GET /api/admin/draft-reviews?state=MI
  * Returns all reviews for a state's programs, latest first
  */
 export async function GET(request: Request) {
+  const auth = await requireAuth();
+  if (!auth) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
   const { searchParams } = new URL(request.url);
   const stateId = searchParams.get("state");
 
@@ -42,6 +56,9 @@ export async function GET(request: Request) {
  * Add a review/status change for a program draft
  */
 export async function POST(request: Request) {
+  const auth = await requireAuth();
+  if (!auth) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
   const db = getDb();
   if (!db) return NextResponse.json({ error: "DB not configured" }, { status: 500 });
 

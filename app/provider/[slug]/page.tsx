@@ -686,7 +686,7 @@ export default async function ProviderPage({
                   <ClaimBadge
                     claimState={displayClaimState}
                     providerName={profile.display_name}
-                    claimUrl={`/provider/${profile.slug}/onboard`}
+                    claimUrl={`/provider/onboarding?org=${profile.slug}`}
                   />
                 </div>
               )}
@@ -758,7 +758,7 @@ export default async function ProviderPage({
                 <MobileClaimLink
                   claimState={displayClaimState}
                   providerName={profile.display_name}
-                  claimUrl={`/provider/${profile.slug}/onboard`}
+                  claimUrl={`/provider/onboarding?org=${profile.slug}`}
                 />
               </div>
 
@@ -1091,7 +1091,7 @@ export default async function ProviderPage({
                 <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-200">
                   <p className="text-sm text-gray-500">Are you the owner of this business?</p>
                   <a
-                    href={`/provider/${profile.slug}/onboard`}
+                    href={`/provider/onboarding?org=${profile.slug}`}
                     className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
                   >
                     Manage this page <span aria-hidden="true">→</span>

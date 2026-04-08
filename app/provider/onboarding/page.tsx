@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState, useRef, useCallback, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useClickOutside } from "@/hooks/use-click-outside";
@@ -89,6 +89,7 @@ export default function ProviderOnboardingPage() {
 
 function ProviderOnboardingContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Screen state
   const [screen, setScreen] = useState<Screen>("search");
@@ -182,6 +183,104 @@ function ProviderOnboardingContent() {
       // sessionStorage unavailable or parse error — ignore
     }
   }, []);
+
+  // Pre-fill from URL param ?org={slug} (from provider details page links)
+  useEffect(() => {
+    const orgSlug = searchParams.get("org");
+    if (!orgSlug) return;
+
+    // Don't override if we already have a selected org from sessionStorage
+    if (selectedOrg) return;
+
+    // Fetch provider data by slug
+    const fetchProvider = async () => {
+      if (!isSupabaseConfigured()) return;
+
+      try {
+        const supabase = createClient();
+
+        // Try business_profiles first (may have been claimed/created)
+        const { data: bp } = await supabase
+          .from("business_profiles")
+          .select("id, display_name, slug, city, state, email, image_url, claim_state, account_id")
+          .eq("slug", orgSlug)
+          .in("type", ["organization", "caregiver"])
+          .maybeSingle();
+
+        if (bp) {
+          const isClaimed = bp.claim_state === "claimed" && !!bp.account_id;
+          const org: SelectedOrg = {
+            name: bp.display_name,
+            slug: bp.slug,
+            city: bp.city,
+            state: bp.state,
+            email: bp.email,
+            imageUrl: bp.image_url,
+            claimState: isClaimed ? "claimed" : (bp.claim_state as "unclaimed" | "pending" | null),
+            source: "business_profiles",
+            providerId: bp.id,
+          };
+          setSelectedOrg(org);
+          setFormData(prev => ({
+            ...prev,
+            orgName: org.name,
+            city: org.city || "",
+            state: org.state || "",
+          }));
+          if (org.city && org.state) {
+            setCityQuery(`${org.city}, ${org.state}`);
+          }
+          return;
+        }
+
+        // Try olera-providers
+        const { data: op } = await supabase
+          .from("olera-providers")
+          .select("provider_id, provider_name, slug, city, state, email, provider_images")
+          .eq("slug", orgSlug)
+          .not("deleted", "is", true)
+          .maybeSingle();
+
+        if (op) {
+          // Check if this provider has a claimed business_profile
+          const { data: claimedBp } = await supabase
+            .from("business_profiles")
+            .select("claim_state, account_id")
+            .eq("source_provider_id", op.provider_id)
+            .maybeSingle();
+
+          const isClaimed = claimedBp?.claim_state === "claimed" && !!claimedBp?.account_id;
+          const firstImage = op.provider_images?.split("|")[0]?.trim() || null;
+
+          const org: SelectedOrg = {
+            name: op.provider_name,
+            slug: op.slug || op.provider_id,
+            city: op.city,
+            state: op.state,
+            email: op.email,
+            imageUrl: firstImage,
+            claimState: isClaimed ? "claimed" : "unclaimed",
+            source: "olera-providers",
+            providerId: op.provider_id,
+          };
+          setSelectedOrg(org);
+          setFormData(prev => ({
+            ...prev,
+            orgName: org.name,
+            city: org.city || "",
+            state: org.state || "",
+          }));
+          if (org.city && org.state) {
+            setCityQuery(`${org.city}, ${org.state}`);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch provider by slug:", err);
+      }
+    };
+
+    fetchProvider();
+  }, [searchParams, selectedOrg]);
 
   // ──────────────────────────────────────────────────────────
   // Form Handlers

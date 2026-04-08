@@ -17,7 +17,14 @@ Required keys:
 
 ## Step 0: Understand Current State
 
-Check what's already been explored:
+**First, check for approved drafts ready to publish.** Query the draft reviews API:
+
+```bash
+curl -s "https://staging-olera2-web.vercel.app/api/admin/draft-reviews" \
+  -H "Cookie: $(cat ~/.olera-session 2>/dev/null || echo '')" | head -200
+```
+
+If that fails (auth required), check the local pipeline data instead:
 
 ```bash
 ls data/pipeline/
@@ -36,7 +43,13 @@ Also check the admin dashboard data:
 cat data/pipeline-summary.ts | head -50
 ```
 
-Present a summary: which states have been explored, classified, drafted, and which have verified data. Ask what the user wants to do.
+**Present a summary to the user:**
+1. **Approved drafts** — If any programs across any states have been marked "approved" in the review workflow, list them prominently: "{N} programs approved and ready to publish: {list}. Apply all?"
+2. **Pipeline status** — Which states have been explored, classified, drafted
+3. **Needs attention** — Any programs marked "needs-changes" with reviewer comments
+4. **Next states** — Suggest the next high-population states to explore
+
+If approved drafts exist, offer to apply them first before doing any new exploration. Applying means: read the draft from `data/pipeline/{STATE}/drafts.json`, write the v2 fields into the matching program in `data/waiver-library.ts`, commit, and push.
 
 ## Pipeline Script Reference
 

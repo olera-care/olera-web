@@ -770,12 +770,14 @@ function phaseClassify(stateCode, stateName, diveData, compareData) {
     // ── Program Type ──
     let programType = "benefit";
 
-    // Resources: no income test, no application, advocacy/information services
+    // Resources: advocacy/information services with no financial qualification
+    // Exclude known benefit keywords to avoid misclassifying programs with missing elig data
+    const hasBenefitKeywords = /medicaid|waiver|snap|liheap|energy|weatherization|pace|medicare|home help|home care|respite|meals/i.test(prog.name || "");
     const isResource =
       benefitType === "advocacy" ||
-      (!elig.income_limits && !elig.asset_limits && !elig.age) ||
+      (!elig.income_limits && !elig.asset_limits && !elig.age && !hasBenefitKeywords) ||
       /ombudsman|legal|hotline|counseling|information|advocacy/i.test(prog.name || "") ||
-      (prog.benefits?.value && /free|no cost|confidential|advocacy/i.test(prog.benefits.value));
+      (prog.benefits?.value && /free|no cost|confidential|advocacy/i.test(prog.benefits.value) && !hasBenefitKeywords);
 
     // Navigators: help access OTHER programs
     const isNavigator =
@@ -1005,7 +1007,7 @@ async function phaseDraft(stateCode, stateName, diveData, classifyData) {
 You are drafting the page content for "${name}" in ${stateName}. This is a ${programType} program with ${complexity} complexity.
 
 Here is everything we know from research:
-${JSON.stringify(prog, null, 2)}
+${JSON.stringify({ ...prog, _raw: undefined }, null, 2)}
 
 Classification: ${JSON.stringify(classification, null, 2)}
 
@@ -1044,15 +1046,17 @@ Generate the complete page content as a JSON object matching this exact structur
     "urls": [<{"label": "...", "url": "..."} — actual application URLs from research>]
   },
 
-  "contentSections": [
-    ${sections.includes("income-table") ? '{"type": "income-table", "heading": "Income Limits by Household Size", "rows": [...], "footnote": "<year/source>"},' : ""}
-    ${sections.includes("what-counts") ? '{"type": "what-counts", "heading": "Asset Limits: What Counts", "included": [...], "excluded": [...]},' : ""}
-    ${sections.includes("tier-comparison") ? '{"type": "tier-comparison", "heading": "Program Tiers", "tiers": [{"name": "...", "description": "...", "incomeLimit": "...", "coverage": "..."}]},' : ""}
-    ${sections.includes("county-directory") ? '{"type": "county-directory", "heading": "Local Offices", "offices": [{"name": "...", "type": "county|city|service-area", "phone": "...", "address": "..."}]},' : ""}
-    ${sections.includes("documents") ? '{"type": "documents", "heading": "What to Bring", "categories": [{"name": "Identity", "items": [...]}, {"name": "Financial", "items": [...]}]},' : ""}
-    ${sections.includes("callout") && prog.application?.waitlist ? `{"type": "callout", "tone": "warning", "text": "<waitlist/timing warning>"},` : ""}
-    ${prog.gotchas?.length > 0 ? '{"type": "callout", "tone": "tip", "text": "<most important gotcha as a practical tip>"}' : ""}
-  ],
+  "contentSections": ${JSON.stringify((() => {
+      const sectionExamples = [];
+      if (sections.includes("income-table")) sectionExamples.push({ type: "income-table", heading: "Income Limits by Household Size", rows: ["...IncomeRow objects..."], footnote: "<year/source>" });
+      if (sections.includes("what-counts")) sectionExamples.push({ type: "what-counts", heading: "Asset Limits: What Counts", included: ["...counted assets..."], excluded: ["...exempt assets..."] });
+      if (sections.includes("tier-comparison")) sectionExamples.push({ type: "tier-comparison", heading: "Program Tiers", tiers: [{ name: "...", description: "...", incomeLimit: "...", coverage: "..." }] });
+      if (sections.includes("county-directory")) sectionExamples.push({ type: "county-directory", heading: "Local Offices", offices: [{ name: "...", type: "county or service-area", phone: "...", address: "..." }] });
+      if (sections.includes("documents")) sectionExamples.push({ type: "documents", heading: "What to Bring", categories: [{ name: "Identity", items: ["..."] }, { name: "Financial", items: ["..."] }] });
+      if (prog.application?.waitlist) sectionExamples.push({ type: "callout", tone: "warning", text: "<waitlist/timing warning from research>" });
+      if (prog.gotchas?.length > 0) sectionExamples.push({ type: "callout", tone: "tip", text: "<most important gotcha as practical tip>" });
+      return sectionExamples;
+    })(), null, 4)},
 
   "faqs": [
     <4-6 FAQs that a real caregiver would ask. Not "What is this program?" but "Can Mom keep her house if she qualifies?" or "What if her income is just over the limit?". Question and answer format: {"question": "...", "answer": "..."}>
@@ -1073,8 +1077,11 @@ CRITICAL RULES:
 - Content sections array should only include sections where you have real data to populate them.
 - Return ONLY the JSON object, no markdown wrapping.`;
 
+    // Deep programs with many content sections need more tokens
+    const tokenLimit = complexity === "deep" ? 6144 : complexity === "medium" ? 4096 : 3072;
+
     try {
-      const response = await claudeChat(draftPrompt, 4096);
+      const response = await claudeChat(draftPrompt, tokenLimit);
       const parsed = extractJson(response);
 
       if (parsed) {

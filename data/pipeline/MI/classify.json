@@ -1,13 +1,13 @@
 {
   "state": "MI",
   "stateName": "Michigan",
-  "classifiedAt": "2026-04-08T14:14:45.235Z",
+  "classifiedAt": "2026-04-08T14:38:30.000Z",
   "total": 16,
   "typeSummary": {
-    "benefit": 9,
+    "benefit": 11,
     "navigator": 2,
-    "resource": 4,
-    "employment": 1
+    "employment": 1,
+    "resource": 2
   },
   "scopeSummary": {
     "local": 3,
@@ -15,8 +15,8 @@
     "federal": 8
   },
   "complexitySummary": {
-    "deep": 9,
-    "simple": 6,
+    "deep": 11,
+    "simple": 4,
     "medium": 1
   },
   "programs": [
@@ -230,7 +230,7 @@
     },
     {
       "name": "Weatherization Assistance Program (WAP)",
-      "programType": "resource",
+      "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
@@ -241,10 +241,15 @@
           }
         ]
       },
-      "complexity": "simple",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "county-directory"
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "service",
@@ -258,7 +263,7 @@
     },
     {
       "name": "Michigan Medicare Assistance Program (MMAP)",
-      "programType": "resource",
+      "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
@@ -269,9 +274,13 @@
           }
         ]
       },
-      "complexity": "simple",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
         "county-directory"
       ],
       "signals": {

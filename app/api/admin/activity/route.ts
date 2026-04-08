@@ -118,7 +118,7 @@ async function handleFeedView(db: any, opts: {
       query = query.or(
         "email_type.eq.question_received,event_type.eq.question_received,event_type.eq.question_responded"
       );
-    } else if (["contact_revealed", "one_click_access", "lead_opened", "page_view"].includes(emailType)) {
+    } else if (["contact_revealed", "one_click_access", "lead_opened", "page_view", "email_click"].includes(emailType)) {
       // These are event_type values, not email_type
       query = query.eq("event_type", emailType);
     } else {

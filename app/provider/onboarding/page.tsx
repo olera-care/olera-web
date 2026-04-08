@@ -523,45 +523,6 @@ function ProviderOnboardingContent() {
               </Button>
             </form>
 
-            {/* Or create new link */}
-            <p className="text-center mt-6 text-base text-gray-500">
-              or{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  // Validate form before going to preview
-                  let { city, state } = formData;
-                  // Auto-parse city/state from cityQuery if needed
-                  if ((!city || !state) && cityQuery.trim()) {
-                    const parts = cityQuery.split(",").map(s => s.trim());
-                    if (parts.length >= 2) {
-                      city = parts[0];
-                      state = parts[1];
-                      setFormData(prev => ({ ...prev, city, state }));
-                    }
-                  }
-
-                  if (!formData.orgName.trim()) {
-                    setSearchError("Please enter your organization name first.");
-                    return;
-                  }
-                  if (!city || !state) {
-                    setSearchError("Please enter your city and state first.");
-                    return;
-                  }
-                  if (!formData.email.trim() || !formData.email.includes("@")) {
-                    setSearchError("Please enter a valid email first.");
-                    return;
-                  }
-                  setSearchError("");
-                  setSelectedResult(null);
-                  setScreen("preview");
-                }}
-                className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
-              >
-                create a new listing
-              </button>
-            </p>
           </div>
         </div>
       </div>

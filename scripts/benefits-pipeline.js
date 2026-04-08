@@ -1114,6 +1114,60 @@ CRITICAL RULES:
   console.log(`  Parse errors: ${results.filter((r) => r._parseError).length}`);
   console.log(`  Errors: ${results.filter((r) => r._error).length}`);
 
+  // Generate state-level overview content
+  let stateOverview = null;
+  if (successful.length > 0) {
+    console.log(`\n  Generating state overview for ${stateName}...`);
+
+    const programSummaries = successful.map((p) =>
+      `- ${p.name} (${p.programType}): ${p.tagline}`
+    ).join("\n");
+
+    const typeCounts = {};
+    for (const p of successful) {
+      typeCounts[p.programType || "benefit"] = (typeCounts[p.programType || "benefit"] || 0) + 1;
+    }
+
+    const statePrompt = `${CONTENT_VOICE_PROMPT}
+
+You are writing the state overview page for ${stateName}'s senior benefit programs. This is the landing page a caregiver sees before diving into individual programs.
+
+Here are the ${successful.length} programs we've researched:
+${programSummaries}
+
+Program type breakdown: ${JSON.stringify(typeCounts)}
+
+Generate the state overview as a JSON object:
+
+{
+  "intro": "<2-3 paragraphs. Lead with what a caregiver in ${stateName} needs to know. How many programs are available? What's the range of help — from financial benefits to free resources? Be specific about ${stateName}, not generic. End with a clear 'here's how to start' direction.>",
+  "startHere": [
+    <3-4 objects: the most impactful programs a caregiver should look at first. Each: {"name": "...", "programId": "<matching id from the drafts>", "why": "<one sentence: why start here>"}>
+  ],
+  "byNeed": [
+    <4-6 objects grouping programs by caregiver need, not bureaucratic category. Each: {"need": "<plain language need, e.g., 'Help paying for home care', 'Food assistance', 'Free advice and advocacy'>", "programs": ["program name 1", "program name 2"], "description": "<one sentence explaining this group>"}>
+  ],
+  "quickFacts": [
+    <3-4 strings: state-specific facts that orient the caregiver. E.g., "Michigan uses MI Bridges (newmibridges.michigan.gov) for most benefit applications" or "Most programs require income below $2,901/month for a single person">
+  ],
+  "resourcesVsBenefits": "<one paragraph explaining the difference between qualification-based benefits and free resources available to everyone, using specific ${stateName} examples>"
+}
+
+CRITICAL: Use only information from the researched programs. Do not invent programs or facts. Return ONLY the JSON object.`;
+
+    try {
+      const response = await claudeChat(statePrompt, 4096);
+      stateOverview = extractJson(response);
+      if (stateOverview) {
+        console.log(`  State overview generated: ${stateOverview.startHere?.length || 0} start-here picks, ${stateOverview.byNeed?.length || 0} need groups`);
+      } else {
+        console.log(`  WARN: Could not parse state overview`);
+      }
+    } catch (err) {
+      console.log(`  ERROR generating state overview: ${err.message}`);
+    }
+  }
+
   return {
     state: stateCode,
     stateName,
@@ -1121,6 +1175,7 @@ CRITICAL RULES:
     total: results.length,
     successful: successful.length,
     programs: results,
+    stateOverview,
   };
 }
 
@@ -1656,6 +1711,7 @@ function generatePipelineDrafts() {
       entries[stateCode] = {
         draftedAt: (drafts.draftedAt || "").split("T")[0],
         programs,
+        stateOverview: drafts.stateOverview || null,
       };
     }
   }
@@ -1713,9 +1769,18 @@ export interface PipelineDraft {
   geographicScope?: { type: string; stateVariation?: boolean; localEntities?: { name: string; type: string; phone?: string; address?: string; url?: string }[] };
 }
 
+export interface PipelineStateOverview {
+  intro: string;
+  startHere: { name: string; programId: string; why: string }[];
+  byNeed: { need: string; programs: string[]; description: string }[];
+  quickFacts: string[];
+  resourcesVsBenefits: string;
+}
+
 export interface PipelineStateDrafts {
   draftedAt: string;
   programs: PipelineDraft[];
+  stateOverview?: PipelineStateOverview | null;
 }
 
 export const pipelineDrafts: Record<string, PipelineStateDrafts> = ${JSON.stringify(entries, null, 2)};

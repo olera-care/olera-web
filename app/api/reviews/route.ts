@@ -4,6 +4,7 @@ import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { newReviewEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
+import { generateNotificationUrl } from "@/lib/claim-tokens";
 
 /**
  * GET /api/reviews?provider_id=xxx
@@ -209,7 +210,6 @@ export async function POST(request: NextRequest) {
         }
 
         if (providerEmail) {
-          // Generate magic link for provider one-click sign-in
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
           const providerSlug = provider.slug || provider.source_provider_id || provider.id;
 
@@ -223,27 +223,14 @@ export async function POST(request: NextRequest) {
             providerId: provider.id,
           });
 
-          const redirectPath = appendTrackingParams(
-            `/provider/${providerSlug}/onboard?action=review&actionId=${newReview.id}`,
-            emailLogId
-          );
-          // Fallback: direct to onboard page (handles both claimed and unclaimed providers)
-          let viewUrl = `${siteUrl}${redirectPath}`;
-
+          // Generate one-click URL with signed token (same pattern as leads and questions)
+          let viewUrl: string;
           try {
-            const { data: providerLinkData, error: providerLinkError } = await db.auth.admin.generateLink({
-              type: "magiclink",
-              email: providerEmail,
-              options: {
-                redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(redirectPath)}`,
-              },
-            });
-            if (!providerLinkError && providerLinkData?.properties?.action_link) {
-              viewUrl = providerLinkData.properties.action_link;
-            }
-          } catch (linkErr) {
-            console.error("Failed to generate provider magic link for review:", linkErr);
-            // Continue with fallback URL (welcome page)
+            viewUrl = generateNotificationUrl(providerSlug, providerEmail, "review", newReview.id, siteUrl);
+            viewUrl = appendTrackingParams(viewUrl, emailLogId);
+          } catch {
+            // Fallback: direct URL without token
+            viewUrl = appendTrackingParams(`${siteUrl}/provider/${providerSlug}/onboard?action=review&actionId=${newReview.id}`, emailLogId);
           }
 
           await sendEmail({

@@ -207,6 +207,7 @@ export default function ProviderOnboardPage() {
 
       // For claim/signup, we don't need actionId - provider info IS the notification data
       // Handle these separately since their URLs don't include actionId
+      // Note: pending_leads and pending_questions will be populated by validate-token API
       if (actionParam === "claim" || actionParam === "signup") {
         fetchedNotificationData = {
           type: actionParam,
@@ -216,6 +217,9 @@ export default function ProviderOnboardPage() {
           provider_city: foundProvider.city || null,
           provider_state: foundProvider.state || null,
           provider_image: foundProvider.provider_images?.split("|")[0]?.trim() || null,
+          // Activity counts will be populated by validate-token API (defaults to 0 in UI)
+          pending_leads: 0,
+          pending_questions: 0,
         };
         setNotificationData(fetchedNotificationData);
       } else if (actionParam && actionIdParam) {

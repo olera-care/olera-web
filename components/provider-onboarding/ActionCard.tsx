@@ -47,6 +47,9 @@ export interface NotificationData {
   provider_city?: string | null;
   provider_state?: string | null;
   provider_image?: string | null;
+  // Activity counts (for richer claim/signup cards)
+  pending_leads?: number;
+  pending_questions?: number;
 }
 
 export type ActionCardState =
@@ -806,6 +809,9 @@ export default function ActionCard({
     const pCity = notificationData.provider_city || provider.city;
     const pState = notificationData.provider_state || provider.state;
     const locationLine = [pCity, pState].filter(Boolean).join(", ");
+    const pendingLeads = notificationData.pending_leads || 0;
+    const pendingQuestions = notificationData.pending_questions || 0;
+    const hasActivity = pendingLeads > 0 || pendingQuestions > 0;
 
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
@@ -814,7 +820,7 @@ export default function ActionCard({
           <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
           <div>
             <h3 className="text-lg font-display font-bold text-gray-900">
-              You&apos;re claiming {pName}
+              You now manage {pName}
             </h3>
             {locationLine && (
               <p className="text-sm text-gray-500 mt-0.5">{locationLine}</p>
@@ -823,24 +829,52 @@ export default function ActionCard({
         </div>
 
         <div className="border-t border-gray-100 pt-5 mb-6">
-          <p className="text-[15px] text-gray-600 leading-relaxed">
-            Verify your identity to manage this listing, respond to families, and update your profile on Olera.
-          </p>
+          {hasActivity ? (
+            <div className="space-y-3">
+              <p className="text-[15px] text-gray-600 font-medium">Families are waiting to hear from you:</p>
+              <div className="flex flex-wrap gap-3">
+                {pendingLeads > 0 && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-primary-50 rounded-lg">
+                    <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                    </svg>
+                    <span className="text-sm font-semibold text-primary-700">
+                      {pendingLeads} {pendingLeads === 1 ? "family" : "families"} reached out
+                    </span>
+                  </div>
+                )}
+                {pendingQuestions > 0 && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-lg">
+                    <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-sm font-semibold text-amber-700">
+                      {pendingQuestions} {pendingQuestions === 1 ? "question" : "questions"} to answer
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="text-[15px] text-gray-600 leading-relaxed">
+              Your listing is live on Olera. Start responding to families and updating your profile.
+            </p>
+          )}
         </div>
 
         {/* CTA */}
         {(isSignedIn || preVerifiedEmail) ? (
           <Link
             href="/provider"
-            className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+            className="block w-full py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] text-center"
           >
-            Manage Listing
+            Go to Dashboard
           </Link>
         ) : (
           <>
             <button
               onClick={onClaimClick}
-              className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
+              className="w-full py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px]"
             >
               Sign in to manage
             </button>
@@ -859,6 +893,7 @@ export default function ActionCard({
 
   if (state === "notification-signup" && notificationData) {
     const orgName = notificationData.provider_name || provider.provider_name || "your organization";
+    const pCity = notificationData.provider_city || provider.city;
 
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
@@ -867,33 +902,59 @@ export default function ActionCard({
           <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
           <div>
             <h3 className="text-lg font-display font-bold text-gray-900">
-              Welcome to Olera
+              {orgName} is set up
             </h3>
             <p className="text-sm text-gray-500 mt-0.5">
-              Set up {orgName} to start receiving inquiries
+              Your listing is ready on Olera
             </p>
           </div>
         </div>
 
         <div className="border-t border-gray-100 pt-5 mb-6">
-          <p className="text-[15px] text-gray-600 leading-relaxed">
-            Complete your profile to connect with families actively searching for senior care in your area.
+          <p className="text-[15px] text-gray-600 mb-4">
+            {pCity ? `Families in ${pCity} are searching for care.` : "Families are actively searching for care."} Complete your profile to stand out:
           </p>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2.5 text-sm text-gray-600">
+              <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
+                <svg className="w-3 h-3 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span>Add photos of your facility</span>
+            </div>
+            <div className="flex items-center gap-2.5 text-sm text-gray-600">
+              <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
+                <svg className="w-3 h-3 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span>Describe your services</span>
+            </div>
+            <div className="flex items-center gap-2.5 text-sm text-gray-600">
+              <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
+                <svg className="w-3 h-3 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span>Set your availability</span>
+            </div>
+          </div>
         </div>
 
         {/* CTA */}
         {(isSignedIn || preVerifiedEmail) ? (
           <Link
             href="/provider"
-            className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+            className="block w-full py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] text-center"
           >
-            Get Started
+            Complete Your Profile
           </Link>
         ) : (
           <>
             <button
               onClick={onClaimClick}
-              className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
+              className="w-full py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px]"
             >
               Sign in to get started
             </button>
@@ -977,38 +1038,39 @@ export default function ActionCard({
   // ════════════════════════════════════════════════════════════
 
   if (state === "already-claimed") {
-    // Compact view - show "Dispute" (primary) + "Sign in" (secondary teal link)
+    // Compact view - show "Sign in" (primary) + "Dispute" (secondary)
+    // Most users landing here ARE the legitimate owner, so prioritize sign-in
     if (!showDisputeForm) {
       return (
         <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
           <div className="text-center mb-6">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-amber-500/10 border border-amber-200/60">
-              <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+              <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
             <h3 className="text-xl font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
-              This listing is claimed
+              This listing is managed
               <InfoTooltip content={TOOLTIP_CONTENT["already-claimed"].text} showTos={TOOLTIP_CONTENT["already-claimed"].showTos} />
             </h3>
             <p className="text-[15px] text-gray-500">
-              Someone else is managing this listing. If you believe this is an error, you can submit a dispute.
+              Sign in with your business email to access and manage this listing.
             </p>
           </div>
 
           <button
-            onClick={() => setShowDisputeForm(true)}
-            className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-amber-600 text-white text-sm font-semibold rounded-xl hover:bg-amber-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 block"
+            onClick={onClaimClick}
+            className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 block"
           >
-            Dispute listing
+            Sign in to manage
           </button>
           <p className="w-full sm:max-w-[280px] sm:mx-auto mt-4 text-sm text-gray-500 text-center">
-            This is yours?{" "}
+            Not the owner?{" "}
             <button
-              onClick={onClaimClick}
-              className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+              onClick={() => setShowDisputeForm(true)}
+              className="font-semibold text-amber-600 hover:text-amber-700 transition-colors"
             >
-              Sign in
+              Dispute this listing
             </button>
           </p>
         </div>

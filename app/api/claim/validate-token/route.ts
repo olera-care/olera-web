@@ -154,6 +154,7 @@ export async function POST(request: Request) {
     let notificationData: Record<string, unknown> | null = null;
 
     // For claim/signup, we don't need actionId - provider info IS the notification data
+    // We also fetch activity counts to make the card richer
     if (action === "claim" || action === "signup") {
       try {
         notificationData = {
@@ -164,16 +165,22 @@ export async function POST(request: Request) {
           provider_city: null as string | null,
           provider_state: null as string | null,
           provider_image: null as string | null,
+          // Activity counts for richer card
+          pending_leads: 0,
+          pending_questions: 0,
         };
 
         // Try to fetch location/image from business_profiles first, then olera-providers
         const { data: bpInfo } = await db
           .from("business_profiles")
-          .select("city, state, image_url")
+          .select("id, city, state, image_url")
           .eq("slug", providerSlug || providerId)
           .maybeSingle();
 
+        let profileId: string | null = null;
+
         if (bpInfo) {
+          profileId = bpInfo.id;
           notificationData.provider_city = bpInfo.city;
           notificationData.provider_state = bpInfo.state;
           notificationData.provider_image = bpInfo.image_url;
@@ -189,6 +196,27 @@ export async function POST(request: Request) {
             notificationData.provider_state = opInfo.state;
             notificationData.provider_image = opInfo.provider_images?.split("|")[0]?.trim() || null;
           }
+        }
+
+        // Fetch pending activity counts for existing profiles (makes card richer)
+        if (profileId) {
+          // Count pending connections (leads)
+          const { count: leadsCount } = await db
+            .from("connections")
+            .select("id", { count: "exact", head: true })
+            .eq("to_profile_id", profileId)
+            .eq("type", "inquiry")
+            .eq("status", "pending");
+          notificationData.pending_leads = leadsCount || 0;
+
+          // Count unanswered questions
+          const { count: questionsCount } = await db
+            .from("provider_questions")
+            .select("id", { count: "exact", head: true })
+            .eq("provider_id", providerSlug || providerId)
+            .eq("status", "pending")
+            .is("answer", null);
+          notificationData.pending_questions = questionsCount || 0;
         }
       } catch (err) {
         console.error("Failed to fetch claim/signup notification data:", err);

@@ -533,14 +533,16 @@ export default function ProviderOnboardPage() {
         // If they arrived from a notification email, show the contextual card
         // (lead/question/review preview) instead of the generic "already claimed" dispute card.
         // This lets the actual owner verify + sign in to respond.
-        if (actionParam && fetchedNotificationData) {
+        // Note: claim/signup are excluded — those notification states require a valid token.
+        // Without a token on a claimed listing, show already-claimed (handled below).
+        if (actionParam && fetchedNotificationData && actionParam !== "claim" && actionParam !== "signup") {
           const notificationStateMap: Record<string, ActionCardState> = {
             lead: "notification-lead",
             message: "notification-lead",
             question: "notification-question",
             review: "notification-review",
           };
-          setActionCardState(notificationStateMap[actionParam] || "claim-form");
+          setActionCardState(notificationStateMap[actionParam] || "already-claimed");
           setStep("dashboard");
           return;
         }

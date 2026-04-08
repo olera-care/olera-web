@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { allStates, type WaiverProgram, type StateData } from "@/data/waiver-library";
 import { pipelineData, type PipelineComparison, type PipelineStateSummary } from "@/data/pipeline-summary";
+import { pipelineDrafts, type PipelineDraft } from "@/data/pipeline-drafts";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -137,100 +138,230 @@ function PipelineDiffs({ comparison }: { comparison: PipelineComparison }) {
   );
 }
 
-function ProgramPreview({ program, stateId, pipelineComparison }: { program: WaiverProgram; stateId: string; pipelineComparison?: PipelineComparison }) {
+function DraftPreview({ draft }: { draft: PipelineDraft }) {
   return (
-    <div className="mt-4 pt-4 border-t border-gray-100 space-y-5">
-      {/* Pipeline diffs */}
-      {pipelineComparison && (pipelineComparison.diffs.length > 0 || pipelineComparison.novelFields.length > 0) && (
-        <PipelineDiffs comparison={pipelineComparison} />
-      )}
-
-      {/* Description */}
-      {program.intro && (
-        <div>
-          <p className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">Overview</p>
-          <p className="text-sm text-gray-700 leading-relaxed">{program.intro}</p>
-        </div>
-      )}
-
-      {/* Eligibility */}
-      {program.eligibilityHighlights.length > 0 && (
-        <div>
-          <p className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">Eligibility</p>
-          <ul className="space-y-1">
-            {program.eligibilityHighlights.map((h, i) => (
-              <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
-                <span className="text-emerald-500 mt-0.5 shrink-0">&#10003;</span>
-                {h}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Application Steps */}
-      {program.applicationSteps.length > 0 && (
-        <div>
-          <p className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">How to Apply</p>
-          <ol className="space-y-2">
-            {program.applicationSteps.map((step) => (
-              <li key={step.step} className="text-sm text-gray-700 flex items-start gap-2.5">
-                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 text-[11px] font-semibold text-gray-500 shrink-0 mt-0.5">
-                  {step.step}
-                </span>
-                <div>
-                  <span className="font-medium text-gray-900">{step.title}</span>
-                  <span className="text-gray-500"> — {step.description}</span>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
-
-      {/* Links & verification metadata */}
-      <div className="flex flex-wrap gap-x-6 gap-y-2 pt-2 border-t border-gray-50">
-        <a
-          href={`/waiver-library/${stateId}/${program.id}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs font-medium text-gray-900 hover:text-primary-700 underline underline-offset-2 decoration-gray-300"
-        >
-          View live page &#8599;
-        </a>
-        {program.sourceUrl && (
-          <a
-            href={program.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-primary-600 hover:text-primary-700 underline underline-offset-2 decoration-primary-200"
-          >
-            Official source &#8599;
-          </a>
-        )}
-        {program.lastVerifiedDate && (
-          <span className="text-xs text-gray-400">
-            Verified {program.lastVerifiedDate} by {program.verifiedBy}
+    <div className="mt-4 p-5 bg-blue-50/40 border border-blue-100 rounded-xl space-y-5">
+      {/* Draft header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-semibold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full uppercase tracking-wider">
+            Draft
           </span>
-        )}
-        {program.savingsSource && (
-          <span className="text-xs text-gray-400">
-            Savings: {program.savingsSource}
+          <span className="text-[11px] text-blue-500">
+            {draft.programType} &middot; {draft.complexity} &middot; {draft.draftedAt}
           </span>
-        )}
-        {program.phone && (
-          <span className="text-xs text-gray-400">
-            Phone: {program.phone}
+        </div>
+        {draft.geographicScope && (
+          <span className="text-[11px] text-gray-400">
+            {draft.geographicScope.type}{draft.geographicScope.stateVariation ? " (state variation)" : ""}
           </span>
         )}
       </div>
 
-      {/* FAQs */}
-      {program.faqs && program.faqs.length > 0 && (
+      {/* Tagline */}
+      <p className="text-sm text-gray-600 italic">{draft.tagline}</p>
+
+      {/* Intro */}
+      {draft.intro && (
         <div>
-          <p className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-2">FAQs ({program.faqs.length})</p>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Overview</p>
+          <div className="text-sm text-gray-700 leading-relaxed space-y-2">
+            {draft.intro.split("\n\n").map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Savings */}
+      {draft.savingsRange ? (
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-lg">
+          <span className="text-sm font-medium text-emerald-700">{draft.savingsRange}</span>
+          {draft.savingsSource && <span className="text-[11px] text-emerald-500">&middot; {draft.savingsSource}</span>}
+        </div>
+      ) : draft.savingsSource ? (
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg">
+          <span className="text-sm text-gray-500">{draft.savingsSource}</span>
+        </div>
+      ) : null}
+
+      {/* Structured Eligibility */}
+      {draft.structuredEligibility && (
+        <div>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Eligibility</p>
+          <ul className="space-y-1">
+            {draft.structuredEligibility.summary.map((s, i) => (
+              <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
+                <span className="text-emerald-500 mt-0.5 shrink-0">&#10003;</span>
+                {s}
+              </li>
+            ))}
+          </ul>
+
+          {/* Income table */}
+          {draft.structuredEligibility.incomeTable && draft.structuredEligibility.incomeTable.length > 0 && (
+            <div className="mt-3 overflow-hidden rounded-lg border border-gray-200">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-3 py-1.5 text-left font-medium text-gray-500">Household Size</th>
+                    <th className="px-3 py-1.5 text-left font-medium text-gray-500">Monthly Limit</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {draft.structuredEligibility.incomeTable.map((row, i) => (
+                    <tr key={i}>
+                      <td className="px-3 py-1.5 text-gray-700">{row.householdSize}</td>
+                      <td className="px-3 py-1.5 text-gray-700">${row.monthlyLimit.toLocaleString()}/mo</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Asset limits */}
+          {draft.structuredEligibility.assetLimits && (
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              {draft.structuredEligibility.assetLimits.exemptAssets && draft.structuredEligibility.assetLimits.exemptAssets.length > 0 && (
+                <div className="p-2.5 bg-emerald-50/50 rounded-lg">
+                  <p className="text-[11px] font-medium text-emerald-600 mb-1">Doesn&apos;t Count</p>
+                  <ul className="space-y-0.5">
+                    {draft.structuredEligibility.assetLimits.exemptAssets.map((a, i) => (
+                      <li key={i} className="text-xs text-gray-600">{a}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {draft.structuredEligibility.assetLimits.countedAssets && draft.structuredEligibility.assetLimits.countedAssets.length > 0 && (
+                <div className="p-2.5 bg-amber-50/50 rounded-lg">
+                  <p className="text-[11px] font-medium text-amber-600 mb-1">Counts Against Limit</p>
+                  <ul className="space-y-0.5">
+                    {draft.structuredEligibility.assetLimits.countedAssets.map((a, i) => (
+                      <li key={i} className="text-xs text-gray-600">{a}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Functional requirement */}
+          {draft.structuredEligibility.functionalRequirement && (
+            <p className="mt-2 text-xs text-gray-500 bg-gray-50 p-2.5 rounded-lg">
+              {draft.structuredEligibility.functionalRequirement}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Application Guide */}
+      {draft.applicationGuide && (
+        <div>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">How to Apply</p>
+          <p className="text-sm text-gray-700 mb-2">{draft.applicationGuide.summary}</p>
+
+          {draft.applicationGuide.steps && draft.applicationGuide.steps.length > 0 && (
+            <ol className="space-y-2">
+              {draft.applicationGuide.steps.map((step) => (
+                <li key={step.step} className="text-sm text-gray-700 flex items-start gap-2.5">
+                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-[11px] font-semibold text-blue-600 shrink-0 mt-0.5">
+                    {step.step}
+                  </span>
+                  <div>
+                    <span className="font-medium text-gray-900">{step.title}</span>
+                    <span className="text-gray-500"> — {step.description}</span>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
+
+          <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-400">
+            {draft.applicationGuide.processingTime && (
+              <span>Processing: {draft.applicationGuide.processingTime}</span>
+            )}
+            {draft.applicationGuide.waitlist && (
+              <span className="text-amber-500">Waitlist: {draft.applicationGuide.waitlist}</span>
+            )}
+          </div>
+
+          {draft.applicationGuide.tip && (
+            <p className="mt-2 text-xs text-blue-600 bg-blue-50 p-2.5 rounded-lg">
+              Tip: {draft.applicationGuide.tip}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Content Sections */}
+      {draft.contentSections && draft.contentSections.length > 0 && (
+        <div className="space-y-3">
+          {draft.contentSections.map((section, i) => {
+            if (section.type === "callout") {
+              const toneColors = {
+                warning: "bg-amber-50 border-amber-100 text-amber-700",
+                tip: "bg-blue-50 border-blue-100 text-blue-700",
+                info: "bg-gray-50 border-gray-200 text-gray-600",
+              };
+              return (
+                <div key={i} className={`text-xs p-2.5 rounded-lg border ${toneColors[(section as { tone: "warning" | "tip" | "info" }).tone] || toneColors.info}`}>
+                  {(section as { text: string }).text}
+                </div>
+              );
+            }
+            if (section.type === "tier-comparison" && "tiers" in section) {
+              const tiers = section.tiers as { name: string; description: string; incomeLimit?: string; coverage?: string }[];
+              return (
+                <div key={i}>
+                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                    {(section as { heading?: string }).heading || "Program Tiers"}
+                  </p>
+                  <div className="grid gap-2">
+                    {tiers.map((tier, j) => (
+                      <div key={j} className="p-2.5 bg-white rounded-lg border border-gray-100">
+                        <p className="text-sm font-medium text-gray-900">{tier.name}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{tier.description}</p>
+                        {tier.incomeLimit && <p className="text-xs text-gray-400 mt-0.5">Income: {tier.incomeLimit}</p>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+            if (section.type === "documents" && "categories" in section) {
+              const cats = section.categories as { name: string; items: string[] }[];
+              return (
+                <div key={i}>
+                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                    {(section as { heading?: string }).heading || "Documents Needed"}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {cats.map((cat, j) => (
+                      <div key={j} className="p-2.5 bg-white rounded-lg border border-gray-100">
+                        <p className="text-xs font-medium text-gray-700 mb-1">{cat.name}</p>
+                        <ul className="space-y-0.5">
+                          {cat.items.map((item, k) => (
+                            <li key={k} className="text-xs text-gray-500">&#8226; {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
+      )}
+
+      {/* FAQs */}
+      {draft.faqs && draft.faqs.length > 0 && (
+        <div>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">FAQs ({draft.faqs.length})</p>
           <div className="space-y-2">
-            {program.faqs.map((faq, i) => (
+            {draft.faqs.map((faq, i) => (
               <details key={i} className="group">
                 <summary className="text-sm text-gray-700 font-medium cursor-pointer hover:text-gray-900 list-none flex items-start gap-2">
                   <svg className="w-3.5 h-3.5 text-gray-400 mt-1 shrink-0 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,11 +375,163 @@ function ProgramPreview({ program, stateId, pipelineComparison }: { program: Wai
           </div>
         </div>
       )}
+
+      {/* Source + phone */}
+      <div className="flex flex-wrap gap-x-6 gap-y-1 pt-2 border-t border-blue-100 text-xs text-gray-400">
+        {draft.sourceUrl && (
+          <a href={draft.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline underline-offset-2">
+            Official source &#8599;
+          </a>
+        )}
+        {draft.phone && <span>Phone: {draft.phone}</span>}
+      </div>
     </div>
   );
 }
 
-function ProgramRow({ program, stateId, pipelineComparison }: { program: WaiverProgram; stateId: string; pipelineComparison?: PipelineComparison }) {
+function ProgramPreview({ program, stateId, pipelineComparison, draft }: { program: WaiverProgram; stateId: string; pipelineComparison?: PipelineComparison; draft?: PipelineDraft }) {
+  const [showDraft, setShowDraft] = useState(draft ? true : false);
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-100 space-y-5">
+      {/* Draft toggle */}
+      {draft && (
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowDraft(true)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              showDraft ? "bg-blue-100 text-blue-700" : "text-gray-500 hover:bg-gray-100"
+            }`}
+          >
+            Draft Content
+          </button>
+          <button
+            onClick={() => setShowDraft(false)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              !showDraft ? "bg-gray-200 text-gray-700" : "text-gray-500 hover:bg-gray-100"
+            }`}
+          >
+            Current Content
+          </button>
+        </div>
+      )}
+
+      {/* Draft preview */}
+      {showDraft && draft ? (
+        <DraftPreview draft={draft} />
+      ) : (
+        <>
+          {/* Pipeline diffs */}
+          {pipelineComparison && (pipelineComparison.diffs.length > 0 || pipelineComparison.novelFields.length > 0) && (
+            <PipelineDiffs comparison={pipelineComparison} />
+          )}
+
+          {/* Description */}
+          {program.intro && (
+            <div>
+              <p className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">Overview</p>
+              <p className="text-sm text-gray-700 leading-relaxed">{program.intro}</p>
+            </div>
+          )}
+
+          {/* Eligibility */}
+          {program.eligibilityHighlights.length > 0 && (
+            <div>
+              <p className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">Eligibility</p>
+              <ul className="space-y-1">
+                {program.eligibilityHighlights.map((h, i) => (
+                  <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
+                    <span className="text-emerald-500 mt-0.5 shrink-0">&#10003;</span>
+                    {h}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Application Steps */}
+          {program.applicationSteps.length > 0 && (
+            <div>
+              <p className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">How to Apply</p>
+              <ol className="space-y-2">
+                {program.applicationSteps.map((step) => (
+                  <li key={step.step} className="text-sm text-gray-700 flex items-start gap-2.5">
+                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 text-[11px] font-semibold text-gray-500 shrink-0 mt-0.5">
+                      {step.step}
+                    </span>
+                    <div>
+                      <span className="font-medium text-gray-900">{step.title}</span>
+                      <span className="text-gray-500"> — {step.description}</span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
+          {/* Links & verification metadata */}
+          <div className="flex flex-wrap gap-x-6 gap-y-2 pt-2 border-t border-gray-50">
+            <a
+              href={`/waiver-library/${stateId}/${program.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-medium text-gray-900 hover:text-primary-700 underline underline-offset-2 decoration-gray-300"
+            >
+              View live page &#8599;
+            </a>
+            {program.sourceUrl && (
+              <a
+                href={program.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-primary-600 hover:text-primary-700 underline underline-offset-2 decoration-primary-200"
+              >
+                Official source &#8599;
+              </a>
+            )}
+            {program.lastVerifiedDate && (
+              <span className="text-xs text-gray-400">
+                Verified {program.lastVerifiedDate} by {program.verifiedBy}
+              </span>
+            )}
+            {program.savingsSource && (
+              <span className="text-xs text-gray-400">
+                Savings: {program.savingsSource}
+              </span>
+            )}
+            {program.phone && (
+              <span className="text-xs text-gray-400">
+                Phone: {program.phone}
+              </span>
+            )}
+          </div>
+
+          {/* FAQs */}
+          {program.faqs && program.faqs.length > 0 && (
+            <div>
+              <p className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-2">FAQs ({program.faqs.length})</p>
+              <div className="space-y-2">
+                {program.faqs.map((faq, i) => (
+                  <details key={i} className="group">
+                    <summary className="text-sm text-gray-700 font-medium cursor-pointer hover:text-gray-900 list-none flex items-start gap-2">
+                      <svg className="w-3.5 h-3.5 text-gray-400 mt-1 shrink-0 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                      {faq.question}
+                    </summary>
+                    <p className="text-sm text-gray-500 leading-relaxed mt-1.5 ml-[22px]">{faq.answer}</p>
+                  </details>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function ProgramRow({ program, stateId, pipelineComparison, draft }: { program: WaiverProgram; stateId: string; pipelineComparison?: PipelineComparison; draft?: PipelineDraft }) {
   const [expanded, setExpanded] = useState(false);
   const category = inferCategory(program);
   const isVerified = !!program.lastVerifiedDate;
@@ -289,6 +572,11 @@ function ProgramRow({ program, stateId, pipelineComparison }: { program: WaiverP
                 {pipelineComparison.diffsFound} diff{pipelineComparison.diffsFound > 1 ? "s" : ""}
               </span>
             )}
+            {draft && (
+              <span className="text-[11px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-medium">
+                Draft
+              </span>
+            )}
           </div>
         </div>
         <svg
@@ -300,7 +588,7 @@ function ProgramRow({ program, stateId, pipelineComparison }: { program: WaiverP
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
         </svg>
       </button>
-      {expanded && <ProgramPreview program={program} stateId={stateId} pipelineComparison={pipelineComparison} />}
+      {expanded && <ProgramPreview program={program} stateId={stateId} pipelineComparison={pipelineComparison} draft={draft} />}
     </div>
   );
 }
@@ -401,6 +689,7 @@ function StateDetail({
   const stats = getVerificationStats(state.programs);
   const pipeline = pipelineData[state.abbreviation];
   const comparisons = pipeline?.comparisons || [];
+  const stateDrafts = pipelineDrafts[state.abbreviation]?.programs || [];
 
   // Match pipeline comparisons to existing programs by ID or fuzzy name
   function findComparison(program: WaiverProgram): PipelineComparison | undefined {
@@ -408,6 +697,13 @@ function StateDetail({
       c.existingId === program.id ||
       c.name.toLowerCase().includes(program.name.toLowerCase().slice(0, 20)) ||
       program.name.toLowerCase().includes(c.name.toLowerCase().slice(0, 20))
+    );
+  }
+
+  function findDraft(program: WaiverProgram): PipelineDraft | undefined {
+    return stateDrafts.find((d) =>
+      d.name.toLowerCase().includes(program.name.toLowerCase().slice(0, 20)) ||
+      program.name.toLowerCase().includes(d.name.toLowerCase().slice(0, 20))
     );
   }
 
@@ -467,6 +763,7 @@ function StateDetail({
             program={program}
             stateId={state.id}
             pipelineComparison={findComparison(program)}
+            draft={findDraft(program)}
           />
         ))}
       </div>

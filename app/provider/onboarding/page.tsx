@@ -139,24 +139,37 @@ function ProviderOnboardingContent() {
       const stored = sessionStorage.getItem(prefillKey);
       if (!stored) return;
 
-      const { searchQuery, locationQuery } = JSON.parse(stored) as {
+      const parsed = JSON.parse(stored) as {
         searchQuery?: string;
-        locationQuery?: string;
+        locationQuery?: string; // Legacy format
+        selectedOrg?: SelectedOrg | null;
       };
 
       // Clear after reading so it doesn't persist across sessions
       sessionStorage.removeItem(prefillKey);
 
-      // Pre-fill organization name (if they typed a business name)
-      if (searchQuery?.trim()) {
-        setFormData(prev => ({ ...prev, orgName: searchQuery.trim() }));
+      // New format: selectedOrg from OrganizationSearch
+      if (parsed.selectedOrg) {
+        const org = parsed.selectedOrg;
+        setSelectedOrg(org);
+        setFormData(prev => ({
+          ...prev,
+          orgName: org.name,
+          city: org.city || "",
+          state: org.state || "",
+        }));
+        if (org.city && org.state) {
+          setCityQuery(`${org.city}, ${org.state}`);
+        }
+      } else if (parsed.searchQuery?.trim()) {
+        // User typed org name but didn't select from dropdown
+        setFormData(prev => ({ ...prev, orgName: parsed.searchQuery!.trim() }));
       }
 
-      // Pre-fill location (if they selected a city)
-      if (locationQuery?.trim()) {
-        setCityQuery(locationQuery.trim());
-        // Parse "City, ST" format
-        const parts = locationQuery.split(",").map(s => s.trim());
+      // Legacy format: locationQuery (for backwards compatibility)
+      if (parsed.locationQuery?.trim() && !parsed.selectedOrg) {
+        setCityQuery(parsed.locationQuery.trim());
+        const parts = parsed.locationQuery.split(",").map(s => s.trim());
         if (parts.length >= 2) {
           setFormData(prev => ({
             ...prev,

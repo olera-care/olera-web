@@ -1,9 +1,29 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { allStates, type WaiverProgram, type StateData } from "@/data/waiver-library";
 import { pipelineData, type PipelineComparison, type PipelineStateSummary } from "@/data/pipeline-summary";
 import { pipelineDrafts, type PipelineDraft } from "@/data/pipeline-drafts";
+
+// ─── Draft Review Types ────────────────────────────────────────────────────
+
+interface DraftReview {
+  id: string;
+  program_id: string;
+  state_id: string;
+  status: string;
+  comment: string | null;
+  reviewed_by: string;
+  created_at: string;
+}
+
+const STATUSES = [
+  { value: "draft", label: "Draft", color: "bg-gray-100 text-gray-600" },
+  { value: "reviewed", label: "Reviewed", color: "bg-blue-100 text-blue-700" },
+  { value: "needs-changes", label: "Needs Changes", color: "bg-amber-100 text-amber-700" },
+  { value: "approved", label: "Approved", color: "bg-emerald-100 text-emerald-700" },
+  { value: "published", label: "Published", color: "bg-primary-100 text-primary-700" },
+];
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -138,9 +158,132 @@ function PipelineDiffs({ comparison }: { comparison: PipelineComparison }) {
   );
 }
 
-function DraftPreview({ draft }: { draft: PipelineDraft }) {
+function DraftReviewPanel({ programId, stateId }: { programId: string; stateId: string }) {
+  const [reviews, setReviews] = useState<DraftReview[]>([]);
+  const [status, setStatus] = useState("draft");
+  const [comment, setComment] = useState("");
+  const [reviewer, setReviewer] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const fetchReviews = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/admin/draft-reviews?state=${stateId}`);
+      const data = await res.json();
+      if (data.reviews) {
+        const programReviews = data.reviews.filter((r: DraftReview) => r.program_id === programId);
+        setReviews(programReviews);
+        if (programReviews.length > 0) {
+          setStatus(programReviews[0].status);
+        }
+      }
+    } catch { /* silent */ }
+  }, [programId, stateId]);
+
+  useEffect(() => { fetchReviews(); }, [fetchReviews]);
+
+  const submit = async () => {
+    if (!reviewer.trim()) return;
+    setSubmitting(true);
+    try {
+      await fetch("/api/admin/draft-reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          programId,
+          stateId,
+          status,
+          comment: comment.trim() || undefined,
+          reviewedBy: reviewer.trim(),
+        }),
+      });
+      setComment("");
+      await fetchReviews();
+    } catch { /* silent */ }
+    setSubmitting(false);
+  };
+
+  const currentStatus = reviews[0]?.status || "draft";
+  const statusStyle = STATUSES.find((s) => s.value === currentStatus) || STATUSES[0];
+
+  return (
+    <div className="space-y-3">
+      {/* Current status */}
+      <div className="flex items-center gap-2">
+        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${statusStyle.color}`}>
+          {statusStyle.label}
+        </span>
+        {reviews[0] && (
+          <span className="text-[11px] text-gray-400">
+            by {reviews[0].reviewed_by} · {new Date(reviews[0].created_at).toLocaleDateString()}
+          </span>
+        )}
+      </div>
+
+      {/* Review history */}
+      {reviews.length > 0 && (
+        <div className="space-y-1.5">
+          {reviews.slice(0, 5).map((r) => (
+            <div key={r.id} className="flex items-start gap-2 text-xs">
+              <span className={`shrink-0 mt-0.5 w-1.5 h-1.5 rounded-full ${
+                STATUSES.find((s) => s.value === r.status)?.color.split(" ")[0] || "bg-gray-200"
+              }`} />
+              <div>
+                <span className="font-medium text-gray-600">{r.reviewed_by}</span>
+                <span className="text-gray-400"> changed to {r.status}</span>
+                {r.comment && <p className="text-gray-500 mt-0.5">{r.comment}</p>}
+              </div>
+              <span className="text-gray-300 ml-auto shrink-0">
+                {new Date(r.created_at).toLocaleDateString()}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add review */}
+      <div className="flex items-start gap-2 pt-1">
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-primary-400"
+        >
+          {STATUSES.map((s) => (
+            <option key={s.value} value={s.value}>{s.label}</option>
+          ))}
+        </select>
+        <input
+          type="text"
+          value={reviewer}
+          onChange={(e) => setReviewer(e.target.value)}
+          placeholder="Your name"
+          className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 w-24 focus:outline-none focus:ring-1 focus:ring-primary-400"
+        />
+        <input
+          type="text"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Comment (optional)"
+          className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 flex-1 focus:outline-none focus:ring-1 focus:ring-primary-400"
+          onKeyDown={(e) => e.key === "Enter" && submit()}
+        />
+        <button
+          onClick={submit}
+          disabled={submitting || !reviewer.trim()}
+          className="text-xs font-medium px-3 py-1.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-40 transition-colors shrink-0"
+        >
+          {submitting ? "..." : "Save"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function DraftPreview({ draft, stateId }: { draft: PipelineDraft; stateId: string }) {
   return (
     <div className="mt-4 p-5 bg-blue-50/40 border border-blue-100 rounded-xl space-y-5">
+      {/* Review panel */}
+      <DraftReviewPanel programId={draft.id} stateId={stateId} />
+
       {/* Draft header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -433,7 +576,7 @@ function ProgramPreview({ program, stateId, pipelineComparison, draft }: { progr
 
       {/* Draft preview */}
       {showDraft && draft ? (
-        <DraftPreview draft={draft} />
+        <DraftPreview draft={draft} stateId={stateId} />
       ) : (
         <>
           {/* Pipeline diffs */}

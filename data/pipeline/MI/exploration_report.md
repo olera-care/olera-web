@@ -1,6 +1,6 @@
 # Michigan Benefits Exploration Report
 
-> Generated 2026-04-07 by benefits-pipeline.js
+> Generated 2026-04-08 by benefits-pipeline.js
 > Cost: $0.000 (0 calls, 0s)
 
 ---
@@ -718,6 +718,52 @@ Our data differs from what official sources say:
 **Source:** https://www.elderlawofmi.org/micafe
 
 ---
+
+## Program Classification
+
+| Program | Type | Scope | Complexity |
+|---------|------|-------|------------|
+| MI Health Link | benefit | local | deep |
+| MI Choice Medicaid Waiver | benefit | state | deep |
+| Michigan Program for All-Inclusive Care  | benefit | local | deep |
+| Medicare Savings Programs (MSP) - QMB, S | benefit | federal | deep |
+| SNAP Food Assistance (MiCAFE for seniors | navigator | federal | simple |
+| Michigan LIHEAP (Energy Assistance) | benefit | federal | deep |
+| Weatherization Assistance Program (WAP) | benefit | federal | deep |
+| Michigan Medicare Assistance Program (MM | benefit | federal | deep |
+| Home Delivered Meals (Meals on Wheels) | benefit | federal | medium |
+| Respite Care (via MI Choice Waiver) | benefit | state | deep |
+| Senior Community Service Employment Prog | employment | federal | deep |
+| Legal Assistance for Seniors | resource | local | simple |
+| Nursing Home Long-Term Care Ombudsman | resource | federal | simple |
+| MI Choice Waiver Program | benefit | state | deep |
+| Home Help Program | benefit | state | deep |
+| MiCAFE (Michigan's Coordinated Access to | navigator | state | simple |
+
+**Types:** {"benefit":11,"navigator":2,"employment":1,"resource":2}
+**Scopes:** {"local":3,"state":5,"federal":8}
+**Complexity:** {"deep":11,"simple":4,"medium":1}
+
+## Content Drafts
+
+Generated 16 page drafts. Review in admin dashboard or `data/pipeline/MI/drafts.json`.
+
+- **MI Health Link** (benefit) — 3 content sections, 6 FAQs
+- **MI Choice Medicaid Waiver** (benefit) — 5 content sections, 6 FAQs
+- **Michigan Program for All-Inclusive Care for the Elderly (PACE)** (benefit) — 5 content sections, 6 FAQs
+- **Medicare Savings Programs (MSP) - QMB, SLMB, QI** (benefit) — 5 content sections, 6 FAQs
+- **SNAP Food Assistance (MiCAFE for seniors)** (navigator) — 1 content sections, 6 FAQs
+- **Michigan LIHEAP (Energy Assistance)** (benefit) — 5 content sections, 6 FAQs
+- **Weatherization Assistance Program (WAP)** (benefit) — 6 content sections, 6 FAQs
+- **Michigan Medicare Assistance Program (MMAP)** (benefit) — 5 content sections, 6 FAQs
+- **Home Delivered Meals (Meals on Wheels)** (benefit) — 4 content sections, 6 FAQs
+- **Respite Care (via MI Choice Waiver)** (benefit) — 4 content sections, 6 FAQs
+- **Senior Community Service Employment Program (SCSEP)** (employment) — 4 content sections, 6 FAQs
+- **Legal Assistance for Seniors** (resource) — 3 content sections, 6 FAQs
+- **Nursing Home Long-Term Care Ombudsman** (resource) — 1 content sections, 6 FAQs
+- **MI Choice Waiver Program** (benefit) — 6 content sections, 6 FAQs
+- **Home Help Program** (benefit) — 4 content sections, 6 FAQs
+- **MiCAFE (Michigan's Coordinated Access to Food for the Elderly)** (navigator) — 1 content sections, 6 FAQs
 
 ## What We Learned
 

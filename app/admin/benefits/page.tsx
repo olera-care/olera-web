@@ -298,15 +298,16 @@ function DraftPreview({ draft }: { draft: PipelineDraft }) {
       {draft.contentSections && draft.contentSections.length > 0 && (
         <div className="space-y-3">
           {draft.contentSections.map((section, i) => {
-            if (section.type === "callout") {
-              const toneColors = {
+            if (section.type === "callout" && "text" in section) {
+              const toneColors: Record<string, string> = {
                 warning: "bg-amber-50 border-amber-100 text-amber-700",
                 tip: "bg-blue-50 border-blue-100 text-blue-700",
                 info: "bg-gray-50 border-gray-200 text-gray-600",
               };
+              const tone = String("tone" in section ? section.tone : "info");
               return (
-                <div key={i} className={`text-xs p-2.5 rounded-lg border ${toneColors[(section as { tone: "warning" | "tip" | "info" }).tone] || toneColors.info}`}>
-                  {(section as { text: string }).text}
+                <div key={i} className={`text-xs p-2.5 rounded-lg border ${toneColors[tone] || toneColors.info}`}>
+                  {String(section.text)}
                 </div>
               );
             }

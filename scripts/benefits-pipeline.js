@@ -1641,6 +1641,14 @@ function generatePipelineDrafts() {
       .map((p) => {
         // Strip _raw and keep the structured draft content
         const { _raw, ...clean } = p;
+        // Clean income table rows — LLM sometimes adds extra fields
+        if (clean.structuredEligibility?.incomeTable) {
+          clean.structuredEligibility.incomeTable = clean.structuredEligibility.incomeTable.map((row) => ({
+            householdSize: row.householdSize,
+            monthlyLimit: row.monthlyLimit,
+            ...(row.annualLimit ? { annualLimit: row.annualLimit } : {}),
+          }));
+        }
         return clean;
       });
 

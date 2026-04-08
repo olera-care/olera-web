@@ -129,6 +129,44 @@ function ProviderOnboardingContent() {
     }
   }, [resendCooldown]);
 
+  // Pre-fill form from marketing page (sessionStorage)
+  useEffect(() => {
+    try {
+      const prefillKey = "olera_provider_search_prefill";
+      const stored = sessionStorage.getItem(prefillKey);
+      if (!stored) return;
+
+      const { searchQuery, locationQuery } = JSON.parse(stored) as {
+        searchQuery?: string;
+        locationQuery?: string;
+      };
+
+      // Clear after reading so it doesn't persist across sessions
+      sessionStorage.removeItem(prefillKey);
+
+      // Pre-fill organization name (if they typed a business name)
+      if (searchQuery?.trim()) {
+        setFormData(prev => ({ ...prev, orgName: searchQuery.trim() }));
+      }
+
+      // Pre-fill location (if they selected a city)
+      if (locationQuery?.trim()) {
+        setCityQuery(locationQuery.trim());
+        // Parse "City, ST" format
+        const parts = locationQuery.split(",").map(s => s.trim());
+        if (parts.length >= 2) {
+          setFormData(prev => ({
+            ...prev,
+            city: parts[0],
+            state: parts[1],
+          }));
+        }
+      }
+    } catch {
+      // sessionStorage unavailable or parse error — ignore
+    }
+  }, []);
+
   // ──────────────────────────────────────────────────────────
   // Form Handlers
   // ──────────────────────────────────────────────────────────

@@ -20,13 +20,14 @@ function getAdminClient() {
  * - provider_name: string
  * - claimant_name: string
  * - claimant_email: string
+ * - claimant_phone: string (optional)
  * - claimant_role: string
  * - reason: string
  */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { provider_id, provider_name, claimant_name, claimant_email, claimant_role, reason } = body;
+    const { provider_id, provider_name, claimant_name, claimant_email, claimant_phone, claimant_role, reason } = body;
 
     // Validate required fields
     if (!provider_id || !provider_name || !claimant_name?.trim() || !claimant_email?.trim() || !claimant_role?.trim() || !reason?.trim()) {
@@ -73,6 +74,7 @@ export async function POST(request: Request) {
       provider_name,
       claimant_name: claimant_name.trim(),
       claimant_email: normalizedEmail,
+      claimant_phone: claimant_phone?.trim() || null,
       claimant_role: claimant_role.trim(),
       reason: reason.trim(),
     });
@@ -87,9 +89,12 @@ export async function POST(request: Request) {
 
     // Slack alert (fire-and-forget)
     try {
+      const contactInfo = claimant_phone?.trim()
+        ? `${claimant_name.trim()} (${normalizedEmail}, ${claimant_phone.trim()})`
+        : `${claimant_name.trim()} (${normalizedEmail})`;
       const alert = slackDispute({
         providerName: provider_name,
-        reportedBy: `${claimant_name.trim()} (${normalizedEmail})`,
+        reportedBy: contactInfo,
         reason: reason.trim(),
       });
       await sendSlackAlert(alert.text, alert.blocks);

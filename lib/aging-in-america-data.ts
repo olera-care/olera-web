@@ -129,8 +129,8 @@ const season2Episodes: Episode[] = [
       "Rob Arnold is 36 and has already been a caregiver for his grandmother, his father, his brother, and now his mother. He runs an antique business founded in his father's name as a form of grief work. Rob speaks candidly about protecting your mental health, setting boundaries, and accepting that caregiving is not a battle you enter expecting to win.",
     pullQuote:
       "You're caregiving. You're not a savior. I can't save people. I'm not a surgeon. I'm not a doctor. What I can do is the best I can.",
-    youtubeId: "TODO_ROB_ARNOLD_ID", // TODO: get from YouTube channel
-    thumbnailUrl: getYouTubeThumbnail("TODO_ROB_ARNOLD_ID"),
+    youtubeId: "cUUpmCjd-Uk",
+    thumbnailUrl: getYouTubeThumbnail("cUUpmCjd-Uk"),
     season: 2,
     episodeNumber: 2,
     durationMinutes: 5,
@@ -142,7 +142,7 @@ const season2Episodes: Episode[] = [
       "Young Caregivers",
     ],
     releaseDate: "2026-04-07",
-    status: "coming-soon",
+    status: "published",
   },
   {
     slug: "jason-goldstein",

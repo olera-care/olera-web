@@ -263,7 +263,7 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                 </li>
                 <li>
                   <Link href="/for-providers/create" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    Claim Your Listing
+                    Find Your Organization
                   </Link>
                 </li>
                 <li>

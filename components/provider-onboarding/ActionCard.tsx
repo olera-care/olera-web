@@ -9,7 +9,7 @@ import Link from "next/link";
 // Types
 // ============================================================
 
-export type NotificationType = "lead" | "message" | "question" | "review";
+export type NotificationType = "lead" | "message" | "question" | "review" | "interview" | "claim" | "signup";
 
 interface FromProfile {
   display_name: string;
@@ -36,6 +36,20 @@ export interface NotificationData {
   rating?: number;
   comment?: string;
   reviewer_name?: string;
+  // Interview-specific
+  candidate_name?: string;
+  candidate_image?: string | null;
+  interview_format?: string;
+  proposed_time?: string;
+  notes?: string | null;
+  // Claim/signup-specific
+  provider_name?: string;
+  provider_city?: string | null;
+  provider_state?: string | null;
+  provider_image?: string | null;
+  // Activity counts (for richer claim/signup cards)
+  pending_leads?: number;
+  pending_questions?: number;
 }
 
 export type ActionCardState =
@@ -46,7 +60,10 @@ export type ActionCardState =
   // Notification states (from email links)
   | "notification-lead"
   | "notification-question"
-  | "notification-review";
+  | "notification-review"
+  | "notification-interview"
+  | "notification-claim"
+  | "notification-signup";
 
 interface ActionCardProps {
   provider: Provider;
@@ -104,6 +121,18 @@ const TOOLTIP_CONTENT: Record<ActionCardState, { text: string; showTos?: boolean
   },
   "notification-review": {
     text: "Someone left a review for your listing. Sign in to respond.",
+    showTos: true,
+  },
+  "notification-interview": {
+    text: "A caregiver candidate wants to schedule an interview. Sign in to respond.",
+    showTos: true,
+  },
+  "notification-claim": {
+    text: "Verify your identity to manage this listing on Olera.",
+    showTos: true,
+  },
+  "notification-signup": {
+    text: "Complete setup to start managing your organization on Olera.",
     showTos: true,
   },
 };
@@ -679,6 +708,265 @@ export default function ActionCard({
     );
   }
 
+  if (state === "notification-interview" && notificationData) {
+    const candidateName = notificationData.candidate_name || "A candidate";
+    const format = notificationData.interview_format || "flexible";
+    const proposedTime = notificationData.proposed_time;
+    const notes = notificationData.notes;
+    const timeAgo = formatTimeAgo(notificationData.created_at);
+
+    const FORMAT_LABELS: Record<string, string> = {
+      video: "Video call",
+      phone: "Phone call",
+      in_person: "In person",
+      flexible: "Flexible",
+    };
+
+    return (
+      <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
+        {/* Mascot + Header */}
+        <div className="flex items-start gap-4 mb-6">
+          <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+          <div>
+            <h3 className="text-lg font-display font-bold text-gray-900">
+              Someone wants to schedule an interview
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">{timeAgo}</p>
+          </div>
+        </div>
+
+        {/* Candidate info — flat */}
+        <div className="border-t border-gray-100 pt-5 mb-6">
+          <div className="flex items-center gap-3">
+            {notificationData.candidate_image ? (
+              <Image src={notificationData.candidate_image} alt={candidateName} width={40} height={40} className="w-10 h-10 rounded-full object-cover shrink-0" />
+            ) : (
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0" style={{ background: avatarGradient(candidateName) }}>
+                {getInitials(candidateName)}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-[15px] font-semibold text-gray-900">{candidateName}</p>
+              <p className="text-sm text-gray-500">Candidate</p>
+            </div>
+          </div>
+
+          {/* Interview details */}
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0" />
+              </svg>
+              {FORMAT_LABELS[format] || format}
+            </div>
+            {proposedTime && (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                </svg>
+                {new Date(proposedTime).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+              </div>
+            )}
+            {notes && (
+              <p className="text-[15px] text-gray-500 mt-2 leading-relaxed italic">
+                &ldquo;{notes}&rdquo;
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* CTA */}
+        {(isSignedIn || preVerifiedEmail) ? (
+          <Link
+            href="/provider/caregivers"
+            className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+          >
+            View interview
+          </Link>
+        ) : (
+          <>
+            <button
+              onClick={onClaimClick}
+              className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
+            >
+              Sign in to respond
+            </button>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              Olera connects families with quality senior care providers.
+            </p>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // RENDER: Claim State (provider claiming existing listing)
+  // ════════════════════════════════════════════════════════════
+
+  if (state === "notification-claim" && notificationData) {
+    const pName = notificationData.provider_name || provider.provider_name || "your organization";
+    const pCity = notificationData.provider_city || provider.city;
+    const pState = notificationData.provider_state || provider.state;
+    const locationLine = [pCity, pState].filter(Boolean).join(", ");
+    const pendingLeads = notificationData.pending_leads || 0;
+    const pendingQuestions = notificationData.pending_questions || 0;
+    const hasActivity = pendingLeads > 0 || pendingQuestions > 0;
+
+    return (
+      <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
+        {/* Mascot + Header */}
+        <div className="flex items-start gap-4 mb-6">
+          <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+          <div>
+            <h3 className="text-lg font-display font-bold text-gray-900">
+              You now manage {pName}
+            </h3>
+            {locationLine && (
+              <p className="text-sm text-gray-500 mt-0.5">{locationLine}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="border-t border-gray-100 pt-5 mb-6">
+          {hasActivity ? (
+            <div className="space-y-3">
+              <p className="text-[15px] text-gray-600 font-medium">Families are waiting to hear from you:</p>
+              <div className="flex flex-wrap gap-3">
+                {pendingLeads > 0 && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-primary-50 rounded-lg">
+                    <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                    </svg>
+                    <span className="text-sm font-semibold text-primary-700">
+                      {pendingLeads} {pendingLeads === 1 ? "family" : "families"} reached out
+                    </span>
+                  </div>
+                )}
+                {pendingQuestions > 0 && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-lg">
+                    <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-sm font-semibold text-amber-700">
+                      {pendingQuestions} {pendingQuestions === 1 ? "question" : "questions"} to answer
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="text-[15px] text-gray-600 leading-relaxed">
+              Your listing is live on Olera. Start responding to families and updating your profile.
+            </p>
+          )}
+        </div>
+
+        {/* CTA */}
+        {(isSignedIn || preVerifiedEmail) ? (
+          <Link
+            href="/provider"
+            className="block w-full py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] text-center"
+          >
+            Go to Dashboard
+          </Link>
+        ) : (
+          <>
+            <button
+              onClick={onClaimClick}
+              className="w-full py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px]"
+            >
+              Sign in to manage
+            </button>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              Olera connects families with quality senior care providers.
+            </p>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // RENDER: Signup State (new organization setup)
+  // ════════════════════════════════════════════════════════════
+
+  if (state === "notification-signup" && notificationData) {
+    const orgName = notificationData.provider_name || provider.provider_name || "your organization";
+    const pCity = notificationData.provider_city || provider.city;
+
+    return (
+      <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
+        {/* Mascot + Header */}
+        <div className="flex items-start gap-4 mb-6">
+          <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+          <div>
+            <h3 className="text-lg font-display font-bold text-gray-900">
+              {orgName} is set up
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Your listing is ready on Olera
+            </p>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-100 pt-5 mb-6">
+          <p className="text-[15px] text-gray-600 mb-4">
+            {pCity ? `Families in ${pCity} are searching for care.` : "Families are actively searching for care."} Complete your profile to stand out:
+          </p>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2.5 text-sm text-gray-600">
+              <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
+                <svg className="w-3 h-3 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span>Add photos of your facility</span>
+            </div>
+            <div className="flex items-center gap-2.5 text-sm text-gray-600">
+              <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
+                <svg className="w-3 h-3 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span>Describe your services</span>
+            </div>
+            <div className="flex items-center gap-2.5 text-sm text-gray-600">
+              <div className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
+                <svg className="w-3 h-3 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span>Set your availability</span>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA */}
+        {(isSignedIn || preVerifiedEmail) ? (
+          <Link
+            href="/provider"
+            className="block w-full py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] text-center"
+          >
+            Complete Your Profile
+          </Link>
+        ) : (
+          <>
+            <button
+              onClick={onClaimClick}
+              className="w-full py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px]"
+            >
+              Sign in to get started
+            </button>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              Olera connects families with quality senior care providers.
+            </p>
+          </>
+        )}
+      </div>
+    );
+  }
+
   // ════════════════════════════════════════════════════════════
   // RENDER: Pre-verified State (from email campaign token)
   // ════════════════════════════════════════════════════════════
@@ -750,7 +1038,8 @@ export default function ActionCard({
   // ════════════════════════════════════════════════════════════
 
   if (state === "already-claimed") {
-    // Compact view - show "Dispute" (primary) + "Sign in" (secondary teal link)
+    // Compact view - show "Dispute" (primary) + "Sign in" (secondary)
+    // Users landing here without a token are likely NOT the owner (owners come via email link)
     if (!showDisputeForm) {
       return (
         <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>

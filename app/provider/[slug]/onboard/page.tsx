@@ -38,6 +38,11 @@ function getActionRedirectUrl(
         return `/provider/qna?id=${actionId}`;
       case "review":
         return `/provider/reviews?id=${actionId}`;
+      case "interview":
+        return "/provider/caregivers";
+      case "claim":
+      case "signup":
+        return "/provider";
     }
   }
   return "/provider";
@@ -49,12 +54,15 @@ export default function ProviderOnboardPage() {
   const providerIdParam = searchParams.get("provider_id");
   const stateParam = searchParams.get("state") as ActionCardState | null;
   // Action params for email notifications (lead/message/review/question) or campaign
-  const actionParam = searchParams.get("action") as NotificationType | "campaign" | null;
+  const actionParam = searchParams.get("action") as NotificationType | "campaign" | "claim" | "signup" | null;
   const actionIdParam = searchParams.get("actionId");
   // Token param for marketing campaign emails (pre-verified flow)
   // Named "otk" (one-time key) instead of "token" to avoid Apple Mail's
   // Link Tracking Protection which strips params named "token" from URLs
   const tokenParam = searchParams.get("otk");
+  // Pending claim flag - when true, claim_state will be "pending" for manual review
+  // (used when user claims with alternate email they don't have access to the email on file)
+  const pendingClaimParam = searchParams.get("pending") === "true";
   const router = useRouter();
   const { user, account, profiles, openAuth, refreshAccountData, switchProfile } = useAuth();
 
@@ -67,6 +75,9 @@ export default function ProviderOnboardPage() {
         lead: "connection_request",
         review: "new_review",
         question: "question_received",
+        interview: "interview_request",
+        claim: "listing_claimed",
+        signup: "account_created",
       };
       fetch("/api/activity/track", {
         method: "POST",
@@ -193,7 +204,26 @@ export default function ProviderOnboardPage() {
       // Fetch notification data if action params provided (lead/review/question from email)
       // Track locally so we can use it later in this same function (state isn't readable until re-render)
       let fetchedNotificationData: NotificationData | null = null;
-      if (actionParam && actionIdParam) {
+
+      // For claim/signup, we don't need actionId - provider info IS the notification data
+      // Handle these separately since their URLs don't include actionId
+      // Note: pending_leads and pending_questions will be populated by validate-token API
+      if (actionParam === "claim" || actionParam === "signup") {
+        fetchedNotificationData = {
+          type: actionParam,
+          id: foundProvider.provider_id || foundProvider.slug || slug,
+          created_at: new Date().toISOString(),
+          provider_name: foundProvider.provider_name,
+          provider_city: foundProvider.city || null,
+          provider_state: foundProvider.state || null,
+          provider_image: foundProvider.provider_images?.split("|")[0]?.trim() || null,
+          // Activity counts will be populated by validate-token API (defaults to 0 in UI)
+          pending_leads: 0,
+          pending_questions: 0,
+        };
+        setNotificationData(fetchedNotificationData);
+      } else if (actionParam && actionIdParam) {
+        // For lead/question/review/interview, we need to fetch data using actionId
         try {
           if (actionParam === "lead") {
             // Fetch connection (lead) data
@@ -269,6 +299,26 @@ export default function ProviderOnboardPage() {
                 reviewer_name: review.reviewer_name,
               };
             }
+          } else if (actionParam === "interview") {
+            // Fetch interview data with student details
+            const { data: interview } = await supabase
+              .from("interviews")
+              .select("id, type, proposed_time, notes, status, created_at, student:business_profiles!interviews_student_profile_id_fkey(display_name, image_url)")
+              .eq("id", actionIdParam)
+              .single();
+            if (interview) {
+              const student = interview.student as unknown as { display_name: string; image_url: string | null } | null;
+              fetchedNotificationData = {
+                type: "interview",
+                id: interview.id,
+                created_at: interview.created_at,
+                candidate_name: student?.display_name || "A candidate",
+                candidate_image: student?.image_url || null,
+                interview_format: interview.type,
+                proposed_time: interview.proposed_time,
+                notes: interview.notes,
+              };
+            }
           }
         } catch (err) {
           console.error("[ProviderOnboard] Failed to fetch notification data:", err);
@@ -313,6 +363,8 @@ export default function ProviderOnboardPage() {
               const notificationStateMap: Record<string, ActionCardState> = {
                 lead: "notification-lead", message: "notification-lead",
                 question: "notification-question", review: "notification-review",
+                interview: "notification-interview",
+                claim: "notification-claim", signup: "notification-signup",
               };
 
               // Use notification data from validate-token (fetched server-side
@@ -390,9 +442,10 @@ export default function ProviderOnboardPage() {
                       body: JSON.stringify({
                         providerId: foundProvider.provider_id,
                         claimSession: claimSessionData.sessionId,
+                        pendingClaim: pendingClaimParam, // For alternate email claims
                       }),
                     });
-                    console.log("[OneClick] Finalize:", finalizeRes.ok ? "success" : finalizeRes.status);
+                    console.log("[OneClick] Finalize:", finalizeRes.ok ? "success" : finalizeRes.status, pendingClaimParam ? "(pending)" : "");
                   }
 
                   // Refresh auth state + switch to provider profile
@@ -428,7 +481,7 @@ export default function ProviderOnboardPage() {
             // For campaign or fallback: show pre-verified state
             setPreVerifiedEmail(verifiedEmail);
             setActionCardState(actionParam && actionParam !== "campaign"
-              ? (({ lead: "notification-lead", message: "notification-lead", question: "notification-question", review: "notification-review" } as Record<string, ActionCardState>)[actionParam] || "pre-verified")
+              ? (({ lead: "notification-lead", message: "notification-lead", question: "notification-question", review: "notification-review", interview: "notification-interview", claim: "notification-claim", signup: "notification-signup" } as Record<string, ActionCardState>)[actionParam] || "pre-verified")
               : "pre-verified"
             );
             setStep("dashboard");
@@ -480,14 +533,16 @@ export default function ProviderOnboardPage() {
         // If they arrived from a notification email, show the contextual card
         // (lead/question/review preview) instead of the generic "already claimed" dispute card.
         // This lets the actual owner verify + sign in to respond.
-        if (actionParam && fetchedNotificationData) {
+        // Note: claim/signup are excluded — those notification states require a valid token.
+        // Without a token on a claimed listing, show already-claimed (handled below).
+        if (actionParam && fetchedNotificationData && actionParam !== "claim" && actionParam !== "signup") {
           const notificationStateMap: Record<string, ActionCardState> = {
             lead: "notification-lead",
             message: "notification-lead",
             question: "notification-question",
             review: "notification-review",
           };
-          setActionCardState(notificationStateMap[actionParam] || "claim-form");
+          setActionCardState(notificationStateMap[actionParam] || "already-claimed");
           setStep("dashboard");
           return;
         }
@@ -592,6 +647,7 @@ export default function ProviderOnboardPage() {
         body: JSON.stringify({
           providerId: pid,
           claimSession,
+          pendingClaim: pendingClaimParam, // For alternate email claims
         }),
       });
       const result = await res.json();

@@ -883,3 +883,40 @@ export function interviewRequestEmail(opts: {
     </p>
   `);
 }
+/** Email to provider when they request to claim an existing listing */
+export function claimVerificationEmail(opts: {
+  providerName: string;
+  verifyUrl: string;
+  providerSlug?: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Verify your email to manage ${opts.providerName}</h1>
+    ${trustIntro()}
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      Click the button below to verify your email and start managing your listing on Olera.
+    </p>
+    <div style="margin:0 0 24px;">${button("Manage Your Listing", opts.verifyUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      This link expires in 72 hours. If you didn't request this, you can safely ignore this email.
+    </p>
+    ${offRampBlock(opts.providerSlug)}
+  `);
+}
+
+/** Email to provider when they create a new organization on Olera */
+export function signupVerificationEmail(opts: {
+  orgName: string;
+  verifyUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Verify your email to set up ${opts.orgName}</h1>
+    ${trustIntro()}
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.5;">
+      You're one step away from setting up your organization on Olera and connecting with families looking for care.
+    </p>
+    <div style="margin:0 0 24px;">${button("Set Up Your Page", opts.verifyUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
+      This link expires in 72 hours. If you didn't request this, you can safely ignore this email.
+    </p>
+  `);
+}

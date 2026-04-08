@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendSlackAlert, slackDispute } from "@/lib/slack";
 
@@ -14,33 +13,34 @@ function getAdminClient() {
  * POST /api/disputes
  *
  * Submits an ownership dispute for a claimed provider listing.
+ * Public endpoint - no authentication required.
  *
  * Request body:
  * - provider_id: string
  * - provider_name: string
  * - claimant_name: string
+ * - claimant_email: string
  * - claimant_role: string
  * - reason: string
  */
 export async function POST(request: Request) {
   try {
-    // Authenticate
-    const supabase = await createServerClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
-
     const body = await request.json();
-    const { provider_id, provider_name, claimant_name, claimant_role, reason } = body;
+    const { provider_id, provider_name, claimant_name, claimant_email, claimant_role, reason } = body;
 
-    if (!provider_id || !provider_name || !claimant_name?.trim() || !claimant_role?.trim() || !reason?.trim()) {
+    // Validate required fields
+    if (!provider_id || !provider_name || !claimant_name?.trim() || !claimant_email?.trim() || !claimant_role?.trim() || !reason?.trim()) {
       return NextResponse.json(
         { error: "All fields are required." },
+        { status: 400 }
+      );
+    }
+
+    // Validate email format
+    const normalizedEmail = claimant_email.trim().toLowerCase();
+    if (!normalizedEmail.includes("@") || !normalizedEmail.includes(".")) {
+      return NextResponse.json(
+        { error: "Please provide a valid email address." },
         { status: 400 }
       );
     }
@@ -53,12 +53,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Rate limit: max 3 disputes per user per hour
+    // Rate limit: max 3 disputes per email per hour
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const { count } = await db
       .from("disputes")
       .select("*", { count: "exact", head: true })
-      .eq("user_id", user.id)
+      .eq("claimant_email", normalizedEmail)
       .gte("created_at", oneHourAgo);
 
     if (count !== null && count >= 3) {
@@ -72,9 +72,9 @@ export async function POST(request: Request) {
       provider_id,
       provider_name,
       claimant_name: claimant_name.trim(),
+      claimant_email: normalizedEmail,
       claimant_role: claimant_role.trim(),
       reason: reason.trim(),
-      user_id: user.id,
     });
 
     if (insertErr) {
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     try {
       const alert = slackDispute({
         providerName: provider_name,
-        reportedBy: claimant_name.trim(),
+        reportedBy: `${claimant_name.trim()} (${normalizedEmail})`,
         reason: reason.trim(),
       });
       await sendSlackAlert(alert.text, alert.blocks);

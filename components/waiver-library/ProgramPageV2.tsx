@@ -10,6 +10,7 @@ import type {
 } from "@/data/waiver-library";
 import { ServiceAreasMap } from "@/components/waiver-library/ServiceAreasMapLoader";
 import { CityBadge } from "@/components/waiver-library/CityBadge";
+import { useSavedPrograms } from "@/hooks/use-saved-programs";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
@@ -319,6 +320,45 @@ interface ProgramPageV2Props {
   state: StateData;
 }
 
+function BookmarkButton({ program, state }: { program: WaiverProgram; state: StateData }) {
+  const { isSaved, toggleSave } = useSavedPrograms();
+  const saved = isSaved(program.id);
+
+  return (
+    <button
+      onClick={() =>
+        toggleSave({
+          programId: program.id,
+          stateId: state.id,
+          name: program.name,
+          shortName: program.shortName,
+          programType: program.programType,
+          savingsRange: program.savingsRange || undefined,
+        })
+      }
+      className="group p-2 -m-2 rounded-lg hover:bg-gray-100 transition-colors"
+      aria-label={saved ? "Remove from saved programs" : "Save this program"}
+      title={saved ? "Saved" : "Save program"}
+    >
+      <svg
+        className={`w-5 h-5 transition-colors duration-150 ${
+          saved ? "text-primary-600 fill-primary-600" : "text-gray-300 group-hover:text-gray-400"
+        }`}
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={saved ? 0 : 1.5}
+        fill={saved ? "currentColor" : "none"}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
+        />
+      </svg>
+    </button>
+  );
+}
+
 export function ProgramPageV2({ program, state }: ProgramPageV2Props) {
   const isFederal = program.geographicScope?.type === "federal";
   const programType = program.programType || "benefit";
@@ -361,10 +401,13 @@ export function ProgramPageV2({ program, state }: ProgramPageV2Props) {
             <ScopeBadge scope={isFederal ? "Federal" : "State"} />
           </div>
 
-          {/* Title */}
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 font-serif leading-tight">
-            {program.name}
-          </h1>
+          {/* Title + bookmark */}
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 font-serif leading-tight">
+              {program.name}
+            </h1>
+            <BookmarkButton program={program} state={state} />
+          </div>
 
           {/* Savings — quiet, not a hero element */}
           {program.savingsRange && (

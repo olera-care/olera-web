@@ -21,12 +21,15 @@
     - [x] Slash command updated for 6-phase lifecycle
     - [x] Self-review: 4 bugs found and fixed (classify misclassification, prompt bloat, token limits, JSON template)
     - [x] Build fix: LLM extra fields in income table rows stripped by generator
-    - [ ] Page component taste pass (shape variants, typography, spacing, tone) — NEXT SESSION
-  - **Phase 2: First Test States** (next)
+    - [x] Page component taste pass — ProgramPageV2 component built and deployed
+  - **Phase 2: First Test States + Page Refinement** (in progress)
     - [x] MI draft phase run successfully (16/16 programs, $0.30)
+    - [x] MI Choice Waiver applied as first v2 test program with full draft content
+    - [x] V2 page live: content-forward layout, prose-width, no dark hero, no card soup
+    - [x] Taste refinements: asset limits as prose, callouts merged, pre-footer hidden
+    - [ ] Save program to profile (auth-gated bookmark on v2 pages) — IN PROGRESS
     - [ ] Run pipeline on FL or CA
     - [ ] Review draft quality with Chantel
-    - [ ] Page taste pass using draft output
 
 - **Admin Panel 2.0 QA Fixes** (branch: `noble-yalow`) — MERGED (PR #509)
   - All code items complete. Only remaining: purchase Perplexity AI premium (non-code)
@@ -59,9 +62,9 @@
 
 ## Next Up
 
-1. **Benefits Pipeline v2** — page component taste pass (shape variants per programType)
-2. Review MI draft quality in dashboard, iterate on content voice
-3. Run pipeline on FL or CA
+1. **Save program to profile** — auth-gated bookmark icon on v2 pages (current)
+2. Run pipeline on FL or CA
+3. Review draft quality with Chantel
 4. Seed TX: `/api/admin/seed-sbf-programs?state=TX&confirm=true`
 4. MedJobs candidates detail page taste pass
 5. SEO city-specific content sections
@@ -81,6 +84,8 @@
 | 2026-04-08 | Admin dashboard gets summary bar + content quality indicators | TJ had no visibility into 1,145 programs (98.7% template scaffolding). Dashboard becomes operational command center for benefits content operation. |
 | 2026-04-08 | Draft preview in dashboard, not separate tool | TJ: "The draft should be viewable from the admin dashboard; that's the UI/UX-friendly approach." Chantel won't read JSON files. |
 | 2026-04-08 | Anthropic API key set up for pipeline draft phase | Key `olera-benefits-pipeline` in Olera org, Default workspace. $15 credits added. Key in `~/Desktop/olera-web/.env.local`. |
+| 2026-04-08 | V2 page is content-forward, not card-based | Design thesis: reads like a guide from someone who cares, not a dashboard of equally-weighted cards. Typography creates hierarchy, decoration is rare and meaningful. |
+| 2026-04-08 | Save program feature is auth-gated | No localStorage fallback. If user has no account, prompt sign-in. Follows existing saved providers pattern but requires auth. |
 |------|----------|-----------|
 | 2026-04-06 | Exploration before taxonomy | 5-shape taxonomy derived from 12 TX programs was too small a sample. Pipeline observes what data exists, taxonomy emerges from patterns across states. |
 | 2026-04-06 | Pipeline auto-generates dashboard data | `pipeline-summary.ts` is auto-written after each run. No manual step between pipeline and dashboard. |
@@ -109,6 +114,34 @@
 ---
 
 ## Session Log
+
+### 2026-04-08 (Session 70b) — V2 Page Design + Save Program Feature
+
+**Branch:** `eager-ride` | **Latest: `09177d30`**
+
+**ProgramPageV2 component** (`components/waiver-library/ProgramPageV2.tsx`):
+- Content-forward layout: light header with serif title, no dark hero banner
+- Single-column prose-width (max-w-2xl), wider for maps/tables
+- Section labels as quiet uppercase markers
+- Structured eligibility with income tables, asset limits as prose, functional requirements
+- Application steps as flowing content with numbered circles
+- Callouts merged into "Things to know" prose section
+- Clean FAQ as details/summary
+- No bottom CTA banner, no pre-footer (hidden via ConditionalFooter)
+
+**Applied MI Choice Waiver** as first v2 test program with full pipeline draft content.
+
+**Taste refinements based on TJ review:**
+- Asset limits: redesigned from colored comparison boxes → natural language prose
+- Stacked callout boxes → merged into single "Things to know" section
+- Processing/waitlist metadata → flowing paragraph after steps
+- Pre-footer hidden on all waiver-library pages
+
+**Commits:** `3f6ca8a6` (v2 page + test program) → `34fa0e10` (asset limits prose) → `09177d30` (callouts + pre-footer)
+
+**Next:** Save program to profile feature (auth-gated, Airbnb bookmark pattern)
+
+---
 
 ### 2026-04-08 (Session 70) — Benefits Pipeline v2: Content Production System Design
 

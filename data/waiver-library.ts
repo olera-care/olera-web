@@ -26,6 +26,73 @@ export interface MapPin {
   lng: number;
 }
 
+// ─── Pipeline v2: Classification & Content Types ─────────────────────────────
+
+export type ProgramType = "benefit" | "resource" | "navigator" | "employment";
+export type ProgramComplexity = "deep" | "medium" | "simple";
+export type ContentStatus = "pipeline-draft" | "under-review" | "approved" | "published";
+
+export interface GeographicScope {
+  type: "federal" | "state" | "local";
+  stateVariation?: boolean;
+  localEntities?: LocalEntity[];
+}
+
+export interface LocalEntity {
+  name: string;
+  type: "county" | "city" | "service-area" | "region";
+  provider?: string;
+  phone?: string;
+  address?: string;
+  url?: string;
+}
+
+export interface IncomeRow {
+  householdSize: number;
+  monthlyLimit: number;
+  annualLimit?: number;
+}
+
+export interface AssetLimits {
+  individual?: number;
+  couple?: number;
+  countedAssets?: string[];
+  exemptAssets?: string[];
+  homeEquityCap?: number;
+}
+
+export interface ApplicationGuide {
+  method: "online" | "phone" | "mail" | "in-person" | "multiple";
+  summary: string;
+  steps?: ApplicationStep[];
+  processingTime?: string;
+  waitlist?: string;
+  tip?: string;
+  urls?: { label: string; url: string }[];
+}
+
+export interface StructuredEligibility {
+  summary: string[];
+  incomeTable?: IncomeRow[];
+  assetLimits?: AssetLimits;
+  functionalRequirement?: string;
+  ageRequirement?: string;
+  otherRequirements?: string[];
+  povertyLevelReference?: string;
+}
+
+export type ContentSection =
+  | { type: "prose"; heading: string; body: string }
+  | { type: "tier-comparison"; heading?: string; tiers: { name: string; description: string; incomeLimit?: string; coverage?: string }[] }
+  | { type: "income-table"; heading?: string; rows: IncomeRow[]; footnote?: string }
+  | { type: "county-directory"; heading?: string; offices: LocalEntity[] }
+  | { type: "provider-list"; heading?: string; providers: { name: string; area: string; phone?: string; url?: string }[] }
+  | { type: "what-counts"; heading?: string; included: string[]; excluded: string[] }
+  | { type: "documents"; heading?: string; categories: { name: string; items: string[] }[] }
+  | { type: "callout"; tone: "info" | "warning" | "tip"; text: string };
+
+// ─── WaiverProgram ───────────────────────────────────────────────────────────
+
 export interface WaiverProgram {
   id: string;
   name: string;
@@ -52,6 +119,23 @@ export interface WaiverProgram {
   verifiedBy?: string; // e.g., "chantel", "pipeline"
   savingsSource?: string; // Where the savings estimate came from
   savingsVerified?: boolean; // true = researched, false/undefined = category estimate
+
+  // Pipeline v2: Classification (optional — old programs won't have these)
+  programType?: ProgramType;
+  geographicScope?: GeographicScope;
+  complexity?: ProgramComplexity;
+
+  // Pipeline v2: Rich content (optional — replaces flat fields when present)
+  applicationGuide?: ApplicationGuide;
+  structuredEligibility?: StructuredEligibility;
+  contentSections?: ContentSection[];
+
+  // Pipeline v2: Content lifecycle
+  contentStatus?: ContentStatus;
+  draftedAt?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  contentNotes?: string;
 }
 
 export interface StateData {

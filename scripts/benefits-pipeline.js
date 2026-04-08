@@ -1,22 +1,24 @@
 #!/usr/bin/env node
 
 /**
- * Senior Benefits Pipeline — Exploration-First
+ * Senior Benefits Pipeline — Content Production System
  *
- * Explores benefit programs for a state with open-ended questions,
- * compares against existing data, and produces human-readable reports.
- * The taxonomy emerges from exploration — it's not predetermined.
+ * Full lifecycle: discovers programs, researches them deeply, classifies
+ * their type and complexity, generates page content drafts, and produces
+ * human-readable reports. The taxonomy emerges from exploration.
  *
  * Usage:
  *   node scripts/benefits-pipeline.js --state TX                  # dry-run
- *   node scripts/benefits-pipeline.js --state MI --run             # explore Michigan
+ *   node scripts/benefits-pipeline.js --state MI --run             # full pipeline
  *   node scripts/benefits-pipeline.js --state MI --phase explore   # explore only
- *   node scripts/benefits-pipeline.js --state MI --phase dive --run # deep dive only
+ *   node scripts/benefits-pipeline.js --state MI --phase draft --run # draft only
  *
  * Phases:
  *   explore   — Survey the landscape: what programs exist?
  *   dive      — Deep dive each program: what data matters?
  *   compare   — Cross-reference with our existing data, surface diffs
+ *   classify  — Determine program type, geographic scope, complexity
+ *   draft     — Generate structured page content (requires ANTHROPIC_API_KEY)
  *   report    — Generate human-readable markdown report
  */
 
@@ -62,20 +64,24 @@ function parseArgs() {
 
 function printUsage() {
   console.log(`
-  Senior Benefits Pipeline — Exploration-First
+  Senior Benefits Pipeline — Content Production System
 
   Usage:
     node scripts/benefits-pipeline.js --state MI              # dry-run
-    node scripts/benefits-pipeline.js --state MI --run        # explore
+    node scripts/benefits-pipeline.js --state MI --run        # full pipeline
     node scripts/benefits-pipeline.js --state MI --phase dive --run
 
   Phases:
     explore   Survey the landscape: what programs exist?
     dive      Deep dive: what data matters for each program?
     compare   Cross-reference with our existing data
+    classify  Determine program type, geographic scope, complexity
+    draft     Generate structured page content (needs ANTHROPIC_API_KEY)
     report    Generate human-readable markdown report
 
-  The taxonomy emerges from exploration — it's not predetermined.
+  Environment:
+    PERPLEXITY_API_KEY   Required for explore + dive phases
+    ANTHROPIC_API_KEY    Required for draft phase (content generation)
   `);
 }
 
@@ -738,10 +744,384 @@ function phaseCompare(stateCode, stateName, diveData, existingPrograms) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PHASE 4: REPORT — Human-readable markdown
+// PHASE 4: CLASSIFY — Determine program type, geographic scope, complexity
 // ═══════════════════════════════════════════════════════════════════════════
 
-function phaseReport(stateCode, stateName, exploreData, diveData, compareData) {
+function phaseClassify(stateCode, stateName, diveData, compareData) {
+  console.log(`\n  ━━━ CLASSIFY: What kind of program is each one? ━━━\n`);
+
+  const divePrograms = diveData?.programs?.filter((p) => !p._error && !p._parseError) || [];
+  if (!divePrograms.length) {
+    console.log(`  No dive data to classify.`);
+    return null;
+  }
+
+  const comparisons = compareData?.comparisons || [];
+  const results = [];
+
+  for (const prog of divePrograms) {
+    const name = (prog.name || "Unknown").toLowerCase();
+    const compare = comparisons.find((c) => c.name === prog.name);
+    const benefitType = prog.benefits?.type || compare?.benefitType || "unknown";
+    const geo = prog.geography || {};
+    const app = prog.application || {};
+    const elig = prog.eligibility || {};
+
+    // ── Program Type ──
+    let programType = "benefit";
+
+    // Resources: no income test, no application, advocacy/information services
+    const isResource =
+      benefitType === "advocacy" ||
+      (!elig.income_limits && !elig.asset_limits && !elig.age) ||
+      /ombudsman|legal|hotline|counseling|information|advocacy/i.test(prog.name || "") ||
+      (prog.benefits?.value && /free|no cost|confidential|advocacy/i.test(prog.benefits.value));
+
+    // Navigators: help access OTHER programs
+    const isNavigator =
+      /micafe|211|area agency|aging.*disability.*resource|adrc/i.test(name) ||
+      (prog.data_shape_notes && /assist.*apply|help.*access|connect.*program/i.test(prog.data_shape_notes));
+
+    // Employment
+    const isEmployment = benefitType === "employment" || /scsep|employment|job training/i.test(name);
+
+    if (isNavigator) programType = "navigator";
+    else if (isEmployment) programType = "employment";
+    else if (isResource) programType = "resource";
+    else programType = "benefit";
+
+    // ── Geographic Scope ──
+    const localEntities = [];
+    const offices = geo.offices_or_providers || [];
+
+    if (Array.isArray(offices)) {
+      for (const o of offices) {
+        if (typeof o === "string") {
+          localEntities.push({ name: o, type: "service-area" });
+        } else if (o && typeof o === "object") {
+          localEntities.push({
+            name: o.name || o.location || String(o),
+            type: o.type || "service-area",
+            phone: o.phone,
+            address: o.address,
+            url: o.url,
+          });
+        }
+      }
+    }
+
+    let geoType = "state";
+    const isFederal = /snap|medicare|liheap|weatherization|scsep|ombudsman|meals on wheels|ship/i.test(name);
+    const isLocal = !geo.statewide && (
+      geo.restrictions ||
+      localEntities.length > 0 ||
+      /county|region|service area|only available in/i.test(geo.regional_variations || "") ||
+      /county|region|limited/i.test(geo.restrictions || "")
+    );
+
+    if (isFederal) geoType = "federal";
+    else if (isLocal) geoType = "local";
+
+    const geographicScope = {
+      type: geoType,
+      stateVariation: geoType === "federal",
+      localEntities: localEntities.length > 0 ? localEntities : undefined,
+    };
+
+    // ── Complexity ──
+    let complexity = "medium";
+
+    const hasIncomeTiers = elig.income_limits && (
+      typeof elig.income_limits === "object" ||
+      /household|tier|level|qmb|slmb/i.test(String(elig.income_limits))
+    );
+    const hasAssetLimits = !!elig.asset_limits;
+    const hasRegionalVariation = !!geo.regional_variations;
+    const hasFunctionalReq = elig.other_requirements?.some((r) =>
+      /nursing facility|level of care|functional|assessment|locd/i.test(r)
+    );
+    const hasMultipleTiers = prog.benefits?.varies_by === "priority_tier" ||
+      /qmb.*slmb|tier|level/i.test(String(prog.benefits?.value || ""));
+
+    const complexitySignals = [hasIncomeTiers, hasAssetLimits, hasRegionalVariation, hasFunctionalReq, hasMultipleTiers].filter(Boolean).length;
+
+    if (programType === "resource" || programType === "navigator") {
+      complexity = "simple";
+    } else if (complexitySignals >= 3) {
+      complexity = "deep";
+    } else if (complexitySignals >= 1) {
+      complexity = "medium";
+    } else {
+      complexity = "simple";
+    }
+
+    // ── Recommended Content Sections ──
+    const contentSectionTypes = [];
+
+    if (programType === "benefit") {
+      contentSectionTypes.push("prose"); // intro/overview
+      if (hasIncomeTiers) contentSectionTypes.push("income-table");
+      if (hasAssetLimits) contentSectionTypes.push("what-counts");
+      if (hasMultipleTiers) contentSectionTypes.push("tier-comparison");
+      if (app.documents?.length > 0) contentSectionTypes.push("documents");
+      if (localEntities.length > 0 || offices.length > 0) contentSectionTypes.push("county-directory");
+      if (app.waitlist) contentSectionTypes.push("callout");
+    } else if (programType === "resource") {
+      contentSectionTypes.push("prose");
+      if (localEntities.length > 0) contentSectionTypes.push("county-directory");
+    } else if (programType === "navigator") {
+      contentSectionTypes.push("prose");
+      contentSectionTypes.push("provider-list");
+    } else if (programType === "employment") {
+      contentSectionTypes.push("prose");
+      if (hasIncomeTiers) contentSectionTypes.push("income-table");
+      if (app.documents?.length > 0) contentSectionTypes.push("documents");
+    }
+
+    results.push({
+      name: prog.name,
+      programType,
+      geographicScope,
+      complexity,
+      recommendedSections: contentSectionTypes,
+      signals: {
+        benefitType,
+        hasIncomeTiers,
+        hasAssetLimits,
+        hasRegionalVariation,
+        hasFunctionalReq,
+        hasMultipleTiers,
+        isStatewide: geo.statewide,
+      },
+    });
+
+    console.log(`  ${prog.name.slice(0, 45).padEnd(45)} → ${programType.padEnd(10)} ${geoType.padEnd(8)} ${complexity}`);
+  }
+
+  // Summary
+  const types = {};
+  const scopes = {};
+  const complexities = {};
+  for (const r of results) {
+    types[r.programType] = (types[r.programType] || 0) + 1;
+    scopes[r.geographicScope.type] = (scopes[r.geographicScope.type] || 0) + 1;
+    complexities[r.complexity] = (complexities[r.complexity] || 0) + 1;
+  }
+
+  console.log(`\n  Types: ${JSON.stringify(types)}`);
+  console.log(`  Scopes: ${JSON.stringify(scopes)}`);
+  console.log(`  Complexity: ${JSON.stringify(complexities)}`);
+
+  return {
+    state: stateCode,
+    stateName,
+    classifiedAt: new Date().toISOString(),
+    total: results.length,
+    typeSummary: types,
+    scopeSummary: scopes,
+    complexitySummary: complexities,
+    programs: results,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 5: DRAFT — Generate page content for each program
+// ═══════════════════════════════════════════════════════════════════════════
+
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+
+async function claudeChat(prompt, maxTokens = 4096) {
+  await rateLimiter.wait();
+
+  const resp = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: maxTokens,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`Claude ${resp.status}: ${text.slice(0, 200)}`);
+  }
+
+  const json = await resp.json();
+  return json.content?.[0]?.text || "";
+}
+
+const CONTENT_VOICE_PROMPT = `You are writing benefit program page content for Olera, a senior care platform. Your audience is family caregivers — adult children helping aging parents navigate government programs.
+
+VOICE PRINCIPLES (non-negotiable):
+1. Lead with the caregiver's need, not the program definition. Not "SNAP is a federal nutrition program." Instead: "If your parent is 60+ and on a fixed income, they may qualify for $100–300/month toward groceries."
+2. Use causal chains. "Because PACE covers all medical care under one program, your parent won't need to coordinate between separate providers — one team manages everything."
+3. Specific evidence immediately after claims. Don't say "income limits apply." Say "Income limit: $2,152/month for a single person (2026)."
+4. Clarify jargon inline in parentheses. "Must meet Nursing Facility Level of Care (a clinical assessment of whether your parent needs daily help with bathing, dressing, or medication management)."
+5. End sections with the next step. "Call 800-252-2412. No application needed."
+6. No hedging, no filler, no bureaucratic language. "You cannot use SNAP for alcohol or tobacco" not "Please note that certain items may not be eligible for purchase."
+7. Honest about unknowns. If savings can't be verified, say so. Fewer honest facts beat more generic claims.
+8. Write for someone who is stressed, time-pressed, and may be reading on their phone. Short paragraphs. Clear hierarchy.`;
+
+async function phaseDraft(stateCode, stateName, diveData, classifyData) {
+  console.log(`\n  ━━━ DRAFT: Generating page content ━━━\n`);
+
+  if (!ANTHROPIC_API_KEY) {
+    console.log(`  WARN: ANTHROPIC_API_KEY not set. Skipping draft phase.`);
+    console.log(`  Set it in .env.local to enable content generation.`);
+    return null;
+  }
+
+  const divePrograms = diveData?.programs?.filter((p) => !p._error && !p._parseError) || [];
+  const classifications = classifyData?.programs || [];
+
+  if (!divePrograms.length) {
+    console.log(`  No dive data to draft from.`);
+    return null;
+  }
+
+  console.log(`  Drafting ${divePrograms.length} programs...\n`);
+  const results = [];
+
+  for (let i = 0; i < divePrograms.length; i++) {
+    const prog = divePrograms[i];
+    const classification = classifications.find((c) => c.name === prog.name) || {};
+    const name = prog.name || `Program ${i + 1}`;
+
+    process.stdout.write(`  [${i + 1}/${divePrograms.length}] ${name.slice(0, 50).padEnd(50)}\r`);
+
+    const programType = classification.programType || "benefit";
+    const complexity = classification.complexity || "medium";
+    const sections = classification.recommendedSections || ["prose"];
+
+    // Build the prompt with all research data
+    const draftPrompt = `${CONTENT_VOICE_PROMPT}
+
+You are drafting the page content for "${name}" in ${stateName}. This is a ${programType} program with ${complexity} complexity.
+
+Here is everything we know from research:
+${JSON.stringify(prog, null, 2)}
+
+Classification: ${JSON.stringify(classification, null, 2)}
+
+Generate the complete page content as a JSON object matching this exact structure:
+
+{
+  "id": "<kebab-case slug, e.g., 'michigan-snap-food-benefits'>",
+  "name": "${name}",
+  "shortName": "<2-4 word abbreviated name>",
+  "tagline": "<one compelling sentence for browse cards — what this means for the caregiver, not a definition>",
+  "programType": "${programType}",
+  "complexity": "${complexity}",
+  "geographicScope": ${JSON.stringify(classification.geographicScope || { type: "state" })},
+  "intro": "<2-3 paragraph introduction. Lead with what this means for the caregiver's parent. Be specific about what the program provides and who it's for. Include key numbers.>",
+  "savingsRange": "<'$X – $Y/year in 2026' format from research, or empty string '' for free services>",
+  "savingsSource": "<where the savings number comes from, or 'Free service' for resources>",
+  "savingsVerified": <true if we have specific dollar amounts from official sources, false otherwise>,
+
+  "structuredEligibility": {
+    "summary": [<3-5 short bullet strings for browse cards, e.g., "Age 60+", "Income below $2,152/month">],
+    "ageRequirement": "<e.g., '55+' or '60+' or null>",
+    "incomeTable": [<{"householdSize": N, "monthlyLimit": N} for each row if household-size-based, or null>],
+    "assetLimits": <{"individual": N, "couple": N, "countedAssets": [...], "exemptAssets": [...], "homeEquityCap": N} or null>,
+    "functionalRequirement": "<plain-English explanation if there's a functional/clinical assessment requirement, or null>",
+    "otherRequirements": [<any other requirements as clear strings>],
+    "povertyLevelReference": "<e.g., '200% FPL' if relevant, or null>"
+  },
+
+  "applicationGuide": {
+    "method": "<online|phone|mail|in-person|multiple>",
+    "summary": "<one sentence: the simplest way to apply and how long it takes>",
+    "steps": [<{"step": N, "title": "...", "description": "..."} — program-specific, not generic>],
+    "processingTime": "<specific timeline from research>",
+    "waitlist": "<specific waitlist info or null>",
+    "tip": "<one practical tip for the caregiver, or null>",
+    "urls": [<{"label": "...", "url": "..."} — actual application URLs from research>]
+  },
+
+  "contentSections": [
+    ${sections.includes("income-table") ? '{"type": "income-table", "heading": "Income Limits by Household Size", "rows": [...], "footnote": "<year/source>"},' : ""}
+    ${sections.includes("what-counts") ? '{"type": "what-counts", "heading": "Asset Limits: What Counts", "included": [...], "excluded": [...]},' : ""}
+    ${sections.includes("tier-comparison") ? '{"type": "tier-comparison", "heading": "Program Tiers", "tiers": [{"name": "...", "description": "...", "incomeLimit": "...", "coverage": "..."}]},' : ""}
+    ${sections.includes("county-directory") ? '{"type": "county-directory", "heading": "Local Offices", "offices": [{"name": "...", "type": "county|city|service-area", "phone": "...", "address": "..."}]},' : ""}
+    ${sections.includes("documents") ? '{"type": "documents", "heading": "What to Bring", "categories": [{"name": "Identity", "items": [...]}, {"name": "Financial", "items": [...]}]},' : ""}
+    ${sections.includes("callout") && prog.application?.waitlist ? `{"type": "callout", "tone": "warning", "text": "<waitlist/timing warning>"},` : ""}
+    ${prog.gotchas?.length > 0 ? '{"type": "callout", "tone": "tip", "text": "<most important gotcha as a practical tip>"}' : ""}
+  ],
+
+  "faqs": [
+    <4-6 FAQs that a real caregiver would ask. Not "What is this program?" but "Can Mom keep her house if she qualifies?" or "What if her income is just over the limit?". Question and answer format: {"question": "...", "answer": "..."}>
+  ],
+
+  "phone": "<primary contact phone from research or null>",
+  "sourceUrl": "<primary official .gov URL>",
+  "contentStatus": "pipeline-draft",
+  "draftedAt": "${new Date().toISOString().split("T")[0]}"
+}
+
+CRITICAL RULES:
+- Every number must come from the research data. Do not invent figures.
+- If the research doesn't have a specific data point, use null — don't fabricate.
+- Savings range must be empty string "" for free services (resources, navigators).
+- Application steps must be specific to THIS program, not generic.
+- FAQs should address real concerns a caregiver would have about THIS specific program.
+- Content sections array should only include sections where you have real data to populate them.
+- Return ONLY the JSON object, no markdown wrapping.`;
+
+    try {
+      const response = await claudeChat(draftPrompt, 4096);
+      const parsed = extractJson(response);
+
+      if (parsed) {
+        // Ensure required fields
+        parsed.programType = parsed.programType || programType;
+        parsed.complexity = parsed.complexity || complexity;
+        parsed.geographicScope = parsed.geographicScope || classification.geographicScope;
+        parsed.contentStatus = "pipeline-draft";
+        parsed.draftedAt = new Date().toISOString().split("T")[0];
+        results.push(parsed);
+      } else {
+        results.push({
+          name,
+          _parseError: true,
+          _raw: response.slice(0, 500),
+        });
+        console.log(`\n  WARN: Could not parse draft for "${name}"`);
+      }
+    } catch (err) {
+      results.push({
+        name,
+        _error: err.message,
+      });
+      console.log(`\n  ERROR drafting "${name}": ${err.message}`);
+    }
+  }
+
+  const successful = results.filter((r) => !r._parseError && !r._error);
+  console.log(`\n\n  Drafted ${successful.length}/${divePrograms.length} programs`);
+  console.log(`  Parse errors: ${results.filter((r) => r._parseError).length}`);
+  console.log(`  Errors: ${results.filter((r) => r._error).length}`);
+
+  return {
+    state: stateCode,
+    stateName,
+    draftedAt: new Date().toISOString(),
+    total: results.length,
+    successful: successful.length,
+    programs: results,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 6: REPORT — Human-readable markdown
+// ═══════════════════════════════════════════════════════════════════════════
+
+function phaseReport(stateCode, stateName, exploreData, diveData, compareData, classifyData, draftData) {
   console.log(`\n  ━━━ REPORT: Generating markdown report ━━━\n`);
 
   const lines = [];
@@ -914,6 +1294,35 @@ function phaseReport(stateCode, stateName, exploreData, diveData, compareData) {
     ln();
   }
 
+  // Classification summary
+  if (classifyData?.programs?.length > 0) {
+    ln(`## Program Classification`);
+    ln();
+    ln(`| Program | Type | Scope | Complexity |`);
+    ln(`|---------|------|-------|------------|`);
+    for (const c of classifyData.programs) {
+      ln(`| ${c.name.slice(0, 40)} | ${c.programType} | ${c.geographicScope?.type || "?"} | ${c.complexity} |`);
+    }
+    ln();
+    ln(`**Types:** ${JSON.stringify(classifyData.typeSummary)}`);
+    ln(`**Scopes:** ${JSON.stringify(classifyData.scopeSummary)}`);
+    ln(`**Complexity:** ${JSON.stringify(classifyData.complexitySummary)}`);
+    ln();
+  }
+
+  // Draft summary
+  if (draftData?.programs?.length > 0) {
+    const successful = draftData.programs.filter((p) => !p._parseError && !p._error);
+    ln(`## Content Drafts`);
+    ln();
+    ln(`Generated ${successful.length} page drafts. Review in admin dashboard or \`data/pipeline/${stateCode}/drafts.json\`.`);
+    ln();
+    for (const p of successful) {
+      ln(`- **${p.name}** (${p.programType}) — ${p.contentSections?.length || 0} content sections, ${p.faqs?.length || 0} FAQs`);
+    }
+    ln();
+  }
+
   // Learning section
   ln(`## What We Learned`);
   ln();
@@ -996,9 +1405,13 @@ async function main() {
       }
     }
 
-    const estCalls = 1 + (existing.length || 10); // 1 explore + N dives
-    console.log(`\n  Would make ~${estCalls} Perplexity calls (~$${(estCalls * 0.005).toFixed(3)})`);
-    console.log(`  Output: data/pipeline/${stateCode}/exploration_report.md`);
+    const estPerplexity = 2 + (existing.length || 10); // 2 explore + N dives
+    const estClaude = existing.length || 10; // 1 draft per program
+    console.log(`\n  Would make ~${estPerplexity} Perplexity calls (~$${(estPerplexity * 0.005).toFixed(3)})`);
+    console.log(`  Would make ~${estClaude} Claude calls for drafts`);
+    console.log(`  Output: data/pipeline/${stateCode}/`);
+    console.log(`    explore.json, dive.json, compare.json, classify.json, drafts.json`);
+    console.log(`    exploration_report.md`);
     process.exit(0);
   }
 
@@ -1007,6 +1420,8 @@ async function main() {
   let exploreData = readJson(stateCode, "explore.json");
   let diveData = readJson(stateCode, "dive.json");
   let compareData = readJson(stateCode, "compare.json");
+  let classifyData = readJson(stateCode, "classify.json");
+  let draftData = readJson(stateCode, "drafts.json");
 
   if (shouldRun("explore")) {
     exploreData = await phaseExplore(stateCode, stateName);
@@ -1033,11 +1448,37 @@ async function main() {
     }
   }
 
+  if (shouldRun("classify")) {
+    if (!diveData) diveData = readJson(stateCode, "dive.json");
+    if (!diveData?.programs?.length) {
+      console.log(`\n  No dive data. Run: --phase dive --run`);
+    } else {
+      if (!compareData) compareData = readJson(stateCode, "compare.json");
+      classifyData = phaseClassify(stateCode, stateName, diveData, compareData);
+      writeFile(stateCode, "classify.json", classifyData);
+    }
+  }
+
+  if (shouldRun("draft")) {
+    if (!diveData) diveData = readJson(stateCode, "dive.json");
+    if (!classifyData) classifyData = readJson(stateCode, "classify.json");
+    if (!diveData?.programs?.length) {
+      console.log(`\n  No dive data. Run: --phase dive --run`);
+    } else if (!classifyData?.programs?.length) {
+      console.log(`\n  No classify data. Run: --phase classify --run`);
+    } else {
+      draftData = await phaseDraft(stateCode, stateName, diveData, classifyData);
+      writeFile(stateCode, "drafts.json", draftData);
+    }
+  }
+
   if (shouldRun("report")) {
     if (!exploreData) exploreData = readJson(stateCode, "explore.json");
     if (!diveData) diveData = readJson(stateCode, "dive.json");
     if (!compareData) compareData = readJson(stateCode, "compare.json");
-    phaseReport(stateCode, stateName, exploreData, diveData, compareData);
+    if (!classifyData) classifyData = readJson(stateCode, "classify.json");
+    if (!draftData) draftData = readJson(stateCode, "drafts.json");
+    phaseReport(stateCode, stateName, exploreData, diveData, compareData, classifyData, draftData);
   }
 
   // Auto-generate pipeline-summary.ts for the admin dashboard
@@ -1055,20 +1496,30 @@ function generatePipelineSummary() {
   if (!fs.existsSync(pipelineRoot)) return;
 
   const states = fs.readdirSync(pipelineRoot).filter((d) => {
-    const compareFile = path.join(pipelineRoot, d, "compare.json");
-    return fs.existsSync(compareFile) && /^[A-Z]{2}$/.test(d);
+    return /^[A-Z]{2}$/.test(d) && (
+      fs.existsSync(path.join(pipelineRoot, d, "compare.json")) ||
+      fs.existsSync(path.join(pipelineRoot, d, "classify.json")) ||
+      fs.existsSync(path.join(pipelineRoot, d, "drafts.json"))
+    );
   });
 
   if (!states.length) return;
 
   const entries = {};
   for (const stateCode of states) {
-    const compare = JSON.parse(
-      fs.readFileSync(path.join(pipelineRoot, stateCode, "compare.json"), "utf-8")
-    );
+    const comparePath = path.join(pipelineRoot, stateCode, "compare.json");
+    const classifyPath = path.join(pipelineRoot, stateCode, "classify.json");
+    const draftsPath = path.join(pipelineRoot, stateCode, "drafts.json");
+
+    const compare = fs.existsSync(comparePath)
+      ? JSON.parse(fs.readFileSync(comparePath, "utf-8")) : null;
+    const classify = fs.existsSync(classifyPath)
+      ? JSON.parse(fs.readFileSync(classifyPath, "utf-8")) : null;
+    const drafts = fs.existsSync(draftsPath)
+      ? JSON.parse(fs.readFileSync(draftsPath, "utf-8")) : null;
 
     // Build summary with comparisons that have diffs or novel fields
-    const comparisons = (compare.comparisons || [])
+    const comparisons = (compare?.comparisons || [])
       .filter((c) => c.diffsFound > 0 || (c.novelFields && c.novelFields.length > 0))
       .map((c) => ({
         name: c.name,
@@ -1088,12 +1539,22 @@ function generatePipelineSummary() {
       }));
 
     entries[stateCode] = {
-      exploredAt: (compare.comparedAt || "").split("T")[0],
-      programsFound: compare.total || 0,
-      newPrograms: compare.newPrograms || 0,
-      diffsFound: compare.withDiffs || 0,
-      novelFieldCount: Object.keys(compare.novelFieldSummary || {}).length,
+      exploredAt: (compare?.comparedAt || "").split("T")[0],
+      programsFound: compare?.total || 0,
+      newPrograms: compare?.newPrograms || 0,
+      diffsFound: compare?.withDiffs || 0,
+      novelFieldCount: Object.keys(compare?.novelFieldSummary || {}).length,
       comparisons,
+      // Pipeline v2 additions
+      classifiedAt: classify?.classifiedAt ? classify.classifiedAt.split("T")[0] : undefined,
+      classification: classify ? {
+        types: classify.typeSummary || {},
+        scopes: classify.scopeSummary || {},
+        complexity: classify.complexitySummary || {},
+      } : undefined,
+      draftedAt: drafts?.draftedAt ? drafts.draftedAt.split("T")[0] : undefined,
+      draftsGenerated: drafts?.successful || 0,
+      draftsTotal: drafts?.total || 0,
     };
   }
 
@@ -1121,6 +1582,12 @@ export interface PipelineComparison {
   novelFields: { field: string; note: string }[];
 }
 
+export interface PipelineClassification {
+  types: Record<string, number>;
+  scopes: Record<string, number>;
+  complexity: Record<string, number>;
+}
+
 export interface PipelineStateSummary {
   exploredAt: string;
   programsFound: number;
@@ -1128,6 +1595,11 @@ export interface PipelineStateSummary {
   diffsFound: number;
   novelFieldCount: number;
   comparisons: PipelineComparison[];
+  classifiedAt?: string;
+  classification?: PipelineClassification;
+  draftedAt?: string;
+  draftsGenerated?: number;
+  draftsTotal?: number;
 }
 
 export const pipelineData: Record<string, PipelineStateSummary> = ${JSON.stringify(entries, null, 2)};

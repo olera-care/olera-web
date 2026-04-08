@@ -1,0 +1,613 @@
+{
+  "state": "MI",
+  "stateName": "Michigan",
+  "classifiedAt": "2026-04-08T14:14:45.235Z",
+  "total": 16,
+  "typeSummary": {
+    "benefit": 9,
+    "navigator": 2,
+    "resource": 4,
+    "employment": 1
+  },
+  "scopeSummary": {
+    "local": 3,
+    "state": 5,
+    "federal": 8
+  },
+  "complexitySummary": {
+    "deep": 9,
+    "simple": 6,
+    "medium": 1
+  },
+  "programs": [
+    {
+      "name": "MI Health Link",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Regional ICOs varying by eligible counties",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "MI Choice Medicaid Waiver",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Regional AAAs and partners (e.g., AAANM, CareWell Services, The Senior Alliance, Area Agency on Aging).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Michigan Program for All-Inclusive Care for the Elderly (PACE)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Ascension Living PACE Michigan",
+            "type": "service-area"
+          },
+          {
+            "name": "PACE of Southwest Michigan (Berrien, Cass, Van Buren Counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "PACE Southeast Michigan",
+            "type": "service-area"
+          },
+          {
+            "name": "PACE Northeast Michigan (Alcona, Alpena, Presque Isle, Montmorency Counties; parts of Iosco)",
+            "type": "service-area"
+          },
+          {
+            "name": "Senior Care Partners P.A.C.E.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Medicare Savings Programs (MSP) - QMB, SLMB, QI",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "SNAP Food Assistance (MiCAFE for seniors)",
+      "programType": "navigator",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "MiCAFE Network partners via Elder Law of Michigan; statewide access via 1-877-664-2233.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "provider-list"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Michigan LIHEAP (Energy Assistance)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local MDHHS offices",
+            "type": "service-area"
+          },
+          {
+            "name": "MI 211 community partners",
+            "type": "service-area"
+          },
+          {
+            "name": "Utilities like Michigan Gas Utilities, Country Lines",
+            "type": "service-area"
+          },
+          {
+            "name": "Thaw Fund partners[2]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "MDHHS contracts with local agencies like Kent County (616-632-7950), Wayne Metro, NEMCSA, Community Action Allegan, OLHSA.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Michigan Medicare Assistance Program (MMAP)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Statewide hotline connects to nearest; examples: CareWell Services Southwest, The Senior Alliance, local Area Agencies on Aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Home Delivered Meals (Meals on Wheels)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Area Agency on Aging (contact via michigan.gov/mdhhs)[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals on Wheels Western Michigan (Kent/Allegan Counties): mealsonwheelswesternmichigan.org, (616) 459-3111[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals on Wheels Southwest Michigan: snsmeals.org[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Mom's Meals for Medicaid: momsmeals.com[1]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Respite Care (via MI Choice Waiver)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local MI Choice Waiver Agencies (find via regional AAAs)",
+            "type": "service-area"
+          },
+          {
+            "name": "Examples: CareWell Services of Southwest Michigan, The Senior Alliance (734.722.2830), Region 7 Area Agency on Aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "The Senior Alliance (serves specific service area; contact Lauren Wonsowski)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "MSC-MW (serves Macomb, Oakland, St. Clair Counties)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Area Agency on Aging (serves Berrien, Cass, Van Buren Counties)[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "CWI Works (operates through ~50 local partner organizations)[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "NEMCSA (serves specific regions)[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Contact Michigan Department of Health and Human Services, Bureau of Aging, Community Living, and Support for complete provider list",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Legal Assistance for Seniors",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Legal Aid of Western Michigan (lawestmi.org)",
+            "type": "service-area"
+          },
+          {
+            "name": "Legal Services of Eastern Michigan (lsem-mi.org)",
+            "type": "service-area"
+          },
+          {
+            "name": "Lakeshore Legal Aid (lakeshorelegalaid.org)",
+            "type": "service-area"
+          },
+          {
+            "name": "LSNM (lsnm.org)",
+            "type": "service-area"
+          },
+          {
+            "name": "State Bar of Michigan Modest Means (lrs.michbar.org)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Nursing Home Long-Term Care Ombudsman",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "MEJI (state ombudsman staff)",
+            "type": "service-area"
+          },
+          {
+            "name": "Area Agencies on Aging statewide",
+            "type": "service-area"
+          },
+          {
+            "name": "AgeWays (specific counties)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "MI Choice Waiver Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "The Senior Alliance (Region 1C, Wayne County): 5454 Venoy Road, Wayne, Michigan 48184-1755",
+            "type": "service-area"
+          },
+          {
+            "name": "CareWell Services of Southwest Michigan (8-county region)",
+            "type": "service-area"
+          },
+          {
+            "name": "Region 7 Area Agency on Aging: 1-800-858-1637",
+            "type": "service-area"
+          },
+          {
+            "name": "AgeWays (serves specific regions)",
+            "type": "service-area"
+          },
+          {
+            "name": "Contact Michigan Department of Health and Human Services (MDHHS) for your county's specific agency",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Home Help Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local MDHHS county offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Area Agencies on Aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "MiCAFE (Michigan's Coordinated Access to Food for the Elderly)",
+      "programType": "navigator",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Elder Law of Michigan, Inc. (program administrator)",
+            "type": "service-area"
+          },
+          {
+            "name": "MiCAFE Network partners statewide[3][7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "provider-list"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    }
+  ]
+}

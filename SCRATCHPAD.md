@@ -7,20 +7,20 @@
 
 ## Current Focus
 
-- **Admin Panel 2.0 QA Fixes** (branch: `noble-yalow`) — IN PROGRESS
-  - From Apr 7 meeting with Graize & Cecille
-  - **Bug fixes**:
-    - [x] Fix "Needs Email" counter — added status=pending filter to exclude non-actionable leads
-    - [x] Restore delete-reason modal — required free-text reason field, logged in audit
-  - **Claims page enhancements**:
-    - [x] CSV export for provider claims — new /api/admin/providers/export endpoint + Export CSV button
-    - [x] Multi-select + bulk approve/reject/delete on claims — checkboxes, bulk action bar
-  - **Provider portal UX**:
-    - [x] Fix auto-sign-in from lead notification emails — deferred send now uses `generateNotificationUrl` with `otk` token
-    - [x] Provider engagement tracking — added `contact_revealed` event type, tracks email/phone copy clicks
-    - [x] Provider unsubscribe/opt-out — `/unsubscribe/[slug]` page, API endpoint, email off-ramp link, send gating
-  - **Manual (non-code)**:
-    - [ ] Purchase Perplexity AI premium subscription for ops team
+- **Benefits Pipeline v2: Content Production System** (branch: `eager-ride`) — IN PROGRESS
+  - Evolving pipeline from research/QA tool → full content production system
+  - Five-phase lifecycle: Identify → Research → Classify → Draft → Review
+  - See Notion doc for full spec: "Benefits Pipeline v2 — Content Production System"
+  - **Phase 1: Foundation** (current)
+    - [ ] Data model evolution (programType, geographicScope, complexity, contentSections, contentStatus)
+    - [ ] Classify phase in pipeline (program type, geo scope, complexity, page shape)
+    - [ ] Draft phase in pipeline (content generation with TJ voice principles)
+    - [ ] Admin dashboard visibility (summary bar, content quality indicators, pipeline lifecycle status)
+    - [ ] Page component taste pass (shape variants, typography, spacing, tone)
+    - [ ] Slash command update (`/benefits-pipeline` orchestrates full lifecycle)
+
+- **Admin Panel 2.0 QA Fixes** (branch: `noble-yalow`) — MERGED (PR #509)
+  - All code items complete. Only remaining: purchase Perplexity AI premium (non-code)
 
 - **Senior Benefits Pipeline** (branch: `noble-pare`) — MERGED (PR #502)
 
@@ -50,20 +50,25 @@
 
 ## Next Up
 
-1. **Admin Panel 2.0 QA** — work through all 7 action items (current session)
-2. Run benefits pipeline on FL + CA → compare patterns across 3 states
+1. **Benefits Pipeline v2** — build foundation (data model, classify, draft, dashboard, page taste pass)
+2. Run enriched pipeline on FL + CA → first test of classify + draft phases
 3. Seed TX: `/api/admin/seed-sbf-programs?state=TX&confirm=true`
-4. Rob Arnold YouTube ID (due Apr 7)
-5. MedJobs candidates detail page taste pass
-6. SEO city-specific content sections
-7. Merge PR #463 (user account separation)
-8. Continue staging → main promotion
+4. MedJobs candidates detail page taste pass
+5. SEO city-specific content sections
+6. Merge PR #463 (user account separation)
+7. Continue staging → main promotion
 
 ---
 
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-04-08 | Pipeline evolves from research tool → content production system | Pipeline already "understands" programs after dive phase but throws understanding away by outputting a report. Content generation and research are one skill, not two separate steps. |
+| 2026-04-08 | Four program types: benefit, resource, navigator, employment | Derived from 28 real programs across TX (Chantel audit) and MI (pipeline). Chantel flagged resource vs benefit distinction explicitly. Navigator is meta-programs like MiCAFE. |
+| 2026-04-08 | Geographic scope is a property of the program, not the URL | PACE = service areas, SNAP = statewide, Respite = 14 TX counties. Can't force rigid state→city hierarchy. Pipeline discovers scope. |
+| 2026-04-08 | Backwards compatibility via option C (gradual migration) | 1,145 existing programs stay in flat format. New pipeline runs produce rich content. Migration happens state-by-state as pipeline processes them. |
+| 2026-04-08 | Content voice follows TJ's writing principles | Lead with caregiver need, specific numbers with sources, causal chains, inline jargon clarification, decisive next steps. Extracted from TJ-hq docs. |
+| 2026-04-08 | Admin dashboard gets summary bar + content quality indicators | TJ had no visibility into 1,145 programs (98.7% template scaffolding). Dashboard becomes operational command center for benefits content operation. |
 |------|----------|-----------|
 | 2026-04-06 | Exploration before taxonomy | 5-shape taxonomy derived from 12 TX programs was too small a sample. Pipeline observes what data exists, taxonomy emerges from patterns across states. |
 | 2026-04-06 | Pipeline auto-generates dashboard data | `pipeline-summary.ts` is auto-written after each run. No manual step between pipeline and dashboard. |
@@ -92,6 +97,36 @@
 ---
 
 ## Session Log
+
+### 2026-04-08 (Session 70) — Benefits Pipeline v2: Content Production System Design
+
+**Branch:** `eager-ride` | **No code changes yet — design/architecture session**
+
+**Deep review completed:**
+- Pipeline script (`scripts/benefits-pipeline.js`, 1145 lines) — all 4 phases
+- Slash command (`.claude/commands/benefits-pipeline.md`, 253 lines)
+- Admin dashboard (`app/admin/benefits/page.tsx`, 553 lines)
+- Data model (`WaiverProgram` type + `waiver-library.ts`, 11,740 lines)
+- Michigan pipeline output (explore.json, dive.json, compare.json, exploration_report.md)
+- Chantel's TX audit CSV (12 programs) + Benefits Hub Accuracy Analysis docx
+- April 7 meeting notes (Chantel + Logan): "Benefits Hub Next Steps & Olera Growth Plan"
+- TJ-hq writing style docs (Renora, Oculo, investment thesis, tj-voice.md)
+
+**Key findings:**
+- 1,145 programs across 50 states (more than expected)
+- Only 15 (1.3%) have real content (intros, FAQs, verification) — all Texas
+- 1,131 programs are template scaffolding with generic application steps
+- Pipeline discovers rich data (income tables, asset limits, county offices, wait times) but outputs a report, not page content
+
+**Architecture designed:**
+- Five-phase lifecycle: Identify → Research → Classify → Draft → Review
+- Classification taxonomy: 4 program types × 3 geographic scopes × 3 complexity levels
+- Rich data model with `ContentSection` union type for flexible page shapes
+- Content generation prompt with TJ's writing principles baked in
+- Admin dashboard summary bar + content quality indicators + pipeline lifecycle status
+- Page taste pass: 8 surgical edits (kill generic steps, shape variants, contextual eligibility, honest savings, wait times, geographic specificity, lighter hero, warm microcopy)
+
+**Notion doc created:** "Benefits Pipeline v2 — Content Production System" for team visibility
 
 ### 2026-04-07 (Session 69) — Admin Panel 2.0 QA Fixes
 

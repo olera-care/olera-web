@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { allStates, type WaiverProgram, type StateData } from "@/data/waiver-library";
-import { pipelineData, type PipelineComparison } from "@/data/pipeline-summary";
+import { pipelineData, type PipelineComparison, type PipelineStateSummary } from "@/data/pipeline-summary";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -11,6 +11,34 @@ function getVerificationStats(programs: WaiverProgram[]) {
   const withSource = programs.filter((p) => p.sourceUrl).length;
   const savingsVerified = programs.filter((p) => p.savingsVerified).length;
   return { total: programs.length, verified, withSource, savingsVerified };
+}
+
+function getContentStats(programs: WaiverProgram[]) {
+  const withIntro = programs.filter((p) => p.intro).length;
+  const withFaqs = programs.filter((p) => p.faqs && p.faqs.length > 0).length;
+  const withRichContent = programs.filter((p) => p.contentSections && p.contentSections.length > 0).length;
+  const withAppGuide = programs.filter((p) => p.applicationGuide).length;
+  const drafts = programs.filter((p) => p.contentStatus === "pipeline-draft").length;
+  const reviewed = programs.filter((p) => p.contentStatus === "approved" || p.contentStatus === "published").length;
+  return { withIntro, withFaqs, withRichContent, withAppGuide, drafts, reviewed };
+}
+
+type StateReadiness = "published" | "drafted" | "explored" | "scaffolding";
+
+function getStateReadiness(state: StateData): StateReadiness {
+  const pipeline = pipelineData[state.abbreviation] as PipelineStateSummary | undefined;
+  const stats = getVerificationStats(state.programs);
+  const content = getContentStats(state.programs);
+
+  // Green: verified + has real content
+  if (stats.verified > 0 && content.withIntro > 0) return "published";
+  // Blue: drafts exist (in pipeline or on programs)
+  if (pipeline?.draftsGenerated && pipeline.draftsGenerated > 0) return "drafted";
+  if (content.drafts > 0) return "drafted";
+  // Amber: pipeline explored but no drafts yet
+  if (pipeline?.exploredAt) return "explored";
+  // Gray: template scaffolding
+  return "scaffolding";
 }
 
 function getStateHealth(state: StateData): "verified" | "partial" | "unverified" {
@@ -279,6 +307,13 @@ function ProgramRow({ program, stateId, pipelineComparison }: { program: WaiverP
 
 // ─── State Grid Card ────────────────────────────────────────────────────────
 
+const READINESS_STYLES: Record<StateReadiness, { border: string; dot: string; label: string }> = {
+  published: { border: "border-emerald-200 hover:border-emerald-300", dot: "bg-emerald-400", label: "Published" },
+  drafted: { border: "border-blue-200 hover:border-blue-300", dot: "bg-blue-400", label: "Drafts Ready" },
+  explored: { border: "border-amber-200 hover:border-amber-300", dot: "bg-amber-400", label: "Explored" },
+  scaffolding: { border: "border-gray-200 hover:border-gray-300", dot: "bg-gray-200", label: "" },
+};
+
 function StateCard({
   state,
   onClick,
@@ -287,40 +322,65 @@ function StateCard({
   onClick: () => void;
 }) {
   const stats = getVerificationStats(state.programs);
-  const health = getStateHealth(state);
-  const pipeline = pipelineData[state.abbreviation];
+  const content = getContentStats(state.programs);
+  const readiness = getStateReadiness(state);
+  const style = READINESS_STYLES[readiness];
+  const pipeline = pipelineData[state.abbreviation] as PipelineStateSummary | undefined;
 
   return (
     <button
       onClick={onClick}
-      className="text-left p-4 rounded-xl border border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm transition-all duration-150 group"
+      className={`text-left p-4 rounded-xl border bg-white hover:shadow-sm transition-all duration-150 group ${style.border}`}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-semibold text-gray-900 group-hover:text-gray-800">
-          {state.abbreviation}
-        </span>
-        <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded ${
-          health === "verified"
-            ? "bg-emerald-50 text-emerald-600"
-            : health === "partial"
-            ? "bg-amber-50 text-amber-600"
-            : "text-gray-400"
-        }`}>
-          {stats.verified}/{stats.total}
+        <div className="flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full ${style.dot}`} />
+          <span className="text-sm font-semibold text-gray-900 group-hover:text-gray-800">
+            {state.abbreviation}
+          </span>
+        </div>
+        <span className="text-[11px] text-gray-400 font-medium">
+          {stats.total}
         </span>
       </div>
-      <p className="text-[13px] text-gray-500 leading-snug truncate mb-2.5">
+      <p className="text-[13px] text-gray-500 leading-snug truncate mb-2">
         {state.name}
       </p>
-      <ProgressBar value={stats.verified} total={stats.total} />
+
+      {/* Content depth indicators */}
+      <div className="flex items-center gap-2 text-[11px] text-gray-400 mb-2">
+        {content.withIntro > 0 && (
+          <span className="text-blue-500">{content.withIntro} content</span>
+        )}
+        {stats.verified > 0 && (
+          <span className="text-emerald-500">{stats.verified} verified</span>
+        )}
+        {content.withIntro === 0 && stats.verified === 0 && (
+          <span>Template only</span>
+        )}
+      </div>
+
+      <ProgressBar value={content.withIntro || stats.verified} total={stats.total} />
+
+      {/* Pipeline status line */}
       {pipeline && (
-        <div className="mt-2 pt-2 border-t border-gray-100">
+        <div className="mt-2 pt-2 border-t border-gray-100 space-y-0.5">
           <p className="text-[11px] text-gray-400">
             Explored {pipeline.exploredAt}
           </p>
+          {pipeline.draftsGenerated !== undefined && pipeline.draftsGenerated > 0 && (
+            <p className="text-[11px] text-blue-500 font-medium">
+              {pipeline.draftsGenerated} draft{pipeline.draftsGenerated > 1 ? "s" : ""} ready
+            </p>
+          )}
           {pipeline.diffsFound > 0 && (
-            <p className="text-[11px] text-amber-600 font-medium mt-0.5">
-              {pipeline.diffsFound} issue{pipeline.diffsFound > 1 ? "s" : ""} found
+            <p className="text-[11px] text-amber-600 font-medium">
+              {pipeline.diffsFound} issue{pipeline.diffsFound > 1 ? "s" : ""}
+            </p>
+          )}
+          {pipeline.classification && (
+            <p className="text-[11px] text-gray-400">
+              {Object.entries(pipeline.classification.types || {}).map(([t, n]) => `${n} ${t}`).join(", ")}
             </p>
           )}
         </div>
@@ -425,7 +485,24 @@ export default function AdminBenefitsPage() {
 
   const globalStats = useMemo(() => {
     const allPrograms = allStates.flatMap((s) => s.programs);
-    return getVerificationStats(allPrograms);
+    const verification = getVerificationStats(allPrograms);
+    const content = getContentStats(allPrograms);
+
+    // Pipeline stats
+    const pipelineStates = Object.keys(pipelineData);
+    const exploredCount = pipelineStates.length;
+    const draftedCount = pipelineStates.filter((s) => {
+      const p = pipelineData[s] as PipelineStateSummary;
+      return p.draftsGenerated && p.draftsGenerated > 0;
+    }).length;
+
+    // Readiness breakdown
+    const readiness = { published: 0, drafted: 0, explored: 0, scaffolding: 0 };
+    for (const s of allStates) {
+      readiness[getStateReadiness(s)]++;
+    }
+
+    return { ...verification, ...content, exploredCount, draftedCount, readiness };
   }, []);
 
   const filteredStates = useMemo(() => {
@@ -468,14 +545,102 @@ export default function AdminBenefitsPage() {
 
   return (
     <div>
-      {/* Header */}
+      {/* Summary Bar */}
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">Benefits Data</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          {globalStats.verified} of {globalStats.total} programs verified
-          {globalStats.withSource > 0 && <> &middot; {globalStats.withSource} with source URLs</>}
-          {globalStats.savingsVerified > 0 && <> &middot; {globalStats.savingsVerified} savings sourced</>}
-        </p>
+        <div className="flex items-baseline justify-between mb-4">
+          <h1 className="text-2xl font-semibold text-gray-900">Benefits Data</h1>
+          <p className="text-sm text-gray-400">
+            {globalStats.total.toLocaleString()} programs &middot; {allStates.length} states
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Verification */}
+          <div className="p-4 rounded-xl border border-gray-200 bg-white">
+            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Verified</p>
+            <p className="text-2xl font-semibold text-gray-900">{globalStats.verified}</p>
+            <div className="mt-2">
+              <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-emerald-400 transition-all"
+                  style={{ width: `${Math.max((globalStats.verified / globalStats.total) * 100, 0.5)}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-gray-400 mt-1">
+                {((globalStats.verified / globalStats.total) * 100).toFixed(1)}% of {globalStats.total.toLocaleString()}
+              </p>
+            </div>
+          </div>
+
+          {/* Content Quality */}
+          <div className="p-4 rounded-xl border border-gray-200 bg-white">
+            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">With Real Content</p>
+            <p className="text-2xl font-semibold text-gray-900">{globalStats.withIntro}</p>
+            <div className="mt-2">
+              <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-blue-400 transition-all"
+                  style={{ width: `${Math.max((globalStats.withIntro / globalStats.total) * 100, 0.5)}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-gray-400 mt-1">
+                {globalStats.withFaqs} with FAQs &middot; {globalStats.withSource} sourced
+              </p>
+            </div>
+          </div>
+
+          {/* Pipeline */}
+          <div className="p-4 rounded-xl border border-gray-200 bg-white">
+            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Pipeline</p>
+            <p className="text-2xl font-semibold text-gray-900">{globalStats.exploredCount}</p>
+            <p className="text-[11px] text-gray-400 mt-2">
+              {globalStats.exploredCount} explored &middot; {globalStats.draftedCount} drafted
+            </p>
+          </div>
+
+          {/* State Readiness */}
+          <div className="p-4 rounded-xl border border-gray-200 bg-white">
+            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">State Readiness</p>
+            <div className="flex items-center gap-1.5 mt-1">
+              {globalStats.readiness.published > 0 && (
+                <span className="inline-flex items-center gap-1 text-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span className="text-gray-600">{globalStats.readiness.published}</span>
+                </span>
+              )}
+              {globalStats.readiness.drafted > 0 && (
+                <span className="inline-flex items-center gap-1 text-xs">
+                  <span className="w-2 h-2 rounded-full bg-blue-400" />
+                  <span className="text-gray-600">{globalStats.readiness.drafted}</span>
+                </span>
+              )}
+              {globalStats.readiness.explored > 0 && (
+                <span className="inline-flex items-center gap-1 text-xs">
+                  <span className="w-2 h-2 rounded-full bg-amber-400" />
+                  <span className="text-gray-600">{globalStats.readiness.explored}</span>
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1 text-xs">
+                <span className="w-2 h-2 rounded-full bg-gray-200" />
+                <span className="text-gray-400">{globalStats.readiness.scaffolding}</span>
+              </span>
+            </div>
+            <div className="flex gap-0.5 mt-2 h-1.5 rounded-full overflow-hidden bg-gray-100">
+              {globalStats.readiness.published > 0 && (
+                <div className="bg-emerald-400" style={{ width: `${(globalStats.readiness.published / allStates.length) * 100}%` }} />
+              )}
+              {globalStats.readiness.drafted > 0 && (
+                <div className="bg-blue-400" style={{ width: `${(globalStats.readiness.drafted / allStates.length) * 100}%` }} />
+              )}
+              {globalStats.readiness.explored > 0 && (
+                <div className="bg-amber-400" style={{ width: `${(globalStats.readiness.explored / allStates.length) * 100}%` }} />
+              )}
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1">
+              Published &middot; Drafted &middot; Explored &middot; Scaffolding
+            </p>
+          </div>
+        </div>
       </div>
 
       {stateData ? (

@@ -95,7 +95,7 @@ const nextConfig: NextConfig = {
       { source: "/provider/sign-in", destination: "/for-providers", permanent: true },
       { source: "/provider/forgot-password", destination: "/for-providers", permanent: true },
       { source: "/provider/resend-activation-link", destination: "/for-providers", permanent: true },
-      { source: "/provider/claim", destination: "/for-providers/claim", permanent: true },
+      { source: "/provider/claim", destination: "/provider/onboarding", permanent: true },
       { source: "/provider/new/edit-basics", destination: "/for-providers/create", permanent: true },
 
       // Tier 4: v1.0 provider edit/status URLs

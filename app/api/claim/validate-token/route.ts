@@ -211,6 +211,42 @@ export async function POST(request: Request) {
               reviewer_name: review.reviewer_name,
             };
           }
+        } else if (action === "claim" || action === "signup") {
+          // For claim/signup, return provider info as notification data
+          notificationData = {
+            type: action,
+            id: canonicalProviderId,
+            created_at: new Date().toISOString(),
+            provider_name: providerName,
+            provider_city: null as string | null,
+            provider_state: null as string | null,
+            provider_image: null as string | null,
+          };
+
+          // Try to fetch location/image from business_profiles first, then olera-providers
+          const { data: bpInfo } = await db
+            .from("business_profiles")
+            .select("city, state, image_url")
+            .eq("slug", providerSlug || providerId)
+            .maybeSingle();
+
+          if (bpInfo) {
+            notificationData.provider_city = bpInfo.city;
+            notificationData.provider_state = bpInfo.state;
+            notificationData.provider_image = bpInfo.image_url;
+          } else {
+            const { data: opInfo } = await db
+              .from("olera-providers")
+              .select("city, state, provider_images")
+              .eq("slug", providerSlug || providerId)
+              .maybeSingle();
+
+            if (opInfo) {
+              notificationData.provider_city = opInfo.city;
+              notificationData.provider_state = opInfo.state;
+              notificationData.provider_image = opInfo.provider_images?.split("|")[0]?.trim() || null;
+            }
+          }
         } else if (action === "interview") {
           const { data: interview } = await db
             .from("interviews")

@@ -9,7 +9,7 @@ import Link from "next/link";
 // Types
 // ============================================================
 
-export type NotificationType = "lead" | "message" | "question" | "review" | "interview";
+export type NotificationType = "lead" | "message" | "question" | "review" | "interview" | "claim" | "signup";
 
 interface FromProfile {
   display_name: string;
@@ -42,6 +42,11 @@ export interface NotificationData {
   interview_format?: string;
   proposed_time?: string;
   notes?: string | null;
+  // Claim/signup-specific
+  provider_name?: string;
+  provider_city?: string | null;
+  provider_state?: string | null;
+  provider_image?: string | null;
 }
 
 export type ActionCardState =
@@ -53,7 +58,9 @@ export type ActionCardState =
   | "notification-lead"
   | "notification-question"
   | "notification-review"
-  | "notification-interview";
+  | "notification-interview"
+  | "notification-claim"
+  | "notification-signup";
 
 interface ActionCardProps {
   provider: Provider;
@@ -115,6 +122,14 @@ const TOOLTIP_CONTENT: Record<ActionCardState, { text: string; showTos?: boolean
   },
   "notification-interview": {
     text: "A caregiver candidate wants to schedule an interview. Sign in to respond.",
+    showTos: true,
+  },
+  "notification-claim": {
+    text: "Verify your identity to manage this listing on Olera.",
+    showTos: true,
+  },
+  "notification-signup": {
+    text: "Complete setup to start managing your organization on Olera.",
     showTos: true,
   },
 };
@@ -772,6 +787,115 @@ export default function ActionCard({
               className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
             >
               Sign in to respond
+            </button>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              Olera connects families with quality senior care providers.
+            </p>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // RENDER: Claim State (provider claiming existing listing)
+  // ════════════════════════════════════════════════════════════
+
+  if (state === "notification-claim" && notificationData) {
+    const pName = notificationData.provider_name || provider.provider_name || "your organization";
+    const pCity = notificationData.provider_city || provider.city;
+    const pState = notificationData.provider_state || provider.state;
+    const locationLine = [pCity, pState].filter(Boolean).join(", ");
+
+    return (
+      <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
+        {/* Mascot + Header */}
+        <div className="flex items-start gap-4 mb-6">
+          <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+          <div>
+            <h3 className="text-lg font-display font-bold text-gray-900">
+              You&apos;re claiming {pName}
+            </h3>
+            {locationLine && (
+              <p className="text-sm text-gray-500 mt-0.5">{locationLine}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="border-t border-gray-100 pt-5 mb-6">
+          <p className="text-[15px] text-gray-600 leading-relaxed">
+            Verify your identity to manage this listing, respond to families, and update your profile on Olera.
+          </p>
+        </div>
+
+        {/* CTA */}
+        {(isSignedIn || preVerifiedEmail) ? (
+          <Link
+            href="/provider"
+            className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+          >
+            Manage Listing
+          </Link>
+        ) : (
+          <>
+            <button
+              onClick={onClaimClick}
+              className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
+            >
+              Sign in to manage
+            </button>
+            <p className="text-xs text-gray-400 mt-3 text-center">
+              Olera connects families with quality senior care providers.
+            </p>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // RENDER: Signup State (new organization setup)
+  // ════════════════════════════════════════════════════════════
+
+  if (state === "notification-signup" && notificationData) {
+    const orgName = notificationData.provider_name || provider.provider_name || "your organization";
+
+    return (
+      <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
+        {/* Mascot + Header */}
+        <div className="flex items-start gap-4 mb-6">
+          <Image src="/images/olera-chat.png" alt="" width={48} height={48} className="w-12 h-12 shrink-0" />
+          <div>
+            <h3 className="text-lg font-display font-bold text-gray-900">
+              Welcome to Olera
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Set up {orgName} to start receiving inquiries
+            </p>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-100 pt-5 mb-6">
+          <p className="text-[15px] text-gray-600 leading-relaxed">
+            Complete your profile to connect with families actively searching for senior care in your area.
+          </p>
+        </div>
+
+        {/* CTA */}
+        {(isSignedIn || preVerifiedEmail) ? (
+          <Link
+            href="/provider"
+            className="block w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px] text-center"
+          >
+            Get Started
+          </Link>
+        ) : (
+          <>
+            <button
+              onClick={onClaimClick}
+              className="w-full py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 active:scale-[0.99] transition-all min-h-[48px]"
+            >
+              Sign in to get started
             </button>
             <p className="text-xs text-gray-400 mt-3 text-center">
               Olera connects families with quality senior care providers.

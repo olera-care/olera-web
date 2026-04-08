@@ -40,6 +40,9 @@ function getActionRedirectUrl(
         return `/provider/reviews?id=${actionId}`;
       case "interview":
         return "/provider/caregivers";
+      case "claim":
+      case "signup":
+        return "/provider";
     }
   }
   return "/provider";
@@ -51,7 +54,7 @@ export default function ProviderOnboardPage() {
   const providerIdParam = searchParams.get("provider_id");
   const stateParam = searchParams.get("state") as ActionCardState | null;
   // Action params for email notifications (lead/message/review/question) or campaign
-  const actionParam = searchParams.get("action") as NotificationType | "campaign" | null;
+  const actionParam = searchParams.get("action") as NotificationType | "campaign" | "claim" | "signup" | null;
   const actionIdParam = searchParams.get("actionId");
   // Token param for marketing campaign emails (pre-verified flow)
   // Named "otk" (one-time key) instead of "token" to avoid Apple Mail's
@@ -70,6 +73,8 @@ export default function ProviderOnboardPage() {
         review: "new_review",
         question: "question_received",
         interview: "interview_request",
+        claim: "listing_claimed",
+        signup: "account_created",
       };
       fetch("/api/activity/track", {
         method: "POST",
@@ -272,6 +277,17 @@ export default function ProviderOnboardPage() {
                 reviewer_name: review.reviewer_name,
               };
             }
+          } else if (actionParam === "claim" || actionParam === "signup") {
+            // For claim/signup, provider info IS the notification data
+            fetchedNotificationData = {
+              type: actionParam,
+              id: foundProvider.provider_id || foundProvider.slug || slug,
+              created_at: new Date().toISOString(),
+              provider_name: foundProvider.provider_name,
+              provider_city: foundProvider.city || null,
+              provider_state: foundProvider.state || null,
+              provider_image: foundProvider.provider_images?.split("|")[0]?.trim() || null,
+            };
           } else if (actionParam === "interview") {
             // Fetch interview data with student details
             const { data: interview } = await supabase
@@ -337,6 +353,7 @@ export default function ProviderOnboardPage() {
                 lead: "notification-lead", message: "notification-lead",
                 question: "notification-question", review: "notification-review",
                 interview: "notification-interview",
+                claim: "notification-claim", signup: "notification-signup",
               };
 
               // Use notification data from validate-token (fetched server-side
@@ -452,7 +469,7 @@ export default function ProviderOnboardPage() {
             // For campaign or fallback: show pre-verified state
             setPreVerifiedEmail(verifiedEmail);
             setActionCardState(actionParam && actionParam !== "campaign"
-              ? (({ lead: "notification-lead", message: "notification-lead", question: "notification-question", review: "notification-review", interview: "notification-interview" } as Record<string, ActionCardState>)[actionParam] || "pre-verified")
+              ? (({ lead: "notification-lead", message: "notification-lead", question: "notification-question", review: "notification-review", interview: "notification-interview", claim: "notification-claim", signup: "notification-signup" } as Record<string, ActionCardState>)[actionParam] || "pre-verified")
               : "pre-verified"
             );
             setStep("dashboard");

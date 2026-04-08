@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
+import { useSavedPrograms } from "@/hooks/use-saved-programs";
 import ProviderCard, {
   type Provider,
 } from "@/components/providers/ProviderCard";
@@ -36,8 +37,10 @@ function toProvider(entry: {
 export default function SavedProvidersPage() {
   const { user, activeProfile, profiles, openAuth } = useAuth();
   const { savedProviders } = useSavedProviders();
+  const { savedPrograms } = useSavedPrograms();
   const [shareLabel, setShareLabel] = useState<"share" | "copied">("share");
   const [showToast, setShowToast] = useState(false);
+  const totalSaved = savedProviders.length + savedPrograms.length;
 
   // Check if user is logged in but doesn't have a family profile
   const hasFamilyProfile = profiles.some((p) => p.type === "family");
@@ -168,9 +171,12 @@ export default function SavedProvidersPage() {
               Saved
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              {savedProviders.length > 0
-                ? `${savedProviders.length} provider${savedProviders.length !== 1 ? "s" : ""}`
-                : "Providers you save will appear here"}
+              {totalSaved > 0
+                ? [
+                    savedProviders.length > 0 ? `${savedProviders.length} provider${savedProviders.length !== 1 ? "s" : ""}` : null,
+                    savedPrograms.length > 0 ? `${savedPrograms.length} program${savedPrograms.length !== 1 ? "s" : ""}` : null,
+                  ].filter(Boolean).join(" · ")
+                : "Providers and programs you save will appear here"}
             </p>
           </div>
           {savedProviders.length > 0 && (
@@ -218,17 +224,60 @@ export default function SavedProvidersPage() {
           </div>
         )}
 
+        {/* Saved programs */}
+        {savedPrograms.length > 0 && (
+          <div className="mb-8">
+            {savedProviders.length > 0 && (
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Programs</p>
+            )}
+            <div className="space-y-2">
+              {savedPrograms.map((entry) => (
+                <Link
+                  key={entry.programId}
+                  href={`/waiver-library/${entry.stateId}/${entry.programId}`}
+                  className="flex items-center justify-between gap-4 p-4 bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-gray-900 group-hover:text-primary-700 transition-colors truncate">
+                        {entry.name}
+                      </p>
+                      {entry.programType && (
+                        <span className="text-[10px] font-medium text-gray-400 uppercase tracking-wide px-1.5 py-0.5 rounded-full border border-gray-200 shrink-0">
+                          {entry.programType}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {entry.stateId.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                      {entry.savingsRange ? ` · ${entry.savingsRange}` : ""}
+                    </p>
+                  </div>
+                  <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-400 shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Provider grid or empty state */}
         {savedProviders.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {savedProviders.map((entry) => (
-              <ProviderCard
-                key={entry.providerId}
-                provider={toProvider(entry)}
-              />
-            ))}
-          </div>
-        ) : (
+          <>
+            {savedPrograms.length > 0 && (
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Providers</p>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {savedProviders.map((entry) => (
+                <ProviderCard
+                  key={entry.providerId}
+                  provider={toProvider(entry)}
+                />
+              ))}
+            </div>
+          </>
+        ) : totalSaved === 0 ? (
           <div>
             <div className="relative w-full max-w-md">
               {/* Premium card */}
@@ -290,13 +339,13 @@ export default function SavedProvidersPage() {
 
                   {/* Hint text */}
                   <p className="text-xs text-gray-400 mt-5">
-                    Tap the heart icon on any provider to save them
+                    Tap the bookmark icon on any program or heart on any provider to save them
                   </p>
                 </div>
               </div>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

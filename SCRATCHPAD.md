@@ -7,22 +7,24 @@
 
 ## Current Focus
 
-- **City Expansion Batch (Apr 9)** — COMPLETE
-  - 154 cities, 2,639 providers added to Supabase
-  - Cost: $260 (7,880 Google + 1,569 Perplexity calls), 4h4m runtime
-  - Data operation only — no code changes
+- **Benefits Pipeline v2: Content Production System** (branch: `eager-ride`) — IN PROGRESS
+  - Evolving pipeline from research/QA tool → full content production system
+  - Five-phase lifecycle: Identify → Research → Classify → Draft → Review
+  - See Notion doc for full spec: "Benefits Pipeline v2 — Content Production System"
+  - **Phase 1: Foundation** (current)
+    - [ ] Data model evolution (programType, geographicScope, complexity, contentSections, contentStatus)
+    - [ ] Classify phase in pipeline (program type, geo scope, complexity, page shape)
+    - [ ] Draft phase in pipeline (content generation with TJ voice principles)
+    - [ ] Admin dashboard visibility (summary bar, content quality indicators, pipeline lifecycle status)
+    - [ ] Page component taste pass (shape variants, typography, spacing, tone)
+    - [ ] Slash command update (`/benefits-pipeline` orchestrates full lifecycle)
 
-- **City Expansion Batch — Apr 8** (branch: `wise-shaw`) — DONE
-  - 141 cities, 2,658 new providers uploaded to Supabase
-  - Discovery: 15,635 candidates found (quick mode, 50 min, ~$166)
-  - Processing: clean → load → enrich → finalize (3h31m, $246)
-  - Fixed `parseBatchMd` bug: plain CSV fallback when no code block or "Machine-Readable" header
-
-- **Admin Panel 2.0 QA Fixes** (branch: `noble-yalow`) — DONE (PRs #504-509 merged)
-  - **Manual (non-code)**:
-    - [ ] Purchase Perplexity AI premium subscription for ops team
+- **Admin Panel 2.0 QA Fixes** (branch: `noble-yalow`) — MERGED (PR #509)
+  - All code items complete. Only remaining: purchase Perplexity AI premium (non-code)
 
 - **Senior Benefits Pipeline** (branch: `noble-pare`) — MERGED (PR #502)
+
+- **Aging in America** — SHIPPED (PRs #493-498 merged)
 
 - **Homepage De-Jank + Mega Menu + Search Bar Polish** (branch: `gifted-rosalind`) — READY FOR QA
 
@@ -48,19 +50,25 @@
 
 ## Next Up
 
-1. Run benefits pipeline on FL + CA → compare patterns across 3 states
-2. Seed TX: `/api/admin/seed-sbf-programs?state=TX&confirm=true`
-3. MedJobs candidates detail page taste pass
-4. SEO city-specific content sections
-5. Merge PR #463 (user account separation)
-6. Continue staging → main promotion
-7. Purchase Perplexity AI premium subscription for ops team
+1. **Benefits Pipeline v2** — build foundation (data model, classify, draft, dashboard, page taste pass)
+2. Run enriched pipeline on FL + CA → first test of classify + draft phases
+3. Seed TX: `/api/admin/seed-sbf-programs?state=TX&confirm=true`
+4. MedJobs candidates detail page taste pass
+5. SEO city-specific content sections
+6. Merge PR #463 (user account separation)
+7. Continue staging → main promotion
 
 ---
 
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-04-08 | Pipeline evolves from research tool → content production system | Pipeline already "understands" programs after dive phase but throws understanding away by outputting a report. Content generation and research are one skill, not two separate steps. |
+| 2026-04-08 | Four program types: benefit, resource, navigator, employment | Derived from 28 real programs across TX (Chantel audit) and MI (pipeline). Chantel flagged resource vs benefit distinction explicitly. Navigator is meta-programs like MiCAFE. |
+| 2026-04-08 | Geographic scope is a property of the program, not the URL | PACE = service areas, SNAP = statewide, Respite = 14 TX counties. Can't force rigid state→city hierarchy. Pipeline discovers scope. |
+| 2026-04-08 | Backwards compatibility via option C (gradual migration) | 1,145 existing programs stay in flat format. New pipeline runs produce rich content. Migration happens state-by-state as pipeline processes them. |
+| 2026-04-08 | Content voice follows TJ's writing principles | Lead with caregiver need, specific numbers with sources, causal chains, inline jargon clarification, decisive next steps. Extracted from TJ-hq docs. |
+| 2026-04-08 | Admin dashboard gets summary bar + content quality indicators | TJ had no visibility into 1,145 programs (98.7% template scaffolding). Dashboard becomes operational command center for benefits content operation. |
 |------|----------|-----------|
 | 2026-04-06 | Exploration before taxonomy | 5-shape taxonomy derived from 12 TX programs was too small a sample. Pipeline observes what data exists, taxonomy emerges from patterns across states. |
 | 2026-04-06 | Pipeline auto-generates dashboard data | `pipeline-summary.ts` is auto-written after each run. No manual step between pipeline and dashboard. |
@@ -90,43 +98,35 @@
 
 ## Session Log
 
-### 2026-04-09 (Session 71) — City Expansion Batch (154 Cities)
+### 2026-04-08 (Session 70) — Benefits Pipeline v2: Content Production System Design
 
-**Branch:** `fast-heisenberg` | **Data operation — no code changes**
+**Branch:** `eager-ride` | **No code changes yet — design/architecture session**
 
-**Batch:** 154 cities from map.olera.care, all with 0 providers (pop ~18K each)
+**Deep review completed:**
+- Pipeline script (`scripts/benefits-pipeline.js`, 1145 lines) — all 4 phases
+- Slash command (`.claude/commands/benefits-pipeline.md`, 253 lines)
+- Admin dashboard (`app/admin/benefits/page.tsx`, 553 lines)
+- Data model (`WaiverProgram` type + `waiver-library.ts`, 11,740 lines)
+- Michigan pipeline output (explore.json, dive.json, compare.json, exploration_report.md)
+- Chantel's TX audit CSV (12 programs) + Benefits Hub Accuracy Analysis docx
+- April 7 meeting notes (Chantel + Logan): "Benefits Hub Next Steps & Olera Growth Plan"
+- TJ-hq writing style docs (Renora, Oculo, investment thesis, tj-voice.md)
 
-**Discovery:**
-- `discovery-batch.py` in quick mode — 141 cities discovered, 13 skipped (existing CSVs)
-- 26,458 raw providers discovered across all cities
-- 5 transient API errors (503/500) — all retried successfully
-- Runtime: ~77 minutes
+**Key findings:**
+- 1,145 programs across 50 states (more than expected)
+- Only 15 (1.3%) have real content (intros, FAQs, verification) — all Texas
+- 1,131 programs are template scaffolding with generic application steps
+- Pipeline discovers rich data (income tables, asset limits, county offices, wait times) but outputs a report, not page content
 
-**Processing (`pipeline-batch.js --phase all --resume`):**
-- Clean: keyword filter → AI classification → dedup against 72K existing providers
-- Load: uploaded to Supabase + geocoded (corrected bad coordinates, removed out-of-area)
-- Enrich: descriptions (4,220), reviews hydration (3,306), trust signals (2,885 non-CMS), images via Places API
-- Finalize: all cities marked Complete in Notion
+**Architecture designed:**
+- Five-phase lifecycle: Identify → Research → Classify → Draft → Review
+- Classification taxonomy: 4 program types × 3 geographic scopes × 3 complexity levels
+- Rich data model with `ContentSection` union type for flexible page shapes
+- Content generation prompt with TJ's writing principles baked in
+- Admin dashboard summary bar + content quality indicators + pipeline lifecycle status
+- Page taste pass: 8 surgical edits (kill generic steps, shape variants, contextual eligibility, honest savings, wait times, geographic specificity, lighter hero, warm microcopy)
 
-**Results:**
-- 2,639 providers added across 148 cities (7 cities had 0 after dedup)
-- Cost: $260 (7,880 Google + 1,569 Perplexity calls)
-- Runtime: 4h4m total
-
-### 2026-04-08 (Session 70) — City Expansion Batch (141 Cities)
-
-**Branch:** `wise-shaw`
-
-**Discovery:** Ran `discovery-batch.py` in quick mode for 141 cities from map.olera.care batch.
-- 15,635 provider candidates discovered (50 min)
-- 3 cities already had data, 138 newly discovered
-
-**Processing:** Ran `pipeline-batch.js` end-to-end (clean → load → enrich → finalize).
-- 4,022 providers after classification, 2,658 after dedup — uploaded to Supabase
-- Descriptions, reviews, trust signals, and images enriched
-- Total cost: ~$246 | Total time: 3h31m
-
-**Bug Fix:** `parseBatchMd()` in `pipeline-batch.js` failed on plain CSV files (no code block, no "Machine-Readable" header). `content.indexOf()` returned -1, `slice(-1)` gave single char. Fixed with explicit fallback to full content.
+**Notion doc created:** "Benefits Pipeline v2 — Content Production System" for team visibility
 
 ### 2026-04-07 (Session 69) — Admin Panel 2.0 QA Fixes
 

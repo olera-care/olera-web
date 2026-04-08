@@ -8,6 +8,7 @@ import { ExpandableText } from "@/components/waiver-library/ExpandableText";
 import { FaqAccordion } from "@/components/waiver-library/FaqAccordion";
 import { CityBadge } from "@/components/waiver-library/CityBadge";
 import { getCategory } from "@/lib/waiver-category";
+import { ProgramPageV2 } from "@/components/waiver-library/ProgramPageV2";
 
 interface Props {
   params: Promise<{ state: string; benefit: string }>;
@@ -54,6 +55,11 @@ export default async function BenefitPage({ params }: Props) {
 
   if (!state || !program) {
     notFound();
+  }
+
+  // Pipeline v2 programs get the new content-forward layout
+  if (program.programType) {
+    return <ProgramPageV2 program={program} state={state} />;
   }
 
   const FEDERAL_KEYWORDS = [

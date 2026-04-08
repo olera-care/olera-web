@@ -1038,39 +1038,39 @@ export default function ActionCard({
   // ════════════════════════════════════════════════════════════
 
   if (state === "already-claimed") {
-    // Compact view - show "Sign in" (primary) + "Dispute" (secondary)
-    // Most users landing here ARE the legitimate owner, so prioritize sign-in
+    // Compact view - show "Dispute" (primary) + "Sign in" (secondary)
+    // Users landing here without a token are likely NOT the owner (owners come via email link)
     if (!showDisputeForm) {
       return (
         <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
           <div className="text-center mb-6">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
-              <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-amber-500/10 border border-amber-200/60">
+              <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
             <h3 className="text-xl font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
-              This listing is managed
+              This listing is claimed
               <InfoTooltip content={TOOLTIP_CONTENT["already-claimed"].text} showTos={TOOLTIP_CONTENT["already-claimed"].showTos} />
             </h3>
             <p className="text-[15px] text-gray-500">
-              Sign in with your business email to access and manage this listing.
+              Someone else is managing this listing. If you believe this is an error, you can submit a dispute.
             </p>
           </div>
 
           <button
-            onClick={onClaimClick}
-            className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 block"
+            onClick={() => setShowDisputeForm(true)}
+            className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-amber-600 text-white text-sm font-semibold rounded-xl hover:bg-amber-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 block"
           >
-            Sign in to manage
+            Dispute listing
           </button>
           <p className="w-full sm:max-w-[280px] sm:mx-auto mt-4 text-sm text-gray-500 text-center">
-            Not the owner?{" "}
+            This is yours?{" "}
             <button
-              onClick={() => setShowDisputeForm(true)}
-              className="font-semibold text-amber-600 hover:text-amber-700 transition-colors"
+              onClick={onClaimClick}
+              className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
             >
-              Dispute this listing
+              Sign in
             </button>
           </p>
         </div>

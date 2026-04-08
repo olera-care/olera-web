@@ -15,14 +15,26 @@ import type { Provider } from "@/lib/types/provider";
 // Types
 // ============================================================
 
-type Screen = "search" | "results" | "check-email";
+type Screen = "search" | "results" | "preview" | "check-email";
 
 interface FormData {
   orgName: string;
   city: string;
   state: string;
   email: string;
+  phone: string;
+  careTypes: string[];
 }
+
+// Care categories for the preview form (from NavMenuData)
+const CARE_TYPE_OPTIONS = [
+  { id: "home-health", label: "Home Health" },
+  { id: "home-care", label: "Home Care" },
+  { id: "assisted-living", label: "Assisted Living" },
+  { id: "memory-care", label: "Memory Care" },
+  { id: "nursing-homes", label: "Nursing Homes" },
+  { id: "independent-living", label: "Independent Living" },
+];
 
 // Search result from olera-providers
 interface ProviderMatch extends Provider {
@@ -55,6 +67,8 @@ const EMPTY_FORM: FormData = {
   city: "",
   state: "",
   email: "",
+  phone: "",
+  careTypes: [],
 };
 
 // ============================================================
@@ -514,7 +528,35 @@ function ProviderOnboardingContent() {
               or{" "}
               <button
                 type="button"
-                onClick={() => setScreen("check-email")}
+                onClick={() => {
+                  // Validate form before going to preview
+                  let { city, state } = formData;
+                  // Auto-parse city/state from cityQuery if needed
+                  if ((!city || !state) && cityQuery.trim()) {
+                    const parts = cityQuery.split(",").map(s => s.trim());
+                    if (parts.length >= 2) {
+                      city = parts[0];
+                      state = parts[1];
+                      setFormData(prev => ({ ...prev, city, state }));
+                    }
+                  }
+
+                  if (!formData.orgName.trim()) {
+                    setSearchError("Please enter your organization name first.");
+                    return;
+                  }
+                  if (!city || !state) {
+                    setSearchError("Please enter your city and state first.");
+                    return;
+                  }
+                  if (!formData.email.trim() || !formData.email.includes("@")) {
+                    setSearchError("Please enter a valid email first.");
+                    return;
+                  }
+                  setSearchError("");
+                  setSelectedResult(null);
+                  setScreen("preview");
+                }}
                 className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
               >
                 create a new listing
@@ -633,10 +675,40 @@ function ProviderOnboardingContent() {
     }
   };
 
-  // Handle creating a new listing (no existing result selected)
-  const handleCreateNew = async () => {
-    setActionLoading("create-new");
+  // Handle "Create New Listing" button - navigate to preview screen
+  const handleCreateNew = () => {
+    setSelectedResult(null); // Clear any selected result
     setActionError("");
+    setScreen("preview");
+  };
+
+  // Handle preview form submission - actually create the listing
+  const handlePreviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setActionLoading("preview-submit");
+    setActionError("");
+
+    // Validation
+    if (!formData.orgName.trim()) {
+      setActionError("Organization name is required.");
+      setActionLoading(null);
+      return;
+    }
+    if (!formData.city.trim() || !formData.state.trim()) {
+      setActionError("City and state are required.");
+      setActionLoading(null);
+      return;
+    }
+    if (!formData.email.trim() || !formData.email.includes("@")) {
+      setActionError("A valid email is required.");
+      setActionLoading(null);
+      return;
+    }
+    if (formData.careTypes.length === 0) {
+      setActionError("Please select at least one care type.");
+      setActionLoading(null);
+      return;
+    }
 
     try {
       const res = await fetch("/api/provider/send-claim-email", {
@@ -648,6 +720,8 @@ function ProviderOnboardingContent() {
           orgName: formData.orgName,
           city: formData.city,
           state: formData.state,
+          phone: formData.phone || undefined,
+          careTypes: formData.careTypes,
         }),
       });
 
@@ -662,18 +736,27 @@ function ProviderOnboardingContent() {
         throw new Error(data.error || "Failed to send verification email");
       }
 
-      // Success - clear selected result (creating new) and show Screen 3
-      setSelectedResult(null);
+      // Success - show check email screen
       setActionLoading(null);
-      setActionError(""); // Clear any previous action errors
-      setResendCooldown(60); // Start cooldown since email was just sent
+      setActionError("");
+      setResendCooldown(60);
       setResendError("");
       setScreen("check-email");
     } catch (err) {
-      console.error("[handleCreateNew] Signup email error:", err);
+      console.error("[handlePreviewSubmit] Signup email error:", err);
       setActionError(err instanceof Error ? err.message : "Failed to send verification email. Please try again.");
       setActionLoading(null);
     }
+  };
+
+  // Toggle care type selection
+  const toggleCareType = (typeId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      careTypes: prev.careTypes.includes(typeId)
+        ? prev.careTypes.filter(t => t !== typeId)
+        : [...prev.careTypes, typeId],
+    }));
   };
 
   // Handle resending verification email (from Screen 3)
@@ -702,6 +785,8 @@ function ProviderOnboardingContent() {
         body.orgName = formData.orgName;
         body.city = formData.city;
         body.state = formData.state;
+        body.phone = formData.phone || undefined;
+        body.careTypes = formData.careTypes;
       }
 
       const res = await fetch("/api/provider/send-claim-email", {
@@ -1013,7 +1098,188 @@ function ProviderOnboardingContent() {
   }
 
   // ──────────────────────────────────────────────────────────
-  // Screen 3: Check Your Email (stub for now)
+  // Screen 2.5: Preview / Complete Your Profile
+  // ──────────────────────────────────────────────────────────
+
+  if (screen === "preview") {
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        {/* Minimal sticky nav */}
+        <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+          <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <Link href="/" className="flex items-center space-x-2">
+              <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
+              <span className="text-xl font-bold text-gray-900">Olera</span>
+            </Link>
+            <Link
+              href="/"
+              className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
+            >
+              Exit
+            </Link>
+          </div>
+        </nav>
+
+        <div className="flex-1 px-4 py-8 md:py-12">
+          <div className="max-w-xl mx-auto animate-fade-in">
+            {/* Back button + Header */}
+            <div className="mb-8">
+              <button
+                onClick={() => setScreen("results")}
+                className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1.5 mb-4 group"
+              >
+                <svg className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to results
+              </button>
+              <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 mb-2">
+                Complete your profile
+              </h1>
+              <p className="text-gray-600">
+                Review your details and tell us about your services.
+              </p>
+            </div>
+
+            {/* Preview Form */}
+            <form onSubmit={handlePreviewSubmit} className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200/80 p-6 md:p-8 space-y-6">
+              {/* Organization Name */}
+              <div className="space-y-2">
+                <label htmlFor="previewOrgName" className="block text-base font-semibold text-gray-900">
+                  Organization name
+                </label>
+                <input
+                  id="previewOrgName"
+                  type="text"
+                  value={formData.orgName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, orgName: e.target.value }))}
+                  className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-colors"
+                  required
+                />
+              </div>
+
+              {/* Location (read-only display) */}
+              <div className="space-y-2">
+                <label className="block text-base font-semibold text-gray-900">
+                  Location
+                </label>
+                <div className="flex items-center gap-2 px-4 py-3 bg-gray-100 rounded-xl border border-gray-200 text-gray-700">
+                  <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>{formData.city}, {formData.state}</span>
+                </div>
+              </div>
+
+              {/* Email (read-only display) */}
+              <div className="space-y-2">
+                <label className="block text-base font-semibold text-gray-900">
+                  Business email
+                </label>
+                <div className="flex items-center gap-2 px-4 py-3 bg-gray-100 rounded-xl border border-gray-200 text-gray-700">
+                  <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span>{formData.email}</span>
+                </div>
+                <p className="text-sm text-gray-500">We&apos;ll send a verification link to this email</p>
+              </div>
+
+              {/* Phone Number (new field) */}
+              <div className="space-y-2">
+                <label htmlFor="previewPhone" className="block text-base font-semibold text-gray-900">
+                  Business phone <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <div className="flex items-center px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
+                  <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  <input
+                    id="previewPhone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="(555) 123-4567"
+                    autoComplete="tel"
+                    className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                  />
+                </div>
+              </div>
+
+              {/* Care Types (multi-select) */}
+              <div className="space-y-3">
+                <label className="block text-base font-semibold text-gray-900">
+                  What services do you provide? <span className="text-red-500">*</span>
+                </label>
+                <p className="text-sm text-gray-500 -mt-1">Select all that apply</p>
+                <div className="grid grid-cols-2 gap-3">
+                  {CARE_TYPE_OPTIONS.map((type) => {
+                    const isSelected = formData.careTypes.includes(type.id);
+                    return (
+                      <button
+                        key={type.id}
+                        type="button"
+                        onClick={() => toggleCareType(type.id)}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all text-left ${
+                          isSelected
+                            ? "border-primary-500 bg-primary-50 text-primary-700"
+                            : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                          isSelected
+                            ? "border-primary-500 bg-primary-500"
+                            : "border-gray-300 bg-white"
+                        }`}>
+                          {isSelected && (
+                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <span className="text-sm font-medium">{type.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Error */}
+              {actionError && (
+                <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-100 rounded-xl">
+                  <svg className="w-5 h-5 text-red-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                  </svg>
+                  <p className="text-sm text-red-700">{actionError}</p>
+                </div>
+              )}
+
+              {/* Submit */}
+              <Button
+                type="submit"
+                size="lg"
+                fullWidth
+                loading={actionLoading === "preview-submit"}
+              >
+                Create My Listing
+              </Button>
+
+              <p className="text-center text-sm text-gray-500">
+                By creating a listing, you agree to our{" "}
+                <Link href="/terms" className="text-primary-600 hover:text-primary-700 underline">
+                  Terms of Service
+                </Link>
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────
+  // Screen 3: Check Your Email
   // ──────────────────────────────────────────────────────────
 
   if (screen === "check-email") {

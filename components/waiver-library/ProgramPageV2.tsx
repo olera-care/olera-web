@@ -85,26 +85,25 @@ function EligibilitySection({ eligibility }: { eligibility: StructuredEligibilit
 
       {/* Asset limits */}
       {eligibility.assetLimits && (
-        <div>
-          <p className="text-sm font-medium text-gray-900 mb-2">Asset limits</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {eligibility.assetLimits.exemptAssets && eligibility.assetLimits.exemptAssets.length > 0 && (
-              <div className="p-3 rounded-lg bg-emerald-50/60 border-l-2 border-emerald-400">
-                <p className="text-xs font-medium text-emerald-700 mb-1.5">Does not count</p>
-                {eligibility.assetLimits.exemptAssets.map((a, i) => (
-                  <p key={i} className="text-sm text-gray-600 leading-relaxed">{a}</p>
-                ))}
-              </div>
-            )}
-            {eligibility.assetLimits.countedAssets && eligibility.assetLimits.countedAssets.length > 0 && (
-              <div className="p-3 rounded-lg bg-amber-50/60 border-l-2 border-amber-400">
-                <p className="text-xs font-medium text-amber-700 mb-1.5">Counts against limit</p>
-                {eligibility.assetLimits.countedAssets.map((a, i) => (
-                  <p key={i} className="text-sm text-gray-600 leading-relaxed">{a}</p>
-                ))}
-              </div>
-            )}
-          </div>
+        <div className="text-sm text-gray-700 leading-relaxed space-y-2">
+          <p>
+            <span className="font-medium text-gray-900">Assets must be under ${(eligibility.assetLimits.individual || 0).toLocaleString()}</span>
+            {eligibility.assetLimits.couple && <> (${eligibility.assetLimits.couple.toLocaleString()} for couples)</>}
+            {" — "}but not everything counts.
+          </p>
+          {eligibility.assetLimits.exemptAssets && eligibility.assetLimits.exemptAssets.length > 0 && (
+            <p>
+              <span className="font-medium text-gray-900">Your parent can keep</span> their {eligibility.assetLimits.exemptAssets.map((a, i) => (
+                <span key={i}>{i > 0 && (i === eligibility.assetLimits!.exemptAssets!.length - 1 ? ", and " : ", ")}{a.toLowerCase()}</span>
+              ))}.
+              {eligibility.assetLimits.homeEquityCap && <> Home equity is exempt up to ${eligibility.assetLimits.homeEquityCap.toLocaleString()}.</>}
+            </p>
+          )}
+          {eligibility.assetLimits.countedAssets && eligibility.assetLimits.countedAssets.length > 0 && (
+            <p className="text-gray-500">
+              What does count: {eligibility.assetLimits.countedAssets.map((a) => a.toLowerCase()).join(", ")}.
+            </p>
+          )}
         </div>
       )}
 

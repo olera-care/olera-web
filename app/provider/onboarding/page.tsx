@@ -99,6 +99,9 @@ function ProviderOnboardingContent() {
 
   useClickOutside(cityDropdownRef, () => setShowCityDropdown(false));
 
+  // Action/API error state
+  const [actionError, setActionError] = useState("");
+
   // Resend email state
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resending, setResending] = useState(false);
@@ -560,9 +563,6 @@ function ProviderOnboardingContent() {
     // Name match but claimed by someone else = dispute
     return { label: "Dispute", variant: "ghost", action: "dispute" };
   };
-
-  // Error state for API calls
-  const [actionError, setActionError] = useState("");
 
   // Handle result card action
   const handleResultAction = async (result: SearchResult, action: "sign-in" | "manage" | "dispute") => {

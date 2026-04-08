@@ -57,21 +57,21 @@ export default function OrganizationSearch({
       const supabase = createClient();
       const searchPattern = `%${query}%`;
 
-      // Search business_profiles
+      // Search business_profiles (by name OR city)
       const { data: bpResults } = await supabase
         .from("business_profiles")
         .select("id, display_name, slug, city, state, email, claim_state, source_provider_id, image_url")
         .in("type", ["organization", "caregiver"])
-        .ilike("display_name", searchPattern)
-        .limit(10);
+        .or(`display_name.ilike.${searchPattern},city.ilike.${searchPattern}`)
+        .limit(25);
 
-      // Search olera-providers
+      // Search olera-providers (by name OR city)
       const { data: opResults } = await supabase
         .from("olera-providers")
         .select("provider_id, provider_name, slug, city, state, email, hero_image_url, provider_images")
         .not("deleted", "is", true)
-        .ilike("provider_name", searchPattern)
-        .limit(10);
+        .or(`provider_name.ilike.${searchPattern},city.ilike.${searchPattern}`)
+        .limit(25);
 
       // Get claim states for olera-providers by checking if they have linked business_profiles
       const opProviderIds = opResults?.map((op) => op.provider_id) || [];

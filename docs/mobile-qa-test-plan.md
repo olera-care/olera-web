@@ -60,7 +60,7 @@ Component: `components/shared/Navbar.tsx` — overlay rendered via `createPortal
 | N.8 | Auth card is pinned to the bottom (logged-out) | Both | Sign out. Open menu on a device with short screen. | Log in + Sign up buttons are always at the bottom, not pushed off screen. Auth card is not scrolled past accidentally. | P0 |
 | N.9 | "Log in" button opens auth modal in sign-in mode | Both | Sign out, open menu, tap Log in. | Auth modal appears in sign-in mode (not sign-up). | P0 |
 | N.10 | "Sign up" button opens auth modal in sign-up mode | Both | Sign out, open menu, tap Sign up. | Auth modal appears in sign-up/registration mode. | P0 |
-| N.11 | Provider links trigger auth (logged-out) | Both | Sign out, open menu, tap "List your organization". | Auth modal opens with provider intent pre-selected. | P1 |
+| N.11 | Provider links trigger auth (logged-out) | Both | Sign out, open menu, tap "Find your organization". | Auth modal opens with provider intent pre-selected. | P1 |
 | N.12 | Family logged-in: My Account accordion open by default | Both | Sign in as family user. Open menu. | My Account section is expanded. Inbox, Matches, Saved, Account visible without tapping. | P0 |
 | N.13 | Family logged-in: Discover accordion collapsed by default | Both | Sign in as family user. Open menu. | Discover section is collapsed. Find Care etc. not visible until tapped. | P1 |
 | N.14 | Opening Discover closes My Account (exclusivity) | Both | Sign in as family. Open menu. Tap Discover header. | Discover expands, My Account collapses simultaneously. Both cannot be open at once. | P1 |

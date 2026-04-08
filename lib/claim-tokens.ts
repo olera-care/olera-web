@@ -134,17 +134,18 @@ export function generateNotificationUrl(
 
 /**
  * Generate a MedJobs notification URL with embedded claim token.
- * Used for interview email links — enables one-click access for providers.
+ * Used for interview email links — routes to the shared provider onboard page
+ * for visual consistency with lead/question/review email flows.
  */
 export function generateMedJobsNotificationUrl(
-  profileId: string,
+  providerSlug: string,
   email: string,
   action: "interview",
   actionId: string,
   baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"
 ): string {
-  const token = generateClaimToken(profileId, email);
-  const url = new URL(`${baseUrl}/provider/medjobs/onboard`);
+  const token = generateClaimToken(providerSlug, email);
+  const url = new URL(`${baseUrl}/provider/${providerSlug}/onboard`);
   url.searchParams.set("action", action);
   url.searchParams.set("actionId", actionId);
   url.searchParams.set("otk", token);

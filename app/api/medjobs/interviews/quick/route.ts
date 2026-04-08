@@ -50,9 +50,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!provider?.firstName || !provider?.lastName || !provider?.email || !provider?.organization || !provider?.city) {
+    if (!provider?.email || !provider?.organization || !provider?.city) {
       return NextResponse.json(
-        { error: "Provider firstName, lastName, email, organization, and city are required" },
+        { error: "Provider email, organization, and city are required" },
         { status: 400 }
       );
     }
@@ -71,55 +71,134 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
-    // Check if a business_profile already exists for this email
     const normalizedEmail = provider.email.trim().toLowerCase();
-    const { data: existingProfile } = await admin
-      .from("business_profiles")
-      .select("id, account_id, display_name")
-      .eq("email", normalizedEmail)
-      .in("type", ["organization", "caregiver"])
-      .maybeSingle();
 
     let providerProfileId: string;
     let providerDisplayName: string;
+    let providerSlug: string;
     let isNewProfile = false;
 
-    if (existingProfile) {
-      // Use existing profile
-      providerProfileId = existingProfile.id;
-      providerDisplayName = existingProfile.display_name;
-    } else {
-      // Create a new business_profile without account_id
-      const slug = generateSlug(provider.organization, provider.city);
-      const displayName = provider.organization;
-
-      const { data: newProfile, error: profileError } = await admin
+    // If an existing org was selected from autocomplete, try to find/link it
+    if (provider.selectedOrgSlug) {
+      // First try to find a business_profile by slug
+      let existingProfile = await admin
         .from("business_profiles")
-        .insert({
-          slug,
-          type: "organization",
-          display_name: displayName,
-          email: normalizedEmail,
-          city: provider.city,
-          state: provider.state || null,
-          care_types: [],
-          metadata: {
-            contact_first_name: provider.firstName,
-            contact_last_name: provider.lastName,
-            source: "medjobs_quick_schedule",
-          },
-        })
-        .select("id")
-        .single();
+        .select("id, account_id, display_name, slug")
+        .eq("slug", provider.selectedOrgSlug)
+        .in("type", ["organization", "caregiver"])
+        .maybeSingle()
+        .then(r => r.data);
 
-      if (profileError || !newProfile) {
-        console.error("[medjobs/interviews/quick] profile creation error:", profileError);
-        return NextResponse.json({ error: "Failed to create provider profile" }, { status: 500 });
+      // If not found and we have providerId, try by source_provider_id
+      if (!existingProfile && provider.selectedOrgProviderId) {
+        existingProfile = await admin
+          .from("business_profiles")
+          .select("id, account_id, display_name, slug")
+          .eq("source_provider_id", provider.selectedOrgProviderId)
+          .in("type", ["organization", "caregiver"])
+          .limit(1)
+          .maybeSingle()
+          .then(r => r.data);
       }
 
-      providerProfileId = newProfile.id;
-      providerDisplayName = displayName;
-      isNewProfile = true;
+      if (existingProfile) {
+        // Use the existing profile (already linked to an org)
+        providerProfileId = existingProfile.id;
+        providerDisplayName = existingProfile.display_name;
+        providerSlug = existingProfile.slug;
+      } else {
+        // Selected org from olera-providers - create a business_profile linked to it
+        const { data: newProfile, error: profileError } = await admin
+          .from("business_profiles")
+          .insert({
+            slug: provider.selectedOrgSlug,
+            type: "organization",
+            display_name: provider.organization,
+            email: normalizedEmail,
+            city: provider.city,
+            state: provider.state || null,
+            source_provider_id: provider.selectedOrgProviderId || null,
+            care_types: [],
+            source: "medjobs_quick_schedule",
+          })
+          .select("id")
+          .single();
+
+        if (profileError) {
+          // Handle race condition: unique constraint violation means another request just created it
+          if (profileError.code === "23505") {
+            // Re-fetch the profile that was just created
+            const { data: raceProfile } = await admin
+              .from("business_profiles")
+              .select("id, display_name, slug")
+              .eq("slug", provider.selectedOrgSlug)
+              .single();
+
+            if (raceProfile) {
+              providerProfileId = raceProfile.id;
+              providerDisplayName = raceProfile.display_name;
+              providerSlug = raceProfile.slug;
+            } else {
+              console.error("[medjobs/interviews/quick] race condition but no profile found:", profileError);
+              return NextResponse.json({ error: "Failed to create provider profile" }, { status: 500 });
+            }
+          } else {
+            console.error("[medjobs/interviews/quick] profile creation error:", profileError);
+            return NextResponse.json({ error: "Failed to create provider profile" }, { status: 500 });
+          }
+        } else if (newProfile) {
+          providerProfileId = newProfile.id;
+          providerDisplayName = provider.organization;
+          providerSlug = provider.selectedOrgSlug;
+          isNewProfile = true;
+        } else {
+          return NextResponse.json({ error: "Failed to create provider profile" }, { status: 500 });
+        }
+      }
+    } else {
+      // No org selected from autocomplete - check by email or create new
+      const { data: existingProfile } = await admin
+        .from("business_profiles")
+        .select("id, account_id, display_name, slug")
+        .eq("email", normalizedEmail)
+        .in("type", ["organization", "caregiver"])
+        .maybeSingle();
+
+      if (existingProfile) {
+        // Use existing profile
+        providerProfileId = existingProfile.id;
+        providerDisplayName = existingProfile.display_name;
+        providerSlug = existingProfile.slug;
+      } else {
+        // Create a new business_profile without account_id
+        const slug = generateSlug(provider.organization, provider.city);
+        const displayName = provider.organization;
+
+        const { data: newProfile, error: profileError } = await admin
+          .from("business_profiles")
+          .insert({
+            slug,
+            type: "organization",
+            display_name: displayName,
+            email: normalizedEmail,
+            city: provider.city,
+            state: provider.state || null,
+            care_types: [],
+            source: "medjobs_quick_schedule",
+          })
+          .select("id")
+          .single();
+
+        if (profileError || !newProfile) {
+          console.error("[medjobs/interviews/quick] profile creation error:", profileError);
+          return NextResponse.json({ error: "Failed to create provider profile" }, { status: 500 });
+        }
+
+        providerProfileId = newProfile.id;
+        providerDisplayName = displayName;
+        providerSlug = slug;
+        isNewProfile = true;
+      }
     }
 
     // Create the interview
@@ -148,7 +227,7 @@ export async function POST(request: NextRequest) {
 
     // Generate magic link URL for the confirmation email
     const magicLinkUrl = generateMedJobsNotificationUrl(
-      providerProfileId,
+      providerSlug,
       normalizedEmail,
       "interview",
       interview.id
@@ -173,7 +252,7 @@ export async function POST(request: NextRequest) {
         to: normalizedEmail,
         subject: `Interview request sent to ${student.display_name}`,
         html: interviewRequestEmail({
-          providerName: provider.firstName,
+          providerName: providerDisplayName,
           studentName: student.display_name,
           interviewType: typeLabel,
           dateTime: formattedDateTime,

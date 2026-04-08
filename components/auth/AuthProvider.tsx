@@ -805,7 +805,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     } else if (options.intent) {
       // Clear stale deferred actions when an explicit intent is set.
       // Prevents e.g. a prior "Inquire" returnUrl from overriding
-      // the redirect for "List your organization".
+      // the redirect for "Find your organization".
       clearDeferredAction();
     }
     // Persist intent to sessionStorage for OAuth redirects

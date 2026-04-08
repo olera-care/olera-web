@@ -4,6 +4,7 @@ import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Modal from "@/components/ui/Modal";
 import { useCitySearch } from "@/hooks/use-city-search";
+import OrganizationSearch, { type SelectedOrg } from "@/components/shared/OrganizationSearch";
 import type { StudentMetadata } from "@/lib/types";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -245,13 +246,12 @@ export default function QuickScheduleModal({
   const [notes, setNotes] = useState("");
 
   // Step 2: Provider info
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
   const [organization, setOrganization] = useState("");
+  const [selectedOrg, setSelectedOrg] = useState<SelectedOrg | null>(null);
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [email, setEmail] = useState("");
 
   // City search
   const { results: cityResults } = useCitySearch(city);
@@ -298,7 +298,7 @@ export default function QuickScheduleModal({
 
   // Validation
   const canProceedToStep2 = selectedDate && selectedTime;
-  const canSubmit = firstName.trim() && lastName.trim() && email.trim() && organization.trim() && city.trim();
+  const canSubmit = organization.trim() && city.trim() && email.trim() && email.includes("@");
 
   // Handlers
   const handleNext = useCallback(() => {
@@ -331,12 +331,14 @@ export default function QuickScheduleModal({
           proposedTime,
           notes: notes.trim() || undefined,
           provider: {
-            firstName: firstName.trim(),
-            lastName: lastName.trim(),
             email: email.trim().toLowerCase(),
             organization: organization.trim(),
             city: city.trim(),
             state: state.trim(),
+            // Include selected org info for linking
+            selectedOrgSlug: selectedOrg?.slug || null,
+            selectedOrgSource: selectedOrg?.source || null,
+            selectedOrgProviderId: selectedOrg?.providerId || null,
           },
         }),
       });
@@ -355,12 +357,32 @@ export default function QuickScheduleModal({
     } finally {
       setSubmitting(false);
     }
-  }, [canSubmit, selectedDate, selectedTime, format, notes, candidate.id, firstName, lastName, email, organization, city, state]);
+  }, [canSubmit, selectedDate, selectedTime, format, notes, candidate.id, email, organization, city, state, selectedOrg]);
 
   const handleCitySelect = useCallback((selectedCity: string, selectedState: string) => {
     setCity(selectedCity);
     setState(selectedState);
     setShowCityDropdown(false);
+  }, []);
+
+  // Handle organization selection from autocomplete
+  const handleOrgSelect = useCallback((org: SelectedOrg | null) => {
+    setSelectedOrg(org);
+    if (org) {
+      // Auto-fill city from selected org
+      if (org.city && org.state) {
+        setCity(org.city);
+        setState(org.state);
+      } else {
+        // Org doesn't have city/state - clear fields so user knows to fill them
+        setCity("");
+        setState("");
+      }
+    } else {
+      // "Create new" selected - clear city/state so user must enter them
+      setCity("");
+      setState("");
+    }
   }, []);
 
   // Reset on close
@@ -373,12 +395,11 @@ export default function QuickScheduleModal({
       setSelectedDate("");
       setSelectedTime("");
       setNotes("");
-      setFirstName("");
-      setLastName("");
-      setEmail("");
       setOrganization("");
+      setSelectedOrg(null);
       setCity("");
       setState("");
+      setEmail("");
       setError("");
     }, 200);
   }, [onClose]);
@@ -490,7 +511,7 @@ export default function QuickScheduleModal({
 
       {/* Title */}
       <h2 className="text-xl font-semibold text-gray-900 mt-4">
-        Your details
+        Your organization
       </h2>
       <p className="mt-1 text-sm text-gray-500">
         We&apos;ll send confirmation to your email.
@@ -502,67 +523,34 @@ export default function QuickScheduleModal({
         </div>
       )}
 
-      {/* Name fields */}
-      <div className="mt-7 grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-3">
-            First name
-          </label>
-          <input
-            id="firstName"
-            type="text"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            placeholder="Jane"
-            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors min-h-[48px]"
-          />
-        </div>
-        <div>
-          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-3">
-            Last name
-          </label>
-          <input
-            id="lastName"
-            type="text"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            placeholder="Smith"
-            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors min-h-[48px]"
-          />
-        </div>
-      </div>
-
-      {/* Work email */}
-      <div className="mt-5">
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-3">
-          Work email
-        </label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="jane@company.com"
-          className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors min-h-[48px]"
-        />
-      </div>
-
-      {/* Organization */}
-      <div className="mt-5">
-        <label htmlFor="organization" className="block text-sm font-medium text-gray-700 mb-3">
+      {/* Organization - Autocomplete */}
+      <div className="mt-7">
+        <label className="block text-sm font-medium text-gray-700 mb-3">
           Organization
         </label>
-        <input
-          id="organization"
-          type="text"
+        <OrganizationSearch
           value={organization}
-          onChange={(e) => setOrganization(e.target.value)}
-          placeholder="Company or facility name"
-          className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors min-h-[48px]"
+          onChange={(value) => {
+            setOrganization(value);
+            // Clear selected org when user types
+            if (selectedOrg && value !== selectedOrg.name) {
+              setSelectedOrg(null);
+            }
+          }}
+          onSelect={handleOrgSelect}
+          placeholder="Search or create new..."
         />
+        {selectedOrg && (
+          <p className="mt-2 text-sm text-primary-600 flex items-center gap-1.5">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            Selected: {selectedOrg.name}
+          </p>
+        )}
       </div>
 
-      {/* City */}
+      {/* City - auto-fills from org or manual entry */}
       <div className="mt-5">
         <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-3">
           City
@@ -625,6 +613,22 @@ export default function QuickScheduleModal({
             <p className="mt-2 text-sm text-gray-500">{city}, {state}</p>
           )}
         </div>
+      </div>
+
+      {/* Work email */}
+      <div className="mt-5">
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-3">
+          Work email
+        </label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@organization.com"
+          className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors min-h-[48px]"
+        />
+        <p className="mt-2 text-xs text-gray-500">We&apos;ll send interview details here</p>
       </div>
 
       {/* Submit button */}

@@ -152,7 +152,77 @@ export async function POST(request: Request) {
     // The browser client can't read connections/questions/reviews for
     // unauthenticated users, so the notification card would be empty.
     let notificationData: Record<string, unknown> | null = null;
-    if (action && actionId) {
+
+    // For claim/signup, we don't need actionId - provider info IS the notification data
+    // We also fetch activity counts to make the card richer
+    if (action === "claim" || action === "signup") {
+      try {
+        notificationData = {
+          type: action,
+          id: canonicalProviderId,
+          created_at: new Date().toISOString(),
+          provider_name: providerName,
+          provider_city: null as string | null,
+          provider_state: null as string | null,
+          provider_image: null as string | null,
+          // Activity counts for richer card
+          pending_leads: 0,
+          pending_questions: 0,
+        };
+
+        // Try to fetch location/image from business_profiles first, then olera-providers
+        const { data: bpInfo } = await db
+          .from("business_profiles")
+          .select("id, city, state, image_url")
+          .eq("slug", providerSlug || providerId)
+          .maybeSingle();
+
+        let profileId: string | null = null;
+
+        if (bpInfo) {
+          profileId = bpInfo.id;
+          notificationData.provider_city = bpInfo.city;
+          notificationData.provider_state = bpInfo.state;
+          notificationData.provider_image = bpInfo.image_url;
+        } else {
+          const { data: opInfo } = await db
+            .from("olera-providers")
+            .select("city, state, provider_images")
+            .eq("slug", providerSlug || providerId)
+            .maybeSingle();
+
+          if (opInfo) {
+            notificationData.provider_city = opInfo.city;
+            notificationData.provider_state = opInfo.state;
+            notificationData.provider_image = opInfo.provider_images?.split("|")[0]?.trim() || null;
+          }
+        }
+
+        // Fetch pending activity counts for existing profiles (makes card richer)
+        if (profileId) {
+          // Count pending connections (leads)
+          const { count: leadsCount } = await db
+            .from("connections")
+            .select("id", { count: "exact", head: true })
+            .eq("to_profile_id", profileId)
+            .eq("type", "inquiry")
+            .eq("status", "pending");
+          notificationData.pending_leads = leadsCount || 0;
+
+          // Count unanswered questions
+          const { count: questionsCount } = await db
+            .from("provider_questions")
+            .select("id", { count: "exact", head: true })
+            .eq("provider_id", providerSlug || providerId)
+            .eq("status", "pending")
+            .is("answer", null);
+          notificationData.pending_questions = questionsCount || 0;
+        }
+      } catch (err) {
+        console.error("Failed to fetch claim/signup notification data:", err);
+      }
+    } else if (action && actionId) {
+      // For lead/question/review/interview, we need actionId to fetch the specific record
       try {
         if (action === "lead" || action === "message") {
           const { data: conn } = await db
@@ -209,6 +279,25 @@ export async function POST(request: Request) {
               rating: review.rating,
               comment: review.comment,
               reviewer_name: review.reviewer_name,
+            };
+          }
+        } else if (action === "interview") {
+          const { data: interview } = await db
+            .from("interviews")
+            .select("id, type, proposed_time, notes, status, created_at, student:business_profiles!interviews_student_profile_id_fkey(display_name, image_url)")
+            .eq("id", actionId)
+            .single();
+          if (interview) {
+            const student = interview.student as unknown as { display_name: string; image_url: string | null } | null;
+            notificationData = {
+              type: "interview",
+              id: interview.id,
+              created_at: interview.created_at,
+              candidate_name: student?.display_name || "A candidate",
+              candidate_image: student?.image_url || null,
+              interview_format: interview.type,
+              proposed_time: interview.proposed_time,
+              notes: interview.notes,
             };
           }
         }

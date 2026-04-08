@@ -39,7 +39,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { providerId, claimSession } = body;
+    const { providerId, claimSession, pendingClaim } = body as {
+      providerId: string;
+      claimSession: string;
+      pendingClaim?: boolean; // If true, set claim_state to "pending" for manual review
+    };
 
     if (!providerId || !claimSession) {
       return NextResponse.json(
@@ -47,6 +51,9 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // Determine claim state based on pendingClaim flag
+    const claimState = pendingClaim ? "pending" : "claimed";
 
     if (!UUID_RE.test(claimSession)) {
       return NextResponse.json({ error: "Invalid claim session." }, { status: 400 });
@@ -138,11 +145,24 @@ export async function POST(request: Request) {
     }
 
     // 3. Check if business_profile already exists for this provider
-    const { data: existingProfile } = await db
+    // First try by source_provider_id (olera-providers linked profiles)
+    let existingProfile = await db
       .from("business_profiles")
       .select("id, claim_state, account_id, slug")
       .eq("source_provider_id", providerId)
-      .maybeSingle();
+      .maybeSingle()
+      .then((r: { data: { id: string; claim_state: string | null; account_id: string | null; slug: string } | null }) => r.data);
+
+    // Fallback: try by BP id directly (MedJobs ghost profiles and other BP-only providers)
+    if (!existingProfile && UUID_RE.test(providerId)) {
+      existingProfile = await db
+        .from("business_profiles")
+        .select("id, claim_state, account_id, slug")
+        .eq("id", providerId)
+        .in("type", ["organization", "caregiver"])
+        .maybeSingle()
+        .then((r: { data: { id: string; claim_state: string | null; account_id: string | null; slug: string } | null }) => r.data);
+    }
 
     let profileSlug: string;
     let profileId: string;
@@ -155,9 +175,14 @@ export async function POST(request: Request) {
         );
       }
       // Update existing unclaimed profile
+      // Set verification_state based on pendingClaim flag (email match check)
       const { error: updateErr } = await db
         .from("business_profiles")
-        .update({ account_id: accountId, claim_state: "claimed" })
+        .update({
+          account_id: accountId,
+          claim_state: claimState,
+          verification_state: pendingClaim ? "unverified" : "verified",
+        })
         .eq("id", existingProfile.id);
 
       if (updateErr) {
@@ -209,8 +234,8 @@ export async function POST(request: Request) {
           city: provider.city,
           state: provider.state,
           zip: provider.zipcode?.toString() || null,
-          claim_state: "claimed",
-          verification_state: "verified",
+          claim_state: claimState,
+          verification_state: pendingClaim ? "unverified" : "verified",
           // Real provider claimed from directory - NOT seeded test data
           source: "claimed_from_directory",
           is_active: true,

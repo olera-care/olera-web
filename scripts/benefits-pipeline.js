@@ -189,7 +189,31 @@ class RateLimiter {
   }
 }
 
-const rateLimiter = new RateLimiter(300);
+// Separate rate limiters for each API to allow concurrent calls across APIs
+const perplexityLimiter = new RateLimiter(200);  // 200ms between Perplexity calls
+const claudeLimiter = new RateLimiter(300);       // 300ms between Claude calls
+// Legacy single limiter for backwards compat
+const rateLimiter = perplexityLimiter;
+
+/**
+ * Run async tasks in batches with concurrency limit.
+ * Returns results in original order.
+ */
+async function runConcurrent(items, fn, concurrency = 5) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < items.length) {
+      const i = nextIndex++;
+      results[i] = await fn(items[i], i);
+    }
+  }
+
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, () => worker());
+  await Promise.all(workers);
+  return results;
+}
 
 async function fetchWithRetry(url, opts = {}, retries = 3) {
   for (let i = 0; i < retries; i++) {
@@ -204,7 +228,7 @@ async function fetchWithRetry(url, opts = {}, retries = 3) {
 }
 
 async function perplexityChat(prompt, temperature = 0.1) {
-  await rateLimiter.wait();
+  await perplexityLimiter.wait();
   cost.addPerplexity();
 
   const resp = await fetchWithRetry("https://api.perplexity.ai/chat/completions", {
@@ -475,15 +499,14 @@ For each, give: name, what_it_does (2 sentences), who_its_for, whats_unique, off
 Return as a JSON array: [{"name":"...","what_it_does":"...","who_its_for":"...","whats_unique":"...","official_url":"...","benefit_value":"..."}]`;
   }
 
-  console.log(`  Query 1: ${entity.isState ? "Federal" : "General"} programs in ${entity.name}...`);
-  const fedResponse = await perplexityChat(federalPrompt, 0.2);
+  console.log(`  Running 2 explore queries in parallel...`);
+  const [fedResponse, localResponse] = await Promise.all([
+    perplexityChat(federalPrompt, 0.2),
+    perplexityChat(localPrompt, 0.2),
+  ]);
   const fedPrograms = extractJson(fedResponse) || [];
-  console.log(`  Found ${fedPrograms.length} programs`);
-
-  console.log(`  Query 2: ${entity.isState ? entity.name + "-unique" : "Local"} programs...`);
-  const localResponse = await perplexityChat(localPrompt, 0.2);
   const localPrograms = extractJson(localResponse) || [];
-  console.log(`  Found ${localPrograms.length} local programs`);
+  console.log(`  Found ${fedPrograms.length} general + ${localPrograms.length} local programs`);
 
   // Merge and deduplicate with semantic normalization
   const allDiscovered = [...fedPrograms, ...localPrograms];
@@ -527,14 +550,12 @@ async function phaseDive(entity, exploreData) {
     return null;
   }
 
-  console.log(`  Diving into ${programs.length} programs...\n`);
-  const results = [];
+  const DIVE_CONCURRENCY = 5;
+  console.log(`  Diving into ${programs.length} programs (concurrency: ${DIVE_CONCURRENCY})...\n`);
+  let completed = 0;
 
-  for (let i = 0; i < programs.length; i++) {
-    const prog = programs[i];
+  const results = await runConcurrent(programs, async (prog, i) => {
     const name = prog.name || `Program ${i + 1}`;
-
-    process.stdout.write(`  [${i + 1}/${programs.length}] ${name.slice(0, 50).padEnd(50)} ${cost.summary()}\r`);
 
     const prompt = `I'm building a comprehensive guide to "${name}" in ${stateName} for families trying to determine if their elderly loved one qualifies and how to apply.
 
@@ -589,26 +610,22 @@ Return as JSON:
     try {
       const response = await perplexityChat(prompt);
       const parsed = extractJson(response);
+      completed++;
+      process.stdout.write(`  [${completed}/${programs.length}] ${name.slice(0, 50).padEnd(50)} ${cost.summary()}\r`);
 
       if (parsed) {
         parsed._raw = response;
-        results.push(parsed);
+        return parsed;
       } else {
-        results.push({
-          name,
-          _parseError: true,
-          _raw: response,
-        });
         console.log(`\n  WARN: Could not parse response for "${name}"`);
+        return { name, _parseError: true, _raw: response };
       }
     } catch (err) {
-      results.push({
-        name,
-        _error: err.message,
-      });
+      completed++;
       console.log(`\n  ERROR: "${name}": ${err.message}`);
+      return { name, _error: err.message };
     }
-  }
+  }, DIVE_CONCURRENCY);
 
   console.log(`\n\n  Completed deep dive on ${results.length} programs`);
   console.log(`  Parsed: ${results.filter((r) => !r._parseError && !r._error).length}`);
@@ -1033,7 +1050,7 @@ function phaseClassify(entity, diveData, compareData) {
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
 async function claudeChat(prompt, maxTokens = 4096) {
-  await rateLimiter.wait();
+  await claudeLimiter.wait();
 
   const resp = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -1089,21 +1106,18 @@ async function phaseDraft(entity, diveData, classifyData) {
     return null;
   }
 
-  console.log(`  Drafting ${divePrograms.length} programs...\n`);
-  const results = [];
+  const DRAFT_CONCURRENCY = 3;
+  console.log(`  Drafting ${divePrograms.length} programs (concurrency: ${DRAFT_CONCURRENCY})...\n`);
+  let draftCompleted = 0;
+  const draftedAt = new Date().toISOString().split("T")[0];
 
-  for (let i = 0; i < divePrograms.length; i++) {
-    const prog = divePrograms[i];
+  const results = await runConcurrent(divePrograms, async (prog, i) => {
     const classification = classifications.find((c) => c.name === prog.name) || {};
     const name = prog.name || `Program ${i + 1}`;
-
-    process.stdout.write(`  [${i + 1}/${divePrograms.length}] ${name.slice(0, 50).padEnd(50)}\r`);
-
     const programType = classification.programType || "benefit";
     const complexity = classification.complexity || "medium";
     const sections = classification.recommendedSections || ["prose"];
 
-    // Build the prompt with all research data
     const draftPrompt = `${CONTENT_VOICE_PROMPT}
 
 You are drafting the page content for "${name}" in ${stateName}. This is a ${programType} program with ${complexity} complexity.
@@ -1167,7 +1181,7 @@ Generate the complete page content as a JSON object matching this exact structur
   "phone": "<primary contact phone from research or null>",
   "sourceUrl": "<primary official .gov URL>",
   "contentStatus": "pipeline-draft",
-  "draftedAt": "${new Date().toISOString().split("T")[0]}"
+  "draftedAt": "${draftedAt}"
 }
 
 CRITICAL RULES:
@@ -1179,37 +1193,31 @@ CRITICAL RULES:
 - Content sections array should only include sections where you have real data to populate them.
 - Return ONLY the JSON object, no markdown wrapping.`;
 
-    // Deep programs with many content sections need more tokens
     const tokenLimit = complexity === "deep" ? 6144 : complexity === "medium" ? 4096 : 3072;
 
     try {
       const response = await claudeChat(draftPrompt, tokenLimit);
       const parsed = extractJson(response);
+      draftCompleted++;
+      process.stdout.write(`  [${draftCompleted}/${divePrograms.length}] ${name.slice(0, 50).padEnd(50)}\r`);
 
       if (parsed) {
-        // Ensure required fields
         parsed.programType = parsed.programType || programType;
         parsed.complexity = parsed.complexity || complexity;
         parsed.geographicScope = parsed.geographicScope || classification.geographicScope;
         parsed.contentStatus = "pipeline-draft";
-        parsed.draftedAt = new Date().toISOString().split("T")[0];
-        results.push(parsed);
+        parsed.draftedAt = draftedAt;
+        return parsed;
       } else {
-        results.push({
-          name,
-          _parseError: true,
-          _raw: response.slice(0, 500),
-        });
         console.log(`\n  WARN: Could not parse draft for "${name}"`);
+        return { name, _parseError: true, _raw: response.slice(0, 500) };
       }
     } catch (err) {
-      results.push({
-        name,
-        _error: err.message,
-      });
+      draftCompleted++;
       console.log(`\n  ERROR drafting "${name}": ${err.message}`);
+      return { name, _error: err.message };
     }
-  }
+  }, DRAFT_CONCURRENCY);
 
   const successful = results.filter((r) => !r._parseError && !r._error);
   console.log(`\n\n  Drafted ${successful.length}/${divePrograms.length} programs`);

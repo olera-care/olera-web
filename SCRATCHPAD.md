@@ -20,10 +20,8 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 **What's different about Olera's approach:** Most benefits sites dump government data into templates. Our pages read like a thoughtful guide written by someone who understands the program and cares whether your family gets help. The pipeline enforces this: caregiver-first voice, specific numbers with sources, honest about unknowns, no bureaucratic filler.
 
 **Open architectural questions:**
-1. **Entity model for geography** — programs need county, city, region, and service-area support. Current data model has `geographicScope` with `localEntities` but the page routing is still `/waiver-library/{state}/{program}`. Need to evolve to support sub-state entities without rigid hierarchy.
-2. **State page old/new toggle in admin** — program-level has Draft/Current, state-level doesn't yet. Need parity.
-3. **Batch apply workflow** — slash command detects approved drafts, but the actual "write to waiver-library.ts" step hasn't been tested at scale.
-4. **Content freshness** — income limits and program rules change annually. Pipeline needs a re-verification mode, not just initial generation.
+1. **Batch apply workflow** — slash command detects approved drafts, but the actual "write to waiver-library.ts" step hasn't been tested at scale.
+2. **Content freshness** — income limits and program rules change annually. Pipeline needs a re-verification mode, not just initial generation.
 
 ---
 
@@ -34,18 +32,18 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 ### What's shipped
 - 6-phase pipeline: explore → dive → compare → classify → draft → report
 - Data model: programType, geographicScope, complexity, structuredEligibility, applicationGuide, contentSections, contentStatus
-- Admin dashboard: summary bar, content quality indicators, draft preview with old/new toggle, review workflow (status + comments), preview buttons
+- Admin dashboard: streamlined for content production (readiness filters, content metrics, lifted API calls, remembered reviewer name, programType badges, review status on rows)
+- State page review workflow: state-level Draft/Current toggle + DraftReviewPanel with `programId: "state-overview"`, dual preview links (v2 vs `?v=1` current), slash command updated
 - ProgramPageV2: content-forward, prose-width, serif headings, structured eligibility as prose, clean FAQs, no card soup
-- StatePageV2: hand-drawn SVG illustrations, "where to start" picks, need-based groupings, quick facts, organic design language
+- StatePageV2: hand-drawn SVG illustrations, organic blobs, wavy dividers, dark stat band, horizontal start-here cards, need-based groupings with custom SVG icons, grouped program list by type
 - Save program: auth-gated bookmark, Supabase persistence, /saved page
 - Michigan: 16 programs drafted + state overview generated. MI Choice applied as live v2 test.
 
 ### What's next
-1. State page old/new toggle in admin dashboard
+1. **Region-flexible pipeline** — evolve from state-only to any geographic entity (county, metro, region, city). Four layers: pipeline `--region` flag, data model regions alongside states, flat URL routing at `/benefits/{slug}`, admin regions section. Decision made, implementation starting.
 2. Apply approved MI drafts to waiver-library.ts (all 16 programs)
-3. Run pipeline on FL or CA — prove the system generalizes
+3. Run pipeline on FL or CA (or a region like "Miami-Dade County, FL")
 4. Review draft quality with Chantel
-5. Evolve geographic entity model for sub-state routing
 
 ### Other active work (different branches)
 - Homepage de-jank + mega menu (`gifted-rosalind`) — ready for QA
@@ -67,6 +65,12 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 ## Decisions Made
 
 | Date | Decision | Rationale |
+| 2026-04-09 | Region-flexible pipeline: flat slug routing at `/benefits/{slug}` | State-level hierarchy too rigid. PACE operates in service areas, DMV spans 3 states, Miami-Dade has county-specific programs. Pipeline should research any geographic entity. Option A (flat slugs) chosen — "michigan" and "miami-dade-fl" are peers, no nesting. |
+| 2026-04-09 | Admin dashboard: verification → content production | Review workflow is the new quality gate, not verification dots. Killed inferCategory heuristic, replaced with pipeline programType. Filters now readiness-based (Published/Drafted/Explored/Scaffolding). |
+| 2026-04-09 | StatePageV2 "painting outside the lines" design approved | Hand-drawn SVG illustrations, wavy dividers, dark stat band, width variation between sections. Inspired by Wispr Flow (character, bold moments) + Perena (atmospheric warmth). Visual elements are scanning aids, not decoration. |
+| 2026-04-09 | State page version toggle via `?v=1` query param | Admin needs to compare old vs new page. `?v=1` forces legacy rendering. Clean, no new routes. Dual preview links in admin. |
+| 2026-04-09 | Reviewer name persisted in localStorage | Chantel shouldn't type her name 16 times. Small friction, big annoyance. |
+|------|----------|-----------|
 | 2026-04-08 | Pipeline evolves from research tool → content production system | Pipeline already "understands" programs after dive phase but throws understanding away by outputting a report. Content generation and research are one skill, not two separate steps. |
 | 2026-04-08 | Four program types: benefit, resource, navigator, employment | Derived from 28 real programs across TX (Chantel audit) and MI (pipeline). Chantel flagged resource vs benefit distinction explicitly. Navigator is meta-programs like MiCAFE. |
 | 2026-04-08 | Geographic scope is a property of the program, not the URL | PACE = service areas, SNAP = statewide, Respite = 14 TX counties. Can't force rigid state→city hierarchy. Pipeline discovers scope. |
@@ -99,30 +103,54 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 
 The v2 design was approved Apr 8-9. Two complementary treatments that share core principles but differ in visual expression.
 
+**Design inspirations:** Wispr Flow (character, illustrations as context, bold scale shifts, one dark moment), Perena (soft atmospheric warmth, organic shapes), Airbnb (clean hierarchy, trust), Claude (calm confidence, whitespace). The goal is a page that feels like someone cared — not a template, not a UI kit demo, not AI-generated.
+
 ### Shared Principles
-- Content-forward: pages read like guides, not dashboards
-- Typography creates hierarchy: serif headings, quiet uppercase section labels, prose-width body (max-w-2xl)
-- Light backgrounds (vanilla-100), no dark hero banners
-- Decoration is rare and meaningful
-- No bottom CTA banners — pages end when content ends
+- **Content-forward**: pages read like guides, not dashboards of equally-weighted cards
+- **Typography creates hierarchy**: serif headings (font-serif, display scale), quiet uppercase section labels (`text-[11px] tracking-[0.1em]`), prose-width body
+- **Light backgrounds** (vanilla-100), no dark hero banners (except the one intentional dark moment on state pages)
+- **Decoration is rare and meaningful** — every visual element is a scanning aid, not decoration. People skim; illustrations, dividers, and layout shifts give the eye reasons to stop.
+- **No bottom CTA banners** — pages end when content ends
 
 ### State Page — "Painting Outside the Lines"
-The discovery layer. More personality, more visual warmth. Invites exploration.
 
-- **Hand-drawn SVG illustrations**: organic teal blobs (#96c8c8), warm accent blobs (#e9bd91), floating circles/dots — positioned absolutely, low opacity, decorative
-- **Wavy divider** SVG between sections (organic stroke, not hard lines)
-- **Hand-drawn underline** on key heading words (teal, organic path)
-- **Need category icons**: custom SVG vignettes per need (home, medical, food, advice, money, work) — teal strokes (#417272) with warm accent dots (#e9bd91)
-- **"Where to start"** numbered cards: white bg, subtle border, hover shadow — guides the caregiver
-- **"Browse by what you need"** groups with icons + linked program pills
-- **Quick facts** as bulleted prose
-- **Program list** as clean rows (not card grid) — type badge, savings inline, chevron
-- Headline: "13 programs to help your family" (not "Saving families up to $35,000")
+The discovery layer. The problem it solves: a long page of text is intimidating. People don't read — they scan. The state page uses **visual rhythm** to make scanning productive: illustrations, width variation, a dark band, and layout shifts ensure no two sections look the same. Scrolling feels like progression, not repetition.
+
+**The spirit:** character, spunk, warmth. Wispr Flow's playfulness — hand-drawn shapes, organic paths, small floating dots that say "a human designed this." Not rigid, not geometric, not pixel-perfect. Confident imperfection.
+
+**Rhythm through width variation** (this IS "painting outside the lines"):
+- `max-w-3xl` — header with blobs floating right
+- `max-w-2xl` — intro prose (readable, focused)
+- `max-w-4xl` — "Where to start" 3-column card grid (spatial prominence for editorial picks)
+- Full-width — dark stat band (the scroll-stopping moment)
+- `max-w-3xl` — "Browse by need" cards with SVG icons
+- `max-w-2xl` — grouped program list (back to focused reading)
+
+The page deliberately breaks its own max-width between sections. The width change IS the visual interest.
+
+**Visual elements:**
+- **Organic blob illustrations** in header: teal (#96c8c8) + warm amber (#e9bd91) blobs with floating circles/dots. Positioned absolutely, ~12% opacity. Atmospheric, not literal — like Perena's soft photographic presence but built from SVG code.
+- **Hand-drawn underline** on the state name in the headline — organic SVG path, teal, slightly imperfect.
+- **Wavy dividers** between major zones — organic SVG stroke, not straight lines or empty space. Signals "new chapter."
+- **Need category vignettes**: custom hand-drawn SVG icons per need (house, pill, apple, speech bubble, coin, briefcase). Teal strokes (#417272) with small warm accent dots (#e9bd91). Not Lucide's pixel-perfect lines — softer, rounder, slightly imperfect.
+- **Dark stat band** (`bg-gray-900`): big serif numbers (program count, top savings, benefit count, free resources count) in white. The "one bold moment" — inspired by Wispr Flow's dark "Flow Pro" screen. Full-width break that resets the eye and signals the transition from curated editorial to full directory. Also absorbs the resources-vs-benefits explanation (killed the old blue callout box).
+
+**Sections in order:**
+1. Header — large serif headline (`display-md`/`display-lg`), hand-drawn underline, floating blobs, "{N} programs to help your family"
+2. Intro — prose paragraph with real numbers and caregiver-first voice
+3. Wavy divider
+4. "Where to start" — 3 numbered cards in horizontal grid, `bg-vanilla-200` circles (not black), hover reveals "Learn more"
+5. "Good to know" — quick facts as quiet bulleted prose
+6. Dark stat band — big numbers on `bg-gray-900`, resources-vs-benefits as muted text
+7. "Browse by what you need" — white cards with SVG vignettes + program pill links
+8. Wavy divider
+9. All programs — **grouped by type** (Benefits ✦ / Resources ◇ / Navigators ↗ / Employment ◆), each group in a white card surface with count. "Show all" per group.
 
 ### Program Page — "The Editorial"
-The deep dive. Restrained, lets content breathe. Reads like a well-researched article.
 
-- **No illustrations** — the content IS the page
+The deep dive. Restrained, lets content breathe. Reads like a well-researched article. Where the state page has personality, the program page has authority.
+
+- **No illustrations** — the content IS the page. The restraint is intentional.
 - **Serif title** (text-3xl/4xl) with type + scope badges and bookmark icon
 - **Savings as quiet text** (not a big green badge): "Estimated savings: $10,000–$30,000/year"
 - **Eligibility as natural language prose**: "Assets must be under $9,950 — but not everything counts. Your parent can keep their primary residence, one vehicle, and personal belongings."
@@ -134,8 +162,9 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 
 ### Extending the Language
 - The state page style ("painting outside the lines") should evolve to program pages where appropriate — e.g., a "benefit" program could get a subtle illustration element, while a "resource" page stays purely editorial
-- County, region, and city pages (when built) should inherit the state page's warmth since they're also discovery/orientation pages
+- County, region, and city pages (when built) should inherit the state page's warmth since they're also discovery/orientation pages — they're discovery surfaces, not deep dives
 - The admin dashboard stays functional — no illustrations there, just clean data
+- New visual elements should follow the same material: organic SVG paths, teal + warm amber palette, slight imperfection, always functional (aids scanning) never purely decorative
 
 ---
 
@@ -153,6 +182,50 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 ---
 
 ## Session Log
+
+### 2026-04-09 (Session 71) — State Page Redesign + Dashboard Streamlining + Region Architecture
+
+**Branch:** `eager-ride` | **Latest: `4f10a0f7`**
+
+**StatePageV2 redesign** (`components/waiver-library/StatePageV2.tsx`):
+- Full rewrite with hand-drawn SVG illustrations (organic teal + amber blobs in header, floating circles/dots)
+- Hand-drawn underline accent on state name in headline
+- Wavy SVG dividers between major sections
+- "Where to start" as 3-column horizontal card grid (was stacked list)
+- Dark stat band (`bg-gray-900`) with big serif numbers — the bold moment
+- "Browse by need" with custom SVG vignettes per category (house, pill, apple, speech bubble, coin, briefcase)
+- Program list grouped by type (Benefits ✦ / Resources ◇ / Navigators ↗ / Employment ◆) in white card surfaces
+- Width variation between sections: `max-w-3xl` → `max-w-2xl` → `max-w-4xl` → full-width → `max-w-3xl` → `max-w-2xl`
+- Blue callout box killed — resources-vs-benefits folded into dark stat band
+- Design inspirations: Wispr Flow (character, illustration as context, one dark moment), Perena (atmospheric warmth)
+
+**State page review workflow:**
+- `?v=1` query param forces old page rendering for comparison
+- Dual preview links in admin: "Preview v2" + "Preview current"
+- `DraftReviewPanel` on state overview with `programId: "state-overview"`
+- Draft State Overview / Programs Only toggle in admin state detail
+- Slash command updated: Step 0 checks state overview approval, Step 3 includes state page verification
+
+**Admin dashboard streamlining** (`app/admin/benefits/page.tsx`):
+- Filter pills: Verified/Partial/Unverified → Published/Drafted/Explored/Scaffolding (readiness-based)
+- Summary bar: verification metrics → Pipeline Coverage (X/50), Drafts Generated, State Readiness
+- Title: "Benefits Data" → "Benefits Content"
+- Killed `inferCategory` heuristic, replaced with pipeline `programType`
+- Killed `VerificationDot`, `CategoryBadge`, `CATEGORY_COLORS`
+- Added `TypeBadge` with pipeline type colors (benefit/resource/navigator/employment)
+- Program rows simplified: 6 signals → 3 (type badge + review status + savings)
+- Reviewer name persisted in `localStorage` — type once, auto-populated everywhere
+- Review API fetch lifted to `StateDetail` level — one call per state, passed down to all DraftReviewPanels
+- `DraftReviewPanel` now accepts `allReviews` + `onReviewAdded` props for lifted fetch pattern
+
+**Region architecture decision:**
+- Current state-only hierarchy too rigid for real-world benefits geography
+- Decided on 4-layer evolution: (1) pipeline `--region` flag, (2) data model regions, (3) flat URL routing `/benefits/{slug}`, (4) admin regions section
+- Implementation starting next session
+
+**Commits:** `86530f8e` (state page redesign) → `643d70bb` (state toggle in admin) → `4f10a0f7` (dashboard streamlining + review workflow)
+
+---
 
 ### 2026-04-08 (Session 70b) — V2 Page Design + Save Program Feature
 

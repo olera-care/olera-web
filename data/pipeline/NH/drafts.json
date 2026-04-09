@@ -1,28 +1,589 @@
 {
   "state": "NH",
   "stateName": "New Hampshire",
-  "draftedAt": "2026-04-09T08:56:33.717Z",
-  "total": 5,
-  "successful": 0,
+  "draftedAt": "2026-04-09T09:37:57.179Z",
+  "total": 13,
+  "successful": 3,
   "programs": [
     {
-      "name": "NH Medication Bridge Program",
+      "id": "new-hampshire-nursing-home-medicaid",
+      "name": "New Hampshire Medicaid (Nursing Home Medicaid for seniors)",
+      "shortName": "Nursing Home Medicaid",
+      "tagline": "If your parent needs nursing home care but can't afford it, this covers the full cost after they contribute most of their income.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local DHHS District Offices; nursing homes statewide that accept Medicaid",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home care and has limited income and assets, New Hampshire Medicaid covers the full cost of their care. This includes room and board, 24-hour skilled nursing, medical supplies, rehabilitation services, and medication management. Your parent keeps only $90-93/month for personal needs plus their Medicare premiums — everything else goes toward the cost of care.\n\nTo qualify, your parent must need nursing facility level of care (daily help with bathing, dressing, eating, or other basic activities), have income under $2,982/month, and assets under $2,500 (though a $7,500 allowance often applies). Because nursing home care in New Hampshire typically costs over $5,500/month, this program can save families hundreds of thousands of dollars over time.\n\nThe application requires detailed financial documentation and a clinical assessment to prove your parent needs nursing home level care for at least 30 consecutive days.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income under $2,982/month",
+          "Assets under $2,500",
+          "Need nursing facility level care",
+          "New Hampshire resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2982
+          }
+        ],
+        "assetLimits": {
+          "individual": 2500,
+          "couple": 157920,
+          "countedAssets": [
+            "Cash and bank accounts",
+            "Stocks and investments",
+            "Non-exempt property"
+          ],
+          "exemptAssets": [
+            "Primary home (under conditions)",
+            "One vehicle",
+            "Personal belongings",
+            "Burial plots",
+            "Life insurance (limited face value)",
+            "IRA/pensions in payout"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need nursing facility level of care — daily help with bathing, dressing, eating, or other activities of daily living, assessed by the state",
+        "otherRequirements": [
+          "New Hampshire resident",
+          "U.S. citizen or qualified immigrant",
+          "Need care for 30 consecutive days"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through New Hampshire's ACCESS portal, though processing time is not specified by the state.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather financial documents",
+            "description": "Collect 5 years of financial records including bank statements, property deeds, and proof of any asset transfers or gifts (5-year look-back applies with penalties for improper transfers)."
+          },
+          {
+            "step": 2,
+            "title": "Get medical documentation",
+            "description": "Obtain medical records or doctor's note supporting the need for nursing facility level of care — the state will conduct its own assessment."
+          },
+          {
+            "step": 3,
+            "title": "Complete Medicaid application",
+            "description": "Apply through the New Hampshire ACCESS portal online or contact your local DHHS District Office for phone/in-person assistance."
+          },
+          {
+            "step": 4,
+            "title": "Submit to clinical assessment",
+            "description": "State assessors will evaluate whether your parent meets nursing facility level of care requirements based on their ability to perform daily activities."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Start the application process before your parent enters a nursing home if possible — the clinical assessment and financial review can take time.",
+        "urls": [
+          {
+            "label": "New Hampshire ACCESS Portal",
+            "url": "https://www.dhhs.nh.gov/programs-services/medicaid"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2982,
+              "annualLimit": 35784
+            }
+          ],
+          "footnote": "2026 limits. Income cannot exceed the Medicaid reimbursement rate for your specific nursing facility (typically over $5,500/month)."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Cash and bank accounts",
+            "Stocks, bonds, and investments",
+            "Non-exempt real estate property",
+            "Vehicles beyond one car"
+          ],
+          "excluded": [
+            "Primary home (under certain conditions)",
+            "One vehicle of any value",
+            "Personal belongings and household items",
+            "Burial plots and prepaid funeral arrangements",
+            "Life insurance with limited face value",
+            "IRA and pension accounts in payout status"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Proof of New Hampshire residency",
+                "Social Security card",
+                "Proof of citizenship or qualified immigrant status"
+              ]
+            },
+            {
+              "name": "Financial Records",
+              "items": [
+                "5 years of bank and investment statements",
+                "Social Security and pension statements",
+                "Property deeds and real estate documents",
+                "Records of any asset transfers or gifts in past 5 years",
+                "Proof of debts, alimony, or other deductions"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records documenting need for nursing care",
+                "Doctor's assessment of functional abilities",
+                "Current medication list",
+                "Medicare card and supplement insurance information"
+              ]
+            },
+            {
+              "name": "Spousal Information (if married)",
+              "items": [
+                "Spouse's income and asset documentation",
+                "Marriage certificate"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Asset limit confusion: Official limit is $2,500, but a $7,500 allowance often applies. Don't spend down assets by gifting money — there's a 5-year look-back with penalties. Consult an elder law attorney for proper spend-down strategies."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify for nursing home Medicaid?",
+          "answer": "Yes, the primary home is exempt from asset limits under certain conditions. However, the state may place a lien on the home to recover Medicaid costs after your parent's death, unless a spouse or disabled child lives there."
+        },
+        {
+          "question": "What happens to my parent's Social Security and pension income?",
+          "answer": "Almost all income goes toward the cost of nursing home care as 'patient liability.' Your parent keeps only $90-93/month for personal needs plus their Medicare premiums. The nursing home cannot take this personal needs allowance."
+        },
+        {
+          "question": "My parents are married but only one needs nursing home care. How are assets counted?",
+          "answer": "All assets are counted jointly regardless of whose name they're in. However, the community spouse (the one staying at home) can retain up to $157,920 in assets depending on circumstances. This is complex — consider consulting an elder law attorney."
+        },
+        {
+          "question": "What if my parent's income is just over the $2,982 limit?",
+          "answer": "Income cannot exceed the Medicaid reimbursement rate for the specific nursing facility, which is typically over $5,500/month in New Hampshire. So the $2,982 limit rarely disqualifies people — most income just goes toward care costs as patient liability."
+        },
+        {
+          "question": "How long does the application process take?",
+          "answer": "The state doesn't specify processing times. The clinical assessment to determine if your parent needs nursing facility level of care can add time to the process. Start early if possible, especially before entering a nursing home."
+        },
+        {
+          "question": "What if my parent gave money to family members in the past 5 years?",
+          "answer": "Medicaid has a 5-year look-back period for asset transfers and gifts. Improper transfers can result in penalty periods where Medicaid won't pay for care. Keep detailed records of any transfers and their purposes — some transfers are allowed."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.dhhs.nh.gov/programs-services/medicaid",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "new-hampshire-cfi-waiver",
+      "name": "Choices for Independence (CFI) Waiver",
+      "shortName": "CFI Waiver",
+      "tagline": "Helps your parent stay at home with services like personal care and case management instead of moving to a nursing home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Community Partners, 25 Old Dover Road, Rochester, NH 03867 (example)[3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay at home, New Hampshire's CFI Waiver pays for home and community-based services that make this possible. The program covers personal care, case management, and other services designed around your parent's specific needs and goals.\n\nTo qualify, your parent must be 65+ (or disabled and 18-64) with income below $2,901/month and need daily help with activities like bathing, dressing, or medication management. A registered nurse will assess whether your parent meets nursing facility level of care through a clinical evaluation.\n\nOnce approved, your parent gets assigned a case manager who develops a comprehensive care plan. The case manager coordinates all services and helps identify what your parent needs to remain safely at home.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled 18-64",
+          "Income below $2,901/month",
+          "Needs nursing home level care",
+          "New Hampshire resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2901
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 5802
+          }
+        ],
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [
+            "Standard Medicaid asset rules apply (specific limits not detailed in sources)"
+          ],
+          "exemptAssets": [
+            "Home if spouse lives there",
+            "Home if child under 21 lives there",
+            "Home if disabled/blind child of any age lives there"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must need nursing facility level of care (daily help with bathing, dressing, eating, toileting, transferring, or continence) as determined by a registered nurse assessment",
+        "otherRequirements": [
+          "New Hampshire resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact NH Department of Health and Human Services or a case management agency like Community Partners to start the application process.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact DHHS or case management agency",
+            "description": "Call Community Partners at (603) 516-9300 or contact NH DHHS directly to request an application."
+          },
+          {
+            "step": 2,
+            "title": "Complete financial eligibility review",
+            "description": "DHHS reviews your parent's income, assets, and residency to determine if they meet financial criteria."
+          },
+          {
+            "step": 3,
+            "title": "Schedule Medical Eligibility Assessment",
+            "description": "A registered nurse conducts an in-person assessment using the MEA tool to determine if your parent needs nursing facility level of care."
+          },
+          {
+            "step": 4,
+            "title": "Get assigned to case management agency",
+            "description": "If approved, your parent gets assigned to a case management agency (you can request a specific one) who develops the comprehensive care plan."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "You can request assignment to a specific case management agency after approval, so research local options beforehand.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Standard Medicaid asset rules apply (specific details not available in sources)"
+          ],
+          "excluded": [
+            "Home (up to $730,000 equity) if your parent lives there or intends to return",
+            "Home if spouse lives there (no equity limit)",
+            "Home if child under 21 lives there",
+            "Home if disabled or blind child of any age lives there"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Case Management Agencies",
+          "offices": [
+            {
+              "name": "Community Partners",
+              "type": "service-area",
+              "phone": "(603) 516-9300",
+              "address": "25 Old Dover Road, Rochester, NH 03867"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of New Hampshire residency",
+                "Disability documentation (if under 65)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Income statements (Social Security, pensions, etc.)",
+                "Bank account statements",
+                "Property deeds or home equity documentation",
+                "Other asset documentation"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records showing need for daily assistance",
+                "Current medication list",
+                "Documentation of functional limitations"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This waiver is authorized only through 2027. Rules may change after that date, so apply as soon as your parent qualifies."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "The income limit for CFI Waiver ($2,901/month) is higher than regular Medicaid, so your parent may qualify even if they earn too much for other programs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for CFI Waiver?",
+          "answer": "Yes, as long as the home equity is under $730,000 and she either lives there or intends to return. If a spouse, child under 21, or disabled child lives there, there's no equity limit."
+        },
+        {
+          "question": "What if her income is $3,000/month — just over the $2,901 limit?",
+          "answer": "She won't qualify for CFI Waiver. The income limit is firm at $2,901/month for individuals. However, if she's married and only she is applying, her spouse's income doesn't count."
+        },
+        {
+          "question": "Does she have to be in a nursing home first to qualify?",
+          "answer": "No. She needs to qualify for nursing home level of care based on needing daily help with activities like bathing or dressing, but she can apply while living at home."
+        },
+        {
+          "question": "Can we choose which case management agency we work with?",
+          "answer": "You can request a specific case management agency after approval, but DHHS makes the final assignment decision based on service areas and availability."
+        },
+        {
+          "question": "What services does the waiver actually cover?",
+          "answer": "The program covers home and community-based services designed to keep your parent out of a nursing home. Your case manager will identify specific services based on your parent's needs and develop a comprehensive care plan."
+        },
+        {
+          "question": "How long does the nurse assessment take?",
+          "answer": "The Medical Eligibility Assessment is conducted in-person by a registered nurse who evaluates your parent's limitations with activities of daily living. The length varies based on your parent's specific situation and needs."
+        }
+      ],
+      "phone": "(603) 516-9300",
+      "sourceUrl": "https://www.dhhs.nh.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "new-hampshire-pace-comprehensive-care",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "shortName": "PACE",
+      "tagline": "Your parent gets all medical care, transportation, and daily support through one team instead of juggling multiple providers.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Neighborhood Healthcare PACE (3 centers in NH)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home level care but wants to stay at home, PACE provides everything under one roof — primary care, specialists, prescriptions, transportation, adult day programs, and home care services. Because all providers work as one team, your parent won't need to coordinate between separate doctors, and you won't need to manage multiple appointments and referrals.\n\nPACE is only available in select New Hampshire areas through Neighborhood Healthcare, which operates 3 centers. Your parent must be 55+ and need significant daily help with activities like bathing, dressing, or medication management (nursing facility level of care). Most participants qualify for both Medicare and Medicaid, but the program accepts private pay as well.\n\n95% of PACE participants live in the community rather than nursing homes, even with complex medical needs. The program includes 24/7 emergency access and covers services that traditional Medicare often doesn't, like extensive transportation and social support.",
+      "savingsRange": "",
+      "savingsSource": "Comprehensive medical and social services",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Lives in Neighborhood Healthcare PACE service area",
+          "Needs nursing home level of care",
+          "Can live safely in community with services"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must meet New Hampshire's definition of Nursing Facility Level of Care — a clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other activities of daily living",
+        "otherRequirements": [
+          "Live in the service area of Neighborhood Healthcare PACE",
+          "Able to live safely in the community (home, assisted living, or similar) with PACE services"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "online",
+        "summary": "Contact Neighborhood Healthcare PACE through their website to start the eligibility assessment process.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact Neighborhood Healthcare PACE",
+            "description": "Visit nhpace.org or use the National PACE Association finder to confirm your parent lives in their service area"
+          },
+          {
+            "step": 2,
+            "title": "Complete initial screening",
+            "description": "PACE staff will assess basic eligibility including age, location, and preliminary care needs"
+          },
+          {
+            "step": 3,
+            "title": "Clinical assessment",
+            "description": "Medical team evaluates whether your parent meets nursing facility level of care requirements"
+          },
+          {
+            "step": 4,
+            "title": "Financial review",
+            "description": "Determine payment method — Medicare/Medicaid, private pay, or combination"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Start by confirming your parent lives in the Neighborhood Healthcare PACE service area — this program is not available statewide",
+        "urls": [
+          {
+            "label": "Neighborhood Healthcare PACE",
+            "url": "https://www.nhpace.org"
+          },
+          {
+            "label": "Find PACE Programs",
+            "url": "https://www.npaonline.org/find-a-pace-program"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Prepare",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Birth certificate or driver's license",
+                "Proof of address in PACE service area"
+              ]
+            },
+            {
+              "name": "Medical Records",
+              "items": [
+                "Current medication list",
+                "Recent hospital or nursing home records",
+                "Documentation of daily care needs"
+              ]
+            },
+            {
+              "name": "Insurance Information",
+              "items": [
+                "Medicare card",
+                "Medicaid card (if applicable)",
+                "Any private insurance information"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE is not available statewide in New Hampshire. Your parent must live in Neighborhood Healthcare's specific service area. Use their website or the National PACE Association finder to confirm availability in your parent's location."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Even if your parent needs nursing home level care, PACE is designed to keep them in the community. 95% of participants live at home or in assisted living, not nursing facilities."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is too high for Medicaid but they can't afford private pay?",
+          "answer": "PACE accepts participants who don't qualify for Medicaid, but you'll need to pay privately. Contact Neighborhood Healthcare PACE directly to discuss costs and payment options for your parent's situation."
+        },
+        {
+          "question": "Can my parent keep their current doctors if they join PACE?",
+          "answer": "No. PACE provides all medical care through their team of doctors and specialists. Your parent will need to switch to PACE providers, but this means better coordination since all providers work together."
+        },
+        {
+          "question": "What happens if my parent needs to go to the hospital?",
+          "answer": "PACE covers all medical care including hospital stays. The PACE team coordinates with hospitals and provides 24/7 emergency access. Your parent doesn't need separate approvals or referrals."
+        },
+        {
+          "question": "How do I know if my parent needs 'nursing facility level of care'?",
+          "answer": "If your parent needs daily help with bathing, dressing, medication management, or mobility, they likely qualify. PACE will do a clinical assessment to make this determination — you don't need to figure it out yourself."
+        },
+        {
+          "question": "What if we live in New Hampshire but not in the PACE service area?",
+          "answer": "Unfortunately, PACE is only available in Neighborhood Healthcare's contracted areas. Check their website or call to see if service area expansion is planned, but currently it's not statewide."
+        },
+        {
+          "question": "Can my parent try PACE and switch back to regular Medicare if it doesn't work?",
+          "answer": "Yes. Participants can disenroll from PACE and return to regular Medicare, though you should understand the transition process before making changes to ensure continuity of care."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.nhpace.org",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "Medicare Savings Program (MSP) - QMB, SLMB, QI",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "New Hampshire Partnership for Prescription",
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "NH Medicaid Waiver Programs (Multiple Programs)",
+      "name": "Low Income Home Energy Assistance Program (LIHEAP)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "REAP (Respite, Education, and Assistance Program)",
+      "name": "Weatherization Assistance Program (WAP)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Easterseals NH In-Home Care & Health Services",
+      "name": "New Hampshire State Health Insurance Assistance Program (SHIP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Meals on Wheels (Council on Aging programs)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "New Hampshire Family Caregiver Support Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "New Hampshire Legal Assistance (NHLA) Justice in Aging Project",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "New Hampshire Long-Term Care Ombudsman Program",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     }
   ],

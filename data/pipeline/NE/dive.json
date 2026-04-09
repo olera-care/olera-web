@@ -1,205 +1,883 @@
 {
   "state": "NE",
   "stateName": "Nebraska",
-  "diveAt": "2026-04-09T08:55:12.649Z",
-  "total": 4,
-  "parsed": 4,
+  "diveAt": "2026-04-09T09:37:02.686Z",
+  "total": 16,
+  "parsed": 15,
   "programs": [
     {
-      "name": "Nebraska Community Aging Services Act",
+      "name": "Aged and Disabled (AD) HCBS Waiver",
       "eligibility": {
-        "age": 60,
-        "income_limits": "Income limits are not specified in available sources. Eligibility is determined on a case-by-case basis through individual assessment of circumstances and need for services.",
-        "asset_limits": "Asset limits are not specified in available sources for this program. (Note: Medicaid nursing home programs have separate $4,000 asset limits, but this is distinct from the Community Aging Services Act.)",
+        "age": "65 or older, OR any age with a qualifying disability",
+        "income_limits": "Must be eligible for Nebraska Medicaid based on income and resource guidelines. Specific dollar amounts not provided in available sources; applicants should contact DHHS at 877-667-6266 or visit iServe Nebraska for current income thresholds.",
+        "asset_limits": "Home equity interest cannot exceed $752,000 (as of 2026). Home equity is calculated as current home value minus outstanding mortgage. Applicant must own or have intent to return to the home. Exceptions to asset limits apply if applicant has: spouse living in home, minor child (17 or younger) living in home, or permanently disabled/blind child (any age) living in home.",
         "other_requirements": [
-          "Older individuals (60+), people with disabilities of all ages, family members, caregivers, and advocates are eligible",
-          "For congregate activities: determination left to Area Agency on Aging based on community needs and resources",
-          "For individual services: requires assessment of individual/family circumstances and development of service plan",
-          "Priority given to those in greatest need under the Older Americans Act framework"
+          "Be a U.S. citizen or qualified alien lawfully present in the United States",
+          "Be a Nebraska resident",
+          "Receive Nebraska Medicaid",
+          "Meet Nursing Facility Level of Care (NFLOC) requirements",
+          "Have a need for waiver services"
+        ]
+      },
+      "nursing_facility_level_of_care_criteria": {
+        "assessment_tool": "interRAI Home Care (interRAI-HC)",
+        "functional_need_requirements": "One of the following must be true: (1) Limited functioning with at least 3 Activities of Daily Living (ADLs) and at least 1 risk factor; (2) Limited functioning with at least 3 ADLs and at least 1 medical condition/treatment; (3) Limited functioning with at least 3 ADLs and at least 1 area of limited cognition; (4) Limited functioning with at least 1 ADL, at least 1 risk factor, and at least 1 area of limited cognition.",
+        "adls_assessed": "Toileting, continence, bathing, dressing, transferring, mobility, and eating"
+      },
+      "benefits": {
+        "type": "in_kind services",
+        "services_provided": [
+          "Adult Day Health",
+          "Assisted Living",
+          "Assistive Technology",
+          "Chore services",
+          "Companion services",
+          "Extra Care for Children with Disabilities",
+          "Home Again",
+          "Home and Vehicle Modifications",
+          "Home-Delivered Meals",
+          "Independence Skills Building",
+          "Non-Medical Transportation",
+          "Personal Care",
+          "Personal Emergency Response System (PERS)",
+          "Respite care"
+        ],
+        "value": "Specific dollar amounts and hours per week not provided in available sources. Contact DHHS for individualized service plan details.",
+        "varies_by": "Individual need and level of care assessment; not fixed by household size or tier"
+      },
+      "application": {
+        "methods": [
+          "Online: iServe Nebraska (website URL not provided in sources; contact DHHS for link)",
+          "Phone: Call DHHS at 877-667-6266 to request paper application or ask questions",
+          "Mail: Submit completed application to DDD Eligibility, PO Box 98947, Lincoln, NE 68509-8947",
+          "Email: DHHS.HCBSWaiverApp@nebraska.gov",
+          "Fax: 402-328-6257"
+        ],
+        "processing_time": "Level of Care assessment scheduled within 14 days of application submission",
+        "waitlist": "Not specified in available sources; contact DHHS for current waitlist status",
+        "forms": "Specific form name/number not provided in available sources; contact DHHS or visit iServe Nebraska",
+        "documents": [
+          "Valid photo ID",
+          "Proof of Nebraska residency",
+          "Proof of income and assets",
+          "Medical records or physician documentation showing care needs",
+          "Social Security number"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Nebraska residency required; no county-level restrictions identified",
+        "regional_variations": null,
+        "offices_or_providers": "Administered by Nebraska Department of Health and Human Services (DHHS); specific provider locations not detailed in available sources"
+      },
+      "official_source": "https://dhhs.ne.gov/Pages/Medicaid-Aged-and-Disabled-Waiver.aspx",
+      "gotchas": [
+        "NFLOC requirement is strict: applicants must demonstrate significant functional limitations across multiple ADLs. Simply being elderly or having one disability is insufficient.",
+        "Home equity limit of $752,000 is substantial but can be a barrier in high-value real estate markets. The limit applies to the applicant's equity interest specifically, not total home value.",
+        "Waiver expiration date is July 31, 2026 — verify current status with DHHS as renewal/reauthorization may be pending.",
+        "Medicaid eligibility is a prerequisite; applicants must qualify for Nebraska Medicaid independently before waiver services can be accessed.",
+        "The interRAI-HC assessment is mandatory and detailed; applicants should be prepared to discuss specific limitations in daily living activities, not just general health status.",
+        "PERS (Personal Emergency Response System) has specific eligibility criteria within the waiver: applicant must live alone or with a caregiver who has health problems/works outside home, have a history of falls, or have a health condition that might result in emergency.",
+        "Income and asset limits are tied to Medicaid eligibility, which varies; families should not assume they know the limits without checking current DHHS guidelines."
+      ],
+      "data_shape_notes": "This program's eligibility is driven by functional need (NFLOC) rather than income/asset thresholds alone. While income and asset limits exist, they are secondary to the requirement that applicants demonstrate significant ADL limitations. Benefits are individualized service plans, not fixed dollar amounts or hours. The waiver is statewide with no identified regional variations in eligibility or services. Processing involves a mandatory 14-day assessment window but no waitlist information is publicly available. The program serves both elderly (65+) and younger disabled individuals, making it broader than age-restricted programs.",
+      "_raw": "```json\n{\n  \"name\": \"Aged and Disabled (AD) HCBS Waiver\",\n  \"eligibility\": {\n    \"age\": \"65 or older, OR any age with a qualifying disability\",\n    \"income_limits\": \"Must be eligible for Nebraska Medicaid based on income and resource guidelines. Specific dollar amounts not provided in available sources; applicants should contact DHHS at 877-667-6266 or visit iServe Nebraska for current income thresholds.\",\n    \"asset_limits\": \"Home equity interest cannot exceed $752,000 (as of 2026). Home equity is calculated as current home value minus outstanding mortgage. Applicant must own or have intent to return to the home. Exceptions to asset limits apply if applicant has: spouse living in home, minor child (17 or younger) living in home, or permanently disabled/blind child (any age) living in home.\",\n    \"other_requirements\": [\n      \"Be a U.S. citizen or qualified alien lawfully present in the United States\",\n      \"Be a Nebraska resident\",\n      \"Receive Nebraska Medicaid\",\n      \"Meet Nursing Facility Level of Care (NFLOC) requirements\",\n      \"Have a need for waiver services\"\n    ]\n  },\n  \"nursing_facility_level_of_care_criteria\": {\n    \"assessment_tool\": \"interRAI Home Care (interRAI-HC)\",\n    \"functional_need_requirements\": \"One of the following must be true: (1) Limited functioning with at least 3 Activities of Daily Living (ADLs) and at least 1 risk factor; (2) Limited functioning with at least 3 ADLs and at least 1 medical condition/treatment; (3) Limited functioning with at least 3 ADLs and at least 1 area of limited cognition; (4) Limited functioning with at least 1 ADL, at least 1 risk factor, and at least 1 area of limited cognition.\",\n    \"adls_assessed\": \"Toileting, continence, bathing, dressing, transferring, mobility, and eating\"\n  },\n  \"benefits\": {\n    \"type\": \"in_kind services\",\n    \"services_provided\": [\n      \"Adult Day Health\",\n      \"Assisted Living\",\n      \"Assistive Technology\",\n      \"Chore services\",\n      \"Companion services\",\n      \"Extra Care for Children with Disabilities\",\n      \"Home Again\",\n      \"Home and Vehicle Modifications\",\n      \"Home-Delivered Meals\",\n      \"Independence Skills Building\",\n      \"Non-Medical Transportation\",\n      \"Personal Care\",\n      \"Personal Emergency Response System (PERS)\",\n      \"Respite care\"\n    ],\n    \"value\": \"Specific dollar amounts and hours per week not provided in available sources. Contact DHHS for individualized service plan details.\",\n    \"varies_by\": \"Individual need and level of care assessment; not fixed by household size or tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: iServe Nebraska (website URL not provided in sources; contact DHHS for link)\",\n      \"Phone: Call DHHS at 877-667-6266 to request paper application or ask questions\",\n      \"Mail: Submit completed application to DDD Eligibility, PO Box 98947, Lincoln, NE 68509-8947\",\n      \"Email: DHHS.HCBSWaiverApp@nebraska.gov\",\n      \"Fax: 402-328-6257\"\n    ],\n    \"processing_time\": \"Level of Care assessment scheduled within 14 days of application submission\",\n    \"waitlist\": \"Not specified in available sources; contact DHHS for current waitlist status\",\n    \"forms\": \"Specific form name/number not provided in available sources; contact DHHS or visit iServe Nebraska\",\n    \"documents\": [\n      \"Valid photo ID\",\n      \"Proof of Nebraska residency\",\n      \"Proof of income and assets\",\n      \"Medical records or physician documentation showing care needs\",\n      \"Social Security number\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Nebraska residency required; no county-level restrictions identified\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": \"Administered by Nebraska Department of Health and Human Services (DHHS); specific provider locations not detailed in available sources\"\n  },\n  \"official_source\": \"https://dhhs.ne.gov/Pages/Medicaid-Aged-and-Disabled-Waiver.aspx\",\n  \"gotchas\": [\n    \"NFLOC requirement is strict: applicants must demonstrate significant functional limitations across multiple ADLs. Simply being elderly or having one disability is insufficient.\",\n    \"Home equity limit of $752,000 is substantial but can be a barrier in high-value real estate markets. The limit applies to the applicant's equity interest specifically, not total home value.\",\n    \"Waiver expiration date is July 31, 2026 — verify current status with DHHS as renewal/reauthorization may be pending.\",\n    \"Medicaid eligibility is a prerequisite; applicants must qualify for Nebraska Medicaid independently before waiver services can be accessed.\",\n    \"The interRAI-HC assessment is mandatory and detailed; applicants should be prepared to discuss specific limitations in daily living activities, not just general health status.\",\n    \"PERS (Personal Emergency Response System) has specific eligibility criteria within the waiver: applicant must live alone or with a caregiver who has health problems/works outside home, have a history of falls, or have a health condition that might result in emergency.\",\n    \"Income and asset limits are tied to Medicaid eligibility, which varies; families should not assume they know the limits without checking current DHHS guidelines.\"\n  ],\n  \"data_shape_notes\": \"This program's eligibility is driven by functional need (NFLOC) rather than income/asset thresholds alone. While income and asset limits exist, they are secondary to the requirement that applicants demonstrate significant ADL limitations. Benefits are individualized service plans, not fixed dollar amounts or hours. The waiver is statewide with no identified regional variations in eligibility or services. Processing involves a mandatory 14-day assessment window but no waitlist information is publicly available. The program serves both elderly (65+) and younger disabled individuals, making it broader than age-restricted programs.\"\n}\n```\n\n## Key Guidance for Families\n\n**Start here:** Call DHHS at 877-667-6266 or visit iServe Nebraska to confirm current income/asset limits and check waiver status (expiration is July 31, 2026).[3][4]\n\n**The functional need test is the real gatekeeper:** Your loved one must have significant limitations in at least 3 Activities of Daily Living (like bathing, dressing, toileting, or transferring) plus additional risk factors, medical conditions, or cognitive limitations.[1] This is assessed using the interRAI-HC tool within 14 days of application.[3]\n\n**Home equity matters:** If your family owns a home worth more than $752,000 (equity only, not total value), your loved one may not qualify—unless a spouse, minor child, or permanently disabled child also lives there.[1]\n\n**Services are individualized, not standardized:** Unlike programs with fixed benefit amounts, the AD Waiver provides a customized service plan based on assessed need. There's no published schedule of \"you get X hours of personal care per week.\"[7]\n\n**Multiple application routes exist:** Online (iServe Nebraska), phone, mail, email, or fax. Choose what works best for your family.[3]\n\n**Medicaid is mandatory:** Your loved one must already qualify for Nebraska Medicaid; the waiver doesn't bypass that requirement.[4]"
+    },
+    {
+      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "No income limits or financial criteria for eligibility. Medicaid eligibility (if seeking full coverage without premiums) follows Nebraska long-term care rules: income under 300% of Federal Benefit Rate ($2,901/month in 2025); varies by marital status but not detailed by household size here. Private pay available for non-Medicaid eligible.",
+        "asset_limits": "No asset limits for PACE eligibility. For Medicaid coverage, assets $2,000 or less (excluding primary home).",
+        "other_requirements": [
+          "Certified by Nebraska as meeting nursing facility level of care (NF LOC) per 471 NAC 12.",
+          "Able to live safely in the community at time of enrollment with PACE services.",
+          "Live in the PACE service area (Douglas, Sarpy, and select zip codes in Cass, Dodge, Saunders, Washington Counties).",
+          "Not enrolled in Medicare Advantage (Part C) or Medicare prepaid plan at enrollment."
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Congregate or delivered meals, adult day care, transportation, homemaker services, and other community-based services to help older adults remain independent and avoid institutionalization",
-        "varies_by": "priority_tier and region"
+        "value": "All-inclusive: primary care, hospital/inpatient, emergency, medications, transportation, therapies (OT/PT/ST), social services, adult day health care, home care, personal care, durable medical equipment, hospice, and all Medicare/Medicaid-covered services. No deductibles or copays for enrollees. Specific hours/dollars not fixed; individualized via interdisciplinary team.",
+        "varies_by": "region"
       },
       "application": {
         "methods": [
-          "Contact your local Area Agency on Aging (AAA) — specific phone numbers and websites vary by region",
-          "In-person at Area Agency on Aging office",
-          "Phone contact with AAA"
+          "Phone: Contact Immanuel Pathways (specific number not in sources; call Nebraska DHHS at general Medicaid line or visit provider site).",
+          "In-person: Immanuel Pathways centers in Omaha (Eastern Nebraska).",
+          "Direct inquiry to PACE organization (Immanuel Pathways); they verify eligibility."
         ],
-        "processing_time": "Not specified in available sources",
-        "waitlist": "Not specified in available sources",
-        "forms": "Not specified in available sources",
-        "documents": "Not specified in available sources. Individual assessment required; bring documentation of circumstances and service needs."
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Not detailed; may vary by provider capacity.",
+        "forms": [
+          "No specific form name/number listed; PACE organization handles enrollment verification."
+        ],
+        "documents": [
+          "Proof of age (ID/birth certificate).",
+          "Medical records for NF LOC assessment.",
+          "Proof of residency in service area.",
+          "Medicare/Medicaid cards (if applicable).",
+          "Financial info if applying for Medicaid or private pay."
+        ]
       },
       "geography": {
-        "statewide": true,
-        "restrictions": "Served through designated Area Agencies on Aging organized by planning-and-service areas (not county-by-county)",
-        "regional_variations": "Services and eligibility determination vary by Area Agency on Aging based on local community needs, resources, and standards. Each AAA develops its own area plan.",
-        "offices_or_providers": "Multiple Area Agencies on Aging throughout Nebraska (specific locations not detailed in sources; Northeast Nebraska Area Agency on Aging is one example)"
+        "statewide": false,
+        "restrictions": "Limited to Douglas, Sarpy, and select zip codes in Cass, Dodge, Saunders, Washington Counties.",
+        "regional_variations": "Only one provider: Immanuel Pathways Eastern Nebraska in Omaha area. No other regions have approved PACE providers.",
+        "offices_or_providers": [
+          "Immanuel Pathways, Omaha (serving Eastern Nebraska counties)"
+        ]
       },
-      "official_source": "https://dhhs.ne.gov/pages/aging.aspx (State Unit on Aging - DHHS)",
+      "official_source": "https://dhhs.ne.gov/Pages/Medicaid-Provider-All-Inclusive-Care-for-the-Elderly.aspx",
       "gotchas": [
-        "This is NOT the same as Medicaid nursing home programs — it focuses on community-based services to help people stay in their homes, not institutional care",
-        "Eligibility determination is individualized and flexible, not based on strict income/asset cutoffs like Medicaid — this means you may qualify even if you don't meet rigid financial thresholds, but it also means you must go through assessment",
-        "Services available depend on your Area Agency on Aging's specific plan and resources — what's available in one region may differ from another",
-        "Priority is given to those in 'greatest need,' which may affect service availability if demand exceeds capacity",
-        "The program is designed for people who want to remain in their homes/communities, not for institutional placement",
-        "No financial eligibility requirement for some services (like certain nutrition programs), but services are limited by available funding"
+        "Only available in specific Eastern Nebraska counties; not statewide.",
+        "Must not be in Medicare Advantage; disenroll first.",
+        "NF LOC certification required—needs state assessment.",
+        "Private pay can cost $7,000+/month if not dually eligible.",
+        "Voluntary; can leave anytime, but PACE becomes sole Medicare/Medicaid service source.",
+        "90% of participants are dually eligible; non-eligible pay premiums."
       ],
-      "data_shape_notes": "This program has no published income or asset limits — eligibility is needs-based and individualized through assessment rather than formulaic. Benefits vary significantly by region because each Area Agency on Aging develops its own service plan based on local needs and resources. The program is intentionally flexible to serve diverse populations (older adults, people with disabilities, caregivers) across all of Nebraska through a decentralized network of AAAs. Critical gap: specific application procedures, forms, phone numbers, and processing times are not centralized in state sources and must be obtained from your local AAA.",
-      "_raw": "```json\n{\n  \"name\": \"Nebraska Community Aging Services Act\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Income limits are not specified in available sources. Eligibility is determined on a case-by-case basis through individual assessment of circumstances and need for services.\",\n    \"asset_limits\": \"Asset limits are not specified in available sources for this program. (Note: Medicaid nursing home programs have separate $4,000 asset limits, but this is distinct from the Community Aging Services Act.)\",\n    \"other_requirements\": [\n      \"Older individuals (60+), people with disabilities of all ages, family members, caregivers, and advocates are eligible\",\n      \"For congregate activities: determination left to Area Agency on Aging based on community needs and resources\",\n      \"For individual services: requires assessment of individual/family circumstances and development of service plan\",\n      \"Priority given to those in greatest need under the Older Americans Act framework\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Congregate or delivered meals, adult day care, transportation, homemaker services, and other community-based services to help older adults remain independent and avoid institutionalization\",\n    \"varies_by\": \"priority_tier and region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact your local Area Agency on Aging (AAA) — specific phone numbers and websites vary by region\",\n      \"In-person at Area Agency on Aging office\",\n      \"Phone contact with AAA\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not specified in available sources\",\n    \"forms\": \"Not specified in available sources\",\n    \"documents\": \"Not specified in available sources. Individual assessment required; bring documentation of circumstances and service needs.\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Served through designated Area Agencies on Aging organized by planning-and-service areas (not county-by-county)\",\n    \"regional_variations\": \"Services and eligibility determination vary by Area Agency on Aging based on local community needs, resources, and standards. Each AAA develops its own area plan.\",\n    \"offices_or_providers\": \"Multiple Area Agencies on Aging throughout Nebraska (specific locations not detailed in sources; Northeast Nebraska Area Agency on Aging is one example)\"\n  },\n  \"official_source\": \"https://dhhs.ne.gov/pages/aging.aspx (State Unit on Aging - DHHS)\",\n  \"gotchas\": [\n    \"This is NOT the same as Medicaid nursing home programs — it focuses on community-based services to help people stay in their homes, not institutional care\",\n    \"Eligibility determination is individualized and flexible, not based on strict income/asset cutoffs like Medicaid — this means you may qualify even if you don't meet rigid financial thresholds, but it also means you must go through assessment\",\n    \"Services available depend on your Area Agency on Aging's specific plan and resources — what's available in one region may differ from another\",\n    \"Priority is given to those in 'greatest need,' which may affect service availability if demand exceeds capacity\",\n    \"The program is designed for people who want to remain in their homes/communities, not for institutional placement\",\n    \"No financial eligibility requirement for some services (like certain nutrition programs), but services are limited by available funding\"\n  ],\n  \"data_shape_notes\": \"This program has no published income or asset limits — eligibility is needs-based and individualized through assessment rather than formulaic. Benefits vary significantly by region because each Area Agency on Aging develops its own service plan based on local needs and resources. The program is intentionally flexible to serve diverse populations (older adults, people with disabilities, caregivers) across all of Nebraska through a decentralized network of AAAs. Critical gap: specific application procedures, forms, phone numbers, and processing times are not centralized in state sources and must be obtained from your local AAA.\"\n}\n```\n\n## Key Context for Families\n\nThe **Nebraska Community Aging Services Act** is fundamentally different from means-tested programs like Medicaid[3]. It's a **needs-based, community-focused program** designed to help older Nebraskans and people with disabilities remain independent in their homes and communities[7].\n\n### What Makes This Program Unique\n\nUnlike programs with strict income cutoffs, the Community Aging Services Act uses **individualized assessment**[3]. There are no published income or asset limits. Instead, eligibility is determined by evaluating your specific circumstances and your need for services[3]. This means you might qualify even if you exceed typical financial thresholds — but you must go through an assessment process.\n\n### The Critical Gap: Decentralized Administration\n\nThe program is delivered through **Area Agencies on Aging (AAAs)**, not a single state office[3][7]. Each AAA serves a planning-and-service area and develops its own service plan based on local needs and resources[3]. This means:\n\n- **Application procedures vary by region** — you must contact your local AAA directly\n- **Available services may differ** depending on your AAA's priorities and funding\n- **Processing times and waitlists are not standardized** across the state\n\n### How to Find Your Local AAA\n\nThe State Unit on Aging oversees the program statewide[7], but you must contact your regional Area Agency on Aging to apply. The search results include Northeast Nebraska Area Agency on Aging as an example[6], but specific contact information for all AAAs is not provided in these sources. You'll need to contact the State Unit on Aging (DHHS) or search for your county's AAA.\n\n### What Services Are Actually Provided\n\nThe program funds **congregate or delivered meals, adult day care, transportation, homemaker services**, and other supports to promote health, safety, and independence[5][7]. Services are designed for people who want to avoid institutionalization — either those struggling to function independently at home or those at risk of prolonged institutionalization[5]."
+      "data_shape_notes": "Only one provider in Eastern Nebraska counties; no income/asset test for core eligibility but needed for free coverage via Medicaid; requires NF LOC and community safety determination.",
+      "_raw": "{\n  \"name\": \"PACE (Program of All-Inclusive Care for the Elderly)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No income limits or financial criteria for eligibility. Medicaid eligibility (if seeking full coverage without premiums) follows Nebraska long-term care rules: income under 300% of Federal Benefit Rate ($2,901/month in 2025); varies by marital status but not detailed by household size here. Private pay available for non-Medicaid eligible.\",\n    \"asset_limits\": \"No asset limits for PACE eligibility. For Medicaid coverage, assets $2,000 or less (excluding primary home).\",\n    \"other_requirements\": [\n      \"Certified by Nebraska as meeting nursing facility level of care (NF LOC) per 471 NAC 12.\",\n      \"Able to live safely in the community at time of enrollment with PACE services.\",\n      \"Live in the PACE service area (Douglas, Sarpy, and select zip codes in Cass, Dodge, Saunders, Washington Counties).\",\n      \"Not enrolled in Medicare Advantage (Part C) or Medicare prepaid plan at enrollment.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"All-inclusive: primary care, hospital/inpatient, emergency, medications, transportation, therapies (OT/PT/ST), social services, adult day health care, home care, personal care, durable medical equipment, hospice, and all Medicare/Medicaid-covered services. No deductibles or copays for enrollees. Specific hours/dollars not fixed; individualized via interdisciplinary team.\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Contact Immanuel Pathways (specific number not in sources; call Nebraska DHHS at general Medicaid line or visit provider site).\",\n      \"In-person: Immanuel Pathways centers in Omaha (Eastern Nebraska).\",\n      \"Direct inquiry to PACE organization (Immanuel Pathways); they verify eligibility.\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Not detailed; may vary by provider capacity.\",\n    \"forms\": [\"No specific form name/number listed; PACE organization handles enrollment verification.\"],\n    \"documents\": [\n      \"Proof of age (ID/birth certificate).\",\n      \"Medical records for NF LOC assessment.\",\n      \"Proof of residency in service area.\",\n      \"Medicare/Medicaid cards (if applicable).\",\n      \"Financial info if applying for Medicaid or private pay.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to Douglas, Sarpy, and select zip codes in Cass, Dodge, Saunders, Washington Counties.\",\n    \"regional_variations\": \"Only one provider: Immanuel Pathways Eastern Nebraska in Omaha area. No other regions have approved PACE providers.\",\n    \"offices_or_providers\": [\"Immanuel Pathways, Omaha (serving Eastern Nebraska counties)\"]\n  },\n  \"official_source\": \"https://dhhs.ne.gov/Pages/Medicaid-Provider-All-Inclusive-Care-for-the-Elderly.aspx\",\n  \"gotchas\": [\n    \"Only available in specific Eastern Nebraska counties; not statewide.\",\n    \"Must not be in Medicare Advantage; disenroll first.\",\n    \"NF LOC certification required—needs state assessment.\",\n    \"Private pay can cost $7,000+/month if not dually eligible.\",\n    \"Voluntary; can leave anytime, but PACE becomes sole Medicare/Medicaid service source.\",\n    \"90% of participants are dually eligible; non-eligible pay premiums.\"\n  ],\n  \"data_shape_notes\": \"Only one provider in Eastern Nebraska counties; no income/asset test for core eligibility but needed for free coverage via Medicaid; requires NF LOC and community safety determination.\"\n}"
     },
     {
-      "name": "Aging and Disability Resource Center (ADRC)",
+      "name": "Medicare Savings Program (QMB, SLMB, QI)",
       "eligibility": {
-        "age": "60 and over (or any age if disabled)",
-        "income_limits": null,
-        "asset_limits": null,
+        "age": null,
+        "income_limits": {
+          "description": "Nebraska uses federal poverty level (FPL) thresholds, adjusted annually. As of 2026, income limits are:",
+          "QMB": {
+            "threshold": "100% FPL",
+            "individual_monthly": "$1,350",
+            "couple_monthly": "$1,824"
+          },
+          "SLMB": {
+            "threshold": "120-135% FPL",
+            "individual_monthly": "$1,478 to $1,660",
+            "couple_monthly": "$1,992 to $2,239"
+          },
+          "QI": {
+            "threshold": "120-135% FPL",
+            "individual_monthly": "$1,660",
+            "couple_monthly": "$2,239"
+          },
+          "note": "Income limits are announced early each year and become effective in April[2]. The limits shown reflect 2026 federal standards[7][1]."
+        },
+        "asset_limits": {
+          "description": "Nebraska uses federal asset limits for SLMB and QI programs[1]",
+          "QMB": {
+            "individual": "$9,950",
+            "couple": "$14,910"
+          },
+          "SLMB": {
+            "individual": "$9,090",
+            "couple": "$13,630"
+          },
+          "QI": {
+            "individual": "$9,090",
+            "couple": "$13,630"
+          },
+          "what_counts": "Resources include bank accounts, stocks, bonds, and other liquid assets[1]",
+          "what_exempt": "Primary residence and one vehicle are typically exempt from resource limits, though the search results do not provide Nebraska-specific exemption details"
+        },
         "other_requirements": [
-          "Nebraska residency",
-          "Age 60+ OR any age with disability",
-          "Family members, caregivers, advocates, and providers of eligible persons also qualify"
+          "Must be eligible for Medicare Part A (even if not currently enrolled)[2]",
+          "Must be a resident of Nebraska[6]",
+          "Must be a United States citizen or qualified non-citizen[6]"
         ]
       },
       "benefits": {
-        "type": "service|advocacy|information",
-        "value": "Information and referral services, options counseling, benefits application assistance, access to long-term care programs, person-centered transition support",
+        "type": "financial",
+        "value": {
+          "QMB": "Pays for Medicare Part A premiums (if applicable), Part B premiums, deductibles, coinsurance, and copayments for services covered under Parts A and B[2][7]",
+          "SLMB": "Pays for Medicare Part B premiums only[1][2]",
+          "QI": "Pays for Medicare Part B premiums[1]. Additionally, qualifying for QI automatically qualifies you for the Extra Help prescription drug program[3]"
+        },
+        "varies_by": "program_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact ACCESSNebraska (state Medicaid agency) — the primary administrator of MSP in Nebraska[8]",
+          "Apply through your state Medicaid agency[2]"
+        ],
+        "processing_time": {
+          "QMB": "Eligibility becomes effective on the first day of the month following the month in which the Medicaid agency has all information and verification necessary to determine eligibility. This should not take more than 45 days[2]",
+          "SLMB_and_QI": "May be retroactive up to three months prior to the date of application if the person is otherwise eligible[2]"
+        },
+        "waitlist": null,
+        "forms": [
+          "Application forms are available through ACCESSNebraska; specific form numbers are not provided in available sources"
+        ],
+        "documents": [
+          "Proof of income (recent pay stubs, tax returns, or Social Security statements)[2]",
+          "Proof of resources/assets (bank statements, investment statements)[2]",
+          "Proof of Medicare eligibility[2]",
+          "Proof of residency and citizenship/qualified non-citizen status[6]"
+        ],
+        "contact_information": "Contact ACCESSNebraska (specific phone number and website URL not provided in search results; families should search 'ACCESSNebraska' or contact their local Medicaid office)"
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": null,
+        "offices_or_providers": [
+          "Administered statewide by ACCESSNebraska[8]"
+        ]
+      },
+      "official_source": "https://public-dhhs.ne.gov/ (Nebraska Department of Health and Human Services)",
+      "gotchas": [
+        "Income limits change annually in April[2] — families should verify current limits each year rather than relying on previous year figures",
+        "QMB eligibility is effective the first day of the month *following* the month the agency receives all documentation, not the month of application[2]",
+        "SLMB and QI have retroactive coverage up to three months, but QMB does not[2] — timing of application matters for QMB",
+        "QI is specifically for individuals who do not qualify for QMB or SLMB[3] — it's a fallback program, not a primary option",
+        "Some states (like Connecticut) have eliminated asset limits entirely, but Nebraska has not[5] — asset limits are a real barrier in Nebraska",
+        "The QI program may have limited funding; some states prioritize applications based on previous year enrollment[5]",
+        "Qualifying for QI automatically qualifies you for Extra Help prescription drug assistance[3] — this is a hidden benefit many families miss",
+        "Medicare Part A must be available (even if not enrolled) to qualify for any of these programs[2]",
+        "The search results reference an older Nebraska asset limit of $8,400 for single individuals from a 2022 document[8], but more recent federal standards show $9,090-$9,950 depending on program[1][7] — families should verify current limits with ACCESSNebraska"
+      ],
+      "data_shape_notes": "This program consists of three distinct tiers (QMB, SLMB, QI) with different income thresholds and benefits. Income limits are tied to the federal poverty level and adjust annually in April. Benefits scale by program tier: QMB provides the most comprehensive coverage (premiums, deductibles, coinsurance, copayments), while SLMB and QI cover only Part B premiums. Asset limits apply but vary by program. The program is administered statewide through ACCESSNebraska (the state Medicaid agency) with no apparent regional variations. Processing times differ by program tier, with QMB having a 45-day maximum and SLMB/QI offering retroactive coverage.",
+      "_raw": "```json\n{\n  \"name\": \"Medicare Savings Program (QMB, SLMB, QI)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": {\n      \"description\": \"Nebraska uses federal poverty level (FPL) thresholds, adjusted annually. As of 2026, income limits are:\",\n      \"QMB\": {\n        \"threshold\": \"100% FPL\",\n        \"individual_monthly\": \"$1,350\",\n        \"couple_monthly\": \"$1,824\"\n      },\n      \"SLMB\": {\n        \"threshold\": \"120-135% FPL\",\n        \"individual_monthly\": \"$1,478 to $1,660\",\n        \"couple_monthly\": \"$1,992 to $2,239\"\n      },\n      \"QI\": {\n        \"threshold\": \"120-135% FPL\",\n        \"individual_monthly\": \"$1,660\",\n        \"couple_monthly\": \"$2,239\"\n      },\n      \"note\": \"Income limits are announced early each year and become effective in April[2]. The limits shown reflect 2026 federal standards[7][1].\"\n    },\n    \"asset_limits\": {\n      \"description\": \"Nebraska uses federal asset limits for SLMB and QI programs[1]\",\n      \"QMB\": {\n        \"individual\": \"$9,950\",\n        \"couple\": \"$14,910\"\n      },\n      \"SLMB\": {\n        \"individual\": \"$9,090\",\n        \"couple\": \"$13,630\"\n      },\n      \"QI\": {\n        \"individual\": \"$9,090\",\n        \"couple\": \"$13,630\"\n      },\n      \"what_counts\": \"Resources include bank accounts, stocks, bonds, and other liquid assets[1]\",\n      \"what_exempt\": \"Primary residence and one vehicle are typically exempt from resource limits, though the search results do not provide Nebraska-specific exemption details\"\n    },\n    \"other_requirements\": [\n      \"Must be eligible for Medicare Part A (even if not currently enrolled)[2]\",\n      \"Must be a resident of Nebraska[6]\",\n      \"Must be a United States citizen or qualified non-citizen[6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": {\n      \"QMB\": \"Pays for Medicare Part A premiums (if applicable), Part B premiums, deductibles, coinsurance, and copayments for services covered under Parts A and B[2][7]\",\n      \"SLMB\": \"Pays for Medicare Part B premiums only[1][2]\",\n      \"QI\": \"Pays for Medicare Part B premiums[1]. Additionally, qualifying for QI automatically qualifies you for the Extra Help prescription drug program[3]\"\n    },\n    \"varies_by\": \"program_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact ACCESSNebraska (state Medicaid agency) — the primary administrator of MSP in Nebraska[8]\",\n      \"Apply through your state Medicaid agency[2]\"\n    ],\n    \"processing_time\": {\n      \"QMB\": \"Eligibility becomes effective on the first day of the month following the month in which the Medicaid agency has all information and verification necessary to determine eligibility. This should not take more than 45 days[2]\",\n      \"SLMB_and_QI\": \"May be retroactive up to three months prior to the date of application if the person is otherwise eligible[2]\"\n    },\n    \"waitlist\": null,\n    \"forms\": [\n      \"Application forms are available through ACCESSNebraska; specific form numbers are not provided in available sources\"\n    ],\n    \"documents\": [\n      \"Proof of income (recent pay stubs, tax returns, or Social Security statements)[2]\",\n      \"Proof of resources/assets (bank statements, investment statements)[2]\",\n      \"Proof of Medicare eligibility[2]\",\n      \"Proof of residency and citizenship/qualified non-citizen status[6]\"\n    ],\n    \"contact_information\": \"Contact ACCESSNebraska (specific phone number and website URL not provided in search results; families should search 'ACCESSNebraska' or contact their local Medicaid office)\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\n      \"Administered statewide by ACCESSNebraska[8]\"\n    ]\n  },\n  \"official_source\": \"https://public-dhhs.ne.gov/ (Nebraska Department of Health and Human Services)\",\n  \"gotchas\": [\n    \"Income limits change annually in April[2] — families should verify current limits each year rather than relying on previous year figures\",\n    \"QMB eligibility is effective the first day of the month *following* the month the agency receives all documentation, not the month of application[2]\",\n    \"SLMB and QI have retroactive coverage up to three months, but QMB does not[2] — timing of application matters for QMB\",\n    \"QI is specifically for individuals who do not qualify for QMB or SLMB[3] — it's a fallback program, not a primary option\",\n    \"Some states (like Connecticut) have eliminated asset limits entirely, but Nebraska has not[5] — asset limits are a real barrier in Nebraska\",\n    \"The QI program may have limited funding; some states prioritize applications based on previous year enrollment[5]\",\n    \"Qualifying for QI automatically qualifies you for Extra Help prescription drug assistance[3] — this is a hidden benefit many families miss\",\n    \"Medicare Part A must be available (even if not enrolled) to qualify for any of these programs[2]\",\n    \"The search results reference an older Nebraska asset limit of $8,400 for single individuals from a 2022 document[8], but more recent federal standards show $9,090-$9,950 depending on program[1][7] — families should verify current limits with ACCESSNebraska\"\n  ],\n  \"data_shape_notes\": \"This program consists of three distinct tiers (QMB, SLMB, QI) with different income thresholds and benefits. Income limits are tied to the federal poverty level and adjust annually in April. Benefits scale by program tier: QMB provides the most comprehensive coverage (premiums, deductibles, coinsurance, copayments), while SLMB and QI cover only Part B premiums. Asset limits apply but vary by program. The program is administered statewide through ACCESSNebraska (the state Medicaid agency) with no apparent regional variations. Processing times differ by program tier, with QMB having a 45-day maximum and SLMB/QI offering retroactive coverage.\"\n}\n```\n\n## Key Guidance for Families\n\n**Start here:** Contact ACCESSNebraska to determine which tier (QMB, SLMB, or QI) your loved one qualifies for. The tier depends on income level — QMB is the most restrictive (100% FPL) but offers the most benefits, while QI is the most lenient (up to 135% FPL) but covers only Part B premiums[1][2][7].\n\n**Timing matters:** If applying for QMB, benefits don't start until the first of the month *after* the agency receives all documentation[2]. For SLMB and QI, benefits can go back up to three months, so applying sooner rather than later can recover past costs[2].\n\n**Income limits change annually:** The limits listed above are for 2026 and will change in April 2027[2]. Families should verify current limits each year.\n\n**Asset limits are real:** Unlike some states (Connecticut has no asset limit for QI[5]), Nebraska enforces asset limits[1]. If your loved one has savings above the limit, they may still qualify for QMB if their income is low enough and resources fall within QMB limits[6].\n\n**Hidden benefit:** Qualifying for QI automatically qualifies your loved one for Extra Help with prescription drug costs[3] — this is often overlooked but can provide significant additional savings."
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "_parseError": true,
+      "_raw": "{\n  \"name\": \"Supplemental Nutrition Assistance Program (SNAP)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"For households with a member 60+ or disabled (relevant for elderly): No gross income limit in Nebraska. Only if gross income >165% FPL must meet net income test (100% FPL). 165% FPL Gross (Oct 2025-Sep 2026): 1: $2,152/mo ($25,823/yr); 2: $2,908/mo ($34,898/yr); 3: $3,664/mo ($43,973/yr); 4: $4,421/mo ($53,048/yr); +$756/mo ($9,075/yr) each add'l. 100% FPL Net: 1: $1,304/mo ($15,650/yr); 2: $1,763/mo ($21,150/yr); 3: $2,221/mo ($26,650/yr); 4: $2,679/mo ($32,150/yr); +$458/mo ($5,500/yr) each add'l.[1][3]\",\n    \"asset_limits\": \"Households with elderly (60+) or disabled: $4,500 limit. Expanded Resource Program (ERP) for elderly/disabled/separate household: $25,000. Counts: cash, bank accounts, non-exempt property. Exempt: home, household goods, retirement savings, life insurance cash value (varies), vehicle (often exempt).[1][2][7]\",\n    \"other_requirements\": [\"Nebraska resident (U.S. citizen or qualified non-citizen: 5+ years residency, refugees, etc.)\", \"Household includes those who buy/prepare food together\", \"Work requirements may apply for 55-64 without dependents (80 hrs/mo job training/work)\", \"Social Security, pensions, VA/disability count as income; medical expenses deductible for 60+.\"][2][4][5][6]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly EBT card for food purchases (groceries, not hot food/alcohol/tobacco). Max allotments based on net income/household size (e.g., example 2-person elderly: up to $546/mo minus 30% net income). Exact amount varies; certification 12 months for 60+/disabled households.[1][4][5]\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\"Online: dhhs.ne.gov (AccessNebraska portal)\", \"Phone: 1-800-383-4278 (Nebraska DHHS Assistance Hotline)\", \"Mail: Download 'Medicaid & Food Stamp Application' from dhhs.ne.gov or corrections.nebraska.gov\", \"In-person: Local DHHS Service and Support Centers (find via dhhs.ne.gov)\"][8][9],\n    \"processing_time\": \"Typically 30 days; expedited for urgent cases. Certification: 12 months for elderly/disabled, 6 months others.[4]\",\n    \"waitlist\": null,\n    \"forms\": [\"Medicaid & Food Stamp Application (combined form)\"][9],\n    \"documents\": [\"Proof of income (pay stubs, Social Security award letters, bank statements)\", \"ID/proof of residency\", \"Medical bills (60+/disabled, unpaid by insurance)\", \"Utility bills, rent/mortgage, child care receipts\", \"Proof of disability if claiming\"][4]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Administered uniformly statewide by DHHS; local offices handle apps but no benefit/wait variations noted.[8]\",\n    \"offices_or_providers\": [\"Local DHHS offices via dhhs.ne.gov\"]\n  },\n  \"official_source\": \"https://dhhs.ne.gov/pages/snap.aspx\",\n  \"gotchas\": [\"Elderly households often skip gross income test unless >165% FPL—many miss expanded eligibility.\", \"Assets exempt for most (home, car, retirement)—but ERP raises to $25k if qualify.\", \"Include all who buy/prepare food in household.\", \"Medical expenses key deduction for seniors.\", \"Non-citizens need 5 years or special status.\", \"Seniors 55-64 may face work rules post-2025 changes.\"][1][2][5][6][7],\n  \"data_shape_notes\": \"Expanded for elderly/disabled: no gross limit, higher asset via ERP ($25k), 12-mo certification, medical/utility deductions scale benefits by net income/household size.\"\n}"
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Gross annual income at or below 150% of the federal poverty level (October 1, 2025 - September 30, 2026): Household of 1: $23,475; 2: $31,725; 3: $39,975; 4: $48,225; 5: $56,475; 6: $64,725; 7: $72,975; 8: $81,225. Add $8,250 for each additional member.[3][5]",
+        "asset_limits": "Resources/assets are considered in benefit calculation along with income, household size, fuel type, and housing type. Specific asset limits or exemptions not detailed; verification of income implies related asset review.[6]",
+        "other_requirements": [
+          "Meet LIHEAP citizenship and residency requirements (U.S. citizen or qualified non-citizen, Nebraska resident).",
+          "Be responsible for home energy utilities.",
+          "Not otherwise disqualified or ineligible.",
+          "Priority for households with member age 60 or older, under age 6, receiving disability payment, medical condition aggravated by extreme heat/cold (verified by licensed medical provider), or using electricity-requiring medical device.[5]",
+          "Cooling priority if child under 6 on ADC, age 70+, severe heat-aggravated illness (verified), or no DHHS AC in past 4 years.[3][4]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "One-time payment to utility company for heating (Oct 1-Mar 31) or cooling costs, computed using 20% disregard of gross countable earned income after eligibility, based on income, assets, size, fuel type, housing. Crisis assistance for emergencies (e.g., shutoff, broken heater). Exact max amounts vary; no fixed dollar listed. Weatherization separate with different eligibility.[2][5][6]",
+        "varies_by": "household_size|priority_tier|region"
+      },
+      "application": {
+        "methods": [
+          "Online: https://iserve.nebraska.gov or accessnebraska.ne.gov.[4][6]",
+          "Phone: 1-800-383-4278 for paper application.[6]",
+          "In-person: DHHS offices (list at https://dhhs.ne.gov/Pages/Public-Assistance-Offices.aspx).[4]",
+          "Mail: Request paper application via phone."
+        ],
+        "processing_time": "Eligibility determined within 30 days of valid application receipt; may extend if documentation delayed.[5]",
+        "waitlist": "Funding limited; applications may close early if funds exhausted. No formal waitlist mentioned; apply early.[2]",
+        "forms": [
+          "No specific form name/number; apply via Access Nebraska/iServe portals or paper request.[4][6]"
+        ],
+        "documents": [
+          "Verification of all income for past 30 days (check stubs, SS benefits, SSI, ADC, veterans aid, unemployment, pensions) or 2024 tax return if self-employed/farmer.",
+          "Social Security numbers for all household members (documentation required).",
+          "Recent heating bill.",
+          "Interest/dividend income, alimony, child support verification if applicable.",
+          "Medical verification for priority/conditions.[6]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available statewide for eligible Nebraska residents.",
+        "regional_variations": "Administered via local DHHS offices; potential differences in wait times, processing, or providers by region/office due to funding. Utility-specific resources (e.g., MidAmerican, Black Hills) may guide locally.[4][6][7]",
+        "offices_or_providers": [
+          "DHHS Public Assistance Offices statewide: https://dhhs.ne.gov/Pages/Public-Assistance-Offices.aspx.[4]"
+        ]
+      },
+      "official_source": "https://dhhs.ne.gov/pages/energy-assistance.aspx[3]",
+      "gotchas": [
+        "Auto-eligibility if receiving Economic Assistance benefits (no separate application needed).[1]",
+        "Everyone at address counts as household, even non-expense sharers/roommates on same utility bill.[2]",
+        "Heating season Oct 1-Mar 31; cooling summer; crisis year-round emergencies only. Apply early as funds limited.[2]",
+        "Different eligibility for weatherization/HCRRA.[3]",
+        "Gross income used; 20% earned income disregard only post-eligibility for payment computation.[5]",
+        "Age 60+ or 70+ priority for heating/cooling respectively; medical verification required for conditions.[3][4][5]"
+      ],
+      "data_shape_notes": "Income table fixed at 150% FPL with annual updates; benefits computed via formula (20% earned income disregard post-eligibility) varying by income/assets/size/fuel/housing/priority; statewide but local DHHS offices handle applications with potential regional processing variations; separate crisis/weatherization components.",
+      "_raw": "{\n  \"name\": \"Low-Income Home Energy Assistance Program (LIHEAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Gross annual income at or below 150% of the federal poverty level (October 1, 2025 - September 30, 2026): Household of 1: $23,475; 2: $31,725; 3: $39,975; 4: $48,225; 5: $56,475; 6: $64,725; 7: $72,975; 8: $81,225. Add $8,250 for each additional member.[3][5]\",\n    \"asset_limits\": \"Resources/assets are considered in benefit calculation along with income, household size, fuel type, and housing type. Specific asset limits or exemptions not detailed; verification of income implies related asset review.[6]\",\n    \"other_requirements\": [\n      \"Meet LIHEAP citizenship and residency requirements (U.S. citizen or qualified non-citizen, Nebraska resident).\",\n      \"Be responsible for home energy utilities.\",\n      \"Not otherwise disqualified or ineligible.\",\n      \"Priority for households with member age 60 or older, under age 6, receiving disability payment, medical condition aggravated by extreme heat/cold (verified by licensed medical provider), or using electricity-requiring medical device.[5]\",\n      \"Cooling priority if child under 6 on ADC, age 70+, severe heat-aggravated illness (verified), or no DHHS AC in past 4 years.[3][4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"One-time payment to utility company for heating (Oct 1-Mar 31) or cooling costs, computed using 20% disregard of gross countable earned income after eligibility, based on income, assets, size, fuel type, housing. Crisis assistance for emergencies (e.g., shutoff, broken heater). Exact max amounts vary; no fixed dollar listed. Weatherization separate with different eligibility.[2][5][6]\",\n    \"varies_by\": \"household_size|priority_tier|region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: https://iserve.nebraska.gov or accessnebraska.ne.gov.[4][6]\",\n      \"Phone: 1-800-383-4278 for paper application.[6]\",\n      \"In-person: DHHS offices (list at https://dhhs.ne.gov/Pages/Public-Assistance-Offices.aspx).[4]\",\n      \"Mail: Request paper application via phone.\"\n    ],\n    \"processing_time\": \"Eligibility determined within 30 days of valid application receipt; may extend if documentation delayed.[5]\",\n    \"waitlist\": \"Funding limited; applications may close early if funds exhausted. No formal waitlist mentioned; apply early.[2]\",\n    \"forms\": [\"No specific form name/number; apply via Access Nebraska/iServe portals or paper request.[4][6]\"],\n    \"documents\": [\n      \"Verification of all income for past 30 days (check stubs, SS benefits, SSI, ADC, veterans aid, unemployment, pensions) or 2024 tax return if self-employed/farmer.\",\n      \"Social Security numbers for all household members (documentation required).\",\n      \"Recent heating bill.\",\n      \"Interest/dividend income, alimony, child support verification if applicable.\",\n      \"Medical verification for priority/conditions.[6]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide for eligible Nebraska residents.\",\n    \"regional_variations\": \"Administered via local DHHS offices; potential differences in wait times, processing, or providers by region/office due to funding. Utility-specific resources (e.g., MidAmerican, Black Hills) may guide locally.[4][6][7]\",\n    \"offices_or_providers\": [\"DHHS Public Assistance Offices statewide: https://dhhs.ne.gov/Pages/Public-Assistance-Offices.aspx.[4]\"]\n  },\n  \"official_source\": \"https://dhhs.ne.gov/pages/energy-assistance.aspx[3]\",\n  \"gotchas\": [\n    \"Auto-eligibility if receiving Economic Assistance benefits (no separate application needed).[1]\",\n    \"Everyone at address counts as household, even non-expense sharers/roommates on same utility bill.[2]\",\n    \"Heating season Oct 1-Mar 31; cooling summer; crisis year-round emergencies only. Apply early as funds limited.[2]\",\n    \"Different eligibility for weatherization/HCRRA.[3]\",\n    \"Gross income used; 20% earned income disregard only post-eligibility for payment computation.[5]\",\n    \"Age 60+ or 70+ priority for heating/cooling respectively; medical verification required for conditions.[3][4][5]\"\n  ],\n  \"data_shape_notes\": \"Income table fixed at 150% FPL with annual updates; benefits computed via formula (20% earned income disregard post-eligibility) varying by income/assets/size/fuel/housing/priority; statewide but local DHHS offices handle applications with potential regional processing variations; separate crisis/weatherization components.\"\n}"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Households must have income at or below 200% of the federal poverty level. Households receiving ADC (Aid to Dependent Children), SSI (Supplemental Security Income), TANF, or LIHEAP during the current program year are automatically eligible. 2025 Income Guidelines (effective January 1, 2025):\n|Household Size|100% Poverty|$31,300 (1), $42,300 (2), $53,300 (3), $64,300 (4), $75,300 (5), $86,300 (6), $97,300 (7), $108,300 (8). For >8 persons, +$11,000 per additional at 200%.[1][2][4]",
+        "asset_limits": "No asset limits mentioned in program guidelines.[1][4]",
+        "other_requirements": [
+          "Must occupy an owner-occupied or eligible dwelling unit.[1][4]",
+          "U.S. citizenship or qualified alien status with documentation (form WX15).[4]",
+          "For some related assistance like HCRRA (heating/cooling), additional criteria like emergency heating needs or specific vulnerabilities (e.g., child under 6 on ADC, person 70+, severe heat-aggravated illness), but core WAP focuses on income.[3]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free energy-efficiency improvements including insulation, new windows, air sealing, health/safety measures (indoor air quality, combustion safety, carbon monoxide checks), performed after energy audit and inspection. No fixed dollar amount; customized per home based on audit.[1][2][5]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local service provider by region (8 non-profits statewide; see geography.offices_or_providers).[1]",
+          "Douglas County: Call 402-342-8232 or unitedwaymidlands.org/weatherization; 402-444-6666 Option 6; mail to United Way of the Midlands, 1229 Millwork Ave., Suite 402, Omaha, NE 68102-4277; email DCWAP@uwmidlands.org.[2][5]",
+          "Mid-Nebraska (27 counties): Call (308) 865-5675 or contact county coordinator.[3]",
+          "General: dee.nebraska.gov/aid/nebraska-weatherization-assistance-program for provider map.[1]"
+        ],
+        "processing_time": "Not specified statewide; involves intake, initial inspection (back draft, CO, efficiency audit), waitlist, work order, installation, final inspection.[3]",
+        "waitlist": "Waiting lists exist, varying by provider/region.[3]",
+        "forms": [
+          "WX15-United States Citizenship Attestation (Alien Certification), WX30 (for certain medical verifications in related assistance).[4]"
+        ],
+        "documents": [
+          "Proof of income, SSI/ADC/TANF/LIHEAP receipt if applicable, citizenship/qualified alien documentation, proof of occupancy/ownership.[1][4]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Services via 8 regional non-profit providers; must contact local provider for your area.[1]",
+        "regional_variations": "Administered by different non-profits with varying contact methods, wait times, and intake processes (e.g., Douglas County via United Way/211, Mid-Nebraska via specific coordinators). Some regions serve specific counties (e.g., Mid-Nebraska: 27 south central counties).[1][2][3][5]",
+        "offices_or_providers": [
+          "See dee.nebraska.gov/aid/nebraska-weatherization-assistance-program for map and list of 8 providers; examples: United Way of the Midlands (Douglas County), Community Action Partnership of Mid-Nebraska (27 counties).[1][3][5]"
+        ]
+      },
+      "official_source": "https://dee.nebraska.gov/aid/nebraska-weatherization-assistance-program",
+      "gotchas": [
+        "Must contact specific regional provider, not a central state office—applications go through local non-profits.[1]",
+        "Automatic eligibility only for SSI/ADC/TANF/LIHEAP recipients; others need full income verification at 200% FPL.[1][2][4]",
+        "Owner-occupied units prioritized; rental eligibility may require landlord approval (not detailed).[4]",
+        "Income guidelines revised annually—use current year's table (2025 shown).[1]",
+        "Waiting lists common; priority for vulnerable households.[3]"
+      ],
+      "data_shape_notes": "Delivered via 8 regional non-profit providers with unique contacts; income at 200% FPL or auto-eligible via benefits programs; no age requirement but priority implied for elderly/vulnerable; customized services post-audit, not fixed amounts.",
+      "_raw": "{\n  \"name\": \"Weatherization Assistance Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Households must have income at or below 200% of the federal poverty level. Households receiving ADC (Aid to Dependent Children), SSI (Supplemental Security Income), TANF, or LIHEAP during the current program year are automatically eligible. 2025 Income Guidelines (effective January 1, 2025):\\n|Household Size|100% Poverty|$31,300 (1), $42,300 (2), $53,300 (3), $64,300 (4), $75,300 (5), $86,300 (6), $97,300 (7), $108,300 (8). For >8 persons, +$11,000 per additional at 200%.[1][2][4]\",\n    \"asset_limits\": \"No asset limits mentioned in program guidelines.[1][4]\",\n    \"other_requirements\": [\"Must occupy an owner-occupied or eligible dwelling unit.[1][4]\", \"U.S. citizenship or qualified alien status with documentation (form WX15).[4]\", \"For some related assistance like HCRRA (heating/cooling), additional criteria like emergency heating needs or specific vulnerabilities (e.g., child under 6 on ADC, person 70+, severe heat-aggravated illness), but core WAP focuses on income.[3]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free energy-efficiency improvements including insulation, new windows, air sealing, health/safety measures (indoor air quality, combustion safety, carbon monoxide checks), performed after energy audit and inspection. No fixed dollar amount; customized per home based on audit.[1][2][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact local service provider by region (8 non-profits statewide; see geography.offices_or_providers).[1]\", \"Douglas County: Call 402-342-8232 or unitedwaymidlands.org/weatherization; 402-444-6666 Option 6; mail to United Way of the Midlands, 1229 Millwork Ave., Suite 402, Omaha, NE 68102-4277; email DCWAP@uwmidlands.org.[2][5]\", \"Mid-Nebraska (27 counties): Call (308) 865-5675 or contact county coordinator.[3]\", \"General: dee.nebraska.gov/aid/nebraska-weatherization-assistance-program for provider map.[1]\"],\n    \"processing_time\": \"Not specified statewide; involves intake, initial inspection (back draft, CO, efficiency audit), waitlist, work order, installation, final inspection.[3]\",\n    \"waitlist\": \"Waiting lists exist, varying by provider/region.[3]\",\n    \"forms\": [\"WX15-United States Citizenship Attestation (Alien Certification), WX30 (for certain medical verifications in related assistance).[4]\"],\n    \"documents\": [\"Proof of income, SSI/ADC/TANF/LIHEAP receipt if applicable, citizenship/qualified alien documentation, proof of occupancy/ownership.[1][4]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Services via 8 regional non-profit providers; must contact local provider for your area.[1]\",\n    \"regional_variations\": \"Administered by different non-profits with varying contact methods, wait times, and intake processes (e.g., Douglas County via United Way/211, Mid-Nebraska via specific coordinators). Some regions serve specific counties (e.g., Mid-Nebraska: 27 south central counties).[1][2][3][5]\",\n    \"offices_or_providers\": [\"See dee.nebraska.gov/aid/nebraska-weatherization-assistance-program for map and list of 8 providers; examples: United Way of the Midlands (Douglas County), Community Action Partnership of Mid-Nebraska (27 counties).[1][3][5]\"]\n  },\n  \"official_source\": \"https://dee.nebraska.gov/aid/nebraska-weatherization-assistance-program\",\n  \"gotchas\": [\"Must contact specific regional provider, not a central state office—applications go through local non-profits.[1]\", \"Automatic eligibility only for SSI/ADC/TANF/LIHEAP recipients; others need full income verification at 200% FPL.[1][2][4]\", \"Owner-occupied units prioritized; rental eligibility may require landlord approval (not detailed).[4]\", \"Income guidelines revised annually—use current year's table (2025 shown).[1]\", \"Waiting lists common; priority for vulnerable households.[3]\"],\n  \"data_shape_notes\": \"Delivered via 8 regional non-profit providers with unique contacts; income at 200% FPL or auto-eligible via benefits programs; no age requirement but priority implied for elderly/vulnerable; customized services post-audit, not fixed amounts.\"\n}"
+    },
+    {
+      "name": "Nebraska SHIP (State Health Insurance Assistance Program)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; open to all Medicare-eligible individuals, families, and caregivers[1][2][3][10]",
+        "asset_limits": "No asset limits; no financial criteria apply[10]",
+        "other_requirements": [
+          "Must be Medicare-eligible (typically age 65+ or under 65 with certain disabilities), or a family member/caregiver of someone Medicare-eligible[1][2][3]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free, unbiased, personalized counseling and education on Medicare eligibility/benefits (Parts A, B, C, D), Medicare Supplement Insurance (Medigap), prescription drug plans, Extra Help for costs, Medicare Advantage plans, employer/retiree insurance, Medicaid; assistance with problems/decision-making; fraud prevention/reporting via SMP; outreach/training; no policy/company recommendations[1][2][3][5]",
         "varies_by": "not_applicable"
       },
       "application": {
         "methods": [
-          "Phone: (844) 843-6364 or (308) 535-8195",
-          "In-person at local ADRC offices",
-          "Benefits assistance available Monday-Friday 8 AM-5 PM"
+          "Phone: 1-800-234-7119 (toll-free, 8:00 am - 4:30 pm)[2][3][4][7]",
+          "Website: https://doi.nebraska.gov/consumer/nebraska-ship-smp[3]",
+          "Email: Jonathan.Burlison@nebraska.gov[4]",
+          "In-person: Schedule appointment with local counselor via phone (statewide network through area agencies on aging and partners like Northeast Nebraska AAA, West Central Nebraska AAA, Volunteers Assisting Seniors)[1][2][5]"
+        ],
+        "processing_time": "No formal application or processing; immediate phone assistance or scheduled counseling appointment[2][3]",
+        "waitlist": null,
+        "forms": [
+          "No specific forms required; brochure order form available at https://doi.nebraska.gov/consumer/ship-brochures-and-cms-resources if needed[9]"
+        ],
+        "documents": [
+          "No documents required; bring Medicare card/ID for personalized counseling if meeting in-person, but not mandatory[2]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; covers all Nebraska residents[1][2][4]",
+        "regional_variations": "Delivered via statewide volunteer counselor network partnering with local area agencies on aging (e.g., Northeast Nebraska AAA, West Central Nebraska AAA) and offices in Kearney, Omaha, North Platte; services consistent but local counselors vary by region[1][2][5]",
+        "offices_or_providers": [
+          "Nebraska Department of Insurance, PO Box 95087, Lincoln NE 68509-5087[4]",
+          "Partners: Northeast Nebraska AAA, Volunteers Assisting Seniors (Omaha), West Central Nebraska AAA (North Platte), others via statewide network[1][2][5]"
+        ]
+      },
+      "official_source": "https://doi.nebraska.gov/consumer/nebraska-ship-smp[3][4]",
+      "gotchas": [
+        "Not an insurance provider or financial aid program—only free counseling/education, no direct payments or enrollment on your behalf[2]",
+        "Medigap generally unavailable under age 65 in Nebraska; one-time guarantee issue period for Medigap starts with Part B after 65[1]",
+        "Must have Parts A/B to join Medicare Advantage (Part C); provider acceptance varies, changes may wait up to a year[1]",
+        "Counselors do not recommend specific policies/companies/agents[2]",
+        "Volunteers must help minimum 24 people/year, but clients face no such requirement[3]"
+      ],
+      "data_shape_notes": "no income/asset test; counseling-only service via volunteer network; focuses on Medicare navigation and fraud prevention (SMP); delivered statewide through local AAA partners",
+      "_raw": "{\n  \"name\": \"Nebraska SHIP (State Health Insurance Assistance Program)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; open to all Medicare-eligible individuals, families, and caregivers[1][2][3][10]\",\n    \"asset_limits\": \"No asset limits; no financial criteria apply[10]\",\n    \"other_requirements\": [\"Must be Medicare-eligible (typically age 65+ or under 65 with certain disabilities), or a family member/caregiver of someone Medicare-eligible[1][2][3]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free, unbiased, personalized counseling and education on Medicare eligibility/benefits (Parts A, B, C, D), Medicare Supplement Insurance (Medigap), prescription drug plans, Extra Help for costs, Medicare Advantage plans, employer/retiree insurance, Medicaid; assistance with problems/decision-making; fraud prevention/reporting via SMP; outreach/training; no policy/company recommendations[1][2][3][5]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 1-800-234-7119 (toll-free, 8:00 am - 4:30 pm)[2][3][4][7]\", \"Website: https://doi.nebraska.gov/consumer/nebraska-ship-smp[3]\", \"Email: Jonathan.Burlison@nebraska.gov[4]\", \"In-person: Schedule appointment with local counselor via phone (statewide network through area agencies on aging and partners like Northeast Nebraska AAA, West Central Nebraska AAA, Volunteers Assisting Seniors)[1][2][5]\"],\n    \"processing_time\": \"No formal application or processing; immediate phone assistance or scheduled counseling appointment[2][3]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required; brochure order form available at https://doi.nebraska.gov/consumer/ship-brochures-and-cms-resources if needed[9]\"],\n    \"documents\": [\"No documents required; bring Medicare card/ID for personalized counseling if meeting in-person, but not mandatory[2]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; covers all Nebraska residents[1][2][4]\",\n    \"regional_variations\": \"Delivered via statewide volunteer counselor network partnering with local area agencies on aging (e.g., Northeast Nebraska AAA, West Central Nebraska AAA) and offices in Kearney, Omaha, North Platte; services consistent but local counselors vary by region[1][2][5]\",\n    \"offices_or_providers\": [\"Nebraska Department of Insurance, PO Box 95087, Lincoln NE 68509-5087[4]\", \"Partners: Northeast Nebraska AAA, Volunteers Assisting Seniors (Omaha), West Central Nebraska AAA (North Platte), others via statewide network[1][2][5]\"]\n  },\n  \"official_source\": \"https://doi.nebraska.gov/consumer/nebraska-ship-smp[3][4]\",\n  \"gotchas\": [\"Not an insurance provider or financial aid program—only free counseling/education, no direct payments or enrollment on your behalf[2]\", \"Medigap generally unavailable under age 65 in Nebraska; one-time guarantee issue period for Medigap starts with Part B after 65[1]\", \"Must have Parts A/B to join Medicare Advantage (Part C); provider acceptance varies, changes may wait up to a year[1]\", \"Counselors do not recommend specific policies/companies/agents[2]\", \"Volunteers must help minimum 24 people/year, but clients face no such requirement[3]\"],\n  \"data_shape_notes\": \"no income/asset test; counseling-only service via volunteer network; focuses on Medicare navigation and fraud prevention (SMP); delivered statewide through local AAA partners\"\n}"
+    },
+    {
+      "name": "Home-Delivered Meals (via AAAs)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No strict income limits statewide; preference given to low-income older adults (including low-income minority older adults), but not a hard cutoff with dollar amounts. No table or asset limits specified in state guidelines[1][2][4].",
+        "asset_limits": "No asset limits or definitions of countable/exempt assets mentioned in program guidelines[1][2][4].",
+        "other_requirements": [
+          "Primary: Frail, homebound by reason of illness or incapacitating disability, unable to attend a congregate meal[1][2][4].",
+          "Spouse of eligible person (60+ and homebound), regardless of age, if it supports keeping the older person at home[1][2][4].",
+          "Dependent individual with a disability living with an eligible 60+ person[1][2][4].",
+          "Preferences (not requirements): Low-income, limited English proficiency, rural residents[1][2][4].",
+          "Each Area Agency on Aging (AAA) defines 'unable to attend congregate meal'[2]."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Well-balanced home-delivered meals Monday-Friday by volunteers or drivers; each meal meets 1/3 of daily recommended dietary needs for adults 60+; weekend meals available at some locations for extreme needs; written assessment within 2 weeks of first meal, annual reassessment[1][4][8].",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local Area Agency on Aging (AAA): Initial eligibility determination in-person or by phone; no statewide phone listed, varies by AAA (e.g., Northeast Nebraska AAA via nenaaa.com; Blue Rivers AAA at 402-223-1376 or 888-989-9417)[1][4][6].",
+          "No specific statewide online URL, form name/number, mail, or in-person office listed; apply via local AAA[1][4]."
+        ],
+        "processing_time": "Written assessment within 2 weeks of first meal; reassessment annually or on status change[4].",
+        "waitlist": "Waiting lists established when providers cannot serve all eligible individuals[4].",
+        "forms": [
+          "No specific form names/numbers statewide; contribution statements provided (voluntary suggested amounts, no 'bill' language)[4]."
+        ],
+        "documents": [
+          "No specific documents listed; assessment includes nutrition-related supportive services[4]."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available through 6 regional AAAs covering all Nebraska counties; must reside in AAA service area[1][2][4].",
+        "regional_variations": "Each AAA determines 'unable to attend congregate meal,' contracts with local providers, may offer weekend meals, different wait times/providers; e.g., Northeast Nebraska AAA (nenaaa.com), Blue Rivers AAA[1][2][4][6].",
+        "offices_or_providers": [
+          "Local AAAs and contracted providers (volunteers/paid drivers); varies by region, no full list[1]."
+        ]
+      },
+      "official_source": "https://dhhs.ne.gov (State Unit on Aging guidelines); local AAAs like https://nenaaa.com[1][2][4].",
+      "gotchas": [
+        "Not automatic—requires homebound/frail assessment by local AAA; preferences but no hard income test[1][2][4].",
+        "Voluntary contributions suggested, but stated as non-mandatory[4].",
+        "Separate from Medicaid waivers (e.g., Aged & Disabled Waiver requires Medicaid/NFLOC); this is OAA-funded[2][3][5][6].",
+        "Prioritization for greatest need may cause waitlists[4].",
+        "Spouse/dependent eligibility tied to primary 60+ eligible person[1][4]."
+      ],
+      "data_shape_notes": "Administered by 6 regional AAAs with local variations in assessment, providers, and weekend availability; no statewide income/asset tests, priority-based access under OAA; eligibility heavily functional (homebound) vs. financial[1][2][4].",
+      "_raw": "{\n  \"name\": \"Home-Delivered Meals (via AAAs)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No strict income limits statewide; preference given to low-income older adults (including low-income minority older adults), but not a hard cutoff with dollar amounts. No table or asset limits specified in state guidelines[1][2][4].\",\n    \"asset_limits\": \"No asset limits or definitions of countable/exempt assets mentioned in program guidelines[1][2][4].\",\n    \"other_requirements\": [\n      \"Primary: Frail, homebound by reason of illness or incapacitating disability, unable to attend a congregate meal[1][2][4].\",\n      \"Spouse of eligible person (60+ and homebound), regardless of age, if it supports keeping the older person at home[1][2][4].\",\n      \"Dependent individual with a disability living with an eligible 60+ person[1][2][4].\",\n      \"Preferences (not requirements): Low-income, limited English proficiency, rural residents[1][2][4].\",\n      \"Each Area Agency on Aging (AAA) defines 'unable to attend congregate meal'[2].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Well-balanced home-delivered meals Monday-Friday by volunteers or drivers; each meal meets 1/3 of daily recommended dietary needs for adults 60+; weekend meals available at some locations for extreme needs; written assessment within 2 weeks of first meal, annual reassessment[1][4][8].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Area Agency on Aging (AAA): Initial eligibility determination in-person or by phone; no statewide phone listed, varies by AAA (e.g., Northeast Nebraska AAA via nenaaa.com; Blue Rivers AAA at 402-223-1376 or 888-989-9417)[1][4][6].\",\n      \"No specific statewide online URL, form name/number, mail, or in-person office listed; apply via local AAA[1][4].\"\n    ],\n    \"processing_time\": \"Written assessment within 2 weeks of first meal; reassessment annually or on status change[4].\",\n    \"waitlist\": \"Waiting lists established when providers cannot serve all eligible individuals[4].\",\n    \"forms\": [\"No specific form names/numbers statewide; contribution statements provided (voluntary suggested amounts, no 'bill' language)[4].\"],\n    \"documents\": [\"No specific documents listed; assessment includes nutrition-related supportive services[4].\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available through 6 regional AAAs covering all Nebraska counties; must reside in AAA service area[1][2][4].\",\n    \"regional_variations\": \"Each AAA determines 'unable to attend congregate meal,' contracts with local providers, may offer weekend meals, different wait times/providers; e.g., Northeast Nebraska AAA (nenaaa.com), Blue Rivers AAA[1][2][4][6].\",\n    \"offices_or_providers\": [\"Local AAAs and contracted providers (volunteers/paid drivers); varies by region, no full list[1].\"]\n  },\n  \"official_source\": \"https://dhhs.ne.gov (State Unit on Aging guidelines); local AAAs like https://nenaaa.com[1][2][4].\",\n  \"gotchas\": [\n    \"Not automatic—requires homebound/frail assessment by local AAA; preferences but no hard income test[1][2][4].\",\n    \"Voluntary contributions suggested, but stated as non-mandatory[4].\",\n    \"Separate from Medicaid waivers (e.g., Aged & Disabled Waiver requires Medicaid/NFLOC); this is OAA-funded[2][3][5][6].\",\n    \"Prioritization for greatest need may cause waitlists[4].\",\n    \"Spouse/dependent eligibility tied to primary 60+ eligible person[1][4].\"\n  ],\n  \"data_shape_notes\": \"Administered by 6 regional AAAs with local variations in assessment, providers, and weekend availability; no statewide income/asset tests, priority-based access under OAA; eligibility heavily functional (homebound) vs. financial[1][2][4].\"\n}"
+    },
+    {
+      "name": "Lifespan Respite Services",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Income eligible (financial criteria apply); exact dollar amounts or household size table not specified in sources. Program staff may verify income per state statute[2][3][7].",
+        "asset_limits": "Liquid resources including cash on hand, checking/savings accounts, CDs, stocks, bonds, life insurance cash values, IRA/Keogh funds must be reported. Verification may be required by program staff to demonstrate financial need; amounts listed per person[3][7]. Exemptions not specified.",
+        "other_requirements": [
+          "Care recipient has special needs (medical, mental, behavioral, or disability requiring full-time ongoing supervision/care, e.g., developmental disability, brain injury, mental illness, hearing/visual impairment, orthopedic, other health impairment)[1][2][3][7]",
+          "Lives with unpaid primary family caregiver in non-institutional setting[2][4]",
+          "Not receiving respite services or eligible for respite from another government program[1][2][7]",
+          "U.S. citizen or qualified alien under federal Immigration and Nationality Act[3]",
+          "Documentation to support special needs (e.g., medical reports, IEP, letter from therapist/healthcare provider)[3][7]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Up to $125 per month for planned respite services per client (in-home, community, or facility settings). Additional $2,000 per eligibility period for qualified Exceptional Circumstances (e.g., crisis respite), requiring separate funding application and approval[2][6].",
+        "varies_by": "exceptional_circumstances"
+      },
+      "application": {
+        "methods": [
+          "Phone: Call 1-866-RESPITE (1-866-737-7483 or 1-866-737-7423) for local Respite Network Coordinator assistance or eligibility info[3][6][7]",
+          "Email: dhhs.respite@nebraska.gov[3]",
+          "Mail: Nebraska Department of Health and Human Services, CFS, Economic Assistance - Lifespan Respite Subsidy, PO Box 95026, Lincoln, NE 68509[3]",
+          "Online application download available (no fully online submission specified)[6]"
+        ],
+        "processing_time": "Not specified; incomplete info may delay eligibility determination[3][7]",
+        "waitlist": "Priorities and waiting lists may be established based on care recipient's special needs[3]",
+        "forms": [
+          "CFS-1400 (66868) Rev. 5/15, Lifespan Respite Subsidy Program Application[3][7]"
+        ],
+        "documents": [
+          "Proof of citizenship/immigration status[3]",
+          "Documentation supporting special needs (e.g., current medical reports, IEP, letter from therapist/healthcare provider)[3][7]",
+          "Income/resources/assets details (may require verification)[3][7]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None specified; serves all Nebraska[2][6][8]",
+        "regional_variations": "Local Respite Network Coordinators available statewide via toll-free line; community-based organizations (e.g., for recreational activities) vary by area—call for list[6]. No specific wait times or provider differences by region noted.",
+        "offices_or_providers": [
+          "Community-based organizations and individual respite providers statewide; contact 1-866-RESPITE for local list[6]"
+        ]
+      },
+      "official_source": "https://dhhs.ne.gov/Pages/Respite.aspx",
+      "gotchas": [
+        "Cannot receive if eligible for or receiving respite from another government program[1][2][7]",
+        "Exceptional Circumstances funding ($2,000) requires separate application and approval[2]",
+        "Asset/income verification may be requested, causing delays if incomplete[3][7]",
+        "Not for institutionalized individuals[2][4]",
+        "Must live with unpaid caregiver[2][4]"
+      ],
+      "data_shape_notes": "Financial subsidy with asset/income test but no published dollar thresholds; exceptional crisis funding as add-on; statewide with local coordinators/providers; excludes those eligible for other govt respite",
+      "_raw": "{\n  \"name\": \"Lifespan Respite Services\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Income eligible (financial criteria apply); exact dollar amounts or household size table not specified in sources. Program staff may verify income per state statute[2][3][7].\",\n    \"asset_limits\": \"Liquid resources including cash on hand, checking/savings accounts, CDs, stocks, bonds, life insurance cash values, IRA/Keogh funds must be reported. Verification may be required by program staff to demonstrate financial need; amounts listed per person[3][7]. Exemptions not specified.\",\n    \"other_requirements\": [\n      \"Care recipient has special needs (medical, mental, behavioral, or disability requiring full-time ongoing supervision/care, e.g., developmental disability, brain injury, mental illness, hearing/visual impairment, orthopedic, other health impairment)[1][2][3][7]\",\n      \"Lives with unpaid primary family caregiver in non-institutional setting[2][4]\",\n      \"Not receiving respite services or eligible for respite from another government program[1][2][7]\",\n      \"U.S. citizen or qualified alien under federal Immigration and Nationality Act[3]\",\n      \"Documentation to support special needs (e.g., medical reports, IEP, letter from therapist/healthcare provider)[3][7]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Up to $125 per month for planned respite services per client (in-home, community, or facility settings). Additional $2,000 per eligibility period for qualified Exceptional Circumstances (e.g., crisis respite), requiring separate funding application and approval[2][6].\",\n    \"varies_by\": \"exceptional_circumstances\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Call 1-866-RESPITE (1-866-737-7483 or 1-866-737-7423) for local Respite Network Coordinator assistance or eligibility info[3][6][7]\",\n      \"Email: dhhs.respite@nebraska.gov[3]\",\n      \"Mail: Nebraska Department of Health and Human Services, CFS, Economic Assistance - Lifespan Respite Subsidy, PO Box 95026, Lincoln, NE 68509[3]\",\n      \"Online application download available (no fully online submission specified)[6]\"\n    ],\n    \"processing_time\": \"Not specified; incomplete info may delay eligibility determination[3][7]\",\n    \"waitlist\": \"Priorities and waiting lists may be established based on care recipient's special needs[3]\",\n    \"forms\": [\"CFS-1400 (66868) Rev. 5/15, Lifespan Respite Subsidy Program Application[3][7]\"],\n    \"documents\": [\n      \"Proof of citizenship/immigration status[3]\",\n      \"Documentation supporting special needs (e.g., current medical reports, IEP, letter from therapist/healthcare provider)[3][7]\",\n      \"Income/resources/assets details (may require verification)[3][7]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None specified; serves all Nebraska[2][6][8]\",\n    \"regional_variations\": \"Local Respite Network Coordinators available statewide via toll-free line; community-based organizations (e.g., for recreational activities) vary by area—call for list[6]. No specific wait times or provider differences by region noted.\",\n    \"offices_or_providers\": [\"Community-based organizations and individual respite providers statewide; contact 1-866-RESPITE for local list[6]\"]\n  },\n  \"official_source\": \"https://dhhs.ne.gov/Pages/Respite.aspx\",\n  \"gotchas\": [\n    \"Cannot receive if eligible for or receiving respite from another government program[1][2][7]\",\n    \"Exceptional Circumstances funding ($2,000) requires separate application and approval[2]\",\n    \"Asset/income verification may be requested, causing delays if incomplete[3][7]\",\n    \"Not for institutionalized individuals[2][4]\",\n    \"Must live with unpaid caregiver[2][4]\"\n  ],\n  \"data_shape_notes\": \"Financial subsidy with asset/income test but no published dollar thresholds; exceptional crisis funding as add-on; statewide with local coordinators/providers; excludes those eligible for other govt respite\"\n}"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Family income must not exceed 125% of the federal poverty level. Specific dollar amounts are not provided in available sources, but families should contact their local workforce center for current thresholds based on household size.",
+        "asset_limits": "Not specified in available sources",
+        "other_requirements": [
+          "Must be unemployed[3]",
+          "Must reside in a National Able service area with available funding[2]",
+          "Must be willing to provide community service and attend required meetings and training[2]",
+          "Must be willing to develop a personalized Individual Employment Plan (IEP)[2]",
+          "Must be willing to use all available resources that assist in job searches and economic self-sufficiency[2]"
+        ],
+        "enrollment_priority": "Priority is given to veterans and qualified spouses, then to individuals who are over 65, have a disability, have low literacy skills or limited English proficiency, reside in a rural area, are homeless or at risk of homelessness, have low employment prospects, or have failed to find employment after using services through the American Job Center system[3]"
+      },
+      "benefits": {
+        "type": "employment + financial + service",
+        "value": "Participants work an average of 20 hours per week and are paid the highest of federal, state, or local minimum wage[3]. Services include on-the-job training at host agencies, career coaching, skills training (resume writing, interviewing skills, basic computer skills, employment workshops), and access to employment assistance through American Job Centers[2][3]",
+        "varies_by": "fixed"
+      },
+      "application": {
+        "methods": [
+          "In-person at any Nebraska Department of Labor reemployment services site[1]",
+          "Contact workforce experts at local American Job Centers[1]",
+          "Online locator available through AARP Foundation at my.aarpfoundation.org/locator/scsep/ to find local programs[9]"
         ],
         "processing_time": "Not specified in available sources",
+        "waitlist": "Not specified in available sources",
+        "forms": "Not specified in available sources",
+        "documents": "Not specified in available sources. Applicants should be prepared to discuss income, employment history, and job goals during assessment[2]"
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Program availability depends on funding in specific service areas. Not all areas may have available funding[2]",
+        "regional_variations": "Not specified in available sources",
+        "offices_or_providers": "Nebraska Department of Labor reemployment services sites (specific locations not listed in available sources). National Able is mentioned as a provider in Nebraska[2]"
+      },
+      "official_source": "https://dol.nebraska.gov/ReemploymentServices/Training/SCSEPProgram and https://www.dol.gov/agencies/eta/seniors",
+      "gotchas": [
+        "Funding availability varies by service area — just meeting eligibility requirements doesn't guarantee enrollment if funding isn't available in your area[2]",
+        "This is a training program designed as a bridge to unsubsidized employment, not permanent employment[3]",
+        "Income limits are tied to 125% of federal poverty level, which changes annually — families must verify current thresholds[3]",
+        "Participants must be willing to work in community service assignments at nonprofits or government agencies; job placement is not guaranteed in a specific field[1]",
+        "The program is nationwide but administered through different grantees (state agencies and 19 national nonprofits), so specific services and availability may differ by provider[3]"
+      ],
+      "data_shape_notes": "This program's key limitation is that specific dollar amounts for income thresholds, processing timelines, and detailed regional provider information are not available in public sources. Families must contact their local workforce center for current, specific information. The program is characterized by its dual focus on community service (providing no-cost labor to nonprofits/government agencies) and participant employment outcomes, which distinguishes it from other senior employment programs.",
+      "_raw": "```json\n{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income must not exceed 125% of the federal poverty level. Specific dollar amounts are not provided in available sources, but families should contact their local workforce center for current thresholds based on household size.\",\n    \"asset_limits\": \"Not specified in available sources\",\n    \"other_requirements\": [\n      \"Must be unemployed[3]\",\n      \"Must reside in a National Able service area with available funding[2]\",\n      \"Must be willing to provide community service and attend required meetings and training[2]\",\n      \"Must be willing to develop a personalized Individual Employment Plan (IEP)[2]\",\n      \"Must be willing to use all available resources that assist in job searches and economic self-sufficiency[2]\"\n    ],\n    \"enrollment_priority\": \"Priority is given to veterans and qualified spouses, then to individuals who are over 65, have a disability, have low literacy skills or limited English proficiency, reside in a rural area, are homeless or at risk of homelessness, have low employment prospects, or have failed to find employment after using services through the American Job Center system[3]\"\n  },\n  \"benefits\": {\n    \"type\": \"employment + financial + service\",\n    \"value\": \"Participants work an average of 20 hours per week and are paid the highest of federal, state, or local minimum wage[3]. Services include on-the-job training at host agencies, career coaching, skills training (resume writing, interviewing skills, basic computer skills, employment workshops), and access to employment assistance through American Job Centers[2][3]\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"In-person at any Nebraska Department of Labor reemployment services site[1]\",\n      \"Contact workforce experts at local American Job Centers[1]\",\n      \"Online locator available through AARP Foundation at my.aarpfoundation.org/locator/scsep/ to find local programs[9]\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not specified in available sources\",\n    \"forms\": \"Not specified in available sources\",\n    \"documents\": \"Not specified in available sources. Applicants should be prepared to discuss income, employment history, and job goals during assessment[2]\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Program availability depends on funding in specific service areas. Not all areas may have available funding[2]\",\n    \"regional_variations\": \"Not specified in available sources\",\n    \"offices_or_providers\": \"Nebraska Department of Labor reemployment services sites (specific locations not listed in available sources). National Able is mentioned as a provider in Nebraska[2]\"\n  },\n  \"official_source\": \"https://dol.nebraska.gov/ReemploymentServices/Training/SCSEPProgram and https://www.dol.gov/agencies/eta/seniors\",\n  \"gotchas\": [\n    \"Funding availability varies by service area — just meeting eligibility requirements doesn't guarantee enrollment if funding isn't available in your area[2]\",\n    \"This is a training program designed as a bridge to unsubsidized employment, not permanent employment[3]\",\n    \"Income limits are tied to 125% of federal poverty level, which changes annually — families must verify current thresholds[3]\",\n    \"Participants must be willing to work in community service assignments at nonprofits or government agencies; job placement is not guaranteed in a specific field[1]\",\n    \"The program is nationwide but administered through different grantees (state agencies and 19 national nonprofits), so specific services and availability may differ by provider[3]\"\n  ],\n  \"data_shape_notes\": \"This program's key limitation is that specific dollar amounts for income thresholds, processing timelines, and detailed regional provider information are not available in public sources. Families must contact their local workforce center for current, specific information. The program is characterized by its dual focus on community service (providing no-cost labor to nonprofits/government agencies) and participant employment outcomes, which distinguishes it from other senior employment programs.\"\n}\n```\n\n## Additional Context for Families\n\n**How to Get Started:**\nContact your nearest Nebraska Department of Labor reemployment services site to speak with a workforce expert[1]. You can also use the AARP Foundation locator tool to find programs in your specific area[9].\n\n**What Happens After Application:**\nThe process follows a structured path: applicants undergo assessment, develop an Individual Employment Plan (IEP), receive training at a host agency (nonprofit or government organization), and receive career coaching and skills training to prepare for unsubsidized employment[2].\n\n**Work Experience:**\nParticipants gain experience in diverse settings including schools, hospitals, day-care centers, senior centers, libraries, and landscaping centers[1]. The average commitment is 20 hours per week[3], making it suitable for seniors seeking part-time work while developing skills.\n\n**Important Limitation:**\nThe search results do not contain specific dollar amounts for income thresholds by household size, processing timelines, required documents, or detailed regional variations. Families should contact their local workforce center directly for this critical information, as it varies by location and changes annually."
+    },
+    {
+      "name": "Legal Services for Seniors (via AAAs/OAA)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No strict income limits specified; free services available to all age 60+ and spouses, with preference given to low-income and frail seniors[1][2][3][5]",
+        "asset_limits": "No asset limits or details on countable/exempt assets mentioned in sources",
+        "other_requirements": [
+          "Nebraska resident",
+          "Services provided through Area Agencies on Aging (AAAs) partnership with Legal Aid of Nebraska",
+          "Spouses of age 60+ individuals may qualify[5]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free legal assistance, advice, and brief services including: Income security, Health care (Medicare/Medicaid), Long-term care, Abuse/neglect, Individual rights, Prevent guardianship, Bankruptcy/collections, Foreclosures, Fraud, Consumer protection, Homestead exemptions, Simple wills, Advanced directives, Power of attorney, Tenant issues, Grandparents rights, and other legal concerns. Delivered via phone consultations with attorneys/paralegals, informational articles, and occasional law clinics (e.g., one POA/health care POA clinic per year in some regions)[1][2][3][4][5]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: ElderAccessLine at 1-800-527-7249 (statewide) or 402-827-5656 (Omaha); Hours: M-Th 9am-noon & 1-3pm, Fri 9am-noon (Central Time in some regions)[1][2][3][4]",
+          "Contact local Area Agency on Aging (AAA)[2][3]",
+          "Visit Legal Aid of Nebraska website: http://www.legalaidofnebraska.org/[2]"
+        ],
+        "processing_time": "Not specified; phone consultations answered by attorney/paralegal during call or with callback[1][3][4]",
         "waitlist": null,
+        "forms": [
+          "No specific form names/numbers identified; occasional in-person law clinics for POA/health care POA (e.g., one per year via NENAAA)[1]"
+        ],
+        "documents": [
+          "No specific documents listed; callers asked questions about their situation during intake[1][3][4]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available in all 93 Nebraska counties via local AAAs[3]",
+        "regional_variations": "Administered through regional AAAs (e.g., Northeast Nebraska AAA, Blue Rivers AAA, West Central Nebraska AAA, South Central Nebraska AAA) with consistent statewide ElderAccessLine but potential local law clinics or preferences[1][3][4][5]",
+        "offices_or_providers": [
+          "Partnership statewide via Area Agencies on Aging and Legal Aid of Nebraska; examples: NENAAA (nenaaa.com), Blue Rivers AAA (braaa.org), West Central (wcnaaa.org), South Central (agingkearney.org); DHHS Aging (dhhs.ne.gov/pages/aging-legal-services.aspx)[1][2][3][4][5]"
+        ]
+      },
+      "official_source": "https://dhhs.ne.gov/pages/aging-legal-services.aspx",
+      "gotchas": [
+        "Services are free but prioritize low-income/frail seniors, so higher-income may receive lower priority[5]",
+        "Not full legal representation; focuses on advice, brief services, info, and clinics[1][3][4]",
+        "Agency staff cannot provide legal/financial advice—must use ElderAccessLine or Legal Aid[4]",
+        "Limited hours for phone line; occasional regional law clinics only[1][3]"
+      ],
+      "data_shape_notes": "Statewide via regional AAAs with no strict income/asset tests but priority tiers; phone-based intake with attorney callback; covers 93 counties through OAA-funded partnerships",
+      "_raw": "{\n  \"name\": \"Legal Services for Seniors (via AAAs/OAA)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No strict income limits specified; free services available to all age 60+ and spouses, with preference given to low-income and frail seniors[1][2][3][5]\",\n    \"asset_limits\": \"No asset limits or details on countable/exempt assets mentioned in sources\",\n    \"other_requirements\": [\"Nebraska resident\", \"Services provided through Area Agencies on Aging (AAAs) partnership with Legal Aid of Nebraska\", \"Spouses of age 60+ individuals may qualify[5]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free legal assistance, advice, and brief services including: Income security, Health care (Medicare/Medicaid), Long-term care, Abuse/neglect, Individual rights, Prevent guardianship, Bankruptcy/collections, Foreclosures, Fraud, Consumer protection, Homestead exemptions, Simple wills, Advanced directives, Power of attorney, Tenant issues, Grandparents rights, and other legal concerns. Delivered via phone consultations with attorneys/paralegals, informational articles, and occasional law clinics (e.g., one POA/health care POA clinic per year in some regions)[1][2][3][4][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: ElderAccessLine at 1-800-527-7249 (statewide) or 402-827-5656 (Omaha); Hours: M-Th 9am-noon & 1-3pm, Fri 9am-noon (Central Time in some regions)[1][2][3][4]\", \"Contact local Area Agency on Aging (AAA)[2][3]\", \"Visit Legal Aid of Nebraska website: http://www.legalaidofnebraska.org/[2]\"],\n    \"processing_time\": \"Not specified; phone consultations answered by attorney/paralegal during call or with callback[1][3][4]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific form names/numbers identified; occasional in-person law clinics for POA/health care POA (e.g., one per year via NENAAA)[1]\"],\n    \"documents\": [\"No specific documents listed; callers asked questions about their situation during intake[1][3][4]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in all 93 Nebraska counties via local AAAs[3]\",\n    \"regional_variations\": \"Administered through regional AAAs (e.g., Northeast Nebraska AAA, Blue Rivers AAA, West Central Nebraska AAA, South Central Nebraska AAA) with consistent statewide ElderAccessLine but potential local law clinics or preferences[1][3][4][5]\",\n    \"offices_or_providers\": [\"Partnership statewide via Area Agencies on Aging and Legal Aid of Nebraska; examples: NENAAA (nenaaa.com), Blue Rivers AAA (braaa.org), West Central (wcnaaa.org), South Central (agingkearney.org); DHHS Aging (dhhs.ne.gov/pages/aging-legal-services.aspx)[1][2][3][4][5]\"]\n  },\n  \"official_source\": \"https://dhhs.ne.gov/pages/aging-legal-services.aspx\",\n  \"gotchas\": [\"Services are free but prioritize low-income/frail seniors, so higher-income may receive lower priority[5]\", \"Not full legal representation; focuses on advice, brief services, info, and clinics[1][3][4]\", \"Agency staff cannot provide legal/financial advice—must use ElderAccessLine or Legal Aid[4]\", \"Limited hours for phone line; occasional regional law clinics only[1][3]\"],\n  \"data_shape_notes\": \"Statewide via regional AAAs with no strict income/asset tests but priority tiers; phone-based intake with attorney callback; covers 93 counties through OAA-funded partnerships\"\n}"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": null,
+        "asset_limits": null,
+        "other_requirements": [
+          "No eligibility restrictions — anyone can contact the program",
+          "Services available to residents of long-term care facilities (nursing homes, assisted living, board and care homes, hospice centers, adult day care, long-term rehabilitation centers)",
+          "Also available to family members, friends, facility staff, and any individual or citizen group interested in resident welfare",
+          "Available to individuals and families considering long-term care placement"
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "FREE confidential services including: (1) Education on aging, long-term care, and residents' rights; (2) Information & Referral to empower individuals to resolve concerns independently; (3) Consultation with recommendations for protecting resident rights and improving care; (4) Individual Advocacy to facilitate resolution of complaints and protect rights; (5) Systems Advocacy to identify problematic trends and advocate for systemic changes",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: (800) 942-7830",
+          "Website: https://dhhs.ne.gov/Pages/Aging-Ombudsman.aspx",
+          "Mail: PO Box 95026, Lincoln, NE 68509-5026",
+          "Fax: (402) 802-5541"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": "Not specified in available sources",
         "forms": "Not specified in available sources",
         "documents": "Not specified in available sources"
       },
       "geography": {
         "statewide": true,
-        "restrictions": "Local ADRCs serve specific communities; Douglas County ADRC specifically mentioned",
-        "regional_variations": "Multiple local ADRC offices throughout Nebraska; specific locations not fully detailed in search results",
+        "restrictions": null,
+        "regional_variations": "Program includes State Long-Term Care Ombudsman, two Regional Long-Term Care Ombudsmen, Local Long-Term Care Ombudsmen, and volunteers, suggesting regional office structure, but specific regional differences not detailed in available sources",
         "offices_or_providers": [
-          "State Unit on Aging: (402) 471-2307",
-          "Douglas County ADRC mentioned as example"
+          "State office: PO Box 95026, Lincoln, NE 68509-5026",
+          "Regional offices exist but specific locations not provided in available sources"
         ]
       },
-      "official_source": "https://dhhs.ne.gov/Pages/Aging-and-Disability-Resource-Center.aspx",
+      "official_source": "https://dhhs.ne.gov/Pages/Aging-Ombudsman.aspx",
       "gotchas": [
-        "ADRC is NOT a benefits program itself—it's an information and navigation service that helps people ACCESS other programs like Medicaid",
-        "No income or asset limits because ADRC doesn't provide direct financial assistance",
-        "ADRC helps with applications to OTHER programs (Medicaid, Social Security, etc.) but doesn't determine eligibility for those programs",
-        "This is a 'one-stop shop' for information, not a direct service provider"
+        "This is NOT a financial assistance program — it provides advocacy and complaint resolution services, not direct payments or subsidies",
+        "This is NOT a healthcare provider — ombudsmen do not deliver medical care; they advocate for residents' rights and resolve complaints about care",
+        "Confidentiality is conditional — unless you explicitly give permission, the ombudsman keeps your concerns confidential, but you must actively grant permission for information sharing",
+        "Program is mandated by federal law (Older Americans Act) but operates at state level — services may vary slightly by region within Nebraska",
+        "Ombudsmen cannot investigate complaints involving providers they were previously employed by or associated with, which may affect case assignment",
+        "The program addresses concerns about 'action, inaction, or decisions' — meaning both what facilities do and what they fail to do",
+        "Services are free and available to anyone with a concern, not just residents — families can advocate on behalf of residents"
       ],
-      "data_shape_notes": "ADRC is a coordination and information service, not a standalone benefits program. Families use ADRC to learn about and apply for actual benefits programs like Medicaid. The search results do not contain specific processing times, forms, or detailed regional office locations.",
-      "_raw": "I need to clarify an important distinction: the search results describe the **Aging and Disability Resource Center (ADRC)** as a service coordination and information program, not a financial assistance or benefits program with the eligibility structure you're asking about.\n\nBased on the search results provided, here's what I can accurately report:\n\n```json\n{\n  \"name\": \"Aging and Disability Resource Center (ADRC)\",\n  \"eligibility\": {\n    \"age\": \"60 and over (or any age if disabled)\",\n    \"income_limits\": null,\n    \"asset_limits\": null,\n    \"other_requirements\": [\n      \"Nebraska residency\",\n      \"Age 60+ OR any age with disability\",\n      \"Family members, caregivers, advocates, and providers of eligible persons also qualify\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service|advocacy|information\",\n    \"value\": \"Information and referral services, options counseling, benefits application assistance, access to long-term care programs, person-centered transition support\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: (844) 843-6364 or (308) 535-8195\",\n      \"In-person at local ADRC offices\",\n      \"Benefits assistance available Monday-Friday 8 AM-5 PM\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": null,\n    \"forms\": \"Not specified in available sources\",\n    \"documents\": \"Not specified in available sources\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Local ADRCs serve specific communities; Douglas County ADRC specifically mentioned\",\n    \"regional_variations\": \"Multiple local ADRC offices throughout Nebraska; specific locations not fully detailed in search results\",\n    \"offices_or_providers\": [\n      \"State Unit on Aging: (402) 471-2307\",\n      \"Douglas County ADRC mentioned as example\"\n    ]\n  },\n  \"official_source\": \"https://dhhs.ne.gov/Pages/Aging-and-Disability-Resource-Center.aspx\",\n  \"gotchas\": [\n    \"ADRC is NOT a benefits program itself—it's an information and navigation service that helps people ACCESS other programs like Medicaid\",\n    \"No income or asset limits because ADRC doesn't provide direct financial assistance\",\n    \"ADRC helps with applications to OTHER programs (Medicaid, Social Security, etc.) but doesn't determine eligibility for those programs\",\n    \"This is a 'one-stop shop' for information, not a direct service provider\"\n  ],\n  \"data_shape_notes\": \"ADRC is a coordination and information service, not a standalone benefits program. Families use ADRC to learn about and apply for actual benefits programs like Medicaid. The search results do not contain specific processing times, forms, or detailed regional office locations.\"\n}\n```\n\n## Critical Clarification\n\nThe search results do not describe an \"Aging & Disability Resource Center Act\" as a standalone program with eligibility requirements and benefits. Instead, they describe the **ADRC as a navigation and information service**[6][7]. \n\nIf your guide is intended to help families determine whether an elderly loved one qualifies for **long-term care benefits**, you likely need information about **Nebraska Medicaid programs** (such as the Aged and Disabled Waiver)[1][3], not the ADRC itself. The ADRC helps people apply for those programs, but doesn't administer them.\n\n**What the search results actually show:**\n- The ADRC serves as a \"one-stop shop\" for information[7]\n- It provides options counseling and benefits application assistance[5][6]\n- It helps people access Medicaid, Social Security, and other programs[7]\n- There are no income or asset limits for ADRC services themselves[6]\n\nTo build the comprehensive guide you're describing, you would need to focus on the actual **benefits programs** (like Medicaid) rather than the ADRC, which is the gateway to those programs."
+      "data_shape_notes": "This program has no eligibility barriers, income/asset tests, or application process in the traditional sense. It is a universal advocacy service funded by federal mandate. The key distinction is that it serves residents of specific facility types (nursing homes, assisted living, etc.) and anyone advocating on their behalf. Unlike benefit programs, there is no 'approval' or 'denial' — contact initiates services. The program's structure includes statewide coordination with regional and local ombudsmen, suggesting geographic distribution, but specific regional service variations are not documented in available sources. Processing times, waitlists, and required documentation are not specified, indicating either no formal barriers or that this information is not publicly available.",
+      "_raw": "```json\n{\n  \"name\": \"Long-Term Care Ombudsman Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": null,\n    \"asset_limits\": null,\n    \"other_requirements\": [\n      \"No eligibility restrictions — anyone can contact the program\",\n      \"Services available to residents of long-term care facilities (nursing homes, assisted living, board and care homes, hospice centers, adult day care, long-term rehabilitation centers)\",\n      \"Also available to family members, friends, facility staff, and any individual or citizen group interested in resident welfare\",\n      \"Available to individuals and families considering long-term care placement\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"FREE confidential services including: (1) Education on aging, long-term care, and residents' rights; (2) Information & Referral to empower individuals to resolve concerns independently; (3) Consultation with recommendations for protecting resident rights and improving care; (4) Individual Advocacy to facilitate resolution of complaints and protect rights; (5) Systems Advocacy to identify problematic trends and advocate for systemic changes\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: (800) 942-7830\",\n      \"Website: https://dhhs.ne.gov/Pages/Aging-Ombudsman.aspx\",\n      \"Mail: PO Box 95026, Lincoln, NE 68509-5026\",\n      \"Fax: (402) 802-5541\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not specified in available sources\",\n    \"forms\": \"Not specified in available sources\",\n    \"documents\": \"Not specified in available sources\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Program includes State Long-Term Care Ombudsman, two Regional Long-Term Care Ombudsmen, Local Long-Term Care Ombudsmen, and volunteers, suggesting regional office structure, but specific regional differences not detailed in available sources\",\n    \"offices_or_providers\": [\n      \"State office: PO Box 95026, Lincoln, NE 68509-5026\",\n      \"Regional offices exist but specific locations not provided in available sources\"\n    ]\n  },\n  \"official_source\": \"https://dhhs.ne.gov/Pages/Aging-Ombudsman.aspx\",\n  \"gotchas\": [\n    \"This is NOT a financial assistance program — it provides advocacy and complaint resolution services, not direct payments or subsidies\",\n    \"This is NOT a healthcare provider — ombudsmen do not deliver medical care; they advocate for residents' rights and resolve complaints about care\",\n    \"Confidentiality is conditional — unless you explicitly give permission, the ombudsman keeps your concerns confidential, but you must actively grant permission for information sharing\",\n    \"Program is mandated by federal law (Older Americans Act) but operates at state level — services may vary slightly by region within Nebraska\",\n    \"Ombudsmen cannot investigate complaints involving providers they were previously employed by or associated with, which may affect case assignment\",\n    \"The program addresses concerns about 'action, inaction, or decisions' — meaning both what facilities do and what they fail to do\",\n    \"Services are free and available to anyone with a concern, not just residents — families can advocate on behalf of residents\"\n  ],\n  \"data_shape_notes\": \"This program has no eligibility barriers, income/asset tests, or application process in the traditional sense. It is a universal advocacy service funded by federal mandate. The key distinction is that it serves residents of specific facility types (nursing homes, assisted living, etc.) and anyone advocating on their behalf. Unlike benefit programs, there is no 'approval' or 'denial' — contact initiates services. The program's structure includes statewide coordination with regional and local ombudsmen, suggesting geographic distribution, but specific regional service variations are not documented in available sources. Processing times, waitlists, and required documentation are not specified, indicating either no formal barriers or that this information is not publicly available.\"\n}\n```\n\n## Critical Gaps in Available Information\n\nThe search results do not contain several details your guide requires:[1][3][5] **Processing time, waitlist status, required documents, and specific regional variations are not documented.** This is typical for advocacy programs that operate on a first-contact basis rather than formal applications.\n\n## What This Program Actually Is\n\nThe Nebraska Long-Term Care Ombudsman Program is **not a benefits program** — it provides **free advocacy and complaint resolution services** for residents of long-term care facilities.[1][5][8] There are no income limits, asset limits, or age requirements because anyone can contact the program to discuss concerns affecting long-term care residents.[7]\n\n## How to Access It\n\nContact the program directly:[9]\n- **Phone:** (800) 942-7830\n- **Website:** https://dhhs.ne.gov/Pages/Aging-Ombudsman.aspx\n- **Mail:** PO Box 95026, Lincoln, NE 68509-5026\n\n## What Families Should Know\n\nThe program is **mandated by federal law** to exist in every state.[1] In Nebraska, it operates through a State Long-Term Care Ombudsman, two Regional Ombudsmen, Local Ombudsmen, and volunteers.[2] Services are confidential unless you authorize information sharing.[1]\n\nThe program addresses violations of residents' rights, dignity, abuse, neglect, exploitation, inappropriate restraints, and any concerns about quality of care or quality of life.[3] It can investigate and resolve complaints, provide education, and advocate for systemic changes in long-term care policy.[4][5]"
     },
     {
-      "name": "Assistance to Aged, Blind or Disabled (AABD)",
+      "name": "Nebraska Community Aging Services Act",
       "eligibility": {
-        "age": "Aged: 65 or older. Blind or Disabled: 64 or younger.[1]",
-        "income_limits": "Specific dollar amounts not detailed in available sources; must meet income requirements per state rules, often for those denied SSI due to short-term disability.[1][6][7]",
-        "asset_limits": "Must meet resource limits as defined in state regulations; specific counts and exemptions not detailed in sources.[1]",
+        "age": 60,
+        "income_limits": "No strict statewide income limits specified; eligibility for congregate activities determined by local Area Agency on Aging (AAA) based on community needs and resources. For individual services, based on assessment of circumstances and service plan development. Some related programs like SSAD use client income assessment, but not fixed amounts under this Act[3][5].",
+        "asset_limits": "No asset limits mentioned in the Act; financial eligibility not rigidly defined, unlike Medicaid programs[3][9].",
         "other_requirements": [
-          "Nebraska resident.",
-          "Determined blind or disabled: Blindness defined as central visual acuity of 20/200 or less; disability by SSA (expected to last 12+ months or result in death) or State Review Team for short-term cases (under 12 months, denied SSI).[1][5][7]",
-          "Responsible for relative financial support.",
-          "Cooperate in obtaining third-party medical payments.",
-          "For State Disability Program (SDP) under AABD: Denied SSI because disability expected to last less than 12 months and ineligible for Medicaid otherwise.[7]"
+          "Nebraska resident",
+          "Need for services to promote, restore, or support self-sufficiency and independence",
+          "For individual services: assessment of individual's or family's circumstances and development of a service plan",
+          "For congregate activities: determination by AAA considering local needs and advisory council recommendations[3]"
         ]
       },
       "benefits": {
-        "type": "financial",
-        "value": "Monetary payment plus medical coverage; specific dollar amounts or hours not provided in sources.[6][7]",
-        "varies_by": "not_applicable"
+        "type": "service",
+        "value": "Community aging services including: congregate activities (group-based via senior centers to serve older individuals); individual services to promote/restore/support self-sufficiency (e.g., home-delivered meals, transportation, care management); long-term care management via Care Management Units; nutrition services; senior volunteer program; long-term care ombudsman. No fixed dollar amounts or hours specified; minimum service levels set by Department[3][7][8][9].",
+        "varies_by": "region"
       },
       "application": {
         "methods": [
-          "Online: Nebraska Department of Health and Human Services website (dhhs.ne.gov).[6][8]",
-          "Phone: 402-471-3121 (general), 402-595-1258 (Omaha), 402-323-3900 (Lincoln), 800-383-4278 (toll-free customer service).[6][8]",
-          "Call for mail or in-person options.[8]"
+          "Contact local Area Agency on Aging (AAA) - no central phone/website listed; statewide coordination via Nebraska DHHS Division of Medicaid and Long-Term Care, State Unit on Aging",
+          "In-person at senior centers or AAA offices",
+          "Area plan submission by AAA to DHHS for service delivery[3][7]"
         ],
-        "processing_time": "Not specified in sources.",
+        "processing_time": "Not specified; Care Management Units must be operational within 60 days of rule adoption for planning[7].",
         "waitlist": null,
         "forms": [
-          "Application available online via DHHS website; specific form name/number not listed.[6]"
+          "Area Plan (submitted by AAA to DHHS)",
+          "Plan of Operation for Care Management Units[2][7]"
         ],
         "documents": [
-          "Call for information; varies by program.[8]"
+          "Assessment of individual's/family's circumstances for individual services",
+          "No specific documents listed; verification of need via service plan[3]"
         ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "None; available statewide in Nebraska for eligible clients residing in own home, apartment, assisted living, licensed mental health facility, or center for developmentally disabled.[7][8]",
-        "regional_variations": null,
+        "restrictions": "Services delivered through designated Area Agencies on Aging (AAAs) covering all areas of Nebraska, urban and rural[3].",
+        "regional_variations": "Eligibility determination and service delivery vary by AAA: congregate activities based on local needs/resources; different AAAs supervise or subcontract Care Management Units; minimum service levels set by DHHS but administered locally[3][7].",
         "offices_or_providers": [
-          "Statewide via DHHS; regional phone lines for Omaha and Lincoln.[8]"
+          "Area Agencies on Aging (AAAs) designated by DHHS across Nebraska planning and service areas[3][8]"
         ]
       },
-      "official_source": "https://dhhs.ne.gov/Pages/Aged-Blind-or-Disabled.aspx[7]",
+      "official_source": "https://nebraskalegislature.gov/laws/display_html.php?begin_section=81-2201&end_section=81-2228",
       "gotchas": [
-        "Primarily for those denied federal SSI because disability is expected to last less than 12 months; not for long-term SSI-eligible cases.[7]",
-        "Disability determination often by SSA, but state handles other eligibility; state Review Team for short-term cases.[1][3]",
-        "Separate from Medicaid AD Waiver, which has different criteria like nursing facility level of care.[2]",
-        "No family unit can receive both AABD payment and State Disability Program assistance.[1]"
+        "Not a direct financial aid or Medicaid program - focuses on community services via local AAAs, not guaranteed funding or slots",
+        "No fixed income/asset tests like Medicaid ($1,330/month income, $4,000 assets for nursing home); eligibility is needs-based and local[1][3][9]",
+        "Must go through local AAA, not central state application; services prioritize self-sufficiency, not comprehensive long-term care",
+        "Confused with Medicaid or SCSEP (which has 125% FPL limit)[1][2]",
+        "Minimum standards tied to federal Older Americans Act[3]"
       ],
-      "data_shape_notes": "State supplement for short-term disabilities denied by SSI; eligibility tied to SSA denial; cash + medical, statewide but phone access varies by region.",
-      "_raw": "{\n  \"name\": \"Assistance to Aged, Blind or Disabled (AABD)\",\n  \"eligibility\": {\n    \"age\": \"Aged: 65 or older. Blind or Disabled: 64 or younger.[1]\",\n    \"income_limits\": \"Specific dollar amounts not detailed in available sources; must meet income requirements per state rules, often for those denied SSI due to short-term disability.[1][6][7]\",\n    \"asset_limits\": \"Must meet resource limits as defined in state regulations; specific counts and exemptions not detailed in sources.[1]\",\n    \"other_requirements\": [\n      \"Nebraska resident.\",\n      \"Determined blind or disabled: Blindness defined as central visual acuity of 20/200 or less; disability by SSA (expected to last 12+ months or result in death) or State Review Team for short-term cases (under 12 months, denied SSI).[1][5][7]\",\n      \"Responsible for relative financial support.\",\n      \"Cooperate in obtaining third-party medical payments.\",\n      \"For State Disability Program (SDP) under AABD: Denied SSI because disability expected to last less than 12 months and ineligible for Medicaid otherwise.[7]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monetary payment plus medical coverage; specific dollar amounts or hours not provided in sources.[6][7]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: Nebraska Department of Health and Human Services website (dhhs.ne.gov).[6][8]\",\n      \"Phone: 402-471-3121 (general), 402-595-1258 (Omaha), 402-323-3900 (Lincoln), 800-383-4278 (toll-free customer service).[6][8]\",\n      \"Call for mail or in-person options.[8]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [\"Application available online via DHHS website; specific form name/number not listed.[6]\"],\n    \"documents\": [\"Call for information; varies by program.[8]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide in Nebraska for eligible clients residing in own home, apartment, assisted living, licensed mental health facility, or center for developmentally disabled.[7][8]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\"Statewide via DHHS; regional phone lines for Omaha and Lincoln.[8]\"]\n  },\n  \"official_source\": \"https://dhhs.ne.gov/Pages/Aged-Blind-or-Disabled.aspx[7]\",\n  \"gotchas\": [\n    \"Primarily for those denied federal SSI because disability is expected to last less than 12 months; not for long-term SSI-eligible cases.[7]\",\n    \"Disability determination often by SSA, but state handles other eligibility; state Review Team for short-term cases.[1][3]\",\n    \"Separate from Medicaid AD Waiver, which has different criteria like nursing facility level of care.[2]\",\n    \"No family unit can receive both AABD payment and State Disability Program assistance.[1]\"\n  ],\n  \"data_shape_notes\": \"State supplement for short-term disabilities denied by SSI; eligibility tied to SSA denial; cash + medical, statewide but phone access varies by region.\"\n}"
+      "data_shape_notes": "Administered via local Area Agencies on Aging (AAAs) with flexible, assessment-based eligibility rather than strict financial cutoffs; services scaled to local needs, no central waitlist or fixed benefits; statewide framework with regional delivery variations",
+      "_raw": "{\n  \"name\": \"Nebraska Community Aging Services Act\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No strict statewide income limits specified; eligibility for congregate activities determined by local Area Agency on Aging (AAA) based on community needs and resources. For individual services, based on assessment of circumstances and service plan development. Some related programs like SSAD use client income assessment, but not fixed amounts under this Act[3][5].\",\n    \"asset_limits\": \"No asset limits mentioned in the Act; financial eligibility not rigidly defined, unlike Medicaid programs[3][9].\",\n    \"other_requirements\": [\"Nebraska resident\", \"Need for services to promote, restore, or support self-sufficiency and independence\", \"For individual services: assessment of individual's or family's circumstances and development of a service plan\", \"For congregate activities: determination by AAA considering local needs and advisory council recommendations[3]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Community aging services including: congregate activities (group-based via senior centers to serve older individuals); individual services to promote/restore/support self-sufficiency (e.g., home-delivered meals, transportation, care management); long-term care management via Care Management Units; nutrition services; senior volunteer program; long-term care ombudsman. No fixed dollar amounts or hours specified; minimum service levels set by Department[3][7][8][9].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact local Area Agency on Aging (AAA) - no central phone/website listed; statewide coordination via Nebraska DHHS Division of Medicaid and Long-Term Care, State Unit on Aging\", \"In-person at senior centers or AAA offices\", \"Area plan submission by AAA to DHHS for service delivery[3][7]\"],\n    \"processing_time\": \"Not specified; Care Management Units must be operational within 60 days of rule adoption for planning[7].\",\n    \"waitlist\": null,\n    \"forms\": [\"Area Plan (submitted by AAA to DHHS)\", \"Plan of Operation for Care Management Units[2][7]\"],\n    \"documents\": [\"Assessment of individual's/family's circumstances for individual services\", \"No specific documents listed; verification of need via service plan[3]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Services delivered through designated Area Agencies on Aging (AAAs) covering all areas of Nebraska, urban and rural[3].\",\n    \"regional_variations\": \"Eligibility determination and service delivery vary by AAA: congregate activities based on local needs/resources; different AAAs supervise or subcontract Care Management Units; minimum service levels set by DHHS but administered locally[3][7].\",\n    \"offices_or_providers\": [\"Area Agencies on Aging (AAAs) designated by DHHS across Nebraska planning and service areas[3][8]\"]\n  },\n  \"official_source\": \"https://nebraskalegislature.gov/laws/display_html.php?begin_section=81-2201&end_section=81-2228\",\n  \"gotchas\": [\"Not a direct financial aid or Medicaid program - focuses on community services via local AAAs, not guaranteed funding or slots\", \"No fixed income/asset tests like Medicaid ($1,330/month income, $4,000 assets for nursing home); eligibility is needs-based and local[1][3][9]\", \"Must go through local AAA, not central state application; services prioritize self-sufficiency, not comprehensive long-term care\", \"Confused with Medicaid or SCSEP (which has 125% FPL limit)[1][2]\", \"Minimum standards tied to federal Older Americans Act[3]\"],\n  \"data_shape_notes\": \"Administered via local Area Agencies on Aging (AAAs) with flexible, assessment-based eligibility rather than strict financial cutoffs; services scaled to local needs, no central waitlist or fixed benefits; statewide framework with regional delivery variations\"\n}"
+    },
+    {
+      "name": "Aging and Disability Resource Center Act",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income or asset limits specified for ADRC services; eligibility is open to persons aged 60+, persons with disabilities of any age, family members, caregivers, advocates, and providers. Note: Related programs like the Aged and Disabled Waiver have financial criteria (e.g., home equity limit of $752,000 in 2026), but ADRC itself does not impose these.[1][2][5][6]",
+        "asset_limits": "No asset limits for ADRC; what counts/exempts not applicable. (Aged and Disabled Waiver exempts primary home if equity ≤ $752,000, spouse/minor/permanently disabled child living there.[1])",
+        "other_requirements": [
+          "Nebraska resident.",
+          "For target populations: aged 60+ or disabled (any age).",
+          "Family, caregivers, advocates, providers also eligible.",
+          "Functional need (e.g., Nursing Facility Level of Care via interRAI-HC for waiver-related assessments, but not required for core ADRC info/referral).[1][5]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive information on long-term care programs/options/financing/providers; options counseling; assistance accessing/applying for public benefits; point of entry to publicly supported long-term care; identification of unmet needs; person-centered transition support; mobility management; home care provider registry. Also: benefits screenings (Medicare/Medicaid/SSI), care coordination referrals (in-home services, housekeeping, personal care, respite, equipment, adult protective services, mental health, legal issues).[2][4][5][7]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: Dial 211 (statewide ADRC helpline) or (402) 471-2307 (State Unit on Aging).[2][6]",
+          "Regional: e.g., Northeast Nebraska ADRC via nenaaa.com or (844) 843-6364/(308) 535-8195 for Western.[5][7]",
+          "In-person: Local ADRC offices (collaborative with aging/disability orgs).",
+          "Online: dhhs.ne.gov/Pages/Aging-and-Disability-Resource-Center.aspx or regional sites like nenaaa.com, wcnaaa.org.[6][5][7]"
+        ],
+        "processing_time": "Immediate for information/referral; varies for benefits assistance or referrals (no specific timeline stated).",
+        "waitlist": null,
+        "forms": [
+          "No specific form name/number for ADRC entry; assistance with public benefits forms (e.g., Medicaid) provided but not submitted by staff.[7]"
+        ],
+        "documents": [
+          "None required for initial info/referral/options counseling. For benefits applications: prepare ID, income proof, medical records as needed for specific programs.[7]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available statewide via 211 and local centers.",
+        "regional_variations": "Delivered through local collaborative aging/disability organizations (e.g., Northeast Nebraska AAA, Western Community AAA); contact/phone numbers vary by area, but services consistent.[5][7]",
+        "offices_or_providers": [
+          "Statewide via 211 Helpline (United Way of the Midlands).[2]",
+          "State Unit on Aging (402) 471-2307.[6]",
+          "Regional: e.g., Northeast Nebraska ADRC (nenaaa.com), Western (wcnaaa.org)."
+        ]
+      },
+      "official_source": "https://dhhs.ne.gov/Pages/Aging-and-Disability-Resource-Center.aspx",
+      "gotchas": [
+        "Not a direct service/funding program—provides info, counseling, referrals, and application help only; does not pay for services or provide direct care.[4][5]",
+        "Often confused with Aged and Disabled Medicaid Waiver (which has strict financial/functional criteria); ADRC helps navigate to such programs.[1][2]",
+        "No guaranteed enrollment in referred programs; staff assist but do not submit forms.[7]",
+        "Targeted at 60+ or disabled; others may get info but not full priority.[3][6]"
+      ],
+      "data_shape_notes": "no income/asset test; info/referral only (not direct benefits); statewide via local collaboratives and 211; gateway to means-tested programs like AD Waiver.",
+      "_raw": "{\n  \"name\": \"Aging and Disability Resource Center Act\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income or asset limits specified for ADRC services; eligibility is open to persons aged 60+, persons with disabilities of any age, family members, caregivers, advocates, and providers. Note: Related programs like the Aged and Disabled Waiver have financial criteria (e.g., home equity limit of $752,000 in 2026), but ADRC itself does not impose these.[1][2][5][6]\",\n    \"asset_limits\": \"No asset limits for ADRC; what counts/exempts not applicable. (Aged and Disabled Waiver exempts primary home if equity ≤ $752,000, spouse/minor/permanently disabled child living there.[1])\",\n    \"other_requirements\": [\"Nebraska resident.\", \"For target populations: aged 60+ or disabled (any age).\", \"Family, caregivers, advocates, providers also eligible.\", \"Functional need (e.g., Nursing Facility Level of Care via interRAI-HC for waiver-related assessments, but not required for core ADRC info/referral).[1][5]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive information on long-term care programs/options/financing/providers; options counseling; assistance accessing/applying for public benefits; point of entry to publicly supported long-term care; identification of unmet needs; person-centered transition support; mobility management; home care provider registry. Also: benefits screenings (Medicare/Medicaid/SSI), care coordination referrals (in-home services, housekeeping, personal care, respite, equipment, adult protective services, mental health, legal issues).[2][4][5][7]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Dial 211 (statewide ADRC helpline) or (402) 471-2307 (State Unit on Aging).[2][6]\", \"Regional: e.g., Northeast Nebraska ADRC via nenaaa.com or (844) 843-6364/(308) 535-8195 for Western.[5][7]\", \"In-person: Local ADRC offices (collaborative with aging/disability orgs).\", \"Online: dhhs.ne.gov/Pages/Aging-and-Disability-Resource-Center.aspx or regional sites like nenaaa.com, wcnaaa.org.[6][5][7]\"],\n    \"processing_time\": \"Immediate for information/referral; varies for benefits assistance or referrals (no specific timeline stated).\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific form name/number for ADRC entry; assistance with public benefits forms (e.g., Medicaid) provided but not submitted by staff.[7]\"],\n    \"documents\": [\"None required for initial info/referral/options counseling. For benefits applications: prepare ID, income proof, medical records as needed for specific programs.[7]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide via 211 and local centers.\",\n    \"regional_variations\": \"Delivered through local collaborative aging/disability organizations (e.g., Northeast Nebraska AAA, Western Community AAA); contact/phone numbers vary by area, but services consistent.[5][7]\",\n    \"offices_or_providers\": [\"Statewide via 211 Helpline (United Way of the Midlands).[2]\", \"State Unit on Aging (402) 471-2307.[6]\", \"Regional: e.g., Northeast Nebraska ADRC (nenaaa.com), Western (wcnaaa.org).\"]\n  },\n  \"official_source\": \"https://dhhs.ne.gov/Pages/Aging-and-Disability-Resource-Center.aspx\",\n  \"gotchas\": [\"Not a direct service/funding program—provides info, counseling, referrals, and application help only; does not pay for services or provide direct care.[4][5]\", \"Often confused with Aged and Disabled Medicaid Waiver (which has strict financial/functional criteria); ADRC helps navigate to such programs.[1][2]\", \"No guaranteed enrollment in referred programs; staff assist but do not submit forms.[7]\", \"Targeted at 60+ or disabled; others may get info but not full priority.[3][6]\"],\n  \"data_shape_notes\": \"no income/asset test; info/referral only (not direct benefits); statewide via local collaboratives and 211; gateway to means-tested programs like AD Waiver.\"\n}"
     },
     {
       "name": "Social Services for the Aged and Disabled (SSAD)",
       "eligibility": {
         "age": null,
-        "income_limits": "Eligibility is based on the client's income, but specific dollar amounts are not provided in available documentation. Contact DHHS directly for current income thresholds.[7]",
-        "asset_limits": "Not specified in available documentation.",
+        "income_limits": "Income-based eligibility; specific dollar amounts not provided in available sources. Contact DHHS for current income thresholds by household composition.",
+        "asset_limits": "Not specified in available sources",
         "other_requirements": [
-          "Be aged, blind, or disabled[7]",
-          "Demonstrate need for the requested service[7]",
-          "Be ineligible or unable to receive assistance from other programs (SSAD serves as a safety-net program)[7]"
+          "Must be aged, blind, or disabled",
+          "Must demonstrate need for the requested service",
+          "Must be ineligible or unable to receive assistance from other programs (SSAD serves as a safety-net program)",
+          "Nebraska residency required (inferred from state program structure)"
         ]
       },
       "benefits": {
-        "type": "in_kind",
-        "value": "Specific services include: Chore services (light housekeeping, essential shopping, food preparation, laundry, personal care); Adult Day Care (minimum 3 hours per day in supervised setting); Homemaker Services (in-home instructional-based services); Transportation (non-medical and medical to community resources)[7]",
-        "varies_by": "service_type_and_individual_need"
+        "type": "service",
+        "value": "Homemaker Services (in-home instructional-based services) and Transportation Services (non-medical and medical transportation to community resources). Specific hours per week, dollar caps, or service frequency limits not specified in available sources.",
+        "varies_by": "individual_need_assessment"
       },
       "application": {
         "methods": [
-          "Contact Nebraska DHHS directly (specific phone number and online application portal not provided in available documentation)"
+          "In-person at local DHHS office (locations and hours available on Nebraska Department of Health and Human Services website)",
+          "Phone contact to DHHS (specific number not provided in available sources)"
         ],
-        "processing_time": "Not specified in available documentation.",
-        "waitlist": "Not mentioned in available documentation.",
+        "processing_time": "Not specified in available sources",
+        "waitlist": "Not mentioned in available sources",
         "forms": [
-          "Specific form names and numbers not provided in available documentation"
+          "Specific form names/numbers not provided in available sources"
         ],
         "documents": [
-          "Income documentation (to establish eligibility based on income)[7]",
-          "Documentation of need for requested service[7]",
-          "Likely: proof of age, disability status, or blindness (not explicitly stated but implied by eligibility criteria)"
+          "Documentation of income (specific documents not detailed in available sources)",
+          "Proof of age, blindness, or disability status",
+          "Evidence of need for specific services requested"
         ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "No county or regional restrictions mentioned in available documentation.",
+        "restrictions": "None specified; appears to be statewide program",
         "regional_variations": null,
         "offices_or_providers": [
-          "Administered by Nebraska DHHS; specific local office locations not provided in available documentation"
+          "Local DHHS offices throughout Nebraska (specific locations available on DHHS website)"
         ]
       },
       "official_source": "https://dhhs.ne.gov/Pages/Social-Services-Aged-and-Disabled-Adults.aspx",
       "gotchas": [
-        "SSAD is explicitly a safety-net program for those ineligible for other assistance programs—if you qualify for other programs (like the Aged and Disabled Medicaid Waiver), you may not be eligible for SSAD[7]",
-        "Eligibility is based on both income AND demonstrated need for service—meeting income limits alone is insufficient[7]",
-        "Adult Day Care has a minimum requirement of 3 hours per day; shorter-duration services may not be available[7]",
-        "Available documentation does not specify income limits, asset limits, or processing timelines—families must contact DHHS directly for current, detailed eligibility criteria"
+        "SSAD is explicitly a safety-net program for those ineligible for other assistance programs — if someone qualifies for Medicaid Aged and Disabled Waiver, Medicare, or other programs, they may not qualify for SSAD[7]",
+        "Eligibility is based on BOTH income AND demonstrated need for service — having low income alone is insufficient[7]",
+        "The program provides limited, specific services (homemaker and transportation only) — it is not comprehensive long-term care coverage[7]",
+        "Income limits are not publicly detailed in standard resources — families must contact DHHS directly to determine eligibility",
+        "No information available on processing timelines, which may vary by local office"
       ],
-      "data_shape_notes": "SSAD is a needs-based, income-tested program with limited public documentation. Unlike the Aged and Disabled Medicaid Waiver (which has detailed published eligibility criteria including specific home equity limits and functional assessments), SSAD's eligibility thresholds and application process are not fully detailed in publicly available sources. The program functions as a residual safety net for those who don't qualify for other programs. Service provision appears to be individualized based on assessed need rather than tiered or standardized.",
-      "_raw": "```json\n{\n  \"name\": \"Social Services for the Aged and Disabled (SSAD)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Eligibility is based on the client's income, but specific dollar amounts are not provided in available documentation. Contact DHHS directly for current income thresholds.[7]\",\n    \"asset_limits\": \"Not specified in available documentation.\",\n    \"other_requirements\": [\n      \"Be aged, blind, or disabled[7]\",\n      \"Demonstrate need for the requested service[7]\",\n      \"Be ineligible or unable to receive assistance from other programs (SSAD serves as a safety-net program)[7]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Specific services include: Chore services (light housekeeping, essential shopping, food preparation, laundry, personal care); Adult Day Care (minimum 3 hours per day in supervised setting); Homemaker Services (in-home instructional-based services); Transportation (non-medical and medical to community resources)[7]\",\n    \"varies_by\": \"service_type_and_individual_need\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact Nebraska DHHS directly (specific phone number and online application portal not provided in available documentation)\"\n    ],\n    \"processing_time\": \"Not specified in available documentation.\",\n    \"waitlist\": \"Not mentioned in available documentation.\",\n    \"forms\": [\n      \"Specific form names and numbers not provided in available documentation\"\n    ],\n    \"documents\": [\n      \"Income documentation (to establish eligibility based on income)[7]\",\n      \"Documentation of need for requested service[7]\",\n      \"Likely: proof of age, disability status, or blindness (not explicitly stated but implied by eligibility criteria)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"No county or regional restrictions mentioned in available documentation.\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\n      \"Administered by Nebraska DHHS; specific local office locations not provided in available documentation\"\n    ]\n  },\n  \"official_source\": \"https://dhhs.ne.gov/Pages/Social-Services-Aged-and-Disabled-Adults.aspx\",\n  \"gotchas\": [\n    \"SSAD is explicitly a safety-net program for those ineligible for other assistance programs—if you qualify for other programs (like the Aged and Disabled Medicaid Waiver), you may not be eligible for SSAD[7]\",\n    \"Eligibility is based on both income AND demonstrated need for service—meeting income limits alone is insufficient[7]\",\n    \"Adult Day Care has a minimum requirement of 3 hours per day; shorter-duration services may not be available[7]\",\n    \"Available documentation does not specify income limits, asset limits, or processing timelines—families must contact DHHS directly for current, detailed eligibility criteria\"\n  ],\n  \"data_shape_notes\": \"SSAD is a needs-based, income-tested program with limited public documentation. Unlike the Aged and Disabled Medicaid Waiver (which has detailed published eligibility criteria including specific home equity limits and functional assessments), SSAD's eligibility thresholds and application process are not fully detailed in publicly available sources. The program functions as a residual safety net for those who don't qualify for other programs. Service provision appears to be individualized based on assessed need rather than tiered or standardized.\"\n}\n```\n\n## Critical Gaps in Available Information\n\nThe search results provide only a high-level overview of SSAD. To build a truly comprehensive family guide, you will need to contact Nebraska DHHS directly to obtain:\n\n- **Exact income limits** (by household size, if applicable)[7]\n- **Asset or resource limits** (if any)[7]\n- **Application forms and form numbers**\n- **Phone numbers and office locations** for local DHHS offices\n- **Processing timelines and current waitlist status**\n- **Whether online application is available**\n- **Regional variations in service availability or wait times**\n\n**Primary contact:** Nebraska Department of Health and Human Services (DHHS) — visit https://dhhs.ne.gov/Pages/Social-Services-Aged-and-Disabled-Adults.aspx for current contact information and application details.[7]"
+      "data_shape_notes": "SSAD is a means-tested, need-based safety-net program with income eligibility but no publicly specified income thresholds or asset limits. Benefits are service-based (not cash assistance) and limited to two service categories. The program explicitly targets individuals who fall outside other assistance programs, making it a residual rather than primary support option. Specific service hours, frequency, and dollar limits are not documented in available sources and likely require direct contact with DHHS for clarification.",
+      "_raw": "```json\n{\n  \"name\": \"Social Services for the Aged and Disabled (SSAD)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Income-based eligibility; specific dollar amounts not provided in available sources. Contact DHHS for current income thresholds by household composition.\",\n    \"asset_limits\": \"Not specified in available sources\",\n    \"other_requirements\": [\n      \"Must be aged, blind, or disabled\",\n      \"Must demonstrate need for the requested service\",\n      \"Must be ineligible or unable to receive assistance from other programs (SSAD serves as a safety-net program)\",\n      \"Nebraska residency required (inferred from state program structure)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Homemaker Services (in-home instructional-based services) and Transportation Services (non-medical and medical transportation to community resources). Specific hours per week, dollar caps, or service frequency limits not specified in available sources.\",\n    \"varies_by\": \"individual_need_assessment\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"In-person at local DHHS office (locations and hours available on Nebraska Department of Health and Human Services website)\",\n      \"Phone contact to DHHS (specific number not provided in available sources)\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not mentioned in available sources\",\n    \"forms\": [\n      \"Specific form names/numbers not provided in available sources\"\n    ],\n    \"documents\": [\n      \"Documentation of income (specific documents not detailed in available sources)\",\n      \"Proof of age, blindness, or disability status\",\n      \"Evidence of need for specific services requested\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None specified; appears to be statewide program\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\n      \"Local DHHS offices throughout Nebraska (specific locations available on DHHS website)\"\n    ]\n  },\n  \"official_source\": \"https://dhhs.ne.gov/Pages/Social-Services-Aged-and-Disabled-Adults.aspx\",\n  \"gotchas\": [\n    \"SSAD is explicitly a safety-net program for those ineligible for other assistance programs — if someone qualifies for Medicaid Aged and Disabled Waiver, Medicare, or other programs, they may not qualify for SSAD[7]\",\n    \"Eligibility is based on BOTH income AND demonstrated need for service — having low income alone is insufficient[7]\",\n    \"The program provides limited, specific services (homemaker and transportation only) — it is not comprehensive long-term care coverage[7]\",\n    \"Income limits are not publicly detailed in standard resources — families must contact DHHS directly to determine eligibility\",\n    \"No information available on processing timelines, which may vary by local office\"\n  ],\n  \"data_shape_notes\": \"SSAD is a means-tested, need-based safety-net program with income eligibility but no publicly specified income thresholds or asset limits. Benefits are service-based (not cash assistance) and limited to two service categories. The program explicitly targets individuals who fall outside other assistance programs, making it a residual rather than primary support option. Specific service hours, frequency, and dollar limits are not documented in available sources and likely require direct contact with DHHS for clarification.\"\n}\n```\n\n## Critical Gaps in Available Information\n\nThe search results provide limited detail on SSAD. To build a truly comprehensive family guide, you will need to contact **Nebraska DHHS directly** to obtain:[1][7]\n\n- **Current income limits** by household size\n- **Asset limits** and what counts toward them\n- **Specific service limits** (hours per week, dollar caps, duration of services)\n- **Processing timelines** and any regional variation\n- **Exact application forms** and required documentation\n- **Local office contact information** and hours\n\n**Primary contact:** Nebraska Department of Health and Human Services (DHHS) — visit their website at dhhs.ne.gov or locate your local DHHS office for phone numbers and in-person application options[1][7]."
+    },
+    {
+      "name": "Assistance to Aged, Blind or Disabled (AABD)",
+      "eligibility": {
+        "age": "Aged: 65 or older. Blind or Disabled: 64 or younger.[2]",
+        "income_limits": "Income must meet program requirements, with maximum payments based on Federal Benefit Rate (FBR) varying by living arrangement (e.g., 2025 FBR for single individual in own household or disabled child in parent's household: $967/month; single in household of another with one-third reduction: lower amount; shelter allowance up to $281 for single. Exact countable income limits tie to SSI denial and state standards, no full household size table specified).[7][2]",
+        "asset_limits": "Must meet resource limits as per program rules; specific dollar amounts not detailed in sources. Home equity limit of $752,000 applies in related waivers if intending to return home.[1][2]",
+        "other_requirements": [
+          "Nebraska resident.",
+          "Determined blind (central visual acuity 20/200 or less) or disabled by Social Security Administration (SSA) or state (medically determinable impairment lasting <12 months for state SDP).[2][3][6]",
+          "Denied SSI/Medicaid due to disability duration <12 months (for State Disability Program via AABD).[6]",
+          "Meet functional needs if applicable (e.g., NFLOC in waivers, but core AABD ties to SSA/state determination).[1][2]",
+          "Cooperate in obtaining third-party medical payments.",
+          "Responsible for relative financial support.[2]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Monetary cash payments (calculated from FBR minus income, e.g., up to $967/month for single in own household in 2025, plus shelter up to $281) and medical coverage. May cover essential items like guardian fees, home repairs, furniture, appliances in certain cases.[7][5][6]",
+        "varies_by": "living_arrangement"
+      },
+      "application": {
+        "methods": [
+          "Online: https://iserve.nebraska.gov/apply/program-select or Nebraska DHHS website.[4][5][8]",
+          "Phone: 402-471-3121, 402-595-1258 (Omaha), 402-323-3900 (Lincoln), 800-383-4278 (toll-free).[4][5]",
+          "Call for mail or in-person options.[5]"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": null,
+        "forms": [
+          "Application via iServe Nebraska or DHHS site; no specific form number listed.[4][8]"
+        ],
+        "documents": [
+          "Call for information; proof of income, disability/SSI denial, resources, residency, medical determinations likely needed.[5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available statewide for eligible Nebraska residents.[5]",
+        "regional_variations": "Phone numbers vary by area (Omaha/Lincoln), but program uniform.[5]",
+        "offices_or_providers": [
+          "Statewide via DHHS; local numbers for Omaha (402-595-1258), Lincoln (402-323-3900).[5]"
+        ]
+      },
+      "official_source": "https://dhhs.ne.gov/Pages/Aged-Blind-or-Disabled.aspx",
+      "gotchas": [
+        "Primarily for those denied SSI because disability expected to last <12 months (State Disability Program track); not for long-term federal SSI qualifiers.[6]",
+        "Blind/disabled applicants must be 64 or younger; aged category separate at 65+.[2]",
+        "No full income/asset dollar tables publicly detailed—must apply to confirm exact countable amounts.[2][7]",
+        "Payments reduced by other income/living arrangement; shelter capped at $281 single.[7]",
+        "Distinguish from Aged/Disabled Waiver (home/community services, NFLOC required).[1]"
+      ],
+      "data_shape_notes": "Tied to SSI denial for short-term disabilities; payment rates vary strictly by living arrangement/FBR rather than household size; statewide but separate aged/blind/disabled age tracks.",
+      "_raw": "{\n  \"name\": \"Assistance to Aged, Blind or Disabled (AABD)\",\n  \"eligibility\": {\n    \"age\": \"Aged: 65 or older. Blind or Disabled: 64 or younger.[2]\",\n    \"income_limits\": \"Income must meet program requirements, with maximum payments based on Federal Benefit Rate (FBR) varying by living arrangement (e.g., 2025 FBR for single individual in own household or disabled child in parent's household: $967/month; single in household of another with one-third reduction: lower amount; shelter allowance up to $281 for single. Exact countable income limits tie to SSI denial and state standards, no full household size table specified).[7][2]\",\n    \"asset_limits\": \"Must meet resource limits as per program rules; specific dollar amounts not detailed in sources. Home equity limit of $752,000 applies in related waivers if intending to return home.[1][2]\",\n    \"other_requirements\": [\n      \"Nebraska resident.\",\n      \"Determined blind (central visual acuity 20/200 or less) or disabled by Social Security Administration (SSA) or state (medically determinable impairment lasting <12 months for state SDP).[2][3][6]\",\n      \"Denied SSI/Medicaid due to disability duration <12 months (for State Disability Program via AABD).[6]\",\n      \"Meet functional needs if applicable (e.g., NFLOC in waivers, but core AABD ties to SSA/state determination).[1][2]\",\n      \"Cooperate in obtaining third-party medical payments.\",\n      \"Responsible for relative financial support.[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monetary cash payments (calculated from FBR minus income, e.g., up to $967/month for single in own household in 2025, plus shelter up to $281) and medical coverage. May cover essential items like guardian fees, home repairs, furniture, appliances in certain cases.[7][5][6]\",\n    \"varies_by\": \"living_arrangement\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: https://iserve.nebraska.gov/apply/program-select or Nebraska DHHS website.[4][5][8]\",\n      \"Phone: 402-471-3121, 402-595-1258 (Omaha), 402-323-3900 (Lincoln), 800-383-4278 (toll-free).[4][5]\",\n      \"Call for mail or in-person options.[5]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [\"Application via iServe Nebraska or DHHS site; no specific form number listed.[4][8]\"],\n    \"documents\": [\"Call for information; proof of income, disability/SSI denial, resources, residency, medical determinations likely needed.[5]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide for eligible Nebraska residents.[5]\",\n    \"regional_variations\": \"Phone numbers vary by area (Omaha/Lincoln), but program uniform.[5]\",\n    \"offices_or_providers\": [\"Statewide via DHHS; local numbers for Omaha (402-595-1258), Lincoln (402-323-3900).[5]\"]\n  },\n  \"official_source\": \"https://dhhs.ne.gov/Pages/Aged-Blind-or-Disabled.aspx\",\n  \"gotchas\": [\n    \"Primarily for those denied SSI because disability expected to last <12 months (State Disability Program track); not for long-term federal SSI qualifiers.[6]\",\n    \"Blind/disabled applicants must be 64 or younger; aged category separate at 65+.[2]\",\n    \"No full income/asset dollar tables publicly detailed—must apply to confirm exact countable amounts.[2][7]\",\n    \"Payments reduced by other income/living arrangement; shelter capped at $281 single.[7]\",\n    \"Distinguish from Aged/Disabled Waiver (home/community services, NFLOC required).[1]\"\n  ],\n  \"data_shape_notes\": \"Tied to SSI denial for short-term disabilities; payment rates vary strictly by living arrangement/FBR rather than household size; statewide but separate aged/blind/disabled age tracks.\"\n}"
     }
   ]
 }

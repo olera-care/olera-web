@@ -1,7 +1,7 @@
 # Michigan Benefits Exploration Report
 
-> Generated 2026-04-08 by benefits-pipeline.js
-> Cost: $0.000 (0 calls, 0s)
+> Generated 2026-04-09 by benefits-pipeline.js
+> Cost: $0.010 (2 calls, 1.3m)
 
 ---
 
@@ -9,7 +9,7 @@
 
 | Metric | Value |
 |--------|-------|
-| Programs discovered | 16 |
+| Programs discovered | ? |
 | Programs deep-dived | 16 |
 | New (not in our data) | 12 |
 | Data discrepancies | 4 |
@@ -57,7 +57,6 @@ Our data differs from what official sources say:
 
 - **min_age**: Ours says `65` → Source says `65 or older, OR 18+ with documented disability` ([source](https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver))
 - **benefit_value**: Ours says `$10,000 – $30,000/year` → Source says `Home and community-based services equivalent to nursing home care, including: Nursing Services (Preventative), Private Duty Nursing/Respiratory Care, Respite Care, Specialized Medical Equipment and Supplies, Supports Coordination, Training, and Personal Emergency Response Systems (PERS)` ([source](https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver))
-- **source_url**: Ours says `MISSING` → Source says `https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver`
 
 ## New Programs (Not in Our Data)
 
@@ -605,6 +604,7 @@ Our data differs from what official sources say:
 
 ### MI Choice Waiver Program
 
+> Last verified: 2026-04-08
 
 **Eligibility:**
 - Age: 65 or older, OR 18+ with documented disability+
@@ -746,24 +746,12 @@ Our data differs from what official sources say:
 
 ## Content Drafts
 
-Generated 16 page drafts. Review in admin dashboard or `data/pipeline/MI/drafts.json`.
+Generated 4 page drafts. Review in admin dashboard or `data/pipeline/MI/drafts.json`.
 
 - **MI Health Link** (benefit) — 3 content sections, 6 FAQs
-- **MI Choice Medicaid Waiver** (benefit) — 5 content sections, 6 FAQs
+- **MI Choice Medicaid Waiver** (benefit) — 4 content sections, 6 FAQs
 - **Michigan Program for All-Inclusive Care for the Elderly (PACE)** (benefit) — 5 content sections, 6 FAQs
-- **Medicare Savings Programs (MSP) - QMB, SLMB, QI** (benefit) — 5 content sections, 6 FAQs
-- **SNAP Food Assistance (MiCAFE for seniors)** (navigator) — 1 content sections, 6 FAQs
-- **Michigan LIHEAP (Energy Assistance)** (benefit) — 5 content sections, 6 FAQs
-- **Weatherization Assistance Program (WAP)** (benefit) — 6 content sections, 6 FAQs
-- **Michigan Medicare Assistance Program (MMAP)** (benefit) — 5 content sections, 6 FAQs
-- **Home Delivered Meals (Meals on Wheels)** (benefit) — 4 content sections, 6 FAQs
-- **Respite Care (via MI Choice Waiver)** (benefit) — 4 content sections, 6 FAQs
-- **Senior Community Service Employment Program (SCSEP)** (employment) — 4 content sections, 6 FAQs
-- **Legal Assistance for Seniors** (resource) — 3 content sections, 6 FAQs
-- **Nursing Home Long-Term Care Ombudsman** (resource) — 1 content sections, 6 FAQs
-- **MI Choice Waiver Program** (benefit) — 6 content sections, 6 FAQs
-- **Home Help Program** (benefit) — 4 content sections, 6 FAQs
-- **MiCAFE (Michigan's Coordinated Access to Food for the Elderly)** (navigator) — 1 content sections, 6 FAQs
+- **Medicare Savings Programs (MSP) - QMB, SLMB, QI** (benefit) — 4 content sections, 6 FAQs
 
 ## What We Learned
 

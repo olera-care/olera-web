@@ -1,7 +1,7 @@
 # New York Benefits Exploration Report
 
 > Generated 2026-04-09 by benefits-pipeline.js
-> Cost: $0.100 (20 calls, 2.0m)
+> Cost: $0.010 (2 calls, 16s)
 
 ---
 
@@ -9,7 +9,7 @@
 
 | Metric | Value |
 |--------|-------|
-| Programs discovered | 18 |
+| Programs discovered | ? |
 | Programs deep-dived | 14 |
 | New (not in our data) | 8 |
 | Data discrepancies | 6 |
@@ -695,12 +695,8 @@ No direct services; financial assistance for Medicare cost-sharing.
 
 ## Content Drafts
 
-Generated 4 page drafts. Review in admin dashboard or `data/pipeline/NY/drafts.json`.
+Generated 0 page drafts. Review in admin dashboard or `data/pipeline/NY/drafts.json`.
 
-- **New York State Home and Community-Based Services (HCBS) Waiver Programs** (benefit) — 4 content sections, 6 FAQs
-- **Program of All-Inclusive Care for the Elderly (PACE)** (benefit) — 3 content sections, 6 FAQs
-- **Medicare Savings Program (MSP)** (benefit) — 4 content sections, 6 FAQs
-- **Supplemental Nutrition Assistance Program (SNAP)** (benefit) — 3 content sections, 6 FAQs
 
 ## What We Learned
 

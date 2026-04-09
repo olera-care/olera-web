@@ -1,28 +1,647 @@
 {
   "state": "UT",
   "stateName": "Utah",
-  "draftedAt": "2026-04-09T09:01:59.392Z",
-  "total": 11,
-  "successful": 0,
+  "draftedAt": "2026-04-09T09:43:58.039Z",
+  "total": 13,
+  "successful": 3,
   "programs": [
     {
-      "name": "Utah Medicaid Aging Waiver",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "utah-medicaid-program",
+      "name": "Utah Medicaid Program",
+      "shortName": "Utah Medicaid",
+      "tagline": "Covers nursing home care or helps your parent stay home with support services — pays for long-term care when savings run low.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Utah DHHS regional offices",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or medication management, Utah Medicaid can cover the cost of nursing home care or home-based services. The program has different income limits depending on whether your parent stays at home ($1,255/month) or moves to a nursing home (no strict limit, but most income goes toward care costs). Your parent keeps only $45/month for personal needs in a nursing home, but Medicaid covers all care costs beyond that.\n\nThe program protects some assets — your parent can keep their home (if equity is under $730,000), one car, and personal belongings. If married, the spouse staying at home can keep up to $157,920 in assets and enough income to live independently. Because there are multiple program types with different rules, you'll need a clinical assessment to determine which services your parent qualifies for.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled",
+          "Assets under $2,000 (single) or $3,000-$4,000 (couple)",
+          "Needs daily care assistance",
+          "Utah resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 4000,
+          "countedAssets": [
+            "Bank accounts",
+            "Retirement accounts",
+            "Investments",
+            "Second homes or rental property"
+          ],
+          "exemptAssets": [
+            "Primary home (if equity ≤$730,000)",
+            "One vehicle",
+            "Personal belongings and household items",
+            "Burial plots or irrevocable burial trusts ≤$7,000",
+            "Life insurance ≤$1,500 face value"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must need daily help with activities like bathing, dressing, eating, or medication management (determined by clinical assessment)",
+        "otherRequirements": [
+          "Utah resident",
+          "U.S. citizen or qualified immigrant"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at medicaid.utah.gov or call 1-866-435-7414 — processing time varies, with monthly re-eligibility required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather financial documents",
+            "description": "Collect 3 months of bank statements, Social Security award letters, property deeds, and any retirement account statements."
+          },
+          {
+            "step": 2,
+            "title": "Complete initial application",
+            "description": "Apply online through myCase portal at medicaid.utah.gov or call 1-866-435-7414 to start by phone."
+          },
+          {
+            "step": 3,
+            "title": "Schedule clinical assessment",
+            "description": "Utah will arrange a medical/functional assessment to determine your parent's level of care needs and which services they qualify for."
+          },
+          {
+            "step": 4,
+            "title": "Submit additional forms",
+            "description": "Complete specific long-term care or waiver program forms based on assessment results and recommended services."
+          }
+        ],
+        "processingTime": "Processing time not specified — monthly re-eligibility required",
+        "waitlist": "Possible waitlists for home-based waiver services due to enrollment caps",
+        "tip": "Even if your parent's income seems too high, apply anyway — most income goes toward care costs in nursing homes, and spend-down options may be available.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://medicaid.utah.gov/apply/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Program Options",
+          "tiers": [
+            {
+              "name": "Nursing Home Medicaid",
+              "description": "For parents who need 24-hour care in a facility",
+              "incomeLimit": "No strict limit — most income pays toward care, keep $45/month",
+              "coverage": "Full nursing home costs after income contribution"
+            },
+            {
+              "name": "New Choices Waiver (Home Care)",
+              "description": "Helps parents stay home with personal care and support services",
+              "incomeLimit": "$2,901/month",
+              "coverage": "Personal care, adult day care, home modifications, respite care"
+            },
+            {
+              "name": "Aging Waiver (Home Care)",
+              "description": "Basic home-based services for less intensive needs",
+              "incomeLimit": "$1,255-$1,305/month",
+              "coverage": "Limited home care and community-based services"
+            },
+            {
+              "name": "Regular Medicaid (ABD)",
+              "description": "Medical coverage for aged, blind, and disabled — may not include long-term care",
+              "incomeLimit": "$1,255/month single, $1,704-$1,763/month couples",
+              "coverage": "Medical services — separate waiver application needed for long-term care"
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and cash",
+            "Retirement accounts (401k, IRA)",
+            "Investments and stocks",
+            "Second homes or rental property",
+            "Vehicles beyond the first one"
+          ],
+          "excluded": [
+            "Primary home (if equity ≤$730,000 and intent to return)",
+            "One vehicle of any value",
+            "Personal belongings and household items",
+            "Burial plots or irrevocable burial trusts ≤$7,000",
+            "Life insurance with face value ≤$1,500"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Birth certificate or passport",
+                "Utah utility bill or lease agreement",
+                "Social Security card"
+              ]
+            },
+            {
+              "name": "Financial Records",
+              "items": [
+                "3 months of bank statements",
+                "Social Security or disability award letters",
+                "Property deeds and home equity information",
+                "Retirement account statements",
+                "Pay stubs if still working"
+              ]
+            },
+            {
+              "name": "Medical Information",
+              "items": [
+                "Medical records showing disability or care needs",
+                "Doctor's assessment of functional limitations",
+                "Current medication list"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Local Offices",
+          "offices": [
+            {
+              "name": "Utah, Wasatch & Summit Counties",
+              "type": "service-area",
+              "phone": "801-526-9675",
+              "address": "Contact for local office address"
+            },
+            {
+              "name": "Statewide Application Line",
+              "type": "service-area",
+              "phone": "1-866-435-7414",
+              "address": "Primary application phone number"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Home-based waiver programs may have waitlists due to enrollment caps. Apply early if your parent wants to stay home rather than move to a nursing facility."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent's home is protected from Medicaid while they're alive, but Utah may try to recover costs from the home's sale after death. Consider estate planning if the home is valuable."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for Medicaid?",
+          "answer": "Yes, while she's alive. The home is exempt if equity is $730,000 or less and she intends to return (even from a nursing home). However, Utah may try to recover Medicaid costs from the home's sale after death through estate recovery."
+        },
+        {
+          "question": "What if Dad's income is just over the limit for home care?",
+          "answer": "He may still qualify for nursing home Medicaid, which has no strict income limit — most income just goes toward care costs. Or explore spend-down options where excess income goes toward medical expenses to qualify."
+        },
+        {
+          "question": "If my parents are married and one needs nursing home care, will they lose everything?",
+          "answer": "No. The spouse staying home can keep up to $157,920 in assets (minimum $31,584) and enough income to live independently. Only the spouse needing care has their assets and income counted toward the $2,000/$45 monthly limits."
+        },
+        {
+          "question": "How long does it take to get approved for home care services?",
+          "answer": "Processing time isn't specified, but you'll need a clinical assessment after applying to determine which services your parent qualifies for. Home-based waivers may have waitlists, so apply early if avoiding nursing home placement is the goal."
+        },
+        {
+          "question": "What's the difference between regular Medicaid and the long-term care programs?",
+          "answer": "Regular Medicaid (ABD) covers medical services but typically doesn't include long-term care like personal care or nursing homes. You need to apply separately for nursing home Medicaid or home-based waivers to get long-term care services covered."
+        },
+        {
+          "question": "Can we transfer assets to other family members to qualify faster?",
+          "answer": "Be careful — Medicaid has a 5-year lookback period for asset transfers. Transfers made within 5 years of applying can create penalty periods where your parent is ineligible for benefits. Consult an elder law attorney before transferring assets."
+        }
+      ],
+      "phone": "1-866-435-7414",
+      "sourceUrl": "https://medicaid.utah.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "utah-pace-elderly-care",
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "PACE",
+      "tagline": "Your parent gets all medical care, prescriptions, and daily support through one coordinated team instead of juggling multiple providers.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Limited to areas with PACE organizations; use Medicare tool to find Utah locations",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and needs nursing home-level care but wants to stay at home, PACE provides everything through one program: doctors, nurses, therapists, home care, adult day care, prescriptions, and transportation. Because PACE covers all medical care under one coordinated team, your parent won't need to manage separate Medicare providers, Medicaid waivers, or coordinate between different services.\n\nPACE replaces all other Medicare and Medicaid long-term care options. Your parent must qualify for nursing home level of care (needing daily help with bathing, dressing, medication management, or mobility) but be able to live safely in the community with PACE support. No income or asset limits apply for PACE eligibility itself, though Medicaid funding follows standard rules if your parent qualifies for that additional support.\n\nPACE is only available in specific service areas with limited enrollment slots. Waitlists are common because each PACE center can only serve a set number of participants.",
+      "savingsRange": "",
+      "savingsSource": "Comprehensive care coordination service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Lives in PACE service area",
+          "Needs nursing home level care",
+          "Can live safely at home with support"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be certified by the state as needing nursing home level of care (requires daily assistance with activities like bathing, dressing, medication management, or mobility)",
+        "otherRequirements": [
+          "Live in the service area of a PACE organization",
+          "Able to live safely in the community with PACE services",
+          "Cannot be enrolled in Medicare Advantage, certain Medicaid waivers, or hospice"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "in-person",
+        "summary": "Contact your local PACE center for an in-person health and social needs assessment; processing time varies by location and availability.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local PACE center",
+            "description": "Use Medicare's Find a PACE Plan tool online or call Medicare at 800-MEDICARE to locate PACE organizations in your area."
+          },
+          {
+            "step": 2,
+            "title": "Contact the PACE center directly",
+            "description": "Call to inquire about availability and schedule an initial consultation. Ask about waitlist status upfront."
+          },
+          {
+            "step": 3,
+            "title": "Complete health and social assessment",
+            "description": "PACE staff will conduct an in-person evaluation of your parent's medical needs, living situation, and care requirements."
+          },
+          {
+            "step": 4,
+            "title": "State certification process",
+            "description": "If PACE determines your parent is eligible, the state will certify that they meet nursing home level of care requirements."
+          },
+          {
+            "step": 5,
+            "title": "Enrollment and care plan",
+            "description": "Once approved and a slot is available, PACE develops a personalized care plan and begins coordinating all services."
+          }
+        ],
+        "processingTime": "Varies by location and availability",
+        "waitlist": "Limited spaces available; waitlists common due to capped enrollment",
+        "tip": "Call multiple PACE centers in your area if available—waitlist times and availability can differ significantly between organizations.",
+        "urls": [
+          {
+            "label": "Medicare PACE Plan Finder",
+            "url": "https://www.medicare.gov/health-drug-plans/health-plans/your-coverage-options/other-medicare-health-plans/PACE"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Birth certificate or other proof of age",
+                "Proof of residence in the PACE service area (utility bill, lease, mortgage statement)"
+              ]
+            },
+            {
+              "name": "Medical Records",
+              "items": [
+                "Recent medical records showing care needs",
+                "Current medication list",
+                "Documentation of functional limitations (difficulty with daily activities)"
+              ]
+            },
+            {
+              "name": "Insurance Information",
+              "items": [
+                "Medicare card and enrollment details",
+                "Medicaid information if applicable",
+                "List of current benefits and programs"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE has limited enrollment slots and waitlists are common. Apply as early as possible and ask about estimated wait times when you call."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Once enrolled in PACE, your parent cannot use other Medicare Advantage plans, HCBS waivers, or hospice services. PACE becomes the sole provider for all Medicare and Medicaid-covered care."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she enrolls in PACE?",
+          "answer": "Yes. PACE is designed to help people stay in their homes and communities. Your parent keeps their home and PACE provides services to support them living there safely."
+        },
+        {
+          "question": "What if Dad's income is too high for Medicaid but he needs PACE?",
+          "answer": "PACE has no income limits for enrollment. If your parent doesn't qualify for Medicaid, they can still enroll and pay the Medicaid portion of PACE costs privately, while Medicare covers its portion."
+        },
+        {
+          "question": "Can Mom still see her current doctors after joining PACE?",
+          "answer": "No. PACE provides all medical care through its own team of doctors, nurses, and specialists. Your parent will need to switch to PACE providers, but the program coordinates all care instead of your parent managing multiple providers."
+        },
+        {
+          "question": "What if we move or PACE isn't working out?",
+          "answer": "Your parent can disenroll from PACE at any time and return to regular Medicare and Medicaid. However, if you move outside the PACE service area, enrollment automatically ends."
+        },
+        {
+          "question": "How do we know if there's a PACE program where Mom lives?",
+          "answer": "PACE is only available in specific service areas, not statewide. Use Medicare's Find a PACE Plan tool online or call 800-MEDICARE to see if there's a PACE organization serving your parent's area."
+        },
+        {
+          "question": "What happens if Dad needs to go to the hospital?",
+          "answer": "PACE coordinates and pays for all hospital care, emergency services, and specialist visits. The PACE team manages everything so you don't need to navigate insurance approvals or coordinate between providers."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.medicare.gov/health-drug-plans/health-plans/your-coverage-options/other-medicare-health-plans/PACE",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "utah-medicare-savings-programs",
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings",
+      "tagline": "Medicare costs reduced or eliminated if your parent's income is under $1,781/month",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Utah Department of Health and Human Services (DHHS) Medicaid office handles all applications statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with Medicare costs, these three programs can eliminate their monthly Part B premium and possibly all Medicare out-of-pocket costs. Because Utah offers QMB, SLMB, and QI programs based on income level, your parent may qualify even if their income is above poverty level — limits go up to $1,781/month for individuals.\n\nQMB provides the most coverage, paying all Medicare premiums, deductibles, and copays. SLMB and QI cover just the Part B premium (around $185/month in 2026). Because these are Medicaid programs administered through Utah's health department, your parent keeps their Medicare coverage while getting help with costs.",
+      "savingsRange": "$185 – $3,000/year in 2026",
+      "savingsSource": "Part B premium savings to full Medicare cost-sharing coverage",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Must have Medicare Part A",
+          "Income below $1,781/month (single)",
+          "Assets under $9,950 (single)",
+          "Utah resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1350,
+            "program": "QMB (100% FPL)"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1585,
+            "program": "SLMB (120% FPL)"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1781,
+            "program": "QI (135% FPL)"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1824,
+            "program": "QMB (100% FPL)"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2135,
+            "program": "SLMB (120% FPL)"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2400,
+            "program": "QI (135% FPL)"
+          }
+        ],
+        "assetLimits": {
+          "individual": 9950,
+          "couple": 14910,
+          "countedAssets": [
+            "Savings accounts",
+            "Stocks and bonds",
+            "Other liquid assets"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Household items",
+            "Wedding and engagement rings",
+            "Burial plots",
+            "Life insurance under $1,500 cash value"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be eligible for Medicare Part A (even if not enrolled)",
+          "For QI program: Cannot be receiving other Medicaid benefits",
+          "Must be Utah resident"
+        ],
+        "povertyLevelReference": "100-135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through Utah's Medicaid office — processing takes up to 45 days for QMB, but SLMB and QI can be retroactive up to 3 months.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check QI availability",
+            "description": "Call Utah Medicaid first if applying for QI — this program has limited funding and may close to new applicants mid-year."
+          },
+          {
+            "step": 2,
+            "title": "Gather documents",
+            "description": "Collect proof of Medicare Part A eligibility, income statements, asset documentation, and Utah residency proof."
+          },
+          {
+            "step": 3,
+            "title": "Contact Utah Medicaid",
+            "description": "Call Utah Department of Health and Human Services Medicaid office to request application forms and submit your application."
+          },
+          {
+            "step": 4,
+            "title": "Follow up",
+            "description": "QMB processing takes up to 45 days. SLMB and QI may provide retroactive coverage up to 3 months before your application date."
+          }
+        ],
+        "processingTime": "Up to 45 days for QMB; SLMB and QI may be retroactive up to 3 months",
+        "waitlist": "QI program only — limited federal funding means it may close to new applicants when annual allocation is exhausted",
+        "tip": "Apply even if your parent's income is close to the limit — the first $20 of monthly income doesn't count toward eligibility.",
+        "urls": [
+          {
+            "label": "Utah Medicaid Medicare Cost-Sharing Programs",
+            "url": "https://medicaid.utah.gov/medicare-cost-sharing-programs/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Program Level (2026)",
+          "rows": [
+            {
+              "householdSize": "Single person",
+              "monthlyLimit": "$1,350",
+              "program": "QMB - Full coverage"
+            },
+            {
+              "householdSize": "Single person",
+              "monthlyLimit": "$1,585",
+              "program": "SLMB - Part B premium only"
+            },
+            {
+              "householdSize": "Single person",
+              "monthlyLimit": "$1,781",
+              "program": "QI - Part B premium only"
+            },
+            {
+              "householdSize": "Married couple",
+              "monthlyLimit": "$1,824",
+              "program": "QMB - Full coverage"
+            },
+            {
+              "householdSize": "Married couple",
+              "monthlyLimit": "$2,135",
+              "program": "SLMB - Part B premium only"
+            },
+            {
+              "householdSize": "Married couple",
+              "monthlyLimit": "$2,400",
+              "program": "QI - Part B premium only"
+            }
+          ],
+          "footnote": "Limits change every April 1st. First $20 of monthly income is excluded from calculation."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Savings accounts and checking accounts",
+            "Stocks, bonds, and other investments",
+            "Cash and liquid assets",
+            "Additional vehicles beyond one"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "One vehicle per household",
+            "Household items and personal belongings",
+            "Wedding and engagement rings",
+            "Burial plots and burial expenses up to $1,500",
+            "Life insurance with cash value under $1,500"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Medicare Proof",
+              "items": [
+                "Medicare card or eligibility letter",
+                "Proof of Medicare Part A coverage"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Recent pay stubs or Social Security statements",
+                "Tax returns",
+                "Bank statements for all accounts",
+                "Investment account statements"
+              ]
+            },
+            {
+              "name": "Residency",
+              "items": [
+                "Utah driver's license or state ID",
+                "Utility bills or lease agreement"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI program has no guaranteed funding. Even if your parent qualifies, they may not receive benefits if Utah's annual federal allocation runs out. Check with Utah Medicaid before applying to confirm QI is still accepting new applicants."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income limits change every April 1st. If your parent's income is slightly over the current limit, they may qualify when limits increase in April."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes. The primary home doesn't count toward the asset limit, regardless of its value. Your parent can own their home and still qualify as long as their other countable assets stay under $9,950 (single) or $14,910 (couple)."
+        },
+        {
+          "question": "What's the difference between QMB, SLMB, and QI?",
+          "answer": "QMB provides the most help — it covers all Medicare premiums, deductibles, and copays. SLMB and QI only cover the Part B premium (around $185/month). The program your parent gets depends on their income level, with QMB for the lowest incomes and QI for the highest."
+        },
+        {
+          "question": "Will this affect my parent's regular Medicare coverage?",
+          "answer": "No. Your parent keeps their Medicare coverage exactly as it is. These programs just help pay Medicare costs — they don't change doctors, benefits, or Medicare cards (except QMB may issue an additional cost-sharing card)."
+        },
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "The first $20 of monthly income doesn't count, so your parent may still qualify. Also, income limits increase every April 1st based on federal poverty levels, so they might qualify with the new limits even if they don't qualify now."
+        },
+        {
+          "question": "How long does it take to get approved?",
+          "answer": "QMB takes up to 45 days to process. SLMB and QI can be retroactive up to 3 months before the application date, which means your parent could get back-payments for premiums they paid during that time if approved."
+        },
+        {
+          "question": "Can my parent apply for QI if they're already on Medicaid?",
+          "answer": "No. QI applicants cannot receive any other Medicaid benefits. If your parent qualifies for both QMB and other Medicaid programs, choose QMB since it provides more comprehensive coverage."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://medicaid.utah.gov/medicare-cost-sharing-programs/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "SNAP (Food Stamps)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "SNAP (Supplemental Nutrition Assistance Program)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
-      "name": "LIHEAP (Low-Income Home Energy Assistance Program) / HEAT Program in Utah",
+      "name": "LIHEAP (HEAT in Utah)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
@@ -30,11 +649,11 @@
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Utah State Health Insurance Assistance Program (SHIP)",
+      "name": "State Health Insurance Assistance Program (SHIP)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Meals on Wheels (Home-Delivered Meals)",
+      "name": "Meals on Wheels (Utah)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
@@ -42,11 +661,19 @@
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Senior Community Service Employment Program (SCSEP)",
+      "name": "Legal Aid for Seniors",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Legal Services for Seniors",
+      "name": "Long-Term Care Ombudsman",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Utah Aging Waiver",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "New Choices Waiver Program",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     }
   ],

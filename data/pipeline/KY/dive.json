@@ -1,7 +1,7 @@
 {
   "state": "KY",
   "stateName": "Kentucky",
-  "diveAt": "2026-04-09T08:52:12.633Z",
+  "diveAt": "2026-04-09T09:33:08.640Z",
   "total": 3,
   "parsed": 2,
   "programs": [
@@ -9,113 +9,109 @@
       "name": "Senior CommUnity Care of Kentucky (PACE)",
       "eligibility": {
         "age": 55,
-        "income_limits": "No specific income limits for PACE enrollment; eligibility not based on financial criteria. Medicaid eligibility (which covers part of premium) depends on separate KY Medicaid income/asset limits, which PACE staff can assess[1][3][5][6].",
-        "asset_limits": "No asset limits for PACE enrollment itself. Medicaid portion requires meeting KY Medicaid asset rules (e.g., typically $2,000 for individual), assessed by PACE staff[6][7].",
+        "income_limits": "No specific income limits or dollar amounts listed; dually eligible (Medicare and Medicaid) receive 100% coverage, while Medicare-only participants pay a fee and private pay options exist with different structures[1][2][3][5]",
+        "asset_limits": "No asset limits or exemptions specified in available data[1][2][3][5]",
         "other_requirements": [
-          "Live in the Senior CommUnity Care of Kentucky service area",
-          "Certified by Kentucky as meeting nursing home level of care (per 907 KAR 1:022 or 907 KAR 3:250)",
-          "Able to live safely in the community at time of enrollment with PACE services",
-          "Have Medicare, Medicaid, or ability to privately pay monthly premium"
+          "Certified by the state to need nursing home level of care (per 907 KAR 1:022)[2][3][5]",
+          "Able to live safely in the community at time of enrollment with PACE services[1][2][3]",
+          "Reside in a PACE service area (Jefferson County for Louisville site; Boone, Kenton, and Campbell Counties for Northern KY site)[1][2][5]"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "All-inclusive: primary/specialty medical care, prescription medications, adult day services, home care, mental health/social services, skilled therapies, nursing home care, hospital care; coordinated by interdisciplinary team; covers all preventive, primary, acute, long-term needs[1][6][7].",
-        "varies_by": "not_applicable"
+        "value": "Primary and specialty medical care, prescription medications, adult day services, home care services, mental health and social services, skilled therapies (physical, occupational), nursing home care, hospital care, transportation to/from PACE center and medical visits, meals, nutritional assessments, socialization at PACE centers; coordinated by interdisciplinary team; becomes sole source of Medicare/Medicaid services upon enrollment[1][2][3][5][6]",
+        "varies_by": "region"
       },
       "application": {
         "methods": [
-          "Phone: (502) 314-2059 (Enrollment Team)[6]",
-          "In-person: Visit PACE Center (locations in Services section of seniorcommunitycareky.org)[1][6]",
-          "Contact for intake, clinical assessment at center, custom care plan development, enrollment paperwork completed by team[1]"
+          "Phone: Louisville (502) 676-7515 or (502) 676-7550; Northern KY (859) 970-2450; TTY 711 or 800-648-6056/6057[1][2][4][5]",
+          "Email: kyenrollment@voa.org (Louisville); nk***********@*oa.org (Northern KY)[1][2][4]",
+          "In-person: Louisville PACE Center at 960 S 4th St, Louisville KY 40203; Northern KY at 47 Cavalier Blvd., Suite 140, Florence, KY 41042[1][2][4]",
+          "Visit PACE center to inquire about eligibility[2]"
         ],
-        "processing_time": "Not specified; involves intake, clinical assessment, care plan review, paperwork[1].",
+        "processing_time": "Not specified in sources",
         "waitlist": null,
         "forms": [
-          "Enrollment paperwork completed by PACE team after assessment; no specific form name/number listed[1]"
+          "No specific form names/numbers identified; verify Medicaid eligibility via (800) 807-1301 or KYHealth-Net[5]"
         ],
         "documents": [
-          "Name",
-          "Date of birth",
-          "Social Security card",
-          "Diagnosis and health information (helpful to have ready)[8]"
+          "Medicaid eligibility verification; documentation for nursing home level of care certification[5]"
         ]
       },
       "geography": {
         "statewide": false,
-        "restrictions": "Limited to Senior CommUnity Care of Kentucky service area (specific counties not listed in sources; check with provider). Other PACE providers serve different KY areas, e.g., Bullitt/Grayson/Hardin/Hart/LaRue/Nelson[2]; Northern KY separate[7].",
-        "regional_variations": "Multiple PACE providers in KY with different service areas, phone numbers, centers (e.g., Senior CommUnity Care of KY vs. Northern KY)[1][2][6][7].",
+        "restrictions": "Limited to Jefferson County (Louisville) and Boone, Kenton, Campbell Counties (Northern KY)[1][2][5]",
+        "regional_variations": "Separate providers/centers: Senior CommUnity Care of Kentucky (Jefferson/Louisville) vs. Senior CommUnity Care of Northern Kentucky (Boone/Kenton/Campbell); different phone numbers, addresses, and emails[1][2][4][5]",
         "offices_or_providers": [
-          "Senior CommUnity Care of Kentucky PACE (central KY): seniorcommunitycareky.org, (502) 314-2059[1][6]",
-          "Senior CommUnity Care of Northern Kentucky: (859) 970-2450[7]"
+          "Louisville: 960 S 4th St, Louisville KY 40203; (502) 676-7515",
+          "Northern KY: 47 Cavalier Blvd., Suite 140, Florence, KY 41042; (859) 970-2450"
         ]
       },
-      "official_source": "https://chfs.ky.gov/agencies/dail/Pages/pace.aspx[4]",
+      "official_source": "https://chfs.ky.gov/agencies/dail/Pages/pace.aspx",
       "gotchas": [
-        "Must live in specific PACE provider's service area; not statewide—confirm counties with provider[1][2][6]",
-        "Nursing home level of care certification required by KY (not automatic; assessed)[1][3][4]",
-        "Private pay option if no Medicaid (covers Medicaid's premium share; costs vary)[3][6]",
-        "Cannot be in Medicare Advantage, hospice, or certain other programs[5]",
-        "Voluntary; can dis-enroll anytime via social worker[1]"
+        "Not statewide—only specific counties; confirm residence[1][2][5]",
+        "Medicare-only or private pay participants face fees/restrictions, not 100% covered like dually eligible[3]",
+        "All non-emergency care must go through PACE providers to be covered[3]",
+        "Enrollment makes PACE the sole source of services—no duplication with other programs[5]",
+        "Must be able to live safely in community at enrollment time, despite nursing home level needs[1][2][3]"
       ],
-      "data_shape_notes": "County-restricted to provider service areas (not statewide); no direct income/asset test for enrollment (Medicaid separate); requires state nursing home certification; multiple regional PACE providers in KY with own contacts",
-      "_raw": "{\n  \"name\": \"Senior CommUnity Care of Kentucky (PACE)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No specific income limits for PACE enrollment; eligibility not based on financial criteria. Medicaid eligibility (which covers part of premium) depends on separate KY Medicaid income/asset limits, which PACE staff can assess[1][3][5][6].\",\n    \"asset_limits\": \"No asset limits for PACE enrollment itself. Medicaid portion requires meeting KY Medicaid asset rules (e.g., typically $2,000 for individual), assessed by PACE staff[6][7].\",\n    \"other_requirements\": [\n      \"Live in the Senior CommUnity Care of Kentucky service area\",\n      \"Certified by Kentucky as meeting nursing home level of care (per 907 KAR 1:022 or 907 KAR 3:250)\",\n      \"Able to live safely in the community at time of enrollment with PACE services\",\n      \"Have Medicare, Medicaid, or ability to privately pay monthly premium\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"All-inclusive: primary/specialty medical care, prescription medications, adult day services, home care, mental health/social services, skilled therapies, nursing home care, hospital care; coordinated by interdisciplinary team; covers all preventive, primary, acute, long-term needs[1][6][7].\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: (502) 314-2059 (Enrollment Team)[6]\",\n      \"In-person: Visit PACE Center (locations in Services section of seniorcommunitycareky.org)[1][6]\",\n      \"Contact for intake, clinical assessment at center, custom care plan development, enrollment paperwork completed by team[1]\"\n    ],\n    \"processing_time\": \"Not specified; involves intake, clinical assessment, care plan review, paperwork[1].\",\n    \"waitlist\": null,\n    \"forms\": [\"Enrollment paperwork completed by PACE team after assessment; no specific form name/number listed[1]\"],\n    \"documents\": [\n      \"Name\",\n      \"Date of birth\",\n      \"Social Security card\",\n      \"Diagnosis and health information (helpful to have ready)[8]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to Senior CommUnity Care of Kentucky service area (specific counties not listed in sources; check with provider). Other PACE providers serve different KY areas, e.g., Bullitt/Grayson/Hardin/Hart/LaRue/Nelson[2]; Northern KY separate[7].\",\n    \"regional_variations\": \"Multiple PACE providers in KY with different service areas, phone numbers, centers (e.g., Senior CommUnity Care of KY vs. Northern KY)[1][2][6][7].\",\n    \"offices_or_providers\": [\n      \"Senior CommUnity Care of Kentucky PACE (central KY): seniorcommunitycareky.org, (502) 314-2059[1][6]\",\n      \"Senior CommUnity Care of Northern Kentucky: (859) 970-2450[7]\"\n    ]\n  },\n  \"official_source\": \"https://chfs.ky.gov/agencies/dail/Pages/pace.aspx[4]\",\n  \"gotchas\": [\n    \"Must live in specific PACE provider's service area; not statewide—confirm counties with provider[1][2][6]\",\n    \"Nursing home level of care certification required by KY (not automatic; assessed)[1][3][4]\",\n    \"Private pay option if no Medicaid (covers Medicaid's premium share; costs vary)[3][6]\",\n    \"Cannot be in Medicare Advantage, hospice, or certain other programs[5]\",\n    \"Voluntary; can dis-enroll anytime via social worker[1]\"\n  ],\n  \"data_shape_notes\": \"County-restricted to provider service areas (not statewide); no direct income/asset test for enrollment (Medicaid separate); requires state nursing home certification; multiple regional PACE providers in KY with own contacts\"\n}"
-    },
-    {
-      "name": "Senior CommUnity Care of Northern Kentucky (PACE)",
-      "eligibility": {
-        "age": 55,
-        "income_limits": "No specific dollar amounts or household size table provided; eligibility tied to Medicaid income limits. If eligible for Medicaid, services are free; if over limits, pay premium or Patient Monthly Liability. PACE staff assist with Medicaid determination.[1][3]",
-        "asset_limits": "Tied to Medicaid asset limits (specific amounts not detailed); PACE staff help determine eligibility.[3][4]",
-        "other_requirements": [
-          "Live in the Senior CommUnity Care of Northern Kentucky service area (Northern Kentucky region)",
-          "Meet nursing home level of care (as defined in 907 KAR 1:022)",
-          "Be able to live safely in the community with program services[1][2][3]"
-        ]
-      },
-      "benefits": {
-        "type": "service",
-        "value": "Primary and specialty medical care, prescription medications, adult day services, home care services, mental health and social services, skilled therapies, nursing home care, hospital care, rehabilitation, transportation, day center, social activities, meal assistance—all coordinated by interdisciplinary team with custom care plan. No specific dollar amounts or hours stated.[3][4][7]",
-        "varies_by": "not_applicable"
-      },
-      "application": {
-        "methods": [
-          "Phone: (859) 970-2450 (PACE Enrollment Team)[1][3][7]",
-          "In-person: Visit PACE Center at 47 Cavalier Blvd, Ste 140, Florence, KY 41042[3][8]",
-          "Email: nkyenrollment@voa.org[8]"
-        ],
-        "processing_time": "Not specified; process includes intake, clinical assessment at center, custom care plan development, enrollment paperwork[1]",
-        "waitlist": null,
-        "forms": [
-          "Enrollment paperwork completed by team after assessment (no specific form name/number listed)"
-        ],
-        "documents": [
-          "Not explicitly listed; prepare for intake assessment and clinical evaluation with doctor, nurses, interdisciplinary team[1]"
-        ]
-      },
-      "geography": {
-        "statewide": false,
-        "restrictions": "Northern Kentucky service area only (specific counties not detailed; check PACE coverage map via state resources)[1][2][6]",
-        "regional_variations": "Multiple PACE providers in Kentucky with different service areas, enrollment contacts, and centers (e.g., Northern KY vs. other regions); wait times may vary but not specified[2][4][6]",
-        "offices_or_providers": [
-          "47 Cavalier Blvd, Ste 140, Florence, KY 41042[8]"
-        ]
-      },
-      "official_source": "https://www.seniorcommunitycarenky.org[1][3]",
-      "gotchas": [
-        "Must follow custom care plan; liable for unauthorized/out-of-program services (except emergencies)[1]",
-        "Enrollment voluntary; can dis-enroll anytime via social worker[1]",
-        "Paid by Medicare/Medicaid or private premium if over Medicaid limits—staff handles claims but confirm personal liability[1][3]",
-        "Service area restricted to Northern Kentucky; not statewide[1][6]",
-        "Requires nursing home level of care certification but ability to live safely in community with services[2][3]"
-      ],
-      "data_shape_notes": "Restricted to Northern Kentucky service area with one main center; no fixed income/asset dollar tables (tied to Medicaid); comprehensive in-kind services via interdisciplinary team, no tiers or hours specified",
-      "_raw": "{\n  \"name\": \"Senior CommUnity Care of Northern Kentucky (PACE)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No specific dollar amounts or household size table provided; eligibility tied to Medicaid income limits. If eligible for Medicaid, services are free; if over limits, pay premium or Patient Monthly Liability. PACE staff assist with Medicaid determination.[1][3]\",\n    \"asset_limits\": \"Tied to Medicaid asset limits (specific amounts not detailed); PACE staff help determine eligibility.[3][4]\",\n    \"other_requirements\": [\n      \"Live in the Senior CommUnity Care of Northern Kentucky service area (Northern Kentucky region)\",\n      \"Meet nursing home level of care (as defined in 907 KAR 1:022)\",\n      \"Be able to live safely in the community with program services[1][2][3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Primary and specialty medical care, prescription medications, adult day services, home care services, mental health and social services, skilled therapies, nursing home care, hospital care, rehabilitation, transportation, day center, social activities, meal assistance—all coordinated by interdisciplinary team with custom care plan. No specific dollar amounts or hours stated.[3][4][7]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: (859) 970-2450 (PACE Enrollment Team)[1][3][7]\",\n      \"In-person: Visit PACE Center at 47 Cavalier Blvd, Ste 140, Florence, KY 41042[3][8]\",\n      \"Email: nkyenrollment@voa.org[8]\"\n    ],\n    \"processing_time\": \"Not specified; process includes intake, clinical assessment at center, custom care plan development, enrollment paperwork[1]\",\n    \"waitlist\": null,\n    \"forms\": [\"Enrollment paperwork completed by team after assessment (no specific form name/number listed)\"],\n    \"documents\": [\"Not explicitly listed; prepare for intake assessment and clinical evaluation with doctor, nurses, interdisciplinary team[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Northern Kentucky service area only (specific counties not detailed; check PACE coverage map via state resources)[1][2][6]\",\n    \"regional_variations\": \"Multiple PACE providers in Kentucky with different service areas, enrollment contacts, and centers (e.g., Northern KY vs. other regions); wait times may vary but not specified[2][4][6]\",\n    \"offices_or_providers\": [\n      \"47 Cavalier Blvd, Ste 140, Florence, KY 41042[8]\"\n    ]\n  },\n  \"official_source\": \"https://www.seniorcommunitycarenky.org[1][3]\",\n  \"gotchas\": [\n    \"Must follow custom care plan; liable for unauthorized/out-of-program services (except emergencies)[1]\",\n    \"Enrollment voluntary; can dis-enroll anytime via social worker[1]\",\n    \"Paid by Medicare/Medicaid or private premium if over Medicaid limits—staff handles claims but confirm personal liability[1][3]\",\n    \"Service area restricted to Northern Kentucky; not statewide[1][6]\",\n    \"Requires nursing home level of care certification but ability to live safely in community with services[2][3]\"\n  ],\n  \"data_shape_notes\": \"Restricted to Northern Kentucky service area with one main center; no fixed income/asset dollar tables (tied to Medicaid); comprehensive in-kind services via interdisciplinary team, no tiers or hours specified\"\n}"
+      "data_shape_notes": "County-restricted to Jefferson and Northern KY counties only; two regional providers with separate contacts; no income/asset dollar limits specified; fees for non-dually eligible; nursing home level of care certification required",
+      "_raw": "{\n  \"name\": \"Senior CommUnity Care of Kentucky (PACE)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No specific income limits or dollar amounts listed; dually eligible (Medicare and Medicaid) receive 100% coverage, while Medicare-only participants pay a fee and private pay options exist with different structures[1][2][3][5]\",\n    \"asset_limits\": \"No asset limits or exemptions specified in available data[1][2][3][5]\",\n    \"other_requirements\": [\n      \"Certified by the state to need nursing home level of care (per 907 KAR 1:022)[2][3][5]\",\n      \"Able to live safely in the community at time of enrollment with PACE services[1][2][3]\",\n      \"Reside in a PACE service area (Jefferson County for Louisville site; Boone, Kenton, and Campbell Counties for Northern KY site)[1][2][5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Primary and specialty medical care, prescription medications, adult day services, home care services, mental health and social services, skilled therapies (physical, occupational), nursing home care, hospital care, transportation to/from PACE center and medical visits, meals, nutritional assessments, socialization at PACE centers; coordinated by interdisciplinary team; becomes sole source of Medicare/Medicaid services upon enrollment[1][2][3][5][6]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Louisville (502) 676-7515 or (502) 676-7550; Northern KY (859) 970-2450; TTY 711 or 800-648-6056/6057[1][2][4][5]\",\n      \"Email: kyenrollment@voa.org (Louisville); nk***********@*oa.org (Northern KY)[1][2][4]\",\n      \"In-person: Louisville PACE Center at 960 S 4th St, Louisville KY 40203; Northern KY at 47 Cavalier Blvd., Suite 140, Florence, KY 41042[1][2][4]\",\n      \"Visit PACE center to inquire about eligibility[2]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific form names/numbers identified; verify Medicaid eligibility via (800) 807-1301 or KYHealth-Net[5]\"],\n    \"documents\": [\"Medicaid eligibility verification; documentation for nursing home level of care certification[5]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to Jefferson County (Louisville) and Boone, Kenton, Campbell Counties (Northern KY)[1][2][5]\",\n    \"regional_variations\": \"Separate providers/centers: Senior CommUnity Care of Kentucky (Jefferson/Louisville) vs. Senior CommUnity Care of Northern Kentucky (Boone/Kenton/Campbell); different phone numbers, addresses, and emails[1][2][4][5]\",\n    \"offices_or_providers\": [\n      \"Louisville: 960 S 4th St, Louisville KY 40203; (502) 676-7515\",\n      \"Northern KY: 47 Cavalier Blvd., Suite 140, Florence, KY 41042; (859) 970-2450\"\n    ]\n  },\n  \"official_source\": \"https://chfs.ky.gov/agencies/dail/Pages/pace.aspx\",\n  \"gotchas\": [\n    \"Not statewide—only specific counties; confirm residence[1][2][5]\",\n    \"Medicare-only or private pay participants face fees/restrictions, not 100% covered like dually eligible[3]\",\n    \"All non-emergency care must go through PACE providers to be covered[3]\",\n    \"Enrollment makes PACE the sole source of services—no duplication with other programs[5]\",\n    \"Must be able to live safely in community at enrollment time, despite nursing home level needs[1][2][3]\"\n  ],\n  \"data_shape_notes\": \"County-restricted to Jefferson and Northern KY counties only; two regional providers with separate contacts; no income/asset dollar limits specified; fees for non-dually eligible; nursing home level of care certification required\"\n}"
     },
     {
       "name": "Senior Companion Program (Community Action of Southern Kentucky)",
       "_parseError": true,
-      "_raw": "I cannot provide the comprehensive JSON guide you've requested because the search results do not contain sufficient specific information about the Community Action of Southern Kentucky's Senior Companion Program.\n\nHere's what the search results reveal and what's missing:\n\n## What I Can Confirm\n\n**Eligibility (Partial):**\n- Age: 55 or older[1][3]\n- Income limit: 200% of federal poverty level[2]\n- Must pass background check, driver's history check, fingerprinting, and NSOR check[2]\n- Must pass a road test evaluation[2]\n\n**Services (Partial):**\n- One-on-one companionship, typically 1-2 times per week[2]\n- Light housework, errands, transportation, escort to medical appointments[3][5]\n- Volunteers receive a $4.00 hourly stipend[2]\n- Minimum 5 hours per week service requirement (up to 40 hours)[2]\n\n**Application Contact:**\n- Phone: 270-692-2135[3]\n- Email: mary.blake@ckcac.org[3]\n\n**Processing Time:**\n- Background check process: 6-8 weeks[2]\n- Training requirement: 20+ hours of onboarding[2]\n\n## Critical Gaps\n\nThe search results do **not** contain:\n- Specific dollar amounts for income limits by household size\n- Asset limits or exemptions\n- Exact application procedures or forms\n- Official website URL for Community Action of Southern Kentucky\n- Waitlist information or current wait times\n- Regional variations within Kentucky\n- How this program differs from other Senior Companion programs\n- Whether the program currently has openings or is accepting applications\n\n**Recommendation:** Contact the program directly at 270-692-2135 or mary.blake@ckcac.org[3] to obtain the detailed, program-specific information needed for your comprehensive guide. They can provide income tables, current processing times, and application procedures specific to their service area."
+      "_raw": "I cannot provide the comprehensive JSON guide you've requested because the search results contain insufficient information about the specific program \"Senior Companion Program (Community Action of Southern Kentucky).\"\n\nHere's what the search results reveal and what's missing:\n\n## What I Can Confirm\n\n**For Volunteers (not clients):**\n- Age requirement: 55 or older[1]\n- Income limit: 200% of federal poverty level[1]\n- Minimum commitment: 5 hours per week (up to 40)[1]\n- Stipend: $4.00/hour[1]\n- Requirements: Pass road test, background check, drivers history check, fingerprinting, NSOR check (6-8 weeks), 4-6 hours online driver education, 20+ hours onboarding training[1]\n\n**For Seniors Receiving Services:**\n- Services include: companionship, light housework, errands, transportation, light meal preparation, respite care[2][4]\n- Contact: Central Kentucky Community Action at (270) 734-3604 or (270) 402-7194[4]\n- Address: 332 Hood Avenue, Lebanon, KY 40033[4]\n\n## Critical Gaps\n\nThe search results do **not** provide:\n- Specific income dollar amounts (only \"200% of federal poverty level\" without the actual figures)\n- Asset limits or exemptions\n- Eligibility requirements for seniors *receiving* services (age, income, asset limits)\n- Online application URLs or specific form names\n- Processing timelines for client applications\n- Waitlist information\n- Regional variations across Southern Kentucky\n- Whether this is county-restricted or statewide\n- Documents needed for application\n\n**Recommendation:** Contact Central Kentucky Community Action directly at the phone numbers provided[4] to obtain the detailed, program-specific information needed for your guide. They can provide current income thresholds, application procedures, and regional details that aren't captured in these search results."
+    },
+    {
+      "name": "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Household income at or below 150% of the federal poverty level (exact dollar amounts vary annually by federal guidelines and household size; not specified in sources for current year). Applies to financial assistance only; other services may have broader access.[1][4][6][7][9]",
+        "asset_limits": "No asset limits mentioned.",
+        "other_requirements": [
+          "Kentucky resident.",
+          "Primary caregiver for a grandchild related by blood, marriage, or adoption.",
+          "Grandchild is 18 years of age or younger.",
+          "Grandchild lives in the caregiver's home, and neither parent resides in the household.",
+          "Not receiving monthly Kinship Care payments.[1][4][6][9]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Wide range of services including matching with support groups, information about resources, assistance accessing services, counseling, and training. Eligible participants may receive a grant or voucher per grandchild per fiscal year for clothing, respite, school supplies, educational needs, required legal services, medical/dental services, and other approved expenses (specific dollar amounts not stated).[6][9]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Contact local Area Agency on Aging and Independent Living (AAA). Examples: Pennyrile Area Development District (peadd.org/kentucky-family-caregiver[1]), KIPDA (kipda.org[2]).",
+          "Visit official page: prd.webapps.chfs.ky.gov/kyfaces/Kinship/KFCP[6].",
+          "Contact Cabinet for Health and Family Services, Department for Aging and Independent Living (chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx[9]). No specific phone, form name, or mail/in-person details in sources."
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": null,
+        "forms": [],
+        "documents": [
+          "Proof of relationship, residency, household income, grandchild's age, confirmation parents do not live in home, and no Kinship Care (inferred; not explicitly listed)."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None statewide; administered locally.",
+        "regional_variations": "Administered through local Area Agencies on Aging and Independent Living (e.g., Pennyrile[1], KIPDA region: Jefferson, Oldham, Henry, Trimble, Spencer, Shelby, Hardin[2]). Variations in local providers and potentially services/wait times.",
+        "offices_or_providers": [
+          "Local Area Agencies on Aging and Independent Living (contact via chfs.ky.gov[9])"
+        ]
+      },
+      "official_source": "https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx",
+      "gotchas": [
+        "Cannot receive benefits if already getting Kinship Care payments ('double dip' rule); evaluate which program is better.[1][4][6]",
+        "Parents cannot reside in the household, even if not primary caregivers.[1][6][9]",
+        "Income limit (150% FPL) applies strictly to financial assistance; services like support groups may be more accessible.[1][4][6]",
+        "Adopted grandparents may still qualify under certain conditions.[7]"
+      ],
+      "data_shape_notes": "Administered statewide via local Area Agencies on Aging; financial aid requires 150% FPL income test and no Kinship Care overlap; benefits include non-cash services plus discretionary grants/vouchers per fiscal year.",
+      "_raw": "{\n  \"name\": \"Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Household income at or below 150% of the federal poverty level (exact dollar amounts vary annually by federal guidelines and household size; not specified in sources for current year). Applies to financial assistance only; other services may have broader access.[1][4][6][7][9]\",\n    \"asset_limits\": \"No asset limits mentioned.\",\n    \"other_requirements\": [\n      \"Kentucky resident.\",\n      \"Primary caregiver for a grandchild related by blood, marriage, or adoption.\",\n      \"Grandchild is 18 years of age or younger.\",\n      \"Grandchild lives in the caregiver's home, and neither parent resides in the household.\",\n      \"Not receiving monthly Kinship Care payments.[1][4][6][9]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Wide range of services including matching with support groups, information about resources, assistance accessing services, counseling, and training. Eligible participants may receive a grant or voucher per grandchild per fiscal year for clothing, respite, school supplies, educational needs, required legal services, medical/dental services, and other approved expenses (specific dollar amounts not stated).[6][9]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Area Agency on Aging and Independent Living (AAA). Examples: Pennyrile Area Development District (peadd.org/kentucky-family-caregiver[1]), KIPDA (kipda.org[2]).\",\n      \"Visit official page: prd.webapps.chfs.ky.gov/kyfaces/Kinship/KFCP[6].\",\n      \"Contact Cabinet for Health and Family Services, Department for Aging and Independent Living (chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx[9]). No specific phone, form name, or mail/in-person details in sources.\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": [\"Proof of relationship, residency, household income, grandchild's age, confirmation parents do not live in home, and no Kinship Care (inferred; not explicitly listed).\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None statewide; administered locally.\",\n    \"regional_variations\": \"Administered through local Area Agencies on Aging and Independent Living (e.g., Pennyrile[1], KIPDA region: Jefferson, Oldham, Henry, Trimble, Spencer, Shelby, Hardin[2]). Variations in local providers and potentially services/wait times.\",\n    \"offices_or_providers\": [\"Local Area Agencies on Aging and Independent Living (contact via chfs.ky.gov[9])\"]\n  },\n  \"official_source\": \"https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx\",\n  \"gotchas\": [\n    \"Cannot receive benefits if already getting Kinship Care payments ('double dip' rule); evaluate which program is better.[1][4][6]\",\n    \"Parents cannot reside in the household, even if not primary caregivers.[1][6][9]\",\n    \"Income limit (150% FPL) applies strictly to financial assistance; services like support groups may be more accessible.[1][4][6]\",\n    \"Adopted grandparents may still qualify under certain conditions.[7]\"\n  ],\n  \"data_shape_notes\": \"Administered statewide via local Area Agencies on Aging; financial aid requires 150% FPL income test and no Kinship Care overlap; benefits include non-cash services plus discretionary grants/vouchers per fiscal year.\"\n}"
     }
   ]
 }

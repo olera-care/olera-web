@@ -1,41 +1,116 @@
 {
   "state": "AL",
   "stateName": "Alabama",
-  "classifiedAt": "2026-04-09T08:46:33.098Z",
-  "total": 2,
+  "classifiedAt": "2026-04-09T09:27:30.121Z",
+  "total": 14,
   "typeSummary": {
-    "resource": 1,
-    "benefit": 1
+    "benefit": 10,
+    "navigator": 1,
+    "employment": 1,
+    "resource": 2
   },
   "scopeSummary": {
-    "state": 2
+    "state": 6,
+    "local": 1,
+    "federal": 7
   },
   "complexitySummary": {
-    "simple": 1,
-    "medium": 1
+    "deep": 8,
+    "medium": 3,
+    "simple": 3
   },
   "programs": [
     {
-      "name": "Alabama Cares",
-      "programType": "resource",
+      "name": "Alabama Medicaid Elderly and Disabled Waiver",
+      "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local Area Agencies on Aging (AAAs) and Aging & Disability Resource Centers (ADRCs) statewide.",
+            "name": "Local AAAs (e.g., Area Agency on Aging of East Alabama, Aging South Alabama, Regional Planning Commission of Greater Birmingham)",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "simple",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "county-directory"
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Alabama PACE (Program of All-Inclusive Care for the Elderly)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Mercy LIFE of Alabama (Mobile/Baldwin counties)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Alabama Medicare Savings Programs (QMB, SLMB, QI)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Medicaid District Offices statewide (e.g., Birmingham, Mobile, etc., listed on medicaid.alabama.gov)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
@@ -51,7 +126,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local county Department of Human Resources (DHR) Food Assistance offices statewide",
+            "name": "Local Alabama DHR County Food Assistance Offices",
             "type": "service-area"
           }
         ]
@@ -66,6 +141,372 @@
       "signals": {
         "benefitType": "financial",
         "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Alabama LIHEAP (Low-Income Home Energy Assistance Program)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Alabama Weatherization Assistance Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Region 1: Community Action Agency of Northwest Alabama, (256) 383-3832, j.hendricks@caanw.org.",
+            "type": "service-area"
+          },
+          {
+            "name": "Region 2: Community Action Partnership of Huntsville/Madison/Limestone, (256) 851-9800, yray@caa-htsval.org.",
+            "type": "service-area"
+          },
+          {
+            "name": "Central AL: CARPDC, (334) 262-4300 ext. 217, 430 South Court St., Montgomery, AL 36104.",
+            "type": "service-area"
+          },
+          {
+            "name": "NE AL (Blount, Cherokee, etc.): (256) 999-1166.",
+            "type": "service-area"
+          },
+          {
+            "name": "South AL: Community Action Agency of South Alabama.",
+            "type": "service-area"
+          },
+          {
+            "name": "West AL (Bibb, Tuscaloosa, etc.): Community Service Programs of West Alabama, (205) 469-0397.",
+            "type": "service-area"
+          },
+          {
+            "name": "North AL (Walker): Community Action Partnership of North Alabama, (256) 355-7843.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Alabama SHIP (State Health Insurance Assistance Program)",
+      "programType": "navigator",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Administered by Alabama Department of Senior Services and Area Agencies on Aging[4][6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Specific regional offices include East Alabama Aging, Central Alabama Aging Consortium, and United Way Area Agency on Aging, but a complete list is not provided in search results",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "provider-list"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Alabama Meals on Wheels (Elderly Nutrition Program)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Area Agency on Aging offices by county[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Example: United Way Area Agency on Aging (Jefferson County)[8]",
+            "type": "service-area"
+          },
+          {
+            "name": "West Alabama Aging Agency[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Alabama Lifespan Respite Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "UCP Huntsville (administers program)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Contact: al.respite@ucphuntsville.org or 256-859-8300[3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial reimbursement",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Alabama Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "West Alabama Regional Commission (Bibb, Fayette, Greene, Hale, Lamar, Pickens, Tuscaloosa)",
+            "type": "service-area"
+          },
+          {
+            "name": "TARCOG (DeKalb, Jackson, Limestone, Madison, Marshall)",
+            "type": "service-area"
+          },
+          {
+            "name": "SEARP&DC (specific counties per handbook)",
+            "type": "service-area"
+          },
+          {
+            "name": "Easter Seals Central Alabama",
+            "type": "service-area"
+          },
+          {
+            "name": "CWI Works (oversees network including Alabama)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Alabama Legal Services Corporation (Legal Aid for Seniors)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Legal Services Alabama offices statewide; local Area Agencies on Aging (AAA) and Aging & Disability Resource Centers (ADRC)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Alabama Long-Term Care Ombudsman Program",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "State Office: Alabama Department of Senior Services, Virginia Moore-Bell, Director (334-242-5753)",
+            "type": "service-area"
+          },
+          {
+            "name": "Regional: Area Agencies on Aging (e.g., East Alabama Aging, Aging South Alabama)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Alabama Cares",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging (AAAs) and Aging & Disability Resource Centers (ADRCs) statewide; contact via 1-800-243-5463.[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Alabama Senior Farmers Market Nutrition Program (SFMNP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Alabama Department of Agriculture and Industries' Farmers Market Authority Section (administers program)[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "13 Area Agencies on Aging (AAA) distribute coupons and provide assistance[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Area Agency on Aging of West Alabama: 1-800-AGELINE[1]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,

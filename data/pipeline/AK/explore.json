@@ -4,123 +4,115 @@
   "state": "AK",
   "stateName": "Alaska",
   "isRegion": false,
-  "exploredAt": "2026-04-09T08:46:23.992Z",
-  "programCount": 16,
+  "exploredAt": "2026-04-09T09:26:45.699Z",
+  "programCount": 15,
   "programs": [
     {
       "name": "DenaliCare",
-      "what_it_does": "DenaliCare is Alaska's Medicaid program that provides health coverage for seniors and individuals with disabilities. It covers limited expenses in senior living facilities and other medical needs.[4]",
-      "who_its_for": "Seniors aged 65+ and disabled individuals with low income meeting Medicaid eligibility, including U.S. citizens or qualified aliens residing in Alaska.[4]",
-      "official_url": "https://health.alaska.gov/",
-      "benefit_value": "Varies by eligibility; covers premiums, deductibles, coinsurance for qualifying services.[4]"
+      "what_it_does": "DenaliCare is Alaska's Medicaid program providing health coverage for low-income seniors and disabled individuals, including some coverage for limited expenses in senior living facilities. It helps pay for medical services to support long-term care needs.[3]",
+      "who_its_for": "Low-income seniors aged 65+ and disabled adults who meet Alaska's Medicaid income and asset limits, U.S. citizens or qualified aliens residing in Alaska.[3]",
+      "official_url": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/medicaid/",
+      "benefit_value": "Varies by services covered; includes doctor visits, hospital care, prescriptions, and limited long-term care support. Apply online or at Public Assistance Offices for full details.[3]"
     },
     {
       "name": "Adults with Physical & Developmental Disabilities Waiver (APDD)",
-      "what_it_does": "The APDD waiver provides home and community-based services to help eligible adults avoid nursing home placement. Services include home modifications and personal care assistance.[4]",
-      "who_its_for": "Adults over 21 with physical or developmental disabilities requiring nursing home level of care, including eligible seniors.[4]",
-      "official_url": "https://health.alaska.gov/",
-      "benefit_value": "Varies; covers home modifications, care services tailored to needs.[4]"
+      "what_it_does": "The APDD waiver provides home and community-based services to help eligible adults avoid nursing home placement. Services include home modifications and personal care assistance.[3]",
+      "who_its_for": "Adults over 21 with physical or developmental disabilities requiring nursing home level of care, including eligible seniors.[3]",
+      "official_url": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/medicaid/waivers/",
+      "benefit_value": "Personal care, home modifications, respite care, and other supports tailored to individual needs; value varies by assessment.[3]"
     },
     {
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
-      "what_it_does": "PACE offers comprehensive medical and social services to help frail seniors stay in the community. It coordinates all Medicare and Medicaid covered care plus additional services.",
-      "who_its_for": "Seniors aged 55+ who are nursing home eligible, certified by the state, and live in a PACE service area.",
-      "official_url": "https://www.medicare.gov/health-drug-plans/health-plans/your-coverage-options/PACE",
-      "benefit_value": "Full coverage of approved services including adult day health, transportation, home care; no additional premiums for most."
+      "what_it_does": "PACE provides comprehensive medical and social services to frail seniors in community settings, including adult day health care and home care. It coordinates all Medicare and Medicaid-covered services plus additional support.",
+      "who_its_for": "Seniors aged 55+ who are nursing home eligible, live in a PACE service area, and can safely be managed in the community.",
+      "official_url": "https://www.medicare.gov/health-drug-plans/health-plans-your-area/pace",
+      "benefit_value": "Full capitation coverage for all needed services; no additional premiums for full Medicaid dual eligibles."
     },
     {
-      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
-      "what_it_does": "These programs help pay Medicare Part A/B premiums, deductibles, coinsurance, and copays. Alaska has higher income limits than the contiguous 48 states.[4]",
-      "who_its_for": "Low-income Medicare beneficiaries aged 65+; income limits higher in Alaska (e.g., tied to federal poverty levels).[4]",
-      "official_url": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/",
-      "benefit_value": "Full/partial coverage of premiums (e.g., QMB covers Part A/B premiums, deductibles); varies by program.[4]"
+      "name": "Medicare Savings Programs (QMB, SLMB, QI, QDWI)",
+      "what_it_does": "These programs help pay Medicare Part A/B premiums, deductibles, coinsurance, and copays for eligible low-income seniors. Alaska has higher income limits than the contiguous 48 states.[3]",
+      "who_its_for": "Medicare enrollees aged 65+ with low income and limited resources; specific limits vary by program (e.g., QMB lowest income, QI highest).[3]",
+      "official_url": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/medicare-savings-programs/",
+      "benefit_value": "QMB: Full Part A/B costs; SLMB/QI: Part B premiums ($174.70/mo in 2024); QDWI: Part A premiums for working disabled.[3]"
     },
     {
-      "name": "SNAP (Supplemental Nutrition Assistance Program)",
-      "what_it_does": "SNAP provides monthly benefits via EBT card for purchasing food. Seniors 60+ get deductions for medical expenses over $35/month and simplified application.[3]",
-      "who_its_for": "Low-income seniors 60+ with household income up to $1,580/month (individual).[3]",
-      "official_url": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/",
-      "benefit_value": "Up to $291/month maximum for individuals.[3]"
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "what_it_does": "SNAP provides monthly benefits via EBT card to buy food at approved stores. It helps low-income households, including seniors, afford nutritious meals.[4]",
+      "who_its_for": "Low-income seniors 60+ or households with elderly/disabled members meeting income/resource tests; Alaska residents.[4]",
+      "official_url": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/food-stamps/",
+      "benefit_value": "Average $200-300/month per household; maximum varies by size/income (e.g., $1,751/mo for household of 4 in 2024 FY).[4]"
     },
     {
-      "name": "Alaska Energy Assistance (LIHEAP)",
-      "what_it_does": "Provides grants to help with heating costs during winter. Application period runs October to March.[3]",
-      "who_its_for": "Low-income households including seniors.[3]",
-      "official_url": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/",
-      "benefit_value": "$500–$1,000 per year.[3]"
+      "name": "Heating Assistance Program (HAP)",
+      "what_it_does": "HAP provides one-time cash payments to help eligible households pay heating costs during winter. It targets low-income Alaskans facing high energy expenses.[4]",
+      "who_its_for": "Low-income households including seniors 65+ meeting income guidelines (up to 150-200% FPG); Alaska residents.[4]",
+      "official_url": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/heating-assistance/",
+      "benefit_value": "$300-$1,000 one-time payment depending on region, fuel type, and income (e.g., higher in rural Alaska).[4]"
     },
     {
       "name": "Weatherization Assistance Program",
-      "what_it_does": "Funds home energy efficiency improvements like insulation and sealing to reduce heating costs. Available through state and federal partnerships.[3]",
-      "who_its_for": "Low-income households, prioritizing seniors and disabled.[3]",
+      "what_it_does": "The program funds home energy efficiency improvements like insulation and sealing to reduce heating costs. It prioritizes low-income and vulnerable households including seniors.",
+      "who_its_for": "Low-income homeowners/renters, elderly, disabled; income at or below 200% FPG.",
       "official_url": "https://www.energy.gov/eere/wap/weatherization-assistance-program",
-      "benefit_value": "Free or low-cost home upgrades; value varies by home needs."
+      "benefit_value": "Free services worth $4,000-$7,000 per home; average annual energy savings of 20-30%."
     },
     {
       "name": "State Health Insurance Assistance Program (SHIP)",
-      "what_it_does": "Offers free counseling on Medicare, Medigap, Medicare Advantage, and prescription drug plans. Helps with plan selection, appeals, and cost-saving options.",
-      "who_its_for": "All Medicare beneficiaries, especially seniors in Alaska.",
-      "official_url": "https://shipshelp.org/state/alaska/",
-      "benefit_value": "Free one-on-one counseling and group education sessions."
+      "what_it_does": "SHIP offers free counseling on Medicare options, including Parts A/B/D, Medigap, and savings programs. Alaska's SHIP helps seniors navigate coverage and costs.",
+      "who_its_for": "All Medicare beneficiaries aged 65+, caregivers, and family members in Alaska.",
+      "official_url": "https://shipsam.dhss.alaska.gov/",
+      "benefit_value": "Free one-on-one counseling; average savings identified $600+/year per client."
     },
     {
-      "name": "Meals on Wheels (Alaska Senior Nutrition Programs)",
-      "what_it_does": "Delivers hot nutritious meals to homebound seniors and provides congregate meals at centers. Supports independence and nutrition.",
-      "who_its_for": "Homebound seniors 60+ unable to prepare meals; congregate for active 60+.",
-      "official_url": "https://health.alaska.gov/seniors/pages/nutrition/default.aspx",
-      "benefit_value": "1-2 meals/day delivered; suggested donation-based for low-income."
+      "name": "Alaska Meals on Wheels",
+      "what_it_does": "Provides home-delivered nutritious meals to homebound seniors to promote independence. Often coordinates with local senior centers and Area Agencies on Aging.",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals, typically low-income or with health needs.",
+      "official_url": "https://alaskamealsonwheels.org/",
+      "benefit_value": "5-14 meals/week at $5-8/suggested donation; full subsidy for qualifying low-income."
     },
     {
       "name": "Alzheimer's Family Caregiver Support Program",
-      "what_it_does": "Provides respite care, counseling, and training for caregivers of those with Alzheimer's or related dementias. Expands access to caregiver support services.",
-      "who_its_for": "Family caregivers of seniors 60+ with Alzheimer's/related disorders.",
-      "official_url": "https://health.alaska.gov/seniors/pages/caregiver/default.aspx",
-      "benefit_value": "Respite grants up to program limits; training and support services."
+      "what_it_does": "Offers respite care, counseling, and training to caregivers of seniors with Alzheimer's or related dementias. Helps prevent caregiver burnout and support family caregiving.",
+      "who_its_for": "Family caregivers of Alaska seniors 60+ with Alzheimer's/dementia.",
+      "official_url": "https://health.alaska.gov/seniors/Pages/Alzheimers.aspx",
+      "benefit_value": "Respite grants up to $1,500/year; free support groups and education."
     },
     {
       "name": "Senior Community Service Employment Program (SCSEP)",
-      "what_it_does": "Offers part-time community service jobs with training to unemployed low-income seniors. Helps transition to unsubsidized employment.",
-      "who_its_for": "Unemployed low-income individuals aged 55+.",
+      "what_it_does": "Provides part-time community service jobs with training to unemployed low-income seniors. Aims to help transition to unsubsidized employment.",
+      "who_its_for": "Unemployed low-income seniors 55+ (income ≤125% FPG); preference for veterans, disabled.",
       "official_url": "https://www.dol.gov/agencies/eta/seniors",
-      "benefit_value": "Minimum wage pay for 20 hours/week; work-based training."
+      "benefit_value": "Minimum wage jobs (20 hrs/wk); work experience, training, supportive services."
     },
     {
-      "name": "Alaska Legal Services Corporation (Senior Legal Aid)",
-      "what_it_does": "Provides free civil legal assistance to low-income seniors. Covers issues like housing, benefits, consumer problems, and elder abuse.",
-      "who_its_for": "Low-income seniors 60+ residing in Alaska.",
-      "official_url": "https://www.alsc-law.org/",
-      "benefit_value": "Free legal advice, representation, and self-help resources."
+      "name": "Alaska Legal Services Corporation (ALSC) Senior Legal Services",
+      "what_it_does": "Provides free civil legal aid to low-income seniors for issues like benefits, housing, guardianship. Operates statewide with priority for elders.",
+      "who_its_for": "Low-income seniors 60+ (≤125% FPG) facing civil legal problems; Alaska residents.[4]",
+      "official_url": "https://www.alsc-law.org/seniors",
+      "benefit_value": "Free legal representation, advice, self-help; serves thousands annually statewide."
     },
     {
       "name": "Long-Term Care Ombudsman Program",
-      "what_it_does": "Advocates for residents in long-term care facilities, investigating complaints and ensuring quality care. Provides education and resolves issues confidentially.",
-      "who_its_for": "Residents of nursing homes, assisted living, and similar facilities in Alaska.",
-      "official_url": "https://health.alaska.gov/seniors/pages/ombudsman/default.aspx",
-      "benefit_value": "Free advocacy, complaint resolution, and rights protection services."
+      "what_it_does": "Advocates for residents in long-term care facilities, investigating complaints and ensuring quality care. Provides confidential assistance to resolve issues.",
+      "who_its_for": "Residents of nursing homes, assisted living, and similar facilities in Alaska; families.",
+      "official_url": "https://health.alaska.gov/en/commissioner/ombudsman/Pages/default.aspx",
+      "benefit_value": "Free advocacy services; resolves 80%+ of complaints without formal action."
     },
     {
-      "name": "Senior Benefits Program",
-      "what_it_does": "Provides monthly cash benefits to eligible Alaska residents aged 65 or older with low to moderate income. Payment levels are $125, $175, or $250 depending on income tied to Alaska Federal Poverty Guidelines, subject to available state funding.",
-      "who_its_for": "Alaska residents age 65+, U.S. citizens or qualified immigrants, with gross annual income not exceeding program limits (e.g., under $11,963 for single applicants eligible for $250/month).",
-      "whats_unique": "State-funded cash assistance program unique to Alaska, evolved from the discontinued Alaska Longevity Bonus; not available in other states.",
+      "name": "Alaska Senior Benefits Program",
+      "what_it_does": "Provides monthly cash assistance to Alaskans age 65 and older with low to moderate income. Payment amounts are $250, $175, or $76 per month depending on income level and marital status.",
+      "who_its_for": "Alaska residents age 65 or older who are U.S. citizens or qualified immigrants, have a social security number, and meet income limits tied to Alaska Federal Poverty Guidelines.",
+      "whats_unique": "This is a state-funded program established in 2007 that replaced the Alaska Longevity Bonus Program (1972-2003), which was unique to Alaska. The program is needs-based and considers only income, not savings, for eligibility determination.",
       "official_url": "http://dhss.alaska.gov/dpa/Pages/seniorbenefits/default.aspx",
-      "benefit_value": "$76-$250 per month based on income and funding"
+      "benefit_value": "$76–$250 per month depending on income and marital status"
     },
     {
-      "name": "Adult Public Assistance (APA)",
-      "what_it_does": "Provides cash assistance to needy aged, blind, or disabled Alaskans to help them remain independent. Recipients must pursue all other available benefits like SSI or veterans' compensation.",
-      "who_its_for": "Alaska residents aged 65+ (or 18+ if blind/disabled), U.S. citizens or qualified immigrants, with resources ≤$2,000 (individual) or $3,000 (couple) and income within limits.",
-      "whats_unique": "Alaska's state-funded cash program supplementing federal SSI for seniors and disabled, with specific resource caps and mandatory pursuit of other benefits; not a standard federal program.",
+      "name": "Adult Public Assistance (APA) Program",
+      "what_it_does": "Provides cash assistance to aged, blind, or disabled Alaskans to help them remain independent. The program gives cash to SSI recipients and others who meet income and resource limits.",
+      "who_its_for": "Alaskans age 65 or older (or age 18+ if blind or disabled), who are U.S. citizens or qualified immigrants and Alaska residents with resources not exceeding $2,000 for individuals or $3,000 for couples.",
+      "whats_unique": "This is a state-funded supplemental assistance program that works alongside federal SSI benefits to support low-income seniors and disabled individuals in Alaska.",
       "official_url": "http://dhss.alaska.gov/dpa/Pages/apa/default.aspx",
-      "benefit_value": "Varies by individual needs and income; cash payments to SSI recipients and others"
-    },
-    {
-      "name": "Senior Access Program",
-      "what_it_does": "Provides funds for home accessibility modifications to help senior citizens over 55 live independently in the community. Funding availability varies and must be checked directly.",
-      "who_its_for": "Alaska seniors over age 55 needing home modifications for independent living.",
-      "whats_unique": "State-specific program funding home adaptations exclusively for Alaska seniors; not a nationwide offering.",
-      "official_url": "Not specified in sources; contact via Alaska 211 or local DPA",
-      "benefit_value": "Funds for accessibility modifications (amounts depend on availability)"
+      "benefit_value": "Varies based on individual needs and income limits"
     }
   ]
 }

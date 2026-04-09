@@ -1,44 +1,48 @@
 {
   "state": "GA",
   "stateName": "Georgia",
-  "draftedAt": "2026-04-09T08:50:23.582Z",
-  "total": 12,
+  "draftedAt": "2026-04-09T09:31:43.456Z",
+  "total": 13,
   "successful": 0,
   "programs": [
     {
-      "name": "Georgia Medicaid",
+      "name": "Medicaid Aged, Blind, and Disabled Program (ABD Medicaid)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Community Care Services Program (CCSP) and SOURCE Waiver",
+      "name": "Elderly and Disabled Waiver Program (EDWP)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Georgia PACE (Program of All-Inclusive Care for the Elderly)",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Georgia SHIP (State Health Insurance Assistance Program)",
+      "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Senior SNAP (Senior Supplemental Nutrition Assistance Program)",
+      "name": "Supplemental Nutrition Assistance Program (SNAP) - Senior SNAP in Georgia",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Georgia LIHEAP (Low Income Home Energy Assistance Program)",
+      "name": "Low Income Home Energy Assistance Program (LIHEAP)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Georgia Weatherization Assistance Program",
+      "name": "Weatherization Assistance Program (WAP)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Georgia Meals on Wheels (Home-Delivered Meals via HCBS/CCSP)",
+      "name": "Georgia State Health Insurance Assistance Program (Georgia SHIP)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Georgia Caregiver Support (Respite and Caregiving Programs)",
+      "name": "Home Delivered Meals (via Community Care Services Program)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Caregiver Respite Services (via Georgia Medicaid Home and Community-Based Services)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
@@ -46,11 +50,11 @@
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Georgia Legal Assistance for Seniors (Elder Rights & Advocacy)",
+      "name": "Legal Assistance for Older Georgians",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Georgia Long-Term Care Ombudsman Program",
+      "name": "Long-Term Care Ombudsman Program",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     }
   ],

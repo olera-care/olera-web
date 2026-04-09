@@ -4,56 +4,99 @@
   "state": "NH",
   "stateName": "New Hampshire",
   "isRegion": false,
-  "exploredAt": "2026-04-09T08:56:15.650Z",
-  "programCount": 6,
+  "exploredAt": "2026-04-09T09:36:46.203Z",
+  "programCount": 13,
   "programs": [
     {
-      "name": "NH Medication Bridge Program",
-      "what_it_does": "This state-funded program provides financial support to cover prescription drug costs for eligible seniors. It bridges gaps in medication access beyond federal programs like Medicare Part D.",
-      "who_its_for": "Low-income seniors aged 65+ residing in New Hampshire.",
-      "whats_unique": "Unlike standard federal pharmaceutical assistance, this is a NH-specific initiative using state funds to assist with medication affordability not fully covered elsewhere.[1]",
-      "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/1T2xp0izZ38eIzO6rco2TM/5482fbc36c2fa31d79b46e33f498096e/MC-3398221-state-resource-pages--new-hampshire.pdf",
-      "benefit_value": "Covers all or part of prescription costs; exact value based on individual eligibility and drug needs."
+      "name": "New Hampshire Medicaid (Nursing Home Medicaid for seniors)",
+      "what_it_does": "Covers costs for 24-hour skilled nursing care in nursing homes, including room and board, nursing care, medical supplies, rehabilitation, personal care, and medication management. Participants contribute most of their income toward care costs, retaining a small personal needs allowance.[1][3]",
+      "who_its_for": "Seniors aged 65+ or disabled individuals who are NH residents, US citizens or qualified immigrants, meet nursing home level of care, with income ≤$2,982/month (2026) and assets ≤$2,500 (single).[1][3]",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/medicaid",
+      "benefit_value": "Full coverage of nursing home costs after income contribution; average NH nursing home cost ~$10,000+/month offset for eligible.[1][3][5]"
     },
     {
-      "name": "New Hampshire Partnership for Prescription",
-      "what_it_does": "This program partners to reduce prescription costs for seniors through state-supported discounts and assistance. It targets affordability for long-term medication needs.",
-      "who_its_for": "Seniors 65+ in NH with financial need for prescriptions.",
-      "whats_unique": "State-specific collaboration beyond federal options, focused on NH residents' pharmaceutical access.[1]",
-      "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/1T2xp0izZ38eIzO6rco2TM/5482fbc36c2fa31d79b46e33f498096e/MC-3398221-state-resource-pages--new-hampshire.pdf",
-      "benefit_value": "Discounts on prescriptions; amount varies by participation and eligibility."
+      "name": "Choices for Independence (CFI) Waiver",
+      "what_it_does": "Provides home and community-based services (HCBS) to allow seniors to receive care at home or in community settings instead of nursing facilities. Services include personal care, home health aides, adult day health, home-delivered meals, environmental modifications, respite care, and medical transportation.[1][3]",
+      "who_its_for": "Seniors 65+ or disabled adults requiring nursing home level of care, NH residents, income ≤$2,982/month, assets ≤$2,500.[1][3]",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/medicaid/choices-independence",
+      "benefit_value": "Varies by need; covers personal care hours, modifications up to limits, preventing institutionalization (avg. value equivalent to nursing home costs ~$100K+/year).[1][3]"
     },
     {
-      "name": "Medical Assistance (NH Medicaid Waiver)",
-      "what_it_does": "Provides state and federal funds for long-term care alternatives like personal care, home health aides, respite, and durable medical equipment. Allows seniors to avoid nursing homes by receiving care at home.",
-      "who_its_for": "Seniors 65+ or disabled adults in NH requiring nursing home level of care, with income under $30,276/year and assets under $2,500.",
-      "whats_unique": "NH's waiver program extends beyond standard federal Medicaid by funding specific home-based services unique to state administration.[1]",
-      "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/1T2xp0izZ38eIzO6rco2TM/5482fbc36c2fa31d79b46e33f498096e/MC-3398221-state-resource-pages--new-hampshire.pdf",
-      "benefit_value": "Covers costs of home care services; up to full coverage for eligible needs."
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "Delivers comprehensive medical and social services to frail seniors in community settings, including primary care, hospitalization, prescription drugs, and supportive services. Coordinates all Medicare and Medicaid benefits through adult day health centers.[3]",
+      "who_its_for": "Seniors 55+ certified for nursing home level of care, able to live safely in community, dually eligible for Medicare/Medicaid.",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/medicaid/pace-new-hampshire",
+      "benefit_value": "Full capitation coverage of all needed services; no copays for participants."
     },
     {
-      "name": "REAP (Respite, Education, and Assistance Program)",
-      "what_it_does": "Offers community-based short-term support including respite for caregivers and resources for older adults. Helps reduce caregiver burden and supports family members.",
-      "who_its_for": "Older adults in NH, their caregivers, family members, and professionals working with seniors.",
-      "whats_unique": "NH-specific program providing targeted respite and education not universally available in other states.[7]",
-      "official_url": "https://www.dhhs.nh.gov/programs-services/adult-aging-care/brain-health",
-      "benefit_value": "Short-term support services; value in hours of respite or assistance provided."
+      "name": "Medicare Savings Program (MSP) - QMB, SLMB, QI",
+      "what_it_does": "Helps low-income Medicare beneficiaries pay Medicare Part A/B premiums, deductibles, coinsurance, and copayments via Medicaid. Includes QMB (full coverage), SLMB (Part B premium), and QI/SLMB135 (Part B premium for higher incomes); auto-enrolls in Extra Help for drugs.[2]",
+      "who_its_for": "Medicare enrollees 65+ with low income/assets: QMB ≤100% FPL, SLMB 100-120% FPL, QI 120-135% FPL; NH residents.[2]",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/medicaid/medicare-savings-programs",
+      "benefit_value": "Part B premium ($174.70/mo 2024) + deductibles/cost-sharing; QI fully federal-funded (~$2,000+/year savings).[2]"
     },
     {
-      "name": "Easterseals NH Adult Day Services",
-      "what_it_does": "Provides daytime social engagement, physical activity, health services, and memory care in homelike settings. Coordinates transportation and supports aging in place.",
-      "who_its_for": "Seniors averaging age 76 in NH, including those needing memory care, across various abilities.",
-      "whats_unique": "State-operated through Easterseals NH with specialized sites like secure Manchester memory care, beyond generic federal programs.[2]",
-      "official_url": "https://eastersealsnh.org/programs/senior-services/",
-      "benefit_value": "Daily programs; affordable access promoting health and connection."
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "Provides monthly EBT card benefits to buy healthy food at authorized retailers. Promotes nutrition security for low-income households.[6]",
+      "who_its_for": "Low-income seniors 60+ (higher asset disregard), NH residents; income <130% FPL (net).",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/food-stamps",
+      "benefit_value": "Avg. $200-300/month per eligible senior household (2026 max ~$291/single)."
     },
     {
-      "name": "Easterseals NH In-Home Care & Health Services",
-      "what_it_does": "Delivers affordable in-home nursing, personal hygiene, meal prep, and housekeeping as alternative to nursing homes. Can combine with other services for comprehensive support.",
-      "who_its_for": "Older adults and disabled individuals in NH seeking to age at home.",
-      "whats_unique": "NH-focused provider with 30+ years serving thousands, emphasizing person-centered care unique to local needs.[2]",
-      "official_url": "https://eastersealsnh.org/programs/senior-services/",
-      "benefit_value": "Hourly in-home services; cost-effective vs. institutional care."
+      "name": "Low Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "Offers grants to help pay heating costs, crisis fuel assistance, and weatherproofing repairs. Prevents shutoffs and supports year-round energy needs.[6]",
+      "who_its_for": "Low-income NH households including seniors; income ≤60% state median or 150% FPL.",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/liheap",
+      "benefit_value": "Heating grants $200-1,800; crisis up to $1,000+ per season."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "Provides free home energy efficiency improvements like insulation, air sealing, and furnace repairs to reduce energy costs. Improves health/safety via reduced drafts and better heating.[6]",
+      "who_its_for": "Low-income NH households <200% FPL, priority to seniors/disabled/vulnerable.",
+      "official_url": "https://www.nh.gov/liheap/weatherization.htm",
+      "benefit_value": "Free upgrades worth $5,000-15,000/home; lifetime energy savings $2,000+."
+    },
+    {
+      "name": "New Hampshire State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "Offers free, objective counseling on Medicare options, supplements, drug plans, and appeals. Helps seniors choose/save on coverage and understand rights.[2]",
+      "who_its_for": "All NH Medicare beneficiaries 65+, caregivers, family.",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/insurance-counseling",
+      "benefit_value": "Free 1-on-1 help; avg. savings $1,000+/year via optimal plan selection."
+    },
+    {
+      "name": "Meals on Wheels (Council on Aging programs)",
+      "what_it_does": "Delivers nutritious hot meals to homebound seniors 5+ days/week, plus safety wellness checks. Provides frozen weekend meals and nutrition education.[1]",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals, low-income prioritized.",
+      "official_url": "https://www.nh.gov/elderly/meals-on-wheels.htm",
+      "benefit_value": "14-20 meals/week at $3-7/suggested donation (subsidized; full cost $200+/month)."
+    },
+    {
+      "name": "New Hampshire Caregiver Support System",
+      "what_it_does": "Offers respite grants, caregiver training, support groups, and counseling to relieve family caregivers. Funds short-term relief services like in-home care or adult day.[3]",
+      "who_its_for": "Family caregivers of seniors 60+ or disabled adults; income-based.",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/family-caregiver-support",
+      "benefit_value": "Respite grants up to $1,600/year; training free."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time paid community service work training leading to unsubsidized employment. Pays minimum wage for 20 hrs/week at nonprofits.[6]",
+      "who_its_for": "Unemployed low-income seniors 55+ (≤125% FPL), NH residents.",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/scsep",
+      "benefit_value": "Wages ~$15/hr x 20hrs/wk = $1,200+/month + employment skills."
+    },
+    {
+      "name": "New Hampshire Legal Assistance (NHLA) Senior Program",
+      "what_it_does": "Provides free legal help for income/asset issues, benefits, housing, consumer problems, and elder abuse. Includes representation, advice, and community education.[6]",
+      "who_its_for": "Low-income seniors 60+, NH residents (priority to most vulnerable).",
+      "official_url": "https://www.nhlegalaid.org/seniors",
+      "benefit_value": "Free legal services worth $200+/hr; resolves benefits claims/back payments."
+    },
+    {
+      "name": "New Hampshire Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in nursing homes, assisted living, and other long-term care facilities. Investigates complaints, resolves issues, and promotes quality of life/rights.[3]",
+      "who_its_for": "All residents/patients in NH long-term care facilities, families.",
+      "official_url": "https://www.dhhs.nh.gov/programs-services/long-term-care-ombudsman",
+      "benefit_value": "Free confidential advocacy; resolves ~85% complaints without litigation."
     }
   ]
 }

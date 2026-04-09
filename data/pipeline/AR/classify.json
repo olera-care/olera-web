@@ -1,33 +1,37 @@
 {
   "state": "AR",
   "stateName": "Arkansas",
-  "classifiedAt": "2026-04-09T08:47:57.771Z",
-  "total": 14,
+  "classifiedAt": "2026-04-09T09:29:10.039Z",
+  "total": 16,
   "typeSummary": {
-    "benefit": 11,
-    "employment": 1,
-    "resource": 2
+    "benefit": 10,
+    "resource": 5,
+    "employment": 1
   },
   "scopeSummary": {
     "state": 5,
-    "local": 1,
+    "local": 3,
     "federal": 8
   },
   "complexitySummary": {
-    "deep": 9,
-    "medium": 3,
-    "simple": 2
+    "deep": 10,
+    "simple": 5,
+    "medium": 1
   },
   "programs": [
     {
-      "name": "ARKansas Medicaid",
+      "name": "ARKansas Medicaid Long-Term Services and Supports (LTSS)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local DHS offices by county",
+            "name": "Any DHS County office",
+            "type": "service-area"
+          },
+          {
+            "name": "PACE Locations (specific sites listed on state site)",
             "type": "service-area"
           }
         ]
@@ -57,20 +61,13 @@
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "DHS county offices statewide; providers must enroll per Medicaid manual[3]",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": false
       },
       "complexity": "deep",
       "recommendedSections": [
         "prose",
         "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -81,7 +78,7 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
@@ -93,7 +90,15 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "PACE of the Ozarks (Ozarks region, specific ZIPs: Westfork 72774, Winslow 72959). Local DHS county offices for applications.",
+            "name": "PACE of the Ozarks – Washington Regional, Springdale (Benton, Madison, Washington counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Total Life Healthcare – St. Bernards Healthcare, Jonesboro (Craighead, Cross, Greene, Lawrence, Mississippi, Poinsett, Randolph counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Wellquest River Valley PACE, Barling (Crawford, Franklin, Johnson, Logan, Scott, Sebastian counties)",
             "type": "service-area"
           }
         ]
@@ -101,6 +106,7 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
         "what-counts",
         "documents",
         "county-directory",
@@ -108,7 +114,7 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
@@ -124,7 +130,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local DHS county offices statewide",
+            "name": "Local DHS offices; contact 1-800-482-8988 for nearest",
             "type": "service-area"
           }
         ]
@@ -134,7 +140,6 @@
         "prose",
         "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -145,19 +150,19 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local DHS County Offices statewide (find via humanservices.arkansas.gov/locations)",
+            "name": "Arkansas Department of Human Services (DHS) administers SNAP statewide[7]",
             "type": "service-area"
           }
         ]
@@ -168,10 +173,11 @@
         "income-table",
         "what-counts",
         "documents",
-        "county-directory"
+        "county-directory",
+        "callout"
       ],
       "signals": {
-        "benefitType": "financial",
+        "benefitType": "financial (food assistance)",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
@@ -188,7 +194,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Community-Based Organizations (CBOs) by county; find via ADEQ or local sites like CSCDC, EOA, CRDCNEA.",
+            "name": "Local CBOs (e.g., CSCDC at cscdc.net, EOA at eoawc.org, CRDCNEA at crdcnea.tech); find via ADEQ directory.",
             "type": "service-area"
           }
         ]
@@ -220,11 +226,15 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Network of Community Action Agencies via https://www.acaaa.org/[1].",
+            "name": "Find via https://www.acaaa.org/.",
             "type": "service-area"
           },
           {
-            "name": "Examples: Better Community Development (BCD), Crawford-Sebastian CDC (CSCDC), Community Action Agencies of Arkansas (CADC)[3][5][6].",
+            "name": "Examples: BCD, CSCDC (Crawford-Sebastian), CADC.",
+            "type": "service-area"
+          },
+          {
+            "name": "Arkansas Energy Office (AEO) oversees via Arkansas Economic Development Commission/DEQ.[1][4]",
             "type": "service-area"
           }
         ]
@@ -251,156 +261,13 @@
     },
     {
       "name": "Senior Medicare Patrol (SMP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Arkansas Insurance Department (statewide contact); local SMP volunteers conduct services[2]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Meals on Wheels (Arkansas)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "in_kind",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Family Caregiver Support Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local Area Agencies on Aging; Alzheimer's Arkansas for central AR grants (Pulaski etc.).[1][3][5]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "programType": "employment",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Primary: Little Rock office (700 Main Street, 5th Floor, Little Rock, AR 72201)[1]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "documents"
-      ],
-      "signals": {
-        "benefitType": "employment",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Legal Aid of Arkansas (Senior Legal Services)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Legal Aid of Arkansas (statewide organization)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Long-term Care Ombudsman",
       "programType": "resource",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Area Agencies on Aging (AAA) in each region; State Long-Term Care Ombudsman oversees[1][3][4]",
+            "name": "Arkansas Insurance Department (statewide contact); local SMP teams via SMP Locator[1][2]",
             "type": "service-area"
           }
         ]
@@ -421,14 +288,249 @@
       }
     },
     {
-      "name": "Family Caregiver Grant Program",
+      "name": "Meals on Wheels",
       "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Area Agency on Aging chapters (find via agingarkansas.org or similar local sites)[3][5]. Examples: East Arkansas Area Agency on Aging[8]; Meals on Wheels NWA (Rogers AR)[4].",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Family Caregiver Support Program",
+      "programType": "resource",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Alzheimer’s Arkansas (administers grants).[4]",
+            "name": "Local Area Agency on Aging[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Alzheimer’s Arkansas Programs and Services (Little Rock)[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Primary office: Little Rock (statewide contact).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Legal Aid for Seniors (via Area Agencies on Aging)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Area Agency on Aging of Northwest Arkansas (serves Baxter, Benton, Boone, Carroll, Madison, Marion, Newton, Searcy, Washington counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Area Agency on Aging of Southeast Arkansas (serves Arkansas, Ashley, Bradley, Chicot, Cleveland, Dallas, Desha, Drew, Grant, Jefferson, Lincoln counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Area Agency on Aging of Southwest Arkansas",
+            "type": "service-area"
+          },
+          {
+            "name": "East Arkansas Area Agency on Aging (serves Clay, Craighead, Crittenden, Cross, Greene, Lawrence, Lee, Mississippi, Phillips, Poinsett, Randolph, St. Francis counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Ark-Tex Council of Governments Area Agency on Aging",
+            "type": "service-area"
+          },
+          {
+            "name": "Area Agency on Aging of Western Arkansas (serves western Arkansas from offices in Fort Smith, Paris, Mena)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy|service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Long-Term Care Ombudsman",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Area Agencies on Aging (AAA) in each region; contact local AAA or facility-posted ombudsman[1][5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Arkansas Property Tax Relief for Seniors",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local County Assessor's offices statewide[1][3][5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Arkansas PACE (Program of All-Inclusive Care for the Elderly)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Baptist Health PACE",
+            "type": "service-area"
+          },
+          {
+            "name": "PACE of the Ozarks (e.g., Westfork, Winslow areas)",
+            "type": "service-area"
+          },
+          {
+            "name": "Other local PACE organizations via DHS",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Family Caregiver Grant Program (Alzheimer’s Arkansas via CareLink)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Administered by Alzheimer’s Arkansas for CareLink (Central Arkansas Area Agency on Aging) service area",
             "type": "service-area"
           }
         ]
@@ -445,10 +547,10 @@
         "benefitType": "financial",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
-        "hasRegionalVariation": true,
+        "hasRegionalVariation": false,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
-        "isStatewide": true
+        "isStatewide": false
       }
     }
   ]

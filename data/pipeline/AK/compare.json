@@ -1,70 +1,84 @@
 {
   "state": "AK",
   "stateName": "Alaska",
-  "comparedAt": "2026-04-09T08:46:51.822Z",
-  "total": 11,
-  "newPrograms": 8,
+  "comparedAt": "2026-04-09T09:27:42.772Z",
+  "total": 14,
+  "newPrograms": 11,
   "withDiffs": 3,
   "withNovelFields": 3,
   "benefitTypes": {
-    "service": 5,
+    "service": 6,
     "financial": 5,
-    "in_kind": 1
+    "in_kind": 1,
+    "employment": 1,
+    "advocacy": 1
   },
   "variationPatterns": {
-    "priority_tier|region": 1,
+    "priority_tier": 5,
     "region": 2,
     "program_tier": 1,
-    "household_size": 3,
-    "household_size|priority_tier|region": 1,
-    "priority_tier": 2,
-    "region|tenure_type|provider": 1
+    "household_size": 1,
+    "household_size, region, heating fuel type, dwelling type, income": 1,
+    "fixed": 1,
+    "not_applicable": 1,
+    "household_size|priority_tier": 1,
+    "individual_needs": 1
   },
   "novelFieldSummary": {
     "asset_limits": {
       "count": 3,
       "programs": [
-        "Medicare Savings Programs (QMB, SLMB, QI)",
-        "SNAP (Supplemental Nutrition Assistance Program)",
-        "Alaska Energy Assistance (LIHEAP)"
+        "Medicare Savings Programs (QMB, SLMB, QI, QDWI)",
+        "Alaska Legal Services Corporation (ALSC) Senior Legal Services",
+        "Long-Term Care Ombudsman Program"
       ],
       "note": "Our model has no asset limit fields"
     },
     "regional_variations": {
       "count": 3,
       "programs": [
-        "Medicare Savings Programs (QMB, SLMB, QI)",
-        "SNAP (Supplemental Nutrition Assistance Program)",
-        "Alaska Energy Assistance (LIHEAP)"
+        "Medicare Savings Programs (QMB, SLMB, QI, QDWI)",
+        "Alaska Legal Services Corporation (ALSC) Senior Legal Services",
+        "Long-Term Care Ombudsman Program"
       ],
       "note": "Program varies by region — our model doesn't capture this"
     },
     "waitlist": {
       "count": 2,
       "programs": [
-        "Medicare Savings Programs (QMB, SLMB, QI)",
-        "Alaska Energy Assistance (LIHEAP)"
+        "Medicare Savings Programs (QMB, SLMB, QI, QDWI)",
+        "Alaska Legal Services Corporation (ALSC) Senior Legal Services"
       ],
       "note": "Has waitlist info — our model has no wait time field"
     },
     "documents_required": {
       "count": 3,
       "programs": [
-        "Medicare Savings Programs (QMB, SLMB, QI)",
-        "SNAP (Supplemental Nutrition Assistance Program)",
-        "Alaska Energy Assistance (LIHEAP)"
+        "Medicare Savings Programs (QMB, SLMB, QI, QDWI)",
+        "Alaska Legal Services Corporation (ALSC) Senior Legal Services",
+        "Long-Term Care Ombudsman Program"
       ],
       "note": "Has document checklist — our model doesn't store per-program documents"
-    },
-    "household_size_table": {
-      "count": 1,
-      "programs": [
-        "SNAP (Supplemental Nutrition Assistance Program)"
-      ],
-      "note": "Benefits/eligibility vary by household size — we store a single number"
     }
   },
   "comparisons": [
+    {
+      "name": "DenaliCare",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Alaska residency and NFLOC functional test required; asset/income limits strict for singles but spousal protections exist; benefits via HCBS waivers or nursing home, assessed case-by-case; regional offices handle intake",
+      "gotchas": [
+        "DenaliCare for elderly long-term care is distinct from Denali KidCare (for children/pregnant women); financial eligibility varies by program and marital status—spousal impoverishment rules may apply; NFLOC required, not just age/low income; ways to qualify if over limits via planning, but consult experts[1][2][4]",
+        "Processing/application may vary by specific program (e.g., HCBS vs. Nursing Home)"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://health.alaska.gov/ (Medicaid/DenaliCare section); ARIES portal for applications"
+    },
     {
       "name": "Adults with Physical & Developmental Disabilities Waiver (APDD)",
       "isNew": true,
@@ -73,16 +87,16 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Requires dual eligibility (Medicaid + NFLOC via specialized IDD assessment); services vary by age, location, and provider; not elderly-focused without developmental disability",
+      "dataShapeNotes": "Requires dual eligibility: Medicaid financial + developmental disability with NFLOC; services individualized via SDS IDD Unit assessment; access via regional care coordinators rather than centralized form; distinguishes from ALI (no developmental disability req.)[1][7]",
       "gotchas": [
-        "Must qualify for both Medicaid financial eligibility AND NFLOC via specific SDS IDD assessment—not just disability[1][6]",
-        "Not for elderly without developmental disability (use ALI instead); APDD requires developmental disability + nursing needs[1][4]",
-        "Services vary by region/provider availability; contact local care coordinator first[5][6]",
-        "Institutional level of care required—many with mild needs won't qualify[1]",
-        "Spousal income treated individually in related waivers, but confirm for APDD via DPA[2]"
+        "Requires both developmental disability diagnosis AND nursing facility level of care (NFLOC) assessment—not just age or physical needs[1][4][9]",
+        "Must pursue Medicaid financial eligibility separately via DPA; applying over limits leads to denial[1][2]",
+        "Not for elderly without developmental disabilities (compare to ALI Waiver for 65+ or physical disability 21-64)[2][4][7]",
+        "Assessment done in-home by coordinator; get letter confirming eligibility[5][8]",
+        "Provider certification variances may affect service availability (e.g., residential supported living)[3]"
       ],
       "benefitType": "service",
-      "benefitVariesBy": "priority_tier|region",
+      "benefitVariesBy": "priority_tier",
       "officialSource": "https://health.alaska.gov/en/services/hcbs-waivers/"
     },
     {
@@ -93,21 +107,20 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "No income/asset test for eligibility; strictly limited to few PACE centers/service areas (none confirmed in Alaska sources); requires NFLOC + community safety; dual-eligible get full coverage, others pay premium; not statewide.",
+      "dataShapeNotes": "No programs in Alaska; eligibility not tied to income/assets but strictly to NFLOC certification and service area availability at limited centers nationwide",
       "gotchas": [
-        "PACE unavailable in most of Alaska (not statewide; confirm local service area first—key barrier).[1][6]",
-        "Must live near PACE center (daily attendance expected; not remote).[4]",
-        "NFLOC certification by Alaska required (not automatic; involves assessment).[2][4]",
-        "Becomes sole Medicare/Medicaid provider—disenroll other plans; voluntary exit anytime.[1][5]",
-        "Private pay premium if not Medicaid-eligible (can be thousands/month; inquire locally).",
-        "Waitlists common due to enrollment caps.[7]"
+        "No PACE programs available in Alaska, making it inaccessible regardless of eligibility[1]",
+        "Geographic service area is the biggest barrier; nearby programs may have waitlists[1]",
+        "Must use only PACE providers; cannot see outside doctors or caregivers[1]",
+        "If not Medicaid-eligible, private pay premiums for long-term care portion average $4,000-$5,000/month[1]",
+        "Irrevocable once enrolled; continues until death, even if needs change[7]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "region",
-      "officialSource": "https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly (federal); https://www.npaonline.org (national finder); check Alaska Medicaid: health.alaska.gov for state page."
+      "officialSource": "https://www.cms.gov/medicare/medicaid-coordination/about/pace[8]"
     },
     {
-      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "name": "Medicare Savings Programs (QMB, SLMB, QI, QDWI)",
       "isNew": false,
       "existingId": "medicare-savings-programs",
       "existingVerified": null,
@@ -116,13 +129,13 @@
         {
           "field": "income_limit",
           "ours": "$1500",
-          "found": "$1,683",
+          "found": "$1,350",
           "source": "https://health.alaska.gov/en/services/extra-help-on-medicare-drug-costs/"
         },
         {
           "field": "benefit_value",
           "ours": "$2,000 – $8,000/year",
-          "found": "QMB: Pays Medicare Part A premiums (if applicable), Part B premiums, deductibles, coinsurance, copayments for Medicare-covered services/items. SLMB: Pays Part B premiums only. QI: Pays Part B premiums only. All qualify for Extra Help with Medicare drug costs (e.g., no more than $12.65 per drug in 2026).[5][7]",
+          "found": "QMB: Medicare Part A premium (if applicable), Part B premium ($202.90 in 2026), deductibles, coinsurance, copayments[1][2][5]. SLMB: Part B premium only ($202.90)[1][2]. QI: Part B premium only ($202.90); limited funding[1][2]. QDWI: Part A premium only[1][2][3]. QMB/SLMB/QI auto-qualify for Extra Help with Rx drugs[2].",
           "source": "https://health.alaska.gov/en/services/extra-help-on-medicare-drug-costs/"
         },
         {
@@ -134,176 +147,88 @@
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "2026 limits: Individual $9,950, Couple $14,910 (higher than 2025's $9,660/$14,470). Counts: Bank accounts, stocks (except some Alaska Native corporation stocks), bonds. Exempt: Primary home, one vehicle, household items, engagement/wedding rings, burial plots/expenses up to $1,500, life insurance < $1,500 cash value, certain Native American funds/settlements (e.g., Cobell payments, food stamps).[1][4][7]",
+          "value": "QMB/SLMB/QI: $9,950 individual, $14,910 couple (some older AK data $9,660/$14,470)[1][4][5][7]. QDWI: $4,000 individual, $6,000 couple[1][7]. Counts typical countable resources (bank accounts, stocks); exempts home, one car, burial plots, life insurance (up to limits), personal belongings. Alaska may have liberalized rules or no resource test in some cases[4].",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Administered uniformly statewide by Alaska DHSS Public Assistance, but apply via local field offices which may have varying processing; no specific differences noted.[10]",
+          "value": "Apply via local medical assistance offices; possible processing differences by region but no specifics noted[2]",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "waitlist",
-          "value": "QI: Yes, first-come first-served until federal funding exhausted; priority to previous QI recipients.[5]",
+          "value": "QI: First-come, first-served until funds exhausted; priority to previous recipients[2]",
           "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of income (pay stubs, SSI awards, pension statements).",
-            "Proof of resources/assets (bank statements).",
-            "Medicare card (Parts A/B).",
-            "ID (birth certificate, Social Security card).",
-            "Proof of residency.",
-            "Household size details."
+            "Proof of income (pay stubs, SSI award letters)",
+            "Proof of resources (bank statements)",
+            "Medicare card",
+            "Proof of disability/work status for QDWI",
+            "ID, household size details"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Income/asset limits higher in Alaska due to FPL; tiered by QMB (lowest income, most benefits), SLMB, QI (highest income, Part B only, capped funding); no age requirement (Medicare-tied, typically 65+); household size affects via FPL scaling.",
+      "dataShapeNotes": "Higher income/resource limits in Alaska; tiered by program (QMB/SLMB/QI/QDWI) with QI funding-capped; benefits are premium payments only (no service hours); eligibility tied to Medicare enrollment",
       "gotchas": [
-        "Alaska has higher income limits than 48 states but exact current figures require state confirmation (federal base + Alaska FPL adjustment).[1][4][7]",
-        "QI has limited funding and waitlist; apply early in federal fiscal year.[5]",
-        "Must have Part A (and B for SLMB/QI); automatic Extra Help but confirm enrollment.",
-        "States can disregard more income/resources; Alaska may have liberalized rules but verify.",
-        "Income includes disregards ($20 general, $65 + half wages); assets exempt key items like home/car.",
-        "Cannot receive QI if eligible for Medicaid/QMB/SLMB."
+        "Alaska limits higher than federal base; confirm exact 2026 figures with state as they adjust annually and may disregard more[2][4][5]",
+        "QI has limited funding—apply early; no QI if eligible for Medicaid[2]",
+        "QDWI only for under 65 disabled workers who lost free Part A[1][3]",
+        "Auto Extra Help with Rx but must apply separately if needed[2]",
+        "Resources exclude home/car but count most financial assets; states like AK may waive resource test[4]"
       ],
       "benefitType": "financial",
       "benefitVariesBy": "program_tier",
       "officialSource": "https://health.alaska.gov/en/services/extra-help-on-medicare-drug-costs/"
     },
     {
-      "name": "SNAP (Supplemental Nutrition Assistance Program)",
-      "isNew": false,
-      "existingId": "alaska-snap-food-stamps",
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "isNew": true,
+      "existingId": null,
       "existingVerified": null,
-      "diffsFound": 3,
-      "diffs": [
-        {
-          "field": "income_limit",
-          "ours": "$2000",
-          "found": "$3,258",
-          "source": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/snap-nutrition-assistance/"
-        },
-        {
-          "field": "benefit_value",
-          "ours": "$1,500 – $3,600/year",
-          "found": "Monthly EBT card for food purchases. Amount based on net income (~$100 more net income = $30 less benefits); minimum/maximum vary by household size. Exact amounts not fixed but scale with income/household after deductions.[1][3]",
-          "source": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/snap-nutrition-assistance/"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/snap-nutrition-assistance/"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "Most households: $3,000. Households with 60+ or disabled: $4,500. Exempt: home/lot, household goods, burial plots, life insurance cash value, retirement/pension accounts, income-producing property, 529 plans, vehicles (exempt use or equity <$1,500).[3]",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "household_size_table",
-          "value": "For households with a member 60+ or disabled (Oct 1, 2025 - Sept 30, 2026): Gross income limit at 200% FPL - 1 person: $3,258/month; 2: $4,406; 3: $5,552; 4: $6,698; 5: $7,846; 6: $8,992; 7: $10,138; +$1,146 each additional. If over gross, qualify via net income (100% FPL) and asset tests. Deductions include 20% earned income, standard $358 (1-5 people)/$374 (6+), dependent care, medical >$35 for elderly/disabled, shelter up to $1,189.[1][3]",
-          "note": "Benefits/eligibility vary by household size — we store a single number"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Administered via local DPA offices; possible wait/processing differences by region, but no specific variations detailed.[2]",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Proof of income (SS, pension, etc.).",
-            "ID/residency.",
-            "SSN.",
-            "Medical expenses >$35 (elderly/disabled).",
-            "Shelter/utility costs.",
-            "Asset proofs if applicable."
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Elderly/disabled special rules: higher gross limit (200% FPL), asset $4,500, medical/shelter deductions; ESAP simplifies recert; benefits scale by household size/net income.",
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Elderly/disabled: net income only (100% FPL), higher asset limit ($4,500), ESAP simplifies recert; benefits/deductions scale by household size; Alaska-specific standard/shelter deductions; statewide uniform.",
       "gotchas": [
-        "Elderly/disabled households skip gross income test if meet net/asset; Alaska expanded to 200% FPL gross (stricter elsewhere).[1]",
-        "ESAP (Dec 2024-Nov 2029): 36-month cert, no interim report/interview, but report key changes.[2]",
-        "Work rules exempt elderly/disabled but apply to others in household.",
-        "Assets exempt more for seniors (home, savings, etc.).",
-        "Deductions key: medical/shelter can lower net income significantly.[3]"
+        "Elderly/disabled households skip gross income test, only net matters—many miss higher medical/shelter deductions.[2][5]",
+        "ESAP (Dec 2024–Nov 2029) eases recert for 60+/disabled households but must report key changes promptly.[1]",
+        "Assets exempt are broad (home, retirement, low-equity vehicles), but countable assets like cash over limit disqualify.[2]",
+        "Work rules tightened (e.g., 55-64 may need 80 hrs/mo unless exempt); veterans no longer auto-exempt.[6][7]",
+        "Household definition includes food-sharers; minors need independence to apply alone.[2]",
+        "No BBCE in Alaska—strict federal tests unless all on TANF/SSI.[8]"
       ],
       "benefitType": "financial",
       "benefitVariesBy": "household_size",
       "officialSource": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/snap-nutrition-assistance/"
     },
     {
-      "name": "Alaska Energy Assistance (LIHEAP)",
-      "isNew": false,
-      "existingId": "energy-assistance-program",
+      "name": "Heating Assistance Program (HAP)",
+      "isNew": true,
+      "existingId": null,
       "existingVerified": null,
-      "diffsFound": 3,
-      "diffs": [
-        {
-          "field": "income_limit",
-          "ours": "$2800",
-          "found": "$2,443",
-          "source": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/heating-assistance/"
-        },
-        {
-          "field": "benefit_value",
-          "ours": "$500 – $2,000/year",
-          "found": "One-time payment mailed directly to heating vendor/utility. Amount varies by household income, size, heat type, dwelling type, geographic location, and vendor; no fixed dollar amounts specified.",
-          "source": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/heating-assistance/"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/heating-assistance/"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "No asset limits mentioned in program guidelines.",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Administered by state DPA statewide, but tribal providers in communities handle enrolled citizens with potential different timelines/forms; benefit amounts vary by geographic location, heat type, vendor.",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Funding limited; applications may close early if funds exhausted (e.g., THRHA: Nov 1 for 60+/disabled, Dec 1 general through June 30, 2026).",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Social Security cards for all household members.",
-            "Photo ID for head of household.",
-            "Proof of income (last 30 days pay stubs, recent award letters for SSI/SNAP/TANF/VA).",
-            "Recent heating/utility bills showing $200+ annual out-of-pocket costs.",
-            "Rental agreement if utilities included in rent."
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Administered statewide via DPA with tribal sub-grantees; benefits/payment scale by income/size/region/heat type; priority tiers for elderly/disabled/emergencies; seasonal with early funding exhaustion.",
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "HAP uses a point-based system rather than simple income thresholds, making eligibility determination complex and region-specific. Benefits are not a fixed dollar amount but vary significantly by household size, location, fuel type, and dwelling type. Application deadlines and processing vary by provider (state vs. tribal organizations). For elderly applicants specifically, some regions (THRHA) accept applications from disabled or 60+ individuals starting November 1, while general public applications begin December 1[2]. The program operates seasonally (typically October/November through April/June depending on region), not year-round.",
       "gotchas": [
-        "Household includes all at address sharing utilities (even non-expense sharers like roommates).",
-        "Must verify ALL income (including zero income claims); incomplete apps delayed.",
-        "Funding limited—apply early; season Oct-Aug but closes if funds out.",
-        "No cooling assistance in Alaska.",
-        "Tribal vs. state application routing critical—non-enrolled go to state.",
-        "Eligibility not just income: requires $200+ heating costs paid by household."
+        "Eligibility is NOT based solely on income — a point system also factors in heating fuel type, dwelling type, household size, and geographic location. Even if income-eligible, applicants with low heating cost points may not qualify[1][4][6]",
+        "Minimum $200 annual out-of-pocket heating cost requirement — households with lower heating costs may not qualify[1][3]",
+        "Applicant must physically live in the home; absentee owners or non-residents do not qualify[4][6]",
+        "If receiving a utility allowance (e.g., in subsidized housing), the HAP benefit will be reduced[4]",
+        "Tribal citizens in communities served by tribal organizations MUST apply through their tribal organization, not the State. Applying through the wrong entity delays benefits[2]",
+        "All income must be documented with proof; applications without proof are considered incomplete and will be denied[4]",
+        "Bank statements alone are not acceptable proof of income; pay stubs, award letters, or employer statements are required[4]",
+        "Heating assistance is typically available only in fall and winter; cooling assistance is not offered in Alaska[5]",
+        "Crisis assistance is available only for emergencies (broken furnace, utility shutoff notice, running out of fuel), not for regular heating costs[5]",
+        "Program dates and application deadlines vary by provider and region; funding is limited and some agencies may stop accepting applications early if funds run out[5]"
       ],
       "benefitType": "financial",
-      "benefitVariesBy": "household_size|priority_tier|region",
-      "officialSource": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/heating-assistance/"
+      "benefitVariesBy": "household_size, region, heating fuel type, dwelling type, income",
+      "officialSource": "https://health.alaska.gov (Alaska Department of Health administers the program); applications also available through State of Alaska Public Assistance offices"
     },
     {
       "name": "Weatherization Assistance Program",
@@ -313,37 +238,40 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Administered statewide by regional providers via AHFC/DOE funding; priority tiers heavily influence access; 15-year re-weatherization limit; income at 100% AMI with table by household size.",
+      "dataShapeNotes": "Decentralized by local grantees with region-specific providers, forms, and slight income variations; 15-year repeat ban statewide; priority tiers drive service allocation; automatic eligibility via other aid programs.",
       "gotchas": [
-        "Home ineligible if weatherized in last 15 years (pre-2008 may qualify but lower priority).[3][4][5]",
-        "Incompatible with AHFC Home Energy Rebate post-2008.[2]",
-        "Must be year-round primary residence.[1]",
-        "Priority groups (elderly 55+, disabled, young children) get preference over others.[1][6]",
-        "Limited state funding with higher incomes; federal is stricter.[3]"
+        "Home ineligible if weatherized in last 15 years by any grantee.[3][6]",
+        "Renters need landlord approval, which owners can refuse.[6][8]",
+        "Priority categories (elderly 55+, disabled, young children) get preference; not first-come.[1][5]",
+        "Income includes all household occupants; automatic qualifiers still need proof.[2][5][7]",
+        "Regional providers required—cannot apply centrally; check AHFC for your area.[4]",
+        "Limited state funding has higher limits but is restricted.[6]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
       "officialSource": "https://www.ahfc.us/efficiency/weatherization"
     },
     {
-      "name": "Meals on Wheels (Alaska Senior Nutrition Programs)",
+      "name": "Alaska Meals on Wheels",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Decentralized by region with local providers/senior centers; no statewide income/asset test; eligibility emphasizes homebound/mobility need over finances; varies by urban (Anchorage/Fairbanks) vs. rural/borough (North Slope/Southeast)",
+      "dataShapeNotes": "Alaska Meals on Wheels is a decentralized system with multiple regional providers rather than a single statewide program. Eligibility is primarily age-based (60+) with no income limits, but geographic service area is the primary limiting factor. Benefits are service-based (meals) rather than financial. Regional variations are significant—different providers operate in Southeast Alaska, Anchorage, the Matanuska-Susitna Valley, and rural areas, each with potentially different eligibility criteria, application processes, and service levels. The program serves both congregate (group meal sites) and home-delivered meal models, with different requirements for each. No specific dollar amounts or hours are standardized statewide.",
       "gotchas": [
-        "Not statewide—must confirm local provider and delivery zone first[1]",
-        "Home-delivered often requires proof of homebound status via doctor's note, unlike congregate meals[8]",
-        "Fees may apply as suggested donation, sliding scale, or free based on location/income ability (not eligibility barrier)[2]",
-        "Car ownership or ability to leave home easily may disqualify from home delivery[1]",
-        "Separate applications for congregate vs. home-delivered; spouses/dependents sometimes eligible[1]"
+        "No universal statewide program: Alaska Meals on Wheels is administered through multiple local providers and Area Agencies on Aging. There is no single state program, so eligibility criteria, services, and application processes vary significantly by region.[1][2][5][8]",
+        "Geographic service gaps: Not all areas of Alaska are covered. Seniors outside designated delivery zones must seek alternative programs.[1]",
+        "Income is not a barrier, but location is: Even low-income seniors may not qualify if they live outside a service area.[1]",
+        "Home-delivered meals require functional assessment: Unlike congregate meals, home-delivered meals typically require ADL/IADL scores demonstrating inability to travel to a meal site. Inclement weather may qualify individuals for occasional home delivery without these scores.[2]",
+        "No income limits means no means-tested disqualification: However, some programs may charge fees on a sliding scale based on ability to pay, though this does not affect eligibility.[1][5]",
+        "Waiting lists possible: Processing times vary, and some programs may have waiting lists, particularly in high-demand areas.[1]",
+        "Spouse and dependent eligibility varies: While some programs serve spouses and dependents, this is not universal across all Alaska providers.[2]"
       ],
-      "benefitType": "service",
+      "benefitType": "in_kind",
       "benefitVariesBy": "region",
-      "officialSource": "https://health.alaska.gov/ (Alaska DHSS for senior nutrition oversight); local providers via https://www.mealsonwheelsamerica.org/find-meals-and-services/[2][3]"
+      "officialSource": "Alaska Department of Health (health.alaska.gov); Meals on Wheels America (mealsonwheelsamerica.org); Local Area Agency on Aging"
     },
     {
       "name": "Alzheimer's Family Caregiver Support Program",
@@ -353,79 +281,196 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Dual structure: CSRCP (diagnosis-specific with financial tests) and NFCSP/FCSP (broader, no income test); locally administered by grantees in communities; no service caps on respite but priority-based allocation.",
+      "dataShapeNotes": "Split into CSRCP (Alzheimer's-specific with income/asset tests) and NFCSP (broader family caregiver support); local grantees/providers handle delivery with regional variations; no fixed dollar/hour caps on respite.",
       "gotchas": [
-        "Two main tracks: CSRCP (requires formal Alzheimer's/dementia diagnosis and financial eligibility with income/asset limits) vs. broader NFCSP/FCSP (no diagnosis or income test required for standard caregivers of 60+).",
-        "Spouses and legal guardians often ineligible as paid caregivers in related programs (e.g., ALI), but this program focuses on unpaid caregiver support.",
-        "Proof of diagnosis mandatory for CSRCP; families miss distinguishing between CSRCP and NFCSP.",
-        "Services no cap on respite, but limited supplemental services.",
-        "Grandparent/relative caregivers have specific age thresholds (55+ or 60+ depending on subcategory)."
+        "Two related programs: CSRCP (diagnosis + financial test required) vs. broader NFCSP (age-based, no diagnosis needed for general caregivers).[1]",
+        "Financial eligibility only for CSRCP; NFCSP has no income test mentioned.[1][3]",
+        "Proof of formal Alzheimer's/dementia diagnosis mandatory for CSRCP—people miss bringing physician documentation.[1]",
+        "Services local via grantees, so availability varies by region despite statewide admin.[3]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
-      "officialSource": "https://dhss.alaska.gov/dsds/Pages/hcb/hcb.aspx"
+      "officialSource": "http://dhss.alaska.gov/dsds/Pages/hcb/hcb.aspx"
     },
     {
-      "name": "Senior Benefits Program",
+      "name": "Senior Community Service Employment Program (SCSEP) / Mature Alaskans Seeking Skills Training (MASST)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Three-tiered monthly cash payments scaled by gross income brackets (tied to AK Federal Poverty Guidelines, household size); no asset test; funding-dependent amounts; statewide via DPA with annual adjustments.",
+      "dataShapeNotes": "This program's structure is defined by federal policy (Title V of the Older Americans Act) with state administration. The 48-month durational limit is a critical constraint that families must understand. Income eligibility is tied to federal poverty guidelines updated annually. The program emphasizes transition to unsubsidized employment rather than ongoing subsidized work. Specific application procedures, contact information, processing timelines, and regional office locations are not detailed in publicly available sources reviewed; families should contact the Alaska Department of Labor and Workforce Development or SERRC directly for current application details.",
       "gotchas": [
-        "Income limits and payment amounts change annually (April for limits, funding-based anytime); check current via DPA[1][4][5].",
-        "Gross income before deductions/taxes; many miss including all sources like Native corp payments[3].",
-        "Ineligible after 90 days in care facilities; must report changes (address, income, institutionalization)[1][3].",
-        "Higher income threshold than most benefits, assets ignored—property owners often qualify[1].",
-        "Processing delays beyond 30 days common[1].",
-        "Spouse must be 65+ for joint application[3]."
+        "48-month lifetime participation limit with no waivers or exceptions[2] — participants must transition to unsubsidized employment before this limit expires",
+        "Income limit is 125% of federal poverty level, which is relatively restrictive[3]",
+        "Program is part-time (average 20 hours/week), not full-time employment[1][3]",
+        "Participants must be actively seeking unsubsidized employment; the program is designed as a bridge, not permanent employment[3][6]",
+        "Placement is made with non-profits, governmental agencies, or Native organizations[1] — not private sector employers directly"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://labor.state.ak.us/ (Alaska Department of Labor and Workforce Development); https://serrc.org/masst/"
+    },
+    {
+      "name": "Alaska Legal Services Corporation (ALSC) Senior Legal Services",
+      "isNew": false,
+      "existingId": "alaska-legal-services-corporation-senior-legal-hotline",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2500",
+          "found": "$24,438",
+          "source": "https://www.alsc-law.org/elder-advocacy/"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $3,000/year",
+          "found": "Legal assistance and advice; representation in court and administrative hearings; referrals; community education and training via clinics and outreach. Specific areas: Income maintenance (Alaska Senior Assistance Program, Social Security, SSI, Adult Public Assistance, Food Stamps); housing (landlord/tenant, public housing, assisted living, nursing homes); health care (Medicaid, Medicare, Long-Term Care, PCA); advance directives (power of attorney, living wills, testamentary wills); consumer issues (debt collection, predatory lending, deceptive practices, utility cutoffs). No fixed dollar amounts or hours specified.",
+          "source": "https://www.alsc-law.org/elder-advocacy/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.alsc-law.org/elder-advocacy/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Assets are considered in eligibility screening (gross household assets requested in intake), based on federal poverty guidelines available upon request. Specific limits, countable assets, and exemptions not detailed publicly.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Priorities set by each office; contact nearest office for specifics. Services reach 147 communities statewide.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned; limited resources mean not all cases accepted.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Gross household income details",
+            "Asset information",
+            "Phone number or email for contact",
+            "Names of parties involved (for conflict check)",
+            "Details of legal issue(s)"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Seniors 60+ often income-disregarded with priority to need; office-specific priorities; no fixed asset details or wait times published; statewide but regionally prioritized cases",
+      "gotchas": [
+        "Not all applicants accepted due to limited resources and case priorities; no guarantee from intake",
+        "General ALSC exclusions: personal injury, accidents, wrongful death",
+        "Income/assets screened preliminarily but fully evaluated later; seniors prioritized but income may still factor",
+        "Conflicts of interest lead to referrals elsewhere",
+        "Check legal clinics first for quicker help"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.alsc-law.org/elder-advocacy/"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://akoltco.org"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Identify, investigate, and resolve complaints; provide information on long-term services and supports; represent interests before agencies; seek remedies; regular facility visits and monitoring; educate on resident rights; support family/resident councils; community outreach and training[3][4][6][7]",
+          "source": "https://akoltco.org"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://akoltco.org"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits; no financial eligibility requirements[7][6]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Volunteers provide services throughout state; statewide office with local volunteer support, no noted differences in services[1][7]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents needed; provide details of concern/complaint verbally or in writing[4][5]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income test; free advocacy service for complaints in LTC facilities or home residential issues for 60+; statewide with volunteers; not an entitlement program with applications or waitlists",
+      "gotchas": [
+        "Not a healthcare or financial benefits program—purely advocacy and complaint resolution; no eligibility barriers but must involve long-term care facility or home residential issues for 60+; families can contact on behalf of loved one; ombudsmen are confidential and independent[3][4][7]",
+        "Program resolves complaints, does not provide direct care or funding[6]",
+        "Authorized for at-home issues only related to 'residential circumstances' for 60+, not general home care[4][7]"
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://akoltco.org"
+    },
+    {
+      "name": "Alaska Senior Benefits Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Three-tiered payments scaled by gross income brackets and household size; no asset test; funding-dependent amounts; annual FPL-tied limit adjustments",
+      "gotchas": [
+        "Payment amounts not fixed; can be reduced based on state funding and applicant numbers (e.g., $250 tier cut to $76 historically)[5][6]",
+        "Gross income used (before taxes, Medicare premiums); limits change annually (April/July updates)[4][5][6]",
+        "Must report changes (address, income, absence 30+ days, institutionalization) or risk loss[4]",
+        "Spouse must be 65+ for joint application; no assets test but residency intent strictly enforced[3][4]",
+        "Cannot combine with certain tribal heating assistance[1]"
       ],
       "benefitType": "financial",
-      "benefitVariesBy": "household_size",
-      "officialSource": "https://dhss.alaska.gov/dpa/"
+      "benefitVariesBy": "household_size|priority_tier",
+      "officialSource": "https://dhss.alaska.gov/dpa/Pages/sbp/default.aspx"
     },
     {
-      "name": "Adult Public Assistance (APA)",
+      "name": "Adult Public Assistance (APA) Program",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Income/payment standards vary by household size, living situation (e.g., shelter help), and SSI countable rules; statewide but regional DPA offices; requires pursuing other benefits first; asset exemptions follow SSI with Alaska Native property nuance",
+      "dataShapeNotes": "Needs-based cash assistance (no fixed payment table); SSI-aligned disability/age rules; resource caps fixed by household type (individual/couple); local DPA offices handle intake statewide",
       "gotchas": [
-        "Must apply for all other benefits first (SSI, VA, etc.), even if denied[1]",
-        "Disability must meet specific criteria (not drug/alcohol caused, 12+ months)[1]",
-        "Income/resources calculated via SSI rules; some exclusions (SNAP, PFD) but Alaska Native property counted for cash (not Medicaid)[1][4][5]",
-        "Age 65+ with income < SSI standard must apply for SSI[8]",
-        "Initial denials common; prepare to appeal[3]"
+        "Most APA qualifiers also qualify for SSI; if 65+ with income below SSI standard, must apply for SSI first[1][7]",
+        "Disability must meet strict Social Security standards (not just any disability)[1][2]",
+        "Must pursue all other benefits first, or risk denial[3]",
+        "Automatic Medicaid, but separate apps may be needed for other DPA programs like SNAP[1][5]",
+        "Resources capped low ($2k individual/$3k couple); income test is needs-based, not fixed table[3]",
+        "Interview required; written application mandatory[3][4]"
       ],
       "benefitType": "financial",
-      "benefitVariesBy": "household_size",
-      "officialSource": "https://health.alaska.gov/en/services/adult-public-assistance-apa/[1]"
-    },
-    {
-      "name": "Senior Access Program",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Delivered via regional nonprofit intermediaries funded by AHFC; grant amounts vary by home tenure (own/rent/ALF) and region; income at 100% AMI by area/household size with auto-qualifiers; funding rounds via NOFA",
-      "gotchas": [
-        "Not statewide direct access—must go through local intermediary agency serving your area",
-        "Income limits are area median income (AMI), not fixed poverty levels; vary by household size and region—check current AHFC tables",
-        "Requires documented medical/professional need for modifications",
-        "Funding is grant-based with periodic Notices of Funding Availability; may have limited availability",
-        "Not cash or ongoing benefits—specific to one-time accessibility mods; property must be principal residence, no public housing",
-        "Waivers for income over limits possible with AHFC approval if justifiable need"
-      ],
-      "benefitType": "in_kind",
-      "benefitVariesBy": "region|tenure_type|provider",
-      "officialSource": "https://www.ahfc.us/pros/homelessness/assistance-grants/senior-access-program-sap"
+      "benefitVariesBy": "individual_needs",
+      "officialSource": "https://health.alaska.gov/dpa"
     }
   ]
 }

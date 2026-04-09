@@ -4,139 +4,56 @@
   "state": "OH",
   "stateName": "Ohio",
   "isRegion": false,
-  "exploredAt": "2026-04-09T08:57:30.763Z",
-  "programCount": 18,
+  "exploredAt": "2026-04-09T09:39:04.087Z",
+  "programCount": 6,
   "programs": [
     {
-      "name": "PASSPORT",
-      "what_it_does": "PASSPORT is Ohio's Medicaid home and community-based services waiver program that provides long-term care services to allow seniors and disabled individuals to remain in their homes rather than nursing facilities. It covers personal care, homemaker services, adult day care, and other supports to promote independence.[3]",
-      "who_its_for": "Ohio residents aged 60+ or disabled individuals assessed as needing nursing home level of care, meeting Medicaid financial eligibility.",
-      "official_url": "https://aging.ohio.gov/services/pasport",
-      "benefit_value": "Varies by assessed needs; annual waiver slots limited, covers services up to nursing home cost equivalent."
-    },
-    {
-      "name": "Ohio Medicaid",
-      "what_it_does": "Ohio Medicaid provides health coverage for low-income seniors and disabled, including long-term care for those 65+ or disabled. For seniors, it covers nursing home care, home health, and pairs with Medicare for dual eligibles.[1][3]",
-      "who_its_for": "Low-income Ohio seniors 65+, disabled adults meeting income/asset limits (e.g., under 300% SSI for aged/disabled).",
-      "official_url": "https://medicaid.ohio.gov",
-      "benefit_value": "Full health coverage; no premium for qualified, copays minimal."
-    },
-    {
-      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
-      "what_it_does": "PACE provides comprehensive medical and social services to frail seniors in community settings, including adult day health, transportation, and home care to avoid nursing homes. In Ohio, administered via select providers under Medicaid/Medicare.[3]",
-      "who_its_for": "Ohio seniors 55+ certified for nursing home level care, able to live safely in community, Medicaid eligible.",
-      "official_url": "https://medicaid.ohio.gov/resources-for-providers/ltc-providers/program-of-all-inclusive-care-for-the-elderly-pace",
-      "benefit_value": "All-inclusive capitation; covers all Medicare/Medicaid services plus extras, premium ~$0 for qualified."
-    },
-    {
-      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
-      "what_it_does": "These programs pay Medicare premiums, deductibles, and copays for low-income beneficiaries; QMB covers Part A/B full, SLMB/QI cover Part B. In Ohio, called Medicare Savings Program via Medicaid.[5]",
-      "who_its_for": "Low-income Ohio Medicare beneficiaries; QMB ≤100% FPL, SLMB 100-120%, QI 120-135% FPL (2026 figures approx. $1,255-$1,690/mo single).",
-      "official_url": "https://medicaid.ohio.gov/resources-for-members/additional-resources/medicare-premium-payment-program",
-      "benefit_value": "QMB: $174.70 Part B + deductibles/copays; SLMB/QI: Part B premium only ($174.70/mo 2024)."
-    },
-    {
-      "name": "Ohio SNAP (Supplemental Nutrition Assistance Program)",
-      "what_it_does": "Provides monthly EBT card for food purchases to low-income households. Ohio administers federally via county DJFS.[4]",
-      "who_its_for": "Low-income Ohio seniors 60+ with income ≤200% FPL (higher deductions for elderly), assets limited.",
-      "official_url": "https://jfs.ohio.gov/food",
-      "benefit_value": "Avg $200-300/mo per senior household; max $291 single (2026 adjusted)."
-    },
-    {
-      "name": "Home Energy Assistance Program (HEAP)",
-      "what_it_does": "HEAP provides grants to pay heating bills and crisis assistance for shut-off prevention. Ohio winter program federally funded.[4]",
-      "who_its_for": "Low-income Ohio households ≤175% FPL, priority seniors/disabled on SSI/Medicaid.",
-      "official_url": "https://jfs.ohio.gov/heat",
-      "benefit_value": "Avg $400-700 annual benefit per household; crisis up to $1,000."
-    },
-    {
-      "name": "Weatherization Assistance Program (WAP)",
-      "what_it_does": "WAP funds home energy efficiency upgrades like insulation, sealing, furnace repair for low-income homes. Ohio DOE-administered federally.[3]",
-      "who_its_for": "Low-income Ohio households ≤200% FPL, priority seniors 60+, disabled.",
-      "official_url": "https://development.ohio.gov/community/weatherization",
-      "benefit_value": "Free services avg $6,500 value per home in upgrades."
-    },
-    {
-      "name": "Ohio Senior Health Insurance Information Program (OSHIIP/SHIP)",
-      "what_it_does": "Provides free counseling on Medicare, supplements, savings programs, and appeals. Ohio's SHIP via Dept of Insurance/ODA.[5]",
-      "who_its_for": "All Ohio Medicare beneficiaries 65+, caregivers; no income limit.",
-      "official_url": "https://insurance.ohio.gov/consumers/oshiiip",
-      "benefit_value": "Free one-on-one counseling; saves avg $500+/yr via plan optimization."
-    },
-    {
-      "name": "Meals on Wheels (Home-Delivered Meals)",
-      "what_it_does": "Delivers nutritious meals to homebound seniors via OAA funding through local agencies. Ohio ODA oversees Area Agencies on Aging providers.[3]",
-      "who_its_for": "Homebound Ohio seniors 60+ unable to prepare meals, assessed need.",
-      "official_url": "https://aging.ohio.gov/services/nutrition",
-      "benefit_value": "5-14 meals/week suggested donation $3-5; funded ~$8/meal."
-    },
-    {
-      "name": "National Family Caregiver Support Program (NFCSP)",
-      "what_it_does": "Offers respite care, training, counseling for caregivers of seniors. Ohio via ODA/Area Agencies.[3]",
-      "who_its_for": "Unpaid family caregivers of Ohioans 60+ or 55+ special needs.",
-      "official_url": "https://aging.ohio.gov/services/caregiver",
-      "benefit_value": "Respite up to $32/hr or vouchers; varies by agency funding."
-    },
-    {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "what_it_does": "Provides part-time paid training/work at min wage in community nonprofits for low-income seniors. Ohio via AARP/Experience Works etc.[3]",
-      "who_its_for": "Unemployed low-income Ohioans 55+ , income ≤125% FPL.",
-      "official_url": "https://www.experienceworks.org",
-      "benefit_value": "20 hrs/wk at $7.25-$15/hr, leads to unsubsidized jobs."
-    },
-    {
-      "name": "Legal Assistance Developer Program (LADP)",
-      "what_it_does": "Funds legal aid for low-income seniors on elder rights, benefits, abuse via OAA. Ohio ODA coordinates Area Agencies.[3]",
-      "who_its_for": "Low-income Ohio seniors 60+ needing civil legal help.",
-      "official_url": "https://aging.ohio.gov/services/legal",
-      "benefit_value": "Free legal services; statewide network."
-    },
-    {
-      "name": "Long-Term Care Ombudsman Program",
-      "what_it_dos": "Advocates for residents in nursing homes, assisted living; investigates complaints, ensures rights. Ohio via ODA/Regional Ombudsmen.[3]",
-      "who_its_for": "Residents/family in Ohio long-term care facilities.",
-      "official_url": "https://aging.ohio.gov/services/ombudsman",
-      "benefit_value": "Free advocacy; resolves 80%+ complaints."
-    },
-    {
       "name": "Golden Buckeye Program",
-      "what_it_does": "The Golden Buckeye Program connects older Ohio residents with businesses offering discounts, waived fees, free products, and more to help save money. Ohio residents are automatically enrolled at age 60 and receive a card in the mail.[1]",
-      "who_its_for": "Ohio residents aged 60 and older, or those aged 18-59 with a disability.[1]",
-      "whats_unique": "Automatic enrollment at 60 with a state-issued card providing statewide discounts not available as a universal federal program.[1]",
-      "official_url": "https://benefitscheckup.org/program/discount_oh_golden_buckeye",
-      "benefit_value": "Discounts, waived fees, and free products from participating businesses; value varies by usage."
+      "what_it_does": "The Golden Buckeye Program connects Ohio residents with businesses offering discounts, waived fees, free products, and services. Ohio residents are automatically enrolled at age 60 and receive a card in the mail.[1][2]",
+      "who_its_for": "Ohio residents aged 60+ or aged 18-59 with a disability.[1][2]",
+      "whats_unique": "State-run discount card program automatically enrolling all Ohio seniors at 60, linking them to local business perks not available nationwide.[1][2]",
+      "official_url": "https://aging.ohio.gov/about-us/learn-about-golden-buckeye",
+      "benefit_value": "Discounts, waived fees, free products/services from participating businesses; value varies by usage."
     },
     {
       "name": "Healthy Aging Grants",
-      "what_it_does": "This program provides $40 million in grants to 85 Ohio counties to support local aging services helping adults 60+ stay healthy, live longer, and maintain independence. Funds bolster food/housing assistance, internet access, and digital literacy.[2][7]",
-      "who_its_for": "Ohioans aged 60 and older, distributed through county programs.[2]",
-      "whats_unique": "State-funded initiative established via Ohio's 2023 budget (House Bill 33), offering flexible local grants with base $100,000 per county plus extras based on non-Medicaid seniors 60+.[2]",
+      "what_it_does": "Provides $40 million in state funding to 85 Ohio counties for local aging services like food, housing assistance, and internet access. Counties receive a base $100,000 plus more based on non-Medicaid seniors 60+.[3][8]",
+      "who_its_for": "Ohioans aged 60+ via county programs; targets healthy aging and independence.[3]",
+      "whats_unique": "Ohio-specific $40M state grant initiative (launched 2023 via Gov. DeWine's budget) flexibly funding local priorities beyond federal programs.[3][8]",
       "official_url": "https://aging.ohio.gov",
-      "benefit_value": "$40 million total statewide; counties get $100,000 base + additional based on senior population."
+      "benefit_value": "$40M total statewide; per county $100K base + population-based supplement."
     },
     {
       "name": "Senior Citizen Tax Credit",
-      "what_it_does": "This provides a tax credit on Ohio income tax for qualifying retirement and pension income. The maximum benefit is capped at $200 for eligible seniors.[3]",
-      "who_its_for": "Ohio residents aged 65+ with modified adjusted gross income below $100,000.[3]",
-      "whats_unique": "Ohio-specific state income tax credit targeting senior retirement/pension income, beyond federal standards.[3]",
+      "what_it_does": "Offers an income tax credit on retirement and pension income for qualifying seniors. Maximum benefit is $200 with income limits.[4]",
+      "who_its_for": "Ohio residents aged 65+ with modified AGI under $100,000.[4]",
+      "whats_unique": "Ohio state income tax credit specifically for senior retirement/pension income, distinct from federal taxes.[4]",
       "official_url": "https://seniorsite.org/resource/benefits-for-seniors-comprehensive-guide-to-ohios-programs/",
       "benefit_value": "Up to $200 tax credit."
     },
     {
+      "name": "Elderly Services Program (ESP)",
+      "what_it_does": "Delivers in-home services like personal care, housekeeping, meals, and transportation to promote independence. Funded by county tax levies to prevent nursing home placement.[5]",
+      "who_its_for": "Residents 60+ (or 65+ in some counties) needing ADL/IADL help, ineligible for Medicaid/Medicare/insurance.[5]",
+      "whats_unique": "County tax levy-funded home care in southwest Ohio (Butler, Clinton, Hamilton, Warren), expanding family care beyond federal waivers.[5]",
+      "official_url": "https://www.help4seniors.org/programs-services/get-help-in-home/elderly-services-program/",
+      "benefit_value": "In-home services including personal care, meals, transport; value based on assessed needs."
+    },
+    {
       "name": "Home Repair Program",
-      "what_it_does": "This state-funded program offers minor home repairs and modifications for eligible older adults. It supports safe aging in place through the Ohio Department of Aging.[5]",
-      "who_its_for": "Ohio adults aged 60+ meeting eligibility criteria.[5]",
-      "whats_unique": "Ohio Department of Aging-funded initiative for home modifications, not a standard federal offering.[5]",
+      "what_it_does": "State-funded initiative for minor home repairs and accessibility modifications. Helps older adults maintain safe housing.[6]",
+      "who_its_for": "Eligible Ohio adults aged 60+.[6]",
+      "whats_unique": "Ohio Department of Aging-funded program specifically for senior home repairs/modifications, not universally available across states.[6]",
       "official_url": "https://areaofficeonaging.com/programs",
-      "benefit_value": "Minor repairs and accessibility modifications; specific value depends on approval."
+      "benefit_value": "Minor repairs and modifications; specific amounts vary by need."
     },
     {
       "name": "Franklin County Senior Services Levy Programs (Senior Options)",
-      "what_it_does": "Senior Options connects Franklin County seniors to services like adult day care, respite care, case management, meals, and homemaker services to maintain independence. It serves as a one-stop access point funded by a local property tax levy.[6]",
-      "who_its_for": "Franklin County, Ohio residents aged 60+.[6]",
-      "whats_unique": "Funded by Franklin County's Senior Services Levy (voter-approved since 1992), providing county-specific property tax-supported senior options beyond federal programs.[6]",
+      "what_it_does": "Funds services like adult day care, respite, case management, meals, homemaker help via property tax levy. Serves as one-stop access for independence.[7]",
+      "who_its_for": "Franklin County residents aged 60+ with functional impairments.[7]",
+      "whats_unique": "County-specific property tax levy (since 1992) funding comprehensive senior options, unique to local voter-approved structure.[7]",
       "official_url": "https://www.franklincountyohio.gov/Resident-Services/Seniors/Senior-Options-Programs",
-      "benefit_value": "Access to multiple services (meals, care, transport); value varies by enrollment."
+      "benefit_value": "Varied services (day care, meals, respite); funded by ongoing county levy."
     }
   ]
 }

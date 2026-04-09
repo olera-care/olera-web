@@ -1,18 +1,41 @@
 {
   "state": "KY",
   "stateName": "Kentucky",
-  "comparedAt": "2026-04-09T08:52:12.638Z",
+  "comparedAt": "2026-04-09T09:33:08.645Z",
   "total": 2,
-  "newPrograms": 2,
-  "withDiffs": 0,
-  "withNovelFields": 0,
+  "newPrograms": 1,
+  "withDiffs": 1,
+  "withNovelFields": 1,
   "benefitTypes": {
     "service": 2
   },
   "variationPatterns": {
-    "not_applicable": 2
+    "region": 1,
+    "not_applicable": 1
   },
-  "novelFieldSummary": {},
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 1,
+      "programs": [
+        "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 1,
+      "programs": [
+        "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "documents_required": {
+      "count": 1,
+      "programs": [
+        "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    }
+  },
   "comparisons": [
     {
       "name": "Senior CommUnity Care of Kentucky (PACE)",
@@ -22,37 +45,66 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "County-restricted to provider service areas (not statewide); no direct income/asset test for enrollment (Medicaid separate); requires state nursing home certification; multiple regional PACE providers in KY with own contacts",
+      "dataShapeNotes": "County-restricted to Jefferson and Northern KY counties only; two regional providers with separate contacts; no income/asset dollar limits specified; fees for non-dually eligible; nursing home level of care certification required",
       "gotchas": [
-        "Must live in specific PACE provider's service area; not statewide—confirm counties with provider[1][2][6]",
-        "Nursing home level of care certification required by KY (not automatic; assessed)[1][3][4]",
-        "Private pay option if no Medicaid (covers Medicaid's premium share; costs vary)[3][6]",
-        "Cannot be in Medicare Advantage, hospice, or certain other programs[5]",
-        "Voluntary; can dis-enroll anytime via social worker[1]"
+        "Not statewide—only specific counties; confirm residence[1][2][5]",
+        "Medicare-only or private pay participants face fees/restrictions, not 100% covered like dually eligible[3]",
+        "All non-emergency care must go through PACE providers to be covered[3]",
+        "Enrollment makes PACE the sole source of services—no duplication with other programs[5]",
+        "Must be able to live safely in community at enrollment time, despite nursing home level needs[1][2][3]"
       ],
       "benefitType": "service",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "https://chfs.ky.gov/agencies/dail/Pages/pace.aspx[4]"
+      "benefitVariesBy": "region",
+      "officialSource": "https://chfs.ky.gov/agencies/dail/Pages/pace.aspx"
     },
     {
-      "name": "Senior CommUnity Care of Northern Kentucky (PACE)",
-      "isNew": true,
-      "existingId": null,
+      "name": "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)",
+      "isNew": false,
+      "existingId": "national-family-caregiver-support-program-nfcsp",
       "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Restricted to Northern Kentucky service area with one main center; no fixed income/asset dollar tables (tied to Medicaid); comprehensive in-kind services via interdisciplinary team, no tiers or hours specified",
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "Wide range of services including matching with support groups, information about resources, assistance accessing services, counseling, and training. Eligible participants may receive a grant or voucher per grandchild per fiscal year for clothing, respite, school supplies, educational needs, required legal services, medical/dental services, and other approved expenses (specific dollar amounts not stated).[6][9]",
+          "source": "https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered through local Area Agencies on Aging and Independent Living (e.g., Pennyrile[1], KIPDA region: Jefferson, Oldham, Henry, Trimble, Spencer, Shelby, Hardin[2]). Variations in local providers and potentially services/wait times.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of relationship, residency, household income, grandchild's age, confirmation parents do not live in home, and no Kinship Care (inferred; not explicitly listed)."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Administered statewide via local Area Agencies on Aging; financial aid requires 150% FPL income test and no Kinship Care overlap; benefits include non-cash services plus discretionary grants/vouchers per fiscal year.",
       "gotchas": [
-        "Must follow custom care plan; liable for unauthorized/out-of-program services (except emergencies)[1]",
-        "Enrollment voluntary; can dis-enroll anytime via social worker[1]",
-        "Paid by Medicare/Medicaid or private premium if over Medicaid limits—staff handles claims but confirm personal liability[1][3]",
-        "Service area restricted to Northern Kentucky; not statewide[1][6]",
-        "Requires nursing home level of care certification but ability to live safely in community with services[2][3]"
+        "Cannot receive benefits if already getting Kinship Care payments ('double dip' rule); evaluate which program is better.[1][4][6]",
+        "Parents cannot reside in the household, even if not primary caregivers.[1][6][9]",
+        "Income limit (150% FPL) applies strictly to financial assistance; services like support groups may be more accessible.[1][4][6]",
+        "Adopted grandparents may still qualify under certain conditions.[7]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "not_applicable",
-      "officialSource": "https://www.seniorcommunitycarenky.org[1][3]"
+      "officialSource": "https://chfs.ky.gov/agencies/dail/Pages/caregiversupport.aspx"
     }
   ]
 }

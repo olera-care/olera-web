@@ -1,7 +1,7 @@
 # Oregon Benefits Exploration Report
 
 > Generated 2026-04-09 by benefits-pipeline.js
-> Cost: $0.075 (15 calls, 1.4m)
+> Cost: $0.090 (18 calls, 1.6m)
 
 ---
 
@@ -9,9 +9,9 @@
 
 | Metric | Value |
 |--------|-------|
-| Programs discovered | 13 |
-| Programs deep-dived | 12 |
-| New (not in our data) | 11 |
+| Programs discovered | 16 |
+| Programs deep-dived | 15 |
+| New (not in our data) | 14 |
 | Data discrepancies | 1 |
 | Fields our model can't capture | 1 |
 
@@ -28,10 +28,9 @@ These data fields appeared across programs but don't exist in our current model:
 
 ## Program Types
 
-- **service**: 5 programs
-- **in_kind**: 1 programs
-- **financial**: 3 programs
-- **service|advocacy|support**: 1 programs
+- **service**: 9 programs
+- **financial**: 2 programs
+- **in_kind**: 2 programs
 - **employment**: 1 programs
 - **advocacy**: 1 programs
 
@@ -39,35 +38,41 @@ These data fields appeared across programs but don't exist in our current model:
 
 Our data differs from what official sources say:
 
-### Family Caregiver Support Program (FCSP)
+### National Family Caregiver Support Program (NFCSP)
 
-- **benefit_value**: Ours says `$2,000 – $8,000/year` → Source says `Specific services not detailed in search results. Program described as helping caregivers 'support their loved ones and themselves' and taking 'burdens off unpaid caregivers,' but actual service offerings (respite care, counseling, support groups, training, etc.) are not enumerated in provided documentation.` ([source](https://www.oregon.gov/odhs/providers-partners/community-services-supports/pages/family-caregiver-program.aspx))
-- **source_url**: Ours says `MISSING` → Source says `https://www.oregon.gov/odhs/providers-partners/community-services-supports/pages/family-caregiver-program.aspx`
+- **benefit_value**: Ours says `$2,000 – $8,000/year` → Source says `Information and assistance; individual counseling, support groups, caregiver training; respite care; supplemental services on limited basis. Regional examples: annual respite grants $500-$1,000; case management; caregiver events[1][2][3][7][8]. No fixed hours or statewide dollar caps specified.` ([source](https://www.oregon.gov/odhs/aging-disability-services/pages/caregivers.aspx))
+- **source_url**: Ours says `MISSING` → Source says `https://www.oregon.gov/odhs/aging-disability-services/pages/caregivers.aspx`
 
 ## New Programs (Not in Our Data)
 
 - **Oregon Health Plan (OHP)** — service ([source](https://www.oregon.gov/oha/hsd/ohp/pages/apply.aspx))
-  - Shape notes: Dual structure: MAGI for most (no assets, FPL-based scaling by household size) vs. ABD/OSIPM for elderly/disabled (FBR income, $2,000 assets, level-of-care test); benefits via regional CCOs; long-term care focus for seniors with specific exemptions
-- **OPI-M (Medicaid-funded)** — service ([source](https://www.oregon.gov/odhs/providers-partners/seniors-disabilities/Documents/opi-m-application.pdf (application); OAR 411-014-0020 (rules)))
-  - Shape notes: Income/assets higher than standard Medicaid LTSS; continuous 24-month eligibility; caregiver supports included; priority levels 1-18 determine services; local APD administration with statewide rules
-- **Program of All-Inclusive Care for the Elderly (PACE)** — in_kind ([source](https://www.oregon.gov/odhs/providers-partners/seniors-disabilities/Documents/pace-fact-sheet.pdf and https://secure.sos.state.or.us/oard/viewSingleRule.action?ruleVrsnRsn=89486))
-  - Shape notes: PACE is a fixed-benefit, all-inclusive program with no tiered benefits or sliding scales. Eligibility is binary (meets all requirements or does not). The program's key structural feature is that it combines insurance (coverage) with direct service provision, making it both a payer and a provider. No income or asset limits exist for PACE enrollment itself, but Medicaid-funded participants must meet Medicaid's income and asset limits. Geographic availability is highly restricted to specific service areas, and rural access is limited. Critical gaps in provided search results: specific application contact information, processing timelines, required documentation, current wait times, and detailed regional provider information are not available.
-- **Medicare Savings Programs (MSP)** — financial ([source](https://www.oregon.gov/odhs/aging-disability-services/pages/medicare-savings-programs.aspx))
-  - Shape notes: Tiered by income (QMB <100% FPL, SLMB 100-120%, QI/SMF 120-135% FPL) with no asset test; benefits scale by tier (QMB fullest, others Part B only); QI/SMF slot-limited; statewide uniform rules but local admin; annual FPL adjustments.
-- **SNAP Food Benefits** — financial ([source](https://www.oregon.gov/odhs/food/pages/snap.aspx))
-  - Shape notes: Elderly 60+ exempt gross income test, medical/shelter deductions boost benefits; varies by household size and elderly/disabled status; regional cash/direct deposit for specific counties
-- **Low Income Home Energy Assistance Program (LIHEAP) / Oregon Energy Assistance Program (OEAP)** — financial ([source](https://www.oregon.gov/ohcs/energy-weatherization/))
-  - Shape notes: This program's data structure is complex due to regional administration through local Community Action Agencies. Income limits scale by household size with specific dollar thresholds. Benefits are fixed maximum amounts ($750 for regular heating/cooling, $750 for crisis) but calculated based on household characteristics. No statewide online application portal exists; families must contact their local agency. Waitlist availability and processing times vary significantly by region and funding year. The program includes multiple components (regular LIHEAP, crisis LIHEAP, weatherization) with potentially different eligibility or application processes. Household composition for LIHEAP purposes differs from other benefit programs, creating potential confusion for families applying to multiple programs.
-- **Weatherization Assistance Program** — service ([source](https://www.oregon.gov/ohcs/energy-weatherization/Pages/default.aspx))
-  - Shape notes: Administered statewide by OHCS via local subgrantees/CAAs with county-specific contacts; priority-based with waitlists; income fixed at 200% FPL, benefits via energy audit.
+  - Shape notes: benefits scale by household size and tier (OHP Plus/Bridge/OSIPM); income uses FPL or FBR; long-term care for elderly via OSIPM with asset tests and spend-down; statewide but local ODHS/ADRC handling
+- **APD Medicaid Long Term Services and Supports** — service ([source](https://www.oregon.gov/odhs/providers-partners/seniors-disabilities/pages/waivers-kplan.aspx))
+  - Shape notes: Waiver-based with priority tiers (SPL 1-13); waitlisted and area-dependent; NFLOC via CAPS assessment; separate from entitlement ABD Medicaid.
+- **Program of All-Inclusive Care for the Elderly (PACE)** — service ([source](https://www.oregon.gov/odhs/providers-partners/seniors-disabilities/Documents/pace-fact-sheet.pdf))
+  - Shape notes: county-restricted to PACE service areas with multiple providers; no financial eligibility test; NFLOC via Oregon SPL 1-13; private pay option
+- **Medicare Savings Programs (MSP) via OHP** — financial ([source](https://www.oregon.gov/odhs/aging-disability-services/pages/medicare-savings-programs.aspx))
+  - Shape notes: MSP is a three-tier program with escalating income thresholds and different benefit levels. The program is statewide but has enrollment caps on the SMF tier. Income limits are tied to federal poverty levels and adjust annually. Unlike some states, Oregon eliminated resource limits for QMB programs. The program requires Medicare Part A enrollment and excludes those eligible for other Medicaid benefits (for SMF tier). Processing timelines and specific regional office locations are not detailed in available sources.
+- **SNAP Food Benefits** — in_kind ([source](https://www.oregon.gov/odhs/food/pages/snap.aspx))
+  - Shape notes: Benefits scale by household size and net income. Program has special rules for elderly (60+) and disabled members that provide alternative pathways to qualification and increased benefit amounts. Work requirements for able-bodied adults without dependents create regional variation in eligibility enforcement. Oregon's expanded eligibility goes beyond federal minimums. Medical cost deductions are unique feature for elderly/disabled households. Regional variation exists for benefit delivery method (EBT card vs. check vs. direct deposit) and cash benefit option in specific counties.
+- **Low Income Home Energy Assistance Program (LIHEAP) / Oregon Energy Assistance Program (OEAP)** — financial ([source](https://www.oregon.gov/ohcs/energy-weatherization/pages/utility-bill-payment-assistance.aspx))
+  - Shape notes: Income table scales by household size at 60% SMI; priority tiers for elderly/disabled; administered via ~20 county Community Action Agencies with slight policy variations; no statewide fixed grant amount
+- **Weatherization Assistance Program (WAP)** — service ([source](https://www.oregon.gov/ohcs/energy-weatherization/Pages/default.aspx))
+  - Shape notes: Administered by county-specific subgrantees with varying contacts; priority tiers affect service timing; income fixed at 200% FPL with no asset test; services vary by audit results
 - **Senior Health Insurance Benefits Assistance (SHIBA)** — service ([source](https://shiba.oregon.gov))
-  - Shape notes: no income or asset test; volunteer-delivered statewide counseling network with local access points; services fixed and free for all Medicare enrollees
-- **Meals on Wheels** — service ([source](https://www.oregon.gov/odhs/aging-disability-services/pages/meals-nutrition.aspx[7]; Medicaid standards: https://www.oregon.gov/odhs/providers-partners/seniors-disabilities/Documents/medicaid-home-delivered-meals-standards-and-responsibilities.pdf[3]))
-  - Shape notes: Decentralized by local providers/regions with no uniform income/asset tests; Medicaid HDM ties to case management assessments; mixes OAA (need-based) and Medicaid (authorized service) streams
+  - Shape notes: no income or asset test; volunteer-based counseling service scaled statewide via local sites with no fixed benefits value
+- **Meals on Wheels (via Area Agencies on Aging)** — service ([source](https://www.oregon.gov/odhs/aging-disability-services/pages/meals-nutrition.aspx))
+  - Shape notes: Decentralized via 20+ local Area Agencies on Aging; eligibility/assessments vary by region/provider; no uniform income table or statewide processing times; Medicaid path separate from OAA-funded
 - **Senior Community Service Employment Program (SCSEP)** — employment ([source](https://www.oregon.gov/odhs/providers-partners/community-services-supports/pages/senior-employment.aspx))
-  - Shape notes: Federally standardized (DOL/OAA) but locally grantee-run (Easter Seals Oregon); income at 125% FPL (annual federal update); priority enrollment tiers; no asset limits or household-size dollar tables in state sources—requires cross-referencing HHS poverty guidelines.
-- **Long-term Care Ombudsman Program** — advocacy ([source](https://www.oltco.org/programs/ltco-about-us.html))
-  - Shape notes: no income test; advocacy-only for facility residents; relies on volunteer network; free and statewide with no waitlist or financial eligibility
+  - Shape notes: SCSEP is a federally authorized program with state and non-profit administration. Oregon's program is administered by Easter Seals Oregon as the primary grantee. Income eligibility is pegged to federal poverty guidelines (updated annually), creating variable dollar thresholds. The program emphasizes transitional employment with priority enrollment tiers rather than universal access. Critical gaps in publicly available data: specific current income thresholds by household size, asset limits, processing timelines, required documentation, and regional service variations within Oregon.
+- **Long-Term Care Ombudsman Program** — advocacy ([source](oltco.org[8] and Oregon Secretary of State (sos.oregon.gov)[2]))
+  - Shape notes: This program has two distinct user groups: (1) residents/families/public seeking complaint resolution and advocacy (free service), and (2) community members volunteering as certified ombudsmen (16 hrs/month commitment). The search results contain no income limits, asset limits, or eligibility barriers for accessing services — the program is universally available to anyone with a concern about a long-term care resident. The volunteer role has specific qualifications but is not what families typically seek.
+- **Senior Guardianship Assistance Program (Senior GAP)** — service ([source](https://www.oltco.org/programs/opg-about-us.html (Oregon Public Guardian, related state program); program-specific at https://impactnw.org/programs/seniors/guardianship-assistance-2/[1][7]))
+  - Shape notes: County-restricted private fee-for-service via nonprofits like Impact NW; distinct from state OPG (capacity-limited for incapacitated adults) and child GAP (Title IV-E foster care subsidies); no income/asset tests, vulnerability-driven with court involvement.
+- **Oregon Senior Tuition Waiver (OSU/UO Audit Program)** — in_kind ([source](https://www.oregonlegislature.gov/bills_laws/ors/ors352.html (ORS 352.303 for universities); https://www.oregonlegislature.gov/bills_laws/ors/ors341.html (ORS 341.518 for community colleges)))
+  - Shape notes: Statewide but institution-administered; audit-only (no credit); no financial tests; space/instructor gatekept; age 65+ per statute (some colleges 60+)
+- **Health Related Social Needs Benefits (HSRSN)** — service ([source](https://www.oregon.gov/oha/hsd/medicaid-policy/pages/hrsn.aspx[1]))
+  - Shape notes: OHP/Medicaid-exclusive; eligibility ties specific life transitions to clinical risks per service; housing income at 30% local AMI; CCO-administered with regional processing variations; no age minimum but includes elderly (65+) as clinical factor.
 
 ## Program Details
 
@@ -77,72 +82,68 @@ Our data differs from what official sources say:
 
 **Eligibility:**
 - Age: 65+
-- Income: For elderly (65+) applying for long-term care via OSIPM (Oregon Supplemental Income Program-Medical): Single applicant income under $2,982/month in 2026. Couples: $1,450/month based on Federal Benefit Rate (FBR) for ABD category in 2025, subject to updates. General OHP Plus for adults 19-64: up to 138% FPL (~$1,800/month for household of 1; $2,674 for OHP Bridge up to 200% FPL). Limits vary by household size, program (OHP Plus, Bridge), and category (MAGI vs. ABD). Full table example from CareOregon for adults: Household 1 - OHP Plus $1,800/mo, Bridge $2,674/mo[6][4][3]. Nursing home applicants must meet Nursing Home Level of Care.
-- Assets: For elderly long-term care (OSIPM): $2,000 for single applicants. Counts: most financial assets. Exempt: primary home (if intent to return), one vehicle, personal belongings, burial plots, life insurance up to $1,500 face value. Spousal protections apply for couples[4].
+- Income: For elderly (65+), eligibility is primarily through OSIPM (Oregon Supplemental Income Program-Medical), part of OHP for long-term care. Income limits for Aged, Blind, and Disabled (ABD) category in 2025: $967/month for an individual, $1,450/month for a couple (based on Federal Benefit Rate). General OHP Plus for adults 19-64 is up to 133% FPL (~$1,507/month single, $3,076 family of 4; updated annually). OHP Bridge for adults 19-65: 139-200% FPL (e.g., single: up to ~$2,674/month). Limits vary by household size and program; full table example from CareOregon (approximate monthly, subject to annual FPL updates): Family of 1 - OHP Plus $1,800, Bridge $2,674; Family of 2 - higher accordingly. Elderly long-term care has specific thresholds; apply to confirm.[3][4][5]
+- Assets: OSIPM for elderly long-term care has asset limits (not detailed in exact dollar amounts here, but typically Medicaid-standard ~$2,000 individual/$3,000 couple excluding home, one car, personal items, burial plots). Ways to qualify if over limits via spend-down or exemptions. What counts: cash, bank accounts, investments; exempt: primary home (if intent to return), one vehicle, household goods.[3]
 - Oregon resident
-- U.S. citizen or qualified immigrant (as of July 2023, any immigration status may qualify for full benefits)
-- For long-term care: Nursing Home Level of Care or equivalent need for services like assisted living, adult foster care, or home-based care
-- Blind, disabled, or aged 65+
-- Not eligible if receiving Medicare without specific dual coverage rules
+- U.S. citizen or eligible immigration status (as of July 2023, some benefits regardless of status)
+- For long-term care: need for nursing home (30+ days), assisted living, adult foster care, or home-based services; meet disability/blind criteria if applicable
+- Not eligible if access to affordable insurance (for Bridge)
+- Verification of income/resources required post-application[1][3][6]
 
-**Benefits:** Comprehensive no-cost coverage: medical, dental, prescription drugs, behavioral health, long-term care services (nursing home, assisted living, adult foster care, home-based non-medical support for frail seniors). Nursing home residents keep ~$77/month personal needs allowance ($90 with VA pension). Varies by coordinated care organization (CCO)[5][7][4].
+**Benefits:** Comprehensive no-cost coverage: medical, dental, prescription drugs, behavioral health. For elderly/long-term care via OSIPM: nursing home care, assisted living, adult foster care, home health/non-medical support services to stay at home. Nursing home residents keep ~$77/month personal needs allowance ($90 with VA pension). Covers frail seniors' needs.[3][4][6]
 - Varies by: priority_tier
 
 **How to apply:**
 - Online: ONE.Oregon.gov or Benefits.Oregon.gov
 - Phone: 1-800-699-9075 (ONE Customer Service); for older adults/disabilities: 1-855-ORE-ADRC (855-673-2372)
-- Mail: OHP Customer Service, P.O. Box (specific address via phone)
+- Mail: OHP Customer Service, P.O. Box (details on site)
 - In-person: Local Oregon Department of Human Services (ODHS) office or Aging and Disability Resource Connection (ADRC)
 
-**Timeline:** Not specified in sources; apply anytime year-round
+**Timeline:** Not specified in sources; apply anytime, eligibility determined after submission.
 
 **Watch out for:**
-- Separate rules for elderly/long-term care (OSIPM/ABD) vs. general OHP Plus (MAGI-based); asset limits apply strictly to long-term care, not general OHP; must prove 'Nursing Home Level of Care' for facility/home services; OHP Bridge (up to 200% FPL) starts July 2024 for adults; dual Medicare-Medicaid has limited drug coverage; income calculated as current/next/annual depending on program[3][4][10]; spend-down or spousal protections needed if over limits
+- Multiple OHP tiers (Plus, Bridge, OSIPM for elderly LTC) with different limits—elderly often need OSIPM, not standard Plus; ABD has stricter FBR-based limits vs. FPL; asset tests apply for LTC, not always for general OHP; income calculated current/next/annual depending on program; Medicare dual-eligibility affects drug coverage (OHP Limited Drug); spend-down options if over limits; FPL updates annually—2026 guide referenced but limits shown through 2025; apply even if over limits as exemptions/strategies exist[1][3][4][9]
 
-**Data shape:** Dual structure: MAGI for most (no assets, FPL-based scaling by household size) vs. ABD/OSIPM for elderly/disabled (FBR income, $2,000 assets, level-of-care test); benefits via regional CCOs; long-term care focus for seniors with specific exemptions
+**Data shape:** benefits scale by household size and tier (OHP Plus/Bridge/OSIPM); income uses FPL or FBR; long-term care for elderly via OSIPM with asset tests and spend-down; statewide but local ODHS/ADRC handling
 
 **Source:** https://www.oregon.gov/oha/hsd/ohp/pages/apply.aspx
 
 ---
 
-### OPI-M (Medicaid-funded)
+### APD Medicaid Long Term Services and Supports
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Age: 18 or older (60+ or 18-59 with physical disability; exclusions for under 60 with intellectual/developmental disability, or mental/emotional/substance use disorder unless specific criteria met)+
-- Income: Up to 400% of Federal Poverty Level (FPL), adjusted annually. 2025: $5,217/month for individual. For couples: $5,637/month (2022 figure; only applicant's income counted, spouse's disregarded). Varies by year and household (spousal rules differ from other Medicaid programs—no spousal allowance).
-- Assets: Up to equivalent of six months of Medicaid nursing facility costs (exact amount not specified in sources; higher than other Medicaid LTSS programs). Lives in own home or with loved one (not assisted living, residential care, or adult foster homes).
-- Oregon resident
-- Functional need: Assistance with Activities of Daily Living (ADLs: transferring, mobility, eating, toileting, bathing, dressing) and meet Service Priority Levels 1-18
-- Not receiving other Medicaid LTSS (e.g., SPPC, APD Waiver, 1915(i/j/k) state plan, Healthier Oregon) or duplicative OPI/OAA services simultaneously (can choose OPI-M instead)
-- For 18-59: Meet OSIPM disability criteria (OAR 461-125-0370)
-- Continuous 24-month coverage even if income/assets change
+- Age: 65+
+- Income: For single applicants in 2026: $2,982 per month. Limits vary by marital status and program (e.g., slightly different for K Plan and CEP under ABD Medicaid). Couples or households have adjusted limits based on Oregon Health Plan rules, but specific tables not detailed; consult OHP for full household breakdowns.[1][2]
+- Assets: For single applicants in 2026: $2,000. Counts most assets; exemptions typically include primary home (if equity under certain limits), one vehicle, personal belongings, and burial funds (standard Medicaid exemptions apply). Spousal protections allow higher community spouse asset allowance.[1][2]
+- Nursing Facility Level of Care (NFLOC) determined via Client Assessment and Planning System (CAPS) assessing ADLs/IADLs.
+- For APD Waiver: Service Priority Level (SPL) 1-13; primarily for those 65+ or 18-64 physically disabled transitioning from nursing home to community.
+- Aged, blind, or disabled for basic ABD Medicaid; functional assessment for long-term services.[1][2][3]
 
-**Benefits:** In-home support/personal care services (to maintain/strengthen/restore functioning at home); community services like emergency response systems, meal delivery, home safety modifications; supports for family caregivers (flexible definition: unpaid caregivers providing 10+ hours/week in-person care for 3+ months, including non-relatives, hospice cases, new diagnoses). No fee; no Medicaid Estate Recovery.
+**Benefits:** Home and community-based services including Waiver Case Management, Community Transition Services (one-time setup for institutional transitions), Housing Support Services, personal care, homemaker services, home modifications, adult foster care, assisted living, and non-medical supports to avoid institutionalization. Specifics via K Plan (state plan option) or 1915(c) APD Waiver; no fixed dollar amounts or hours—personalized based on assessment.[3][6]
 - Varies by: priority_tier
 
 **How to apply:**
-- In-person: Local Aging and People with Disabilities (APD) office (find via https://www.oregon.gov/odhs/pages/office-finder.aspx)
-- Mail or in-person delivery: Download OPI-M application from https://www.oregon.gov/odhs/providers-partners/seniors-disabilities/Documents/opi-m-application.pdf and submit to APD office
-- Phone: Call local APD office for eligibility/application questions
-- Referral process: Via ECM at local APD for financial/service eligibility; full Medicaid determination via ONE system recommended first
+- Phone: Contact local Aging and Disability Resource Connection (ADRC) or APD office (numbers via oregon.gov/odhs).
+- Online: Oregon Health Plan application at benefits.oregon.gov (ONE system).
+- Paper/Mail: Form 7210 Application for Oregon Health Plan (OHP) Benefits.
+- In-person: Local APD offices or ADRCs.[7][8]
 
-**Timeline:** Not specified; requires in-home assessment scheduled with Case Manager
+**Timeline:** Not specified; functional assessment via interview (in-person or phone).[4]
+**Waitlist:** Yes, due to limited funding; varies by eligibility category, service availability, and area. Highest need prioritized via SPL.[1][4][9]
 
 **Watch out for:**
-- Cannot receive simultaneously with other Medicaid LTSS (must choose OPI-M)
-- Excludes under 60 with IDD, or mental/substance disorders unless exceptions met
-- No Nursing Facility Level of Care required (unique: ADL/service priority only)
-- Spouse income disregarded but no spousal allowance (unlike other programs)
-- 24-month continuous eligibility despite changes (advantage over others)
-- No estate recovery (beneficiary-friendly)
-- Caregiver supports flexible but requires 10+ hours/week in-person
-- 2022 income figures outdated; confirm current 400% FPL via APD
+- Not an entitlement—waitlists common unlike basic ABD Medicaid coverage.
+- Must be transitioning from nursing home for core APD Waiver; SPL 1-13 required.
+- K Plan and CEP have slightly different financial limits than standard ABD.
+- Functional NFLOC assessment via CAPS is mandatory; prepare for ADL/IADL interview.
+- Income over limit? Spousal impoverishment rules or spend-down may apply, but consult planner.[1][2][3][4]
 
-**Data shape:** Income/assets higher than standard Medicaid LTSS; continuous 24-month eligibility; caregiver supports included; priority levels 1-18 determine services; local APD administration with statewide rules
+**Data shape:** Waiver-based with priority tiers (SPL 1-13); waitlisted and area-dependent; NFLOC via CAPS assessment; separate from entitlement ABD Medicaid.
 
-**Source:** https://www.oregon.gov/odhs/providers-partners/seniors-disabilities/Documents/opi-m-application.pdf (application); OAR 411-014-0020 (rules)
+**Source:** https://www.oregon.gov/odhs/providers-partners/seniors-disabilities/pages/waivers-kplan.aspx
 
 ---
 
@@ -152,419 +153,72 @@ Our data differs from what official sources say:
 
 **Eligibility:**
 - Age: 55+
-- Income: No income limits for PACE enrollment itself[1]. However, if applying through Medicaid, Oregon's long-term care Medicaid eligibility (as of 2025) requires income under 300% of the Federal Benefit Rate ($2,901/month) and assets of $2,000 or less (excluding primary home)[7]. Medicare eligibility requires applicants to be U.S. citizens or legal residents for 5 years prior to application[7].
-- Assets: No asset limits for PACE enrollment itself[1]. Asset limits apply only if seeking Medicaid coverage: $2,000 or less (excluding primary home)[7].
-- Must be certified by the state as needing Nursing Facility Level of Care (NFLOC), defined as the kind of care and supervision normally associated with a nursing home[1]. Oregon assesses this at Service Priority Level 1-13[2][3].
-- Must be able to reside safely in the community with PACE support at time of enrollment[1][4][6]. This is the only cause for denial[6].
-- Must live in a PACE program service area[1][4][8].
-- Must be willing to receive all health and long-term care services exclusively from the PACE program and its contracted or referred providers[4].
-- Must be Medicaid-eligible OR willing to pay private fees[4]. Medicaid enrollment is not required[1].
+- Income: No income limits. Fully covered for Medicaid-eligible individuals. Non-Medicaid participants with Medicare pay a monthly premium (amount not specified in sources). Private pay option available for those ineligible for Medicare or Medicaid.
+- Assets: No asset limits specified.
+- Reside in the PACE program's approved service area
+- Assessed at Nursing Facility Level of Care (Oregon Service Priority Level 1-13)
+- Able to live safely in the community (own home, community-based care, or CBC facility) with PACE services without jeopardizing health/safety of self or others
+- Medicaid eligible or willing to pay private fees
+- Willing to receive all health and long-term care exclusively from PACE providers
+- Not eligible if requiring enhanced care or long-term care at Oregon State Hospital, or Medicare skilled care with no community discharge expected within 30 days
 
-**Benefits:** All-inclusive coverage with no deductibles or co-pays for any care, medication, or service provided by the PACE interdisciplinary team[1]. Services include: adult day services, in-home services, nursing home care, palliative care, medical equipment and supplies, medical care and prescription coverage, medical clinic services at Health & Social Centers, long-term care services, and CBC facility care[3]. Care coordination occurs through an interdisciplinary team including medical doctors, registered nurses, licensed therapists, licensed social workers, therapeutic aides, dieticians, and other health care professionals[2].
-- Varies by: fixed
+**Benefits:** All Medicare and Medicaid services plus long-term care: primary medical care, prescription drugs, adult day services, occupational/physical therapy, social work, in-home services, community-based care (CBC) facility care, nursing home care (if enrolled), palliative care, medical equipment/supplies, dietary services. Delivered via interdisciplinary team at health/social centers or home/community settings. No deductibles or copays for PACE-provided services.
+- Varies by: region
 
 **How to apply:**
-- S
-- e
-- a
-- r
-- c
-- h
--  
-- r
-- e
-- s
-- u
-- l
-- t
-- s
--  
-- d
-- o
--  
-- n
-- o
-- t
--  
-- p
-- r
-- o
-- v
-- i
-- d
-- e
--  
-- s
-- p
-- e
-- c
-- i
-- f
-- i
-- c
--  
-- p
-- h
-- o
-- n
-- e
--  
-- n
-- u
-- m
-- b
-- e
-- r
-- s
-- ,
--  
-- w
-- e
-- b
-- s
-- i
-- t
-- e
--  
-- U
-- R
-- L
-- s
-- ,
--  
-- m
-- a
-- i
-- l
--  
-- a
-- d
-- d
-- r
-- e
-- s
-- s
-- e
-- s
-- ,
--  
-- o
-- r
--  
-- i
-- n
-- -
-- p
-- e
-- r
-- s
-- o
-- n
--  
-- o
-- f
-- f
-- i
-- c
-- e
--  
-- l
-- o
-- c
-- a
-- t
-- i
-- o
-- n
-- s
--  
-- f
-- o
-- r
--  
-- O
-- r
-- e
-- g
-- o
-- n
--  
-- P
-- A
-- C
-- E
--  
-- a
-- p
-- p
-- l
-- i
-- c
-- a
-- t
-- i
-- o
-- n
-- [
-- 1
-- ]
-- [
-- 2
-- ]
-- [
-- 3
-- ]
-- [
-- 4
-- ]
-- [
-- 5
-- ]
-- [
-- 6
-- ]
-- .
--  
-- R
-- e
-- s
-- u
-- l
-- t
-- s
--  
-- i
-- n
-- d
-- i
-- c
-- a
-- t
-- e
--  
-- t
-- h
-- a
-- t
--  
-- i
-- n
-- d
-- i
-- v
-- i
-- d
-- u
-- a
-- l
-- s
--  
-- m
-- u
-- s
-- t
--  
-- b
-- e
--  
-- a
-- s
-- s
-- e
-- s
-- s
-- e
-- d
--  
-- b
-- y
--  
-- '
-- t
-- h
-- e
--  
-- l
-- o
-- c
-- a
-- l
--  
-- D
-- e
-- p
-- a
-- r
-- t
-- m
-- e
-- n
-- t
-- /
-- A
-- A
-- A
--  
-- a
-- g
-- e
-- n
-- c
-- y
-- '
--  
-- (
-- A
-- r
-- e
-- a
--  
-- A
-- g
-- e
-- n
-- c
-- y
--  
-- o
-- n
--  
-- A
-- g
-- i
-- n
-- g
-- )
-- [
-- 4
-- ]
-- ,
--  
-- b
-- u
-- t
--  
-- s
-- p
-- e
-- c
-- i
-- f
-- i
-- c
--  
-- c
-- o
-- n
-- t
-- a
-- c
-- t
--  
-- i
-- n
-- f
-- o
-- r
-- m
-- a
-- t
-- i
-- o
-- n
--  
-- i
-- s
--  
-- n
-- o
-- t
--  
-- i
-- n
-- c
-- l
-- u
-- d
-- e
-- d
--  
-- i
-- n
--  
-- p
-- r
-- o
-- v
-- i
-- d
-- e
-- d
--  
-- s
-- o
-- u
-- r
-- c
-- e
-- s
-- .
+- Contact PACE organization intake specialists for screening and enrollment (specific providers handle intake)
+- No central statewide phone or form specified; contact local PACE provider (e.g., Providence ElderPlace for Multnomah/Clackamas/Washington/Clatsop areas)
 
-**Timeline:** Not specified in search results.
-**Waitlist:** Not specified in search results.
+**Timeline:** Not specified in sources
+**Waitlist:** Not specified in sources
 
 **Watch out for:**
-- PACE requires exclusive use of PACE providers: participants must receive all health and long-term care services exclusively from the PACE program and its contracted or referred providers[4]. This is a binding commitment.
-- Nursing Facility Level of Care (NFLOC) is a state certification, not a medical diagnosis. States define and measure NFLOC differently[1]. Oregon uses Service Priority Level 1-13 assessment[2][3].
-- Ability to live safely in the community is the only stated cause for denial, but this determination is subjective and can be appealed[6].
-- PACE is not tied to state Medicaid waiver programs[7]. In states with waitlists for HCBS Medicaid Waivers, PACE may provide an alternative, but this is not guaranteed.
-- Private pay option exists but specific monthly premium amounts are not provided in search results[1].
-- Search results indicate PACE was operating in 31 states serving over 49,000 participants as of one document's publication[3], but current national and Oregon-specific enrollment numbers are not provided.
-- Medicare eligibility requires 5-year residency as a U.S. citizen or legal resident[7], which is separate from PACE eligibility but relevant for dual-eligible participants.
+- Must use ONLY PACE providers for all care (no outside doctors/services)
+- Limited to specific service areas; must live there or relocate
+- Nursing home level assessment required (SPL 1-13 in Oregon); not for those needing state hospital care
+- Non-Medicaid pay premium (cost varies/not specified)
+- Enrollment can occur in home/CBC/nursing facility, but must be safe in community with PACE
 
-**Data shape:** PACE is a fixed-benefit, all-inclusive program with no tiered benefits or sliding scales. Eligibility is binary (meets all requirements or does not). The program's key structural feature is that it combines insurance (coverage) with direct service provision, making it both a payer and a provider. No income or asset limits exist for PACE enrollment itself, but Medicaid-funded participants must meet Medicaid's income and asset limits. Geographic availability is highly restricted to specific service areas, and rural access is limited. Critical gaps in provided search results: specific application contact information, processing timelines, required documentation, current wait times, and detailed regional provider information are not available.
+**Data shape:** county-restricted to PACE service areas with multiple providers; no financial eligibility test; NFLOC via Oregon SPL 1-13; private pay option
 
-**Source:** https://www.oregon.gov/odhs/providers-partners/seniors-disabilities/Documents/pace-fact-sheet.pdf and https://secure.sos.state.or.us/oard/viewSingleRule.action?ruleVrsnRsn=89486
+**Source:** https://www.oregon.gov/odhs/providers-partners/seniors-disabilities/Documents/pace-fact-sheet.pdf
 
 ---
 
-### Medicare Savings Programs (MSP)
+### Medicare Savings Programs (MSP) via OHP
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: Oregon MSP has four tiers with monthly gross income limits (effective around March 2026, including $20 general disregard and additional disregards for earned income; limits adjust annually with Federal Poverty Level announced in February). From official Oregon DHS [3][9]:
-- **QMB**: $1,330 individual / $1,804 couple (100% FPL). Helps with Part A/B premiums, deductibles, coinsurance.
-- **SLMB (SMB in Oregon)**: $1,596 individual / $2,164 couple (120% FPL). Part B premiums.
-- **QI (SMF in Oregon)**: $1,796 individual / $2,435 couple (135% FPL). Part B premiums; limited slots, enrollment may close.
-Other sources show slight variations (e.g., [2] $1,235/$1,663 QMB, [9] $1,616/$2,184 SLMB), use official DHS for applications as limits update yearly. Household size beyond couple not detailed; typically individual or couple. Must be eligible for (not necessarily enrolled in) Medicare Part A [3][5]. Not eligible for SMF if receiving other Oregon Medicaid [1][3].
-- Assets: No asset limits for MSP (QMB, SLMB/SMB, QI/SMF) in Oregon [2][3][5]. (Note: Separate programs like Extra Help/LIS have assets ≤$18,090 single/$36,100 couple [9].)
-- Eligible for Medicare Part A (hospital insurance) [1][3][5][6].
-- Not eligible for SMF/QI if receiving other Oregon Medicaid benefits [1][3].
-- For QMB-SMB/SMF variants, additional restrictions (e.g., nursing facility residents ineligible if income ≥120% FPL) [1].
-- Oregon uses gross income minus $20 disregard (more for earned income) [5].
+- Income: MSP has three tiers with different income thresholds[6]: (1) QMB (Qualified Medicare Beneficiary): $1,330/month for individual, $1,804/month for couple (100% of federal poverty level); (2) SLMB/SMB (Specified Low-Income Medicare Beneficiary): $1,596/month for individual, $2,164/month for couple (120% of poverty level); (3) QI/SMF (Qualifying Individual): $1,796/month for individual, $2,435/month for couple (120-135% of poverty level). Income limits increase annually in March[6]. Note: ODHS starts with gross income and subtracts $20[8].
+- Assets: As of January 1, 2016, there are no resource limits for QMB programs in Oregon[3][8]. However, for Oregon Health Plan (OHP) eligibility more broadly, Medicare members must have $2,000 or less in countable assets[2][10].
+- Must be enrolled in Medicare Part A (hospital insurance)[1][6]
+- Income and resources must be within eligibility limits[3]
+- If eligible for any other Medicaid benefit offered by the State of Oregon, you are not eligible for the SMF benefit[6]
+- Individuals in nursing facilities, intermediate care facilities for the mentally retarded (ICF/MR), or hospitals are not eligible for QMB-SMB if income is 120% or greater of FPL[1]
 
-**Benefits:** **QMB**: Pays Medicare Part A premiums (if owed), Part B premiums, Part A/B deductibles, coinsurance [2][3]. **SLMB/SMB**: Pays Part B premiums [2][3]. **QI/SMF**: Pays Part B premiums [2][3]. State pays directly to Medicare; providers cannot bill beneficiary for covered costs (QMB protects from balance billing) [6].
+**Benefits:** QMB pays for Medicare Part A and B premiums, deductibles, and co-insurance[6]. SLMB/SMB pays for Part B premiums[6]. QI/SMF pays for Part B premiums[6].
 - Varies by: priority_tier
 
 **How to apply:**
-- Online: Oregon DHS ONE system (implied via state Medicaid; specific URL not in results, use oregon.gov/odhs) [3].
-- Phone: Contact local Aging & Disability Resource Connection (ADRC) or Oregon DHS (800-282-8096 or local offices; SHIBA hotline implied via [9]) [3].
-- Mail/In-person: Local DHS or ADRC offices; form DHS 9017 (Medicare Savings Programs brochure/application guide) [5].
-- Multiple routes via state Medicaid program [1].
+- Contact your nearest Aging and Disability Office[3]
+- Online application available through Oregon Health Plan system
+- Phone application available
+- In-person application at local offices
 
-**Timeline:** Not specified in sources; renew annually or as required [1]. Retroactive coverage up to 90 days for some [9].
-**Waitlist:** QI/SMF has limited federal slots; Oregon shuts enrollment if limit reached [3].
+**Timeline:** Not specified in search results
+**Waitlist:** SMF benefit has enrollment caps: 'We are only allowed to serve a certain number of people each year for the SMF benefit. Unfortunately, we must shut down enrollment if we reach our limit.'[6]
 
 **Watch out for:**
-- QI/SMF enrollment can close due to federal slot limits; apply early [3].
-- Income limits update yearly (March); check current FPL-based figures [3][9]. Don't assume prior year limits.
-- Must be Part A *eligible* even if not enrolled [3][6]; state pays to enroll if needed.
-- Not eligible for SMF if on other Medicaid [1][3]. QMB provides strongest protection (no balance billing).
-- Oregon names: SLMB= SMB, QI=SMF [2][3]. Income calculation starts gross minus $20 [5].
-- Conflicting income figures across sources due to annual updates; always verify with DHS [2][3][9].
+- SMF (QI) benefit has annual enrollment caps and may close if limits are reached[6]
+- If someone qualifies for ANY other Medicaid benefit from Oregon, they cannot use SMF[6]
+- Income limits are recalculated annually in March[6]
+- ODHS uses gross income minus $20 as the starting point for calculations[8]
+- People often don't realize they may qualify even if they think their income is too high[8]
+- No resource limits for QMB programs in Oregon as of 2016, but this differs from other states[3][8]
+- Medicare is primary insurance; MSP is supplemental[3]
 
-**Data shape:** Tiered by income (QMB <100% FPL, SLMB 100-120%, QI/SMF 120-135% FPL) with no asset test; benefits scale by tier (QMB fullest, others Part B only); QI/SMF slot-limited; statewide uniform rules but local admin; annual FPL adjustments.
+**Data shape:** MSP is a three-tier program with escalating income thresholds and different benefit levels. The program is statewide but has enrollment caps on the SMF tier. Income limits are tied to federal poverty levels and adjust annually. Unlike some states, Oregon eliminated resource limits for QMB programs. The program requires Medicare Part A enrollment and excludes those eligible for other Medicaid benefits (for SMF tier). Processing timelines and specific regional office locations are not detailed in available sources.
 
 **Source:** https://www.oregon.gov/odhs/aging-disability-services/pages/medicare-savings-programs.aspx
 
@@ -575,29 +229,38 @@ Other sources show slight variations (e.g., [2] $1,235/$1,663 QMB, [9] $1,616/$2
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Age: 60+
-- Income: For Oct. 1, 2025 through Sept. 30, 2026, households with a member 60+ or disabled are exempt from the gross income test (200% FPL: 1 person $2608/month, 2 $3526, 3 $4442, 4 $5358, 5 $6276, 6 $7192, 7 $8108, +$916 each additional) and qualify if meeting net income and asset tests. All households must live in Oregon, be U.S. citizens or eligible non-citizens. Able-bodied adults without dependents (ABAWD) face work requirements beyond 3 months.
-- Assets: Most households exempt from asset test, including elderly/disabled (house, car, bank money usually don't count). Retirement accounts may disqualify if counted as resources.
-- U.S. citizen or eligible non-citizen (e.g., 5 years U.S. residency, under 18, 40 work quarters, blind/disabled, 65+ on Aug 22 1996)
-- Household includes those living/buying/preparing food together (spouse, children under 22)
-- Out-of-pocket medical costs for 60+ or disabled can offset income (proof required)
-- ABAWD work requirements for ages 18-64 without disability/children under 14
+- Age: No minimum age requirement for household members, but special rules apply for households with members 60 or older+
+- Income: {"description":"Gross income limit is 200% of federal poverty level (Oct. 1, 2025 through Sept. 30, 2026)[1]","gross_income_limits_by_household_size":{"1_person":"$2,608/month","2_people":"$3,526/month","3_people":"$4,442/month","4_people":"$5,358/month","5_people":"$6,276/month","6_people":"$7,192/month","7_people":"$8,108/month","each_additional_person":"+$916/month"},"special_rule_for_elderly_or_disabled":"If household has member 60+ or with disability and exceeds gross income limit, can qualify instead by meeting Net Income and Asset tests[1]","net_income_calculation":"SNAP benefits are based on net income; approximately $100 more in net income = $30 less in benefits[1]"}
+- Assets: {"general_rule":"House, car, and money in bank usually do not count against eligibility[2]","specific_exemptions":"Search results do not provide detailed asset limit thresholds, but indicate assets are generally not a barrier to qualification"}
+- Must live in Oregon[2]
+- Must be U.S. citizen or eligible non-citizen[2]
+- Eligible non-citizens must meet specific criteria: lived in U.S. for 5 years, under age 18, worked 40 qualifying work quarters, blind/disabled, or 65+ and legally present since Aug. 22, 1996[2]
+- Able-bodied adults without dependents (ABAWDs, ages 18–64) must work, volunteer, or train for at least 80 hours/month to remain eligible for SNAP[3]
 
-**Benefits:** Monthly EBT card for food purchases (amount based on net income; ~$100 more net income = $30 less benefits; minimum/maximum allotments apply; medical/shelter costs increase for elderly). Seniors 65+ in Clackamas/Columbia/Multnomah/Washington counties: direct deposit/check option. Alternate payee for shopping. Usable at meals sites like Meals on Wheels.
-- Varies by: household_size
+**Benefits:** Variable based on household net income; benefits are provided as food purchasing power on EBT card (or check/direct deposit in some cases)[1][2]
+- Varies by: household_size and net_income
 
 **How to apply:**
-- Online: https://www.oregon.gov/odhs/food/pages/snap.aspx or ONE.Oregon.gov
-- Phone: Contact local ODHS office (statewide via 211 or ODHS)
-- Mail: Send to local ODHS office
-- In-person: Local ODHS or community partner offices
+- Online: Through Oregon Department of Human Services (ODHS) website[9]
+- Phone: Contact ODHS (specific phone number not provided in search results)[9]
+- In-person: At local ODHS office[9]
+- Mail: Application by mail option available (specific address not provided in search results)[9]
 
-**Timeline:** Standard 30 days; expedited within 7 days if income <$150 and cash <$100, or income+cash < rent/utilities.
+**Timeline:** Search results do not specify standard processing time. Expedited benefits available: if approved, can receive benefits within 7 days if applicant qualifies for expedited SNAP[4]
+**Waitlist:** No waitlist mentioned in search results
 
 **Watch out for:**
-- Elderly/disabled skip gross income test but need net/asset; medical costs deduct but require proof; household includes family even if separate food prep; ABAWD work rules now statewide affecting 37k; low senior participation; retirement accounts may count as assets; non-citizens strictly limited
+- Only about half of eligible seniors apply for SNAP despite qualifying; low participation rate among older adults[4]
+- Able-bodied adults without dependents (ages 18–64) must now work/volunteer/train 80 hours/month or lose benefits after 3 months; this requirement is rolling out by region starting October 2025[3]
+- Oregon has expanded eligibility beyond federal requirements, so other websites may show stricter limits than Oregon's actual rules[1]
+- Medical cost deductions require proof; out-of-pocket medical expenses must be documented to qualify for increased benefits[2][6]
+- Households with elderly or disabled members receive different treatment: they can qualify via Net Income/Asset tests even if over gross income limit, and have access to medical cost deductions[1][2]
+- SNAP eligibility changes from H.R. 1 removed eligibility for certain refugee, asylee, and lawfully present immigrant groups; check ODHS page for current list[3]
+- Existing SNAP participants were notified of benefit changes starting October 15, 2025[3]
+- For older adults with mobility issues, a trusted person can purchase food on their behalf using their SNAP benefits via alternate payee form[2][6]
+- SNAP can be used at community meal sites like Meals on Wheels, not just traditional grocery stores[7]
 
-**Data shape:** Elderly 60+ exempt gross income test, medical/shelter deductions boost benefits; varies by household size and elderly/disabled status; regional cash/direct deposit for specific counties
+**Data shape:** Benefits scale by household size and net income. Program has special rules for elderly (60+) and disabled members that provide alternative pathways to qualification and increased benefit amounts. Work requirements for able-bodied adults without dependents create regional variation in eligibility enforcement. Oregon's expanded eligibility goes beyond federal minimums. Medical cost deductions are unique feature for elderly/disabled households. Regional variation exists for benefit delivery method (EBT card vs. check vs. direct deposit) and cash benefit option in specific counties.
 
 **Source:** https://www.oregon.gov/odhs/food/pages/snap.aspx
 
@@ -608,73 +271,70 @@ Other sources show slight variations (e.g., [2] $1,235/$1,663 QMB, [9] $1,616/$2
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: Households must be at or below 60% of Oregon State Median Income (SMI)[4]. Income limits are based on gross household income (before taxes) and vary by household size. Current limits (effective October 1, 2025 through September 30, 2026)[5]: 1 person: $38,385 annual / $3,198.75 monthly; 2 people: $50,196 annual / $4,183 monthly; 3 people: $62,006 annual / $5,167.17 monthly; 4 people: $73,817 annual / $6,151.42 monthly; 5 people: $85,627 annual / $7,135.58 monthly; 6 people: $97,438 annual / $8,119.83 monthly. For households larger than 6, add $2,215 annually ($184.58 monthly) per additional member[6]. Note: For single-person households, income eligibility is the greater of 60% SMI or full-time wages at Portland minimum wage[6].
-- Assets: There is no asset limit for LIHEAP in Oregon[1].
-- Must be an Oregon resident[2]
-- Utility bill for current residence (account holder must live in home)[5]
-- All household members must have Social Security numbers (required for LIHEAP; strongly encouraged for OEAP)[3]
-- Household income eligibility is based on total gross income of all members living in the home at time of application[5]
+- Income: Household gross income at or below 60% of Oregon State Median Income (SMI), based on household size. Effective October 1, 2025 (most recent available): 1: $38,385 annual/$3,198.75 monthly; 2: $50,196/$4,183; 3: $62,006/$5,167.17; 4: $73,817/$6,151.42; 5: $85,627/$7,135.58; 6: $97,438/$8,119.83; 7: $99,652/$8,304.33; 8: $101,867/$8,488.92; 9: $104,081/$8,673.42; 10: $106,296/$8,858; 11: $108,510/$9,042.50; 12: $110,725/$9,227.08; each additional: +$2,215 annual/+184.58 monthly. For single-person households, greater of 60% SMI or full-time Portland minimum wage. Gross income before deductions. Levels based on prior 30 days income[2][4][5].
+- Assets: No asset limits mentioned in program guidelines[2][5].
+- Oregon resident
+- Documented energy costs (e.g., heating/cooling bills from any fuel source including wood, oil; must have utility bill)
+- Homeowners and renters eligible (rental/utility agreements and landlord cooperation may affect benefits)
+- Priority for seniors 60+ and/or documented disabled, especially homebound[2][3][5]
 
-**Benefits:** LIHEAP provides assistance in three forms[1]: (1) Regular LIHEAP: one-time payment directly to utility company for heating or cooling costs, with maximum benefit of $750 for heating or $750 for cooling, and minimum benefit of $250 for heating or $250 for cooling[1]; (2) Crisis LIHEAP: helps households facing immediate energy emergency (broken heater in winter, utility shutoff notice, running out of fuel), with maximum benefit of $750[1]; (3) Weatherization Assistance Program: separate but related program providing home energy efficiency improvements including insulation and heating system repairs[1]. Program also includes bill payment assistance, energy education, case management, and home weatherization services[4]. LIHEAP can help with electric, natural gas, firewood, propane, pellets, or heating oil[7].
-- Varies by: household_size (benefits calculated based on household income, household size, and type of fuel used for heating or cooling[1])
+**Benefits:** One-time grant applied directly to energy provider for heating/cooling bills; may include repair/replacement of unsafe heating systems; energy education, case management, home weatherization services. Amount not fixed statewide—varies by need, funding, local design[2][5].
+- Varies by: priority_tier|region
 
 **How to apply:**
-- In-person at local Community Action Agencies (geographically accessible locations across the state)[4]
-- Phone contact through local Community Action Agency (specific numbers vary by region; Lane County example: waitlist opens January 5, 2026 at 9am[7])
-- Mail (through local Community Action Agency)
-- Online (through some local agencies; specific URLs vary by region)
+- Phone: Toll-free 1-800-453-5511 (option 2); email: energyassistance@oregon.gov[1][2]
+- Contact local Community Action Agency by county (find via 800-453-5511 opt 2 or oregon.gov/ohcs)[1][2][5]
+- In-person/phone/mail/home visits (especially for homebound); appointments prioritized for 60+/disabled[2][3][5]
 
-**Timeline:** Incomplete applications will be placed in pending status for 15 days prior to denial; only complete applications will be accepted for processing[5]. Specific processing timelines for complete applications not provided in search results.
-**Waitlist:** Program is first come, first served[7]. Waitlist anticipated to open January 5, 2026 at 9am in Lane County; waitlist can fill up very fast[7]. Waitlist timing and availability varies by region and funding availability.
+**Timeline:** Not specified; funds limited, apply early[2][5][7]
+**Waitlist:** Possible due to limited funds; priority for elderly/disabled may reduce wait[3]
 
 **Watch out for:**
-- Roommates covered by the same utility bill are counted as part of the same LIHEAP household, even if they don't share most expenses[1]. This means household composition for LIHEAP differs from other benefit programs like SNAP[1].
-- Program is first come, first served with limited funds[7]. Waitlists can fill up very fast, sometimes within minutes of opening[7].
-- Both heating and electricity bills are required, and account information for both must be updated in the system[3].
-- Incomplete applications are placed in pending status for only 15 days before denial[5]. Families must submit complete applications to avoid automatic denial.
-- Social Security numbers are required for LIHEAP (not just strongly encouraged)[3]. Applicants without SSA-issued Social Security numbers may face barriers; OPUS system can issue unique client identification number in some cases[3].
-- Benefits are typically one-time payments, not ongoing monthly assistance[7]. For ongoing monthly help, some utility companies offer separate Income-Qualified Bill Discount programs[8].
-- Income eligibility is based on gross income (before deductions) received 2 months prior to application date[5].
-- Weatherization Assistance Program is separate from regular LIHEAP but related; eligibility and application process may differ.
-- Regional variations in processing times, waitlist availability, and additional programs mean families should contact their local Community Action Agency directly for specific timelines and services.
+- Priority given to seniors 60+ and disabled—others may face longer waits or limited funds[3]
+- Must have documented energy costs; rental/landlord issues can limit benefits[5]
+- Income based on recent 30 days—recent income drop may qualify you[7]
+- No fixed benefit amount; varies by local agency, funding availability[2][5]
+- Homebound can request accommodations, but must contact local agency[2]
+- Separate from LIHWA (water assistance); coordinate if eligible[1]
 
-**Data shape:** This program's data structure is complex due to regional administration through local Community Action Agencies. Income limits scale by household size with specific dollar thresholds. Benefits are fixed maximum amounts ($750 for regular heating/cooling, $750 for crisis) but calculated based on household characteristics. No statewide online application portal exists; families must contact their local agency. Waitlist availability and processing times vary significantly by region and funding year. The program includes multiple components (regular LIHEAP, crisis LIHEAP, weatherization) with potentially different eligibility or application processes. Household composition for LIHEAP purposes differs from other benefit programs, creating potential confusion for families applying to multiple programs.
+**Data shape:** Income table scales by household size at 60% SMI; priority tiers for elderly/disabled; administered via ~20 county Community Action Agencies with slight policy variations; no statewide fixed grant amount
 
-**Source:** https://www.oregon.gov/ohcs/energy-weatherization/
+**Source:** https://www.oregon.gov/ohcs/energy-weatherization/pages/utility-bill-payment-assistance.aspx
 
 ---
 
-### Weatherization Assistance Program
+### Weatherization Assistance Program (WAP)
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: Household gross income at or below 200% of the federal poverty level, based on all household members' income before payroll deductions. Specific dollar amounts vary annually with federal poverty guidelines (e.g., consult current USDOE guidelines via OHCS); no exact table in sources but consistently applied statewide.[2][3][4][5][9]
-- Assets: No asset limits mentioned in sources.
-- Eligible households must live in single-family homes, mobile homes, or apartments (renters need landlord approval).[4][5]
-- Priority given to seniors (60+), people with disabilities, households with children under 6, high energy users, and high energy burden households.[2]
+- Income: Household gross income at or below 200% of the federal poverty level. Income includes all household members before payroll deductions. Specific dollar amounts vary annually and by household size; contact local agency for current table as 2025-26 guidelines not detailed in sources. Priority given to seniors (60+), people with disabilities, households with children under 6, high energy users, and high energy burden households.
+- Assets: No asset limits mentioned.
+- Renters need landlord approval.
+- Homeowners or renters in single-family homes, mobile homes, or multifamily (with approval).
+- Must meet LIHEAP eligibility or similar for certification in some cases.
 
-**Benefits:** Free weatherization services including ceiling/wall/floor insulation, air infiltration reduction/sealing, furnace/heating system repair or replacement, heating duct improvements, energy-related minor home repairs, base-load measures, health/safety repairs, and energy conservation education. Services determined by professional energy audit for cost-effectiveness; no fixed dollar amount or hours.[2][5][7][8]
+**Benefits:** Free weatherization services including: ceiling/wall/floor insulation, air sealing/infiltration reduction, furnace/heating system repair or replacement, heating duct improvements, energy-related minor home repairs, base-load measures, health/safety repairs, ventilation, LED bulbs, and energy conservation education. Services determined by energy audit for cost-effectiveness.
 - Varies by: priority_tier
 
 **How to apply:**
-- Contact local Community Action Agency (CAA) or subgrantee by county (e.g., Clackamas: phone not specified in results; Marion/Polk: 503-581-5412 press 0; Multnomah: 503-282-6309; Washington: 503-675-4288 ext. 111; Yamhill: 503-472-0457).[5]
-- Oregon Housing and Community Services (OHCS) Energy Services: (503) 986-2000.[2]
-- In-person/mail/online via local providers (e.g., NeighborImpact application packet).[3]
-- State administrator via OHCS for general inquiries.[6]
+- Contact local Community Action Agency (CAA) or subgrantee by phone or in-person.
+- Examples: Clackamas County (phone not specified in results), Marion/Polk (503-361-8740 press 0), Multnomah (503-282-6309), Washington (503-640-3497), Yamhill (503-472-0457). Portland homeowners: Community Energy Project (phone not specified). Lane County: Homes for Good. Mid-Willamette: MWVCAA.
+- Mail or in-person: Varies by local agency, e.g., NeighborImpact application packet.
+- No statewide online application; agency-specific forms like NeighborImpact Weatherization Application, Supplemental form, Declaration of Household Income.
 
-**Timeline:** Not specified; agency contacts eligible households after application to schedule energy audit.
-**Waitlist:** Households may be placed on a waiting service list after contacting local agency.[2]
+**Timeline:** Not specified; agency contacts eligible households to schedule energy audit after application.
+**Waitlist:** Households may be placed on a waiting service list after contacting local agency.
 
 **Watch out for:**
-- Renters must obtain landlord permission (often missed).[4][5]
-- Priority tiers mean elderly may qualify faster but still face waitlists.[2]
-- Must meet exact 200% FPL gross income; no asset test but all household income counts.[2][3][9]
-- Services limited to cost-effective measures per audit, not all repairs.[5][7]
-- Temporary disqualification for certain newly legalized aliens.[1]
-- Apply via local agency, not directly to state/DOE.[6]
+- Priority populations (elderly 60+, disabled, young children) get preference; non-priority may face longer waits.
+- Renters must get landlord permission.
+- Services based on energy audit cost-effectiveness, not all measures guaranteed.
+- Income at exactly 200% FPL qualifies; gross income before deductions.
+- May certify eligibility via LIHEAP or other programs without re-verifying income.
+- Waiting lists common due to funding limits.
 
-**Data shape:** Administered statewide by OHCS via local subgrantees/CAAs with county-specific contacts; priority-based with waitlists; income fixed at 200% FPL, benefits via energy audit.
+**Data shape:** Administered by county-specific subgrantees with varying contacts; priority tiers affect service timing; income fixed at 200% FPL with no asset test; services vary by audit results
 
 **Source:** https://www.oregon.gov/ohcs/energy-weatherization/Pages/default.aspx
 
@@ -685,107 +345,106 @@ Other sources show slight variations (e.g., [2] $1,235/$1,663 QMB, [9] $1,616/$2
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: No income limits; open to all Medicare beneficiaries regardless of income[1][2][3][4][5]
-- Assets: No asset limits; no asset test applies[1][2][3][4][5]
-- Must have Medicare
-- Open to residents over age 65 and people with disabilities ages 18-64[1][5]
+- Income: No income limits; open to all Oregon residents with Medicare regardless of income.
+- Assets: No asset limits; no asset test applies.
+- Must be an Oregon resident with Medicare.
+- Includes people age 65+ and individuals ages 18-64 with disabilities who have Medicare.
 
-**Benefits:** Free, objective, unbiased counseling and education on Medicare benefits, options, billing issues, appeals, plan comparisons, rights, fraud identification, and referrals; provided one-on-one by trained volunteer counselors via phone, in-person, online, or public events[1][2][3][4][5][6]
+**Benefits:** Free, objective, unbiased counseling and education on Medicare benefits, options, billing issues, appeals, plan comparisons, rights, and identifying Medicare fraud, error, or abuse. Provided one-on-one by trained volunteer counselors via phone, in-person, online, or public events. No financial aid, healthcare services, or fixed hours/dollar amounts.
 
 **How to apply:**
-- Phone: 800-722-4134 (toll-free statewide hotline, enter zip code for local routing)[3][4][7][8][9]
-- Website: https://shiba.oregon.gov/get-help/pages/helpnearyou.aspx (find local counseling sites)[3][4][9]
-- Email: shiba.oregon@odhs.oregon.gov or online contact form[4][8]
-- In-person: Local offices, libraries, events, or sponsor sites (search by zip code on site)[1][2][6][9]
-- Local examples: Clackamas 503-655-8269, Multnomah (503) 988-3646[1][2]
+- Phone: 800-722-4134 (toll-free statewide hotline; enter zip code for local routing)
+- Website: https://shiba.oregon.gov/get-help/pages/helpnearyou.aspx (find local counseling sites)
+- Email: shiba.oregon@odhs.oregon.gov or online contact form at https://shiba.oregon.gov/get-help/pages/connect-with-us.aspx
+- In-person: Local offices and events (search by zip code on site; examples include Clackamas: 503-655-8269, Multnomah: 503-988-3646)
+- Public events: Medicare presentations at libraries and offices (check local calendars)
 
-**Timeline:** No formal application processing; counseling appointments scheduled directly, typically available year-round with increased events during Medicare Annual Enrollment Period (Oct 15-Dec 7)[2][6][9]
+**Timeline:** Immediate counseling available by phone or appointment; no formal application processing.
 
 **Watch out for:**
-- Not a financial benefits or healthcare provider program—only free counseling/education, no direct payments or medical services[1][2][4][5]
-- Relies on volunteer counselors, so availability may vary by local demand/events[2][9]
-- During Medicare Annual Enrollment (Oct 15-Dec 7), schedule early for events[2][6][9]
-- People turning 65 or with disabilities (18-64) must confirm Medicare enrollment first[1][5]
-- Not part of Medicaid/OHP; separate from ADRC long-term care services[4][5]
+- Not a benefits-paying program—provides only free counseling, not financial assistance, healthcare, or enrollment on your behalf.
+- Requires Medicare enrollment; helps with Medicare questions but does not cover non-Medicare insurance.
+- Services rely on volunteer availability; during peak times like Open Enrollment (Oct 15-Dec 7), schedule appointments early.
+- People with Medicaid/OHP changes post-COVID emergency may need to transition to Medicare and use SHIBA for guidance.
+- Confidential but assessors review resources/needs during sessions.
 
-**Data shape:** no income or asset test; volunteer-delivered statewide counseling network with local access points; services fixed and free for all Medicare enrollees
+**Data shape:** no income or asset test; volunteer-based counseling service scaled statewide via local sites with no fixed benefits value
 
 **Source:** https://shiba.oregon.gov
 
 ---
 
-### Meals on Wheels
+### Meals on Wheels (via Area Agencies on Aging)
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
 - Age: 60+
-- Income: No specific income limits or tables mentioned for standard Meals on Wheels programs in Oregon; eligibility focuses on need rather than income. Medicaid-funded HDM may tie to broader Medicaid eligibility, but no dollar amounts or household tables provided.[1][2][3]
-- Assets: No asset limits mentioned; not applicable based on available data.[1][3]
-- Homebound due to injury, illness, or disability (leaving home is a major effort; unassisted outings rare, though medical/religious/essential activities allowed)[1][3]
+- Income: No fixed statewide income limits specified; low-income individuals may receive free or sliding-scale fee meals based on local program guidelines and proof of income. Varies by local Area Agency on Aging (AAA) and whether Medicaid-funded[1][2][3].
+- Assets: No asset limits mentioned in sources.
+- Homebound (leaving home is a major effort; unassisted outings rare, though medical/religious/essential activities allowed)[1][3]
 - Limited ability to shop for or prepare meals safely[1]
-- Lack family or other support for meal preparation[1][3]
-- Spouse or disabled dependent child may qualify if it benefits the homebound individual[1]
-- Cannot attend community dining due to physical/mental health[1]
-- For Medicaid HDM: Assessed via CA/PS, authorized by Medicaid Case Manager, no natural supports available[3]
-- Under 60 possible if authorized by Medicaid Case Manager as part of Long-Term Care or State Plan[3][6]
-- OAA recipients, PACE participants, or HRSN-eligible (e.g., food insecurity, disabilities, high-risk conditions) via Medicaid[2]
+- Lack family or other natural supports for meal preparation[1][3]
+- For Medicaid HDM: Medicaid eligible, receiving long-term services in home, assessed via CA/PS[3][4]
+- Spouse or disabled dependent child may qualify if it benefits the homebound individual[1][2]
+- Reside in program delivery zone[2][5]
 
-**Benefits:** Home-delivered nutritionally balanced meals meeting recommended daily allowances; typically weekday deliveries (e.g., 1 meal per delivery day); may include periodic assessments and referrals to alternatives; Medicaid HDM specifies quantity authorized monthly by case manager[1][3]
-- Varies by: priority_tier|region
+**Benefits:** Home-delivered nutritious meals (typically hot, sometimes frozen; meet daily nutritional standards approved by dietician; one meal per delivery serving recommended daily allowance). Number/frequency not specified statewide (e.g., authorized monthly quantity for Medicaid). May include fees on sliding scale or free for low-income[1][2][3][4]
+- Varies by: region
 
 **How to apply:**
-- Contact local provider (e.g., Council on Aging Central Oregon for assessment; no central phone listed, search local via Meals on Wheels America tool)[1][4]
-- For Medicaid/OHP: Complete HRSN request form via your Coordinated Care Organization (CCO) on Oregon Health Authority website; contact case manager/service coordinator[2][3]
-- Medicaid referral/authorization: Form 595 or agreed format sent by Case Manager to AAA nutrition program[3]
-- Local example: Marion/Polk call 503-364-2856 or online application (volunteer-focused but indicates contact point)[5]
+- Contact local Area Agency on Aging (AAA) by phone for assessment[1][2]
+- Online request form (e.g., Meals on Wheels People for Multnomah/Washington/Clark Counties)[5]
+- In-person initial assessment by case manager[1]
+- For Medicaid: Referral/authorization form 595 from Medicaid Case Manager to AAA[3]
 
-**Timeline:** Initial in-person assessment by case manager required; annual reassessment; no specific timelines stated[1][3]
-**Waitlist:** Not mentioned; may vary by local provider[1]
+**Timeline:** Not specified; requires initial in-person assessment, annual reassessment[1]
+**Waitlist:** Not mentioned; approval times differ by location[2]
 
 **Watch out for:**
-- Not a single statewide program—must contact local provider; eligibility requires in-person assessment, not just age/income[1][4]
-- Homebound definition is strict (rare unassisted outings); spouses/dependents only if benefiting primary eligible[1][3]
-- Medicaid version needs case manager authorization first; OAA prioritizes need over income but may transition to paid if ineligible[1][3]
-- Annual reassessment; if no longer qualify, referred elsewhere (e.g., community dining)[1]
-- Under 60 only via Medicaid authorization, not standard[6]
+- Must be assessed in-person; not automatic approval[1]
+- Homebound definition strict: cannot easily leave home unassisted[1][3]
+- Medicaid clients cannot receive under OAA unless cost-of-care[3]
+- Fees may apply based on income (sliding scale); car ownership may affect[2]
+- Annual reassessment required; may lose eligibility and need alternatives[1]
+- Limited to delivery zones; verify local coverage first[2]
 
-**Data shape:** Decentralized by local providers/regions with no uniform income/asset tests; Medicaid HDM ties to case management assessments; mixes OAA (need-based) and Medicaid (authorized service) streams
+**Data shape:** Decentralized via 20+ local Area Agencies on Aging; eligibility/assessments vary by region/provider; no uniform income table or statewide processing times; Medicaid path separate from OAA-funded
 
-**Source:** https://www.oregon.gov/odhs/aging-disability-services/pages/meals-nutrition.aspx[7]; Medicaid standards: https://www.oregon.gov/odhs/providers-partners/seniors-disabilities/Documents/medicaid-home-delivered-meals-standards-and-responsibilities.pdf[3]
+**Source:** https://www.oregon.gov/odhs/aging-disability-services/pages/meals-nutrition.aspx
 
 ---
 
-### Family Caregiver Support Program (FCSP)
+### National Family Caregiver Support Program (NFCSP)
 
 
 **Eligibility:**
-- Age: Caregiver must be 18+; care recipient requirements vary by situation+
-- Income: Not specified in available documentation. Search results do not contain income thresholds for FCSP. Note: This differs from Oregon's Medicaid-based Spousal Pay Program, which has financial eligibility criteria.
-- Assets: Not specified in available documentation
-- Caregiver must be unpaid (informal provider)
-- Caregiver relationship: family member, extended family, or someone living full-time with care recipient
-- No state-mandated qualifications for independent caregivers, though agencies may verify background and references
+- Income: No income limits specified for NFCSP in Oregon; services target unpaid family caregivers without financial eligibility tests mentioned[1][2][3][7][8][9]. Note: Related programs like OPI-M have limits up to 400% FPL but are distinct[5].
+- Assets: No asset limits specified for NFCSP; no counts or exemptions detailed[1][2][3][7][8][9].
+- Family members, friends, or informal caregivers (18 years or older) providing care to: adults 60+ needing in-home care; individuals of any age with Alzheimer's or related disorders[1][2][3][7][9].
+- Grandparents or relatives 55+ caring for children 18 or younger, or adult relatives 18-59 with disabilities who financially depend on an older adult[1][2][3][7].
+- Caregivers must be unpaid/informal providers[1][8].
 
-**Benefits:** Specific services not detailed in search results. Program described as helping caregivers 'support their loved ones and themselves' and taking 'burdens off unpaid caregivers,' but actual service offerings (respite care, counseling, support groups, training, etc.) are not enumerated in provided documentation.
-- Varies by: Not specified in available documentation
+**Benefits:** Information and assistance; individual counseling, support groups, caregiver training; respite care; supplemental services on limited basis. Regional examples: annual respite grants $500-$1,000; case management; caregiver events[1][2][3][7][8]. No fixed hours or statewide dollar caps specified.
+- Varies by: region
 
 **How to apply:**
-- Contact Aging and Disability Resource Center (ADRC) of Oregon: 1-855-ORE-ADRC (1-855-673-2372)
-- Visit www.ADRCofOregon.org
-- Local county ADRC offices (Multnomah County and Clackamas County offices referenced in search results)
+- Contact Aging and Disability Resource Connection (ADRC) Helpline: 1-855-ORE-ADRC (673-2372) or www.ADRCofOregon.org[9].
+- Regional: Multnomah County ADRC at 503-988-3646 or adrc@multco.us[2].
+- Local providers like Council on Aging for Central Oregon (easy signup, no SSN required for respite grants)[3].
+- Options Counselors via ADRC for relief funds[2].
 
-**Timeline:** Not specified in available documentation
-**Waitlist:** Not specified in available documentation
+**Timeline:** Not specified in sources.
+**Waitlist:** Not specified; may vary regionally[2][3].
 
 **Watch out for:**
-- FCSP is NOT the same as Oregon's Medicaid-based Spousal Pay Program or Medicaid Personal Care Program (PCP). Families seeking paid caregiver compensation should investigate Medicaid programs separately, which have strict medical and financial eligibility criteria.
-- FCSP is funded under the federal Older Americans Act (OAA) Title III Part E, which provides 'limited funding.' This may affect service availability or waitlists, though specific limitations are not documented.
-- Search results do not specify whether FCSP provides direct financial compensation to family caregivers or only supportive services (counseling, training, respite care coordination, etc.). This is a critical distinction for families seeking paid caregiver arrangements.
-- For Veterans and service members with service-connected injuries, a separate VA Family Caregiver Program exists with different eligibility criteria (see search result [1]). Families should verify which program applies.
-- No state-mandated qualifications exist for independent caregivers in Oregon, but agencies may impose their own standards (e.g., background checks, reference verification, CNA certification).
+- No statewide income/asset tests, but confirm with local AAA as some benefits like respite grants may have unspoken priorities[1][3].
+- Focuses on unpaid informal caregivers; not for paid professionals[1][8].
+- Often confused with Medicaid programs (e.g., OPI-M with income caps) or paid caregiver options[5][6].
+- Services funded limitedly under Older Americans Act; availability depends on local funding/waitlists[7][8].
+- Regional providers handle delivery; must contact local ADRC/AAA, not centralized[2][3][9].
 
-**Data shape:** The Family Caregiver Support Program documentation in search results is limited. While eligibility for care recipients is clearly defined by age and condition, critical details are absent: specific services provided, benefit amounts or hours, application procedures, processing timelines, required documentation, and regional variations. The program appears to be primarily a support/advocacy program rather than a direct payment program, but this distinction is not explicitly confirmed. Families should contact their local ADRC directly for comprehensive program details. Additionally, Oregon offers multiple caregiver-related programs (FCSP, Medicaid PCP, Spousal Pay, VA Family Caregiver Program), and the search results do not clarify how these programs interact or which is most appropriate for different situations.
+**Data shape:** Administered statewide but services vary by local AAA/provider; no income/asset tests; respite grants regionally capped (e.g., $500-$1,000); targets specific caregiver-care recipient pairs under OAA[1][2][3][7][8].
 
 **Our model can't capture:**
 - `asset_limits`: Our model has no asset limit fields
@@ -793,7 +452,7 @@ Other sources show slight variations (e.g., [2] $1,235/$1,663 QMB, [9] $1,616/$2
 - `waitlist`: Has waitlist info — our model has no wait time field
 - `documents_required`: Has document checklist — our model doesn't store per-program documents
 
-**Source:** https://www.oregon.gov/odhs/providers-partners/community-services-supports/pages/family-caregiver-program.aspx
+**Source:** https://www.oregon.gov/odhs/aging-disability-services/pages/caregivers.aspx
 
 ---
 
@@ -803,58 +462,179 @@ Other sources show slight variations (e.g., [2] $1,235/$1,663 QMB, [9] $1,616/$2
 
 **Eligibility:**
 - Age: 55+
-- Income: Family income no more than 125% of the federal poverty level. Exact dollar amounts vary annually by household size and are updated in HHS Poverty Guidelines (effective January 15, 2025 per latest federal update); families must check current guidelines as specific table not in Oregon sources—e.g., for 2025, typically around $19,000 for 1 person, $25,500 for 2, scaling up (verify via dol.gov or oregon.gov).
-- Unemployed
-- Low-income (≤125% FPL)
-- U.S. citizen or eligible resident
-- Enrollment priority: veterans/qualified spouses first, then over 65, disability, low literacy, limited English proficiency, rural residents, homeless/at risk, low employment prospects, or failed American Job Center services
+- Income: Family income must not exceed 125% of the federal poverty level. As of January 15, 2025, the HHS Poverty Guidelines are in effect, but specific dollar amounts by household size are not provided in available search results. Families should contact their local provider or the Department of Labor for current income thresholds.
+- Assets: Not specified in available search results
+- Must be unemployed
+- Enrollment priority given to: veterans and qualified spouses, individuals over 65, people with disabilities, those with low literacy skills or limited English proficiency, rural residents, homeless or at-risk individuals, those with low employment prospects, and those who have exhausted American Job Center services
 
-**Benefits:** Part-time community service internships (average 20 hours/week) at non-profits/public agencies (e.g., schools, hospitals, senior centers); paid highest of federal/state/local minimum wage to supplement income; personalized training, supportive mentors, skills updates; bridge to unsubsidized permanent employment; over 40 million community service hours provided nationally.
-- Varies by: priority_tier
+**Benefits:** Part-time transitional employment at minimum wage (highest of federal, state, or local minimum wage); participants work an average of 20 hours per week; job training and skill updates through placement at non-profit and public facilities; employment assistance through American Job Centers; income supplementation until permanent employment is secured
+- Varies by: fixed
 
 **How to apply:**
-- Phone: Easter Seals Oregon at 503-228-5100 (statewide) or 541-687-7393 (Eugene); Email: kgerhards@or.easterseals.com; In-person: Eugene office at 2510 Oakmont Way, Eugene, OR 97401; Website: oregon.easterseals.com/get-support/areas-of-support/employment-job-training/senior-community-service-employment-program (referral form); National: CareerOneStop Older Worker Program Finder or 1-877-872-5627
+- Phone: 1-877-US2-JOBS (1-877-872-5627) — toll-free Department of Labor help line
+- Phone: 503-228-5100 — Easter Seals Oregon (statewide coordinator)
+- Phone: 541-687-7393 — Easter Seals Oregon Eugene office
+- Email: kgerhards@or.easterseals.com — for referrals
+- In-person: Easter Seals Oregon Eugene office at 2510 Oakmont Way, Eugene, OR 97401
+- Online: CareerOneStop's Older Worker Program Finder (specific URL not provided in search results)
 
-**Waitlist:** Likely due to funding limits and priority tiers, but no specific Oregon timelines provided
+**Timeline:** Not specified in available search results
+**Waitlist:** Not specified in available search results
 
 **Watch out for:**
-- Must be unemployed and actively seeking unsubsidized work—transitional only, not permanent; strict 125% FPL income cap (use current HHS guidelines); priority tiers mean non-priority applicants may face long waits or denial; no asset test but income proof rigorous; part-time wage supplements income but not full-time job replacement; verify state min wage for pay rate.
+- Income limit is strict: 125% of federal poverty level, which is significantly below median income for most seniors. Families must verify current dollar thresholds with providers.
+- This is a transitional program, not permanent support — the goal is to move participants into unsubsidized employment, not provide ongoing assistance.
+- Participants must be actively unemployed; those with any current employment may not qualify.
+- Priority enrollment favors specific populations (veterans, over 65, disabled, etc.); non-priority applicants may face longer waits or limited availability.
+- Program provides part-time work (average 20 hours/week), not full-time employment, during the training phase.
+- Specific income dollar amounts, asset limits, processing times, and required documents are not detailed in publicly available Oregon-specific materials; families must contact providers directly for complete information.
 
-**Data shape:** Federally standardized (DOL/OAA) but locally grantee-run (Easter Seals Oregon); income at 125% FPL (annual federal update); priority enrollment tiers; no asset limits or household-size dollar tables in state sources—requires cross-referencing HHS poverty guidelines.
+**Data shape:** SCSEP is a federally authorized program with state and non-profit administration. Oregon's program is administered by Easter Seals Oregon as the primary grantee. Income eligibility is pegged to federal poverty guidelines (updated annually), creating variable dollar thresholds. The program emphasizes transitional employment with priority enrollment tiers rather than universal access. Critical gaps in publicly available data: specific current income thresholds by household size, asset limits, processing timelines, required documentation, and regional service variations within Oregon.
 
 **Source:** https://www.oregon.gov/odhs/providers-partners/community-services-supports/pages/senior-employment.aspx
 
 ---
 
-### Long-term Care Ombudsman Program
+### Long-Term Care Ombudsman Program
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: No income limits; services are free and available to all residents regardless of financial status.
-- Assets: No asset limits; no financial tests apply.
-- Must be a resident of a licensed long-term care facility in Oregon, including nursing homes, residential care facilities, assisted living facilities, continuing care facilities, or adult foster homes.
-- Services also available to families, facility staff, and the general public on behalf of residents.
-- Targeted to older adults and people with physical disabilities in these facilities.
 
-**Benefits:** Free advocacy services including identifying, investigating, and resolving complaints related to resident care, medications, billing, lost property, meal quality, evictions, guardianships, dignity, respect, and care plans; information and assistance in choosing appropriate living residences; protection of health, safety, welfare, and rights.
+**Benefits:** N/A
 
 **How to apply:**
-- Phone: 800-522-2602 or 503-378-6533
-- Email: ltco.info@rights.oregon.gov
-- In-person: 830 D St. NE, Salem OR 97301
+- Phone: 800-522-2602 or 503-378-6533[8]
+- Email: ltco.info@rights.oregon.gov[8]
+- In-person: 830 D St. NE, Salem OR, 97301[8]
+- Website: oltco.org[8]
 
-**Timeline:** Immediate response to complaints; no formal application processing time as services are provided on-demand.
+**Timeline:** Not specified in available sources
+**Waitlist:** Not mentioned
 
 **Watch out for:**
-- This is not a program that provides direct care, housing, or financial aid—it's purely advocacy and complaint resolution for those already in facilities.
-- Not for community-dwelling individuals; only serves residents of licensed long-term care facilities.
-- Volunteers (not families) provide most direct services; families contact to report issues.
-- Confidentiality is legally required, which may limit information sharing.
+- This program does NOT help families determine if an elderly person qualifies for long-term care placement — it serves people already placed[8]
+- This is NOT a financial assistance program — it's advocacy and complaint resolution[8]
+- If you're looking for help choosing a facility, ombudsmen provide information and assistance[4], but this is post-placement guidance, not pre-placement eligibility determination
+- Volunteers cannot have worked in a long-term care facility within the last two years[1]
+- Volunteers cannot have financial interests in long-term care facilities[1]
 
-**Data shape:** no income test; advocacy-only for facility residents; relies on volunteer network; free and statewide with no waitlist or financial eligibility
+**Data shape:** This program has two distinct user groups: (1) residents/families/public seeking complaint resolution and advocacy (free service), and (2) community members volunteering as certified ombudsmen (16 hrs/month commitment). The search results contain no income limits, asset limits, or eligibility barriers for accessing services — the program is universally available to anyone with a concern about a long-term care resident. The volunteer role has specific qualifications but is not what families typically seek.
 
-**Source:** https://www.oltco.org/programs/ltco-about-us.html
+**Source:** oltco.org[8] and Oregon Secretary of State (sos.oregon.gov)[2]
+
+---
+
+### Senior Guardianship Assistance Program (Senior GAP)
+
+> **NEW** — not currently in our data
+
+**Eligibility:**
+- Age: 60+
+- Income: No income limits specified in available sources; program is fee-for-service with referrals based on vulnerability rather than financial means testing[7][9].
+- Assets: No asset limits specified; focuses on incapacity and lack of alternatives, not financial thresholds[1][7].
+- Resident of Washington or Multnomah counties (primary service area)[7].
+- Age 60+ or vulnerable adult with demonstrated need for protection (some programs extend to adults with disabilities)[7][9].
+- Court-appointed guardianship or conservatorship required; staffed by nationally certified guardians[7].
+- Referral from social service agency, bank, family, or self-referral for pre-planning roles like Power of Attorney[7].
+- Evidence of vulnerability such as safety concerns, financial exploitation, or inability to manage affairs[7].
+
+**Benefits:** Court-appointed guardianship and conservatorship services by nationally certified guardians; also acts as Power of Attorney, Personal Representative of the Estate, Trustee, or Health Care Representative for pre-planning[7].
+- Varies by: region
+
+**How to apply:**
+- Phone: (503) 294-7445 for confidential intake and referrals (Impact NW Senior GAP)[7].
+- Self-referral for pre-planning tools or referral from agency/family/bank[7].
+- In-person discussion available after contact[7].
+
+**Timeline:** Not specified in sources.
+
+**Watch out for:**
+- Not free: Fee-for-service model, not subsidized like child-focused GAP programs[7].
+- Limited to specific counties (e.g., Washington/Multnomah); check local providers[7].
+- Requires court appointment and proof no less restrictive alternatives or willing family exist; high need exceeds capacity statewide[1].
+- Confused with child welfare Guardianship Assistance Program (GAP), which is for foster youth and ineligible here[2][3][4].
+- Pre-planning roles (e.g., POA) allow self-referral, but full guardianship needs referral and court process[7].
+
+**Data shape:** County-restricted private fee-for-service via nonprofits like Impact NW; distinct from state OPG (capacity-limited for incapacitated adults) and child GAP (Title IV-E foster care subsidies); no income/asset tests, vulnerability-driven with court involvement.
+
+**Source:** https://www.oltco.org/programs/opg-about-us.html (Oregon Public Guardian, related state program); program-specific at https://impactnw.org/programs/seniors/guardianship-assistance-2/[1][7]
+
+---
+
+### Oregon Senior Tuition Waiver (OSU/UO Audit Program)
+
+> **NEW** — not currently in our data
+
+**Eligibility:**
+- Age: 65+
+- Income: No income limits or asset limits apply. No variations by household size.
+- Assets: No asset limits. No assets counted or exempted as none required.
+- Oregon resident
+- Must audit classes (no credit or grade earned)
+- Instructor permission required
+- Space available after paying students register
+- Not for limited entry programs (e.g., Nursing, Aquarium Science)
+- Maximum 8 credits per term at some colleges
+
+**Benefits:** 100% tuition waiver for audited credit classes. Does not cover student fees, course fees, lab fees, or materials. Up to 8 credits per term possible.
+
+**How to apply:**
+- Varies by institution: e.g., at Oregon Coast CC - online application, email instructor (cc Registrar@OregonCoast.edu), submit Senior Waiver form online; at UO - submit Auditor Registration Form and Staff Tuition Benefit form through Registrar's Office (specific URLs/forms per school)
+- Contact specific college registrar for details (no central phone listed)
+
+**Timeline:** Registration after first day of class if approved; instructor response time varies
+**Waitlist:** No formal waitlist; space-available only after paying students
+
+**Watch out for:**
+- No credit earned - purely audit/no grade
+- Fees still apply (mandatory, course, lab)
+- Instructor must approve; seats only if available post-regular registration
+- Cannot displace paying students or enter limited programs
+- Some colleges cap at 8 credits/term
+- Community colleges may allow 60+ locally, but state law 65+ for uniformity
+
+**Data shape:** Statewide but institution-administered; audit-only (no credit); no financial tests; space/instructor gatekept; age 65+ per statute (some colleges 60+)
+
+**Source:** https://www.oregonlegislature.gov/bills_laws/ors/ors352.html (ORS 352.303 for universities); https://www.oregonlegislature.gov/bills_laws/ors/ors341.html (ORS 341.518 for community colleges)
+
+---
+
+### Health Related Social Needs Benefits (HSRSN)
+
+> **NEW** — not currently in our data
+
+**Eligibility:**
+- Income: For housing benefits (rent/utilities, storage, tenancy): Household income 30% or less of the area median income (AMI) where you live, plus lack resources/support to prevent homelessness. Varies by location; no full table provided in sources. Other services (e.g., nutrition) may have food security assessments but no fixed income limits specified.[1][3][4]
+- Assets: No asset limits mentioned; focuses on lacking resources/support networks to prevent homelessness for housing services.[3][4]
+- Must be enrolled in Oregon Health Plan (OHP)/Medicaid.[1][2][4][5][6]
+- In at least one qualifying life transition: release from incarceration past 12 months; discharge from IMD past 12 months; current/past Oregon child welfare involvement; transitioning to dual Medicaid/Medicare (next 3 months or past 9 months); homeless/at risk of homelessness; youth 19-26 with special health care needs (starting 2025).[1][2][3][5][6]
+- Plus clinical/health risk factors for specific services: complex physical/behavioral health condition, developmental/intellectual disability, difficulty with self-care/ADLs, abuse/neglect, 65+, under 6, pregnant/postpartum, high crisis service use, etc.[1][2][3][4][5]
+
+**Benefits:** Housing: rent/utilities up to 6 months, storage fees, medically necessary home mods (e.g., ramps, grab bars), pest control/deep cleaning, hotel costs. Nutrition: medically tailored meals for low/very low food security (requires dietitian/PCP assessment). Weather: supports for extreme weather. Must not duplicate other state/local/federal benefits.[3][4][5][6]
+- Varies by: service_type|clinical_risk|region
+
+**How to apply:**
+- Contact healthcare provider or local OHP community partner.[3]
+- CCO-specific: PacificSource request form (via 211info); Health Share, AllCare, etc. via their sites.[4][5][8]
+- Unite Us Assistance Request Form (referral).[6]
+- OHP Open Card: care coordination.[7]
+- Check OHP status: 1-800-273-0557 or local ODHS.[6]
+- Apply for OHP if needed: https://www.oregon.gov/oha/HSD/OHP/Pages/apply.aspx[6]
+
+**Timeline:** Varies by service/provider; high volume causes longer times (e.g., PacificSource processing in order received; Lane County pre-1/24/2026 requests ongoing as of early 2026).[4]
+**Waitlist:** Not explicitly mentioned; processing delays noted due to volume.[4]
+
+**Watch out for:**
+- Not for emergencies (e.g., imminent eviction: contact local Community Action Agency instead).[1]
+- Strict federal requirements; not all OHP members qualify—must match exact transition + clinical criteria.[1][2][3]
+- Cannot duplicate other benefits; housing requires being currently housed with lease.[4][6]
+- Varies significantly by CCO/provider; check your specific CCO.[4][5]
+- Takes time to approve; high volume delays.[1][4]
+
+**Data shape:** OHP/Medicaid-exclusive; eligibility ties specific life transitions to clinical risks per service; housing income at 30% local AMI; CCO-administered with regional processing variations; no age minimum but includes elderly (65+) as clinical factor.
+
+**Source:** https://www.oregon.gov/oha/hsd/medicaid-policy/pages/hrsn.aspx[1]
 
 ---
 
@@ -863,28 +643,31 @@ Other sources show slight variations (e.g., [2] $1,235/$1,663 QMB, [9] $1,616/$2
 | Program | Type | Scope | Complexity |
 |---------|------|-------|------------|
 | Oregon Health Plan (OHP) | benefit | state | deep |
-| OPI-M (Medicaid-funded) | benefit | state | deep |
+| APD Medicaid Long Term Services and Supp | benefit | state | deep |
 | Program of All-Inclusive Care for the El | benefit | local | deep |
-| Medicare Savings Programs (MSP) | benefit | federal | deep |
+| Medicare Savings Programs (MSP) via OHP | benefit | federal | deep |
 | SNAP Food Benefits | benefit | federal | deep |
 | Low Income Home Energy Assistance Progra | benefit | federal | deep |
-| Weatherization Assistance Program | benefit | federal | deep |
+| Weatherization Assistance Program (WAP) | benefit | federal | deep |
 | Senior Health Insurance Benefits Assista | resource | state | simple |
-| Meals on Wheels | benefit | federal | deep |
-| Family Caregiver Support Program (FCSP) | benefit | state | medium |
+| Meals on Wheels (via Area Agencies on Ag | benefit | federal | medium |
+| National Family Caregiver Support Progra | benefit | state | medium |
 | Senior Community Service Employment Prog | employment | federal | deep |
-| Long-term Care Ombudsman Program | resource | federal | simple |
+| Long-Term Care Ombudsman Program | resource | federal | simple |
+| Senior Guardianship Assistance Program ( | benefit | federal | medium |
+| Oregon Senior Tuition Waiver (OSU/UO Aud | benefit | state | deep |
+| Health Related Social Needs Benefits (HS | benefit | state | deep |
 
-**Types:** {"benefit":9,"resource":2,"employment":1}
-**Scopes:** {"state":4,"local":1,"federal":7}
-**Complexity:** {"deep":9,"simple":2,"medium":1}
+**Types:** {"benefit":12,"resource":2,"employment":1}
+**Scopes:** {"state":6,"local":1,"federal":8}
+**Complexity:** {"deep":10,"simple":2,"medium":3}
 
 ## Content Drafts
 
 Generated 3 page drafts. Review in admin dashboard or `data/pipeline/OR/drafts.json`.
 
 - **Oregon Health Plan (OHP)** (benefit) — 5 content sections, 6 FAQs
-- **OPI-M (Medicaid-funded)** (benefit) — 3 content sections, 6 FAQs
+- **APD Medicaid Long Term Services and Supports** (benefit) — 6 content sections, 6 FAQs
 - **Program of All-Inclusive Care for the Elderly (PACE)** (benefit) — 4 content sections, 6 FAQs
 
 ## What We Learned
@@ -892,30 +675,33 @@ Generated 3 page drafts. Review in admin dashboard or `data/pipeline/OR/drafts.j
 ### Patterns Observed
 
 How benefits vary across these programs:
-- **priority_tier**: 5 programs
-- **fixed**: 1 programs
-- **household_size**: 1 programs
-- **household_size (benefits calculated based on household income, household size, and type of fuel used for heating or cooling[1])**: 1 programs
-- **not_applicable**: 2 programs
+- **priority_tier**: 4 programs
+- **region**: 4 programs
+- **household_size and net_income**: 1 programs
 - **priority_tier|region**: 1 programs
-- **Not specified in available documentation**: 1 programs
+- **not_applicable**: 3 programs
+- **fixed**: 1 programs
+- **service_type|clinical_risk|region**: 1 programs
 
 ### Data Shape Notes
 
 Unique structural observations from each program:
 
-- **Oregon Health Plan (OHP)**: Dual structure: MAGI for most (no assets, FPL-based scaling by household size) vs. ABD/OSIPM for elderly/disabled (FBR income, $2,000 assets, level-of-care test); benefits via regional CCOs; long-term care focus for seniors with specific exemptions
-- **OPI-M (Medicaid-funded)**: Income/assets higher than standard Medicaid LTSS; continuous 24-month eligibility; caregiver supports included; priority levels 1-18 determine services; local APD administration with statewide rules
-- **Program of All-Inclusive Care for the Elderly (PACE)**: PACE is a fixed-benefit, all-inclusive program with no tiered benefits or sliding scales. Eligibility is binary (meets all requirements or does not). The program's key structural feature is that it combines insurance (coverage) with direct service provision, making it both a payer and a provider. No income or asset limits exist for PACE enrollment itself, but Medicaid-funded participants must meet Medicaid's income and asset limits. Geographic availability is highly restricted to specific service areas, and rural access is limited. Critical gaps in provided search results: specific application contact information, processing timelines, required documentation, current wait times, and detailed regional provider information are not available.
-- **Medicare Savings Programs (MSP)**: Tiered by income (QMB <100% FPL, SLMB 100-120%, QI/SMF 120-135% FPL) with no asset test; benefits scale by tier (QMB fullest, others Part B only); QI/SMF slot-limited; statewide uniform rules but local admin; annual FPL adjustments.
-- **SNAP Food Benefits**: Elderly 60+ exempt gross income test, medical/shelter deductions boost benefits; varies by household size and elderly/disabled status; regional cash/direct deposit for specific counties
-- **Low Income Home Energy Assistance Program (LIHEAP) / Oregon Energy Assistance Program (OEAP)**: This program's data structure is complex due to regional administration through local Community Action Agencies. Income limits scale by household size with specific dollar thresholds. Benefits are fixed maximum amounts ($750 for regular heating/cooling, $750 for crisis) but calculated based on household characteristics. No statewide online application portal exists; families must contact their local agency. Waitlist availability and processing times vary significantly by region and funding year. The program includes multiple components (regular LIHEAP, crisis LIHEAP, weatherization) with potentially different eligibility or application processes. Household composition for LIHEAP purposes differs from other benefit programs, creating potential confusion for families applying to multiple programs.
-- **Weatherization Assistance Program**: Administered statewide by OHCS via local subgrantees/CAAs with county-specific contacts; priority-based with waitlists; income fixed at 200% FPL, benefits via energy audit.
-- **Senior Health Insurance Benefits Assistance (SHIBA)**: no income or asset test; volunteer-delivered statewide counseling network with local access points; services fixed and free for all Medicare enrollees
-- **Meals on Wheels**: Decentralized by local providers/regions with no uniform income/asset tests; Medicaid HDM ties to case management assessments; mixes OAA (need-based) and Medicaid (authorized service) streams
-- **Family Caregiver Support Program (FCSP)**: The Family Caregiver Support Program documentation in search results is limited. While eligibility for care recipients is clearly defined by age and condition, critical details are absent: specific services provided, benefit amounts or hours, application procedures, processing timelines, required documentation, and regional variations. The program appears to be primarily a support/advocacy program rather than a direct payment program, but this distinction is not explicitly confirmed. Families should contact their local ADRC directly for comprehensive program details. Additionally, Oregon offers multiple caregiver-related programs (FCSP, Medicaid PCP, Spousal Pay, VA Family Caregiver Program), and the search results do not clarify how these programs interact or which is most appropriate for different situations.
-- **Senior Community Service Employment Program (SCSEP)**: Federally standardized (DOL/OAA) but locally grantee-run (Easter Seals Oregon); income at 125% FPL (annual federal update); priority enrollment tiers; no asset limits or household-size dollar tables in state sources—requires cross-referencing HHS poverty guidelines.
-- **Long-term Care Ombudsman Program**: no income test; advocacy-only for facility residents; relies on volunteer network; free and statewide with no waitlist or financial eligibility
+- **Oregon Health Plan (OHP)**: benefits scale by household size and tier (OHP Plus/Bridge/OSIPM); income uses FPL or FBR; long-term care for elderly via OSIPM with asset tests and spend-down; statewide but local ODHS/ADRC handling
+- **APD Medicaid Long Term Services and Supports**: Waiver-based with priority tiers (SPL 1-13); waitlisted and area-dependent; NFLOC via CAPS assessment; separate from entitlement ABD Medicaid.
+- **Program of All-Inclusive Care for the Elderly (PACE)**: county-restricted to PACE service areas with multiple providers; no financial eligibility test; NFLOC via Oregon SPL 1-13; private pay option
+- **Medicare Savings Programs (MSP) via OHP**: MSP is a three-tier program with escalating income thresholds and different benefit levels. The program is statewide but has enrollment caps on the SMF tier. Income limits are tied to federal poverty levels and adjust annually. Unlike some states, Oregon eliminated resource limits for QMB programs. The program requires Medicare Part A enrollment and excludes those eligible for other Medicaid benefits (for SMF tier). Processing timelines and specific regional office locations are not detailed in available sources.
+- **SNAP Food Benefits**: Benefits scale by household size and net income. Program has special rules for elderly (60+) and disabled members that provide alternative pathways to qualification and increased benefit amounts. Work requirements for able-bodied adults without dependents create regional variation in eligibility enforcement. Oregon's expanded eligibility goes beyond federal minimums. Medical cost deductions are unique feature for elderly/disabled households. Regional variation exists for benefit delivery method (EBT card vs. check vs. direct deposit) and cash benefit option in specific counties.
+- **Low Income Home Energy Assistance Program (LIHEAP) / Oregon Energy Assistance Program (OEAP)**: Income table scales by household size at 60% SMI; priority tiers for elderly/disabled; administered via ~20 county Community Action Agencies with slight policy variations; no statewide fixed grant amount
+- **Weatherization Assistance Program (WAP)**: Administered by county-specific subgrantees with varying contacts; priority tiers affect service timing; income fixed at 200% FPL with no asset test; services vary by audit results
+- **Senior Health Insurance Benefits Assistance (SHIBA)**: no income or asset test; volunteer-based counseling service scaled statewide via local sites with no fixed benefits value
+- **Meals on Wheels (via Area Agencies on Aging)**: Decentralized via 20+ local Area Agencies on Aging; eligibility/assessments vary by region/provider; no uniform income table or statewide processing times; Medicaid path separate from OAA-funded
+- **National Family Caregiver Support Program (NFCSP)**: Administered statewide but services vary by local AAA/provider; no income/asset tests; respite grants regionally capped (e.g., $500-$1,000); targets specific caregiver-care recipient pairs under OAA[1][2][3][7][8].
+- **Senior Community Service Employment Program (SCSEP)**: SCSEP is a federally authorized program with state and non-profit administration. Oregon's program is administered by Easter Seals Oregon as the primary grantee. Income eligibility is pegged to federal poverty guidelines (updated annually), creating variable dollar thresholds. The program emphasizes transitional employment with priority enrollment tiers rather than universal access. Critical gaps in publicly available data: specific current income thresholds by household size, asset limits, processing timelines, required documentation, and regional service variations within Oregon.
+- **Long-Term Care Ombudsman Program**: This program has two distinct user groups: (1) residents/families/public seeking complaint resolution and advocacy (free service), and (2) community members volunteering as certified ombudsmen (16 hrs/month commitment). The search results contain no income limits, asset limits, or eligibility barriers for accessing services — the program is universally available to anyone with a concern about a long-term care resident. The volunteer role has specific qualifications but is not what families typically seek.
+- **Senior Guardianship Assistance Program (Senior GAP)**: County-restricted private fee-for-service via nonprofits like Impact NW; distinct from state OPG (capacity-limited for incapacitated adults) and child GAP (Title IV-E foster care subsidies); no income/asset tests, vulnerability-driven with court involvement.
+- **Oregon Senior Tuition Waiver (OSU/UO Audit Program)**: Statewide but institution-administered; audit-only (no credit); no financial tests; space/instructor gatekept; age 65+ per statute (some colleges 60+)
+- **Health Related Social Needs Benefits (HSRSN)**: OHP/Medicaid-exclusive; eligibility ties specific life transitions to clinical risks per service; housing income at 30% local AMI; CCO-administered with regional processing variations; no age minimum but includes elderly (65+) as clinical factor.
 
 ### Questions for Chantel's Review
 

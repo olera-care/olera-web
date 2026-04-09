@@ -1,21 +1,64 @@
 {
   "state": "AK",
   "stateName": "Alaska",
-  "classifiedAt": "2026-04-09T08:46:51.826Z",
-  "total": 11,
+  "classifiedAt": "2026-04-09T09:27:42.776Z",
+  "total": 14,
   "typeSummary": {
-    "benefit": 11
+    "benefit": 11,
+    "employment": 1,
+    "resource": 2
   },
   "scopeSummary": {
-    "state": 4,
-    "local": 2,
-    "federal": 5
+    "state": 7,
+    "local": 1,
+    "federal": 6
   },
   "complexitySummary": {
-    "deep": 9,
-    "medium": 2
+    "deep": 10,
+    "medium": 2,
+    "simple": 2
   },
   "programs": [
+    {
+      "name": "DenaliCare",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Division of Public Assistance Offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Division of Senior and Disability Services offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Local Aging and Disability Resource Centers (ADRCs)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
     {
       "name": "Adults with Physical & Developmental Disabilities Waiver (APDD)",
       "programType": "benefit",
@@ -24,7 +67,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local ADRC sites (e.g., SAIL/ADRC in Southeast: 907-523-4428), SDS IDD Unit, care coordinators via Alaska Care Coordination Network",
+            "name": "SDS Intellectual and Developmental Disabilities Unit; regional ADRC sites (e.g., Juneau, Ketchikan); local care coordinators[1][5][7]",
             "type": "service-area"
           }
         ]
@@ -32,18 +75,20 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
         "what-counts",
+        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
@@ -55,7 +100,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "None listed for Alaska; search nationally via Medicare.gov or NPAonline.org for any new 2026 updates.",
+            "name": "No PACE providers in Alaska; check National PACE Association for updates",
             "type": "service-area"
           }
         ]
@@ -64,6 +109,7 @@
       "recommendedSections": [
         "prose",
         "what-counts",
+        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -74,19 +120,19 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
+        "hasMultipleTiers": true,
         "isStatewide": false
       }
     },
     {
-      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "name": "Medicare Savings Programs (QMB, SLMB, QI, QDWI)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Alaska Public Assistance Field Offices (locations via health.alaska.gov/dpa)",
+            "name": "Local Alaska Department of Health medical assistance offices[2][9]",
             "type": "service-area"
           }
         ]
@@ -112,14 +158,14 @@
       }
     },
     {
-      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Division of Public Assistance (DPA) offices statewide.",
+            "name": "Local DPA offices; Virtual Contact Center statewide.",
             "type": "service-area"
           }
         ]
@@ -143,22 +189,30 @@
       }
     },
     {
-      "name": "Alaska Energy Assistance (LIHEAP)",
+      "name": "Heating Assistance Program (HAP)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
+        "type": "state",
+        "stateVariation": false,
         "localEntities": [
           {
-            "name": "State Division of Public Assistance (DPA) offices",
+            "name": "All Public Assistance offices statewide[1][6]",
             "type": "service-area"
           },
           {
-            "name": "Tribal agencies like THRHA, Sitka Tribe",
+            "name": "Tribal organizations in designated communities[2]",
             "type": "service-area"
           },
           {
-            "name": "WIC offices, senior centers",
+            "name": "WIC offices[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Senior centers[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Regional Housing Authority (THRHA) for certain regions[2]",
             "type": "service-area"
           }
         ]
@@ -169,8 +223,7 @@
         "income-table",
         "what-counts",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "financial",
@@ -190,23 +243,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Tlingit-Haida Regional Housing Authority (Juneau).[2]",
-            "type": "service-area"
-          },
-          {
-            "name": "RurAL CAP (Anchorage).[5]",
-            "type": "service-area"
-          },
-          {
-            "name": "Cook Inlet Housing Authority.[6]",
-            "type": "service-area"
-          },
-          {
-            "name": "Alaska CDC.[3]",
-            "type": "service-area"
-          },
-          {
-            "name": "Others via Association of Alaska Housing Authorities or AHFC.[4]",
+            "name": "Alaska Housing Finance Corporation (AHFC) oversees; apply via local providers like RurAL CAP (Anchorage), Fairbanks Senior Center, Cook Inlet Housing Authority, Alaska CDC (Palmer), Association of Alaska Housing Authorities, regional housing authorities.[1][2][3][4][5][6]",
             "type": "service-area"
           }
         ]
@@ -232,30 +269,26 @@
       }
     },
     {
-      "name": "Meals on Wheels (Alaska Senior Nutrition Programs)",
+      "name": "Alaska Meals on Wheels",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Salvation Army, Anchorage (9131 Centennial Circle)[4]",
+            "name": "Salvation Army Older Alaskans Program - Cook Inlet Housing, 9131 Centennial Circle, Anchorage, AK[5]",
             "type": "service-area"
           },
           {
-            "name": "Fairbanks Senior Center[5]",
+            "name": "Southeast Senior Services (SESS) - 12 centers throughout Southeast Alaska[8]",
             "type": "service-area"
           },
           {
-            "name": "Wasilla (1301 S Century Cir)[7]",
+            "name": "WASI (Wasilla) - 1301 S Century Cir, Wasilla, AK[7]",
             "type": "service-area"
           },
           {
-            "name": "North Slope Borough Senior Program[8]",
-            "type": "service-area"
-          },
-          {
-            "name": "SESS (12 centers in Southeast Alaska)[9]",
+            "name": "Lower Kuskokwim School District service area providers[2]",
             "type": "service-area"
           }
         ]
@@ -269,13 +302,13 @@
         "callout"
       ],
       "signals": {
-        "benefitType": "service",
+        "benefitType": "in_kind",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
-        "isStatewide": false
+        "isStatewide": true
       }
     },
     {
@@ -286,19 +319,15 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Alaska Department of Health and Social Services, Division of Senior and Disabilities Services",
+            "name": "Division of Senior and Disabilities Services grantees statewide.[3]",
             "type": "service-area"
           },
           {
-            "name": "Local grantees and providers",
+            "name": "Alzheimer’s Disease Resource Agency (four locations).[3]",
             "type": "service-area"
           },
           {
-            "name": "Alzheimer’s Disease Resource Agency (four locations)",
-            "type": "service-area"
-          },
-          {
-            "name": "Alaska Office of Aging and Senior Care Centers (AOASCC)",
+            "name": "Providers in 12 communities.[3]",
             "type": "service-area"
           }
         ]
@@ -309,8 +338,7 @@
         "what-counts",
         "tier-comparison",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "service",
@@ -323,14 +351,107 @@
       }
     },
     {
-      "name": "Senior Benefits Program",
+      "name": "Senior Community Service Employment Program (SCSEP) / Mature Alaskans Seeking Skills Training (MASST)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "SERRC (Southeast Alaska Regional Resource Center) mentioned as administrator[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Alaska Department of Labor and Workforce Development administers the program[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Specific office locations and contact information not provided in available sources",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Alaska Legal Services Corporation (ALSC) Senior Legal Services",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Multiple offices statewide; nearest office for paper applications or questions",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Statewide Office of the Long Term Care Ombudsman, Alaska Mental Health Trust Authority[2][5][7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Alaska Senior Benefits Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Division of Public Assistance (DPA) offices statewide via dhss.alaska.gov/dpa/",
+            "name": "Division of Public Assistance local offices statewide (dhss.alaska.gov/dpa/)",
             "type": "service-area"
           }
         ]
@@ -342,8 +463,7 @@
         "what-counts",
         "tier-comparison",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "financial",
@@ -356,49 +476,14 @@
       }
     },
     {
-      "name": "Adult Public Assistance (APA)",
+      "name": "Adult Public Assistance (APA) Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Any Division of Public Assistance (DPA) office statewide[4]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Senior Access Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Alaska CDC (specific regions listed)",
-            "type": "service-area"
-          },
-          {
-            "name": "Other local nonprofits via AHFC partnerships",
+            "name": "Any Division of Public Assistance (DPA) office; local offices listed on https://health.alaska.gov/dpa and via Alaska 211: 1-800-478-2221[3][5]",
             "type": "service-area"
           }
         ]
@@ -406,19 +491,19 @@
       "complexity": "medium",
       "recommendedSections": [
         "prose",
-        "income-table",
+        "what-counts",
         "documents",
         "county-directory",
         "callout"
       ],
       "signals": {
-        "benefitType": "in_kind",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": false,
+        "benefitType": "financial",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
-        "isStatewide": false
+        "isStatewide": true
       }
     }
   ]

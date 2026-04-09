@@ -1,284 +1,32 @@
 {
   "state": "CA",
   "stateName": "California",
-  "classifiedAt": "2026-04-09T08:48:35.658Z",
-  "total": 12,
+  "classifiedAt": "2026-04-09T09:28:58.362Z",
+  "total": 5,
   "typeSummary": {
-    "benefit": 8,
-    "resource": 3,
-    "employment": 1
+    "benefit": 5
   },
   "scopeSummary": {
-    "federal": 5,
-    "state": 7
+    "state": 4,
+    "local": 1
   },
   "complexitySummary": {
-    "deep": 7,
-    "simple": 3,
-    "medium": 2
+    "medium": 2,
+    "deep": 3
   },
   "programs": [
     {
-      "name": "Medi-Cal Medicare Savings Programs (QMB, SLMB, QI)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local county social services/welfare offices (find via dhcs.ca.gov or county sites)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Multipurpose Senior Services Program (MSSP) Waiver",
+      "name": "State Supplementary Payment (SSP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local DHCS county offices",
-            "type": "service-area"
-          },
-          {
-            "name": "Local Area Agencies on Aging (AAA)",
-            "type": "service-area"
-          },
-          {
-            "name": "~40 CDA-contracted local agencies",
+            "name": "Contact your local SSA Claims Representative — specific office locations not provided in search results",
             "type": "service-area"
           }
         ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Over 40 PACE programs across 28 counties in California[4]",
-            "type": "service-area"
-          },
-          {
-            "name": "West PACE operates in San Marcos, CA[5]",
-            "type": "service-area"
-          },
-          {
-            "name": "CalOptima Health offers PACE enrollment[6]",
-            "type": "service-area"
-          },
-          {
-            "name": "Innovage provides PACE services[9]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "CalFresh",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "County social services agencies (e.g., Alameda SSA, LA DPSS, Riverside DPSS)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "LIHEAP (Low Income Home Energy Assistance Program)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local energy agencies/service providers (find via csd.ca.gov or 1-866-675-6623); examples: IMACA, EHSD, PG&E partners.",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Weatherization Assistance Program (WAP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "CA CSD (csd.ca.gov); local e.g., CSET (1-844-224-1316), Riverside CAP (951-955-4900), Siskiyou (530.938.4115)[2][3][4][6].",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Health Insurance Counseling & Advocacy Program (HICAP)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Orange County: Council on Aging (714-560-0424)",
-            "type": "service-area"
-          },
-          {
-            "name": "Riverside, San Bernardino, Inyo, Mono Counties: Council on Aging (909-256-8369)",
-            "type": "service-area"
-          },
-          {
-            "name": "Santa Clara County: Sourcewise (408-350-3245)",
-            "type": "service-area"
-          },
-          {
-            "name": "Kern County: Kern County Aging and Adult Services, 5357 Truxtun Ave., Bakersfield, CA 93309 (661-868-1000)",
-            "type": "service-area"
-          },
-          {
-            "name": "Statewide coordination: California Department of Aging, 1300 National Drive, Suite 200, Sacramento, CA 95834-1992",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service|advocacy",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Home Delivered Meals (via AAA/Nutrition Services)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false
       },
       "complexity": "medium",
       "recommendedSections": [
@@ -289,7 +37,7 @@
         "callout"
       ],
       "signals": {
-        "benefitType": "in_kind",
+        "benefitType": "financial",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
@@ -299,19 +47,92 @@
       }
     },
     {
-      "name": "Family Caregiver Support Program (FCSP)",
+      "name": "Property Tax Postponement Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Administered by California State Controller’s Office",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "In-Home Supportive Services (IHSS)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Contact your county social services agency or county IHSS office[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "San Diego County example: 800-339-4661[4]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind (personal care services)",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Caregiver Resource Centers (CRC)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Network of 11 nonprofit centers covering all counties (full list at caregivercalifornia.org or aging.ca.gov).[3][5][9]",
+            "type": "service-area"
+          }
+        ]
       },
       "complexity": "medium",
       "recommendedSections": [
         "prose",
         "what-counts",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "service",
@@ -324,124 +145,28 @@
       }
     },
     {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "programType": "employment",
+      "name": "Multipurpose Senior Services Program (MSSP)",
+      "programType": "benefit",
       "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "California Department of Aging (state administrator)",
-            "type": "service-area"
-          },
-          {
-            "name": "Orange County Department of Aging (Orange County)",
-            "type": "service-area"
-          },
-          {
-            "name": "Felton Institute (San Francisco, Marin, San Benito, San Mateo, Santa Clara, Santa Cruz counties)",
-            "type": "service-area"
-          },
-          {
-            "name": "NEW Solutions (Northern California and Wyoming)",
-            "type": "service-area"
-          },
-          {
-            "name": "AARP Foundation (operates SCSEP in multiple regions)",
-            "type": "service-area"
-          },
-          {
-            "name": "NAPCA (operates SCSEP with 400+ nonprofit and government partners)",
-            "type": "service-area"
-          }
-        ]
+        "type": "local",
+        "stateVariation": false
       },
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
-        "documents"
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
       ],
       "signals": {
-        "benefitType": "employment",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Legal Services for Seniors (via AAAs/Legal Aid)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Legal Aid Association of California (Berkeley): 1832 Second Street, Suite 105, Berkeley, CA 94710; (510) 893-3000[1]",
-            "type": "service-area"
-          },
-          {
-            "name": "Legal Assistance for Seniors (Alameda County): 333 Hegenberger Road, Suite 850, Oakland, CA 94612; 510-832-3040[2]",
-            "type": "service-area"
-          },
-          {
-            "name": "Legal Services for Seniors (Monterey County): 11 Thomas Owens Way, Suite #101, Monterey; 831-899-0492; Monday-Thursday 9am-3pm[6]",
-            "type": "service-area"
-          },
-          {
-            "name": "Tulare County Senior Legal Services: Available by phone or at senior centers[5]",
-            "type": "service-area"
-          },
-          {
-            "name": "Los Angeles: Bet Tzedek Legal Services (323-939-0506) and Legal Aid Foundation of Los Angeles (800-399-4529)[7]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service|advocacy",
+        "benefitType": "service",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
+        "hasFunctionalReq": true,
         "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Long-Term Care Ombudsman Program",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "35 local programs throughout California; contact via California Department of Aging for local office[6]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "advocacy",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
+        "isStatewide": false
       }
     }
   ]

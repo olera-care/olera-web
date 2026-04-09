@@ -1,7 +1,7 @@
 # District of Columbia Benefits Exploration Report
 
 > Generated 2026-04-09 by benefits-pipeline.js
-> Cost: $0.040 (8 calls, 23s)
+> Cost: $0.010 (2 calls, 18s)
 
 ---
 
@@ -9,7 +9,7 @@
 
 | Metric | Value |
 |--------|-------|
-| Programs discovered | 6 |
+| Programs discovered | ? |
 | Programs deep-dived | 6 |
 | New (not in our data) | 6 |
 | Data discrepancies | 0 |

@@ -4,101 +4,45 @@
   "state": "MS",
   "stateName": "Mississippi",
   "isRegion": false,
-  "exploredAt": "2026-04-09T08:54:02.120Z",
-  "programCount": 13,
+  "exploredAt": "2026-04-09T09:36:01.458Z",
+  "programCount": 5,
   "programs": [
     {
-      "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
-      "what_it_does": "These programs help low-income Medicare enrollees pay premiums, deductibles, and cost-sharing for Medicare Parts A/B. Medicaid covers Medicare expenses and provides additional wraparound services.[7]",
-      "who_its_for": "Low-income seniors dually eligible for Medicare/Medicaid; specific income/resource limits apply (administered via MS Medicaid).[7]",
-      "official_url": "https://medicaid.ms.gov/medicaid-coverage/",
-      "benefit_value": "Pays Medicare premiums/costs; e.g., QMB covers Part B premium ($185+/month value).[7]"
-    },
-    {
-      "name": "Mississippi Elderly and Disabled (E&D) Waiver",
-      "what_it_does": "This statewide Medicaid 1915(c) Home and Community Based Services (HCBS) waiver provides long-term care services to promote independent living and prevent nursing home institutionalization. Benefits are tailored to individual needs and may include adult day care, meal delivery, respite care, personal care assistance, and community transition services.[1]",
-      "who_its_for": "Mississippi residents aged 65+ or aged 21-64 who are physically disabled and at risk of nursing home placement; those enrolled before 65 can continue services after turning 65.[1]",
-      "whats_unique": "Mississippi's specific implementation of the E&D Waiver offers customized HCBS with limited enrollment slots, distinguishing it as a state-managed program beyond standard federal Medicaid by focusing on individualized home-based alternatives to institutional care.[1]",
+      "name": "Mississippi Medicaid Elderly and Disabled Waiver",
+      "what_it_does": "The Elderly and Disabled (E&D) Waiver is a statewide Medicaid program providing home and community-based services to prevent nursing home institutionalization. Services include case management, adult day care, home delivered meals, personal care, respite care, and transition assistance tailored to individual needs.[1][3]",
+      "who_its_for": "Mississippi residents aged 65+ or 21-64 who are physically disabled, require nursing home level of care, and are Medicaid eligible.[1][3]",
       "official_url": "https://www.medicaidplanningassistance.org/mississippi-elderly-disabled-waiver/",
-      "benefit_value": "Varies by individual needs; non-entitlement with waitlists when slots (statewide cap) are full.[1]"
+      "benefit_value": "Limited enrollment slots with waitlist when full; services vary by need but promote independent living as alternative to institutional care.[1]"
     },
     {
-      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Not available in MS",
-      "what_it_does": "",
-      "who_its_for": "",
-      "official_url": "",
-      "benefit_value": "No PACE programs operating in Mississippi per available data."
+      "name": "Mississippi State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "SHIP provides free counseling on Medicare, Medicaid, supplemental insurance, long-term care options, and help with claims, appeals, and policy comparisons. Volunteers assist older adults and caregivers in understanding benefits and organizing paperwork.[4][6]",
+      "who_its_for": "Mississippi Medicare beneficiaries, older adults, caregivers, and those with questions on health insurance including Medicare Savings Programs.[4][6]",
+      "official_url": "https://smpdd.com/senior-services/",
+      "benefit_value": "Free personalized assistance statewide through Area Agencies on Aging; no financial benefit but saves on premiums and out-of-pocket costs via guidance.[4]"
     },
     {
-      "name": "Mississippi SNAP (Supplemental Nutrition Assistance Program)",
-      "what_it_does": "Provides monthly benefits via EBT card for purchasing food at approved retailers. Helps low-income households afford nutritious meals.",
-      "who_its_for": "Low-income seniors 60+ with income/resources below state limits (administered by MS Dept of Human Services).",
-      "official_url": "https://www.mdhs.ms.gov/snap/",
-      "benefit_value": "Average $200+/month per eligible senior household (2026 federal max adjusted)."
-    },
-    {
-      "name": "Mississippi LIHEAP (Low-Income Home Energy Assistance Program)",
-      "what_it_does": "Assists with heating/cooling bills, crisis assistance, and weatherproofing for low-income households. Administered seasonally through local agencies.",
-      "who_its_for": "Low-income seniors, disabled; priority for 60+, households with disabled members.",
-      "official_url": "https://www.mdhs.ms.gov/community/liheap/",
-      "benefit_value": "One-time grants $200-$1,000+ depending on need/fuel type."
-    },
-    {
-      "name": "Mississippi Weatherization Assistance Program (WAP)",
-      "what_it_does": "Provides free home energy efficiency upgrades like insulation, sealing, and furnace repair. Reduces energy costs and improves health/safety.",
-      "who_its_for": "Low-income households including seniors 60+ (income <200% FPL); priority for elderly/disabled.",
-      "official_url": "https://www.mdhs.ms.gov/community/weatherization/",
-      "benefit_value": "Free upgrades valued $3,000-$7,000 per home."
-    },
-    {
-      "name": "Mississippi SHIP (State Health Insurance Assistance Program)",
-      "what_it_does": "Offers free counseling on Medicare, Medicare Advantage, Part D, and supplemental plans. Helps seniors choose/appeal coverage and report fraud.",
-      "who_its_for": "All Mississippi Medicare beneficiaries, especially low-income seniors.",
-      "official_url": "https://www.mship.org/",
-      "benefit_value": "Free one-on-one counseling; saves thousands via optimal plan selection."
-    },
-    {
-      "name": "Mississippi Meals on Wheels (via Aging and Disability Resource Centers)",
-      "what_it_does": "Delivers nutritious meals to homebound seniors to promote independence. Often includes safety wellness checks.",
-      "who_its_for": "Homebound seniors 60+ unable to prepare meals, meeting income guidelines.",
-      "official_url": "https://aging.ms.gov/programs/nutrition/",
-      "benefit_value": "5-7 meals/week; $8-12/meal subsidized value."
-    },
-    {
-      "name": "Mississippi Family Caregiver Support Program",
-      "what_it_does": "Provides respite care, training, and support services to family caregivers. Includes counseling and supplemental services.",
-      "who_its_for": "Unpaid family caregivers of seniors 60+ or disabled adults.",
-      "official_url": "https://aging.ms.gov/programs/caregiver-support/",
-      "benefit_value": "Respite grants up to $1,000/year; training/workshops."
-    },
-    {
-      "name": "Senior Community Service Employment Program (SCSEP) - Mississippi",
-      "what_it_does": "Offers part-time paid community service jobs with training for older workers. Helps transition to unsubsidized employment.",
-      "who_its_for": "Unemployed low-income individuals 55+ (income <125% FPL).",
-      "official_url": "https://aging.ms.gov/programs/scsep/",
-      "benefit_value": "Minimum wage work (20 hrs/week); avg $7,000/year earnings."
-    },
-    {
-      "name": "Mississippi Legal Services (Senior Legal Helpline)",
-      "what_it_does": "Provides free legal assistance for issues like housing, benefits, abuse, and consumer problems. Operates statewide helpline for seniors.",
-      "who_its_for": "Low-income seniors 60+ residing in Mississippi.",
-      "official_url": "https://www.mississippilegal.org/seniors/",
-      "benefit_value": "Free legal advice/representation; resolves benefits disputes, evictions."
-    },
-    {
-      "name": "Mississippi Long-Term Care Ombudsman Program",
-      "what_it_does": "Advocates for residents in nursing homes, assisted living, and personal care homes. Investigates complaints and ensures quality of care.",
-      "who_its_for": "Residents of long-term care facilities and their families in MS.",
-      "official_url": "https://aging.ms.gov/programs/ltc-ombudsman/",
-      "benefit_value": "Free advocacy services; resolves 80%+ complaints without litigation."
+      "name": "State Long Term Care Ombudsman Program",
+      "what_it_does": "The program resolves problems for long-term care facility residents and advocates for their rights to improve quality of life. Services are provided through contracts with Area Agencies on Aging using staff and volunteers.[3]",
+      "who_its_for": "Residents of long-term care facilities in Mississippi.[3]",
+      "official_url": "https://www.mississippiaccesstocare.org/HelpInfo/ProgramsServices",
+      "benefit_value": "Advocacy and problem resolution at no cost; enhances resident rights and care quality.[3]"
     },
     {
       "name": "Mississippi Access to Care (MAC) Network",
-      "what_it_does": "MAC Centers provide free, unbiased, and confidential assistance to locate long-term care services and supports, helping individuals remain independent in the community. They offer information on a broad range of programs, aid in evaluating options, and assist with benefit applications for aging individuals and those with disabilities.[8][4]",
-      "who_its_for": "Older Mississippians, people with disabilities, their families, and representatives; open to anyone regardless of income.[8]",
-      "whats_unique": "This is Mississippi's state-specific network of centralized resource centers for long-term care navigation, not a standard federal program, emphasizing community-based options unique to the state's service coordination structure.[8][4]",
+      "what_it_does": "MAC Centers provide free, unbiased, and confidential assistance to locate long-term care services and supports, helping individuals remain independent in the community. They offer information on a broad range of programs, help evaluate options, and assist with applications for benefits.[4][8]",
+      "who_its_for": "Older Mississippians, people with disabilities, their families or representatives, and anyone seeking long-term care assistance regardless of income.[4][8]",
+      "whats_unique": "State-specific network of centers dedicated to connecting residents to Mississippi's long-term services and supports, serving as a central, accessible hub not universally replicated in other states.[6][8]",
       "official_url": "https://www.mississippiaccesstocare.org",
-      "benefit_value": "Free access to information, assistance, and application help; no direct financial value but facilitates other benefits.[8]"
+      "benefit_value": "Free information, assistance, and navigation services; no direct financial value but enables access to other benefits.[8]"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "This program offers subsidized, part-time community service work experience to help seniors gain or enhance skills for reentering the workforce. It is administered across all 82 Mississippi counties through area agencies on aging and non-profits.[3]",
+      "who_its_for": "Unemployed Mississippians aged 55+ seeking to reenter the workforce.[3]",
+      "whats_unique": "Mississippi's state-administered implementation under Title V of the Older Americans Act, providing localized training in every county tailored to the state's needs.[3]",
+      "official_url": "http://mdes.ms.gov/i-need-a-job/senior-employment-program/",
+      "benefit_value": "Subsidized part-time work experience for a limited time; wage details not specified but aimed at skill-building for permanent employment.[3]"
     }
   ]
 }

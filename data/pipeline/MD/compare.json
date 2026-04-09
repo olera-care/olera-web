@@ -1,116 +1,82 @@
 {
   "state": "MD",
   "stateName": "Maryland",
-  "comparedAt": "2026-04-09T08:53:17.257Z",
-  "total": 17,
-  "newPrograms": 17,
+  "comparedAt": "2026-04-09T09:34:49.091Z",
+  "total": 9,
+  "newPrograms": 9,
   "withDiffs": 0,
   "withNovelFields": 0,
   "benefitTypes": {
-    "in_kind": 2,
-    "service": 8,
-    "financial": 5,
-    "employment": 1,
-    "unknown": 1
+    "service": 6,
+    "financial": 2,
+    "in_kind": 1
   },
   "variationPatterns": {
-    "not_applicable": 3,
-    "priority_tier": 4,
-    "Medicare/Medicaid eligibility status and private pay option": 1,
+    "priority_tier": 3,
+    "not_applicable": 2,
     "household_size": 1,
-    "household_size|priority_tier|region": 1,
-    "region": 1,
-    "fixed": 3,
-    "Individual income and approved facility costs; fixed maximum of $1,000/month": 1,
-    "funding_availability": 1
+    "Individual need and eligibility for underlying programs (MAP itself is free to all; underlying programs may have income/asset limits)": 1,
+    "fixed": 1,
+    "equipment_type": 1
   },
   "novelFieldSummary": {},
   "comparisons": [
     {
-      "name": "Maryland Durable Medical Equipment Reuse Program (DME)",
+      "name": "Medicaid Long Term Care Services and Supports (LTSS)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "No income/asset/age tests; healthcare provider-gated; inventory-driven with statewide satellites but main processing in Cheltenham; donation-reliant with no fixed quantities.",
+      "dataShapeNotes": "Varies by marital status/program (Nursing Home vs HCBS vs ABD); NFLOC tiered need; 5-year financial history review; statewide but local admin",
       "gotchas": [
-        "Must exhaust all other means first (e.g., insurance denials or delays).",
-        "No delivery; must pick up in person at Cheltenham or satellite sites.",
-        "Limited inventory based on donations; call ahead to verify stock.",
-        "Healthcare professional must initiate/complete form; patient/caregiver cannot submit alone.",
-        "Complex items require specific provider signatures (PT/OT for power equipment).",
-        "Program reserves service for those with no other options due to limited supply."
-      ],
-      "benefitType": "in_kind",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "https://aging.maryland.gov/pages/dmehp.aspx"
-    },
-    {
-      "name": "Maryland Community First Choice (CFC) and Home and Community-Based Services (HCBS) Waivers",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "CFC is entitlement (no waitlist, immediate if eligible) vs. slot-limited HCBS Waivers; eligibility ties to specific public benefits or Waivers with varying income; services personalized via plan of service assessment",
-      "gotchas": [
-        "CFC has stricter income limits than some Waivers; higher income possible via Waiver enrollment[1][4]",
-        "Not all Medicaid recipients qualify—must receive specific benefits and be medically needy[3][6]",
-        "Fewer services than HCBS Waivers; check needs before choosing[4]",
-        "Waivers have waitlists, CFC does not[4]",
-        "Must appeal denials within 10 days to continue benefits[3][6]",
-        "Inadequate financial planning leads to denial[1]"
+        "Income >$2,982/month requires paying most to state (not upper limit)[1]",
+        "5-year lookback on finances[3]",
+        "NFLOC required for institutional/HCBS, not all regular Medicaid LTSS[2]",
+        "Asset protection via trusts complex[7]",
+        "Must prove citizenship/identity[6]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
-      "officialSource": "https://health.maryland.gov (general MD Dept. of Health); specific CFC pages not directly linked in results"
+      "officialSource": "https://health.maryland.gov/mmcp/longtermcare/pages/home.aspx[5]"
     },
     {
-      "name": "Maryland Program of All-Inclusive Care for the Elderly (PACE)",
+      "name": "Medicare Savings Program (includes SLMB and QI programs)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Maryland PACE is geographically restricted by provider service areas (only PACE of West Baltimore detailed in search results). No statewide income or asset limits exist for program eligibility, but Medicaid coverage (used by ~90% of participants) has strict financial limits. The program is all-or-nothing: participants must use PACE exclusively for all services. Search results do not provide comprehensive statewide provider list, application processing times, or detailed benefit specifications beyond 'comprehensive services.'",
+      "dataShapeNotes": "Tiered by FPL (SLMB 100-120%, QI 120-135%); fixed federal asset limits with MD adherence; QI has funding cap/priority queue; household size primarily individual/couple; annual reapplication required",
       "gotchas": [
-        "No income or asset limits for program eligibility, but most participants need Medicaid to afford it—and Medicaid has strict income ($2,901/month) and asset ($2,000) limits[3][4][7]",
-        "Participants must receive ALL services exclusively from the PACE provider—cannot use outside providers[1][2]",
-        "Cannot be enrolled in Medicare Advantage, Medicare prescription drug plans, or hospice simultaneously[4]",
-        "Nursing home level of care certification is required and varies by state definition[3]",
-        "Approximately 99% of PACE participants are dual-eligible for Medicare and Medicaid; private pay is expensive ($7,000+/month)[7]",
-        "Enrollment is voluntary but once enrolled, PACE becomes the sole source of Medicare/Medicaid services[5]",
-        "Participants can leave the program at any time for any reason[5]",
-        "The interdisciplinary team must assess whether the individual can be safely cared for in a community setting before enrollment[2]"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "Medicare/Medicaid eligibility status and private pay option",
-      "officialSource": "https://regs.maryland.gov/us/md/exec/comar/10.09.44.05 (Maryland regulations); https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly (federal Medicaid PACE information)"
-    },
-    {
-      "name": "Maryland Medicare Savings Program (MSP) including QMB, SLMB, QI",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Tiered by income brackets (QMB/SLMB/QI) with household size scaling; asset exemptions detailed; annual reapplication and QI funding caps create unique renewal/wait dynamics",
-      "gotchas": [
-        "Must reapply every year[4]",
-        "QI has limited funding—first-come/priority for renewals; may exhaust[4]",
-        "No retroactive QMB coverage before application month[3]",
-        "Providers must accept Medicare/QMB for full benefits (QMB gotcha)[8]",
-        "Income/assets counted net; working income may adjust limits[2]",
-        "Outdated limits in sources—always verify current FPL-based figures on Medicare.gov[1][2][9]"
+        "QI funding limited—apply early in year; first-come, first-served with prior recipients prioritized[2][4]",
+        "Must reapply every year[2]",
+        "Must have Part A and B; only covers Part B premium, not other costs[2][3]",
+        "Income/assets counted strictly; exemptions often missed (e.g., home/car exempt)[2]",
+        "Limits based on FPL—adjust annually; outdated figures (e.g., 2021) lead to errors[1][2]",
+        "SLMB called base, QI as 'SLMB II' in MD[1]"
       ],
       "benefitType": "financial",
       "benefitVariesBy": "priority_tier",
-      "officialSource": "https://health.maryland.gov/mmcp/eligibility/Pages/medicare-savings-programs.aspx[10]"
+      "officialSource": "https://health.maryland.gov/mmcp/eligibility/Pages/medicare-savings-programs.aspx[7]"
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income/asset test; counseling-only service via county network; open to Medicare families/caregivers without enrollment barriers[1][2][3]",
+      "gotchas": [
+        "Not a financial aid or healthcare provider program—only free counseling/education, no direct payments or services; people confuse with Medicare Savings Programs (MSP) or Extra Help, which SHIP helps apply for but does not fund; services are free but require contacting local office as central line connects you; available to under-65 disabled Medicare beneficiaries and pre-eligibility individuals, often overlooked[1][2][3][4]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://aging.maryland.gov/pages/state-health-insurance-program.aspx[3][5]"
     },
     {
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
@@ -120,79 +86,19 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Expanded to 200% FPL gross income; special elderly/disabled rules skip gross test; state minimum benefit supplement for 62+; benefits scale by household size and net income",
+      "dataShapeNotes": "Income tables scale by household size with special 165% FPL gross limit for elderly/disabled separate households; state-specific $30 min benefit for 62+; asset test with elderly exception; uniform statewide but local DSS processing",
       "gotchas": [
-        "Elderly/disabled households skip gross income test, use net/asset only if over limit—many miss this expanded path[1]",
-        "Maryland's 200% FPL gross is broader than federal 130%; other sites show stricter limits[1][3]",
-        "Minimum benefits state-boosted ($30+ for 62+), but still low—worth applying[4]",
-        "Work registration required for able-bodied 16-60 unless exempt; 3-month limit for childless unemployed[6]",
-        "Include all who buy/prepare food as household[2]",
-        "Medical deductions key for seniors—provide expense proofs[5]"
+        "Include all who buy/prepare food together in household, even non-relatives",
+        "Seniors 60+ get deductions for medical expenses >$35/month, out-of-pocket costs",
+        "Work registration required unless 60+/disabled (but exceptions common for elderly)",
+        "Asset test applies (unlike some states); check bank balances carefully",
+        "3-month limit for able-bodied adults without dependents",
+        "Maryland boosts min benefit to $30 for 62+ (state-specific vs. federal)",
+        "Benefits calculated via net income formula for elderly/disabled: max allotment minus 30% net income[7]"
       ],
       "benefitType": "financial",
       "benefitVariesBy": "household_size",
       "officialSource": "https://dhs.maryland.gov/supplemental-nutrition-assistance-program/"
-    },
-    {
-      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Administered via OHEP as MEAP (heating) and EUSP (electric); income-based statewide with local offices; categorical eligibility for SNAP/TCA; benefits vary by fuel type, size, crisis status; year-round but heating-focused with limited funds",
-      "gotchas": [
-        "No shut-off notice required to apply or qualify—apply early to prevent crisis[4][5][8]",
-        "Cooling assistance not offered[1]",
-        "Crisis only for emergencies like shutoff or broken furnace[1]",
-        "Household counts all at address on utility bill, including roommates[1]",
-        "EUSP once per program year only; MEAP separate from electric[8]",
-        "Funding limited—apply ASAP as agencies may close early[1]",
-        "USPP protection requires budget billing and consecutive payments[8]"
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "household_size|priority_tier|region",
-      "officialSource": "https://dhs.maryland.gov/office-of-home-energy-programs/[4][8]"
-    },
-    {
-      "name": "Weatherization Assistance Program (WAP)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Administered statewide by DHCD but via local agencies with regional providers and slight priority variations; income max(60% SMI, 200% FPL); strong priority tiers heavily favor elderly/disabled/families; automatic eligibility tied to specific aid programs only.",
-      "gotchas": [
-        "Automatic eligibility only for specific programs (e.g., not Medicaid or Fuel Fund).[1]",
-        "Renters need landlord sign-off; not all multi-unit buildings qualify (e.g., >4 units case-by-case).[4]",
-        "Cannot have received WAP services recently; priority tiers mean elderly may wait less but funding limited.[1][2]",
-        "Must prove ownership for homeowners; local variations in sub-priorities (e.g., children under 5 in some counties)."
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://dhcd.maryland.gov/Energy-Home-Repair/pages/homeowner-grants/wap.aspx"
-    },
-    {
-      "name": "Meals on Wheels (via Senior Care Services and Area Agencies on Aging)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Highly decentralized by county/provider via local Area Agencies on Aging; no uniform income table or statewide asset test; contact local AAoA required for precise details",
-      "gotchas": [
-        "Must contact local provider/AAoA for exact eligibility/fees as no uniform statewide rules—varies significantly by county[1][4]",
-        "Not automatically free; sliding scale or suggested donation based on income despite no strict limits[1][7]",
-        "Primarily weekday delivery (Mon-Fri), no weekends standard[3][7]",
-        "High demand areas like Baltimore City may have longer waits[3]",
-        "Younger than 60 may qualify only with chronic disability in select programs[2][4]"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "region",
-      "officialSource": "https://www.mealsonwheelsamerica.org/find-meals-and-services/ (national locator; contact Maryland AAoAs via aging.maryland.gov)"
     },
     {
       "name": "National Family Caregiver Support Program",
@@ -202,74 +108,37 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Administered through local Area Agencies on Aging with no statewide income/asset tests; services capped as 'limited basis' for some categories; regional provider variations require local contact[1][5][7]",
+      "dataShapeNotes": "Administered locally by Area Agencies on Aging with no statewide income/asset tests; services fixed at five types but supplemental limited; eligibility has multiple caregiver categories beyond just elderly care",
       "gotchas": [
-        "Must contact local Area Agency on Aging, not a centralized state application; no uniform process or forms[1]",
-        "No income or asset tests, but services like supplemental and respite are limited availability[1][3][4]",
-        "Eligibility focuses on caregiver types and care recipient categories, not financial need[1][4]",
-        "Processing times, waitlists, and exact documents vary by local provider[5][7]"
+        "No income or asset tests, but services like supplemental are limited basis—may not be available to all eligible",
+        "Must contact local Area Agency on Aging (not centralized state application); varies by region",
+        "Focuses on caregiver support services, not direct financial aid or healthcare to care recipient",
+        "Eligibility emphasizes informal/unpaid caregivers; professional caregivers may not qualify"
       ],
       "benefitType": "service",
       "benefitVariesBy": "not_applicable",
-      "officialSource": "https://aging.maryland.gov/pages/national-family-caregiver-support.aspx[1]"
+      "officialSource": "https://aging.maryland.gov/pages/national-family-caregiver-support.aspx"
     },
     {
-      "name": "Senior Community Service Employment Program (SCSEP)",
+      "name": "Maryland Access Point (MAP)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Delivered via county-specific sub-grantees under state oversight; income tied to 125% FPL (updates annually, verify current); no statewide uniform application—use regional contacts; limited slots imply waitlists by region.",
+      "dataShapeNotes": "MAP is a statewide information and referral hub with no income/asset limits and broad eligibility (age 50+, adults 18+ with disabilities, caregivers of any age). It is not a direct benefit program but a gateway to other services. Services are delivered through 20 local county-based offices, so availability and partner agencies vary by region. The program emphasizes person-centered Options Counseling and long-term care planning rather than direct financial or in-kind benefits. Underlying programs accessed through MAP may have their own eligibility criteria.",
       "gotchas": [
-        "Program administered by MD Dept. of Labor since July 2016 (not Aging Dept.)[2]",
-        "Income at exactly 125% FPL; confirm current thresholds with staff as they update yearly[4][5]",
-        "County-specific providers; must contact local partner, not just state office[6]",
-        "Part-time training (20 hrs/wk) as bridge to unsubsidized work, not permanent job[1][4]",
-        "Priority groups may limit access for others[4]"
-      ],
-      "benefitType": "employment",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "https://labor.maryland.gov/employment/scsep.shtml"
-    },
-    {
-      "name": "Legal Aid for Seniors (via Maryland Legal Aid and Area Agencies on Aging)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "This program is complex because it comprises multiple overlapping programs (Maryland Legal Aid, Sixty Plus Legal Program, Senior Legal Services, Senior Legal Helpline) with slightly different eligibility criteria, service areas, and income limits. Benefits are service-based (free legal representation) rather than financial. Eligibility varies by household size (income/asset limits scale for couples vs. individuals). Geographic variation is significant: some programs are Baltimore City-only, others are statewide. Income limits are tied to federal poverty guidelines, which change annually. Priority-tier system means acceptance depends on both meeting income/asset thresholds AND case type AND relative economic need. No specific processing times or waitlist information is publicly available.",
-      "gotchas": [
-        "Income limits are strict: 125% of federal poverty guidelines for most Maryland Legal Aid programs, though some programs allow up to 500% of poverty level[4][5][6]. Verify your specific eligibility before applying.",
-        "Asset limits exist and are relatively low ($20,000 individual/$40,000 couple under Sixty Plus)[1]. Home and vehicles are exempt, but other assets count.",
-        "Priority is given to cases involving specific issues (income maintenance, housing, abuse, etc.)[2]. Your case type may affect whether you're accepted.",
-        "Preference given to those with 'greatest economic or social need'[2] — this means even if you meet income/asset limits, acceptance is not guaranteed.",
-        "Maryland Legal Aid cannot accept criminal cases, personal injury cases, or cases where income exceeds their limits[9].",
-        "Processing time and waitlist status are not publicly specified — contact your local office for current timelines.",
-        "Multiple programs exist (Maryland Legal Aid, Sixty Plus Legal Program, Senior Legal Services, Senior Legal Helpline) with slightly different eligibility and service areas. Confirm which program serves your location.",
-        "Income guidelines are updated annually (effective July 1 each year)[5] — the 2012-2013 figures in some documents are outdated; always request current guidelines.",
-        "Area Agencies on Aging coordinate services through Maryland Access Point (MAP), but you must contact your local AAA to access this route[2]."
+        "MAP itself is free and has no income limits, but it is primarily an information, referral, and counseling service — not a direct benefit program. Families should understand that MAP connects people to OTHER programs, which may have their own income/asset limits[1][4]",
+        "The statewide phone line (1-844-MAP-LINK) routes to 211 Maryland first, then to local MAP offices for complex needs — there is an intermediary step[4]",
+        "Eligibility for underlying programs (food assistance, health coverage, long-term care) is separate from MAP eligibility and must be assessed individually[2]",
+        "No specific processing times or waitlist information is publicly available — families should ask about timelines when they call[4]",
+        "MAP offers 'Options Counseling' as a distinct service for long-term care planning, but this requires referral from 211 or direct contact with local MAP office[4]",
+        "The online needs assessment tool (10 questions) is a self-guided starting point, but personalized counseling from a MAP counselor is recommended for comprehensive planning[2]"
       ],
       "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://aging.maryland.gov/pages/senior-legal-assistance.aspx"
-    },
-    {
-      "name": "Maryland Long-Term Care Ombudsman Program",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "This program has a fundamentally different structure than typical benefits programs. It is a statewide advocacy network with no eligibility barriers, no application process, and no financial benefits. The 'gotcha' is that families often confuse this with a financial assistance or care coordination program when it is purely an independent advocacy and complaint resolution service.",
-      "gotchas": [],
-      "benefitType": "unknown",
-      "benefitVariesBy": null,
-      "officialSource": null
+      "benefitVariesBy": "Individual need and eligibility for underlying programs (MAP itself is free to all; underlying programs may have income/asset limits)",
+      "officialSource": "aging.maryland.gov/pages/maryland-access-point.aspx[4]"
     },
     {
       "name": "Maryland Senior Call Check Program (SCC)",
@@ -279,104 +148,60 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "No financial means test; purely welfare check service via daily automated calls with escalation to alternate and law enforcement; centrally managed statewide with no county variations or caps.",
+      "dataShapeNotes": "No income or asset test; simple eligibility based on age, residency, and phone access; fixed daily service statewide with no tiers or variations; self-application only",
       "gotchas": [
-        "Must apply individually; no proxy applications.",
-        "Automated call blocking must be disabled.",
-        "Not a guaranteed emergency response; law enforcement resources limited, no promise of timely welfare checks.",
-        "Age eligibility listed variably as 60 or 65 across sources—official site states 60.",
-        "Service skips 6 major holidays.",
-        "Alternate contact highly recommended but not mandatory; program assigns one if none provided."
+        "Must disable automated call blocking on phone and alternate's phone[1][2][4]",
+        "Participant must apply themselves; family cannot apply on their behalf[1][2][3]",
+        "No guaranteed timely welfare check by law enforcement due to limited resources[1][2]",
+        "Age eligibility listed variably as 60 or 65 across sources; official site states 60+[4]; older PDFs say 65[1][2][5]",
+        "Alternate contact highly recommended but not strictly required (program may assign one)[4]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "fixed",
       "officialSource": "https://aging.maryland.gov/pages/senior-call-check.aspx"
     },
     {
-      "name": "Senior Assisted Living Subsidy Program (SALS)",
+      "name": "Maryland Durable Medical Equipment Reuse Program (DME)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "This is a statewide program with county-level administration, creating regional variation in wait times, participating facilities, and specific contact procedures. Benefits are fixed at a maximum of $1,000/month but vary by individual based on income and approved facility costs. Eligibility is determined by a combination of age (62+), functional need (24-hour supervision requirement), income (60% of state median), and assets ($20,064 individual/$26,400 couple). The program has a significant waitlist due to limited state funding. Unlike some assistance programs, SALS does not have tiered benefits or priority levels — it operates on first-come, first-served basis once all eligibility steps are complete.",
+      "dataShapeNotes": "This program has NO income or asset limits, making it universally accessible to Maryland residents with any illness, injury, or disability. The key distinction is between basic equipment (no provider documentation needed) and complex equipment (requires healthcare provider completion of Part C). Equipment is provided permanently, not loaned (except ramps, which have a 120-day loan period). The program is statewide but pickup is appointment-only at multiple locations. Processing timeline is not publicly specified, creating uncertainty for applicants about wait times.",
       "gotchas": [
-        "Applicants are responsible for finding an assisted living facility that participates in the program — the program does not place you[2]. You must request a list of participating facilities from your local office.",
-        "The program has a waiting list due to limited funding. Eligible applicants may wait months or longer for a subsidy slot[2][3][5].",
-        "A functional assessment (AERS) is required and must document that you need 24-hour supervision. This is not automatic based on age or income alone[2][5].",
-        "The $1,000/month maximum subsidy may not cover the full cost of assisted living. Residents are responsible for any costs above what the subsidy covers (up to the $3,300/month facility rate cap)[2].",
-        "Income limits are strict and include all sources of income. VA Aide & Attendance benefits are specifically excluded from income calculations in some counties[5], but verify this with your local office.",
-        "Asset limits are relatively low ($20,064 for individuals). Applicants with more assets may not qualify regardless of income.",
-        "The program requires proof of citizenship and identity as of September 1, 2006[4].",
-        "Facility participation is voluntary — not all assisted living facilities accept SALS subsidies. Availability varies significantly by region.",
-        "Income and asset limits are adjusted periodically (at minimum annually). Always verify current limits with your local Area Agency on Aging before applying."
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "Individual income and approved facility costs; fixed maximum of $1,000/month",
-      "officialSource": "https://aging.maryland.gov/pages/senior-assisted-living-subsidy-program.aspx[1]"
-    },
-    {
-      "name": "Senior Care Services Program",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "County-administered via local AAAs with varying contacts and funding; no fixed income/asset dollar limits published centrally (assessed locally); benefits via gap-filling only if funds available; requires county residency match",
-      "gotchas": [
-        "Not an entitlement; services depend on grant funding availability and may have waitlists[4]",
-        "Gap-filling funds require meeting both case management and stricter financial criteria; case management alone does not guarantee funding[2]",
-        "Must reside in the specific county for services; functional eligibility confirmed via in-person assessment, not self-reported[2][4]",
-        "People miss that it's distinct from Medicaid programs like Community First Choice (ages 18+)[1]"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "funding_availability",
-      "officialSource": "https://aging.maryland.gov/pages/senior-care.aspx"
-    },
-    {
-      "name": "MTA Senior Discount Program (Reduced Fare CharmCard®)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "no income test; ID-based only; transitioning from physical CharmCard to mobile CharmPass app; uniform eligibility statewide on MTA services",
-      "gotchas": [
-        "Physical CharmCards are no longer accepted for fare payment as of March 1, 2026—must use CharmPass mobile app, cash with ID, or compatible digital cards.",
-        "MTA Senior Photo IDs are no longer issued; apply for free Maryland MVA Photo ID instead.",
-        "Must show valid ID every time to board at reduced fare; operators may request proof.",
-        "Not compatible with all regional systems without additional verification (e.g., WMATA SmarTrip for cross-agency use).",
-        "No free rides—only reduced fares."
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "fixed",
-      "officialSource": "https://www.mta.maryland.gov/senior-reduced-fare-program"
-    },
-    {
-      "name": "Golden Age Pass",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "This is a straightforward, fixed-benefit program with no income or asset testing. The primary complexity lies in the multi-step process for certain parks (obtaining swipe cards after pass receipt) and the restriction of camping discounts to specific days and seasons. Unlike many senior programs, there is no tiered benefit structure, no household-size variation, and no waitlist. The $10 lifetime fee is the only cost.",
-      "gotchas": [
-        "Pass is not valid until the physical card is received in the mail—you cannot use it immediately after online purchase[3]",
-        "The physical pass must be presented at check-in; it is non-transferrable[3]",
-        "Camping discount (50% off) applies only Sunday–Thursday and excludes holidays; full-service cabins and houses are excluded from the discount[2][3]",
-        "For camping, the pass holder must be part of the camping party for the entire stay[2][3]",
-        "If the pass is lost, stolen, or damaged, a new pass must be purchased—there is no replacement or reissuance process[3]",
-        "Boat launching fees are waived, but the Universal Disability Pass does not waive boat launch charges except where included in day-use fees[3]",
-        "Sandy Point State Park and Point Lookout/St. Mary's River State Parks require separate phone calls to obtain magnetic swipe cards after receiving the physical pass[2]",
-        "Day-use entry for cardholders only unless a per-vehicle fee is in effect, in which case free entry applies to everyone in the vehicle[2][3]"
+        "Home delivery is NOT available. Equipment must be picked up by appointment only at designated pickup sites.[2]",
+        "Complex DME (wheelchairs, hospital beds, lifts, power equipment) requires healthcare provider documentation. Basic equipment does not.[1]",
+        "Always call ahead to verify specific equipment is in stock before applying, as availability varies.[3]",
+        "All fields marked with '*' on the form are required; incomplete applications will be voided.[1]",
+        "For power wheelchairs and power scooters, only Physical or Occupational Therapists can request these (not other healthcare providers).[1]",
+        "Program encourages returning equipment when no longer needed so it can help other residents.[2]",
+        "No prescription or insurance required, making this accessible to uninsured individuals.[2]"
       ],
       "benefitType": "in_kind",
-      "benefitVariesBy": "fixed",
-      "officialSource": "https://dnr.maryland.gov/publiclands/pages/goldenage.aspx"
+      "benefitVariesBy": "equipment_type",
+      "officialSource": "https://aging.maryland.gov/pages/DME.aspx (Maryland Department of Aging)[1]"
+    },
+    {
+      "name": "Senior Care Services",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered statewide via 24 local AAAs with regional delivery variations; priority/waitlist by slots, not fixed benefits; ties to Medicaid LTSS waivers requiring NFLOC; no uniform income table by household size across programs",
+      "gotchas": [
+        "Not an entitlement—grant-funded with limited slots and waitlists",
+        "Must join statewide Registry for Waiver; check position in line",
+        "Financial eligibility reviewed case-by-case if living with relative",
+        "Services not duplicative of facility-provided (e.g., assisted living residents eligible for gaps only)",
+        "NFLOC required; free medical eval via AERS",
+        "Over income/assets? Strategies exist like spend-down, but consult planner"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://aging.maryland.gov/"
     }
   ]
 }

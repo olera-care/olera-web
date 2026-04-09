@@ -1,15 +1,15 @@
 {
   "state": "MI",
   "stateName": "Michigan",
-  "draftedAt": "2026-04-08T21:59:49.224Z",
+  "draftedAt": "2026-04-09T09:36:09.140Z",
   "total": 16,
-  "successful": 16,
+  "successful": 4,
   "programs": [
     {
       "id": "michigan-mi-health-link",
       "name": "MI Health Link",
       "shortName": "MI Health Link",
-      "tagline": "If your parent has both Medicare and Medicaid, this program eliminates co-pays and coordinates all their care through one team.",
+      "tagline": "Combined Medicare and Medicaid care with no co-pays for qualifying seniors in select Michigan counties.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -22,17 +22,16 @@
           }
         ]
       },
-      "intro": "If your parent has both Medicare and Medicaid and lives in specific Michigan counties, MI Health Link eliminates their co-pays and deductibles while coordinating all their medical care through one team. Because all services go through one Integrated Care Organization (ICO), your parent won't need to manage separate providers for medical care, prescriptions, dental, vision, and behavioral health.\n\nThe program is only available in 11 counties: Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, Macomb, St. Joseph, Van Buren, Wayne, and all Upper Peninsula counties. Your parent must have full Medicaid benefits (not spend-down Medicaid) and cannot be enrolled in PACE, MI Choice, or hospice care.",
+      "intro": "If your parent has both Medicare and Medicaid and lives in specific Michigan counties, MI Health Link eliminates co-pays and deductibles while coordinating all their care under one team. Because all medical services, medications, dental, vision, and home care are managed by one Integrated Care Organization (ICO), your parent won't need to navigate between multiple providers or pay out-of-pocket costs for covered services.\n\nThis program is only available in Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, Macomb, St. Joseph, Van Buren, Wayne counties, and all Upper Peninsula counties. Your parent must already qualify for full Medicaid (not spend-down) and have Medicare. If they need home care services, they must meet Nursing Facility Level of Care (a clinical assessment of whether your parent needs daily help with activities like bathing, dressing, or medication management).",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 21+",
-          "Has both Medicare and full Medicaid",
-          "Lives in eligible counties only",
-          "Income below $18,000/year (single)",
-          "Not in PACE or MI Choice"
+          "Must have Medicare and full Medicaid",
+          "Live in eligible Michigan counties",
+          "Cannot have Medicaid spend-down"
         ],
         "ageRequirement": "21+",
         "incomeTable": [
@@ -51,7 +50,7 @@
           "countedAssets": [
             "Bank accounts",
             "Investments",
-            "Property other than primary home"
+            "Additional vehicles"
           ],
           "exemptAssets": [
             "Primary home (up to $730,000 equity)",
@@ -61,43 +60,44 @@
           ],
           "homeEquityCap": 730000
         },
-        "functionalRequirement": "For home care services, must meet Nursing Facility Level of Care (needs daily help with bathing, dressing, medication management, or similar activities assessed through Michigan's clinical evaluation tool)",
+        "functionalRequirement": "For home care services: must meet Nursing Facility Level of Care (assessed through Michigan's LOCD tool, which evaluates daily living skills, cognition, and behavior)",
         "otherRequirements": [
-          "Must live in Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, Macomb, St. Joseph, Van Buren, Wayne, or Upper Peninsula counties",
-          "Cannot be in a state veteran's home",
-          "Cannot be enrolled in hospice",
-          "Must leave PACE or MI Choice programs to join"
+          "Must have both Medicare and full Medicaid (no spend-down)",
+          "Live in Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, Macomb, St. Joseph, Van Buren, Wayne, or Upper Peninsula counties",
+          "Cannot be in hospice care",
+          "Cannot be in PACE or MI Choice programs",
+          "Cannot live in state-operated veteran's home"
         ],
         "povertyLevelReference": "133% FPL"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Eligible individuals automatically receive enrollment letters from Michigan ENROLLS, or you can contact your local MDHHS office.",
+        "summary": "Eligible individuals receive enrollment letters automatically from Michigan ENROLLS, or you can apply through local MDHHS offices.",
         "steps": [
           {
             "step": 1,
             "title": "Check if your parent received an enrollment letter",
-            "description": "Michigan ENROLLS automatically sends enrollment options to eligible dual-eligible individuals."
+            "description": "Michigan ENROLLS automatically sends enrollment options to eligible dual Medicare-Medicaid recipients in covered counties."
           },
           {
             "step": 2,
             "title": "Gather required documents",
-            "description": "You'll need proof of Medicare and Medicaid eligibility, county residency, and medical records if requesting home care services."
+            "description": "Collect proof of Medicare and Medicaid eligibility, county residency, and medical records if seeking home care services."
           },
           {
             "step": 3,
             "title": "Complete consent forms",
-            "description": "Fill out form DCH-1183 (health information disclosure) and MDHHS-5515 (behavioral health consent)."
+            "description": "Fill out Authorization to Disclose Protected Health Information (DCH-1183) and Behavioral Health Consent Form (MDHHS-5515)."
           },
           {
             "step": 4,
             "title": "Submit application",
-            "description": "Contact your local MDHHS office or Michigan ENROLLS to complete enrollment in your regional ICO."
+            "description": "Apply through your local MDHHS office or contact MI ENROLLS for enrollment assistance."
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "If your parent is currently in PACE or MI Choice, they must formally leave those programs before enrolling in MI Health Link.",
+        "tip": "If your parent is currently in PACE or MI Choice, they must leave those programs to join MI Health Link.",
         "urls": [
           {
             "label": "Michigan MDHHS Provider Information",
@@ -112,15 +112,15 @@
           "included": [
             "Bank accounts and savings",
             "Stocks, bonds, and investments",
-            "Real estate other than primary home",
-            "Vehicles beyond the first one"
+            "Additional vehicles beyond one primary car",
+            "Real estate other than primary home"
           ],
           "excluded": [
-            "Primary home (up to $730,000 equity if your parent lives there or intends to return)",
+            "Primary home (up to $730,000 in equity)",
             "One vehicle for transportation",
             "Personal belongings and household items",
-            "Burial funds and life insurance policies",
-            "Income from spouse (protected allowance: $2,644-$3,948/month)"
+            "Burial funds and prepaid funeral plans",
+            "Life insurance with cash value under limits"
           ]
         },
         {
@@ -128,27 +128,34 @@
           "heading": "What to Bring",
           "categories": [
             {
-              "name": "Insurance",
+              "name": "Insurance Coverage",
               "items": [
                 "Medicare card",
-                "Medicaid card or approval letter",
-                "Current Medicare Part D plan information"
+                "Medicaid eligibility documentation",
+                "Current insurance information"
               ]
             },
             {
-              "name": "Medical",
+              "name": "Personal Information",
               "items": [
-                "Recent medical records (if requesting home care services)",
-                "List of current medications",
-                "Documentation of functional limitations"
+                "Proof of county residency",
+                "Social Security card",
+                "Photo identification"
               ]
             },
             {
-              "name": "Legal",
+              "name": "Medical Records",
               "items": [
-                "Completed form DCH-1183 (health information disclosure)",
-                "Completed form MDHHS-5515 (behavioral health consent)",
-                "Proof of county residency"
+                "Current medication list",
+                "Medical records supporting need for home care (if applicable)",
+                "Documentation of daily care needs"
+              ]
+            },
+            {
+              "name": "Required Forms",
+              "items": [
+                "Authorization to Disclose Protected Health Information (DCH-1183)",
+                "Behavioral Health Consent Form (MDHHS-5515)"
               ]
             }
           ]
@@ -156,45 +163,45 @@
         {
           "type": "callout",
           "tone": "tip",
-          "text": "Your parent's Medicare Part D drug plan will automatically be replaced by MI Health Link's prescription coverage. They don't need to cancel their Part D plan separately."
+          "text": "Your parent's Medicare Part D drug plan will be replaced by MI Health Link's prescription coverage. They cannot keep both."
         }
       ],
       "faqs": [
         {
-          "question": "What happens to Mom's current Medicare Part D prescription plan?",
-          "answer": "MI Health Link automatically replaces her Part D plan with their own prescription coverage. She doesn't need to cancel Part D separately, and there are no co-pays for medications through the program."
+          "question": "Can Mom keep her house if she qualifies?",
+          "answer": "Yes, the primary home is exempt from asset limits as long as equity doesn't exceed $730,000. This applies whether your parent lives there, intends to return, or if a spouse or dependent child lives there."
         },
         {
-          "question": "Can Dad keep his current doctors?",
-          "answer": "He can keep doctors who are in his assigned ICO's network. Because MI Health Link operates through regional networks, his doctor options depend on which ICO serves his county."
+          "question": "What happens to Dad's current Medicare Part D prescription plan?",
+          "answer": "MI Health Link replaces Medicare Part D with its own prescription coverage. Your father cannot keep both plans and must switch to MI Health Link's pharmacy benefits."
         },
         {
-          "question": "What if Mom needs nursing home care while enrolled?",
-          "answer": "MI Health Link covers nursing home care, but she'll still need to pay her patient pay amount (her monthly income minus a small personal needs allowance)."
+          "question": "Can Mom get paid family caregiver services through this program?",
+          "answer": "Yes, MI Health Link can provide personal care services including paid family caregivers, but only after your mother meets Nursing Facility Level of Care through a clinical assessment of her daily living needs."
         },
         {
-          "question": "Can family members be paid as caregivers?",
-          "answer": "Yes, the ICO can approve family members as paid caregivers for personal care services, but this requires a needs assessment and approval through the care coordination team."
+          "question": "What if Dad has Medicaid spend-down?",
+          "answer": "He cannot qualify for MI Health Link. The program only accepts people with full Medicaid benefits, not those who meet Medicaid through spend-down of excess income."
         },
         {
-          "question": "What if we move to a county that doesn't have MI Health Link?",
-          "answer": "Your parent would need to leave MI Health Link and return to regular Medicare and Medicaid. The program is only available in specific counties."
+          "question": "If Mom is currently in MI Choice, can she switch to MI Health Link?",
+          "answer": "She must leave MI Choice to join MI Health Link. She cannot be enrolled in both programs simultaneously."
         },
         {
-          "question": "How is this different from regular Medicare and Medicaid?",
-          "answer": "Instead of coordinating between separate Medicare providers, Medicaid services, and prescription plans, one ICO team manages everything with no co-pays or deductibles for covered services."
+          "question": "Will there be co-pays for doctor visits and medications?",
+          "answer": "No co-pays or deductibles for in-network services including medications, doctor visits, dental care, vision care, and behavioral health services."
         }
       ],
       "phone": null,
       "sourceUrl": "https://www.michigan.gov/mdhhs/doing-business/providers/integrated",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-08"
+      "draftedAt": "2026-04-09"
     },
     {
-      "id": "michigan-mi-choice-medicaid-waiver",
+      "id": "michigan-mi-choice-waiver",
       "name": "MI Choice Medicaid Waiver",
       "shortName": "MI Choice Waiver",
-      "tagline": "If your parent needs nursing home level care, this program helps them stay home with comprehensive services.",
+      "tagline": "If your parent needs daily help at home but wants to avoid a nursing home, this program covers in-home care, meals, and medical equipment.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -202,152 +209,117 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Regional Area Agencies on Aging (AAAs)",
+            "name": "Regional AAAs and partners (e.g., AAANM, CareWell Services, The Senior Alliance, Area Agency on Aging).",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent needs nursing home level care but wants to stay home, MI Choice provides comprehensive services to make that possible. The program covers everything from personal care and home-delivered meals to specialized medical equipment and respite care for you as the caregiver.\n\nYour parent must meet strict functional requirements — they need daily help with activities like bathing, dressing, or medication management. Because this is a Medicaid waiver program, income is limited to $2,901 per month (2025) and assets to $9,950. The program is available statewide but administered through regional agencies, so wait times vary by location.\n\nUnlike basic Medicaid, MI Choice creates an individualized care plan managed by a nurse or social worker. Your parent receives supports coordination plus at least one other service — whether that's adult day care, home modifications, or specialized nursing care.",
+      "intro": "If your parent needs nursing-home-level care but wants to stay home, MI Choice covers comprehensive in-home services that would otherwise cost thousands monthly. The program provides personal care, adult day programs, home-delivered meals, medical equipment, respite care for family caregivers, and care coordination — all the supports needed to live safely at home instead of moving to a facility.\n\nYour parent must be 65+ (or disabled 18+) with monthly income below $2,901 and assets under $9,950. Most importantly, they must qualify for nursing facility level of care through a clinical assessment — meaning they need daily help with activities like bathing, dressing, medication management, or have significant cognitive impairment. Because this replaces expensive nursing home care, participants receive individualized service plans worth potentially $50,000+ annually in care coordination, personal care, and medical supports.",
       "savingsRange": "",
       "savingsSource": "Free service",
-      "savingsVerified": true,
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Age 65+ or disabled",
+          "Age 65+ (or disabled 18+)",
           "Income below $2,901/month",
-          "Need nursing home level care",
-          "Assets under $9,950"
+          "Assets under $9,950",
+          "Needs nursing-home-level care",
+          "Must use supports coordinator plus one other service"
         ],
         "ageRequirement": "65+",
         "incomeTable": null,
         "assetLimits": {
           "individual": 9950,
-          "couple": 9950,
+          "couple": null,
           "countedAssets": [
             "Bank accounts",
             "Investments",
-            "Life insurance over $1,500",
-            "Property other than home"
+            "Second vehicles",
+            "Property other than primary home"
           ],
           "exemptAssets": [
             "Primary residence",
             "One vehicle",
-            "Personal belongings",
-            "Burial funds up to $1,500"
+            "Personal belongings"
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must need nursing home level care (daily help with bathing, dressing, medication management, or other activities of daily living)",
+        "functionalRequirement": "Must qualify for Nursing Facility Level of Care through in-person assessment of activities of daily living, cognitive abilities, and behavior — essentially needing daily help with bathing, dressing, medication management, or having significant memory/safety issues",
         "otherRequirements": [
-          "Must be Medicaid eligible",
+          "Must be Medicaid-eligible",
           "Must need supports coordination plus at least one other waiver service",
-          "Must live in community setting (not nursing home)"
+          "Cannot have given away assets in past 60 months without penalty"
         ],
-        "povertyLevelReference": "300% Federal Benefit Rate"
+        "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional Area Agency on Aging for a phone screening, followed by an in-home assessment if you qualify.",
+        "summary": "Call your regional Area Agency on Aging for phone screening, followed by in-home assessment if you qualify.",
         "steps": [
           {
             "step": 1,
-            "title": "Contact your regional agency",
-            "description": "Call your local Area Agency on Aging to request MI Choice screening. They'll ask basic questions about your parent's care needs and financial situation."
+            "title": "Call your regional agency",
+            "description": "Contact your local Area Agency on Aging for initial phone screening about your parent's care needs and income"
           },
           {
             "step": 2,
             "title": "Complete phone screening",
-            "description": "Agency staff will determine if your parent meets initial requirements for income, assets, and care needs."
+            "description": "Agency determines if your parent meets basic income, asset, and care level requirements"
           },
           {
             "step": 3,
             "title": "Schedule in-home assessment",
-            "description": "If eligible after screening, a nurse or social worker visits your parent's home to complete the Nursing Facility Level of Care assessment."
+            "description": "If qualified, a nurse or social worker visits your parent's home to conduct Nursing Facility Level of Care assessment"
           },
           {
             "step": 4,
-            "title": "Receive decision",
-            "description": "If approved, the same assessor becomes your parent's supports coordinator and develops an individualized care plan."
+            "title": "Develop service plan",
+            "description": "If approved, supports coordinator creates individualized plan covering specific services your parent needs"
           }
         ],
-        "processingTime": "Timeline varies by region after initial phone screening and in-home assessment",
-        "waitlist": "Possible if program at capacity in your region — placement occurs after screening approval",
-        "tip": "Have your parent's medical records and recent bank statements ready for the phone screening.",
+        "processingTime": "Timeline varies by region after initial screening",
+        "waitlist": "Possible if program at capacity in your region",
+        "tip": "Have your parent's medical records ready — the assessment focuses on specific daily care needs, not just a dementia diagnosis alone",
         "urls": []
       },
       "contentSections": [
         {
           "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
+          "heading": "Asset Limits: What Counts Toward $9,950 Limit",
           "included": [
             "Bank accounts and savings",
-            "Investments and stocks",
-            "Life insurance with cash value over $1,500",
+            "Investments and retirement accounts",
+            "Second vehicles",
             "Property other than primary residence",
-            "Vehicles beyond the first one"
+            "Assets given away in past 60 months (penalty applies)"
           ],
           "excluded": [
             "Primary residence (but subject to estate recovery after death)",
-            "One vehicle regardless of value",
+            "One vehicle",
             "Personal belongings and household items",
-            "Burial funds up to $1,500",
-            "Wedding and engagement rings"
-          ]
-        },
-        {
-          "type": "county-directory",
-          "heading": "Regional Agencies",
-          "offices": [
-            {
-              "name": "Area Agency on Aging of Northwest Michigan (AAANM)",
-              "type": "service-area",
-              "phone": "1-800-442-1713",
-              "address": "Serves northern counties including Antrim and Grand Traverse"
-            },
-            {
-              "name": "Area Agency on Aging",
-              "type": "service-area",
-              "phone": "800-654-2810",
-              "address": "Multiple service areas statewide"
-            },
-            {
-              "name": "The Senior Alliance",
-              "type": "service-area",
-              "phone": "734-722-2830",
-              "address": "Southeast Michigan including Wayne County"
-            }
+            "Burial funds up to certain limits"
           ]
         },
         {
           "type": "documents",
-          "heading": "What to Bring",
+          "heading": "What to Gather Before Calling",
           "categories": [
             {
               "name": "Financial",
               "items": [
-                "Bank statements for all accounts (last 3 months)",
-                "Social Security award letter",
-                "Pension or retirement benefit statements",
-                "Property deeds (excluding primary residence)",
-                "Life insurance policies"
+                "Income statements (Social Security, pensions, wages)",
+                "Bank statements for all accounts",
+                "Property deeds (other than primary home)",
+                "Investment account statements"
               ]
             },
             {
               "name": "Medical",
               "items": [
-                "Recent medical records",
+                "Recent medical records showing care needs",
                 "List of current medications",
-                "Documentation of disabilities or diagnoses",
-                "Records of hospitalizations or nursing home stays"
-              ]
-            },
-            {
-              "name": "Identity",
-              "items": [
-                "Social Security card",
-                "Michigan driver's license or state ID",
-                "Proof of Michigan residency",
-                "Medicaid card if already enrolled"
+                "Documentation of help needed with daily activities",
+                "Proof of current Medicaid eligibility"
               ]
             }
           ]
@@ -355,50 +327,50 @@
         {
           "type": "callout",
           "tone": "warning",
-          "text": "Assets given away or sold below fair market value within 60 months trigger penalty periods that delay benefits. The state can also recover costs from your parent's estate after death, including placing a lien on their home."
+          "text": "Income limit is $2,901 per person, not per household. If your parents are married and both need services, each spouse is assessed individually for income eligibility."
         },
         {
           "type": "callout",
           "tone": "tip",
-          "text": "A dementia diagnosis alone doesn't guarantee approval — your parent must pass the full Nursing Facility Level of Care assessment that evaluates their ability to perform daily activities safely."
+          "text": "Your parent's home is protected while receiving benefits, but Michigan can recover costs from the home's value after death unless a spouse or disabled child still lives there."
         }
       ],
       "faqs": [
         {
           "question": "Can Mom keep her house if she qualifies for MI Choice?",
-          "answer": "Yes, your mom can keep her house while receiving MI Choice services. The home is exempt from the $9,950 asset limit. However, after she passes away, the state may recover program costs through her estate, which could include placing a lien on the house."
+          "answer": "Yes, the primary residence doesn't count toward the $9,950 asset limit while she receives benefits. However, Michigan can recover program costs from the home's value after death through Medicaid Estate Recovery, unless a spouse or disabled child still lives there."
         },
         {
-          "question": "What if Dad's income is just over the $2,901 limit?",
-          "answer": "If your dad's income exceeds $2,901 per month, he won't qualify for MI Choice. The income limit is firm and applies to each person individually — if your parents are married, each spouse is assessed separately if both apply."
+          "question": "What if Dad's income is just over $2,901 per month?",
+          "answer": "He won't qualify for MI Choice. The income limit is firm at $2,901 monthly per person in 2025. This limit adjusts annually with federal rates, so check again next year if he's close to the threshold."
         },
         {
-          "question": "How is this different from regular Medicaid?",
-          "answer": "MI Choice provides home and community-based services that regular Medicaid doesn't cover, like respite care, home modifications, and specialized equipment. Your parent must qualify for regular Medicaid first, then meet additional requirements including needing nursing home level care and supports coordination."
+          "question": "Will having dementia automatically qualify Mom for this program?",
+          "answer": "No. A dementia diagnosis alone isn't enough. She must pass a full Nursing Facility Level of Care assessment showing she needs daily help with activities like bathing, dressing, medication management, or has significant safety/behavior issues requiring supervision."
         },
         {
-          "question": "Can family members get paid to provide care through MI Choice?",
-          "answer": "Yes, MI Choice allows paid family caregivers to provide certain services as part of your parent's individualized care plan. This is arranged through the supports coordinator and must be included in the approved service plan."
+          "question": "Can I get paid as Mom's caregiver through this program?",
+          "answer": "Yes, MI Choice can pay family members to provide personal care services. The supports coordinator includes this in your mom's individualized service plan if it meets her assessed needs."
         },
         {
-          "question": "What happens if there's a waiting list in our area?",
-          "answer": "If your regional agency has reached capacity, your parent will be placed on a waiting list after completing the screening process. Wait times vary significantly by region — some areas have immediate openings while others may have months-long waits."
+          "question": "What happens if there's a waitlist in our area?",
+          "answer": "You'll be placed on a waiting list after completing the initial screening. Waitlist times vary by region and your parent's priority level based on care needs. Stay in contact with your regional agency for updates."
         },
         {
-          "question": "How often does the care plan get reviewed?",
-          "answer": "Your parent's care plan is reviewed regularly by their supports coordinator (a nurse or social worker) to ensure services still match their needs. The supports coordinator manages the entire plan and coordinates between different service providers."
+          "question": "What if Dad gave money to grandchildren last year?",
+          "answer": "Any assets given away or sold below fair market value in the past 60 months create a penalty period where he can't receive benefits. The penalty length depends on the amount given away. Be honest about all transfers during the application process."
         }
       ],
       "phone": "1-800-442-1713",
       "sourceUrl": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-08"
+      "draftedAt": "2026-04-09"
     },
     {
-      "id": "michigan-pace-all-inclusive-care",
+      "id": "michigan-pace-elderly-care",
       "name": "Michigan Program for All-Inclusive Care for the Elderly (PACE)",
-      "shortName": "PACE",
-      "tagline": "If your parent needs nursing home level care but wants to stay home, PACE provides all medical care, home services, and adult day programs under one team.",
+      "shortName": "Michigan PACE",
+      "tagline": "If your parent needs nursing home care but wants to stay home, PACE provides all medical care and daily support under one program.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -427,17 +399,17 @@
           }
         ]
       },
-      "intro": "If your parent needs nursing home level care but wants to stay in their community, PACE provides all their medical care, home services, and adult day programs through one coordinated team. Because PACE covers all Medicare- and Medicaid-covered services plus additional care deemed necessary, your parent won't need to coordinate between separate doctors, pharmacies, or home care agencies — one interdisciplinary team manages everything from primary care to transportation to meals.\n\nYour parent must be 55+ and certified as needing nursing facility level of care (a clinical assessment of whether they need daily help with bathing, dressing, medication management, or mobility). PACE is only available in specific service areas across Michigan — you must live within a PACE provider's designated region to enroll. If your parent has both Medicare and Medicaid, they pay nothing for PACE services. If they only have Medicare, they pay a monthly premium based on their income and assets.",
+      "intro": "If your parent qualifies for nursing home care but wants to stay home, Michigan PACE provides all their medical care, prescriptions, therapy, meals, and daily support through one coordinated team. Instead of juggling separate doctors, insurance claims, and care providers, your parent gets everything from primary care to transportation to adult day services — with no copays if they have Medicaid.\n\nPACE is only available in specific areas of Michigan and requires your parent to be 55+ and certified as needing nursing home level of care (daily help with bathing, dressing, or medication management). Because PACE covers all care under one program, your parent cannot see outside doctors or specialists without PACE approval — the program becomes their complete healthcare system.\n\nIf your parent has both Medicare and Medicaid, PACE costs nothing. If they only have Medicare, they pay a monthly premium based on their income and assets, which PACE will help calculate during enrollment.",
       "savingsRange": "",
       "savingsSource": "Free service",
-      "savingsVerified": true,
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 55+",
           "Needs nursing home level care",
-          "Must live safely at home with support",
-          "Must live in PACE service area",
-          "Cannot be in nursing facility"
+          "Lives in PACE service area",
+          "Able to live safely at home with support",
+          "Cannot have MIChoice waiver or HMO"
         ],
         "ageRequirement": "55+",
         "incomeTable": null,
@@ -446,9 +418,8 @@
           "couple": 3000,
           "countedAssets": [
             "Bank accounts",
-            "Stocks and bonds",
-            "Cash",
-            "Second vehicle"
+            "Investments",
+            "Additional vehicles"
           ],
           "exemptAssets": [
             "Primary home",
@@ -458,58 +429,53 @@
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must be certified by the state as meeting nursing facility level of care (needing daily help with bathing, dressing, medication management, or mobility)",
+        "functionalRequirement": "Must be certified by the state as meeting nursing home level of care (needing daily help with activities like bathing, dressing, or medication management)",
         "otherRequirements": [
-          "Must live in a PACE provider service area",
-          "Must be able to live safely in the community with PACE support",
+          "Live in approved PACE service area",
+          "Able to live safely in community with PACE support",
           "Cannot be enrolled in MIChoice waiver or HMO"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local PACE provider directly for an intake assessment — no statewide application form.",
+        "summary": "Contact your local PACE provider directly for an intake assessment — no application form needed.",
         "steps": [
           {
             "step": 1,
-            "title": "Contact your local PACE provider",
-            "description": "Call the PACE organization serving your area for an initial intake assessment. Each provider has exclusive service areas."
+            "title": "Find your PACE provider",
+            "description": "Use the provider directory below to find which PACE organization serves your parent's area. Each provider has exclusive service areas."
           },
           {
             "step": 2,
-            "title": "Complete intake assessment",
-            "description": "PACE staff will assess your parent's medical needs and help determine if they meet nursing facility level of care requirements."
+            "title": "Call for intake assessment",
+            "description": "The PACE provider will schedule an in-person assessment at their center to evaluate your parent's care needs and eligibility."
           },
           {
             "step": 3,
-            "title": "Apply for Medicaid if needed",
-            "description": "PACE will help with the Medicaid application if your parent wants free coverage. This includes income and asset verification."
+            "title": "Complete enrollment assessment",
+            "description": "If eligible, PACE's interdisciplinary team creates a personalized care plan covering all your parent's medical and support needs."
           },
           {
             "step": 4,
-            "title": "Enrollment assessment by care team",
-            "description": "The interdisciplinary team creates a personalized care plan and finalizes enrollment."
+            "title": "Apply for Medicaid (if needed)",
+            "description": "PACE staff will help your parent apply for Medicaid to eliminate all costs. If not Medicaid-eligible, they'll calculate the monthly premium."
           }
         ],
-        "processingTime": "Varies by provider — intake assessment first, then enrollment assessment by care team",
+        "processingTime": "Varies by provider",
         "waitlist": "Possible, varies by region and provider",
-        "tip": "Check your zip code on the provider's website first — PACE service areas are very specific.",
-        "urls": [
-          {
-            "label": "Michigan PACE Program Overview",
-            "url": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/program-of-all-inclusive-care-for-the-elderly-pace"
-          }
-        ]
+        "tip": "Bring all medical records to show your parent's care needs — this helps speed up the nursing home level of care assessment.",
+        "urls": []
       },
       "contentSections": [
         {
           "type": "what-counts",
-          "heading": "Asset Limits for Free Coverage",
+          "heading": "Asset Limits for Free PACE (Medicaid Eligibility)",
           "included": [
             "Bank accounts and savings",
-            "Stocks, bonds, and investments",
-            "Cash on hand",
-            "Second vehicle"
+            "Investments and stocks",
+            "Additional vehicles beyond one",
+            "Property other than primary home"
           ],
           "excluded": [
             "Primary home (any value)",
@@ -523,16 +489,22 @@
           "heading": "PACE Providers by Service Area",
           "offices": [
             {
+              "name": "Ascension Living PACE Michigan",
+              "type": "service-area",
+              "phone": null,
+              "address": "Check ascensionliving.org for specific service areas"
+            },
+            {
               "name": "PACE of Southwest Michigan",
               "type": "service-area",
               "phone": null,
-              "address": "Serves Berrien, Cass, and Van Buren Counties"
+              "address": "Serves Berrien, Cass, and Van Buren Counties — paceswmi.org"
             },
             {
               "name": "PACE Southeast Michigan",
               "type": "service-area",
               "phone": null,
-              "address": "Serves designated zip codes in Southeast Michigan"
+              "address": "Designated zip codes — pacesemi.org"
             },
             {
               "name": "PACE Northeast Michigan",
@@ -541,28 +513,22 @@
               "address": "Serves Alcona, Alpena, Presque Isle, Montmorency Counties and parts of Iosco County"
             },
             {
-              "name": "Ascension Living PACE Michigan",
-              "type": "service-area",
-              "phone": null,
-              "address": "Check ascensionliving.org for specific service areas"
-            },
-            {
               "name": "Senior Care Partners P.A.C.E.",
               "type": "service-area",
               "phone": null,
-              "address": "Check provider website for mapped service area"
+              "address": "Mapped service area — contact for zip code eligibility"
             }
           ]
         },
         {
           "type": "documents",
-          "heading": "What to Bring",
+          "heading": "What to Bring to Assessment",
           "categories": [
             {
-              "name": "Identity & Residency",
+              "name": "Identity & Residence",
               "items": [
                 "Driver's license or state ID",
-                "Proof of address in PACE service area"
+                "Proof of address (utility bill, lease)"
               ]
             },
             {
@@ -570,15 +536,23 @@
               "items": [
                 "Medicare card",
                 "Medicaid card (if applicable)",
-                "Medical records showing care needs"
+                "Any supplemental insurance cards"
               ]
             },
             {
-              "name": "Financial (if applying for Medicaid)",
+              "name": "Financial (for Medicaid)",
               "items": [
-                "Bank statements from past 3 months",
+                "Recent bank statements",
                 "Pay stubs or Social Security award letter",
-                "Asset documentation (investment accounts, property deeds)"
+                "Investment account statements"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Complete medical records",
+                "Current medication list",
+                "Recent hospital or specialist reports"
               ]
             }
           ]
@@ -586,66 +560,66 @@
         {
           "type": "callout",
           "tone": "warning",
-          "text": "PACE is not available statewide. You must live within a specific PACE provider's service area to enroll. Use the provider's zip code search to confirm eligibility before applying."
+          "text": "PACE is not available statewide. You must live in a specific PACE provider's service area. Check with providers directly using your parent's zip code before starting the application process."
         },
         {
           "type": "callout",
           "tone": "tip",
-          "text": "Your parent must receive ALL medical care through PACE (except emergencies). Going to unauthorized providers may result in charges. This includes switching from current doctors to the PACE care team."
+          "text": "Your parent must receive ALL medical care through PACE (except emergencies). They cannot see their current doctors or specialists unless PACE approves it. Consider this carefully before enrolling."
         }
       ],
       "faqs": [
         {
-          "question": "Can Mom keep her current doctor if she enrolls in PACE?",
-          "answer": "No. Your mom must receive all medical care through the PACE interdisciplinary team, except for emergency situations. This means switching from her current doctors to PACE providers, but she'll have one coordinated team managing all her care instead of multiple separate providers."
+          "question": "Can Mom keep her current doctors if she enrolls in PACE?",
+          "answer": "No. PACE requires your mom to receive all medical care through their team of providers. She cannot see outside doctors or specialists unless PACE specifically approves and arranges it. This is a major change from traditional Medicare."
         },
         {
-          "question": "What if Dad's income is too high for Medicaid but he needs PACE services?",
-          "answer": "He can still enroll in PACE and pay a monthly premium based on his income and assets. PACE providers will help calculate this private pay amount during the application process. He'll still receive all the same comprehensive services."
+          "question": "What if Mom's income is too high for Medicaid but she can't afford private insurance?",
+          "answer": "PACE offers a private pay option based on your mom's income and assets. The PACE provider will calculate her monthly premium during the enrollment process. Many families find this more affordable than coordinating multiple services separately."
         },
         {
-          "question": "Does PACE require Mom to go to an adult day center every day?",
-          "answer": "Not necessarily every day, but adult day health center services are a primary component of PACE. The interdisciplinary team will create a personalized care plan that might include some days at the center and some home-based services, depending on her needs and preferences."
+          "question": "Can Mom keep her house if she qualifies for PACE?",
+          "answer": "Yes. Your mom's primary home doesn't count toward Medicaid asset limits, regardless of value. PACE is designed to help people stay in their homes instead of moving to nursing facilities."
         },
         {
-          "question": "Can Dad keep his house if he qualifies for PACE with Medicaid?",
-          "answer": "Yes. The primary home is exempt from Medicaid asset limits regardless of value. As long as he can live safely in the community with PACE support, keeping his house won't affect his eligibility."
+          "question": "What happens if Mom needs to move to a different area of Michigan?",
+          "answer": "Each PACE provider serves exclusive geographic areas. If your mom moves outside her current PACE service area, she would need to disenroll and find new healthcare coverage. Check service boundaries before any moves."
         },
         {
-          "question": "What happens if we move to a different county in Michigan?",
-          "answer": "PACE providers have exclusive service areas. If you move outside your current PACE provider's area, you'd need to disenroll and apply to a different PACE provider if one serves your new location. Not all Michigan counties have PACE coverage."
+          "question": "How is this different from other home care programs like MIChoice?",
+          "answer": "PACE provides all medical care plus home support services through one program. MIChoice only covers home care services — you still need separate doctors and insurance. Your mom cannot be enrolled in both programs at the same time."
         },
         {
-          "question": "How is PACE different from regular home care services?",
-          "answer": "PACE provides all medical care, prescriptions, therapy, transportation, meals, and home care through one coordinated team. Regular home care typically only covers personal care services and requires you to coordinate separately with doctors, pharmacies, and other providers."
+          "question": "What if there's a waiting list for PACE in our area?",
+          "answer": "Waiting lists vary by provider and region. Contact your local PACE provider to ask about current wait times and get on their list. Continue your mom's current care while waiting, as PACE cannot guarantee enrollment timing."
         }
       ],
       "phone": null,
       "sourceUrl": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/program-of-all-inclusive-care-for-the-elderly-pace",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-08"
+      "draftedAt": "2026-04-09"
     },
     {
-      "id": "michigan-medicare-savings-programs",
+      "id": "michigan-medicare-savings-programs-msp",
       "name": "Medicare Savings Programs (MSP) - QMB, SLMB, QI",
       "shortName": "Medicare Savings Programs",
-      "tagline": "Get help paying Medicare premiums, deductibles, and copays — could save $2,400+ per year.",
+      "tagline": "If your parent has Medicare and limited income, they may get $200–$2,400+ annually in premium and cost-sharing help.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your parent has Medicare and limited income, Michigan's Medicare Savings Programs can pay their Medicare premiums, deductibles, and copays. Three programs exist with different income limits and coverage levels. QMB (Qualified Medicare Beneficiary) covers the most — all Medicare premiums, deductibles, and copays for someone earning up to $1,350/month. SLMB (Specified Low-Income Medicare Beneficiary) pays the $202.90 monthly Medicare Part B premium for income up to $1,585/month. QI (Qualifying Individual) also pays the Part B premium plus provides Extra Help for prescriptions, but operates on a first-come, first-served basis with annual reapplication required.\n\nBecause these programs pay Medicare costs your parent would otherwise pay out-of-pocket, they can save thousands annually. The key difference: QMB provides no retroactive coverage, SLMB can go back up to 3 months, and QI coverage starts from the calendar year of approval.",
-      "savingsRange": "$2,435 – $5,000+/year in 2026",
-      "savingsSource": "Medicare Part B premium ($202.90/month = $2,435/year) plus deductibles and copays for QMB",
+      "intro": "If your parent has Medicare and earns less than $1,585/month ($2,135 for couples), Michigan's Medicare Savings Programs can pay their Medicare premiums and potentially all their Medicare out-of-pocket costs. Three programs exist with different income limits and benefits: QMB covers all Medicare premiums and copays, SLMB covers just the Part B premium ($202.90/month in 2026), and QI covers the Part B premium plus prescription drug assistance.\n\nThese programs work alongside Medicare — your parent keeps their current Medicare coverage and doctors. Because the state pays Medicare costs directly, your parent won't see bills for covered services. The main catch: QI operates on first-come, first-served basis with limited funding, and QI recipients must reapply every year.",
+      "savingsRange": "$202–$2,400+/year in 2026",
+      "savingsSource": "Medicare Part B premium plus potential deductibles and copays",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Must have Medicare",
-          "Income below $1,350–$1,585/month",
-          "Assets under $9,950 (individual)",
-          "Michigan resident"
+          "Has Medicare Part A and/or Part B",
+          "Income below $1,585/month (single)",
+          "Assets below $9,950 (single)",
+          "Must not receive other Medicaid (QI only)"
         ],
         "ageRequirement": null,
         "incomeTable": [
@@ -667,109 +641,88 @@
         },
         "functionalRequirement": null,
         "otherRequirements": [
-          "Must be eligible for Medicare Part A and/or Part B",
-          "For SLMB and QI: Must have premium-free Medicare Part A",
-          "For QI: Cannot qualify for any other Medicaid coverage"
+          "Must be eligible for Medicare",
+          "SLMB and QI require premium-free Medicare Part A",
+          "QI requires annual reapplication",
+          "QI not available if receiving other Medicaid benefits"
         ],
-        "povertyLevelReference": "100% to 135% FPL"
+        "povertyLevelReference": "100%–135% FPL"
       },
       "applicationGuide": {
-        "method": "multiple",
-        "summary": "Call 1-800-642-3195 to apply — approval takes up to 45 days for QMB.",
+        "method": "phone",
+        "summary": "Call Michigan's Medicaid line at 800-642-3195 — approval takes up to 45 days.",
         "steps": [
           {
             "step": 1,
-            "title": "Gather Medicare and income documents",
-            "description": "You'll need Medicare card, Social Security award letters, pension statements, bank statements, and asset documentation."
+            "title": "Call Michigan Medicaid",
+            "description": "Call 800-642-3195 to request Medicare Savings Program application forms and get specific document requirements."
           },
           {
             "step": 2,
-            "title": "Contact Michigan DHHS",
-            "description": "Call 1-800-642-3195 or contact your local MDHHS office to request application forms."
+            "title": "Gather financial documents",
+            "description": "Collect Medicare cards, Social Security award letters, bank statements, and any other income documentation from the past 3 months."
           },
           {
             "step": 3,
-            "title": "Submit completed application",
-            "description": "Return application with all required documentation to MDHHS."
+            "title": "Submit application",
+            "description": "Return completed application with required documents to MDHHS. For QI program, apply early in the year due to limited funding."
           },
           {
             "step": 4,
-            "title": "Wait for determination",
-            "description": "QMB decisions take up to 45 days. QI operates first-come, first-served with limited funding."
+            "title": "Follow up on processing",
+            "description": "QMB decisions take up to 45 days. SLMB can be retroactive up to 3 months if eligible. QI coverage begins from the approval calendar year."
           }
         ],
-        "processingTime": "Up to 45 days for QMB determination",
-        "waitlist": "QI program operates on first-come, first-served basis with limited availability",
-        "tip": "Apply for QI early in the year — funding is limited and allocated first-come, first-served.",
+        "processingTime": "Up to 45 days for QMB; timelines for SLMB and QI not specified",
+        "waitlist": "QI program operates on first-come, first-served basis with limited annual funding",
+        "tip": "Apply for QI early in the calendar year — funding runs out and there's a waitlist.",
         "urls": []
       },
       "contentSections": [
         {
           "type": "income-table",
-          "heading": "Income Limits by Program (2026)",
+          "heading": "Income Limits by Program Type (2026)",
           "rows": [
             {
               "program": "QMB",
               "individual": 1350,
               "couple": 1824,
-              "coverage": "All Medicare costs"
+              "coverage": "All Medicare premiums + copays/deductibles"
             },
             {
               "program": "SLMB",
               "individual": 1585,
               "couple": 2135,
-              "coverage": "Part B premium only"
+              "coverage": "Part B premium only ($202.90/month)"
             },
             {
               "program": "QI",
-              "individual": "~$1,761",
-              "couple": "~$2,379",
-              "coverage": "Part B premium + prescription help"
+              "individual": "Up to 135% FPL",
+              "couple": "Up to 135% FPL",
+              "coverage": "Part B premium + prescription drug help"
             }
           ],
-          "footnote": "2026 limits effective April 1. QI amounts estimated from 2025 data."
-        },
-        {
-          "type": "what-counts",
-          "heading": "Asset Limits",
-          "included": [
-            "Bank accounts and savings",
-            "Investments and stocks",
-            "Life insurance cash value",
-            "Other countable resources"
-          ],
-          "excluded": [
-            "Primary home",
-            "One vehicle",
-            "Burial funds (specific exemptions not detailed in available data)"
-          ]
+          "footnote": "2026 limits; updated annually on April 1"
         },
         {
           "type": "documents",
-          "heading": "Required Documentation",
+          "heading": "What to Bring",
           "categories": [
             {
-              "name": "Medicare",
+              "name": "Medicare Documentation",
               "items": [
                 "Medicare card (Part A and/or Part B)",
-                "Proof of premium-free Part A (for SLMB and QI applications)"
+                "Medicare Summary Notice (recent)"
               ]
             },
             {
-              "name": "Income Verification",
+              "name": "Financial Records",
               "items": [
                 "Social Security benefit statements",
-                "Pension award letters",
-                "Wage statements if working",
-                "Interest and dividend statements"
-              ]
-            },
-            {
-              "name": "Assets",
-              "items": [
-                "Bank statements (recent 3 months)",
+                "Pension or retirement income statements",
+                "Bank statements (checking and savings)",
                 "Investment account statements",
-                "Life insurance policies with cash value"
+                "Any other income documentation"
               ]
             }
           ]
@@ -777,7 +730,7 @@
         {
           "type": "callout",
           "tone": "warning",
-          "text": "QI coverage has no retroactive benefits — coverage only starts from the calendar year MDHHS approves your application, even if you applied in December of the previous year."
+          "text": "QI program has limited funding and operates first-come, first-served. Apply early in the calendar year to avoid the waitlist."
         },
         {
           "type": "callout",
@@ -787,2326 +740,83 @@
       ],
       "faqs": [
         {
-          "question": "What's the difference between QMB, SLMB, and QI?",
-          "answer": "QMB covers all Medicare costs (premiums, deductibles, copays) for the lowest income group. SLMB only pays the $202.90 monthly Part B premium for slightly higher incomes. QI pays Part B premium plus provides prescription drug help, but requires yearly reapplication and operates first-come, first-served."
+          "question": "Can Mom keep her current Medicare doctors if she gets MSP?",
+          "answer": "Yes. MSP works with her existing Medicare coverage — same doctors, same Medicare benefits. The state just pays the bills Medicare doesn't cover."
         },
         {
-          "question": "Can Mom get retroactive coverage if she qualifies?",
-          "answer": "Depends on the program. QMB has no retroactive coverage — benefits only start from approval month. SLMB can go back up to 3 months if she was income-eligible during those months. QI coverage starts from January 1 of the approval year (or April if approved mid-year)."
+          "question": "What happens if her income is just over the QMB limit but under SLMB?",
+          "answer": "She can still qualify for SLMB, which pays her Medicare Part B premium ($202.90/month in 2026). She just won't get help with deductibles and copays like QMB provides."
         },
         {
-          "question": "Does her house count toward the asset limit?",
-          "answer": "No, the primary home doesn't count toward the $9,950 individual/$14,910 couple asset limit. One vehicle is also typically exempt, though specific exemption details weren't available in Michigan's documentation."
+          "question": "Does her house count toward the $9,950 asset limit?",
+          "answer": "The research doesn't specify which assets are exempt, but typically the home where your parent lives doesn't count. Call 800-642-3195 to confirm what assets count in Michigan."
         },
         {
-          "question": "What if her income is just over the limit?",
-          "answer": "She may still qualify for a higher-income tier. If over QMB limits ($1,350/month), check SLMB ($1,585/month) or QI (approximately $1,761/month). Income limits change every April 1, so income that's too high now might qualify later."
+          "question": "If she qualifies, when does the coverage start?",
+          "answer": "QMB starts the month after approval with no retroactive coverage. SLMB can go back up to 3 months if she was eligible. QI starts from January of the approval year (or approval month if after January)."
         },
         {
-          "question": "Why does QI require reapplication every year?",
-          "answer": "QI operates with limited federal funding allocated to states annually. Michigan must redistribute this funding each year on a first-come, first-served basis. Previous QI recipients get priority, but everyone must reapply."
+          "question": "What if she doesn't have premium-free Medicare Part A?",
+          "answer": "She can still get QMB, which will pay her Part A premiums. But SLMB and QI require premium-free Part A — if she's paying for Part A, those programs aren't available."
         },
         {
-          "question": "Can she have both Medicare Savings Programs and other Medicaid?",
-          "answer": "QMB and SLMB yes, but QI no. If your parent qualifies for any other Medicaid coverage, they cannot receive QI benefits. However, QMB and SLMB can work alongside other Medicaid programs."
+          "question": "How often does she need to reapply?",
+          "answer": "QMB and SLMB don't require annual reapplication. QI requires reapplication every year, and previous QI recipients get priority in the funding queue."
         }
       ],
-      "phone": "1-800-642-3195",
+      "phone": "800-642-3195",
       "sourceUrl": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/disabilities/dualeligible/medicare-savings-programs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-08"
+      "draftedAt": "2026-04-09"
     },
     {
-      "id": "michigan-snap-food-benefits",
       "name": "SNAP Food Assistance (MiCAFE for seniors)",
-      "shortName": "SNAP Food Benefits",
-      "tagline": "Get $23 to $292 monthly to help your parent buy groceries if they're 60+ and on a fixed income.",
-      "programType": "navigator",
-      "complexity": "simple",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "MiCAFE Network partners via Elder Law of Michigan; statewide access via 1-877-664-2233.",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your parent is 60 or older and struggling to afford groceries, they may qualify for $23 to $292 monthly through SNAP food benefits. Michigan's MiCAFE program helps seniors navigate the application process because nearly 50% of eligible seniors never apply.\n\nBecause seniors get higher income limits than younger adults, your parent may qualify even if their Social Security or pension puts them over limits for other programs. The benefits come on a Michigan Bridge Card that works like a debit card at grocery stores, supermarkets, and farmers markets.\n\nMiCAFE provides personalized help with applications and annual recertification through trained professionals who can visit your parent's home or meet in the community.",
-      "savingsRange": "$276 – $3,504/year in 2026",
-      "savingsSource": "Monthly SNAP benefits of $23 to $292 based on income and household size",
-      "savingsVerified": true,
-      "structuredEligibility": {
-        "summary": [
-          "Age 60+",
-          "Michigan resident",
-          "Gross income below 200% poverty level",
-          "Most have no asset limits"
-        ],
-        "ageRequirement": "60+",
-        "incomeTable": null,
-        "assetLimits": {
-          "individual": null,
-          "couple": null,
-          "countedAssets": [
-            "cash",
-            "checking/savings accounts",
-            "investments",
-            "some trusts",
-            "property/real estate"
-          ],
-          "exemptAssets": [
-            "primary home"
-          ],
-          "homeEquityCap": null
-        },
-        "functionalRequirement": null,
-        "otherRequirements": [
-          "U.S. citizen or acceptable immigrant status",
-          "Live in Michigan",
-          "Household includes all who live together and share food"
-        ],
-        "povertyLevelReference": "200% FPL"
-      },
-      "applicationGuide": {
-        "method": "multiple",
-        "summary": "Call MiCAFE at 1-877-664-2233 for personalized help, or apply online through MI Bridges.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Call MiCAFE for assistance",
-            "description": "Phone 1-877-664-2233 (Monday-Friday, 9:00 AM - 3:00 PM) to get help with the application and learn about deductions that could lower your parent's countable income."
-          },
-          {
-            "step": 2,
-            "title": "Gather income and expense documents",
-            "description": "Collect Social Security statements, pension records, bank statements, rent/mortgage receipts, utility bills, and medical expense receipts (medical deductions apply for seniors)."
-          },
-          {
-            "step": 3,
-            "title": "Complete application",
-            "description": "Apply through MI Bridges online portal at michigan.gov/mibridges or get in-home help from a MiCAFE Network partner."
-          },
-          {
-            "step": 4,
-            "title": "Wait for processing",
-            "description": "Standard processing takes up to 30 days. MiCAFE will help with annual recertification to maintain benefits."
-          }
-        ],
-        "processingTime": "Up to 30 days (expedited processing available in some cases)",
-        "waitlist": null,
-        "tip": "Medical expenses like Medicare premiums, prescription costs, and medical equipment can be deducted from income for seniors, potentially qualifying your parent even if their income seems too high.",
-        "urls": [
-          {
-            "label": "MI Bridges Application Portal",
-            "url": "https://michigan.gov/mibridges"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "MiCAFE isn't a separate program—it's specialized help applying for regular SNAP benefits. Seniors get higher income limits (200% of poverty level instead of 130%) and special deductions for medical expenses."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "What if my parent's Social Security puts them just over the income limit?",
-          "answer": "Medical expenses like Medicare premiums, prescription costs, and medical equipment can be deducted from their income. Shelter costs over half their income are also deductible. MiCAFE counselors help identify all possible deductions."
-        },
-        {
-          "question": "Will SNAP benefits affect my parent's other government benefits?",
-          "answer": "SNAP benefits don't count as income for Social Security, Medicare, or most other programs. They also don't affect immigration status or citizenship applications."
-        },
-        {
-          "question": "Can my parent use SNAP benefits at farmers markets?",
-          "answer": "Yes, the Michigan Bridge Card works at grocery stores, supermarkets, and participating farmers markets. You cannot use it for alcohol, tobacco, prepared hot foods, or non-food items."
-        },
-        {
-          "question": "What if my parent lives with family but buys their own food?",
-          "answer": "If your parent purchases and prepares food separately, they can apply as a one-person household even if living with family. This often means lower income limits and higher benefits."
-        },
-        {
-          "question": "How often does my parent need to reapply?",
-          "answer": "SNAP benefits require annual recertification. MiCAFE helps with this process and will remind your parent when it's time to renew."
-        },
-        {
-          "question": "What if my parent has savings or owns property besides their home?",
-          "answer": "Most SNAP recipients have no asset limits as of March 2024. Your parent's home doesn't count, and bank accounts or investments only matter in specific disqualification situations."
-        }
-      ],
-      "phone": "1-877-664-2233",
-      "sourceUrl": "https://www.michigan.gov/mdhhs/assistance-programs/food",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-08"
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "id": "michigan-liheap-energy-assistance",
       "name": "Michigan LIHEAP (Energy Assistance)",
-      "shortName": "LIHEAP Energy Help",
-      "tagline": "Your parent could get one-time help with heating bills, shut-off notices, or reconnection fees if their income is below $36,517 (single person).",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local MDHHS offices",
-            "type": "service-area"
-          },
-          {
-            "name": "MI 211 community partners",
-            "type": "service-area"
-          },
-          {
-            "name": "Utilities like Michigan Gas Utilities, Country Lines",
-            "type": "service-area"
-          },
-          {
-            "name": "Thaw Fund partners",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your parent struggles with heating or electric bills, Michigan LIHEAP provides one-time grants to help with past-due bills, shut-off notices, reconnection fees, or deliverable fuels like propane. Because LIHEAP is crisis-focused assistance, your parent doesn't need to wait until their utilities are shut off — falling behind on a payment plan qualifies.\n\nYour parent automatically qualifies if they receive SNAP, Medicaid, SSI, or several other programs — regardless of income. Otherwise, their household income must be below 60% of Michigan's median income: $36,517 for a single person or $47,753 for a two-person household in 2026.\n\nBecause LIHEAP operates on limited funding distributed first-come, first-served, apply early in the heating season (November through March) when most funding becomes available.",
-      "savingsRange": "",
-      "savingsSource": "One-time grants vary by household need and available funding",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Income below $36,517/year (single person)",
-          "Auto-qualifies if receiving SNAP, Medicaid, or SSI",
-          "Past-due bill or shut-off notice",
-          "Michigan resident"
-        ],
-        "ageRequirement": null,
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 3043
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 3979
-          },
-          {
-            "householdSize": 3,
-            "monthlyLimit": 4916
-          },
-          {
-            "householdSize": 4,
-            "monthlyLimit": 5852
-          },
-          {
-            "householdSize": 5,
-            "monthlyLimit": 6788
-          },
-          {
-            "householdSize": 6,
-            "monthlyLimit": 7725
-          }
-        ],
-        "assetLimits": {
-          "individual": 15000,
-          "couple": 15000,
-          "countedAssets": [
-            "Cash",
-            "Savings accounts",
-            "Material assets"
-          ],
-          "exemptAssets": [],
-          "homeEquityCap": null
-        },
-        "functionalRequirement": null,
-        "otherRequirements": [
-          "Past-due utility bill, shut-off notice, or falling behind on payment plan",
-          "Proof of Michigan residency",
-          "Social Security Number or card"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "multiple",
-        "summary": "Apply online through MI Bridges or call MI 211 to find local help — processing time varies by funding availability.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Gather your documents",
-            "description": "Collect ID, Social Security card, income proof, and your past-due bill or shut-off notice."
-          },
-          {
-            "step": 2,
-            "title": "Apply through MI Bridges online",
-            "description": "Go to michigan.gov/mibridges to complete the application, or call MI 211 at 2-1-1 to find local agencies that can help you apply."
-          },
-          {
-            "step": 3,
-            "title": "Submit proof of crisis need",
-            "description": "Upload or mail your past-due bill, shut-off notice, or documentation that you're falling behind on a payment plan."
-          },
-          {
-            "step": 4,
-            "title": "Follow up on funding availability",
-            "description": "Because funding is limited and first-come first-served, contact the agency if you don't hear back within two weeks."
-          }
-        ],
-        "processingTime": "Not specified — varies by funding availability",
-        "waitlist": "Limited funds filled first-come, first-served; potential waitlist or denial if funds exhausted",
-        "tip": "If your parent was previously denied, reapply — eligibility rules expanded and no longer require a State Emergency Relief decision letter.",
-        "urls": [
-          {
-            "label": "MI Bridges Online Application",
-            "url": "https://michigan.gov/mibridges"
-          },
-          {
-            "label": "Find Local Community Partners",
-            "url": "https://newmichigan.gov/s/isd-find-community-partners"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "income-table",
-          "heading": "Income Limits by Household Size (2026)",
-          "rows": [
-            {
-              "size": "1 person",
-              "monthly": "$3,043",
-              "yearly": "$36,517"
-            },
-            {
-              "size": "2 people",
-              "monthly": "$3,979",
-              "yearly": "$47,753"
-            },
-            {
-              "size": "3 people",
-              "monthly": "$4,916",
-              "yearly": "$58,989"
-            },
-            {
-              "size": "4 people",
-              "monthly": "$5,852",
-              "yearly": "$70,225"
-            },
-            {
-              "size": "5 people",
-              "monthly": "$6,788",
-              "yearly": "$81,461"
-            },
-            {
-              "size": "6 people",
-              "monthly": "$7,725",
-              "yearly": "$92,697"
-            }
-          ],
-          "footnote": "Add approximately $11,236 yearly for each additional household member. Auto-qualifies if receiving SNAP, Medicaid, SSI, TANF, WIC, or other listed programs regardless of income."
-        },
-        {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts (Crisis Aid Only)",
-          "included": [
-            "Cash and savings accounts (up to $15,000)",
-            "Material assets like vehicles (up to $15,000)",
-            "Checking account balances"
-          ],
-          "excluded": [
-            "Primary residence",
-            "Specific exemptions not detailed in available sources"
-          ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity & Residency",
-              "items": [
-                "Photo ID (driver's license or state ID)",
-                "Social Security Number or Social Security card",
-                "Proof of Michigan residency"
-              ]
-            },
-            {
-              "name": "Financial",
-              "items": [
-                "Income verification for past 12 months",
-                "Award letters if receiving SNAP, Medicaid, SSI, or other qualifying programs"
-              ]
-            },
-            {
-              "name": "Crisis Documentation",
-              "items": [
-                "Past-due utility bill or shut-off notice",
-                "Payment plan details showing you're behind",
-                "Utility account information"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "LIHEAP operates on limited funding distributed first-come, first-served. Apply early in heating season (November-March) when most funding becomes available. If funds are exhausted, you may be waitlisted or denied until the next funding cycle."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "If your parent is 65+ and receives utility service from certain providers, they may qualify for additional Winter Protection Plans that prevent shut-offs November 1 through April 15, even without LIHEAP assistance."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "What if my parent was denied LIHEAP before?",
-          "answer": "Reapply now. Michigan expanded eligibility rules and no longer requires a State Emergency Relief decision letter. Your parent may now qualify under the new 60% State Median Income limit or through automatic qualification if they receive programs like SNAP or Medicaid."
-        },
-        {
-          "question": "Can my parent get help if their utilities aren't shut off yet?",
-          "answer": "Yes. Your parent doesn't need to wait for shut-off. They qualify if they have a past-due bill, received a shut-off notice, or are falling behind on a payment plan. LIHEAP is designed to prevent shut-offs, not just respond to them."
-        },
-        {
-          "question": "What's the difference between LIHEAP and other energy assistance programs?",
-          "answer": "LIHEAP is crisis-focused for emergencies like shut-off notices, while Michigan's MEAP program offers broader energy assistance. Some utilities also offer their own assistance programs. You can apply for multiple programs — they don't conflict with each other."
-        },
-        {
-          "question": "How much money will my parent actually receive?",
-          "answer": "Grant amounts aren't fixed — they vary based on your parent's specific need, household size, and available funding in your area. The program covers what's needed for the crisis: past-due amounts, reconnection fees, or deliverable fuel costs."
-        },
-        {
-          "question": "What if our utility company opted out of Michigan's energy assistance programs?",
-          "answer": "Utilities that opt out of LIEAF (Low Income Energy Assistance Fund) must provide equivalent assistance through their own programs. They also must offer Winter Protection Plans preventing shut-offs from November 1 through April 15."
-        },
-        {
-          "question": "Can my parent apply if they live in subsidized housing?",
-          "answer": "Yes, as long as they're responsible for their own utility bills. If utilities are included in rent, they wouldn't qualify for utility assistance, but they might qualify for help with deliverable fuels like propane if they use them for heating."
-        }
-      ],
-      "phone": "2-1-1",
-      "sourceUrl": "https://www.michigan.gov/mdhhs/inside-mdhhs/reports-stats/plans-regs/plans-regs/low-income-home-energy-assistance-program-liheap-state-plans",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-08"
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "id": "michigan-weatherization-assistance-program",
       "name": "Weatherization Assistance Program (WAP)",
-      "shortName": "WAP",
-      "tagline": "Free home energy improvements to cut your parent's heating bills — if their income qualifies and their home passes inspection.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "MDHHS contracts with local agencies like Kent County (616-632-7950), Wayne Metro, NEMCSA, Community Action Allegan, OLHSA.",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your parent's monthly income is below $2,150–$2,500 (varies by county), they may qualify for free home weatherization services that can lower their heating and cooling bills. The program provides insulation, air sealing, furnace tune-ups, and sometimes major appliance replacement at no cost.\n\nBecause WAP is based on a whole-home energy audit, there's no guarantee of specific services — the audit determines what improvements will save the most energy. Your parent's home must be structurally sound (no major roof damage, mold, or electrical issues) and can't have been weatherized through this program in the last 15 years.\n\nFunding is limited and the process takes several months from application to completion. Auto-eligible if your parent receives SSI, SDA, or FIP benefits.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Income below $2,150–$2,500/month (varies by county)",
-          "Own or rent their home",
-          "Home structurally sound",
-          "Not weatherized since 2006"
-        ],
-        "ageRequirement": null,
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 2510
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 3407
-          },
-          {
-            "householdSize": 3,
-            "monthlyLimit": 4303
-          },
-          {
-            "householdSize": 4,
-            "monthlyLimit": 5200
-          },
-          {
-            "householdSize": 5,
-            "monthlyLimit": 6097
-          }
-        ],
-        "assetLimits": null,
-        "functionalRequirement": null,
-        "otherRequirements": [
-          "Home must pass energy audit and structural inspection",
-          "Cannot be for sale, in foreclosure, or under major renovation",
-          "Renters need written landlord permission",
-          "Must allow access to basement and attic"
-        ],
-        "povertyLevelReference": "200% FPL"
-      },
-      "applicationGuide": {
-        "method": "multiple",
-        "summary": "Contact your local Community Action Agency by phone or online — the process takes several months and depends on available funding.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Find your local agency",
-            "description": "Each county has a different Community Action Agency that handles applications. Income limits and forms vary slightly by region."
-          },
-          {
-            "step": 2,
-            "title": "Submit initial application",
-            "description": "Provide household income for the last 3 months (1 month in Wayne Metro area), proof of home ownership or landlord permission, and recent utility bills."
-          },
-          {
-            "step": 3,
-            "title": "Wait for energy audit scheduling",
-            "description": "If funding is available and income qualifies, an auditor will inspect the home to determine what improvements are cost-effective."
-          },
-          {
-            "step": 4,
-            "title": "Home inspection and approval",
-            "description": "The audit checks for structural issues that would disqualify the home (roof damage, mold, dangerous wiring, missing windows/drywall)."
-          },
-          {
-            "step": 5,
-            "title": "Work completion",
-            "description": "If approved, contractors perform the weatherization work at no cost — services vary based on audit recommendations."
-          }
-        ],
-        "processingTime": "Several months",
-        "waitlist": "Screenings depend on available funding; funds limited, apply early",
-        "tip": "Apply early in the year when funding is most likely to be available.",
-        "urls": [
-          {
-            "label": "Michigan DHHS Weatherization",
-            "url": "https://www.michigan.gov/mdhhs/doing-business/weatherization"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "income-table",
-          "heading": "Income Limits by Household Size (Wayne Metro example)",
-          "rows": [
-            {
-              "householdSize": 1,
-              "monthlyLimit": 2510,
-              "yearlyLimit": 30120
-            },
-            {
-              "householdSize": 2,
-              "monthlyLimit": 3407,
-              "yearlyLimit": 40884
-            },
-            {
-              "householdSize": 3,
-              "monthlyLimit": 4303,
-              "yearlyLimit": 51636
-            },
-            {
-              "householdSize": 4,
-              "monthlyLimit": 5200,
-              "yearlyLimit": 62400
-            },
-            {
-              "householdSize": 5,
-              "monthlyLimit": 6097,
-              "yearlyLimit": 73164
-            }
-          ],
-          "footnote": "Limits vary by county and are based on gross household income from the last month (Wayne Metro) or 3 months (most other areas). 2026 estimates."
-        },
-        {
-          "type": "county-directory",
-          "heading": "Local Community Action Agencies",
-          "offices": [
-            {
-              "name": "Kent County",
-              "type": "county",
-              "phone": "616-632-7950",
-              "address": ""
-            },
-            {
-              "name": "Wayne Metro",
-              "type": "service-area",
-              "phone": "",
-              "address": "Online application or Connect Center"
-            },
-            {
-              "name": "NEMCSA",
-              "type": "service-area",
-              "phone": "",
-              "address": ""
-            },
-            {
-              "name": "Community Action Allegan",
-              "type": "county",
-              "phone": "",
-              "address": "Mail/drop-off questionnaire available"
-            }
-          ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity",
-              "items": [
-                "Government ID, passport, or Social Security card for all household members 18+"
-              ]
-            },
-            {
-              "name": "Financial",
-              "items": [
-                "Pay stubs for last 3 months (or 1 month in Wayne Metro)",
-                "Social Security award letters",
-                "Pension statements",
-                "Unemployment benefits documentation",
-                "All income sources for every household member"
-              ]
-            },
-            {
-              "name": "Housing",
-              "items": [
-                "Proof of home ownership or written landlord permission",
-                "Most recent electric and gas bills",
-                "Water bill (required in some areas)"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "Funding is limited and applications are only accepted when money is available. The process takes several months from application to work completion."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "This is not a repair program — homes with major structural issues (damaged roof, mold, knob-and-tube wiring, missing drywall/windows) will be disqualified during the initial inspection."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "What if Mom is a renter — can she still get weatherization services?",
-          "answer": "Yes, but her landlord must give written permission and sign the Weatherization Assistance Program Owner/Landlord Agreement. The improvements benefit the property, so some landlords are willing to approve it."
-        },
-        {
-          "question": "Her house was weatherized years ago through a different program. Does that disqualify her?",
-          "answer": "Only if it was weatherized through this specific WAP program in the last 15 years (or since 2006 in some areas). Weatherization through utility companies or other programs doesn't count."
-        },
-        {
-          "question": "What if the energy audit finds problems that disqualify the home?",
-          "answer": "Major structural issues like roof damage, mold, dangerous electrical wiring, or missing windows will disqualify the home. WAP doesn't fix these problems — your parent would need to address them first through other resources."
-        },
-        {
-          "question": "She gets Social Security but also has a small pension. Will that put her over the income limit?",
-          "answer": "All household income counts, including Social Security, pensions, and any other sources. However, if she receives SSI (not regular Social Security), SDA, or FIP benefits, she's automatically income-eligible regardless of other income."
-        },
-        {
-          "question": "How much will this actually save on her energy bills?",
-          "answer": "There's no guarantee of specific savings because services vary based on the energy audit. Some homes get major improvements like furnace replacement and full insulation, while others may only get minor air sealing and weatherstripping."
-        },
-        {
-          "question": "Can she apply if her income is slightly over the limit?",
-          "answer": "No, income limits are firm. However, limits vary by county — Wayne Metro uses 1-month income while most other areas use 3-month averages, so timing of application might matter if her income fluctuates."
-        }
-      ],
-      "phone": null,
-      "sourceUrl": "https://www.michigan.gov/mdhhs/doing-business/weatherization",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-08"
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "id": "michigan-medicare-assistance-program",
       "name": "Michigan Medicare Assistance Program (MMAP)",
-      "shortName": "Medicare Counseling",
-      "tagline": "Free one-on-one help navigating Medicare, Medicaid, and prescription drug coverage for your parent.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Statewide hotline connects to nearest; examples: CareWell Services Southwest, The Senior Alliance, local Area Agencies on Aging",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your parent is struggling with Medicare decisions, prescription drug costs, or understanding their coverage options, MMAP provides free expert counseling. Because Medicare has dozens of plan options and constantly changing rules, these trained counselors help you compare plans, understand benefits, and find programs that could lower your parent's costs.\n\nMMAP counselors can screen your parent for Medicare Savings Programs that cover premiums and deductibles — potentially saving hundreds per month. They also help with Medicare appeals, fraud protection, and finding prescription drug assistance. The service is completely free and unbiased because counselors cannot sell insurance.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": true,
-      "structuredEligibility": {
-        "summary": [
-          "Michigan resident",
-          "No income limits for counseling",
-          "Available to seniors, disabled, and caregivers",
-          "Unbiased — counselors don't sell insurance"
-        ],
-        "ageRequirement": null,
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 1325
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 1783
-          }
-        ],
-        "assetLimits": {
-          "individual": 9950,
-          "couple": 14910,
-          "countedAssets": [
-            "Bank accounts",
-            "Stocks and bonds",
-            "Cash value life insurance"
-          ],
-          "exemptAssets": [
-            "Primary home",
-            "One vehicle",
-            "Burial funds up to $1,500"
-          ],
-          "homeEquityCap": null
-        },
-        "functionalRequirement": null,
-        "otherRequirements": [
-          "Must reside in Michigan"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "phone",
-        "summary": "Call the statewide hotline and you'll be connected to a local counselor immediately — no appointment needed for basic questions.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Call the statewide hotline",
-            "description": "Dial 1-800-803-7174 and you'll be routed to the MMAP office nearest you based on your parent's zip code."
-          },
-          {
-            "step": 2,
-            "title": "Describe your parent's situation",
-            "description": "The counselor will ask about current Medicare coverage, medications, doctors, and any specific concerns or confusion."
-          },
-          {
-            "step": 3,
-            "title": "Schedule deeper counseling if needed",
-            "description": "For complex plan comparisons or benefit applications, they'll schedule a longer phone or in-person session."
-          }
-        ],
-        "processingTime": "Immediate phone screening; counseling appointments scheduled promptly",
-        "waitlist": null,
-        "tip": "Have your parent's Medicare card and recent medical bills handy when you call — counselors can give more specific help with actual numbers.",
-        "urls": [
-          {
-            "label": "Official MMAP Website",
-            "url": "http://www.mmapinc.org"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "income-table",
-          "heading": "Medicare Savings Program Income Limits (Counselors Screen For These)",
-          "rows": [
-            {
-              "program": "QMB (Qualified Medicare Beneficiary)",
-              "individual": "$1,325",
-              "couple": "$1,783",
-              "benefit": "Pays Medicare premiums and deductibles"
-            },
-            {
-              "program": "SLMB (Specified Low-Income Beneficiary)",
-              "individual": "$1,585",
-              "couple": "$2,135",
-              "benefit": "Pays Medicare Part B premiums"
-            },
-            {
-              "program": "QI (Qualifying Individual)",
-              "individual": "$1,781",
-              "couple": "$2,400",
-              "benefit": "Pays Medicare Part B premiums (limited funding)"
-            }
-          ],
-          "footnote": "2026 monthly income limits — MMAP counselors can screen and help apply"
-        },
-        {
-          "type": "what-counts",
-          "heading": "Asset Limits for Medicare Savings Programs",
-          "included": [
-            "Bank accounts and cash",
-            "Stocks, bonds, and investments",
-            "Cash value of life insurance policies",
-            "Second vehicles",
-            "Property other than primary home"
-          ],
-          "excluded": [
-            "Primary home (any value)",
-            "One vehicle for transportation",
-            "Burial funds up to $1,500 per person",
-            "Personal belongings and household items",
-            "Wedding and engagement rings"
-          ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Have Ready (Optional)",
-          "categories": [
-            {
-              "name": "Medicare Information",
-              "items": [
-                "Medicare card",
-                "Medicare Summary Notices",
-                "Current prescription drug plan details"
-              ]
-            },
-            {
-              "name": "Financial (If Screening for Savings Programs)",
-              "items": [
-                "Bank statements",
-                "Social Security award letter",
-                "Pension statements"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "MMAP counselors cannot enroll your parent in plans or handle payments — they provide education and help you understand options, but you'll still need to call Medicare or insurance companies to make actual changes."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Will the counselor try to sell my parent insurance?",
-          "answer": "No. MMAP counselors are volunteers who cannot sell insurance products. They're trained to give unbiased information and won't steer your parent toward any particular company or plan."
-        },
-        {
-          "question": "Can they help if my parent already has Medicare Advantage?",
-          "answer": "Yes. MMAP counselors help with all types of Medicare coverage — Original Medicare, Medicare Advantage, Medigap, and prescription drug plans. They can explain your parent's current benefits and help during open enrollment."
-        },
-        {
-          "question": "What if my parent's income is just over the Medicare Savings Program limits?",
-          "answer": "The counselor can still help find other prescription drug assistance programs, explain Extra Help for drug costs, and look for plans with lower premiums and deductibles that fit your parent's budget."
-        },
-        {
-          "question": "Can I call on behalf of my parent?",
-          "answer": "Yes, caregivers and family members can call MMAP for information. For specific account details or applications, your parent may need to be present or give verbal permission."
-        },
-        {
-          "question": "How long does a counseling session take?",
-          "answer": "Basic questions can be answered immediately over the phone. Complex plan comparisons or benefit screenings typically take 30-60 minutes and may be scheduled as separate appointments."
-        },
-        {
-          "question": "Do they help with Medicare appeals if a claim is denied?",
-          "answer": "Yes. MMAP counselors can explain the Medicare appeals process, help you understand denial notices, and guide you through filing appeals, though they don't handle the paperwork for you."
-        }
-      ],
-      "phone": "1-800-803-7174",
-      "sourceUrl": "http://www.mmapinc.org",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-08"
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "id": "michigan-home-delivered-meals",
       "name": "Home Delivered Meals (Meals on Wheels)",
-      "shortName": "Home Delivered Meals",
-      "tagline": "Daily nutritious meals delivered to your parent's door if they can't cook or shop independently.",
-      "programType": "benefit",
-      "complexity": "medium",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local Area Agency on Aging (contact via michigan.gov/mdhhs)",
-            "type": "service-area"
-          },
-          {
-            "name": "Meals on Wheels Western Michigan (Kent/Allegan Counties): mealsonwheelswesternmichigan.org, (616) 459-3111",
-            "type": "service-area"
-          },
-          {
-            "name": "Meals on Wheels Southwest Michigan: snsmeals.org",
-            "type": "service-area"
-          },
-          {
-            "name": "Mom's Meals for Medicaid: momsmeals.com",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your parent struggles to cook or shop for groceries due to physical limitations or being homebound, they may qualify for daily meal delivery at home. This federally-funded program delivers one or more nutritionally balanced meals per day directly to your parent's door, including specialized meals for conditions like diabetes or heart failure.\n\nYour parent must be 60 or older and unable to prepare meals independently due to physical, mental, or cognitive limitations. There are no income limits — eligibility is based on need and whether your parent is homebound (has difficulty leaving home unassisted regularly). The program operates through local providers in each county, so availability and wait times vary by location.\n\nMeals are provided at no cost, though voluntary contributions are welcomed. Because this isn't a single statewide program, you'll need to contact your local Area Agency on Aging for assessment and enrollment. Staff will visit your parent's home to determine eligibility and dietary needs.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": true,
-      "structuredEligibility": {
-        "summary": [
-          "Age 60+",
-          "Homebound or difficulty leaving home",
-          "Cannot prepare meals independently",
-          "No income limits"
-        ],
-        "ageRequirement": "60+",
-        "incomeTable": null,
-        "assetLimits": null,
-        "functionalRequirement": "Unable to prepare meals or shop independently due to physical, mental, or cognitive limitations. Must be homebound (difficulty leaving home unassisted regularly).",
-        "otherRequirements": [
-          "No able or willing adult in home to prepare all meals",
-          "Must be home for delivery or arrange ahead for absences",
-          "Able to feed self or with caregiver assistance",
-          "Spouse of any age may also qualify if funding available"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "phone",
-        "summary": "Contact your local Area Agency on Aging for a home assessment — meals can start within a few days if eligible.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Find your local provider",
-            "description": "Contact your Area Agency on Aging or regional Meals on Wheels provider. Each county has different operators."
-          },
-          {
-            "step": 2,
-            "title": "Schedule home assessment",
-            "description": "Staff will visit or call to assess your parent's needs, living situation, and dietary requirements."
-          },
-          {
-            "step": 3,
-            "title": "Complete consent forms",
-            "description": "Sign annual consent form and food allergy waiver during the assessment."
-          },
-          {
-            "step": 4,
-            "title": "Start meal delivery",
-            "description": "If eligible, meals begin within a few days. Reassessment occurs every 6 months."
-          }
-        ],
-        "processingTime": "Within a few days of assessment if eligible",
-        "waitlist": "Possible due to funding availability — varies by region",
-        "tip": "Have your parent's medication list and dietary restrictions ready for the assessment call.",
-        "urls": [
-          {
-            "label": "Find Michigan Area Agency on Aging",
-            "url": "https://www.michigan.gov/mdhhs/assistance-programs/other-help/food/home-delivered-meals"
-          },
-          {
-            "label": "Meals on Wheels Western Michigan",
-            "url": "https://mealsonwheelswesternmichigan.org"
-          },
-          {
-            "label": "Southwest Michigan meals",
-            "url": "https://snsmeals.org"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "county-directory",
-          "heading": "Local Providers",
-          "offices": [
-            {
-              "name": "Meals on Wheels Western Michigan",
-              "type": "service-area",
-              "phone": "(616) 459-3111",
-              "address": "Kent and Allegan Counties"
-            },
-            {
-              "name": "Meals on Wheels Southwest Michigan",
-              "type": "service-area",
-              "phone": null,
-              "address": "Southwest Michigan region"
-            },
-            {
-              "name": "Mom's Meals (Medicaid plans)",
-              "type": "service-area",
-              "phone": null,
-              "address": "Statewide for enrolled Medicaid members"
-            }
-          ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Prepare",
-          "categories": [
-            {
-              "name": "Basic Information",
-              "items": [
-                "Proof of age (driver's license or birth certificate)",
-                "Proof of address if requested"
-              ]
-            },
-            {
-              "name": "Health Information",
-              "items": [
-                "List of current medications",
-                "Dietary restrictions or food allergies",
-                "Medical conditions (diabetes, heart failure, etc.)",
-                "Recent hospitalization records if applicable"
-              ]
-            },
-            {
-              "name": "Medicaid Version",
-              "items": [
-                "Medicaid enrollment card",
-                "Health plan details for Mom's Meals or other plan-based programs"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "This isn't one central program — each county has different providers and wait times. You must contact your specific local Area Agency on Aging, not a statewide number."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Your parent must be home for delivery or notify the program of planned absences. Regular absences without notice can result in disqualification."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "What if my parent's income is too high for other programs?",
-          "answer": "Income doesn't matter for Home Delivered Meals — there are no income or asset limits. Eligibility is based entirely on age (60+), being homebound, and inability to prepare meals independently."
-        },
-        {
-          "question": "Can my parent choose what meals they receive?",
-          "answer": "The program provides nutritionally balanced meals based on your parent's dietary needs and medical conditions. Special diets for diabetes, heart conditions, or food allergies can be accommodated, but this isn't a restaurant service with daily menu choices."
-        },
-        {
-          "question": "What if there's no local Meals on Wheels in our area?",
-          "answer": "Every county has an Area Agency on Aging that coordinates meal services, even if it's not specifically 'Meals on Wheels.' Contact michigan.gov/mdhhs to find your local agency — they may contract with different providers."
-        },
-        {
-          "question": "How much will my parent need to pay?",
-          "answer": "Meals are provided free of charge. Voluntary contributions are welcomed but never required. Some programs offer private-pay options if your parent doesn't qualify but wants the service."
-        },
-        {
-          "question": "What happens if my parent goes to the hospital?",
-          "answer": "Your parent should notify the program about planned absences like hospital stays. Some programs actually prioritize people recently discharged from hospitals, and may provide medically tailored meals during recovery."
-        },
-        {
-          "question": "Can my dad get meals if he lives with my mom who can cook?",
-          "answer": "If there's an able and willing adult in the home who can prepare all meals, your parent typically won't qualify. However, if your mom has her own limitations or cannot meet all of your dad's dietary needs, the assessment may still find him eligible."
-        }
-      ],
-      "phone": null,
-      "sourceUrl": "https://www.michigan.gov/mdhhs/assistance-programs/other-help/food/home-delivered-meals",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-08"
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "id": "michigan-mi-choice-waiver-respite-care",
       "name": "Respite Care (via MI Choice Waiver)",
-      "shortName": "MI Choice Waiver",
-      "tagline": "If your parent needs daily care and is at risk of nursing home placement, this program can provide respite services and support to keep them home.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local MI Choice Waiver Agencies (find via regional AAAs)",
-            "type": "service-area"
-          },
-          {
-            "name": "Examples: CareWell Services of Southwest Michigan, The Senior Alliance (734.722.2830), Region 7 Area Agency on Aging",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your parent is 65+ and struggling with daily activities like bathing, dressing, or medication management, MI Choice Waiver can provide respite care and other home services to prevent nursing home placement. Because this program covers comprehensive support — from temporary caregiver relief to home modifications to personal emergency response systems — your parent can stay in their own home while you get the help you need as a caregiver.\n\nYour parent must qualify for Nursing Facility Level of Care (a clinical assessment showing they need daily help with basic activities) and have monthly income below $2,982 (2025 limit). Because the program has strict asset limits — typically $2,000 to $9,950 depending on circumstances — financial eligibility requires careful review.\n\nMI Choice Waiver is administered through 16 regional agencies across Michigan. Your parent must need supports coordination plus at least one other service to qualify, and they cannot be living in a nursing home.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Age 65+",
-          "Monthly income under $2,982",
-          "Assets under $9,950",
-          "Needs daily care assistance",
-          "Michigan resident"
-        ],
-        "ageRequirement": "65+",
-        "incomeTable": null,
-        "assetLimits": {
-          "individual": 9950,
-          "couple": null,
-          "countedAssets": [
-            "Bank accounts",
-            "Investments",
-            "Cash"
-          ],
-          "exemptAssets": [
-            "Primary home (up to $730,000 equity)",
-            "One car",
-            "Federal protected spousal assets"
-          ],
-          "homeEquityCap": 730000
-        },
-        "functionalRequirement": "Must qualify for Nursing Facility Level of Care through in-person assessment (needs daily help with bathing, dressing, medication management, or similar activities)",
-        "otherRequirements": [
-          "Michigan resident",
-          "At risk of nursing home placement",
-          "Live in community setting (not nursing home)",
-          "Must need supports coordination plus at least one other waiver service"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "phone",
-        "summary": "Call your local MI Choice Agency for a phone assessment, followed by an in-home evaluation (processing time not specified).",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Find your local MI Choice Agency",
-            "description": "Contact your regional Area Agency on Aging to get connected to the MI Choice Agency serving your parent's county."
-          },
-          {
-            "step": 2,
-            "title": "Complete phone intake",
-            "description": "Agency specialists will conduct a telephone assessment to review basic eligibility and needs."
-          },
-          {
-            "step": 3,
-            "title": "Fill out referral form",
-            "description": "Complete the MI Choice Waiver Referral Form specific to your agency."
-          },
-          {
-            "step": 4,
-            "title": "Schedule in-home assessment",
-            "description": "MI Choice Agency will conduct an in-person Level of Care Determination (LOCD) at your parent's home to assess functional needs."
-          }
-        ],
-        "processingTime": null,
-        "waitlist": null,
-        "tip": "Gather income and asset documentation before calling — the phone intake will cover financial eligibility requirements.",
-        "urls": [
-          {
-            "label": "Official MI Choice Waiver Information",
-            "url": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
-          "included": [
-            "Bank accounts and savings",
-            "Investments and stocks",
-            "Cash on hand",
-            "Home equity over $730,000 (2025)"
-          ],
-          "excluded": [
-            "Primary home (if equity under $730,000)",
-            "One car of any value",
-            "Federal protected spousal assets for married couples",
-            "Home if spouse, disabled child, or minor child lives there"
-          ]
-        },
-        {
-          "type": "county-directory",
-          "heading": "Local MI Choice Agencies",
-          "offices": [
-            {
-              "name": "The Senior Alliance",
-              "type": "service-area",
-              "phone": "734-722-2830",
-              "address": "Contact for Wayne County and surrounding areas"
-            },
-            {
-              "name": "CareWell Services of Southwest Michigan",
-              "type": "service-area",
-              "phone": null,
-              "address": "Serves Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, St. Joseph, Van Buren counties"
-            },
-            {
-              "name": "Region 7 Area Agency on Aging",
-              "type": "service-area",
-              "phone": null,
-              "address": "Contact your local Area Agency on Aging to find your MI Choice Agency"
-            }
-          ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Financial",
-              "items": [
-                "Proof of income (Social Security, pension statements)",
-                "Bank statements for all accounts",
-                "Investment account statements",
-                "Property tax records (for home equity calculation)"
-              ]
-            },
-            {
-              "name": "Medical",
-              "items": [
-                "Current medication list",
-                "Recent medical records",
-                "Disability determination (if parent is under 65)",
-                "Documentation of daily care needs"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "Your parent must need supports coordination PLUS at least one other service to qualify. A dementia diagnosis alone does not guarantee eligibility — they must demonstrate functional needs through the in-person assessment."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Income and asset limits change annually based on federal rates. The 2025 income limit is $2,982/month — if your parent's income is close to this amount, check current year limits before applying."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Can Mom keep her house if she qualifies for MI Choice Waiver?",
-          "answer": "Yes, she can keep her home as long as the equity is under $730,000 (2025 limit). The home doesn't count toward the asset limit if she lives there or plans to return, or if a spouse, disabled child, or minor child lives there."
-        },
-        {
-          "question": "What if Dad's income is just over the $2,982 monthly limit?",
-          "answer": "He won't qualify for MI Choice Waiver. The income limit is strict at 300% of the federal SSI rate. However, if he's married, special spousal impoverishment rules may apply that could protect some of the couple's income."
-        },
-        {
-          "question": "Does MI Choice Waiver cover all the care Mom needs, or just respite?",
-          "answer": "MI Choice Waiver covers a full array of services including respite care, adult day care, home-delivered meals, medical equipment, nursing services, and home modifications. The specific services depend on your mom's assessed needs and the program's priorities."
-        },
-        {
-          "question": "Can Dad stay in his assisted living facility and still get MI Choice Waiver?",
-          "answer": "Yes, MI Choice Waiver covers people in community settings including adult foster care and homes for the aged. He cannot be in a nursing home, but assisted living and similar community settings are eligible."
-        },
-        {
-          "question": "How long does it take to get approved for MI Choice Waiver?",
-          "answer": "Processing time isn't specified in official sources and likely varies by region. Contact your local MI Choice Agency for current wait times — some areas may have longer waits than others."
-        },
-        {
-          "question": "What happens if Mom's condition changes and she needs more help?",
-          "answer": "MI Choice Waiver services are personalized based on assessed needs. If her condition changes, the agency can reassess and adjust her service plan. She'll need to complete renewal applications periodically to maintain eligibility."
-        }
-      ],
-      "phone": null,
-      "sourceUrl": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-08"
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "id": "michigan-scsep-senior-employment",
       "name": "Senior Community Service Employment Program (SCSEP)",
-      "shortName": "SCSEP",
-      "tagline": "If your parent is 55+ and unemployed, they can get paid training and job placement help — $7,800/year while learning new skills.",
-      "programType": "employment",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "The Senior Alliance (serves specific service area; contact Lauren Wonsowski)[1]",
-            "type": "service-area"
-          },
-          {
-            "name": "MSC-MW (serves Macomb, Oakland, St. Clair Counties)[2]",
-            "type": "service-area"
-          },
-          {
-            "name": "Area Agency on Aging (serves Berrien, Cass, Van Buren Counties)[3]",
-            "type": "service-area"
-          },
-          {
-            "name": "CWI Works (operates through ~50 local partner organizations)[5]",
-            "type": "service-area"
-          },
-          {
-            "name": "NEMCSA (serves specific regions)[6]",
-            "type": "service-area"
-          },
-          {
-            "name": "Contact Michigan Department of Health and Human Services, Bureau of Aging, Community Living, and Support for complete provider list",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your parent is 55+ and struggling to find work, SCSEP provides paid job training to help them get back into the workforce. Because the program pays participants minimum wage for 20 hours per week of training, your parent earns approximately $7,800 per year while gaining new skills and work experience. The program covers computer training, resume writing, and job placement assistance — everything needed to transition to permanent employment.\n\nThis isn't just a job program — it's career preparation. Because SCSEP places participants in real work environments at government agencies and nonprofits, your parent builds a current work history while learning. Most participants move into unsubsidized employment after completing the program. Income limits are strict: $19,562 annually for a single person, $26,437 for a couple (2026 limits based on 125% of federal poverty level).",
-      "savingsRange": "$7,800/year",
-      "savingsSource": "20 hours per week at minimum wage",
-      "savingsVerified": true,
-      "structuredEligibility": {
-        "summary": [
-          "Age 55+",
-          "Unemployed",
-          "Income below $19,562 (single) or $26,437 (couple)",
-          "Must register with Michigan Works"
-        ],
-        "ageRequirement": "55+",
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 1630
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 2203
-          }
-        ],
-        "assetLimits": null,
-        "functionalRequirement": null,
-        "otherRequirements": [
-          "Must be unemployed (not underemployed or part-time employed)",
-          "Must register with Michigan Works",
-          "Must commit to 19-20 hours per week of training",
-          "Must participate in job search activities"
-        ],
-        "povertyLevelReference": "125% FPL"
-      },
-      "applicationGuide": {
-        "method": "multiple",
-        "summary": "Contact your regional SCSEP provider — application processing time varies by region and current capacity.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Find your regional provider",
-            "description": "Michigan has multiple SCSEP providers serving different counties. Contact your local Area Agency on Aging or Michigan Works office to find the right provider for your parent's location."
-          },
-          {
-            "step": 2,
-            "title": "Register with Michigan Works",
-            "description": "Your parent must register with Michigan Works before applying to SCSEP. This is a separate requirement that must be completed first."
-          },
-          {
-            "step": 3,
-            "title": "Gather income documentation",
-            "description": "Collect proof of all household income, family size documentation, and proof of unemployment status. Income verification is strict — any household income must be documented."
-          },
-          {
-            "step": 4,
-            "title": "Submit application to regional provider",
-            "description": "Apply through your regional provider in person, by phone, or online (varies by provider). Veterans and qualified spouses get enrollment priority."
-          }
-        ],
-        "processingTime": null,
-        "waitlist": "Veterans and qualified spouses get priority enrollment. Others may face waitlists depending on local capacity.",
-        "tip": "Call ahead to ask about waitlists — priority is given to veterans, people over 65, and those with disabilities or limited English proficiency.",
-        "urls": []
-      },
-      "contentSections": [
-        {
-          "type": "income-table",
-          "heading": "Income Limits by Household Size (2026)",
-          "rows": [
-            {
-              "householdSize": 1,
-              "annualLimit": 19562,
-              "monthlyLimit": 1630
-            },
-            {
-              "householdSize": 2,
-              "annualLimit": 26437,
-              "monthlyLimit": 2203
-            }
-          ],
-          "footnote": "Based on 125% of federal poverty guidelines, updated annually"
-        },
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity & Age",
-              "items": [
-                "Birth certificate or government-issued ID",
-                "Proof of age (55+)"
-              ]
-            },
-            {
-              "name": "Financial",
-              "items": [
-                "Proof of all household income (pay stubs, tax returns, benefit statements)",
-                "Family size documentation",
-                "Proof of unemployment status"
-              ]
-            },
-            {
-              "name": "Employment",
-              "items": [
-                "Michigan Works registration confirmation"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "SCSEP has enrollment priorities that affect wait times. Veterans and qualified spouses get first priority, followed by people over 65, those with disabilities, limited English proficiency, rural residents, homeless individuals, and those with low employment prospects. If your parent doesn't fall into priority categories, expect potential waitlists."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "This is temporary training, not permanent employment. The goal is to help your parent transition to unsubsidized work. Most participants are expected to find regular employment after completing the program."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "What if my parent has a small pension or Social Security — do they still qualify?",
-          "answer": "All household income counts toward the limits. If your parent's total household income (including pensions, Social Security, spouse's income) exceeds $19,562 for a single person or $26,437 for a couple, they won't qualify. Every dollar of income must be documented and counted."
-        },
-        {
-          "question": "Can my parent work part-time while in SCSEP?",
-          "answer": "No. SCSEP requires participants to be completely unemployed when they apply — not underemployed or working part-time. The program is designed for people who are fully out of work and need help getting back into the workforce."
-        },
-        {
-          "question": "How long can my parent stay in the SCSEP program?",
-          "answer": "SCSEP is designed as a bridge to regular employment, not permanent work. While the research doesn't specify exact time limits, participants are expected to transition to unsubsidized employment. The program focuses on job placement assistance to help people move into regular jobs."
-        },
-        {
-          "question": "What kind of work will my parent do during the training?",
-          "answer": "SCSEP places participants in real work environments at government agencies and nonprofits. This could include office work, community service projects, or other roles that provide relevant job experience. The specific placement depends on your parent's skills and local opportunities."
-        },
-        {
-          "question": "What happens if my parent can't find a job after SCSEP?",
-          "answer": "The program includes professional job placement assistance and access to American Job Centers to help with the transition. However, the research doesn't specify what support is available if participants don't find work immediately after completing the program."
-        },
-        {
-          "question": "Are there asset limits like savings accounts or home value?",
-          "answer": "The research doesn't specify asset limits for SCSEP in Michigan. You'll need to ask your regional provider directly whether savings, home equity, or other assets affect eligibility. Only income limits are clearly documented."
-        }
-      ],
-      "phone": null,
-      "sourceUrl": "https://www.dol.gov/agencies/eta/seniors",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-08"
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "id": "michigan-legal-assistance-seniors",
       "name": "Legal Assistance for Seniors",
-      "shortName": "Legal Assistance",
-      "tagline": "Free legal help for housing, benefits, and family issues when your parent can't afford a lawyer.",
-      "programType": "resource",
-      "complexity": "simple",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Legal Aid of Western Michigan (lawestmi.org)",
-            "type": "service-area"
-          },
-          {
-            "name": "Legal Services of Eastern Michigan (lsem-mi.org)",
-            "type": "service-area"
-          },
-          {
-            "name": "Lakeshore Legal Aid (lakeshorelegalaid.org)",
-            "type": "service-area"
-          },
-          {
-            "name": "LSNM (lsnm.org)",
-            "type": "service-area"
-          },
-          {
-            "name": "State Bar of Michigan Modest Means (lrs.michbar.org)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your parent faces legal issues like eviction, benefit denials, or family disputes but can't afford an attorney, Michigan's regional legal aid organizations provide free civil legal services to seniors. These nonprofit organizations offer legal advice, court representation, and advocacy on housing problems, government benefit appeals, domestic violence protection, foreclosure prevention, and elder rights violations.\n\nBecause these services are run by regional nonprofits rather than a single statewide program, eligibility varies by location. Seniors age 60+ often qualify regardless of income, while younger adults must meet income limits that typically fall at or below 125% of the Federal Poverty Level. Legal aid does not cover criminal defense — only civil legal matters like landlord disputes, Social Security appeals, or family law issues.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": true,
-      "structuredEligibility": {
-        "summary": [
-          "Age 60+ (often no income limits)",
-          "Michigan resident",
-          "Civil legal matters only",
-          "Low-income priority for younger adults"
-        ],
-        "ageRequirement": "60+",
-        "incomeTable": null,
-        "assetLimits": {
-          "individual": 15000,
-          "couple": null,
-          "countedAssets": [
-            "bank accounts",
-            "recreational vehicles",
-            "rental properties"
-          ],
-          "exemptAssets": [
-            "primary home",
-            "transportation vehicles",
-            "retirement accounts"
-          ],
-          "homeEquityCap": null
-        },
-        "functionalRequirement": null,
-        "otherRequirements": [
-          "Must be Michigan resident",
-          "Civil legal issues only",
-          "Cannot be incarcerated"
-        ],
-        "povertyLevelReference": "125% FPL"
-      },
-      "applicationGuide": {
-        "method": "multiple",
-        "summary": "Apply online at MichiganLegalAid.org or call your regional legal aid office for intake screening.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Find your regional provider",
-            "description": "Visit MichiganLegalAid.org to identify which legal aid organization serves your parent's area, as each covers specific counties or regions."
-          },
-          {
-            "step": 2,
-            "title": "Complete intake screening",
-            "description": "Apply online through your regional provider's website or call their intake line to discuss your parent's legal issue and financial situation."
-          },
-          {
-            "step": 3,
-            "title": "Provide financial documentation",
-            "description": "Submit proof of income, household size, and assets (bank statements, identification) for eligibility determination."
-          },
-          {
-            "step": 4,
-            "title": "Get matched with attorney",
-            "description": "If eligible, legal aid staff will assign an attorney or provide direct legal advice depending on the complexity of the case."
-          }
-        ],
-        "processingTime": "Varies by provider and case complexity",
-        "waitlist": null,
-        "tip": "Seniors age 60+ often qualify regardless of income, so apply even if your parent's income seems too high.",
-        "urls": [
-          {
-            "label": "Michigan Legal Aid main portal",
-            "url": "https://michiganlegalaid.org"
-          },
-          {
-            "label": "Lakeshore Legal Aid application",
-            "url": "https://lakeshorelegalaid.org"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "county-directory",
-          "heading": "Regional Legal Aid Providers",
-          "offices": [
-            {
-              "name": "Lakeshore Legal Aid",
-              "type": "service-area",
-              "phone": "(888) 783-8190",
-              "address": "Multiple counties - see lakeshorelegalaid.org"
-            },
-            {
-              "name": "Legal Aid of Western Michigan",
-              "type": "service-area",
-              "phone": "See lawestmi.org/i-need-help/eligibility/",
-              "address": "Western Michigan counties"
-            },
-            {
-              "name": "Legal Services of Eastern Michigan",
-              "type": "service-area",
-              "phone": "See lsem-mi.org/clients/",
-              "address": "Genesee, Lapeer, Shiawassee counties"
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "This is not one statewide program — you must contact the specific legal aid organization that serves your parent's county, as eligibility rules and asset limits vary by provider."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "If your parent doesn't qualify for free legal aid, ask about the State Bar's Modest Means Program, which offers reduced-fee attorneys at $75/hour after a $25 consultation."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "What if my parent's income is too high for free legal aid?",
-          "answer": "The State Bar of Michigan's Modest Means Program offers attorneys at a reduced rate of $75/hour after a $25 consultation fee. This serves as a middle ground between free legal aid and full-price private attorneys."
-        },
-        {
-          "question": "Can legal aid help with criminal charges?",
-          "answer": "No. Legal aid only handles civil matters like housing disputes, benefit appeals, family law, and elder rights. Criminal defense requires a different type of attorney."
-        },
-        {
-          "question": "Will my parent have to pay anything if they qualify?",
-          "answer": "Free legal aid services charge nothing. However, your parent may still be responsible for court filing fees or other case-related expenses, though some providers help with these costs too."
-        },
-        {
-          "question": "What happens if we live near the border between two legal aid regions?",
-          "answer": "Contact the provider that serves your parent's county of residence. If you're unsure, start with MichiganLegalAid.org which will direct you to the correct regional organization."
-        },
-        {
-          "question": "How long does it take to get an attorney assigned?",
-          "answer": "This varies significantly by provider, case complexity, and attorney availability. During intake, ask about current wait times for your specific type of legal issue."
-        },
-        {
-          "question": "Can Mom keep her house if she qualifies for legal aid?",
-          "answer": "Yes. Your parent's primary home is exempt from asset limits and won't affect eligibility. Legal aid can actually help prevent foreclosure and protect housing rights."
-        }
-      ],
-      "phone": "(888) 783-8190",
-      "sourceUrl": "https://www.michigan.gov/fyit/resources/legal",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-08"
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "id": "michigan-nursing-home-ombudsman",
       "name": "Nursing Home Long-Term Care Ombudsman",
-      "shortName": "Ombudsman Services",
-      "tagline": "Free advocate when your parent has problems with their nursing home or assisted living facility.",
-      "programType": "resource",
-      "complexity": "simple",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "MEJI (state ombudsman staff)",
-            "type": "service-area"
-          },
-          {
-            "name": "Area Agencies on Aging statewide",
-            "type": "service-area"
-          },
-          {
-            "name": "AgeWays (specific counties)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your parent lives in a nursing home, assisted living facility, or adult foster care home in Michigan, they have access to a free advocate called an ombudsman. This person investigates complaints about care, explains your parent's rights, and helps resolve problems with facility staff or policies. Because ombudsmen are independent from the facilities, they can advocate specifically for your parent's interests without conflicts of interest.\n\nThe ombudsman program serves all residents of licensed long-term care facilities across Michigan, regardless of how your parent pays for care or their income level. Services include investigating complaints about poor care or treatment, helping your parent understand their rights, providing consultation on long-term care issues, and making routine visits to facilities to monitor conditions.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": true,
-      "structuredEligibility": {
-        "summary": [
-          "Must live in licensed long-term care facility",
-          "No income or asset limits",
-          "Services require resident's consent",
-          "Available statewide in Michigan"
-        ],
-        "ageRequirement": null,
-        "incomeTable": null,
-        "assetLimits": null,
-        "functionalRequirement": null,
-        "otherRequirements": [
-          "Must be a resident of a licensed long-term care facility in Michigan, including nursing homes, homes for the aged, adult foster care homes, and assisted living facilities",
-          "Services provided with resident's consent"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "phone",
-        "summary": "Call the toll-free number for immediate response; ombudsmen provide timely assistance upon contact.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Call the ombudsman hotline",
-            "description": "Call 866-485-9393 to reach your local ombudsman. Provide details about your parent's facility and the specific concern."
-          },
-          {
-            "step": 2,
-            "title": "Connect with local advocate",
-            "description": "You'll be connected to the ombudsman who covers your parent's facility. They will explain next steps and what information they need."
-          },
-          {
-            "step": 3,
-            "title": "Ombudsman investigates",
-            "description": "The ombudsman will work directly with your parent (with their consent) to investigate the issue and advocate for resolution."
-          }
-        ],
-        "processingTime": "Immediate response for concerns; ombudsmen provide timely assistance upon contact",
-        "waitlist": null,
-        "tip": "Services require your parent's consent, so discuss with them first about what concerns they want addressed.",
-        "urls": [
-          {
-            "label": "Michigan Long-Term Care Ombudsman Program",
-            "url": "https://mltcop.org"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Important: The ombudsman can only act with your parent's consent. Families cannot initiate complaints on behalf of residents without the resident agreeing to the assistance."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Can I call the ombudsman if my parent doesn't want to complain?",
-          "answer": "No. Services require your parent's consent and are directed by their wishes. You can call to learn about the program or get general information, but the ombudsman cannot investigate or take action without your parent's agreement."
-        },
-        {
-          "question": "What if my parent is afraid of retaliation from facility staff?",
-          "answer": "Ombudsman services are confidential, and they cannot disclose details without your parent's permission. Federal and state laws also prohibit facilities from retaliating against residents who file complaints."
-        },
-        {
-          "question": "Can the ombudsman force the facility to make changes?",
-          "answer": "The ombudsman is an advocate, not a regulatory body. They work to resolve issues through negotiation and education, but they cannot enforce violations or conduct official inspections like state licensing agencies."
-        },
-        {
-          "question": "Does it cost anything to use ombudsman services?",
-          "answer": "No. All ombudsman services are completely free regardless of your parent's income, assets, or how they pay for their care."
-        },
-        {
-          "question": "What types of problems can the ombudsman help with?",
-          "answer": "They handle complaints about quality of care, resident rights violations, billing disputes, facility policies, medication issues, dietary concerns, and problems with staff treatment. They also provide education about your parent's rights as a facility resident."
-        },
-        {
-          "question": "How quickly will someone respond if I call?",
-          "answer": "You'll get an immediate response when you call the hotline at 866-485-9393. The ombudsman provides timely assistance once contacted, though investigation time varies depending on the complexity of the issue."
-        }
-      ],
-      "phone": "866-485-9393",
-      "sourceUrl": "https://mltcop.org",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-08"
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "id": "michigan-mi-choice-waiver",
       "name": "MI Choice Waiver Program",
-      "shortName": "MI Choice",
-      "tagline": "If your parent needs daily help but wants to stay home, this program covers nursing care, respite, and medical equipment instead of nursing home placement.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "The Senior Alliance (Region 1C, Wayne County): 5454 Venoy Road, Wayne, Michigan 48184-1755",
-            "type": "service-area"
-          },
-          {
-            "name": "CareWell Services of Southwest Michigan (8-county region)",
-            "type": "service-area"
-          },
-          {
-            "name": "Region 7 Area Agency on Aging: 1-800-858-1637",
-            "type": "service-area"
-          },
-          {
-            "name": "AgeWays (serves specific regions)",
-            "type": "service-area"
-          },
-          {
-            "name": "Contact Michigan Department of Health and Human Services (MDHHS) for your county's specific agency",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your parent needs nursing home level care but wants to stay in their own home or community, MI Choice covers the services that make this possible. The program provides nursing care, respite for you as caregiver, medical equipment, emergency response systems, and care coordination — all designed to replace nursing home care.\n\nYour parent must be 65+ (or 18+ with disability) and demonstrate they need daily help with activities like bathing, dressing, or medication management through a clinical assessment. Because this is a Medicaid waiver program, strict income and asset limits apply: $2,982/month income limit and $9,950 in countable assets for single applicants in 2026.\n\nMI Choice operates statewide through regional agencies, so your application process depends on which county your parent lives in. Each agency conducts home assessments and coordinates all services under one program.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Age 65+ (or 18+ with disability)",
-          "Income below $2,982/month",
-          "Assets under $9,950 (single)",
-          "Needs nursing home level care",
-          "Must live in community (not nursing home)"
-        ],
-        "ageRequirement": "65+",
-        "incomeTable": null,
-        "assetLimits": {
-          "individual": 9950,
-          "couple": 14910,
-          "countedAssets": [
-            "Bank accounts",
-            "Investments",
-            "Second properties"
-          ],
-          "exemptAssets": [
-            "Primary residence (up to $730,000 home equity)",
-            "One vehicle",
-            "Personal belongings"
-          ],
-          "homeEquityCap": 730000
-        },
-        "functionalRequirement": "Must require Nursing Facility Level of Care (clinical assessment showing need for daily help with bathing, dressing, eating, toileting, or medication management)",
-        "otherRequirements": [
-          "Must qualify for Medicaid",
-          "Must need care coordination plus at least one other waiver service",
-          "Cannot currently live in nursing home"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "phone",
-        "summary": "Call your county's MI Choice agency for a 30-45 minute phone screening, followed by an in-home assessment.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Find your county's MI Choice agency",
-            "description": "Contact Michigan Department of Health and Human Services at (734) 722-2830 to get your county's specific agency contact information."
-          },
-          {
-            "step": 2,
-            "title": "Complete phone screening",
-            "description": "Your county agency will conduct a 30-45 minute interview about your parent's activities of daily living, income, and assets."
-          },
-          {
-            "step": 3,
-            "title": "Schedule home assessment",
-            "description": "A registered nurse will visit your parent's home, hospital, or nursing home to complete the Michigan Medicaid Nursing Facility Level of Care Determination (LOCD)."
-          },
-          {
-            "step": 4,
-            "title": "Submit financial documentation",
-            "description": "Provide income statements, asset documentation, and medical information to verify eligibility."
-          }
-        ],
-        "processingTime": "Initial screening: 30-45 minutes; full processing timeline varies by county",
-        "waitlist": null,
-        "tip": "Even $1 over the $2,982 monthly income limit disqualifies your parent — verify income carefully before applying.",
-        "urls": [
-          {
-            "label": "Michigan Official MI Choice Page",
-            "url": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "income-table",
-          "heading": "Income Limits (2026)",
-          "rows": [
-            {
-              "householdSize": "Single applicant",
-              "monthlyLimit": "$2,982",
-              "annualLimit": "$35,784"
-            },
-            {
-              "householdSize": "Married couple (both applying)",
-              "monthlyLimit": "$2,982 each",
-              "annualLimit": "$35,784 each"
-            }
-          ],
-          "footnote": "2026 federal limits. Even $1 over disqualifies applicants."
-        },
-        {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
-          "included": [
-            "Bank accounts and savings",
-            "Investments and stocks",
-            "Second homes or rental properties",
-            "Home equity over $730,000"
-          ],
-          "excluded": [
-            "Primary residence (up to $730,000 home equity)",
-            "One vehicle of any value",
-            "Personal belongings and household items"
-          ]
-        },
-        {
-          "type": "county-directory",
-          "heading": "Regional MI Choice Agencies",
-          "offices": [
-            {
-              "name": "The Senior Alliance (Wayne County)",
-              "type": "service-area",
-              "phone": "Contact MDHHS for current number",
-              "address": "5454 Venoy Road, Wayne, MI 48184"
-            },
-            {
-              "name": "Region 7 Area Agency on Aging",
-              "type": "service-area",
-              "phone": "1-800-858-1637",
-              "address": "Serves specific region - call for details"
-            },
-            {
-              "name": "CareWell Services of Southwest Michigan",
-              "type": "service-area",
-              "phone": "Contact MDHHS for current number",
-              "address": "Serves Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, St. Joseph, Van Buren counties"
-            },
-            {
-              "name": "General Information Line",
-              "type": "service-area",
-              "phone": "(734) 722-2830",
-              "address": "For county agency referrals"
-            }
-          ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Financial",
-              "items": [
-                "Bank statements for all accounts",
-                "Income documentation (Social Security, pensions, wages)",
-                "Asset statements (investments, property deeds)",
-                "Power of Attorney documentation (if applicable)"
-              ]
-            },
-            {
-              "name": "Medical",
-              "items": [
-                "Current medication list",
-                "Medical history and diagnoses",
-                "Information about daily care needs",
-                "Cognitive and behavioral assessment details"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "Having Alzheimer's or dementia alone doesn't qualify your parent. They must demonstrate specific functional needs through the clinical assessment — like needing daily help with bathing, dressing, or medication management."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Your parent must need care coordination PLUS at least one other service to qualify. Supports coordination alone isn't enough for MI Choice eligibility."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Can Mom keep her house if she qualifies for MI Choice?",
-          "answer": "Yes. Your mom can keep her primary residence as long as home equity doesn't exceed $730,000 (2025 figure). The home doesn't count toward the $9,950 asset limit."
-        },
-        {
-          "question": "What if Dad's income is just over the $2,982 limit?",
-          "answer": "He won't qualify. Michigan has no exceptions — even $1 over the monthly limit disqualifies applicants. The income limit is set by the federal government and resets annually."
-        },
-        {
-          "question": "Can MI Choice help if Mom is already in a nursing home?",
-          "answer": "No. MI Choice is specifically for community-based care. Your mom must live in her own home, apartment, adult foster care, or home for the aged — not a nursing home."
-        },
-        {
-          "question": "How long does the assessment take?",
-          "answer": "The initial phone screening takes 30-45 minutes. Then a registered nurse visits your parent's home for the clinical assessment. Total processing time varies by county agency."
-        },
-        {
-          "question": "What's the difference between MI Choice and regular Medicaid?",
-          "answer": "MI Choice is a Medicaid waiver that covers home and community services like nursing care, respite, and medical equipment. Regular Medicaid typically covers nursing home care but limited home services."
-        },
-        {
-          "question": "Can I get respite care through MI Choice?",
-          "answer": "Yes, if your parent qualifies and the assessment shows respite care is needed. MI Choice covers respite care as one of its waiver services, giving you breaks from caregiving."
-        }
-      ],
-      "phone": "(734) 722-2830",
-      "sourceUrl": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-08"
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "id": "michigan-home-help-program",
       "name": "Home Help Program",
-      "shortName": "Home Help",
-      "tagline": "Get paid family or friends to help your parent with daily activities like bathing and dressing at home.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local MDHHS county offices",
-            "type": "service-area"
-          },
-          {
-            "name": "Area Agencies on Aging",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your parent needs daily help with activities like bathing, dressing, or getting around but wants to stay at home, Michigan's Home Help Program can pay family members or friends to be their caregiver. The program provides up to 180 hours per month of personal care services — more if your parent's needs are greater.\n\nYour parent must be enrolled in Michigan Medicaid and have income below $1,305/month for a single person ($1,763/month for married couples applying together). The program requires a clinical assessment to determine exactly what help your parent needs with daily activities. Because this program pays caregivers directly, it can provide income to family members while keeping your parent at home instead of in a nursing facility.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Michigan Medicaid enrollment required",
-          "Income below $1,305/month (single)",
-          "Needs help with daily activities",
-          "Living at home in Michigan"
-        ],
-        "ageRequirement": null,
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 1305
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 1763
-          }
-        ],
-        "assetLimits": {
-          "individual": null,
-          "couple": null,
-          "countedAssets": [
-            "Savings accounts",
-            "Property other than primary home"
-          ],
-          "exemptAssets": [
-            "Primary residence",
-            "One vehicle"
-          ],
-          "homeEquityCap": 752000
-        },
-        "functionalRequirement": "Must need hands-on help with at least one daily activity like eating, bathing, dressing, grooming, mobility, transferring, or toilet use, verified through clinical assessment",
-        "otherRequirements": [
-          "Michigan resident",
-          "U.S. citizen or legal resident",
-          "Living in own home or intending to return",
-          "Caregivers must be 18+, not spouse or parent of minor"
-        ],
-        "povertyLevelReference": "100% FPL"
-      },
-      "applicationGuide": {
-        "method": "multiple",
-        "summary": "Contact your local MDHHS county office to apply — they'll handle both Medicaid enrollment and the Home Help assessment.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Apply for Medicaid first",
-            "description": "Contact your local MDHHS office to start Medicaid application. Your parent must be enrolled in Michigan Medicaid before Home Help services can begin."
-          },
-          {
-            "step": 2,
-            "title": "Request Home Help assessment",
-            "description": "Tell MDHHS you want to apply for Home Help services. They'll schedule an Adult Services Comprehensive Assessment (form MDHHS-5534) to evaluate what daily activities your parent needs help with."
-          },
-          {
-            "step": 3,
-            "title": "Complete caregiver enrollment",
-            "description": "If approved, family or friend caregivers must pass background checks, complete training, and enroll in the CHAMPS system to receive payment."
-          }
-        ],
-        "processingTime": null,
-        "waitlist": null,
-        "tip": "Start with Medicaid first — you cannot get Home Help services without active Medicaid enrollment.",
-        "urls": [
-          {
-            "label": "Find your local MDHHS office",
-            "url": "https://www.michigan.gov/mdhhs"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "income-table",
-          "heading": "Income Limits (Updated April 2025)",
-          "rows": [
-            {
-              "householdSize": 1,
-              "monthlyLimit": 1305,
-              "annualLimit": 15660
-            },
-            {
-              "householdSize": 2,
-              "monthlyLimit": 1763,
-              "annualLimit": 21156
-            }
-          ],
-          "footnote": "Limits update every April. Based on 100% Federal Poverty Level."
-        },
-        {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
-          "included": [
-            "Savings accounts and checking accounts",
-            "Investment accounts and stocks",
-            "Property other than primary residence"
-          ],
-          "excluded": [
-            "Primary residence (if your parent, spouse, minor child, or disabled child lives there)",
-            "One vehicle",
-            "Home equity up to $752,000 (2026) if intending to return home"
-          ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity & Residency",
-              "items": [
-                "Driver's license or state ID",
-                "Utility bill or lease showing Michigan address",
-                "Proof of U.S. citizenship or legal residency"
-              ]
-            },
-            {
-              "name": "Financial",
-              "items": [
-                "Pay stubs or tax returns (proof of income)",
-                "Bank statements (proof of assets)",
-                "Home ownership documents if applicable"
-              ]
-            },
-            {
-              "name": "Medical",
-              "items": [
-                "Medical records showing need for daily assistance",
-                "Any previous functional assessments"
-              ]
-            },
-            {
-              "name": "For Caregivers",
-              "items": [
-                "Background check information",
-                "Separate address verification if caregiver lives elsewhere"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Spouses and parents of minor children cannot be paid caregivers under this program. Only adult children, other relatives, friends, or neighbors who pass background checks can receive payment."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Can I get paid to take care of my parent through this program?",
-          "answer": "Yes, if you're an adult child (18+), other relative, friend, or neighbor, you can be paid as a caregiver after passing a background check and completing training. Spouses and parents of minor children cannot be paid caregivers."
-        },
-        {
-          "question": "What if my parent has Medicare but not Medicaid?",
-          "answer": "Your parent must enroll in Michigan Medicaid first. Medicare alone doesn't qualify for Home Help services. Contact your local MDHHS office to apply for Medicaid based on the income limits."
-        },
-        {
-          "question": "How many hours of care can my parent get?",
-          "answer": "Typically up to 180 hours per month, but additional hours are possible based on assessed need and MDHHS approval. The exact hours depend on the clinical assessment of what daily activities your parent needs help with."
-        },
-        {
-          "question": "Will my parent lose their house if they qualify?",
-          "answer": "No, the primary residence is exempt from asset limits as long as your parent, their spouse, minor child, or disabled child lives there. Home equity is capped at $752,000 (2026) if your parent intends to return home."
-        },
-        {
-          "question": "What happens if my parent's income is just over the limit?",
-          "answer": "The income limits are strict at $1,305/month for a single person. If your parent's income is over this amount, they won't qualify for this program, but they may qualify for other Medicaid programs with higher income limits."
-        },
-        {
-          "question": "Can the caregiver live in the same house as my parent?",
-          "answer": "Yes, as long as the caregiver isn't a spouse or parent of a minor child. Adult children, other relatives, or friends can live with your parent and still be paid caregivers after completing the required background check and training."
-        }
-      ],
-      "phone": "833-447-3326",
-      "sourceUrl": "https://www.michigan.gov/mdhhs/doing-business/providers/providers/other/homehelp",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-08"
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "id": "michigan-micafe-food-assistance",
       "name": "MiCAFE (Michigan's Coordinated Access to Food for the Elderly)",
-      "shortName": "MiCAFE",
-      "tagline": "Free help applying for SNAP food benefits and other programs your parent may qualify for but hasn't claimed.",
-      "programType": "navigator",
-      "complexity": "simple",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Elder Law of Michigan, Inc. (program administrator)",
-            "type": "service-area"
-          },
-          {
-            "name": "MiCAFE Network partners statewide",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your parent is 60+ and struggling with grocery costs, they may qualify for SNAP (Bridge Card), Medicare premium help, utility assistance, or prescription drug benefits — but nearly 50% of eligible seniors never apply. MiCAFE provides free application assistance to help your parent access all the programs they're entitled to.\n\nBecause MiCAFE counselors handle the paperwork and coordinate between programs, your parent won't need to navigate multiple agencies alone. They provide everything from phone consultations to in-home visits where available, plus ongoing support for annual recertifications.\n\nThis is advocacy assistance, not a direct benefit. Your parent must still qualify for the underlying programs based on their household income and expenses, but MiCAFE removes the barriers that prevent seniors from getting help they've earned.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Age 60+",
-          "Living on limited income",
-          "Michigan resident",
-          "Need help applying for benefits"
-        ],
-        "ageRequirement": "60+",
-        "incomeTable": null,
-        "assetLimits": null,
-        "functionalRequirement": null,
-        "otherRequirements": [
-          "Living on limited income",
-          "Primarily for individuals 60 and older"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "phone",
-        "summary": "Call MiCAFE's hotline for immediate assistance — counselors will determine which programs your parent qualifies for.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Call the MiCAFE hotline",
-            "description": "Call 1-877-664-2233 between 9:00 a.m. and 3:00 p.m., Monday through Friday. A counselor will assess which programs your parent may qualify for."
-          },
-          {
-            "step": 2,
-            "title": "Provide household information",
-            "description": "The counselor will ask about your parent's income, medical expenses, and household composition to determine eligibility for SNAP, Medicare help, utility assistance, and other programs."
-          },
-          {
-            "step": 3,
-            "title": "Complete applications with assistance",
-            "description": "MiCAFE will help complete and submit applications electronically, including any required authorization forms for information exchange."
-          },
-          {
-            "step": 4,
-            "title": "Receive ongoing support",
-            "description": "MiCAFE provides annual recertification support and assistance with any issues that arise with approved benefits."
-          }
-        ],
-        "processingTime": "Varies by target program",
-        "waitlist": null,
-        "tip": "Have your parent's Social Security number, income information, and recent medical bills ready when you call — this will speed up the eligibility assessment.",
-        "urls": [
-          {
-            "label": "MiCAFE Website",
-            "url": "https://www.elderlawofmi.org/micafe"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "MiCAFE doesn't provide benefits directly — they help your parent apply for programs like SNAP, Medicare premium assistance, and utility help. Even if your parent doesn't qualify for SNAP, they may still be eligible for other assistance programs."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "What if my parent was denied SNAP benefits in the past?",
-          "answer": "Eligibility rules change, and medical expenses can be deducted from income for seniors. MiCAFE counselors know how to properly calculate eligibility including medical deductions that may not have been applied before."
-        },
-        {
-          "question": "Can MiCAFE help even if my parent lives in a rural area?",
-          "answer": "Yes, MiCAFE operates statewide through a network of partners. While in-home assistance varies by location, phone support is available to all Michigan residents aged 60+."
-        },
-        {
-          "question": "Will using MiCAFE affect my parent's other benefits?",
-          "answer": "No, MiCAFE is purely an advocacy service. They help your parent access benefits they're already entitled to — this won't impact Social Security, Medicare, or other existing benefits."
-        },
-        {
-          "question": "What information does MiCAFE need from my parent?",
-          "answer": "They'll need details about household income, medical expenses, assets, and household composition. An authorization form allows MiCAFE to exchange information with benefit agencies on your parent's behalf."
-        },
-        {
-          "question": "How long does the application process take?",
-          "answer": "Processing time varies by program — SNAP applications typically process within 30 days, but MiCAFE handles the paperwork and follows up so your parent doesn't have to manage multiple agency timelines."
-        },
-        {
-          "question": "Is there any cost for MiCAFE services?",
-          "answer": "No, all MiCAFE services are completely free. This includes initial consultations, application assistance, and ongoing recertification support."
-        }
-      ],
-      "phone": "1-877-664-2233",
-      "sourceUrl": "https://www.elderlawofmi.org/micafe",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-08"
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     }
   ],
-  "stateOverview": {
-    "intro": "Michigan offers 16 programs that can help your aging parent — from $292/month for groceries to comprehensive medical care coordination to free legal help. Eleven programs provide direct financial benefits or services if your parent meets income or care level requirements. Five programs offer free resources and guidance available to any Michigan senior regardless of income. If your parent is struggling with medical bills, home care costs, or daily tasks, multiple programs can work together to provide support.",
-    "startHere": [
-      {
-        "name": "Medicare Savings Programs (MSP)",
-        "programId": "medicare-savings-programs-msp",
-        "why": "Could save your parent $2,400+ per year on Medicare costs with easier qualification than most programs."
-      },
-      {
-        "name": "SNAP Food Assistance (MiCAFE for seniors)",
-        "programId": "snap-food-assistance-micafe",
-        "why": "Provides $23-$292 monthly for groceries if your parent is 60+ and on a fixed income."
-      },
-      {
-        "name": "Michigan Medicare Assistance Program (MMAP)",
-        "programId": "michigan-medicare-assistance-program-mmap",
-        "why": "Free one-on-one help to navigate all Medicare and Medicaid options available to your parent."
-      }
-    ],
-    "byNeed": [
-      {
-        "need": "Help staying home instead of nursing home care",
-        "programs": [
-          "MI Choice Medicaid Waiver",
-          "Michigan PACE",
-          "Home Help Program",
-          "Respite Care"
-        ],
-        "description": "Comprehensive programs that provide nursing care, respite services, and daily care support at home."
-      },
-      {
-        "need": "Coordinating medical care and reducing healthcare costs",
-        "programs": [
-          "MI Health Link",
-          "Medicare Savings Programs (MSP)",
-          "Michigan PACE"
-        ],
-        "description": "Programs that eliminate co-pays, coordinate care teams, or help pay Medicare costs."
-      },
-      {
-        "need": "Food and utility assistance",
-        "programs": [
-          "SNAP Food Assistance (MiCAFE)",
-          "Home Delivered Meals",
-          "Michigan LIHEAP",
-          "Weatherization Assistance Program"
-        ],
-        "description": "Monthly food benefits, delivered meals, heating bill help, and free energy improvements."
-      },
-      {
-        "need": "Free advice and advocacy",
-        "programs": [
-          "Michigan Medicare Assistance Program (MMAP)",
-          "Legal Assistance for Seniors",
-          "Nursing Home Ombudsman"
-        ],
-        "description": "Professional guidance on benefits, legal issues, and facility problems at no cost."
-      },
-      {
-        "need": "Employment and income support",
-        "programs": [
-          "Senior Community Service Employment Program (SCSEP)"
-        ],
-        "description": "Paid training and job placement for unemployed seniors 55+ earning $7,800/year while learning."
-      }
-    ],
-    "quickFacts": [
-      "Michigan uses MI Bridges (newmibridges.michigan.gov) for most benefit applications including SNAP and energy assistance.",
-      "Most income-based programs use limits around $2,152-$2,901/month for a single person, but each program varies.",
-      "Michigan has specialized senior versions of federal programs — MiCAFE helps seniors apply for SNAP with age 60+ considerations.",
-      "Programs can combine — your parent might qualify for MI Health Link plus MI Choice Waiver plus SNAP simultaneously."
-    ],
-    "resourcesVsBenefits": "Eleven Michigan programs require your parent to meet income limits or care level requirements but provide substantial financial help — like MI Choice Waiver covering home nursing care or SNAP providing monthly grocery money. Five programs offer free help to any Michigan senior regardless of income — including MMAP for Medicare guidance, legal assistance, and nursing home advocacy. Start with free resources to understand options, then apply for qualified benefits."
-  }
+  "stateOverview": null
 }

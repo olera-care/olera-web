@@ -1,358 +1,25 @@
 {
   "state": "LA",
   "stateName": "Louisiana",
-  "classifiedAt": "2026-04-09T08:53:10.264Z",
-  "total": 14,
+  "classifiedAt": "2026-04-09T09:34:24.591Z",
+  "total": 3,
   "typeSummary": {
-    "benefit": 9,
-    "resource": 4,
-    "employment": 1
+    "benefit": 3
   },
   "scopeSummary": {
-    "state": 4,
-    "local": 4,
-    "federal": 6
+    "state": 2,
+    "local": 1
   },
   "complexitySummary": {
-    "deep": 9,
-    "simple": 4,
-    "medium": 1
+    "deep": 3
   },
   "programs": [
-    {
-      "name": "Louisiana Medicaid Home and Community-Based Services (HCBS) Waivers",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Office of Aging and Adult Services (CCW): https://ldh.la.gov/office-of-aging-and-adult-services[4]",
-            "type": "service-area"
-          },
-          {
-            "name": "Local Medicaid field offices",
-            "type": "service-area"
-          },
-          {
-            "name": "Licensed HCBS providers statewide[7]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Louisiana Program of All-Inclusive Care for the Elderly (PACE)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Baton Rouge, Greater New Orleans, Alexandria, Lafayette[2]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": false
-      }
-    },
-    {
-      "name": "SNAP (Supplemental Nutrition Assistance Program)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Louisiana Department of Children & Family Services (DCFS)",
-            "type": "service-area"
-          },
-          {
-            "name": "Parish Councils on Aging (for application assistance and SFMNP)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Louisiana Senior Health Insurance Information Program (SHIP)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "State of Louisiana Department of Insurance, P.O. Box 94214, Baton Rouge LA 70804-9214; local counselors statewide[1][4]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Meals on Wheels - Louisiana Council on Aging",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Terrebonne Council on Aging (terrebonnecoa.org)[3]",
-            "type": "service-area"
-          },
-          {
-            "name": "Caddo Council on Aging (caddocoa.org, 1700 Buckner St., Shreveport)[4]",
-            "type": "service-area"
-          },
-          {
-            "name": "DeSoto Council on Aging (desotocouncilonaging.com, Mansfield)[5]",
-            "type": "service-area"
-          },
-          {
-            "name": "Lafayette Council on Aging (laf-coa.org)[6]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": false
-      }
-    },
-    {
-      "name": "Louisiana Respite Care Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Office for Citizens with Developmental Disabilities (OCDD); licensed HCBS providers per LAC 48:I.Chapter 50; Healthy Louisiana Plans.[2][3][6]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "programType": "employment",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "SCSEP Director in parish of residency (specific contacts via goea.louisiana.gov)[1]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "documents"
-      ],
-      "signals": {
-        "benefitType": "employment",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Louisiana Senior Legal Helpline",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Southeast Louisiana Legal Services Corporation, 521 Roussell St, Houma, LA 70360[1]",
-            "type": "service-area"
-          },
-          {
-            "name": "Southeast Louisiana Legal Services Corporation, 715 St. Ferdinand St., Baton Rouge, LA 70802[1]",
-            "type": "service-area"
-          },
-          {
-            "name": "Southeast Louisiana Legal Services Corporation, 200 Guidry Dr, Hammond, LA 70403[1]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": false
-      }
-    },
-    {
-      "name": "Louisiana Long-Term Care Ombudsman Program",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose"
-      ],
-      "signals": {
-        "benefitType": "unknown",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
     {
       "name": "Community Choices Waiver",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Administered statewide by LA Dept. of Health Office of Aging and Adult Services (OAAS)",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": false
       },
       "complexity": "deep",
       "recommendedSections": [
@@ -361,7 +28,6 @@
         "what-counts",
         "tier-comparison",
         "documents",
-        "county-directory",
         "callout"
       ],
       "signals": {
@@ -375,7 +41,7 @@
       }
     },
     {
-      "name": "Louisiana Long Term–Personal Care Services (LT-PCS)",
+      "name": "Louisiana Long Term–Personal Care Services (LT-PCS) Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
@@ -385,6 +51,49 @@
       "recommendedSections": [
         "prose",
         "what-counts",
+        "tier-comparison",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Louisiana",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Baton Rouge office (East and West Baton Rouge parishes)",
+            "type": "service-area"
+          },
+          {
+            "name": "Greater New Orleans office (select zip codes)",
+            "type": "service-area"
+          },
+          {
+            "name": "Lafayette office (select zip codes)",
+            "type": "service-area"
+          },
+          {
+            "name": "Alexandria office (Rapides and Avoyelles parishes)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -395,65 +104,7 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "COAHELPS (East Baton Rouge Council on Aging)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "East Baton Rouge Parish locations including senior centers (e.g., Karen Crockett – The Lotus Center), Lotus Village, Dumas House[2][6]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": false
-      }
-    },
-    {
-      "name": "Lotus Rides (EBRCOA Transportation)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Senior centers in East Baton Rouge Parish (e.g., Antioch Senior Center referenced for related services)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
+        "hasMultipleTiers": true,
         "isStatewide": false
       }
     }

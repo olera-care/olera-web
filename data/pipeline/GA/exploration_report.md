@@ -1,7 +1,7 @@
 # Georgia Benefits Exploration Report
 
 > Generated 2026-04-09 by benefits-pipeline.js
-> Cost: $0.075 (15 calls, 41s)
+> Cost: $0.075 (15 calls, 60s)
 
 ---
 
@@ -10,10 +10,10 @@
 | Metric | Value |
 |--------|-------|
 | Programs discovered | 13 |
-| Programs deep-dived | 12 |
-| New (not in our data) | 5 |
-| Data discrepancies | 7 |
-| Fields our model can't capture | 7 |
+| Programs deep-dived | 13 |
+| New (not in our data) | 9 |
+| Data discrepancies | 4 |
+| Fields our model can't capture | 4 |
 
 ## Data Model Gaps
 
@@ -21,111 +21,146 @@ These data fields appeared across programs but don't exist in our current model:
 
 | Field | Programs | Note |
 |-------|----------|------|
-| `asset_limits` | 7 | Our model has no asset limit fields |
-| `regional_variations` | 6 | Program varies by region — our model doesn't capture this |
-| `waitlist` | 4 | Has waitlist info — our model has no wait time field |
-| `documents_required` | 7 | Has document checklist — our model doesn't store per-program documents |
+| `asset_limits` | 4 | Our model has no asset limit fields |
+| `regional_variations` | 4 | Program varies by region — our model doesn't capture this |
+| `waitlist` | 2 | Has waitlist info — our model has no wait time field |
+| `documents_required` | 4 | Has document checklist — our model doesn't store per-program documents |
 | `household_size_table` | 1 | Benefits/eligibility vary by household size — we store a single number |
 
 ## Program Types
 
-- **service**: 7 programs
-- **financial**: 2 programs
+- **service**: 8 programs
+- **financial**: 3 programs
 - **employment**: 1 programs
-- **advocacy**: 2 programs
+- **advocacy**: 1 programs
 
 ## Data Discrepancies
 
 Our data differs from what official sources say:
 
-### Georgia Medicaid
+### Elderly and Disabled Waiver Program (EDWP)
 
-- **income_limit**: Ours says `$994` → Source says `$2,982` ([source](https://medicaid.georgia.gov/))
-- **benefit_value**: Ours says `$5,000 – $20,000/year` → Source says `Nursing home care; home/community-based services (personal care, respite, adult day health); assisted living/personal care homes; physician visits, prescriptions, hospital stays, long-term supports via waivers (e.g., ICWP, Community Care Services Program, Money Follows the Person). Covers full nursing home costs after income contribution; no fixed dollar/hour limits specified, tailored to NFLOC needs[1][2][9].` ([source](https://medicaid.georgia.gov/))
-- **source_url**: Ours says `MISSING` → Source says `https://medicaid.georgia.gov/`
+- **income_limit**: Ours says `$2982` → Source says `$3,853` ([source](https://georgia.gov/apply-elderly-and-disabled-waiver-program))
+- **benefit_value**: Ours says `$10,000 – $30,000/year` → Source says `Community-based services as alternative to nursing home: Personal Support Services/Extended (meal prep, bathing, light housekeeping); Consumer-Directed Personal Support (hire own worker after 6 months); Adult Day services; Home-delivered meals; Out-of-Home Respite Care (overnight in approved facility); other HCBS to support home/community living. No fixed dollar/hour amounts specified; based on care plan.[6][8]` ([source](https://georgia.gov/apply-elderly-and-disabled-waiver-program))
+- **source_url**: Ours says `MISSING` → Source says `https://georgia.gov/apply-elderly-and-disabled-waiver-program`
 
-### Senior SNAP (Senior Supplemental Nutrition Assistance Program)
+### Supplemental Nutrition Assistance Program (SNAP) - Senior SNAP in Georgia
 
-- **min_age**: Ours says `65` → Source says `All household members must be 60 years or older before February 2, 2026; 66 years or older effective February 2, 2026. They must purchase and prepare meals together[1][3]` ([source](https://dfcs.georgia.gov/services/snap/senior-snap))
-- **income_limit**: Ours says `$1982` → Source says `$1695` ([source](https://dfcs.georgia.gov/services/snap/senior-snap))
-- **benefit_value**: Ours says `$1,500 – $3,600/year` → Source says `SNAP benefits via EBT card for groceries; amount based on household net income (generally $100 more net income = $30 less benefits), minimum/maximum per federal SNAP scale` ([source](https://dfcs.georgia.gov/services/snap/senior-snap))
+- **min_age**: Ours says `65` → Source says `66` ([source](https://dfcs.georgia.gov/services/snap/senior-snap))
+- **income_limit**: Ours says `$1982` → Source says `$35` ([source](https://dfcs.georgia.gov/services/snap/senior-snap))
+- **benefit_value**: Ours says `$1,500 – $3,600/year` → Source says `Monthly EBT card benefits for purchasing eligible food (groceries, not hot/prepared foods). Amount calculated based on net income, household size, and deductions (e.g., medical over $35/month, shelter costs). Seniors often receive higher benefits due to deductions. Exact amount determined post-application.` ([source](https://dfcs.georgia.gov/services/snap/senior-snap))
 - **source_url**: Ours says `MISSING` → Source says `https://dfcs.georgia.gov/services/snap/senior-snap`
 
-### Georgia LIHEAP (Low Income Home Energy Assistance Program)
+### Low Income Home Energy Assistance Program (LIHEAP)
 
-- **income_limit**: Ours says `$3090` → Source says `$2,879` ([source](https://dfcs.georgia.gov/regular-home-energy-assistance/energy-assistance-eligibility-requirements))
-- **benefit_value**: Ours says `$500 – $2,000/year` → Source says `Heating: minimum $350-$400, maximum $400 (seniors 60+ get maximum $400); Cooling: up to $500; Crisis: Winter up to $810, Summer up to $500. Payments made directly to utility vendor. One heating and one cooling benefit per program year. Amounts based on income, household size, fuel type, and funding.[3][7]` ([source](https://dfcs.georgia.gov/regular-home-energy-assistance/energy-assistance-eligibility-requirements))
-- **source_url**: Ours says `MISSING` → Source says `https://dfcs.georgia.gov/regular-home-energy-assistance/energy-assistance-eligibility-requirements`
+- **benefit_value**: Ours says `$500 – $2,000/year` → Source says `Financial assistance paid directly to energy suppliers. Minimum $350 and maximum $400 per eligible household for heating assistance. Seniors (60+) in the home receive the maximum $400. Maximum one heating and one cooling benefit per program year. Amount determined by federal funding[6].` ([source](https://dfcs.georgia.gov/regular-home-energy-assistance (Georgia DFCS Energy Assistance page)[5]))
+- **source_url**: Ours says `MISSING` → Source says `https://dfcs.georgia.gov/regular-home-energy-assistance (Georgia DFCS Energy Assistance page)[5]`
 
-### Georgia Meals on Wheels (Home-Delivered Meals via HCBS/CCSP)
+### Long-Term Care Ombudsman Program
 
-- **benefit_value**: Ours says `$1,500 – $3,600/year` → Source says `Home-delivered meals (typically 5 days/week, Monday-Friday) providing at least 1/3 of Reference Daily Intakes per meal, following Dietary Guidelines for Americans. May include medically modified meals. Paired with social check-in, nutrition education. No charge, but voluntary contributions accepted. Spouses/caregivers may receive meals.` ([source](https://aging.georgia.gov/federal-and-state-programs-addressing-senior-hunger))
-- **source_url**: Ours says `MISSING` → Source says `https://aging.georgia.gov/federal-and-state-programs-addressing-senior-hunger`
-
-### Georgia Caregiver Support (Respite and Caregiving Programs)
-
-- **min_age**: Ours says `60` → Source says `55` ([source](https://aging.georgia.gov/tools-resources/caregiving))
-- **benefit_value**: Ours says `$2,000 – $8,000/year` → Source says `Respite care (in-home, out-of-home, daytime/overnight, emergency); personal support services; adult day health; home-delivered meals; skilled nursing/therapy in home; structured family caregiving (tax-exempt pay to caregivers at daily rate); NFCSP vouchers for respite/supplies; up to 5 hours/month at $6/hour first child, $2/hour siblings for medically fragile adoptive children.` ([source](https://aging.georgia.gov/tools-resources/caregiving))
-- **source_url**: Ours says `MISSING` → Source says `https://aging.georgia.gov/tools-resources/caregiving`
-
-### Georgia Legal Assistance for Seniors (Elder Rights & Advocacy)
-
-- **benefit_value**: Ours says `$500 – $3,000/year` → Source says `Free civil legal assistance including legal information, community education, brief advice, and direct case representation in priority areas such as accessing health care/long-term care, debt collection, housing, consumer issues/fraud, Medicare/Medicaid appeals, Social Security claims/hearings, elder abuse/neglect/exploitation, defense of guardianship, advance directives, end-of-life issues. Also includes Georgia Senior Legal Hotline for advice, brief service, referrals.[1][2][5]` ([source](https://aging.georgia.gov/tools-resources/elderly-legal-assistance-program))
-- **source_url**: Ours says `MISSING` → Source says `https://aging.georgia.gov/tools-resources/elderly-legal-assistance-program`
-
-### Georgia Long-Term Care Ombudsman Program
-
-- **benefit_value**: Ours says `$10,000 – $30,000/year` → Source says `Informal investigation and resolution of complaints on behalf of residents; routine facility visits to monitor conditions and talk to residents; education on long-term care issues and resident rights; advocacy for systemic changes; provision of resources and information on laws/policies governing facilities; promotion of resident/family/community involvement[5][6][7][8]` ([source](https://www.georgiaombudsman.org[7]))
-- **source_url**: Ours says `MISSING` → Source says `https://www.georgiaombudsman.org[7]`
+- **benefit_value**: Ours says `$10,000 – $30,000/year` → Source says `Investigates and resolves complaints; advocates for resident rights; provides information on long-term care; routine facility visits and monitoring; education for residents, families, staff, and communities; assistance with transfers/discharges, access to benefits; no charge for services[1][2][3][4][5]` ([source](https://aging.georgia.gov/programs-and-services/long-term-care-ombudsman-program or https://www.georgiaombudsman.org[3][2]))
+- **source_url**: Ours says `MISSING` → Source says `https://aging.georgia.gov/programs-and-services/long-term-care-ombudsman-program or https://www.georgiaombudsman.org[3][2]`
 
 ## New Programs (Not in Our Data)
 
-- **Community Care Services Program (CCSP) and SOURCE Waiver** — service ([source](https://aging.georgia.gov/ (Division of Aging Services); https://georgia.gov/apply-elderly-and-disabled-waiver-program[8][9]))
-  - Shape notes: Tied to Medicaid NFLOC; financials follow LTC Medicaid (income capped at 300% FBR, strict assets); spousal rules complex; statewide via regional AAAs with priority-based allocation; CCSP for physical impairment (incl. dementia), SOURCE adds chronic condition focus
-- **Georgia PACE (Program of All-Inclusive Care for the Elderly)** — service ([source](https://dch.georgia.gov/programs/program-all-inclusive-care-elderly-pace-updates))
-  - Shape notes: Not statewide—limited to provider service areas with ongoing expansion via state RFP; no direct income/asset test for core PACE but tied to Medicaid for free coverage; NFLOC certification Georgia-specific.
-- **Georgia SHIP (State Health Insurance Assistance Program)** — service ([source](https://aging.georgia.gov/georgia-ship))
-  - Shape notes: no income/asset test; volunteer-based counseling only, not direct benefits; delivered via statewide network of local partners with standardized free services
-- **Georgia Weatherization Assistance Program** — service ([source](https://gefa.georgia.gov/how-do-i-apply-weatherization))
-  - Shape notes: Administered regionally by ~22 local community action agencies via GEFA; eligibility fixed at 200% FPL or SSI with priority tiers; services customized per home audit, not fixed dollar value.
-- **Senior Community Service Employment Program (SCSEP)** — employment ([source](https://aging.georgia.gov/programs-and-services/senior-community-service-employment-program-scsep (notes state no longer offers; contact providers)))
-  - Shape notes: State administration ended 7/1/2025; now provider-specific by region/county with multiple grantees; benefits fixed at ~20 hrs/wk minimum wage; priority enrollment tiers; no asset test or fixed dollar benefits
+- **Medicaid Aged, Blind, and Disabled Program (ABD Medicaid)** — service ([source](https://medicaid.georgia.gov and https://dfcs.georgia.gov))
+  - Shape notes: ABD Medicaid has 19 different coverage categories (classes of assistance) with varying benefits.[4] Basic healthcare coverage is an entitlement program, but long-term care services are need- and availability-based, creating a two-tier structure. Income and asset limits are uniform statewide for 2026. The program requires both categorical eligibility (age 65+, blind, or disabled) AND financial eligibility (income and asset limits) AND functional need (for long-term care). Search results lack specific 2026 income limits, current processing times, waitlist information, and detailed regional office locations.
+- **Program of All-Inclusive Care for the Elderly (PACE)** — service ([source](https://dch.georgia.gov/programs/program-all-inclusive-care-elderly-pace-updates (Georgia Department of Community Health); https://www.cms.gov/medicare/medicaid-coordination/about/pace (Centers for Medicare & Medicaid Services); https://www.medicare.gov/health-drug-plans/health-plans/your-coverage-options/other-medicare-health-plans/PACE (Medicare.gov)))
+  - Shape notes: PACE is a highly localized program with significant geographic restrictions. Eligibility is largely standardized nationally (age 55+, nursing home level of care, ability to live safely in community, residency in service area), but availability varies dramatically by region. Georgia is actively expanding PACE as of April 2025, suggesting the program's footprint in the state is still developing. Income and asset limits follow federal Medicaid guidelines for most states, but Georgia-specific thresholds and alternative pathways were not found in available sources. Benefits are individualized by care plan rather than tiered, making them difficult to quantify in advance. The most critical first step for Georgia families is determining whether their county/area has a PACE program using Medicare's Find a PACE Plan tool.
+- **Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)** — financial ([source](https://medicaid.georgia.gov/medicare-savings-plans-programs-faqs and https://pamms.dhs.ga.gov/dfcs/medicaid/[1][5]))
+  - Shape notes: Tiered by income (QMB<SLMB<QI); federal FPL-based with Georgia DFCS administration; resource limit shared across programs; couple vs individual budgeting; QI capped funding.
+- **Weatherization Assistance Program (WAP)** — service ([source](https://gefa.georgia.gov/weatherization-assistance-program))
+  - Shape notes: Administered regionally by county-specific community action agencies with county contact list; income at 200% FPL or SSI; priority tiers; services determined by per-home energy audit.
+- **Georgia State Health Insurance Assistance Program (Georgia SHIP)** — service ([source](https://aging.georgia.gov/georgia-ship))
+  - Shape notes: no income test; counseling-only service with volunteer/local delivery model; prioritizes Medicare beneficiaries without barriers
+- **Home Delivered Meals (via Community Care Services Program)** — service ([source](https://aging.georgia.gov/))
+  - Shape notes: Bundled service within Medicaid CCSP waiver; eligibility tied to full NFLOC assessment and multiple criteria; no standalone meal program; local AAA administration with statewide standards but regional providers.
+- **Caregiver Respite Services (via Georgia Medicaid Home and Community-Based Services)** — service ([source](aging.georgia.gov and Georgia Department of Behavioral Health and Developmental Disabilities (DBHDD)))
+  - Shape notes: Respite care in Georgia is not a single unified program but a service available through multiple Medicaid waiver programs (COMP, NOW, EDWP) and non-Medicaid programs (Older Americans Act, State-Funded Alzheimer's Program). Eligibility, benefits, and application processes vary by which program the care recipient qualifies for. The service is strictly time-limited (28 days per six months) and requires prior functional assessment. Specific financial details (income limits, benefit amounts, processing times) are not provided in available search results, requiring families to contact regional offices directly for complete information.
+- **Senior Community Service Employment Program (SCSEP)** — employment ([source](https://aging.georgia.gov/programs-and-services/senior-community-service-employment-program-scsep (notes state transition); https://www.dol.gov/agencies/eta/seniors (federal)))
+  - Shape notes: Administered by multiple regional non-profit/state grantees post-2025 DHS exit; county-restricted availability; priority-based enrollment with waitlists; no fixed asset limits; income at 125% FPL scales by household size via federal table
+- **Legal Assistance for Older Georgians** — service ([source](https://aging.georgia.gov/tools-resources/elderly-legal-assistance-program))
+  - Shape notes: No income or asset test required statewide per standards; county-specific providers and contacts; priority on cases threatening independence/well-being; Metro-Atlanta counties may have different access[1][3]
 
 ## Program Details
 
-### Georgia Medicaid
+### Medicaid Aged, Blind, and Disabled Program (ABD Medicaid)
 
+> **NEW** — not currently in our data
 
 **Eligibility:**
 - Age: 65+
-- Income: For long-term care (Nursing Home Medicaid or waivers) in 2025-2026: Single applicant under $2,982/month; couple $5,802/month. ABD Medicaid (basic coverage): under $967/month for single seniors (medically needy). Almost all income counts (SSI, pensions, wages, etc.), but nursing home residents keep $70/month personal needs allowance plus Medicare premiums if dual eligible[1][2][5].
-- Assets: Single: $2,000; couple: $3,000. Counts most assets; exempt: primary home (with equity limits), one car, personal belongings, burial plots. Strategies exist to qualify if over limits (e.g., spousal protections, spend-down)[1][6][7].
-- Georgia resident and U.S. citizen/qualified alien[3]
-- Nursing Facility Level of Care (NFLOC) for nursing home/waivers: assessed via ADLs/IADLs and cognitive ability[1][2]
-- Aged 65+, blind, or disabled for ABD Medicaid[3][4]
-- Functional need for ADLs for regular long-term services[2]
+- Income: For 2026, the monthly income maximum for a single applicant is not explicitly stated in current search results, but 2012 data showed $698/month for an individual and $1,048/month for a couple. Search results indicate income limits exist but do not provide 2026 figures. Income is counted differently when only one spouse applies—both spouses' income counts toward the applicant spouse's income eligibility, with no Minimum Monthly Maintenance Needs Allowance for the non-applicant spouse.[1][6]
+- Assets: For a single applicant in 2026, the asset limit is $2,000 in countable assets.[1] Search results do not specify which assets are exempt or how assets are counted for couples.
+- Must be aged 65 or older, legally blind, or totally disabled[1][4]
+- Must be a Georgia resident[3]
+- Must be a U.S. citizen, national, legal alien, or permanent resident[3]
+- Must have a valid Social Security Number[7]
+- For long-term care services, must have functional need demonstrated through assessment of Activities of Daily Living (mobility, bathing, dressing, eating, toileting) and Instrumental Activities of Daily Living (shopping, cooking, cleaning, taking medications)[1]
+- For nursing home care specifically, must require Nursing Facility Level of Care (NFLOC)[6]
 
-**Benefits:** Nursing home care; home/community-based services (personal care, respite, adult day health); assisted living/personal care homes; physician visits, prescriptions, hospital stays, long-term supports via waivers (e.g., ICWP, Community Care Services Program, Money Follows the Person). Covers full nursing home costs after income contribution; no fixed dollar/hour limits specified, tailored to NFLOC needs[1][2][9].
+**Benefits:** Basic healthcare coverage includes physician visits, prescription medication, emergency room visits, and short-term hospital stays.[1] Long-term care benefits include institutionalized care (nursing home, hospice, hospital stays of 30+ days), community care services, Mental Retardation Waiver program, and community-based services provided at home or adult daycare.[4] Long-term care benefits are provided based on need and availability, not as an entitlement.[1] Personal Needs Allowance of $70/month is provided to beneficiaries.[6]
 - Varies by: priority_tier
 
 **How to apply:**
-- Online: Georgia Gateway at https://gateway.ga.gov/[8]
-- Phone: Call Department of Human Services at 1-877-423-4746 (general Medicaid line; confirm for elderly LTC)
-- In-person: Local DFCS offices (find via medicaid.georgia.gov)
-- Mail: Paper applications via Georgia Gateway or local DFCS
+- Online: Georgia Gateway member services website[5]
+- In-person: Local Medicaid office (assistance available if applicant has difficulty completing application)[4]
+- Phone: Contact local county health department (specific phone numbers not provided in search results)
 
-**Timeline:** Coverage may begin 3 months retroactive; applications vary, often longer than expected—ask upon submission[6]
-**Waitlist:** Possible for waiver slots (e.g., ICWP); nursing home Medicaid generally no waitlist if eligible[9]
+**Timeline:** Not specified in search results
+**Waitlist:** Long-term care benefits are provided based on need and availability; specific waitlist information not provided in search results
 
 **Watch out for:**
-- Most income must be paid to state for nursing home care—only $70/month personal allowance[2]
-- Estate recovery after death for long-term care costs from assets[9]
-- NFLOC required for LTC—not just age/low income[1]
-- SSI auto-qualifies for ABD; otherwise strict income test[4]
-- Higher income limits for institutional vs. basic ABD ($2,982 vs. $967 single)[5]
-- Waivers have slots/waitlists unlike nursing home[9]
+- Long-term care benefits are NOT an entitlement—they are provided based on need and availability, unlike basic healthcare coverage which is guaranteed to eligible applicants.[1]
+- Income and asset limits are strict: $2,000 asset limit for singles in 2026 is very low.[1]
+- If only one spouse applies, BOTH spouses' income counts toward eligibility, which can disqualify applicants with higher-earning spouses.[6]
+- For long-term care, applicants must demonstrate functional need through Activities of Daily Living assessment—simply being 65+ is not sufficient.[1]
+- ABD Medicaid should not be confused with regular Medicaid for all ages; it is specifically for aged, blind, or disabled populations.[1]
+- There is an alternative pathway—the Aged, Blind and Disabled Medically Needy Program—for those over income limits; excess income can be applied toward medical expenses (spend-down program).[3][6]
+- Form 71 for disability verification is no longer used as of September 2013; applicants must use SSA Form 831 instead.[2]
+- Search results do not provide 2026 income limits; families should verify current limits directly with Georgia Medicaid as limits may have changed since 2012 data in results.
 
-**Data shape:** Multiple programs/tiers (Nursing Home Medicaid, ABD, waivers like ICWP); income/asset limits higher for LTC; NFLOC assessment drives benefits; spousal impoverishment protections; estate recovery applies
+**Data shape:** ABD Medicaid has 19 different coverage categories (classes of assistance) with varying benefits.[4] Basic healthcare coverage is an entitlement program, but long-term care services are need- and availability-based, creating a two-tier structure. Income and asset limits are uniform statewide for 2026. The program requires both categorical eligibility (age 65+, blind, or disabled) AND financial eligibility (income and asset limits) AND functional need (for long-term care). Search results lack specific 2026 income limits, current processing times, waitlist information, and detailed regional office locations.
+
+**Source:** https://medicaid.georgia.gov and https://dfcs.georgia.gov
+
+---
+
+### Elderly and Disabled Waiver Program (EDWP)
+
+
+**Eligibility:**
+- Income: Must be eligible for Medicaid, which may require a Qualified Income Trust (QIT) if income exceeds the Medicaid CAP (exact current CAP not specified in sources; limits adjust annually with SSA/SSI increases). For married applicants, up to $3,853.50/month income may be diverted to a community spouse.[5][1]
+- Assets: Single: $2,000 countable assets. Married couple both applying: $3,000 combined. One spouse applying: $2,000 for applicant; non-applicant spouse up to $157,920 (or $157,986 in some sources) Community Spouse Resource Allowance. Exempt: primary home (with equity/residency rules), one vehicle, personal belongings, irrevocable burial trusts. 5-year look-back period applies; excess assets must transfer to community spouse within one year of eligibility.[1][5]
+- Medicaid eligible (or become eligible during application)
+- Nursing home level of care (intermediate NFLOC) confirmed by medical evaluation, physician approval for care plan, and tools like DON-R or MDS-HC
+- Physically impaired in ADLs/IADLs (e.g., bathing, eating, mobility, meal prep); cognitive issues like Alzheimer's qualify as physical
+- Georgia resident, U.S. citizen/eligible immigrant
+- Choose community/home services over nursing home
+- Enrolled in only one Medicaid waiver program
+- Functional impairment with unmet care needs; some sources note 21+ or 65+ (or disabled under 65), but no strict age minimum[1][2][3][5][7]
+
+**Benefits:** Community-based services as alternative to nursing home: Personal Support Services/Extended (meal prep, bathing, light housekeeping); Consumer-Directed Personal Support (hire own worker after 6 months); Adult Day services; Home-delivered meals; Out-of-Home Respite Care (overnight in approved facility); other HCBS to support home/community living. No fixed dollar/hour amounts specified; based on care plan.[6][8]
+- Varies by: priority_tier
+
+**How to apply:**
+- Phone: Toll-free statewide Area Agency on Aging at 866-552-4464 (initial screening for eligibility/priority/waitlist)
+- Through local Area Agencies on Aging (administered by Georgia Division of Aging Services)
+- Medicaid application process (accept application, interview, verify via Elderly and Disabled Waiver Communicator/CCC)[2][3]
+
+**Timeline:** Not specified
+**Waitlist:** Yes; placement based on screening for urgency of need/priority[2]
+
+**Watch out for:**
+- Must choose EDWP over nursing home; only one waiver program at a time
+- 5-year look-back for asset transfers; penalties for improper transfers
+- Spousal assets/income rules complex; excess must transfer within 1 year
+- Medicaid eligibility required (QIT for high income); not automatic
+- Priority/waitlist based on screening urgency; not first-come
+- Physical impairment required (dementia qualifies, but NFLOC assessment needed; not all cases approve)
+- Assets treated as jointly owned for married couples regardless of title[1][2][3][5]
+
+**Data shape:** Tied to Medicaid with NFLOC; priority-based waitlist via AAAs; spousal protections with asset transfer rules; no fixed age but functional/physical criteria; benefits via care plan not fixed amounts
 
 **Our model can't capture:**
 - `asset_limits`: Our model has no asset limit fields
@@ -133,193 +168,169 @@ Our data differs from what official sources say:
 - `waitlist`: Has waitlist info — our model has no wait time field
 - `documents_required`: Has document checklist — our model doesn't store per-program documents
 
-**Source:** https://medicaid.georgia.gov/
+**Source:** https://georgia.gov/apply-elderly-and-disabled-waiver-program
 
 ---
 
-### Community Care Services Program (CCSP) and SOURCE Waiver
-
-> **NEW** — not currently in our data
-
-**Eligibility:**
-- Age: 65+
-- Income: Countable income up to $2,982 per month (300% of Federal Benefit Rate) for individuals; no specific household size table provided, but for married couples applying together under related programs like ICWP, limit is $2,349/month per spouse. Must qualify for Georgia Medicaid under long-term care rules. SSI recipients are eligible.[2][4][6]
-- Assets: No more than $2,000 for individuals or $3,000 for married couples in countable assets. If spouse not in program, combined countable assets ≤ $121,220. Exempt: primary home (equity ≤ $752,000 in 2026 if intent to return, spouse/dependent relative living there), household furnishings, appliances, personal effects, one vehicle. Look-Back Rule applies (60 months).[1][2][6]
-- Georgia resident and Medicaid eligible (or potentially eligible after admission)
-- Nursing home level of care (NFLOC) via DON-R assessment; functional impairment in ADLs/IADLs due to physical condition (includes Alzheimer's/dementia)
-- Physician approval of care plan and intermediate LOC
-- Unmet need for care; choose community over institutional services
-- Participate in only one waiver at a time; health/safety met by CCSP
-- For under 65: physically disabled; benefits continue after turning 65 if enrolled early
-- SOURCE-specific: documented chronic health conditions likely to worsen without intervention[1][2][3][5][7][8][9]
-
-**Benefits:** In-home/community services including: personal support (care/hygiene, meal prep, light housekeeping, shopping, in-home respite), adult day care, home-delivered meals, out-of-home respite (overnight in approved facility), other social/health/support services. Combination with other community services possible; capped at average annual cost of Medicaid nursing facility care. No fixed dollar amounts or hours specified.[3][6][8]
-- Varies by: priority_tier
-
-**How to apply:**
-- Contact local Area Agency on Aging (AAA) for assessment (toll-free statewide line via aging.georgia.gov)
-- Apply for Medicaid at county Department of Family and Children Services (DFCS)
-- Online via Georgia.gov: https://georgia.gov/apply-elderly-and-disabled-waiver-program[9]
-- In-person at AAA or DFCS offices
-
-**Timeline:** Not specified in sources
-**Waitlist:** Possible, prioritized for those most in need[8]
-
-**Watch out for:**
-- Must meet full Medicaid long-term care rules, not just SSI; spousal assets counted if not institutionalized ($121,220 combined limit)
-- 60-month Look-Back Rule: asset transfers penalized
-- Nursing home LOC required but services only if community-based chosen; no dual waiver participation
-- SOURCE emphasizes chronic conditions worsening without intervention vs. CCSP's broader physical impairment
-- Formerly CCSP, now under Elderly and Disabled Waiver; physician approval mandatory
-- Services capped at nursing facility cost average; prioritized waitlists[1][2][6][8]
-
-**Data shape:** Tied to Medicaid NFLOC; financials follow LTC Medicaid (income capped at 300% FBR, strict assets); spousal rules complex; statewide via regional AAAs with priority-based allocation; CCSP for physical impairment (incl. dementia), SOURCE adds chronic condition focus
-
-**Source:** https://aging.georgia.gov/ (Division of Aging Services); https://georgia.gov/apply-elderly-and-disabled-waiver-program[8][9]
-
----
-
-### Georgia PACE (Program of All-Inclusive Care for the Elderly)
+### Program of All-Inclusive Care for the Elderly (PACE)
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
 - Age: 55+
-- Income: No financial criteria or income limits for PACE enrollment itself; however, for full Medicaid coverage of premiums (covering ~90% of participants who are dual-eligible), Georgia Medicaid long-term care requires income under 300% of the Federal Benefit Rate ($2,901/month in 2025) and assets $2,000 or less (excluding primary home). Private pay possible via monthly premium if not Medicaid-eligible.[2]
-- Assets: No asset limits for PACE enrollment. For Medicaid eligibility: $2,000 limit (exemptions typically include primary home, one vehicle, personal belongings, burial funds; countable assets: bank accounts, secondary properties, investments).[2]
-- Live in the service area of a Georgia PACE provider (program not yet fully operational statewide; limited to specific regions where providers are established).
-- Certified by Georgia as needing nursing home level of care (NFLOC), generally requiring extensive assistance with 2+ activities of daily living (ADLs) like bathing, dressing, eating.
-- Able to live safely in the community (non-institutional setting like home or assisted living) with PACE services.
-- Not enrolled in Medicare Advantage, Medicare prepayment plan, prescription drug plan, or hospice.
-- US citizen or legal resident (for Medicare); voluntary enrollment.[1][2][5]
+- Income: For Medicaid-funded PACE in most states (2025): income under 300% of Federal Benefit Rate ($2,901/month). However, Medicaid offers multiple pathways to eligibility beyond this threshold, and Medicaid Planning Professionals can assist in meeting requirements. Not all PACE participants require Medicaid enrollment; some qualify through Medicare alone.[3] Georgia-specific income limits were not found in available sources.
+- Assets: For Medicaid-funded PACE: assets valued at $2,000 or less (excluding primary home). This applies to most states; Georgia-specific limits not specified in available sources.[3]
+- Must need nursing home level of care as defined by their state[1][2][6]
+- Must be able to live safely in their home or community with PACE support[1][2][6]
+- Must live in a PACE service area[1][2][6]
+- For Medicare eligibility: must be U.S. citizen or legal resident of the state for 5 years prior to application, AND be at least 65 years old OR disabled OR have Lou Gehrig's disease (ALS) OR have end-stage renal disease[3]
+- Medicaid or Medicare enrollment is not required to apply for PACE[1][3]
 
-**Benefits:** Comprehensive, all-inclusive medical and social services at no additional cost (no deductibles/co-pays) once enrolled: primary/acute/specialty care, prescription drugs, hospital/inpatient care, physical/occupational/recreational therapy, home health aides, personal care, adult day health center (typically 20-40 hours/week), meals (including home-delivered), transportation to center/appointments, social work, dementia care, assistive devices. Provided by interdisciplinary team at PACE center.[1][3][6]
-- Varies by: region
+**Benefits:** Comprehensive medical and social services including: primary care doctor visits, nursing services, medications, therapies (physical, occupational, speech), in-home nursing services, durable medical equipment, social work services, caregiver support, and nursing home stays when necessary. 95% of PACE participants live in the community rather than nursing homes.[2][5][8]
+- Varies by: Individual care plan developed by interdisciplinary team; not fixed by tier or priority level
 
 **How to apply:**
-- Contact local PACE provider directly (once operational; find via Georgia Department of Community Health).
-- Phone: Georgia Department of Community Health Medicaid info line (not specified; use general DCH contact or await provider launch). No specific Georgia PACE phone listed yet.
-- Website: https://dch.georgia.gov/programs/program-all-inclusive-care-elderly-pace-updates (for updates/RFP; provider-specific sites post-launch).
-- In-person: At PACE center in service area.
+- Online: Use Medicare's Find a PACE Plan tool at Medicare.gov to locate Georgia PACE programs and initiate contact[1]
+- Phone: Contact the specific PACE organization serving your area (identified through Medicare's Find a PACE Plan tool)
+- In-person: Visit a PACE center in your service area
+- Mail: Contact information available through PACE organizations
 
-**Timeline:** Not specified in sources; varies by provider/state typical 30-90 days for assessment/certification.
-**Waitlist:** Possible due to capped financing and provider capacity; common in PACE programs.[4]
+**Timeline:** Not specified in available sources
+**Waitlist:** PACE is not necessarily tied to state Medicaid waiver waitlists, so it may provide an alternative when HCBS Medicaid Waiver waitlists exist.[3] Specific Georgia waitlist status not found in available sources.
 
 **Watch out for:**
-- Program not fully rolled out in Georgia (RFP ongoing as of 2025); availability limited to specific counties/service areas—verify local provider first.[8]
-- No income test for PACE, but non-Medicaid pay premium (amount varies by provider/income); assume private pay costly (~$3,000-$6,000/month typical nationally).
-- Must reside in PACE service area and be community-capable at enrollment; cannot be in nursing home/hospice.
-- Disenrollment if move out of area or no longer need NFLOC.
-- Medicaid planning needed if over limits for full coverage.[2][4]
+- Geographic availability is the primary barrier: PACE is only available in certain areas, and you must live within a PACE service area to qualify. This is non-negotiable.[1][2][6]
+- The 'nursing home level of care' requirement is state-defined and varies by state. Georgia's specific definition was not found in available sources; contact Georgia DCH or your local PACE organization for clarification.[2][3]
+- You do NOT need to be enrolled in Medicare or Medicaid to apply for PACE, but most participants are dually eligible. This is a common misconception that may prevent eligible individuals from applying.[1][3][5]
+- PACE is expanding in Georgia: as of April 2025, Georgia DCH was actively soliciting proposals for new PACE programs in Special Health Focus Service Areas (RFP deadline May 16, 2025). This means availability may change; check current status before assuming your area is or isn't served.[4][7]
+- Income and asset limits for Medicaid-funded PACE are not absolute barriers. Multiple pathways to Medicaid eligibility exist beyond the standard thresholds, and Medicaid Planning Professionals can help.[3]
+- PACE is an alternative to nursing home placement, not a supplement to it. The program is designed for people who would otherwise require nursing home care but can safely remain in the community with support.[2][6]
+- Georgia-specific details (exact income limits, asset limits, processing times, required documents, regional provider lists) are not available in these sources. Direct contact with Georgia DCH or local PACE organizations is necessary for complete information.
 
-**Data shape:** Not statewide—limited to provider service areas with ongoing expansion via state RFP; no direct income/asset test for core PACE but tied to Medicaid for free coverage; NFLOC certification Georgia-specific.
+**Data shape:** PACE is a highly localized program with significant geographic restrictions. Eligibility is largely standardized nationally (age 55+, nursing home level of care, ability to live safely in community, residency in service area), but availability varies dramatically by region. Georgia is actively expanding PACE as of April 2025, suggesting the program's footprint in the state is still developing. Income and asset limits follow federal Medicaid guidelines for most states, but Georgia-specific thresholds and alternative pathways were not found in available sources. Benefits are individualized by care plan rather than tiered, making them difficult to quantify in advance. The most critical first step for Georgia families is determining whether their county/area has a PACE program using Medicare's Find a PACE Plan tool.
 
-**Source:** https://dch.georgia.gov/programs/program-all-inclusive-care-elderly-pace-updates
+**Source:** https://dch.georgia.gov/programs/program-all-inclusive-care-elderly-pace-updates (Georgia Department of Community Health); https://www.cms.gov/medicare/medicaid-coordination/about/pace (Centers for Medicare & Medicaid Services); https://www.medicare.gov/health-drug-plans/health-plans/your-coverage-options/other-medicare-health-plans/PACE (Medicare.gov)
 
 ---
 
-### Georgia SHIP (State Health Insurance Assistance Program)
+### Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: No income or asset limits; open to all Medicare beneficiaries, their families, and caregivers, including those with limited incomes, under age 65 with disabilities, or dually eligible for Medicare and Medicaid[3][2][8]
-- Assets: No asset limits or tests apply[2][8]
-- Must be a Medicare beneficiary or their family/caregiver
-- Georgia resident (implied for state program access)
-- Services focus on Medicare-related issues[2][8]
+- Age: 65+
+- Income: Income limits are monthly, based on 100% FPL for QMB, 120% for SLMB, and 135% for QI, updated annually around April. Georgia follows federal standards with figures varying slightly by source/year (e.g., 2024/2026 estimates): QMB ≤$1,235 single/$1,663 couple; SLMB >QMB up to $1,478 single/$1,992 couple; QI >SLMB up to $1,660 single/$2,239 couple. Exact current limits confirmed via Georgia DHS or SSA FPL tables; COLAs disregarded until new limit effective. Household size considered (individual or couple); larger households use couple limits if applicable. First $20 unearned/$65+half earned income disregarded; ISM not counted.[1][2][3][6]
+- Assets: Countable resources ≤ current QMB/SLMB/QI limit (federal ~$9,660 individual/$14,470 couple in 2024 examples; Georgia matches). Counts: bank accounts, stocks (after disregards). Exempt: home, one car, burial plots, $1,500 burial funds, personal belongings, Native American trust payments, student aid. No state-specific exemptions noted beyond federal.[1][3][6]
+- Eligible for Medicare Part A (even if not enrolled; SSA verifies).
+- Georgia resident.
+- U.S. citizen or qualified immigrant.
+- Not eligible for SSI if resources exceed (but QMB possible).
+- For couples: test individually for income if couple ineligible.[1][4][5][6]
 
-**Benefits:** Free, unbiased one-on-one counseling and assistance on Medicare (Parts A, B, C, D), Medigap, Medicaid, prescription drug programs, long-term care insurance, claims/billing resolution, appeals, fraud reporting via SMP, enrollment in plans and financial assistance programs (e.g., Medicare Savings Programs like QMB/SLMB/QI, Extra Help), information/referrals, public education presentations, and outreach events; no fixed dollar amounts or hours, provided via phone, face-to-face, or community sessions[2][3][5][6][8][10]
+**Benefits:** QMB: Part A premium (if owed), Part B premium, deductibles, 20% coinsurance/copayments for Medicare-covered services. SLMB: Part B premium only. QI: Part B premium only (higher income than SLMB).[1][2][4][5]
+- Varies by: priority_tier
 
 **How to apply:**
-- Phone: 1-866-552-4464 (Option 4 for counseling)[7][8]
-- Website: https://aging.georgia.gov/georgia-ship (for info, webforms, requests)[7][8][10]
-- Email: Regional examples like lplatter@accaging.org for local providers[5]
-- In-person: Local sessions via area agencies on aging or community partners; request via phone[2][5]
+- Online: https://pamms.dhs.ga.gov/dfcs/medicaid/[1][6]
+- Phone: Local DFCS office or Georgia Medicaid (404-657-2708 or 1-877-423-4746 via medicaid.georgia.gov).
+- Mail/In-person: Local DFCS county office (find via https://dfcs.georgia.gov/locations).
+- Request form from state Medicaid agency.[4]
 
-**Timeline:** No formal application or processing time; counseling provided upon contact as locally accessible services[2]
+**Timeline:** QMB: First day of month after disposition (≤45 days). SLMB/QI: Up to 3 months retroactive.[1][4][6]
+**Waitlist:** QI may have funding limits/priority (QI-1 no wait; QI-2 potential waitlist if funds exhausted; not specified for Georgia currently).[1]
 
 **Watch out for:**
-- Not a financial aid or healthcare provider program—only free counseling/info, does not pay bills or provide insurance; not affiliated with insurers, does not sell plans; volunteer-based so availability depends on local counselors; people miss that it helps with applications for income-based programs like Extra Help (which have limits, e.g., SLMB up to $1,478/month single) but SHIP itself has no limits[4][8][10]
-- Must request services; no automatic enrollment[8]
+- QI funding limited—apply early; may be waitlisted if exceeds QI-1.
+- Income limits change April; COLAs ignored until then—reapply if close.
+- QMB doesn't auto-enroll Part B; SSA handles separately.
+- Providers can't bill QMB enrollees for Medicare-covered services (key protection).
+- Assets include couple's jointly; test individual income if couple over.
+- Even over limits, apply—disregards may qualify.[1][2][3][4][6]
 
-**Data shape:** no income/asset test; volunteer-based counseling only, not direct benefits; delivered via statewide network of local partners with standardized free services
+**Data shape:** Tiered by income (QMB<SLMB<QI); federal FPL-based with Georgia DFCS administration; resource limit shared across programs; couple vs individual budgeting; QI capped funding.
 
-**Source:** https://aging.georgia.gov/georgia-ship
+**Source:** https://medicaid.georgia.gov/medicare-savings-plans-programs-faqs and https://pamms.dhs.ga.gov/dfcs/medicaid/[1][5]
 
 ---
 
-### Senior SNAP (Senior Supplemental Nutrition Assistance Program)
+### Supplemental Nutrition Assistance Program (SNAP) - Senior SNAP in Georgia
 
 
 **Eligibility:**
-- Age: All household members must be 60 years or older before February 2, 2026; 66 years or older effective February 2, 2026. They must purchase and prepare meals together[1][3]+
-- Income: Household must meet standard SNAP gross income limits (130% of federal poverty level, Oct 1, 2025 - Sept 30, 2026): 1 person $1695/month, 2 people $2291, 3 $2887, 4 $3482, 5 $4079, 6 $4674, 7 $5270, each additional +$595. Households with members 60+ or disabled may be exempt from net income and asset tests if under 200% FPL and assets ≤$4500[1][2]
-- Assets: Standard SNAP asset test applies only if gross income exceeds limits or assets >$4500; exemptions include home, retirement savings, household goods. No asset test if all adults 60+ or disabled and under 200% FPL[2][3]
-- No earned income (including countable/excluded earned income)
-- Fixed income only: Social Security (RSDI), SSI, federal/state retirement, VA benefits, Railroad Retirement, disability income
-- Not working
-- Georgia resident; U.S. citizen or qualified non-citizen (5+ years residency, disability benefits, or child under 18)
+- Age: 66+
+- Income: Households with all members age 66+ (effective February 2, 2026; previously 60+) must meet standard SNAP net income limits for elderly/disabled households (only net income test applies, no gross income test). Seniors/disabled qualify for medical deductions over $35/month. Gross income limits for elderly/disabled: up to 165% of poverty line (e.g., ~$2,909/month for household of 2). 2025 examples: $15,060/year ($1,255/month) for 1 person; $20,440/year ($1,703/month) for 2 people. Exact limits vary annually by household size and are checked via Georgia Gateway screening tool. No earned income allowed; only fixed income like SSI, SSDI, Social Security, pensions, VA benefits.
+- Assets: Standard SNAP resource limits apply (not waived for seniors in Georgia). Resources up to $2,750 for most households or $4,250 if elderly/disabled (exempt: primary home, most retirement accounts, household goods, personal vehicles, life insurance). Exact details verified during application.
+- All household members must be 66+ (effective Feb 2, 2026) and purchase/prepare food together.
+- No earned income (countable or excluded).
+- Fixed income only (e.g., Social Security, SSI, pensions, VA, Railroad Retirement).
+- Georgia resident.
+- U.S. citizen or qualified non-citizen.
+- Verification of identity, citizenship, residency, shelter/medical expenses, and unverified income.
 
-**Benefits:** SNAP benefits via EBT card for groceries; amount based on household net income (generally $100 more net income = $30 less benefits), minimum/maximum per federal SNAP scale
+**Benefits:** Monthly EBT card benefits for purchasing eligible food (groceries, not hot/prepared foods). Amount calculated based on net income, household size, and deductions (e.g., medical over $35/month, shelter costs). Seniors often receive higher benefits due to deductions. Exact amount determined post-application.
 - Varies by: household_size
 
 **How to apply:**
-- Phone: Call (404) 370-6236 to request mailed application[4]
-- Email: seniorsnap@dhr.state.ga.us for application[4]
-- Mail: Return completed application to Georgia DFCS (address provided with form)
-- No in-person office or face-to-face interview required; online via Georgia Gateway for standard SNAP if ineligible for Senior SNAP[1]
+- Online: Georgia Gateway at https://gateway.ga.gov (recommended; includes Senior SNAP screening).
+- Email application request: seniorsnap@dhr.state.ga.us.
+- Phone: (404) 370-6236 to request mailed application.
+- Mail: Send completed application to local DFCS office (address varies by county; find via dfcs.georgia.gov).
+- In-person: Local Division of Family & Children Services (DFCS) offices statewide.
 
-**Timeline:** Not specified in sources
+**Timeline:** Typically 30 days for standard SNAP; expedited (7 days) if very low income/no income. Senior SNAP simplifies process but follows standard timelines.
 
 **Watch out for:**
-- Age requirement increases to 66 on February 2, 2026—check current status[3]
-- Must have ZERO earned income and only fixed unearned income sources[1][3]
-- All household members must meet age/no-work criteria and share food prep[1][3]
-- Income verified via computer matches (SDX, BENDEX); minimal docs needed unless questionable[3]
-- Simplified process skips interview/office visit, but still subject to standard SNAP income caps[2][4]
-- Not separate from SNAP—provides SNAP benefits via easier application for qualifying seniors[1][4]
+- Age requirement changes to 66+ effective February 2, 2026 (was 60+ prior).
+- No earned income allowed (even excluded types); only fixed unearned income.
+- All household members must be elderly and food-share; mixed households cascade to regular SNAP.
+- Medical deductions over $35/month can significantly boost benefits but require proof.
+- Seniors skip gross income test but must meet net income limit.
+- Assets counted unless exempt; home ownership doesn't auto-disqualify.
+- Automatic conversion between Senior/regular SNAP at recertification if criteria change.
 
-**Data shape:** Simplified SNAP application for seniors 60+/66+ with no earned income and fixed unearned income only; all household members must qualify; minimal verification via data matches; age threshold changes Feb 2026
+**Data shape:** Simplified elderly-only application with no earned income, fixed income only, and medical/shelter deductions; age threshold rising to 66 in 2026; statewide but local DFCS processing; benefits scale by household size and net income after elderly-specific deductions.
 
 **Our model can't capture:**
 - `asset_limits`: Our model has no asset limit fields
 - `household_size_table`: Benefits/eligibility vary by household size — we store a single number
+- `regional_variations`: Program varies by region — our model doesn't capture this
 - `documents_required`: Has document checklist — our model doesn't store per-program documents
 
 **Source:** https://dfcs.georgia.gov/services/snap/senior-snap
 
 ---
 
-### Georgia LIHEAP (Low Income Home Energy Assistance Program)
+### Low Income Home Energy Assistance Program (LIHEAP)
 
 
 **Eligibility:**
-- Income: Gross household income at or below 60% of Georgia's State Median Income (SMI), varying by household size. Monthly limits: 1 person $2,879; 2 people $3,764; 3 people $4,650; 4 people $5,536; 5 people $6,422; 6 people $7,308.[2][3]
-- Assets: No asset limit.[3]
-- Responsibility for paying energy costs for the home’s primary heating (and sometimes cooling) source.[1][2][6]
-- U.S. citizen or lawfully admitted immigrant.[1][2][6]
-- Household energy supplier must be a registered LIHEAP vendor with Georgia Department of Human Services.[1]
+- Income: Total gross household income at or below 60% of Georgia's State Median Income (SMI), which varies by household size. Specific dollar amounts not listed in sources; check current SMI guidelines via local agency. Seniors (60+ or 65+) receive priority but no age requirement for general eligibility[1][2][5][6].
+- Assets: No asset limits mentioned in sources.
+- Responsibility for paying the cost of energy for the primary home heating source (sometimes cooling)[1][2][5][6].
+- U.S. citizen or lawfully admitted immigrant[1][2][5][6].
+- Household energy supplier must be a registered LIHEAP vendor with Georgia Department of Human Services[1].
 
-**Benefits:** Heating: minimum $350-$400, maximum $400 (seniors 60+ get maximum $400); Cooling: up to $500; Crisis: Winter up to $810, Summer up to $500. Payments made directly to utility vendor. One heating and one cooling benefit per program year. Amounts based on income, household size, fuel type, and funding.[3][7]
-- Varies by: household_size|priority_tier|region
+**Benefits:** Financial assistance paid directly to energy suppliers. Minimum $350 and maximum $400 per eligible household for heating assistance. Seniors (60+) in the home receive the maximum $400. Maximum one heating and one cooling benefit per program year. Amount determined by federal funding[6].
+- Varies by: priority_tier
 
 **How to apply:**
-- Phone: Call local Community Action Agency (varies by county; e.g., publicized numbers for specific counties).[2][5]
-- Online: Schedule appointments via local provider sites (e.g., click links on county-specific pages).[2]
-- In-person: At local Community Action Agencies or accessible locations statewide; home visits for homebound.[5][7]
+- Online appointment scheduling via local Community Action Agency portals (e.g., https://www.cafi-ga.org for some counties; varies by agency)[1][2].
+- Phone: Call local agency publicized number to schedule appointment or join waitlist (specific numbers vary by county/provider)[2][4].
+- In-person: At scheduled appointments with local Community Action Agencies (CAAs) after booking; must select county of residence[1][3][4].
+- Mail or home visits: Not specified as primary; applications taken in homes for homebound[6].
 
-**Timeline:** First-come, first-served until funds exhausted; crisis/life-threatening cases prioritized with standard of promptness.[3][6][7]
-**Waitlist:** Yes, call to schedule appointment or join waiting list if funds low.[5]
+**Timeline:** First-come, first-served basis until funds exhausted; no specific timeline given, but appointments required[1][2][4][5].
+**Waitlist:** Yes, if appointment slots full; check portal periodically for openings or call to be placed on waitlist. County-specific budgets[1][4].
 
 **Watch out for:**
-- Energy supplier must be registered LIHEAP vendor, or ineligible.[1]
-- Funds first-come, first-served and exhaust quickly; prioritize early application, especially for elderly (Nov start).[6]
-- Must reside in county of application agency.[2]
-- Everyone on utility bill counts as household, unlike some programs.[3]
-- Only one heating and one cooling benefit per year.[7]
+- Energy supplier must be registered LIHEAP vendor, or ineligible[1].
+- Appointments required; first-come, first-served, funds limited—slots fill quickly, especially pre-senior priority[1][2][4].
+- Must apply in exact county of residence—no switching for availability[1].
+- Priority for seniors 65+ (heating opens Jan 2, 2026), homebound, life-threatening cases (Nov start); general public later (Dec/Feb)[1][2][5].
+- Bring copies of all documents; zero-income verification needed if applicable[1][3].
+- Cooling assistance seasonal/sometimes available, separate from heating[2][4][6].
 
-**Data shape:** Administered regionally by county agencies with priority for seniors 60+/homebound; benefits tiered by vulnerability and funding; income at 60% SMI with no asset test; direct vendor payments only.
+**Data shape:** Administered via county-specific Community Action Agencies with varying portals/phone lines; priority tiers for seniors/homebound; fixed min/max benefit with senior max; 60% SMI income test; county-residence restricted with separate budgets.
 
 **Our model can't capture:**
 - `asset_limits`: Our model has no asset limit fields
@@ -327,129 +338,159 @@ Our data differs from what official sources say:
 - `waitlist`: Has waitlist info — our model has no wait time field
 - `documents_required`: Has document checklist — our model doesn't store per-program documents
 
-**Source:** https://dfcs.georgia.gov/regular-home-energy-assistance/energy-assistance-eligibility-requirements
+**Source:** https://dfcs.georgia.gov/regular-home-energy-assistance (Georgia DFCS Energy Assistance page)[5]
 
 ---
 
-### Georgia Weatherization Assistance Program
+### Weatherization Assistance Program (WAP)
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: Household income at or below 200% of the Federal Poverty Level (FPL). Alternative qualification: receipt of Supplemental Security Income (SSI). Exact dollar amounts vary annually by FPL and household size; consult current FPL guidelines via local agency as specific table not detailed in sources. Priority given to elderly, households with disabilities, and families with children.[1][2][3][7]
+- Income: Household income at or below 200% of the Federal Poverty Level (FPL). Alternative qualification: receipt of Supplemental Security Income (SSI). Exact dollar amounts vary annually with FPL updates and by household size; no specific table provided in sources for current year. Priority given to elderly, households with disabilities, and families with children.[1][2][3][7]
 - Assets: No asset limits mentioned in sources.
-- Eligible home types: single-family, manufactured homes, appropriate multi-family units. Campers and non-stationary trailers ineligible.[1][3]
+- Eligible home types: single-family homes, manufactured homes, appropriate multi-family units. Campers and non-stationary trailers ineligible.[1][3]
 - Homeowners and renters eligible; renters require landlord agreement.[1]
+- Must reside in a county served by a local agency.
 
-**Benefits:** No-cost home energy efficiency improvements based on energy audit results, including: air and duct sealing, wall/floor/attic insulation, HVAC system improvements, energy-efficient lighting, hot water tank/pipe insulation, water conservation devices. Does not cover pre-existing structural issues like roofing, walls, flooring holes, underpinning, or ceiling replacement.[1][3]
+**Benefits:** No-cost home energy efficiency improvements based on energy audit results, including: air and duct sealing, wall/floor/attic insulation, heating/ventilation/air conditioning improvements, energy-efficient lighting, hot water tank/pipe insulation, water conservation devices. Does not cover pre-existing structural issues like roofing, walls, flooring holes, underpinning, or ceiling replacement.[1][3]
 - Varies by: priority_tier
 
 **How to apply:**
-- Contact local community action agency by county (see gefa.georgia.gov for county-specific contacts).[4]
-- Examples: CSRA EOA at (706) 945-1616 or www.csraeoa.org for application download (East Georgia counties); Action Pact via Savannahga.gov/4277 for Savannah/Chatham; Middle Georgia Community Action Agency (mgcaa.org) for Middle GA.[1][3][8]
-- Phone, website download, in-person via local agency; mail possible through agency.
+- Contact local community action agency by county (full list at https://gefa.georgia.gov/weatherization-assistance-program).[4]
+- Examples: CSRA EOA (706-945-1616, www.csraeoa.org); Action Pact for Savannah/Chatham; Middle Georgia Community Action Agency.[1][3][8]
+- Download application from agency website or call office; in-person audits follow qualification.
 
-**Timeline:** Not specified; energy audit conducted if qualified, followed by measures installation. Varies by local agency.
+**Timeline:** Not specified; involves energy audit after qualification, then installation by contractors.
 **Waitlist:** Due to high demand, there may be a waiting list.[4]
 
 **Watch out for:**
-- Renters need landlord permission.[1]
-- Excludes structural repairs (e.g., roofs, walls, large flooring holes).[3]
-- Priority for elderly/disabled/children, but no strict age cutoff—open to all qualifying low-income.[1][2]
-- High demand leads to waitlists; not first-come-first-served.[4]
-- Must use county-specific local agency, not statewide application.[4]
+- Renters need landlord agreement.[1]
+- Excludes pre-existing structural repairs (e.g., roofs, walls, major flooring).[3]
+- Priority for elderly/disabled/families with children may create longer waits for others.[1][2]
+- High demand leads to waitlists.[4]
+- Must contact specific county agency; not centralized statewide application.
 
-**Data shape:** Administered regionally by ~22 local community action agencies via GEFA; eligibility fixed at 200% FPL or SSI with priority tiers; services customized per home audit, not fixed dollar value.
+**Data shape:** Administered regionally by county-specific community action agencies with county contact list; income at 200% FPL or SSI; priority tiers; services determined by per-home energy audit.
 
-**Source:** https://gefa.georgia.gov/how-do-i-apply-weatherization
+**Source:** https://gefa.georgia.gov/weatherization-assistance-program
 
 ---
 
-### Georgia Meals on Wheels (Home-Delivered Meals via HCBS/CCSP)
+### Georgia State Health Insurance Assistance Program (Georgia SHIP)
 
+> **NEW** — not currently in our data
 
 **Eligibility:**
-- Age: 60+
-- Income: No statewide income limits specified; low-income given priority. Some local programs (e.g., Meals on Wheels Atlanta) require low-income status. Costs may be adjusted or waived based on ability to pay, with no fixed dollar amounts or household size tables provided.
-- Assets: No asset limits mentioned in available sources.
-- Homebound or semi-homebound (temporarily or permanently) due to physical/mental disabilities or challenges preparing meals.
-- Resident of a specific county, city, or delivery zone served by local provider (e.g., Cobb County, Fulton County cities like Alpharetta, Johns Creek, Milton, Mountain Park, Roswell, Sandy Springs, or Atlanta zip codes).
-- Priority for greatest social/economic need, moderate/high nutrition risk (NSI), high functional impairment (DON-R for home-delivered), or food insecurity.
-- Able to accept meals at delivery time.
-- May include spouses (regardless of age), household members with disabilities, or caregivers if it supports the eligible older adult.
+- Income: No income or asset limits; open to all Medicare beneficiaries, their families, and caregivers, including those with limited incomes, under age 65 with disabilities, or dually eligible for Medicare and Medicaid[2][3][8]
+- Assets: No asset limits or tests apply; no specification of what counts or is exempt[2][3]
+- Must be a Medicare beneficiary or caregiver/family member of one
+- Georgia resident (implied for state program access)
+- Services focus on Medicare-related issues, but no incarceration or citizenship requirements specified for SHIP itself[1][2]
 
-**Benefits:** Home-delivered meals (typically 5 days/week, Monday-Friday) providing at least 1/3 of Reference Daily Intakes per meal, following Dietary Guidelines for Americans. May include medically modified meals. Paired with social check-in, nutrition education. No charge, but voluntary contributions accepted. Spouses/caregivers may receive meals.
-- Varies by: region
+**Benefits:** Free, unbiased one-on-one counseling and assistance on Medicare (Parts A, B, C, D), Medigap, Medicaid, prescription drug programs, long-term care insurance, claims/billing resolution, appeals, fraud reporting via SMP, enrollment in plans and financial assistance programs (e.g., Medicare Savings Programs like QMB/SLMB/QI, Extra Help), information/referrals, public education presentations, and outreach events; no fixed dollar amounts or hours, provided via phone, face-to-face, or community sessions[2][3][5][6][8][10]
 
 **How to apply:**
-- Contact local Area Agency on Aging (AAA) or provider by phone (e.g., Cobb County: (770) 528-5364).
-- Georgia Aging and Disability Resource Connection (ADRC) for statewide referral.
-- Local providers (e.g., Senior Services North Fulton, Meals on Wheels Atlanta).
+- Phone: 1-866-552-4464 (select Option 4)[7][8]
+- Website: https://aging.georgia.gov/georgia-ship[7][8][10]
+- Local in-person or email via regional providers (e.g., 706-549-4850 or lplatter@accaging.org for ACCA area)[5]
+- Request counseling sessions, presentations, or referrals directly; no formal application form required for counseling
 
-**Timeline:** Varies; some within a week, longer if waitlist.
-**Waitlist:** AAAs manage waitlists; common due to high demand, with procedures for referrals and openings.
+**Timeline:** Immediate assistance available via phone or sessions; no specified processing timeline as it's counseling-based, not enrollment with approval wait[2][8]
 
 **Watch out for:**
-- Not statewide—must confirm local provider coverage; outside service areas need alternatives.
-- Homebound status key; car ownership or ability to shop/cook may disqualify.
-- No mention of HCBS/CCSP integration in sources; primarily Older Americans Act/NSIP-funded, not Medicaid waiver-specific.
-- Priority-based access leads to waitlists; not guaranteed immediate service.
-- Income affects cost/donation, not always eligibility—sliding scale common.
+- Not a healthcare or financial aid program itself—provides counseling only, does not pay bills or provide direct services; not affiliated with insurance companies and does not sell plans[8][10]
+- People may confuse with direct enrollment programs; must be Medicare-related issue[2]
+- Volunteer-based, so availability may depend on local counselor schedules[5][9]
+- Assists with low-income programs like SLMB/QI but has no eligibility test itself[3][4][6]
 
-**Data shape:** County-restricted with 12 AAAs coordinating local providers; priority tiers via assessments (NSI, DON-R); no fixed income/asset tables; varies heavily by region without central HCBS/CCSP linkage in data.
+**Data shape:** no income test; counseling-only service with volunteer/local delivery model; prioritizes Medicare beneficiaries without barriers
 
-**Our model can't capture:**
-- `asset_limits`: Our model has no asset limit fields
-- `regional_variations`: Program varies by region — our model doesn't capture this
-- `waitlist`: Has waitlist info — our model has no wait time field
-- `documents_required`: Has document checklist — our model doesn't store per-program documents
-
-**Source:** https://aging.georgia.gov/federal-and-state-programs-addressing-senior-hunger
+**Source:** https://aging.georgia.gov/georgia-ship
 
 ---
 
-### Georgia Caregiver Support (Respite and Caregiving Programs)
+### Home Delivered Meals (via Community Care Services Program)
 
+> **NEW** — not currently in our data
 
 **Eligibility:**
-- Age: 55+
-- Income: Varies by program; NFCSP Grants have income limits that may apply but no specific dollar amounts or household size table provided in sources. CCSP and SOURCE require Medicaid eligibility, which has federal income thresholds (typically 138% of FPL, adjusted by household size, but exact current table not specified). Structured Family Caregiving requires Medicaid-eligible care recipient needing minimum 5 hours daily personal care.
-- Assets: Not specified in sources; Medicaid waivers like CCSP follow standard Medicaid asset rules (e.g., $2,000 individual limit for aged/disabled, with exemptions for home, one vehicle, personal belongings; exact details require Medicaid application).
-- Care recipient: 60+ for many AAA services or 18+ with physical/developmental disabilities at risk of nursing home placement (e.g., CCSP, SOURCE, EDWP).
-- Caregiver: 18+, family or informal caregiver (not always spouse/legal guardian for Structured Family Caregiving).
-- Special populations: Adults 55+ caring for non-child adults 18+ with developmental disabilities; grandparents/relatives 55+ caring for children 18 and under.
-- Medicaid eligibility for care recipient in waiver programs (COMP, NOW, EDWP, CCSP, SOURCE).
-- Minimum 5 hours daily personal care need for Structured Family Caregiving.
+- Income: Medicaid eligibility required. Monthly gross income limit of $2,349 for single applicants. For married applicants with both applying, limit remains $2,349 per spouse. Non-applicant spouse can receive up to $3,216/month from applicant's income. Income over limit can be managed via special income trust or monthly contributions.[3]
+- Assets: Medicaid countable asset limits apply (specific amounts not stated in sources). Home equity exempt if applicant lives there or intends to return (up to $752,000 equity interest in 2026), spouse lives there, or dependent relative lives there (child, grandchild, in-law, parent, sibling, etc.). Home may be subject to estate recovery post-benefits.[1]
+- Functional impairment due to physical limitations (Alzheimer’s and dementia qualify as physical conditions).[1][2][4][7]
+- Require Nursing Facility Level of Care (NFLOC), assessed via Determination of Need Functional Assessment-Revised (DON-R) and Minimum Data Set Home Care (MDS-HC) by a nurse. Involves ADLs/IADLs like mobility, eating, toileting, meal prep, money management.[1]
+- Physician approval/certification of NFLOC and care plan.[2][3][4][6][7]
+- Unmet need for care; health/safety needs met by CCSP (not Medicare home health or hospice).[4]
+- Home Delivered Meals not the only service needed; must receive at least one other CCSP service.[4][6]
+- Home environment free of illegal behavior/threats.[4]
+- Agree to receive personal services in home; not required to be homebound.[2][4]
+- Medicaid eligible or potentially eligible (apply at county DFCS).[4][6][7]
+- Choose community over institutional care; one waiver program at a time.[4][7]
 
-**Benefits:** Respite care (in-home, out-of-home, daytime/overnight, emergency); personal support services; adult day health; home-delivered meals; skilled nursing/therapy in home; structured family caregiving (tax-exempt pay to caregivers at daily rate); NFCSP vouchers for respite/supplies; up to 5 hours/month at $6/hour first child, $2/hour siblings for medically fragile adoptive children.
+**Benefits:** Nutritionally balanced home-delivered meals. Provided as part of CCSP waiver; must receive alongside at least one other CCSP service (e.g., personal support, skilled nursing, therapy). No specific dollar amount, meal count, or hours per week stated; priority to those most in need.[4][6][7]
 - Varies by: priority_tier
 
 **How to apply:**
-- Phone: Georgia Center for Resources and Support for Adoptive & Foster Families at 1-866-272-7368 (medically fragile adoptive children).
-- Contact local Area Agency on Aging (AAA) via aging.georgia.gov (statewide caregiver support).
-- Medicaid waivers (CCSP, SOURCE): Apply through Georgia Department of Community Health at dch.georgia.gov/programs/hcbs/community-based-services.
-- Structured Family Caregiving: In-home assessment required.
-- NFCSP Grants and general respite: Through AAAs or Empowerline (Atlanta region).
+- Contact local Area Agency on Aging (AAA) for assessment (toll-free statewide number not specified; locate via aging.georgia.gov).[7]
+- Apply for Medicaid at county Department of Family and Children Services (DFCS).[4]
+- Referral or self-application via AAA.[6]
 
-**Timeline:** CCSP: 4-6 months wait; SOURCE: 2-3 months.
-**Waitlist:** Yes, common for CCSP (4-6 months) and SOURCE (2-3 months); varies by waiver and region.
+**Timeline:** Not specified in sources.
+**Waitlist:** Priority given to those most in need; services dependent on availability and continued eligibility.[6]
 
 **Watch out for:**
-- Not a single program—umbrella for Medicaid waivers (CCSP, SOURCE, COMP, NOW, EDWP), NFCSP grants via AAAs, Structured Family Caregiving, and adoptive child respite; eligibility ties to specific waiver.
-- Family members rarely paid as caregivers under CCSP consumer direction.
-- Long waitlists (2-6 months) for popular waivers; prioritize by need/stress index in some regions.
-- Medicaid eligibility mandatory for most substantive benefits; no universal free respite.
-- Adoptive respite limited to DFCS-placed medically fragile children under 18.
+- Home Delivered Meals requires at least one other CCSP service; not standalone.[4][6]
+- Must be Medicaid eligible (or potentially); income over $2,349/month needs trust or contributions.[3]
+- Home equity limit $752,000 (2026); potential estate recovery.[1]
+- Priority to most needy; waitlists possible.[6]
+- Not for homebound only; functional impairment via specific assessments required.[1][4]
+- Cannot combine with Medicare home health or hospice.[4]
+- One waiver program at a time.[4][7]
 
-**Data shape:** Multiple overlapping programs (Medicaid HCBS waivers + AAA/NFCSP grants) with priority tiers, regional AAA administration, and Medicaid gateway; benefits scale by waiver/need level, county caps on enrollment.
+**Data shape:** Bundled service within Medicaid CCSP waiver; eligibility tied to full NFLOC assessment and multiple criteria; no standalone meal program; local AAA administration with statewide standards but regional providers.
 
-**Our model can't capture:**
-- `asset_limits`: Our model has no asset limit fields
-- `regional_variations`: Program varies by region — our model doesn't capture this
-- `waitlist`: Has waitlist info — our model has no wait time field
-- `documents_required`: Has document checklist — our model doesn't store per-program documents
+**Source:** https://aging.georgia.gov/
 
-**Source:** https://aging.georgia.gov/tools-resources/caregiving
+---
+
+### Caregiver Respite Services (via Georgia Medicaid Home and Community-Based Services)
+
+> **NEW** — not currently in our data
+
+**Eligibility:**
+- Age: Varies by program: 60+ for Older Americans Act programs; 18+ for Comprehensive Supports Waiver Program (COMP) and New Options Waiver Program (NOW); medically fragile children for facility-based respite[1][5][6]+
+- Income: Not explicitly stated in search results. Respite care is authorized under Georgia Medicaid HCBS waivers, which typically require Medicaid enrollment or waiver program participation[5]. For Medicaid eligibility generally, applicants must meet Georgia Medicaid's financial criteria, but specific dollar amounts are not provided in available sources[1]
+- Assets: For CCSP (Community Care Services Program), home equity interest cannot exceed $752,000 as of 2026[2]. Other asset limits for respite-specific programs are not detailed in search results
+- Care recipient must have a documented disability, chronic illness, age-related condition, or special health care need[5][8]
+- Care recipient must require assistance with Activities of Daily Living (ADLs) or Instrumental Activities of Daily Living (IADLs)[1][2]
+- Care recipient must be capable of living safely in a family home with appropriate supports[1]
+- Caregiver must be an adult relative or friend providing informal but regular care[4]
+- Must be enrolled in Georgia Medicaid or a Medicaid Waiver program (COMP, NOW, EDWP)[1][5]
+- Functional assessment required to determine nursing facility level of care need[2]
+
+**Benefits:** Short-term, temporary care and supervision; limited to no more than 14 consecutive days and no more than 28 days total within any six-month period[6]. Specific hourly rates or dollar amounts not provided in search results
+- Varies by: program_type_and_waiver
+
+**How to apply:**
+- Contact regional DBHDD (Department of Behavioral Health and Developmental Disabilities) office to begin application process[1]
+- Georgia Department of Human Services Division of Aging Services (aging.georgia.gov) for information and assistance[7]
+- Individual program providers (e.g., Sally Panfel In-Home Care and Respite Program)[10]
+
+**Timeline:** Not specified in search results
+**Waitlist:** Not specified in search results
+
+**Watch out for:**
+- Respite care is strictly time-limited: maximum 14 consecutive days and 28 days total per six-month period[6]. This is not ongoing care but temporary relief only
+- Medicaid enrollment or waiver program participation is required; respite care is not a standalone program but a service within larger waiver programs[5]
+- Functional assessment by a nurse (MDS-HC) is required in-person; this is not a simple application[2]
+- Search results do not provide specific dollar amounts, hourly rates, or detailed benefit structures, making it difficult to compare value across providers
+- Eligibility criteria vary significantly by program (COMP, NOW, EDWP, CCSP, Older Americans Act programs), and families must determine which program their loved one qualifies for first[1][5]
+- For facility-based respite, the facility must meet DBHDD or DCH licensing requirements[5]
+- Processing timelines and waitlist status are not documented in available sources, creating uncertainty for planning
+
+**Data shape:** Respite care in Georgia is not a single unified program but a service available through multiple Medicaid waiver programs (COMP, NOW, EDWP) and non-Medicaid programs (Older Americans Act, State-Funded Alzheimer's Program). Eligibility, benefits, and application processes vary by which program the care recipient qualifies for. The service is strictly time-limited (28 days per six months) and requires prior functional assessment. Specific financial details (income limits, benefit amounts, processing times) are not provided in available search results, requiring families to contact regional offices directly for complete information.
+
+**Source:** aging.georgia.gov and Georgia Department of Behavioral Health and Developmental Disabilities (DBHDD)
 
 ---
 
@@ -459,104 +500,101 @@ Our data differs from what official sources say:
 
 **Eligibility:**
 - Age: 55+
-- Income: Family income at or below 125% of the federal poverty level. Exact dollar amounts vary annually by household size and are set by U.S. Department of Health and Human Services guidelines (not specified in sources for 2026; check current HHS poverty guidelines).
+- Income: Family income at or below 125% of the federal poverty level. Exact dollar amounts vary annually by household size and are set by U.S. Department of Health and Human Services guidelines (not specified in current sources for 2026; check HHS poverty guidelines for latest table).
 - Unemployed and seeking to re-enter the workforce
-- Poor employment prospects
-- Priority to veterans/qualified spouses, individuals over 65, those with disabilities, low literacy/limited English proficiency, rural residents, homeless/at risk, or failed American Job Center services
+- Low employment prospects
+- Priority for veterans and qualified spouses, individuals over 65, those with disabilities, low literacy or limited English proficiency, rural residents, homeless or at-risk, or those who failed to find employment via American Job Centers
 
-**Benefits:** Part-time community service training positions averaging 20 hours per week at the highest of federal, state, or local minimum wage (e.g., $7.25/hour noted in one source); job training, educational opportunities, job placement assistance, annual physical exams, social service referrals; up to 1300 hours annual service; goal of transition to unsubsidized full-time employment.
+**Benefits:** Part-time community service work (average 20 hours/week) at non-profit/public agencies (e.g., schools, hospitals, senior centers); paid highest of federal/state/local minimum wage (e.g., $7.25/hour noted in one source); on-the-job training; job placement assistance; up to 1300 hours annual service; co-enrollment for skills/education; annual physicals; social service referrals.
 - Varies by: priority_tier
 
 **How to apply:**
-- Contact current providers: Legacy Link (specific contact not in results) and AARP Foundation SCSEP (contact via aarp.org/aarp-foundation/our-work/income/scsep/)
-- Regional examples: Northwest Georgia - Keith Adams (706) 549-4850 or kadams@accaging.org; specific counties (Catoosa etc.) - Rachel Hunton at rhunton@accaging.org
-- Georgia Department of Labor/WorkSource Georgia for job search assistance (websites: dol.georgia.gov, worksourcegeorgia.com)
-- American Job Centers for employment assistance
+- Contact current providers: Legacy Link (details via provider search), AARP Foundation SCSEP (contact form or phone via aarp.org/aarp-foundation/our-work/income/scsep/)
+- Regional: Northwest GA (ACCA/Keith Adams at (706) 549-4850 or kadams@accaging.org; Rachel Hunton for specific counties at rhunton@accaging.org)
+- Northeast GA: Contact ACCA at (888) 808-8020
+- Georgia Dept of Labor/WorkSource Georgia for job search referrals (no direct SCSEP apps)
+- SCSEP Application (via regional providers like accaging.org)
 
+**Waitlist:** Likely due to limited slots (e.g., 236 participants in SFY2020 statewide); varies by region/provider
 
 **Watch out for:**
-- Georgia DHS ended state-administered SCSEP as of July 1, 2025; must contact private/non-profit providers like Legacy Link/AARP
-- Not a permanent job but paid training (20 hrs/wk) with rotations to build skills
-- Income test at 125% FPL strict; priority tiers affect enrollment
-- Availability limited to specific counties per provider; high demand may imply waitlists though not specified
+- Georgia DHS no longer administers directly as of July 1, 2025—must contact private/non-profit providers like Legacy Link/AARP
+- Not available in all 159 counties; confirm county coverage with provider
+- Limited slots (e.g., only 236 participants in 2020 statewide) lead to waitlists
+- Income test is strict at 125% FPL; includes total family income
+- Goal is transition to unsubsidized work—positions are temporary training (not permanent jobs)
+- Priority tiers may exclude non-priority applicants even if eligible
 
-**Data shape:** State administration ended 7/1/2025; now provider-specific by region/county with multiple grantees; benefits fixed at ~20 hrs/wk minimum wage; priority enrollment tiers; no asset test or fixed dollar benefits
+**Data shape:** Administered by multiple regional non-profit/state grantees post-2025 DHS exit; county-restricted availability; priority-based enrollment with waitlists; no fixed asset limits; income at 125% FPL scales by household size via federal table
 
-**Source:** https://aging.georgia.gov/programs-and-services/senior-community-service-employment-program-scsep (notes state no longer offers; contact providers)
+**Source:** https://aging.georgia.gov/programs-and-services/senior-community-service-employment-program-scsep (notes state transition); https://www.dol.gov/agencies/eta/seniors (federal)
 
 ---
 
-### Georgia Legal Assistance for Seniors (Elder Rights & Advocacy)
+### Legal Assistance for Older Georgians
 
+> **NEW** — not currently in our data
 
 **Eligibility:**
 - Age: 60+
-- Income: No income limits or means-testing; federal law prohibits income/asset tests. Program prioritizes those in greatest social and/or economic need, including low-income, LEP, rural, and minority seniors.[1][2][5]
-- Assets: No asset limits or means-testing; federal law prohibits asset tests.[2][5]
-- Resident of Georgia
-- Legal problem must be civil (not criminal)
-- Legal problem must be one ELAP handles (e.g., public benefits like SNAP/Medicaid denials, income/Social Security issues, health care access, long-term care, debt collection, housing, consumer issues/fraud, Medicare/Medicaid appeals, elder abuse/neglect/exploitation, defense of guardianship, advance directives, end-of-life issues)
-- Circumstances put life or well-being at risk or in danger[1][2]
+- Income: No statewide income limits set by ELAP; some providers like Georgia Legal Services Program (GLSP) use generally not more than 200% of federal poverty level, but ELAP standards require no income requirements[1][2][3]
+- Assets: No asset limits mentioned or required[1][3]
+- Live in Georgia
+- Legal problem is civil (not criminal)
+- Legal problem is one ELAP handles (e.g., abuse/neglect/exploitation, age discrimination, accessing health care, debt collection, housing, consumer fraud, Medicare fraud, advance directives, powers of attorney)
+- Circumstances put life or well-being at risk or in danger[1]
 
-**Benefits:** Free civil legal assistance including legal information, community education, brief advice, and direct case representation in priority areas such as accessing health care/long-term care, debt collection, housing, consumer issues/fraud, Medicare/Medicaid appeals, Social Security claims/hearings, elder abuse/neglect/exploitation, defense of guardianship, advance directives, end-of-life issues. Also includes Georgia Senior Legal Hotline for advice, brief service, referrals.[1][2][5]
+**Benefits:** Free legal help including advice, brief services, representation by attorneys/paralegals/law firms in priority civil cases such as abuse/neglect/exploitation, age discrimination, accessing health care, debt collection, housing, consumer fraud, Medicare fraud, advance directives, durable powers of attorney[1][4][8]
 - Varies by: priority_tier
 
 **How to apply:**
-- Contact local ELAP law firm serving your county via phone (county-specific numbers listed on https://aging.georgia.gov/tools-resources/elderly-legal-assistance-program)[1]
-- Georgia Senior Legal Hotline: (404) 389-9992 (statewide, Mon-Thu 9am-2pm)[5][6][8]
-- Area Agency on Aging (e.g., Coastal Regional: 1-888-220-8399)[4]
-- Aging and Disability Resource Connection: 866-552-4464 or https://aging.georgia.gov/adrc[1]
+- Contact local ELAP law firm by county (phone numbers listed by county on aging.georgia.gov/tools-resources/elderly-legal-assistance-program)
+- Georgia Senior Legal Hotline: (404) 389-9992 (Mon-Thu 9am-2pm, phone advice/brief service/referrals)
+- Aging and Disability Resource Connection: 866-552-4464 or aging.georgia.gov/adrc (if need more than legal help)
+- Regional examples: Coastal area Georgia Legal Services 1-888-220-8399[1][4][8]
+- Atlanta Legal Aid: (404) 389-9992, atlantalegalaid.org[7][8]
 
-**Timeline:** Not specified in sources
+**Timeline:** Not specified
 
 **Watch out for:**
-- Must be civil non-criminal matter in ELAP priority areas; not all civil issues qualify[1][2]
-- Prioritizes highest need; not guaranteed representation for all[2][5]
-- Contact county-specific provider, not central office; metro Atlanta counties use different orgs like Atlanta Legal Aid[1][3][6]
-- No means test, but voluntary contributions encouraged without discouraging use[2]
-- If multiple needs beyond legal, contact ADRC first[1]
+- Must contact specific law firm for your county, not a central office
+- Only civil non-criminal cases ELAP handles; problem must threaten life/well-being
+- No income test statewide but some providers apply one
+- Excludes certain Metro-Atlanta counties for some providers like GLSP
+- If need non-legal help too, use ADRC instead of direct law firm[1][2]
 
-**Data shape:** No income/asset tests (federally prohibited); county-specific local providers via 12 Area Agencies on Aging; prioritizes greatest social/economic need; two main programs (ELAP network + statewide Senior Legal Hotline)
-
-**Our model can't capture:**
-- `asset_limits`: Our model has no asset limit fields
-- `regional_variations`: Program varies by region — our model doesn't capture this
-- `documents_required`: Has document checklist — our model doesn't store per-program documents
+**Data shape:** No income or asset test required statewide per standards; county-specific providers and contacts; priority on cases threatening independence/well-being; Metro-Atlanta counties may have different access[1][3]
 
 **Source:** https://aging.georgia.gov/tools-resources/elderly-legal-assistance-program
 
 ---
 
-### Georgia Long-Term Care Ombudsman Program
+### Long-Term Care Ombudsman Program
 
 
 **Eligibility:**
-- Income: No income limits; available to all residents of qualifying long-term care facilities regardless of financial status[5][7][8]
-- Assets: No asset limits or financial tests apply[5][7][8]
-- Must be a resident of a long-term care facility including nursing homes, personal care homes, assisted living facilities, community living arrangements (CLAs), or intermediate care facilities for persons with intellectual and developmental disabilities (ICF/IDDs)[5][7][8]
+- Income: No income limits; available to all residents and anyone with concerns about long-term care facilities[2][3][4]
+- Assets: No asset limits; no financial eligibility requirements[4]
+- Resident of a long-term care facility in Georgia (nursing homes, personal care homes, assisted living, community living arrangements, or ICF/IDDs), or family/friend with a concern on their behalf. Requires resident permission for intervention[2][3]
 
-**Benefits:** Informal investigation and resolution of complaints on behalf of residents; routine facility visits to monitor conditions and talk to residents; education on long-term care issues and resident rights; advocacy for systemic changes; provision of resources and information on laws/policies governing facilities; promotion of resident/family/community involvement[5][6][7][8]
+**Benefits:** Investigates and resolves complaints; advocates for resident rights; provides information on long-term care; routine facility visits and monitoring; education for residents, families, staff, and communities; assistance with transfers/discharges, access to benefits; no charge for services[1][2][3][4][5]
 
 **How to apply:**
-- Phone: 1-866-552-4464 (select option 5)[8]
-- Website: https://www.georgiaombudsman.org[7][8]
+- Phone: 1-866-552-4464 (select option 5); Website: https://www.georgiaombudsman.org (locate community ombudsman by county); Local offices (e.g., State Ombudsman: 888/454-5826, Sowega COA for south GA, ACCA at 706.549-4850 for east GA); Email state ombudsman: bakurtz@dhr.state.ga.us[2][3][4][5]
 
-**Timeline:** No formal application or processing time; services provided upon contact for complaint resolution or assistance[5][7][8]
+**Timeline:** Not specified; focuses on informal resolution, no formal processing timeline mentioned[2][3]
 
 **Watch out for:**
-- This is not a program that provides direct care, financial aid, or placement services—it's purely advocacy and complaint resolution for existing facility residents[5][7][8]
-- Requires direct permission from resident or representative to intervene[5][7]
-- Not for community-dwelling elderly; only for those in specified long-term care facilities[7][8]
-- Certification and training details apply to ombudsman volunteers/staff, not residents seeking help[1][2][3]
+- Not a healthcare or financial aid program—purely advocacy and complaint resolution; requires resident permission to intervene; families can contact on behalf of loved one but ombudsman prioritizes resident's wishes; not for pre-admission qualification—services for those already in facilities; people miss that it's free and confidential with no eligibility barriers[1][2][3][4][5]
 
-**Data shape:** no income test; advocacy-only for residents of long-term care facilities; no formal eligibility application—contact-based; delivered via statewide network of AAAs/non-profits
+**Data shape:** no income test; statewide advocacy via 13 regional community providers; resident permission required; free service focused on rights protection and complaint resolution in facilities, not admission or direct care
 
 **Our model can't capture:**
 - `asset_limits`: Our model has no asset limit fields
 - `regional_variations`: Program varies by region — our model doesn't capture this
 - `documents_required`: Has document checklist — our model doesn't store per-program documents
 
-**Source:** https://www.georgiaombudsman.org[7]
+**Source:** https://aging.georgia.gov/programs-and-services/long-term-care-ombudsman-program or https://www.georgiaombudsman.org[3][2]
 
 ---
 
@@ -564,22 +602,23 @@ Our data differs from what official sources say:
 
 | Program | Type | Scope | Complexity |
 |---------|------|-------|------------|
-| Georgia Medicaid | benefit | state | deep |
-| Community Care Services Program (CCSP) a | benefit | state | deep |
-| Georgia PACE (Program of All-Inclusive C | benefit | local | deep |
-| Georgia SHIP (State Health Insurance Ass | resource | federal | simple |
-| Senior SNAP (Senior Supplemental Nutriti | benefit | federal | medium |
-| Georgia LIHEAP (Low Income Home Energy A | benefit | federal | deep |
-| Georgia Weatherization Assistance Progra | benefit | federal | deep |
-| Georgia Meals on Wheels (Home-Delivered  | benefit | federal | deep |
-| Georgia Caregiver Support (Respite and C | benefit | state | deep |
+| Medicaid Aged, Blind, and Disabled Progr | benefit | state | deep |
+| Elderly and Disabled Waiver Program (EDW | benefit | state | deep |
+| Program of All-Inclusive Care for the El | benefit | local | deep |
+| Qualified Medicare Beneficiary (QMB), Sp | benefit | federal | deep |
+| Supplemental Nutrition Assistance Progra | benefit | federal | deep |
+| Low Income Home Energy Assistance Progra | benefit | federal | deep |
+| Weatherization Assistance Program (WAP) | benefit | federal | deep |
+| Georgia State Health Insurance Assistanc | resource | federal | simple |
+| Home Delivered Meals (via Community Care | benefit | state | deep |
+| Caregiver Respite Services (via Georgia  | benefit | state | deep |
 | Senior Community Service Employment Prog | employment | federal | deep |
-| Georgia Legal Assistance for Seniors (El | resource | state | simple |
-| Georgia Long-Term Care Ombudsman Program | resource | federal | simple |
+| Legal Assistance for Older Georgians | resource | state | simple |
+| Long-Term Care Ombudsman Program | resource | federal | simple |
 
-**Types:** {"benefit":8,"resource":3,"employment":1}
-**Scopes:** {"state":4,"local":1,"federal":7}
-**Complexity:** {"deep":8,"simple":3,"medium":1}
+**Types:** {"benefit":9,"resource":3,"employment":1}
+**Scopes:** {"state":5,"local":1,"federal":7}
+**Complexity:** {"deep":10,"simple":3}
 
 ## Content Drafts
 
@@ -591,28 +630,29 @@ Generated 0 page drafts. Review in admin dashboard or `data/pipeline/GA/drafts.j
 ### Patterns Observed
 
 How benefits vary across these programs:
-- **priority_tier**: 6 programs
-- **region**: 2 programs
-- **not_applicable**: 2 programs
+- **priority_tier**: 8 programs
+- **Individual care plan developed by interdisciplinary team; not fixed by tier or priority level**: 1 programs
 - **household_size**: 1 programs
-- **household_size|priority_tier|region**: 1 programs
+- **not_applicable**: 2 programs
+- **program_type_and_waiver**: 1 programs
 
 ### Data Shape Notes
 
 Unique structural observations from each program:
 
-- **Georgia Medicaid**: Multiple programs/tiers (Nursing Home Medicaid, ABD, waivers like ICWP); income/asset limits higher for LTC; NFLOC assessment drives benefits; spousal impoverishment protections; estate recovery applies
-- **Community Care Services Program (CCSP) and SOURCE Waiver**: Tied to Medicaid NFLOC; financials follow LTC Medicaid (income capped at 300% FBR, strict assets); spousal rules complex; statewide via regional AAAs with priority-based allocation; CCSP for physical impairment (incl. dementia), SOURCE adds chronic condition focus
-- **Georgia PACE (Program of All-Inclusive Care for the Elderly)**: Not statewide—limited to provider service areas with ongoing expansion via state RFP; no direct income/asset test for core PACE but tied to Medicaid for free coverage; NFLOC certification Georgia-specific.
-- **Georgia SHIP (State Health Insurance Assistance Program)**: no income/asset test; volunteer-based counseling only, not direct benefits; delivered via statewide network of local partners with standardized free services
-- **Senior SNAP (Senior Supplemental Nutrition Assistance Program)**: Simplified SNAP application for seniors 60+/66+ with no earned income and fixed unearned income only; all household members must qualify; minimal verification via data matches; age threshold changes Feb 2026
-- **Georgia LIHEAP (Low Income Home Energy Assistance Program)**: Administered regionally by county agencies with priority for seniors 60+/homebound; benefits tiered by vulnerability and funding; income at 60% SMI with no asset test; direct vendor payments only.
-- **Georgia Weatherization Assistance Program**: Administered regionally by ~22 local community action agencies via GEFA; eligibility fixed at 200% FPL or SSI with priority tiers; services customized per home audit, not fixed dollar value.
-- **Georgia Meals on Wheels (Home-Delivered Meals via HCBS/CCSP)**: County-restricted with 12 AAAs coordinating local providers; priority tiers via assessments (NSI, DON-R); no fixed income/asset tables; varies heavily by region without central HCBS/CCSP linkage in data.
-- **Georgia Caregiver Support (Respite and Caregiving Programs)**: Multiple overlapping programs (Medicaid HCBS waivers + AAA/NFCSP grants) with priority tiers, regional AAA administration, and Medicaid gateway; benefits scale by waiver/need level, county caps on enrollment.
-- **Senior Community Service Employment Program (SCSEP)**: State administration ended 7/1/2025; now provider-specific by region/county with multiple grantees; benefits fixed at ~20 hrs/wk minimum wage; priority enrollment tiers; no asset test or fixed dollar benefits
-- **Georgia Legal Assistance for Seniors (Elder Rights & Advocacy)**: No income/asset tests (federally prohibited); county-specific local providers via 12 Area Agencies on Aging; prioritizes greatest social/economic need; two main programs (ELAP network + statewide Senior Legal Hotline)
-- **Georgia Long-Term Care Ombudsman Program**: no income test; advocacy-only for residents of long-term care facilities; no formal eligibility application—contact-based; delivered via statewide network of AAAs/non-profits
+- **Medicaid Aged, Blind, and Disabled Program (ABD Medicaid)**: ABD Medicaid has 19 different coverage categories (classes of assistance) with varying benefits.[4] Basic healthcare coverage is an entitlement program, but long-term care services are need- and availability-based, creating a two-tier structure. Income and asset limits are uniform statewide for 2026. The program requires both categorical eligibility (age 65+, blind, or disabled) AND financial eligibility (income and asset limits) AND functional need (for long-term care). Search results lack specific 2026 income limits, current processing times, waitlist information, and detailed regional office locations.
+- **Elderly and Disabled Waiver Program (EDWP)**: Tied to Medicaid with NFLOC; priority-based waitlist via AAAs; spousal protections with asset transfer rules; no fixed age but functional/physical criteria; benefits via care plan not fixed amounts
+- **Program of All-Inclusive Care for the Elderly (PACE)**: PACE is a highly localized program with significant geographic restrictions. Eligibility is largely standardized nationally (age 55+, nursing home level of care, ability to live safely in community, residency in service area), but availability varies dramatically by region. Georgia is actively expanding PACE as of April 2025, suggesting the program's footprint in the state is still developing. Income and asset limits follow federal Medicaid guidelines for most states, but Georgia-specific thresholds and alternative pathways were not found in available sources. Benefits are individualized by care plan rather than tiered, making them difficult to quantify in advance. The most critical first step for Georgia families is determining whether their county/area has a PACE program using Medicare's Find a PACE Plan tool.
+- **Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)**: Tiered by income (QMB<SLMB<QI); federal FPL-based with Georgia DFCS administration; resource limit shared across programs; couple vs individual budgeting; QI capped funding.
+- **Supplemental Nutrition Assistance Program (SNAP) - Senior SNAP in Georgia**: Simplified elderly-only application with no earned income, fixed income only, and medical/shelter deductions; age threshold rising to 66 in 2026; statewide but local DFCS processing; benefits scale by household size and net income after elderly-specific deductions.
+- **Low Income Home Energy Assistance Program (LIHEAP)**: Administered via county-specific Community Action Agencies with varying portals/phone lines; priority tiers for seniors/homebound; fixed min/max benefit with senior max; 60% SMI income test; county-residence restricted with separate budgets.
+- **Weatherization Assistance Program (WAP)**: Administered regionally by county-specific community action agencies with county contact list; income at 200% FPL or SSI; priority tiers; services determined by per-home energy audit.
+- **Georgia State Health Insurance Assistance Program (Georgia SHIP)**: no income test; counseling-only service with volunteer/local delivery model; prioritizes Medicare beneficiaries without barriers
+- **Home Delivered Meals (via Community Care Services Program)**: Bundled service within Medicaid CCSP waiver; eligibility tied to full NFLOC assessment and multiple criteria; no standalone meal program; local AAA administration with statewide standards but regional providers.
+- **Caregiver Respite Services (via Georgia Medicaid Home and Community-Based Services)**: Respite care in Georgia is not a single unified program but a service available through multiple Medicaid waiver programs (COMP, NOW, EDWP) and non-Medicaid programs (Older Americans Act, State-Funded Alzheimer's Program). Eligibility, benefits, and application processes vary by which program the care recipient qualifies for. The service is strictly time-limited (28 days per six months) and requires prior functional assessment. Specific financial details (income limits, benefit amounts, processing times) are not provided in available search results, requiring families to contact regional offices directly for complete information.
+- **Senior Community Service Employment Program (SCSEP)**: Administered by multiple regional non-profit/state grantees post-2025 DHS exit; county-restricted availability; priority-based enrollment with waitlists; no fixed asset limits; income at 125% FPL scales by household size via federal table
+- **Legal Assistance for Older Georgians**: No income or asset test required statewide per standards; county-specific providers and contacts; priority on cases threatening independence/well-being; Metro-Atlanta counties may have different access[1][3]
+- **Long-Term Care Ombudsman Program**: no income test; statewide advocacy via 13 regional community providers; resident permission required; free service focused on rights protection and complaint resolution in facilities, not admission or direct care
 
 ### Questions for Chantel's Review
 

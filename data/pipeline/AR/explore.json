@@ -4,108 +4,123 @@
   "state": "AR",
   "stateName": "Arkansas",
   "isRegion": false,
-  "exploredAt": "2026-04-09T08:47:30.729Z",
-  "programCount": 14,
+  "exploredAt": "2026-04-09T09:28:29.668Z",
+  "programCount": 16,
   "programs": [
     {
-      "name": "ARKansas Medicaid",
-      "what_it_does": "Provides medical coverage for eligible low-income seniors and disabled individuals, including long-term care services. In Arkansas, it covers nursing home care and coordinates with waiver programs for home-based alternatives.[1][3]",
-      "who_its_for": "Low-income seniors aged 65+ and disabled adults meeting income and asset limits.",
-      "official_url": "https://humanservices.arkansas.gov",
-      "benefit_value": "Varies by eligibility; covers doctor visits, hospital stays, prescriptions, and long-term care costs up to state maximums."
+      "name": "ARKansas Medicaid Long-Term Services and Supports (LTSS)",
+      "what_it_does": "Provides medical coverage for low-income seniors and disabled individuals, including long-term care services. In Arkansas, it covers nursing home care and home-based alternatives through waivers.[1][3]",
+      "who_its_for": "Low-income seniors aged 65+ and disabled individuals meeting income and asset limits.",
+      "official_url": "https://humanservices.arkansas.gov/divisions-shared-services/aging-adult-behavioral-health-services/find-home-community-based-services-for-adults-seniors/",
+      "benefit_value": "Varies by eligibility; covers eligible medical and long-term care costs."
     },
     {
       "name": "ARChoices in Homecare",
-      "what_it_does": "The ARChoices in Homecare program provides home- and community-based care services as an alternative to institutionalization for eligible individuals. Services include Attendant Care, Home-Delivered Meals, Personal Emergency Response Systems, Adult Day Services, Respite Care, and Environmental Adaptations.",
-      "who_its_for": "Individuals aged 21 and over; those 21-64 must have a physical disability per SSA/SSI, Railroad Retirement, or DHS criteria.",
-      "whats_unique": "Arkansas-specific Medicaid waiver program offering a tailored range of home-based services beyond standard federal Medicaid, focused on preventing nursing home placement.",
-      "official_url": "https://humanservices.arkansas.gov/divisions-shared-services/aging-adult-behavioral-health-services/find-home-community-based-services-for-adults-seniors/long-term-services-and-supports-ltss-medicaid-assistance/",
-      "benefit_value": "Full range of listed services plus standard Medicaid benefits; value varies by individual care plan (e.g., hours of attendant care, meals delivered)."
+      "what_it_does": "Offers home and community-based services waiver to help seniors avoid nursing homes. Provides personal care, adult day services, and homemaker assistance.[1][3]",
+      "who_its_for": "Seniors aged 65+ or disabled adults needing nursing home level care but preferring home living, meeting financial criteria.",
+      "official_url": "https://humanservices.arkansas.gov/learn-about-programs/programs-for-adults-seniors/",
+      "benefit_value": "Up to authorized hours of services per month based on care plan."
     },
     {
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
-      "what_it_does": "Delivers comprehensive medical and social services to frail seniors in community settings, including adult day health and home care, as an alternative to institutional care. In Arkansas, it coordinates all Medicare and Medicaid benefits for participants.[1]",
-      "who_its_for": "Seniors 55+ certified as nursing facility eligible, living in PACE service areas.",
+      "what_it_does": "Delivers comprehensive medical and social services to frail seniors in community settings. Includes adult day health, transportation, and home care as an alternative to institutional care.[1][3]",
+      "who_its_for": "Seniors aged 55+ certified for nursing home level care who can live safely in the community.",
       "official_url": "https://humanservices.arkansas.gov/learn-about-programs/programs-for-adults-seniors/",
-      "benefit_value": "Full capitation coverage of health and long-term care needs without copays."
+      "benefit_value": "All-inclusive capitated coverage for eligible services."
     },
     {
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
-      "what_it_does": "Assists with Medicare premiums, deductibles, and cost-sharing through Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), and Qualifying Individual (QI) programs. Arkansas administers these to reduce out-of-pocket costs for eligible seniors.[1]",
-      "who_its_for": "Low-income Medicare beneficiaries aged 65+ meeting specific income/asset thresholds (e.g., QMB up to 100% FPL).",
+      "what_it_does": "Pays Medicare premiums, deductibles, and copayments for eligible low-income seniors. QMB covers Part A/B premiums and costs; SLMB covers Part B; QI offers partial Part B help.[1]",
+      "who_its_for": "Low-income Medicare beneficiaries aged 65+ meeting specific income/asset thresholds.",
       "official_url": "https://humanservices.arkansas.gov/learn-about-programs/programs-for-adults-seniors/",
-      "benefit_value": "QMB covers all Medicare costs; SLMB/QI cover Part B premiums ($174.70/mo in 2024)."
+      "benefit_value": "Full or partial coverage of Medicare costs depending on program (e.g., QMB up to $1,255 individual income limit monthly)."
     },
     {
-      "name": "Supplemental Nutrition Assistance Program (SNAP)",
-      "what_it_does": "Provides monthly benefits via EBT card for purchasing groceries to combat food insecurity among seniors. Arkansas issues benefits based on household size and income.[1]",
-      "who_its_for": "Low-income seniors 60+ or households with elderly/disabled members.",
-      "official_url": "https://humanservices.arkansas.gov",
-      "benefit_value": "Average $200-300/month per eligible senior household."
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "what_it_does": "Provides monthly benefits via EBT card for purchasing food at approved retailers. Helps low-income households afford nutritious meals.[1]",
+      "who_its_for": "Low-income seniors aged 60+ with limited resources.",
+      "official_url": "https://humanservices.arkansas.gov/learn-about-programs/programs-for-adults-seniors/",
+      "benefit_value": "Average $200+ per month per eligible household, scaled by income."
     },
     {
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
-      "what_it_does": "Offers grants to help pay heating and cooling bills, crisis assistance, and weatherproofing for low-income households. Administered statewide through local agencies in Arkansas.[5]",
-      "who_its_for": "Low-income seniors and disabled individuals, prioritized for those 60+ or with health vulnerabilities.",
-      "official_url": "https://humanservices.arkansas.gov",
-      "benefit_value": "One-time grants of $200-1,000 per household annually."
+      "what_it_does": "Assists with heating and cooling bills, crisis aid, and weatherproofing for low-income homes. Administered through local agencies statewide.[5]",
+      "who_its_for": "Low-income households including seniors meeting federal poverty guidelines.",
+      "official_url": "https://humanservices.arkansas.gov/",
+      "benefit_value": "One-time grants averaging $300-$500 for energy bills."
     },
     {
       "name": "Weatherization Assistance Program",
-      "what_it_does": "Improves energy efficiency in low-income homes through insulation, sealing, and furnace repairs to reduce utility costs. Available via Arkansas agencies serving seniors.[5]",
-      "who_its_for": "Low-income homeowners/renters aged 60+, with priority for elderly and disabled.",
-      "official_url": "https://agingarkansas.org",
-      "benefit_value": "Free services valued at $5,000-8,000 per home."
+      "what_it_does": "Improves energy efficiency in low-income homes through insulation, sealing, and furnace repairs. Reduces utility costs and health risks from poor conditions.[5]",
+      "who_its_for": "Low-income seniors and disabled households prioritized.",
+      "official_url": "https://agingarkansas.org/what-services-are-available-for-low-income-seniors-in-arkansas/",
+      "benefit_value": "Free home improvements valued at $5,000+ per household."
     },
     {
       "name": "Senior Medicare Patrol (SMP)",
-      "what_it_does": "Provides free Medicare counseling and education to detect/prevent fraud, plus assistance with enrollment and appeals. Operates as SHIP equivalent in Arkansas.[1]",
-      "who_its_for": "All Medicare beneficiaries 65+, especially those needing billing or coverage help.",
+      "what_it_does": "Offers free Medicare counseling to detect fraud, waste, and abuse. Provides education and assistance navigating Medicare benefits.[1]",
+      "who_its_for": "All Medicare beneficiaries aged 65+, especially those at risk of scams.",
       "official_url": "https://humanservices.arkansas.gov/learn-about-programs/programs-for-adults-seniors/",
-      "benefit_value": "Free one-on-one counseling statewide."
+      "benefit_value": "Free one-on-one counseling and training sessions."
     },
     {
       "name": "Meals on Wheels",
-      "what_it_does": "Delivers nutritious home-delivered meals to homebound seniors, with options for 1-2 meals daily via Area Agencies on Aging. Also offers congregate meals at senior centers.[4][5]",
-      "who_its_for": "Homebound low-income seniors 60+ unable to prepare meals.",
+      "what_it_does": "Delivers nutritious meals to homebound seniors through Area Agencies on Aging. Promotes nutrition and reduces isolation with daily check-ins.[4][5]",
+      "who_its_for": "Homebound low-income seniors aged 60+ unable to prepare meals.",
       "official_url": "https://www.aaanwar.org",
-      "benefit_value": "5-10 meals/week at no/low cost (often free for low-income)."
+      "benefit_value": "1-2 free meals per day, 5 days a week."
     },
     {
       "name": "Family Caregiver Support Program",
-      "what_it_does": "Supports caregivers of seniors with respite care, training, counseling, and supplemental services to prevent burnout. Provided through Arkansas Area Agencies on Aging.[4]",
-      "who_its_for": "Family caregivers of adults 60+ with Alzheimer's or related disorders.",
+      "what_it_does": "Provides respite care, training, and support to family caregivers of seniors. Offers counseling and supplemental services to prevent caregiver burnout.[4]",
+      "who_its_for": "Family caregivers of seniors aged 60+ or grandparents raising children.",
       "official_url": "https://www.aaanwar.org",
-      "benefit_value": "Respite grants up to $1,600/year per caregiver."
+      "benefit_value": "Respite grants up to $1,600 annually plus training."
     },
     {
       "name": "Senior Community Service Employment Program (SCSEP)",
-      "what_it_does": "Offers part-time community service jobs with training for low-income seniors to gain work experience and transition to unsubsidized employment. Administered statewide.[1][3]",
-      "who_its_for": "Unemployed low-income individuals 55+ (minimum wage jobs at 20 hrs/week).",
+      "what_it_does": "Offers part-time paid community service jobs with training for older workers. Helps transition to unsubsidized employment.[1][3]",
+      "who_its_for": "Unemployed low-income seniors aged 55+.",
       "official_url": "https://humanservices.arkansas.gov/learn-about-programs/programs-for-adults-seniors/",
-      "benefit_value": "Wages ~$7.25-10/hr for up to 1,820 hrs/year."
+      "benefit_value": "Minimum wage work up to 20 hours/week."
     },
     {
-      "name": "Legal Aid for Seniors",
-      "what_it_does": "Provides free legal assistance for issues like benefits, housing, and abuse via Area Agencies on Aging and legal aid societies. Includes advice and representation.[5]",
-      "who_its_for": "Low-income seniors 60+ facing civil legal problems.",
-      "official_url": "https://agingarkansas.org",
-      "benefit_value": "Free consultations and representation valued at $200+/hr."
+      "name": "Legal Aid for Seniors (via Area Agencies on Aging)",
+      "what_it_does": "Provides free legal assistance for issues like benefits, housing, and abuse. Connects seniors to pro bono services through local AAAs.[5]",
+      "who_its_for": "Low-income seniors aged 60+ facing legal barriers.",
+      "official_url": "https://agingarkansas.org/what-services-are-available-for-low-income-seniors-in-arkansas/",
+      "benefit_value": "Free consultations and representation."
     },
     {
-      "name": "Long-term Care Ombudsman",
-      "what_it_does": "Advocates for residents in long-term care facilities, investigating complaints and ensuring quality care. Operates statewide through the Department of Human Services.[1]",
-      "who_its_for": "Residents of nursing homes, assisted living, and similar facilities in Arkansas.",
+      "name": "Long-Term Care Ombudsman",
+      "what_it_does": "Advocates for residents in nursing homes and assisted living. Investigates complaints and ensures quality care rights.[1]",
+      "who_its_for": "Seniors in long-term care facilities and their families.",
       "official_url": "https://humanservices.arkansas.gov/learn-about-programs/programs-for-adults-seniors/",
-      "benefit_value": "Free advocacy services resolving 80%+ of complaints."
+      "benefit_value": "Free advocacy and complaint resolution."
     },
     {
-      "name": "Family Caregiver Grant Program",
-      "what_it_does": "This grant program awards funds to procure respite services for caregivers of seniors with chronic illnesses. It is administered by Alzheimer’s Arkansas in partnership with CareLink.",
-      "who_its_for": "Caregivers of individuals aged 60+ with chronic illness living in Pulaski County (CareLink service area).",
-      "whats_unique": "Arkansas-specific grant via local organizations like CareLink and Alzheimer’s Arkansas, providing targeted respite funding not part of federal programs.",
+      "name": "Arkansas Property Tax Relief for Seniors",
+      "what_it_does": "Provides a credit against property taxes for eligible seniors to reduce housing costs. The program offers relief based on income and disability status, helping seniors remain in their homes.",
+      "who_its_for": "Arkansas residents aged 65+ or totally and permanently disabled, with household income under $50,000 (2023 limits).",
+      "whats_unique": "State-specific tax credit unique to Arkansas, not available in all states; supplements federal programs by directly reducing local property taxes.",
+      "official_url": "https://www.dfa.arkansas.gov/office/property-tax-administration/property-tax-relief",
+      "benefit_value": "Up to $400 credit per qualifying homestead, depending on income bracket."
+    },
+    {
+      "name": "Arkansas PACE (Program of All-Inclusive Care for the Elderly)",
+      "what_it_does": "Coordinates comprehensive primary, preventive, acute, and long-term care services at PACE centers, in homes, and inpatient facilities. A multidisciplinary team develops personalized care plans covering Medicare/Medicaid services plus additional needs.",
+      "who_its_for": "Individuals aged 55+ requiring nursing facility level of care but able to live safely in the community in served Arkansas counties.",
+      "whats_unique": "State-implemented PACE program with specific centers in Northwest, Northeast, and Western Arkansas; provides extras beyond standard federal Medicare/Medicaid not universally available.",
+      "official_url": "https://humanservices.arkansas.gov/divisions-shared-services/aging-adult-behavioral-health-services/find-home-community-based-services-for-adults-seniors/pace-program-of-all-inclusive-care-for-the-elderly/",
+      "benefit_value": "All approved Medicare/Medicaid services at no additional cost to dual-eligible participants; additional services as determined (e.g., transportation, home care)."
+    },
+    {
+      "name": "Family Caregiver Grant Program (Alzheimer’s Arkansas via CareLink)",
+      "what_it_does": "Awards grants to caregivers for respite services, allowing time for personal needs. Administered to support those caring for seniors with chronic illnesses.",
+      "who_its_for": "Caregivers of individuals 60+ with chronic illness living in Central Arkansas (Pulaski County).",
+      "whats_unique": "Arkansas-specific grant program focused on respite for caregivers in designated service areas, beyond standard federal caregiver support.",
       "official_url": "https://www.carelink.org/assistance-for-keeping-seniors-living-at-home/",
-      "benefit_value": "Grants for respite services; amount not specified but aimed at enabling caregivers to attend to personal needs (eligibility based solely on care recipient's age, condition, and location)."
+      "benefit_value": "Varies by grant award; funds respite services (amounts not fixed, based on application)."
     }
   ]
 }

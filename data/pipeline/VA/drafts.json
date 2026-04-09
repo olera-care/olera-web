@@ -1,41 +1,52 @@
 {
   "state": "VA",
   "stateName": "Virginia",
-  "draftedAt": "2026-04-09T09:04:09.750Z",
-  "total": 15,
-  "successful": 6,
+  "draftedAt": "2026-04-09T09:43:47.781Z",
+  "total": 16,
+  "successful": 3,
   "programs": [
     {
-      "id": "virginia-medicaid-aged-blind-disabled",
-      "name": "Medicaid for Persons Who are Aged, Blind, or Disabled (ABD)",
-      "shortName": "Virginia ABD Medicaid",
-      "tagline": "If your parent is 65+ with very low income, Virginia covers all medical care plus long-term care services at home or in a facility.",
+      "id": "virginia-medicaid-seniors-disabled",
+      "name": "Medicaid for Seniors/Disabled",
+      "shortName": "Virginia Medicaid ABD",
+      "tagline": "Health coverage for your parent if they're 65+ or disabled with limited income and assets.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local DSS offices statewide; e.g., Arlington DHS Public Assistance.",
+            "type": "service-area"
+          }
+        ]
       },
-      "intro": "If your parent is 65 or older with income below $851/month (single) or $1,150/month (married couple), Virginia Medicaid ABD covers all their medical care plus long-term care services. This includes doctor visits, hospital stays, prescription drugs, nursing home care, and personal care assistance at home. Because this program has full Medicaid benefits, your parent won't pay copays or deductibles — everything is covered.\n\nEven if your parent's income is slightly above these limits, they may still qualify through Virginia's \"spenddown\" program by accumulating medical bills, or get help with Medicare costs through Medicare Savings Programs. The asset limits are strict: $2,000 for a single person, $3,000 for a married couple, but the home doesn't count toward this limit.",
+      "intro": "If your parent is 65+ or disabled and has limited income and assets, Virginia Medicaid can cover their medical care, prescriptions, and long-term care services. This program provides comprehensive health coverage including doctor visits, hospital care, nursing home care, and home-based care services. Income limits range from $1,084/month for full coverage to $2,982/month for community-based care programs, with asset limits typically $2,000 for individuals.\n\nUnlike regular Medicaid, this program for aged, blind, and disabled (ABD) adults requires both income and asset tests. Your parent can keep their home and one car, but other savings and assets count toward the $2,000 limit. If their income is slightly over the limit, they may still qualify through a \"spenddown\" process using medical bills to reduce countable income.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Age 65+",
-          "Income below $851/month (single)",
-          "Assets under $2,000 (single)",
-          "Virginia resident"
+          "Age 65+ or disabled",
+          "Income typically under $2,982/month",
+          "Assets under $2,000 (individual)",
+          "Virginia resident",
+          "U.S. citizen or qualified immigrant"
         ],
         "ageRequirement": "65+",
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 851
+            "monthlyLimit": 1084
           },
           {
-            "householdSize": 2,
-            "monthlyLimit": 1150
+            "householdSize": 1,
+            "monthlyLimit": 1816
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2982
           }
         ],
         "assetLimits": {
@@ -43,119 +54,109 @@
           "couple": 3000,
           "countedAssets": [
             "Bank accounts",
-            "Investment accounts",
-            "Cash",
-            "Stocks and bonds"
+            "Savings",
+            "Stocks and bonds",
+            "Additional vehicles",
+            "Property other than primary home"
           ],
           "exemptAssets": [
-            "Primary home",
-            "One vehicle",
+            "Primary home where you live",
+            "One motor vehicle",
             "Personal belongings",
-            "Burial funds up to limits"
+            "Household items"
           ],
           "homeEquityCap": null
         },
         "functionalRequirement": null,
         "otherRequirements": [
-          "U.S. citizen or qualified immigrant",
-          "Virginia resident",
-          "Social Security number"
+          "Must be disabled (SSA/SSI determination or Medicaid assessment) or blind if under 65",
+          "U.S. citizen, permanent resident, refugee, or asylee",
+          "Virginia resident"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at coverva.dmas.virginia.gov or contact your local Department of Social Services office — processing time varies by county.",
+        "summary": "Apply online at Cover Virginia or through your local DSS office — processing takes 45-90 days.",
         "steps": [
           {
             "step": 1,
             "title": "Gather required documents",
-            "description": "Collect Social Security cards, bank statements from last 3 months, proof of all income sources, and immigration documents if not born in the U.S."
+            "description": "Collect Social Security cards, income statements, bank statements, insurance cards, and immigration documents if applicable."
           },
           {
             "step": 2,
-            "title": "Complete Cover Virginia application",
-            "description": "Fill out the online application at coverva.dmas.virginia.gov, including Appendix D for additional information, or visit your county DSS office for help."
+            "title": "Complete Cover Virginia Application",
+            "description": "Fill out the main application online at coverva.dmas.virginia.gov or get help at your local DSS office."
           },
           {
             "step": 3,
-            "title": "Submit to local DSS office",
-            "description": "Your county Department of Social Services office will review the application and may request additional documentation."
+            "title": "Submit Appendix D form",
+            "description": "Complete the separate ABD (Aged, Blind, Disabled) form — this covers the additional asset and disability requirements."
           },
           {
             "step": 4,
-            "title": "Attend interview if required",
-            "description": "Some counties require phone or in-person interviews to verify eligibility and discuss available services."
+            "title": "Attend disability assessment if needed",
+            "description": "If you're under 65 and not already receiving SSI, you may need a Medicaid Disability Unit evaluation."
           }
         ],
-        "processingTime": "Varies by county",
-        "waitlist": "Home and Community-Based Services may have waitlists depending on your area",
-        "tip": "If your parent receives SSI, they may already be eligible for Medicaid — check with your local DSS office before applying.",
+        "processingTime": "45-90 days",
+        "waitlist": "Possible for home and community-based services due to limited slots",
+        "tip": "Apply even if you think your parent's income is slightly too high — the spenddown process may still qualify them using medical bills.",
         "urls": [
           {
-            "label": "Cover Virginia Online Application",
+            "label": "Cover Virginia Application",
             "url": "https://coverva.dmas.virginia.gov"
           }
         ]
       },
       "contentSections": [
         {
-          "type": "income-table",
-          "heading": "Income Limits by Household Size",
-          "rows": [
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
             {
-              "householdSize": "Single person",
-              "monthlyLimit": "$851",
-              "annualLimit": "$10,212"
+              "name": "Full Coverage Medicaid",
+              "description": "Complete health coverage including long-term care",
+              "incomeLimit": "$1,084/month",
+              "coverage": "All medical services, prescriptions, nursing home, home care"
             },
             {
-              "householdSize": "Married couple (both 65+ or disabled)",
-              "monthlyLimit": "$1,150",
-              "annualLimit": "$13,800"
+              "name": "Limited Coverage Medicaid",
+              "description": "Basic health services only",
+              "incomeLimit": "$1,816/month",
+              "coverage": "Doctor visits, hospital care, prescriptions (no long-term care)"
+            },
+            {
+              "name": "Community Based Care",
+              "description": "Care hours based on need and income",
+              "incomeLimit": "$2,982/month",
+              "coverage": "Medical care plus home-based care services"
+            },
+            {
+              "name": "Medicare Savings Programs",
+              "description": "Help paying Medicare costs only",
+              "incomeLimit": "Varies by tier",
+              "coverage": "Medicare premiums, deductibles, co-pays"
             }
-          ],
-          "footnote": "2026 limits. Income includes Social Security, pensions, IRA withdrawals, and wages. $20/month unearned income disregard applies."
+          ]
         },
         {
           "type": "what-counts",
           "heading": "Asset Limits: What Counts",
           "included": [
-            "Bank accounts and cash",
-            "Investment accounts and stocks",
-            "Bonds and certificates of deposit",
-            "Additional vehicles beyond one",
-            "Real estate other than primary home"
+            "Bank accounts and savings",
+            "Stocks, bonds, investments",
+            "Second vehicles",
+            "Property other than primary home",
+            "Life insurance with cash value over $1,500"
           ],
           "excluded": [
-            "Primary home (no equity limit in Virginia)",
-            "One vehicle of any value",
+            "Primary home where your parent lives",
+            "One motor vehicle",
             "Personal belongings and household items",
-            "Burial plots and reasonable burial funds",
+            "Burial funds up to $1,500",
             "Life insurance with face value under $1,500"
-          ]
-        },
-        {
-          "type": "tier-comparison",
-          "heading": "Program Tiers",
-          "tiers": [
-            {
-              "name": "Full ABD Medicaid",
-              "description": "Complete medical and long-term care coverage",
-              "incomeLimit": "$851 single / $1,150 couple",
-              "coverage": "All medical care, nursing home, home care services, no copays"
-            },
-            {
-              "name": "Medically Needy Spenddown",
-              "description": "For those slightly over income limits",
-              "incomeLimit": "Above regular limits",
-              "coverage": "Same benefits after meeting monthly spenddown through medical bills"
-            },
-            {
-              "name": "Medicare Savings Programs",
-              "description": "Help with Medicare costs only",
-              "incomeLimit": "Higher limits than full Medicaid",
-              "coverage": "Medicare premiums, deductibles, and copays — no long-term care"
-            }
           ]
         },
         {
@@ -166,26 +167,23 @@
               "name": "Identity",
               "items": [
                 "Social Security card or proof of application",
-                "Birth certificate or passport",
-                "Immigration documents if not born in U.S. (green card, I-94, naturalization certificate)"
+                "Immigration documents (if not U.S.-born): alien registration card, I-94, passport"
               ]
             },
             {
               "name": "Financial",
               "items": [
-                "Bank statements from last 3 months",
-                "Social Security award letter or benefit statement",
-                "Pension statements and IRA withdrawal documentation",
-                "Pay stubs if still working",
-                "Investment account statements"
+                "Bank statements for all accounts",
+                "Pay stubs or Social Security award letters",
+                "Proof of any other income (pensions, investments)",
+                "Health insurance cards if applicable"
               ]
             },
             {
               "name": "Medical",
               "items": [
-                "Current health insurance cards",
-                "Medicare card if applicable",
-                "List of current medications and medical providers"
+                "Proof of disability (SSI award letter or medical records)",
+                "Recent medical bills if applying for spenddown"
               ]
             }
           ]
@@ -193,38 +191,38 @@
         {
           "type": "callout",
           "tone": "warning",
-          "text": "Home and Community-Based Services waivers may have waitlists. Apply as early as possible if your parent needs personal care assistance at home."
+          "text": "Home and community-based care services may have waitlists due to limited slots. Apply early if your parent needs these services."
         },
         {
           "type": "callout",
           "tone": "tip",
-          "text": "If your parent's income is just over the limit, don't give up. Virginia's spenddown program lets them qualify by accumulating medical bills each month — many seniors with ongoing medical expenses can meet this requirement."
+          "text": "Virginia recovers long-term care costs from estates after death. The state can place a lien on your parent's home if they receive nursing home or home care services."
         }
       ],
       "faqs": [
         {
-          "question": "Can Mom keep her house if she qualifies for ABD Medicaid?",
-          "answer": "Yes. Virginia excludes the primary home from asset calculations regardless of value. However, Virginia may recover some Medicaid costs from the estate after death through the estate recovery process."
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "They may still qualify through 'Medically Needy' spenddown. Virginia calculates how much their income exceeds the limit, and if their monthly medical bills meet or exceed that amount, they can get coverage for the rest of the month."
         },
         {
-          "question": "What if Dad's Social Security is $900/month — just over the $851 limit?",
-          "answer": "He may qualify through Virginia's Medically Needy spenddown program. Each month, he'd need to accumulate medical bills equal to the excess income amount before Medicaid coverage begins. Given ongoing medical expenses, many seniors can meet this requirement."
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes, the primary home where your parent lives is exempt from asset limits. However, Virginia may recover long-term care costs from the home's value after death through estate recovery."
         },
         {
-          "question": "Does receiving SSI automatically qualify my parent for Virginia Medicaid?",
-          "answer": "Most likely yes, but Virginia's automatic eligibility for SSI recipients isn't explicitly confirmed in state documentation. Contact your local Department of Social Services office to verify your parent's Medicaid status if they receive SSI."
+          "question": "Does my parent automatically qualify if they get SSI?",
+          "answer": "Not automatically in Virginia. They still need to apply through Cover Virginia and meet the income and asset tests, even with SSI benefits."
         },
         {
-          "question": "How long does it take to get approved and start receiving services?",
-          "answer": "Processing time varies by county and application completeness. Home care services may have additional waitlists depending on your area. Submit complete documentation upfront to avoid delays."
+          "question": "What's the difference between this and regular Medicaid?",
+          "answer": "This program tests both income and assets (regular Medicaid only tests income). It's specifically for people 65+ or disabled, with different income limits and coverage options including long-term care services."
         },
         {
-          "question": "What's the difference between ABD Medicaid and regular Medicaid?",
-          "answer": "ABD Medicaid is specifically for people 65+, blind, or disabled and includes long-term care services like nursing home care and personal care assistance. Regular Medicaid for younger adults typically doesn't cover these long-term care services."
+          "question": "How long does coverage last once approved?",
+          "answer": "Coverage continues as long as your parent meets the requirements. They'll need to renew annually and report any changes in income or assets that might affect eligibility."
         },
         {
-          "question": "Can my parents apply if one spouse needs care but the other doesn't qualify?",
-          "answer": "Yes. Each spouse applies individually. Virginia has special rules to protect the healthy spouse's income and assets when the other spouse needs long-term care through Medicaid."
+          "question": "Can my parent work and still qualify?",
+          "answer": "If your parent is disabled and under 65, they may qualify for 'Medicaid Works' which allows higher income for working individuals. People over 65 have more limited work income allowances."
         }
       ],
       "phone": null,
@@ -233,161 +231,10 @@
       "draftedAt": "2026-04-09"
     },
     {
-      "id": "virginia-hcbs-waiver",
-      "name": "Home and Community-Based Services (HCBS) Waiver",
-      "shortName": "HCBS Waiver",
-      "tagline": "Medicaid pays for home care services so your parent can avoid nursing home placement",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local Department of Social Services (DSS)",
-            "type": "service-area"
-          },
-          {
-            "name": "Local Community Services Board (CSB) for case management and assessments",
-            "type": "service-area"
-          },
-          {
-            "name": "LTSS screening team",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your parent needs nursing home-level care but wants to stay home, Virginia's HCBS Waiver can cover personal care, homemaker services, and other supports through Medicaid. Your parent must qualify for nursing facility admission within 30 days and meet strict Medicaid income and asset limits.\n\nThis waiver has limited slots with waitlists in most areas. Your local Community Services Board assigns priority scores based on need — highest scores get services first. The program covers individualized services based on a care plan assessment, but you cannot choose the waiver over immediate nursing home placement if your parent needs care right now.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Age 65+ or disabled",
-          "Medicaid income/asset limits",
-          "Nursing facility level of care",
-          "Choose community over institution"
-        ],
-        "ageRequirement": "65+",
-        "incomeTable": null,
-        "assetLimits": null,
-        "functionalRequirement": "Must qualify for nursing facility admission within 30 days (needs daily help with bathing, dressing, medication management, or other activities of daily living)",
-        "otherRequirements": [
-          "Must be Medicaid-eligible",
-          "Complete assessment by LTSS screening team",
-          "Choose community-based care over institutional placement"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "in-person",
-        "summary": "Contact your local Department of Social Services for Medicaid application and assessment — processing time varies by local office capacity.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Apply for Medicaid",
-            "description": "Contact your local Department of Social Services to apply for Medicaid and request HCBS Waiver assessment."
-          },
-          {
-            "step": 2,
-            "title": "Complete functional assessment",
-            "description": "LTSS screening team or CSB case manager conducts in-person assessment to determine if your parent meets nursing facility level of care."
-          },
-          {
-            "step": 3,
-            "title": "Submit waiver application",
-            "description": "If eligible, DSS worker provides formal waiver application forms specific to your parent's needs."
-          },
-          {
-            "step": 4,
-            "title": "Get priority score",
-            "description": "Local Community Services Board completes Critical Needs Summary to assign priority score for waitlist placement."
-          }
-        ],
-        "processingTime": "Not specified — varies by local office",
-        "waitlist": "Yes, slot-limited with waitlists common. Priority given to highest need scores with annual review.",
-        "tip": "Apply even if there's a waitlist — your parent's priority score can change if their condition worsens.",
-        "urls": []
-      },
-      "contentSections": [
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Financial",
-              "items": [
-                "Bank statements (all accounts)",
-                "Income records (Social Security, pensions, wages)",
-                "Asset documentation (investments, life insurance, property deeds)"
-              ]
-            },
-            {
-              "name": "Medical",
-              "items": [
-                "Doctor records showing daily care needs",
-                "Diagnosis documentation",
-                "Current medications list",
-                "Recent hospital or nursing home records"
-              ]
-            },
-            {
-              "name": "Identity",
-              "items": [
-                "Social Security card",
-                "Photo ID",
-                "Proof of Virginia residency"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "Slots are limited and waitlists are common. Your parent must meet exact nursing facility admission criteria — general frailty or needing some help is not enough."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Emergency slots may be available through DBHDS if your parent's situation becomes critical while on the waitlist."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Can Mom keep her house if she qualifies?",
-          "answer": "Yes, the primary home is typically exempt from Medicaid asset limits under spousal impoverishment protections. The exact rules depend on her specific situation and whether she has a spouse."
-        },
-        {
-          "question": "What if she needs nursing home care right now?",
-          "answer": "You cannot delay institutional placement to wait for waiver services. The waiver is only for people who can choose community care over nursing home admission — not those who need immediate institutional care."
-        },
-        {
-          "question": "How long is the waitlist in our area?",
-          "answer": "Waitlist times vary by local Community Services Board area and your parent's priority score. Contact your local CSB for current wait times and your parent's position on the list."
-        },
-        {
-          "question": "What services does the waiver actually cover?",
-          "answer": "Services are individualized based on your parent's care plan after assessment. This typically includes personal care, homemaker services, and therapies, but the specific services and hours depend on assessed needs."
-        },
-        {
-          "question": "Can we appeal if she's denied?",
-          "answer": "Yes, you can appeal Medicaid eligibility decisions and functional assessments. The denial notice will include appeal rights and deadlines."
-        },
-        {
-          "question": "What happens if her needs change while on the waitlist?",
-          "answer": "The Community Services Board reviews priority scores annually. If her condition worsens, her priority score may increase and move her up the waitlist."
-        }
-      ],
-      "phone": null,
-      "sourceUrl": "https://law.lis.virginia.gov/admincode/title12/agency30/chapter120/section920/",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
-    },
-    {
-      "id": "virginia-pace-elderly-care",
-      "name": "Program of All-Inclusive Care for the Elderly (PACE) in Virginia",
-      "shortName": "PACE Virginia",
-      "tagline": "Complete medical and social care coordination for parents who need nursing home-level help but want to stay home.",
+      "id": "virginia-pace-senior-care",
+      "name": "Virginia PACE (Program of All-Inclusive Care for the Elderly)",
+      "shortName": "Virginia PACE",
+      "tagline": "If your parent needs nursing home-level care but wants to stay home, PACE provides all medical services through one coordinated team.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -395,470 +242,98 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Specific locations listed in 'Virginia PACE Locations' document from DMAS; InnovAge PACE centers in Virginia",
+            "name": "Specific sites listed in DMAS 'Virginia PACE Locations' document (addresses, phones, websites for each PACE organization across Virginia).",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent needs significant daily help but wants to avoid a nursing home, PACE provides everything under one roof: all medical care, prescription drugs, adult day care, physical therapy, and even temporary nursing home stays when needed. Your parent gets one coordinated care team instead of juggling multiple doctors, specialists, and services.\n\nPACE has no income or asset limits — it's based entirely on medical need. Your parent must be certified as needing nursing facility level of care (daily help with bathing, dressing, medications, or mobility). About 90% of participants qualify for both Medicare and Medicaid, but neither is required to enroll.\n\nThe catch: PACE is only available in specific areas of Virginia, not statewide. Your parent must live within a PACE service area and cannot be enrolled in Medicare Advantage or hospice care.",
+      "intro": "If your parent is 55+ and at risk of nursing home placement, Virginia PACE may cover all their medical care through one coordinated team — allowing them to stay in their community. Because PACE becomes your parent's sole Medicare and Medicaid provider, they won't need to coordinate between different doctors, specialists, or facilities.\n\nPACE covers everything from primary care and prescription drugs to adult day care, physical therapy, and even nursing facility care if temporarily needed. Your parent must live in a PACE service area (not available statewide) and qualify medically for nursing facility level of care. Income limit: approximately $2,901/month for 2025. Asset limit: typically $2,000 (excluding home and one vehicle).\n\nOnly about 7% of PACE participants live in nursing facilities long-term — the program is designed to keep seniors in their communities with comprehensive support.",
       "savingsRange": "",
-      "savingsSource": "Free coordinated care service",
+      "savingsSource": "Free service",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 55+",
-          "Needs nursing home-level care",
-          "Lives in PACE service area",
-          "No income limits"
+          "Income below $2,901/month (2025)",
+          "Assets under $2,000",
+          "Needs nursing facility level of care",
+          "Lives in PACE service area"
         ],
         "ageRequirement": "55+",
         "incomeTable": null,
-        "assetLimits": null,
-        "functionalRequirement": "Must be certified by Virginia as needing nursing facility level of care (requires daily help with activities like bathing, dressing, medication management, or mobility)",
-        "otherRequirements": [
-          "Must live in a PACE organization's service area",
-          "Must be able to live safely at home or in PACE community with support",
-          "Cannot be enrolled in Medicare Advantage, Medicare prepayment plan, Medicare prescription drug plan, or hospice services"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "phone",
-        "summary": "Contact your local PACE organization directly for eligibility assessment — no standard application form.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Find your local PACE organization",
-            "description": "Check if your parent lives in a PACE service area and get contact information from the Virginia PACE locations list."
-          },
-          {
-            "step": 2,
-            "title": "Call for initial screening",
-            "description": "PACE staff will conduct a phone screening to determine if your parent meets basic eligibility requirements."
-          },
-          {
-            "step": 3,
-            "title": "Schedule assessment meeting",
-            "description": "PACE team members will meet with your parent to assess medical needs and certify nursing facility level of care."
-          },
-          {
-            "step": 4,
-            "title": "Care plan development",
-            "description": "If eligible, the interdisciplinary team creates a personalized care plan aligned with your parent's goals and needs."
-          }
-        ],
-        "processingTime": null,
-        "waitlist": null,
-        "tip": "Call early in the day — PACE organizations handle enrollment directly and can often schedule assessments quickly if your parent clearly meets the medical criteria.",
-        "urls": []
-      },
-      "contentSections": [
-        {
-          "type": "documents",
-          "heading": "What to Prepare",
-          "categories": [
-            {
-              "name": "Medical",
-              "items": [
-                "Documentation showing need for nursing facility level of care (hospital discharge papers, doctor's assessment, current care needs)",
-                "List of current medications and medical conditions",
-                "Medicare and Medicaid cards (if applicable)"
-              ]
-            },
-            {
-              "name": "Residence",
-              "items": [
-                "Proof of address within the PACE service area (utility bill, lease, mortgage statement)"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "PACE is not available statewide. Your parent must live within a specific PACE service area. Check local availability first before starting the application process."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "If your parent is currently in Medicare Advantage, they must disenroll before joining PACE. The PACE team can help coordinate this transition."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Can Mom keep her house and savings if she qualifies for PACE?",
-          "answer": "Yes. PACE has no income or asset limits. Your parent can keep their home, savings, and other assets regardless of value."
-        },
-        {
-          "question": "What if Dad is already in Medicare Advantage?",
-          "answer": "He must disenroll from Medicare Advantage before joining PACE, since he cannot be in both programs. The PACE team can help coordinate this transition timing."
-        },
-        {
-          "question": "Does PACE cover nursing home care if Mom needs it temporarily?",
-          "answer": "Yes. PACE covers temporary or permanent nursing facility stays when medically necessary. Only 7% of PACE participants live in nursing homes full-time — most receive care at home or in adult day centers."
-        },
-        {
-          "question": "How do I know if we live in a PACE service area?",
-          "answer": "Contact your closest PACE organization directly — they can tell you immediately if your parent's address is within their service area. Service areas are limited and specific to each PACE center location."
-        },
-        {
-          "question": "What happens if the PACE team says Dad doesn't need nursing home-level care?",
-          "answer": "If your parent doesn't meet the nursing facility level of care requirement, they cannot enroll in PACE. The assessment team will provide information about other community services that might help."
-        },
-        {
-          "question": "Can Mom see her current doctors if she joins PACE?",
-          "answer": "PACE provides all care through its own interdisciplinary team. Your parent would need to switch to PACE providers, but the team coordinates all medical care, specialists, and services under one program."
-        }
-      ],
-      "phone": null,
-      "sourceUrl": "https://www.dmas.virginia.gov/for-members/benefits-and-services/other-programs-and-guidelines/pace/",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
-    },
-    {
-      "id": "virginia-medicare-savings-programs",
-      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
-      "shortName": "Medicare Savings Programs",
-      "tagline": "If your parent earns less than $1,781/month, they may get help paying Medicare premiums, deductibles, and copays.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true
-      },
-      "intro": "If your parent struggles with Medicare costs, Virginia's Medicare Savings Programs can help pay their monthly premiums, deductibles, and copays. These federal programs have three tiers based on income: QMB covers all Medicare costs for those earning under $1,350/month, while SLMB and QI cover the $202.90/month Part B premium for higher incomes up to $1,781/month. Because qualifying for any tier automatically enrolls your parent in Extra Help for prescription drug costs, the total savings can exceed $3,000/year. Your parent must be enrolled in Medicare Part A and be a Virginia resident with assets under $9,950 (individual) or $14,910 (couple).",
-      "savingsRange": "$2,435 – $3,600/year in 2026",
-      "savingsSource": "Part B premium ($202.90/month) plus deductibles and copays for QMB tier",
-      "savingsVerified": true,
-      "structuredEligibility": {
-        "summary": [
-          "Income below $1,781/month",
-          "Assets under $9,950 (individual)",
-          "Enrolled in Medicare Part A",
-          "Virginia resident"
-        ],
-        "ageRequirement": null,
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 1781
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 2400
-          }
-        ],
         "assetLimits": {
-          "individual": 9950,
-          "couple": 14910,
+          "individual": 2000,
+          "couple": null,
           "countedAssets": [
-            "Money in checking or savings accounts",
-            "Stocks",
-            "Bonds"
+            "Bank accounts",
+            "Investments",
+            "Second vehicles (with exceptions)"
           ],
           "exemptAssets": [
-            "Your home",
-            "One car",
-            "Burial plot",
-            "Up to $3,500 set aside for burial expenses"
+            "Primary home",
+            "One vehicle",
+            "Burial plots"
           ],
           "homeEquityCap": null
         },
-        "functionalRequirement": null,
+        "functionalRequirement": "Must be certified as requiring nursing facility level of care through a clinical assessment (UAI screening) showing your parent needs daily help with activities like bathing, dressing, or medication management.",
         "otherRequirements": [
-          "Must be entitled to Medicare Part A",
-          "Must have both Part A and Part B to qualify for SLMB or QI",
-          "U.S. citizen or qualified alien"
+          "Live in a PACE service area",
+          "Be enrolled in Medicare or Medicaid",
+          "Able to safely live in community with PACE support"
         ],
-        "povertyLevelReference": null
+        "povertyLevelReference": "300% of SSI payment standard"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through your local Department of Social Services office in-person, by phone, or by mail — processing times vary by county.",
+        "summary": "Contact your local PACE provider directly — processing time varies by location and may include waitlists.",
         "steps": [
           {
             "step": 1,
-            "title": "Contact your county DSS office",
-            "description": "Call or visit your local Department of Social Services office to request a Virginia Medicaid application form."
+            "title": "Find your local PACE provider",
+            "description": "Check if PACE is available in your parent's area using the DMAS Virginia PACE Locations directory. Not all areas of Virginia have PACE."
           },
           {
             "step": 2,
-            "title": "Gather required documents",
-            "description": "Collect proof of Medicare enrollment, income statements, bank statements, citizenship documents, and Virginia residency proof."
+            "title": "Contact the PACE center directly",
+            "description": "Call the specific PACE organization in your area. Each has its own phone number and application process."
           },
           {
             "step": 3,
-            "title": "Submit completed application",
-            "description": "Return the application with all required documents to your county DSS office in-person, by mail, or by phone."
+            "title": "Request nursing facility level of care screening",
+            "description": "Your parent will need a formal clinical assessment (UAI screening) to determine if they qualify for nursing facility level of care."
           },
           {
             "step": 4,
-            "title": "Wait for determination",
-            "description": "Your county will review your application — contact your local office for current processing times."
-          }
-        ],
-        "processingTime": "Varies by county",
-        "waitlist": "QI program operates on first-come, first-served basis with limited federal funding",
-        "tip": "Apply early in the calendar year for QI since funding runs out — QMB and SLMB have no waitlists.",
-        "urls": [
-          {
-            "label": "Virginia Medicaid Information",
-            "url": "https://www.dmas.virginia.gov"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "income-table",
-          "heading": "Income Limits by Program Tier",
-          "rows": [
-            {
-              "category": "QMB (Qualified Medicare Beneficiary)",
-              "individual": "$1,350",
-              "couple": "$1,824",
-              "description": "Covers Part A and B premiums, deductibles, coinsurance, and copayments"
-            },
-            {
-              "category": "SLMB (Specified Low-Income Medicare Beneficiary)",
-              "individual": "$1,526 – $1,585",
-              "couple": "$2,064 – $2,135",
-              "description": "Covers Part B premium only ($202.90/month)"
-            },
-            {
-              "category": "QI (Qualifying Individual)",
-              "individual": "$1,715 – $1,781",
-              "couple": "$2,320 – $2,400",
-              "description": "Covers Part B premium only — first-come, first-served"
-            }
-          ],
-          "footnote": "2026 monthly gross income limits"
-        },
-        {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
-          "included": [
-            "Money in checking or savings accounts",
-            "Stocks",
-            "Bonds"
-          ],
-          "excluded": [
-            "Your home",
-            "One car",
-            "Burial plot",
-            "Up to $3,500 set aside for burial expenses"
-          ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity and Residency",
-              "items": [
-                "Proof of citizenship or qualified alien status",
-                "Proof of Virginia residency"
-              ]
-            },
-            {
-              "name": "Medicare",
-              "items": [
-                "Proof of Medicare Part A enrollment"
-              ]
-            },
-            {
-              "name": "Financial",
-              "items": [
-                "Recent pay stubs or Social Security statements",
-                "Bank statements",
-                "Investment statements",
-                "Tax returns or other income documentation"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "QI program funding is limited and operates first-come, first-served. Even if your parent meets income requirements, they may not be able to enroll if federal funding is exhausted for the year."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Qualifying for any Medicare Savings Program automatically enrolls your parent in Extra Help for prescription drug costs — this additional benefit can save $1,200+ annually and many families don't realize they're eligible."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Can my parent keep their house if they qualify?",
-          "answer": "Yes. Your parent's home does not count toward the $9,950 asset limit, regardless of value. They can own their home and still qualify."
-        },
-        {
-          "question": "What if Mom's income is just over the limit?",
-          "answer": "Virginia uses a $20 general income disregard, meaning income up to $20 above the stated limit may still qualify. For example, if your mom earns $1,370/month, she may still qualify for QMB despite the $1,350 limit."
-        },
-        {
-          "question": "Does Dad need both Part A and Part B to qualify?",
-          "answer": "For QMB, your dad only needs Part A. For SLMB and QI, he must have both Part A and Part B enrolled. If he only has Part A, he can only qualify for QMB."
-        },
-        {
-          "question": "How much will this actually save on Medicare costs?",
-          "answer": "QMB can save $3,000+ annually by covering the $202.90/month Part B premium plus all deductibles and copays. SLMB and QI save $2,435/year by covering just the Part B premium. All tiers include automatic Extra Help for prescriptions."
-        },
-        {
-          "question": "What happens if Mom gets approved but her income changes?",
-          "answer": "You must report income changes to your county DSS office. If her income goes above the limits, she may lose coverage. If it goes down, she might qualify for a higher tier with more benefits."
-        },
-        {
-          "question": "Can my parent apply if they already have Medicare Supplement insurance?",
-          "answer": "Yes, but if they qualify for QMB, they may not need their Medicare Supplement policy since QMB covers deductibles and copays. This could provide additional savings by eliminating the supplement premium."
-        }
-      ],
-      "phone": null,
-      "sourceUrl": "https://www.dmas.virginia.gov",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
-    },
-    {
-      "id": "virginia-snap-food-benefits",
-      "name": "Supplemental Nutrition Assistance Program (SNAP)",
-      "shortName": "SNAP",
-      "tagline": "Monthly grocery assistance for parents on fixed incomes — up to $298/month for one person.",
-      "programType": "benefit",
-      "complexity": "medium",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true
-      },
-      "intro": "If your parent is struggling to afford groceries on a fixed income, SNAP provides monthly money specifically for food purchases. In Virginia, eligible seniors receive $298/month for one person or $546/month for a couple — loaded onto an EBT card that works like a debit card at grocery stores. Because households with elderly or disabled members get special treatment, your parent may qualify even if their Social Security or pension puts them slightly over the standard income limits. Medical expenses over $35/month can be deducted from income calculations, potentially qualifying parents who initially appear to earn too much.",
-      "savingsRange": "$3,576 – $6,552/year in 2026",
-      "savingsSource": "Maximum SNAP allotments for 1-2 person households",
-      "savingsVerified": true,
-      "structuredEligibility": {
-        "summary": [
-          "Income below $2,152/month (single)",
-          "U.S. citizen or qualified immigrant",
-          "Virginia resident",
-          "Assets under $4,250 (age 60+)"
-        ],
-        "ageRequirement": null,
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 2152
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 2909
-          },
-          {
-            "householdSize": 3,
-            "monthlyLimit": 3665
-          },
-          {
-            "householdSize": 4,
-            "monthlyLimit": 4421
-          }
-        ],
-        "assetLimits": {
-          "individual": 4250,
-          "couple": 4250,
-          "countedAssets": [
-            "Cash",
-            "Bank accounts",
-            "Stocks and bonds"
-          ],
-          "exemptAssets": [
-            "Primary residence",
-            "Retirement accounts",
-            "Life insurance cash value",
-            "Household goods"
-          ],
-          "homeEquityCap": null
-        },
-        "functionalRequirement": null,
-        "otherRequirements": [
-          "Must live with people who buy and prepare food together",
-          "Work requirements for able-bodied adults without dependents"
-        ],
-        "povertyLevelReference": "165% FPL"
-      },
-      "applicationGuide": {
-        "method": "online",
-        "summary": "Apply online through Virginia's CommonHelp system — processing time not specified by the state.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Gather income documents",
-            "description": "Social Security statements, pension records, bank statements from the last month, and medical expense receipts if over $35/month"
-          },
-          {
-            "step": 2,
-            "title": "Apply online at CommonHelp",
-            "description": "Create account and click 'Apply for All Benefit Programs' — use the Simplified SNAP Application if all household members are 60+"
-          },
-          {
-            "step": 3,
-            "title": "Submit required documents",
-            "description": "Upload proof of Virginia residency, citizenship, income, and medical expenses through the CommonHelp portal"
-          },
-          {
-            "step": 4,
-            "title": "Complete interview if required",
-            "description": "Most elderly households skip this step if using the Simplified Application"
+            "title": "Complete financial eligibility review",
+            "description": "Provide income and asset documentation to determine Medicaid financial eligibility under Virginia's rules."
           }
         ],
         "processingTime": null,
-        "waitlist": null,
-        "tip": "If all household members are 60+ with no job income, use the Simplified SNAP Application for a 3-year approval instead of yearly renewals.",
+        "waitlist": "Possible regional waitlists vary by PACE site",
+        "tip": "Call your local PACE provider first to confirm availability in your area — this program is not statewide.",
         "urls": [
           {
-            "label": "Apply at CommonHelp",
-            "url": "https://commonhelp.virginia.gov/"
+            "label": "Virginia PACE Program Information",
+            "url": "https://www.dmas.virginia.gov/for-members/benefits-and-services/other-programs-and-guidelines/pace/"
           }
         ]
       },
       "contentSections": [
         {
-          "type": "income-table",
-          "heading": "Income Limits by Household Size",
-          "rows": [
-            {
-              "householdSize": 1,
-              "monthlyLimit": "$2,152",
-              "annualLimit": "$25,824"
-            },
-            {
-              "householdSize": 2,
-              "monthlyLimit": "$2,909",
-              "annualLimit": "$34,908"
-            },
-            {
-              "householdSize": 3,
-              "monthlyLimit": "$3,665",
-              "annualLimit": "$43,980"
-            },
-            {
-              "householdSize": 4,
-              "monthlyLimit": "$4,421",
-              "annualLimit": "$53,052"
-            }
-          ],
-          "footnote": "For Oct. 1, 2025 - Sept. 30, 2026. Higher limits (165% FPL) apply to most Virginia households."
-        },
-        {
           "type": "what-counts",
           "heading": "Asset Limits: What Counts",
           "included": [
-            "Cash and checking/savings accounts",
-            "Stocks, bonds, and other investments",
-            "Vehicles beyond one per household member"
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Second vehicles (with some exceptions)",
+            "Cash value of life insurance over $1,500"
           ],
           "excluded": [
-            "Primary residence and the land it sits on",
-            "Retirement accounts (401k, IRA, pension plans)",
-            "Life insurance cash value",
-            "Household goods and personal belongings",
-            "Income-producing property"
+            "Primary home (where your parent lives)",
+            "One vehicle",
+            "Burial plots and funeral contracts",
+            "Personal belongings and household items"
           ]
         },
         {
@@ -869,69 +344,77 @@
               "name": "Identity & Residency",
               "items": [
                 "Driver's license or state ID",
-                "Utility bill or lease showing Virginia address",
-                "Birth certificate or passport for citizenship"
+                "Proof of address in PACE service area",
+                "Social Security card"
               ]
             },
             {
               "name": "Financial",
               "items": [
+                "Bank statements from last 3 months",
                 "Social Security award letter",
-                "Pension statements",
-                "Bank statements from last month",
-                "Medical bills and receipts (if over $35/month)",
-                "Rent or mortgage payment records"
+                "Pension or retirement income statements",
+                "Property deeds or rental agreements"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medicare card",
+                "Medicaid card (if enrolled)",
+                "Current medication list",
+                "Medical records showing need for daily care assistance"
               ]
             }
           ]
         },
         {
           "type": "callout",
-          "tone": "tip",
-          "text": "Medical expenses over $35/month can be deducted from your parent's income calculation. This includes prescription costs, doctor visits, and medical equipment — potentially qualifying them even if Social Security puts them over the basic income limit."
+          "tone": "warning",
+          "text": "PACE is only available in specific areas of Virginia. You must live in a PACE service area to qualify — check availability before starting the application process."
         },
         {
           "type": "callout",
-          "tone": "warning",
-          "text": "Only about half of eligible seniors apply for SNAP despite qualifying. Many don't realize that Social Security recipients can still qualify, especially when medical expenses are factored in."
+          "tone": "tip",
+          "text": "Once enrolled, PACE becomes your parent's sole provider for all Medicare and Medicaid services. They cannot use other doctors or facilities for covered services without PACE approval."
         }
       ],
       "faqs": [
         {
-          "question": "Can Mom keep her house and still qualify for SNAP?",
-          "answer": "Yes. Your parent's primary residence and the land it sits on don't count toward the $4,250 asset limit for seniors. The house value is completely exempt regardless of how much it's worth."
+          "question": "Can Mom keep her house if she qualifies for PACE?",
+          "answer": "Yes. Your parent's primary home does not count toward the $2,000 asset limit. PACE is specifically designed to help seniors stay in their communities rather than move to nursing facilities."
         },
         {
-          "question": "What if her Social Security puts her just over the income limit?",
-          "answer": "Medical expenses over $35/month can be deducted from her income calculation. Prescription costs, doctor visits, and medical equipment all count. This often brings seniors under the income threshold even when Social Security initially appears too high."
+          "question": "What if her income is just over the $2,901 limit?",
+          "answer": "She may still qualify through Medicaid spend-down rules, where excess income can be applied to medical expenses. Contact your local PACE provider to discuss options — Virginia's Medicaid long-term care rules may allow higher income in some situations."
         },
         {
-          "question": "Does Dad's pension count as income for SNAP?",
-          "answer": "Yes. Social Security, pensions, disability payments, and veteran benefits all count toward the income limits. However, elderly households get special deductions for medical and shelter expenses that can lower their countable income."
+          "question": "Can she still see her current doctors after joining PACE?",
+          "answer": "No. PACE becomes the sole provider of all Medicare and Medicaid services. Your parent will need to use PACE's interdisciplinary team of doctors and specialists. However, this team coordinates all care, eliminating the need to manage multiple providers."
         },
         {
-          "question": "How long does SNAP approval last for seniors?",
-          "answer": "If all household members are 60+ with no job income, they can use the Simplified Application and get approved for 3 years instead of the standard 12 months. No interview required and much less paperwork."
+          "question": "What happens if PACE isn't available in our area?",
+          "answer": "PACE is not statewide in Virginia. If it's not available in your parent's area, look into Virginia's Medicaid waiver programs like the Elderly or Disabled with Consumer Direction (EDCD) waiver, which also helps seniors avoid nursing home placement."
         },
         {
-          "question": "Can you use SNAP benefits to buy prepared food?",
-          "answer": "Generally no. SNAP covers groceries you prepare at home — bread, meat, vegetables, dairy. You cannot use SNAP for hot prepared foods, alcohol, tobacco, or non-food items like soap or vitamins."
+          "question": "How is this different from regular Medicare and Medicaid?",
+          "answer": "PACE combines Medicare and Medicaid benefits into one coordinated program with additional services like adult day care and respite care. Instead of managing multiple providers, one interdisciplinary team handles all medical care, therapy, and support services."
         },
         {
-          "question": "What happens if we don't report changes in Mom's income?",
-          "answer": "You must report changes in household members, earned income, and any lottery or gambling winnings over $4,250. Social Security cost-of-living increases don't need to be reported. Failure to report required changes can result in benefit overpayments that must be repaid."
+          "question": "Can she leave PACE if she doesn't like it?",
+          "answer": "Yes. PACE enrollment is voluntary and your parent can disenroll at any time. However, leaving PACE may affect her prior Medicare and Medicaid coverage, so discuss the implications with the PACE team before disenrolling."
         }
       ],
       "phone": null,
-      "sourceUrl": "https://www.dss.virginia.gov/benefit/snap.cgi",
+      "sourceUrl": "https://www.dmas.virginia.gov/for-members/benefits-and-services/other-programs-and-guidelines/pace/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-09"
     },
     {
-      "id": "virginia-liheap-energy-assistance",
-      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
-      "shortName": "LIHEAP Energy Help",
-      "tagline": "Get $200–700 toward your parent's heating and cooling bills if they're on a fixed income.",
+      "id": "virginia-medicare-savings-programs",
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings",
+      "tagline": "If your parent struggles with Medicare premiums and deductibles, they may qualify for help paying $1,000–4,000+ annually in Medicare costs.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -939,122 +422,137 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Virginia Department of Social Services offices",
+            "name": "Local Department of Social Services offices (locator: dss.virginia.gov/localagency)",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent struggles to pay heating or cooling bills on a fixed income, LIHEAP can provide $200–700 per year paid directly to their utility company. Because payments go straight to the utility, your parent won't handle the money — it automatically reduces their next bill.\n\nHouseholds with members 60+ get priority, but any Virginia resident making less than $1,956/month (single person) can qualify. The program offers both regular annual assistance and emergency crisis help up to $4,200 for heating emergencies or pending shut-offs. You must reapply every year, even if your parent received help before.",
-      "savingsRange": "$200 – $700/year in 2026",
-      "savingsSource": "Regular heating assistance maximum $703, cooling assistance maximum $700",
+      "intro": "If your parent is on Medicare and struggling with premiums, deductibles, or copays, three Virginia programs can help pay these costs. The Qualified Medicare Beneficiary (QMB) program covers all Medicare cost-sharing including premiums, deductibles, and copays. The Specified Low-Income Medicare Beneficiary (SLMB) and Qualifying Individual (QI) programs cover Medicare Part B premiums only — saving roughly $1,980 per year in 2026.\n\nThese programs have different income limits: QMB for those earning up to about $1,350/month ($1,824/month for couples), SLMB up to roughly $1,620/month single, and QI up to about $1,823/month single. Because you qualify based on income level, your parent automatically gets Extra Help with prescription drug costs too.\n\nYou must apply through your local Virginia Department of Social Services office — there's no statewide online application. The QI program has limited federal funding and may have waitlists.",
+      "savingsRange": "$1,980 – $4,000+/year in 2026",
+      "savingsSource": "Medicare Part B premiums plus deductibles and copays for QMB enrollees",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Income below $1,956/month (single person)",
-          "U.S. citizen or qualifying foreigner",
-          "Must participate with utility provider",
-          "Priority for households with members 60+"
+          "Must have Medicare Part A",
+          "Income below $1,350-1,823/month (single)",
+          "Assets below $9,660 (single)"
         ],
         "ageRequirement": null,
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 1956
+            "monthlyLimit": 1350
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 2644
-          },
-          {
-            "householdSize": 3,
-            "monthlyLimit": 3331
-          },
-          {
-            "householdSize": 4,
-            "monthlyLimit": 4018
-          },
-          {
-            "householdSize": 5,
-            "monthlyLimit": 4707
-          },
-          {
-            "householdSize": 6,
-            "monthlyLimit": 5394
+            "monthlyLimit": 1824
           }
         ],
-        "assetLimits": null,
+        "assetLimits": {
+          "individual": 9660,
+          "couple": 14470,
+          "countedAssets": [
+            "Checking and savings accounts",
+            "Stocks and bonds",
+            "CDs and investment accounts"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Burial plot",
+            "Up to $3,500 for burial expenses"
+          ],
+          "homeEquityCap": null
+        },
         "functionalRequirement": null,
         "otherRequirements": [
-          "U.S. citizen or qualifying foreigner",
-          "Must participate with utility provider"
+          "Must be entitled to Medicare Part A",
+          "Must have Medicare Part B for SLMB/QI programs",
+          "U.S. citizen or qualified immigrant",
+          "Virginia resident"
         ],
-        "povertyLevelReference": "150% FPL"
+        "povertyLevelReference": "100-135% FPL"
       },
       "applicationGuide": {
-        "method": "multiple",
-        "summary": "Apply online at commonhelp.virginia.gov or call 855-635-4370 — notification typically comes in late December.",
+        "method": "in-person",
+        "summary": "Apply at your local Virginia Department of Social Services office — typically takes 45 days to process.",
         "steps": [
           {
             "step": 1,
-            "title": "Gather recent utility bills and income proof",
-            "description": "Collect your parent's most recent utility bills, Social Security statements, and proof of address like a rent receipt or property tax bill."
+            "title": "Find your local DSS office",
+            "description": "Use the office locator at dss.virginia.gov/localagency to find your parent's local Department of Social Services office."
           },
           {
             "step": 2,
-            "title": "Apply online or call your local social services office",
-            "description": "Submit the EA (Energy Assistance) application through commonhelp.virginia.gov or call 855-635-4370. You can also visit your local Department of Social Services office."
+            "title": "Gather required documents",
+            "description": "Collect proof of income (Social Security awards, bank statements), Medicare card showing Parts A and B, and asset documentation."
           },
           {
             "step": 3,
-            "title": "For emergencies, mention crisis assistance",
-            "description": "If your parent has a shut-off notice or heating emergency, specifically request LIHEAP Crisis assistance — this provides up to $4,200 and has separate seasonal windows."
-          }
-        ],
-        "processingTime": "Notification in late December for some components; varies by type (regular vs. crisis)",
-        "waitlist": null,
-        "tip": "Apply early — even if you qualify, assistance isn't guaranteed due to funding limits.",
-        "urls": [
-          {
-            "label": "Apply Online",
-            "url": "https://commonhelp.virginia.gov"
+            "title": "Complete the MEDS application",
+            "description": "Fill out the Medicaid application form (available at the office or download from dss.virginia.gov/benefit_programs/msp.html)."
           },
           {
-            "label": "Official Program Info",
-            "url": "https://www.dss.virginia.gov/benefit/ea/"
+            "step": 4,
+            "title": "Submit application in person or by mail",
+            "description": "Bring or mail the completed application and documents to your local DSS office."
+          }
+        ],
+        "processingTime": "Typically 45 days",
+        "waitlist": "QI program may have waitlists due to limited federal funding",
+        "tip": "Apply for QMB first if income qualifies — it provides the most comprehensive coverage and has priority over other programs.",
+        "urls": [
+          {
+            "label": "Medicare Savings Programs - Virginia DSS",
+            "url": "https://www.dss.virginia.gov/benefit_programs/msp.html"
+          },
+          {
+            "label": "Find Local DSS Office",
+            "url": "https://www.dss.virginia.gov/localagency"
           }
         ]
       },
       "contentSections": [
         {
-          "type": "income-table",
-          "heading": "Income Limits by Household Size",
-          "rows": [
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
             {
-              "householdSize": 1,
-              "monthlyLimit": 1956
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Most comprehensive coverage",
+              "incomeLimit": "Up to $1,350/month (single), $1,824/month (couple)",
+              "coverage": "All Medicare Part A premiums, Part B premiums, deductibles, coinsurance, and copays"
             },
             {
-              "householdSize": 2,
-              "monthlyLimit": 2644
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Part B premium help only",
+              "incomeLimit": "Higher than QMB up to ~$1,620/month (single)",
+              "coverage": "Medicare Part B premiums only (~$1,980/year savings)"
             },
             {
-              "householdSize": 3,
-              "monthlyLimit": 3331
-            },
-            {
-              "householdSize": 4,
-              "monthlyLimit": 4018
-            },
-            {
-              "householdSize": 5,
-              "monthlyLimit": 4707
-            },
-            {
-              "householdSize": 6,
-              "monthlyLimit": 5394
+              "name": "QI (Qualifying Individual)",
+              "description": "Part B premium help with potential waitlist",
+              "incomeLimit": "Higher than SLMB up to ~$1,823/month (single)",
+              "coverage": "Medicare Part B premiums only (~$1,980/year savings)"
             }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Checking and savings accounts",
+            "Stocks, bonds, and investment accounts",
+            "Certificates of deposit",
+            "Cash value of life insurance over $1,500"
           ],
-          "footnote": "2026 limits, approximately 150% Federal Poverty Level"
+          "excluded": [
+            "Primary home (no equity limit)",
+            "One vehicle of any value",
+            "Burial plot and burial space",
+            "Up to $3,500 set aside for burial expenses",
+            "Household goods and personal belongings"
+          ]
         },
         {
           "type": "documents",
@@ -1063,24 +561,25 @@
             {
               "name": "Identity & Residency",
               "items": [
-                "Social Security numbers for all household members",
-                "Birth certificates or proof of citizenship/legal residency",
-                "Proof of address (rent receipt, lease, deed, or property tax bill)"
+                "Birth certificate or passport",
+                "Social Security card",
+                "Proof of Virginia residency (utility bill, lease)"
+              ]
+            },
+            {
+              "name": "Medicare",
+              "items": [
+                "Medicare card showing Part A and Part B coverage",
+                "Social Security award letters"
               ]
             },
             {
               "name": "Financial",
               "items": [
-                "Recent utility bills",
-                "Proof of income (Social Security statements, payroll stubs, unemployment benefits, pension, disability payments)"
-              ]
-            },
-            {
-              "name": "For Crisis Assistance",
-              "items": [
-                "Shut-off notice from utility company",
-                "Heating emergency documentation",
-                "Furnace repair estimates or notices"
+                "Bank statements from last 3 months",
+                "Stock and bond statements",
+                "Burial fund statements (if claiming exclusion)",
+                "Pay stubs if still working"
               ]
             }
           ]
@@ -1088,59 +587,67 @@
         {
           "type": "callout",
           "tone": "warning",
-          "text": "Important: Your household includes everyone living at the address who shares the utility bill — roommates count toward household size and income limits."
+          "text": "QI program has limited federal funding and uses a first-come, first-served waitlist. If your parent's income qualifies for multiple programs, apply for QMB or SLMB first as they have guaranteed funding."
         },
         {
           "type": "callout",
           "tone": "tip",
-          "text": "Even if your parent received LIHEAP last year, they must reapply annually. Qualifying doesn't guarantee assistance due to limited funding."
+          "text": "Income and asset limits change every January with federal poverty level adjustments. If your parent was previously denied, they may qualify now with updated limits — contact your local DSS office to verify current figures."
         }
       ],
       "faqs": [
         {
-          "question": "What if my parent's income is just over the limit?",
-          "answer": "Unfortunately, LIHEAP has strict income limits. If your parent's gross monthly income exceeds the limit for their household size, they won't qualify. However, check if anyone else living there should count as part of the household — only people who share the utility bill count."
+          "question": "Can my parent keep their house and car if they qualify?",
+          "answer": "Yes. The primary home has no equity limit and one vehicle of any value is completely exempt from asset counting."
         },
         {
-          "question": "Can my parent get both regular assistance and crisis help?",
-          "answer": "Yes, these are separate programs. Regular LIHEAP provides $200–700 annually. Crisis assistance provides up to $4,200 for heating emergencies but requires proof of emergency like a shut-off notice or broken heating equipment."
+          "question": "What if Mom's income is just over the QMB limit?",
+          "answer": "She may still qualify for SLMB (up to ~$1,620/month) or QI (up to ~$1,823/month) which both cover Medicare Part B premiums worth about $1,980/year. Virginia may also disregard certain types of income."
         },
         {
-          "question": "How does the money get to my parent?",
-          "answer": "LIHEAP pays the utility company directly — your parent never handles the cash. The payment appears as a credit on their next utility bill, reducing what they owe."
+          "question": "Will doctors still bill my parent for Medicare costs if they have QMB?",
+          "answer": "No. Providers are prohibited from billing QMB enrollees for any Medicare cost-sharing. Your parent just needs to show their Medicaid card along with their Medicare card at appointments."
         },
         {
-          "question": "What counts as a heating emergency for crisis assistance?",
-          "answer": "Qualifying emergencies include: imminent utility shut-off (you have a notice), heating equipment that's broken or unsafe, or you're completely out of fuel. You'll need documentation like shut-off notices or repair estimates."
+          "question": "Does qualifying for this affect other benefits my parent receives?",
+          "answer": "No, it typically helps. Your parent automatically qualifies for Extra Help with prescription drug costs and may become eligible for other programs. It doesn't reduce Social Security or other benefits."
         },
         {
-          "question": "My parent applied last year — do they need to reapply?",
-          "answer": "Yes, you must reapply every year even if your parent received assistance before. LIHEAP doesn't automatically renew — each year requires a new application with current income and utility information."
+          "question": "How long does the application take and when do benefits start?",
+          "answer": "Applications typically take 45 days to process. If approved, benefits can be retroactive to the month of application, and Virginia will pay back any Medicare costs your parent paid during that time."
         },
         {
-          "question": "Does my parent's savings account affect eligibility?",
-          "answer": "No, Virginia LIHEAP has no asset limits. Your parent's savings, checking accounts, or other assets don't count — only monthly income matters for eligibility."
+          "question": "What happens if my parent's income changes after they're approved?",
+          "answer": "Report income changes to your local DSS office promptly. Small increases may not affect eligibility, but large changes could. They'll reassess annually, and your parent may move between program tiers based on new income."
         }
       ],
       "phone": "855-635-4370",
-      "sourceUrl": "https://www.dss.virginia.gov/benefit/ea/",
+      "sourceUrl": "https://www.dss.virginia.gov/benefit_programs/msp.html",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
       "name": "Weatherization Assistance Program (WAP)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Virginia Insurance Counseling and Assistance Program (VICAP) - Virginia's SHIP",
+      "name": "State Health Insurance Assistance Program (SHIP)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Home Delivered Meals (Meals on Wheels)",
+      "name": "Home Delivered Meals",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Virginia Lifespan Respite Voucher Program (VLRVP)",
+      "name": "Virginia Lifespan Respite Voucher Program",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
@@ -1161,6 +668,14 @@
     },
     {
       "name": "Virginia Adult Services Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "No Wrong Door System",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "SeniorNavigator",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     }
   ],

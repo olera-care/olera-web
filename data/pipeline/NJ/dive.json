@@ -1,353 +1,672 @@
 {
   "state": "NJ",
   "stateName": "New Jersey",
-  "diveAt": "2026-04-09T08:56:40.921Z",
-  "total": 6,
-  "parsed": 6,
+  "diveAt": "2026-04-09T09:38:26.657Z",
+  "total": 11,
+  "parsed": 11,
   "programs": [
     {
-      "name": "Stay NJ",
+      "name": "NJ FamilyCare Aged, Blind, Disabled (ABD) Medicaid Programs",
       "eligibility": {
-        "age": "65 years old as of December 31, 2025, OR receiving Federal Social Security Disability benefits (any age)[4][7]",
-        "income_limits": "Annual household income must be $500,000 or less[2][4][6]. This applies to combined income if married or in a civil union living in the same home[4]. No household size variations are specified in available sources.",
-        "asset_limits": "No asset limits mentioned in available sources",
+        "age": 65,
+        "income_limits": "Varies by program. SSI recipients are automatically eligible. Medicaid Only: income and resources under SSI standards (not specified in sources). New Jersey Care/Special Medicaid: ≤100% Federal Poverty Level ($1,255/month single, $1,704/month couple in 2024; $1,350/month single, $1,763/month couple in 2025). NJRAER ABD: slightly higher than SSI, up to $1,350/month individual or $1,763 couple (2025). Household considered with spouse or parents.[1][2][4][6]",
+        "asset_limits": "Medicaid Only: under SSI resource standards. New Jersey Care/Special: $4,000 single, $6,000 couple (2024). 5-year look-back on asset transfers for LTSS applicants. What counts: financial accounts/resources; exemptions not detailed in sources.[1][6]",
         "other_requirements": [
-          "Must be a homeowner (not a mobile home owner)[2][4][7]",
-          "Must have owned and lived in the New Jersey home as primary residence for the entire calendar year 2025[4][7]",
-          "Property must be subject to property taxes[1]",
-          "Must be a New Jersey resident[2]"
+          "Live in New Jersey",
+          "U.S. citizen or qualified immigrant (e.g., legal permanent resident)",
+          "Blind or disabled per SSA or NJ DMAHS (under 65), or age 65+",
+          "For LTSS: meet nursing facility level of care",
+          "No intent to leave NJ",
+          "SSI not required but auto-eligible if receiving",
+          "5-year financial disclosure for LTSS[1][2][4][6]"
         ]
       },
       "benefits": {
-        "type": "financial",
-        "value": "Reimburses 50% of property tax bill, up to a maximum of $13,000, with a 2025 benefit cap of $6,500[4]. For 2026 calendar year, payments are halved to a maximum of $3,250 due to fiscal/calendar year differences[6]",
-        "varies_by": "fixed (though maximum credit increases annually at the same rate as state average property tax bill[6])",
-        "important_note": "If applicant also receives ANCHOR or Senior Freeze benefits, Stay NJ benefits are reduced by those amounts. Combined benefits from all three programs cannot exceed $6,500 or 50% of property tax bill, whichever is less[4][6]"
+        "type": "service",
+        "value": "Comprehensive health care coverage for nearly all needs, including Medicare premiums/costs if dual eligible (Medicare primary). Long-term services/supports (LTSS/MLTSS) for those meeting nursing facility level of care: managed long-term care services. Exact services/hours not detailed; covers doctor visits, hospital, prescriptions, etc.[1][2][5]",
+        "varies_by": "priority_tier"
       },
       "application": {
         "methods": [
-          "Online: propertytaxrelief.nj.gov[4] (requires ID.me identity verification with driver's license, state ID, passport card, or passport)[6]",
-          "Mail: Paper application booklets mailed by Treasury's Division of Taxation to eligible households[4]",
-          "Combined application available: Form PAS-1 allows filing for Stay NJ, ANCHOR, and Senior Freeze simultaneously[3][4]"
-        ],
-        "processing_time": "Not specified in available sources",
-        "waitlist": "Not mentioned in available sources",
-        "forms": [
-          "Form PAS-1 (combined Property Tax Relief Application for Stay NJ, ANCHOR, and Senior Freeze)[3][4]"
-        ],
-        "documents": [
-          "2024 and 2025 NJ gross income information (from NJ state tax return)[4]",
-          "2024 and 2025 property tax bills[4]",
-          "Social Security number(s)[4]",
-          "Date(s) of birth[4]",
-          "Current address (for applicant and any co-owner/applicant)[4]",
-          "Proof of income[3]"
-        ],
-        "deadline": "November 2, 2026 for 2025 application[4]"
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "Available statewide in New Jersey[4]",
-        "regional_variations": null,
-        "offices_or_providers": "Applications processed through NJ Department of Taxation, Division of Taxation. No specific regional offices mentioned."
-      },
-      "official_source": "https://www.nj.gov/treasury/taxation/ptr/eligibility.shtml and propertytaxrelief.nj.gov[4]",
-      "gotchas": [
-        "Mobile homeowners are NOT eligible, even though they may qualify for Senior Freeze[4][7]",
-        "Must have owned AND lived in the home for the entire calendar year 2025 — not just owned it[4][7]",
-        "Income limit is significantly higher ($500,000) than Senior Freeze ($172,475 for 2025)[1][4], but benefits are reduced if receiving other property tax relief programs",
-        "For 2026 calendar year, benefits are halved ($3,250 max instead of $6,500) due to fiscal year timing[6]",
-        "Benefits from ANCHOR or Senior Freeze directly reduce Stay NJ benefits — they don't stack[4][6]",
-        "Must verify identity through ID.me for online filing, requiring specific government-issued ID[6]",
-        "This is a newer program (started fiscal year 2026) compared to Senior Freeze and ANCHOR[6]"
-      ],
-      "data_shape_notes": "Stay NJ is a simplified program compared to Senior Freeze: it has a much higher income limit ($500,000 vs. $172,475), no asset limits mentioned, and provides a straightforward 50% property tax credit up to $6,500. However, it explicitly excludes mobile homeowners and requires full-year ownership/occupancy. The program is designed to incentivize seniors to remain in New Jersey and can be combined with ANCHOR and Senior Freeze through a single application (Form PAS-1), though benefits are capped across all three programs combined.",
-      "_raw": "```json\n{\n  \"name\": \"Stay NJ\",\n  \"eligibility\": {\n    \"age\": \"65 years old as of December 31, 2025, OR receiving Federal Social Security Disability benefits (any age)[4][7]\",\n    \"income_limits\": \"Annual household income must be $500,000 or less[2][4][6]. This applies to combined income if married or in a civil union living in the same home[4]. No household size variations are specified in available sources.\",\n    \"asset_limits\": \"No asset limits mentioned in available sources\",\n    \"other_requirements\": [\n      \"Must be a homeowner (not a mobile home owner)[2][4][7]\",\n      \"Must have owned and lived in the New Jersey home as primary residence for the entire calendar year 2025[4][7]\",\n      \"Property must be subject to property taxes[1]\",\n      \"Must be a New Jersey resident[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Reimburses 50% of property tax bill, up to a maximum of $13,000, with a 2025 benefit cap of $6,500[4]. For 2026 calendar year, payments are halved to a maximum of $3,250 due to fiscal/calendar year differences[6]\",\n    \"varies_by\": \"fixed (though maximum credit increases annually at the same rate as state average property tax bill[6])\",\n    \"important_note\": \"If applicant also receives ANCHOR or Senior Freeze benefits, Stay NJ benefits are reduced by those amounts. Combined benefits from all three programs cannot exceed $6,500 or 50% of property tax bill, whichever is less[4][6]\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: propertytaxrelief.nj.gov[4] (requires ID.me identity verification with driver's license, state ID, passport card, or passport)[6]\",\n      \"Mail: Paper application booklets mailed by Treasury's Division of Taxation to eligible households[4]\",\n      \"Combined application available: Form PAS-1 allows filing for Stay NJ, ANCHOR, and Senior Freeze simultaneously[3][4]\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not mentioned in available sources\",\n    \"forms\": [\n      \"Form PAS-1 (combined Property Tax Relief Application for Stay NJ, ANCHOR, and Senior Freeze)[3][4]\"\n    ],\n    \"documents\": [\n      \"2024 and 2025 NJ gross income information (from NJ state tax return)[4]\",\n      \"2024 and 2025 property tax bills[4]\",\n      \"Social Security number(s)[4]\",\n      \"Date(s) of birth[4]\",\n      \"Current address (for applicant and any co-owner/applicant)[4]\",\n      \"Proof of income[3]\"\n    ],\n    \"deadline\": \"November 2, 2026 for 2025 application[4]\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide in New Jersey[4]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": \"Applications processed through NJ Department of Taxation, Division of Taxation. No specific regional offices mentioned.\"\n  },\n  \"official_source\": \"https://www.nj.gov/treasury/taxation/ptr/eligibility.shtml and propertytaxrelief.nj.gov[4]\",\n  \"gotchas\": [\n    \"Mobile homeowners are NOT eligible, even though they may qualify for Senior Freeze[4][7]\",\n    \"Must have owned AND lived in the home for the entire calendar year 2025 — not just owned it[4][7]\",\n    \"Income limit is significantly higher ($500,000) than Senior Freeze ($172,475 for 2025)[1][4], but benefits are reduced if receiving other property tax relief programs\",\n    \"For 2026 calendar year, benefits are halved ($3,250 max instead of $6,500) due to fiscal year timing[6]\",\n    \"Benefits from ANCHOR or Senior Freeze directly reduce Stay NJ benefits — they don't stack[4][6]\",\n    \"Must verify identity through ID.me for online filing, requiring specific government-issued ID[6]\",\n    \"This is a newer program (started fiscal year 2026) compared to Senior Freeze and ANCHOR[6]\"\n  ],\n  \"data_shape_notes\": \"Stay NJ is a simplified program compared to Senior Freeze: it has a much higher income limit ($500,000 vs. $172,475), no asset limits mentioned, and provides a straightforward 50% property tax credit up to $6,500. However, it explicitly excludes mobile homeowners and requires full-year ownership/occupancy. The program is designed to incentivize seniors to remain in New Jersey and can be combined with ANCHOR and Senior Freeze through a single application (Form PAS-1), though benefits are capped across all three programs combined.\"\n}\n```\n\n## Key Takeaways for Families\n\n**Who qualifies:** Homeowners 65+ (or any age receiving Social Security Disability) with household income under $500,000 who have owned and lived in their NJ home for all of 2025.[4][7]\n\n**What they get:** Up to $6,500 in property tax relief (50% of bill, capped at $13,000).[4] Note: 2026 payments are reduced to $3,250 maximum due to fiscal year timing.[6]\n\n**The critical difference from Senior Freeze:** Stay NJ has a much higher income limit ($500,000 vs. $172,475 for 2025), making it accessible to more seniors, but it explicitly excludes mobile homeowners.[1][4][7]\n\n**The stacking issue:** If your loved one qualifies for multiple programs (Stay NJ, ANCHOR, Senior Freeze), benefits don't add up—they're capped at $6,500 combined across all three.[4][6]\n\n**Application:** Use the combined Form PAS-1 at propertytaxrelief.nj.gov, which handles all three programs at once.[4] Deadline: November 2, 2026.[4]"
-    },
-    {
-      "name": "Senior Freeze (Property Tax Reimbursement)",
-      "eligibility": {
-        "age": "65 or older as of December 31 of the application year, OR receiving federal Social Security disability benefits, OR receiving Railroad Retirement disability benefits[6]",
-        "income_limits": "As of 2024-2025 applications: $163,050 or less annual gross income (includes all sources: Social Security, pensions, wages, etc.)[3] Note: Income limits have expanded significantly—prior years had lower thresholds ($99,735 in earlier years)[1]",
-        "asset_limits": "Not specified in available sources",
-        "other_requirements": [
-          "New Jersey residency: 3 years continuous residence as of December 31 of the application year (reduced from 10 years as of 2024)[3]",
-          "Homeownership: Must own and have lived in principal residence (main home) continuously since the base year through the application year[2]",
-          "Must meet all eligibility requirements for each year from base year through application year[2]",
-          "Mobile home owners are eligible if they pay mobile home park site fees[1]"
-        ]
-      },
-      "benefits": {
-        "type": "financial",
-        "value": "Reimbursement for property tax or mobile home park site fee increases above your base year amount. You receive the difference between your base year (first year of eligibility) property tax and current year property tax, as long as current year is higher[1]",
-        "varies_by": "individual_property_tax_history—not a fixed dollar amount, but calculated based on your specific tax increase from your base year"
-      },
-      "application": {
-        "methods": [
-          "Online: propertytaxrelief.nj.gov[6]",
-          "Mail-in form: Available at NJ Division of Taxation website[5]",
-          "Phone: Senior Freeze (Property Tax Reimbursement) Hotline: 1-800-882-6597[8]"
-        ],
-        "processing_time": "Not specified in available sources",
-        "waitlist": "Not mentioned in available sources",
-        "forms": [
-          "Combined PAS-1 form (2025 application year) covers Senior Freeze, ANCHOR, and Stay NJ programs[6]",
-          "Previously: Form PTR-1 or Form PTR-2 (older application years)[8]"
-        ],
-        "documents": [
-          "Social Security number (first listed on application)[8]",
-          "ZIP code of principal residence[8]",
-          "Copy of application (recommended to have available when calling for support)[8]",
-          "Proof of residency and homeownership since base year",
-          "Income documentation (Social Security statements, W-2s, 1099s, etc.)[3]"
-        ]
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "None specified—program operates statewide in New Jersey",
-        "regional_variations": null,
-        "offices_or_providers": "Administered by NJ Division of Taxation; applications processed centrally through combined PAS-1 system[5]"
-      },
-      "official_source": "https://www.nj.gov/treasury/taxation/ptr/",
-      "gotchas": [
-        "This program does NOT actually freeze your taxes—it reimburses you for increases after you're enrolled[1]",
-        "Your base year is locked in when you first qualify. If your municipality reassesses property taxes, your base year may change[4]",
-        "You must meet eligibility requirements every single year from base year through application year—if you become ineligible one year, you may lose the benefit[2]",
-        "Income limits include ALL gross income (Social Security, pensions, wages, etc.)—not just earned income[3]",
-        "The program recently expanded (2024): income limits increased from $99,735 to $163,050, and residency requirement dropped from 10 years to 3 years. Previous applicants should recheck eligibility[3]",
-        "Railroad Retirement disability benefits now qualify as of 2025 (recent law change)—previously only Social Security disability qualified[6]",
-        "Previous Senior Freeze recipients will see major changes: new combined application form, different income standards, and no longer need to calculate reimbursement themselves[4]",
-        "For returning applicants: your base year property tax/mobile home site fees will be prefilled on the 2025 PAS-1 form[6]",
-        "This is a reimbursement program, not a tax credit—you pay property taxes first, then receive reimbursement checks from the state[1]"
-      ],
-      "data_shape_notes": "Benefits are individualized and calculated based on each applicant's specific property tax history (base year vs. current year), not a fixed dollar amount or tier system. The program recently underwent significant expansion (2024-2025): income limits increased substantially, residency requirements shortened, and the application was consolidated into a single combined form covering three programs (Senior Freeze, ANCHOR, Stay NJ). Eligibility is determined annually and must be maintained each year. The program is statewide with no regional variations in benefits or eligibility, administered centrally by NJ Division of Taxation.",
-      "_raw": "```json\n{\n  \"name\": \"Senior Freeze (Property Tax Reimbursement)\",\n  \"eligibility\": {\n    \"age\": \"65 or older as of December 31 of the application year, OR receiving federal Social Security disability benefits, OR receiving Railroad Retirement disability benefits[6]\",\n    \"income_limits\": \"As of 2024-2025 applications: $163,050 or less annual gross income (includes all sources: Social Security, pensions, wages, etc.)[3] Note: Income limits have expanded significantly—prior years had lower thresholds ($99,735 in earlier years)[1]\",\n    \"asset_limits\": \"Not specified in available sources\",\n    \"other_requirements\": [\n      \"New Jersey residency: 3 years continuous residence as of December 31 of the application year (reduced from 10 years as of 2024)[3]\",\n      \"Homeownership: Must own and have lived in principal residence (main home) continuously since the base year through the application year[2]\",\n      \"Must meet all eligibility requirements for each year from base year through application year[2]\",\n      \"Mobile home owners are eligible if they pay mobile home park site fees[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Reimbursement for property tax or mobile home park site fee increases above your base year amount. You receive the difference between your base year (first year of eligibility) property tax and current year property tax, as long as current year is higher[1]\",\n    \"varies_by\": \"individual_property_tax_history—not a fixed dollar amount, but calculated based on your specific tax increase from your base year\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: propertytaxrelief.nj.gov[6]\",\n      \"Mail-in form: Available at NJ Division of Taxation website[5]\",\n      \"Phone: Senior Freeze (Property Tax Reimbursement) Hotline: 1-800-882-6597[8]\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not mentioned in available sources\",\n    \"forms\": [\n      \"Combined PAS-1 form (2025 application year) covers Senior Freeze, ANCHOR, and Stay NJ programs[6]\",\n      \"Previously: Form PTR-1 or Form PTR-2 (older application years)[8]\"\n    ],\n    \"documents\": [\n      \"Social Security number (first listed on application)[8]\",\n      \"ZIP code of principal residence[8]\",\n      \"Copy of application (recommended to have available when calling for support)[8]\",\n      \"Proof of residency and homeownership since base year\",\n      \"Income documentation (Social Security statements, W-2s, 1099s, etc.)[3]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None specified—program operates statewide in New Jersey\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": \"Administered by NJ Division of Taxation; applications processed centrally through combined PAS-1 system[5]\"\n  },\n  \"official_source\": \"https://www.nj.gov/treasury/taxation/ptr/\",\n  \"gotchas\": [\n    \"This program does NOT actually freeze your taxes—it reimburses you for increases after you're enrolled[1]\",\n    \"Your base year is locked in when you first qualify. If your municipality reassesses property taxes, your base year may change[4]\",\n    \"You must meet eligibility requirements every single year from base year through application year—if you become ineligible one year, you may lose the benefit[2]\",\n    \"Income limits include ALL gross income (Social Security, pensions, wages, etc.)—not just earned income[3]\",\n    \"The program recently expanded (2024): income limits increased from $99,735 to $163,050, and residency requirement dropped from 10 years to 3 years. Previous applicants should recheck eligibility[3]\",\n    \"Railroad Retirement disability benefits now qualify as of 2025 (recent law change)—previously only Social Security disability qualified[6]\",\n    \"Previous Senior Freeze recipients will see major changes: new combined application form, different income standards, and no longer need to calculate reimbursement themselves[4]\",\n    \"For returning applicants: your base year property tax/mobile home site fees will be prefilled on the 2025 PAS-1 form[6]\",\n    \"This is a reimbursement program, not a tax credit—you pay property taxes first, then receive reimbursement checks from the state[1]\"\n  ],\n  \"data_shape_notes\": \"Benefits are individualized and calculated based on each applicant's specific property tax history (base year vs. current year), not a fixed dollar amount or tier system. The program recently underwent significant expansion (2024-2025): income limits increased substantially, residency requirements shortened, and the application was consolidated into a single combined form covering three programs (Senior Freeze, ANCHOR, Stay NJ). Eligibility is determined annually and must be maintained each year. The program is statewide with no regional variations in benefits or eligibility, administered centrally by NJ Division of Taxation.\"\n}\n```\n\n## Key Context for Families\n\n**What This Program Actually Does:** The Senior Freeze reimburses eligible seniors and disabled persons for property tax increases on their principal residence[1]. It's not a tax freeze—you still pay your full property tax bill, but the state sends you a check for the amount your taxes increased since your base year[1].\n\n**Recent Major Changes (2024-2025):** The income limit nearly doubled from $99,735 to $163,050[3], the residency requirement dropped from 10 years to 3 years[3], and the application process was completely redesigned into a single combined form covering three programs simultaneously[2]. If your loved one was previously ineligible, they should recheck now.\n\n**Critical Eligibility Point:** Your loved one must meet all requirements every year from their base year forward[2]. If they become ineligible in any year (e.g., income exceeds limit, they move), they may lose the benefit.\n\n**Application Strategy:** File through the combined PAS-1 form at propertytaxrelief.nj.gov[6]. The state will automatically evaluate them for all three programs (Senior Freeze, ANCHOR, Stay NJ) based on their specific circumstances[5]. For returning applicants, their base year property tax amount will be prefilled, reducing paperwork[6].\n\n**Contact for Questions:** Call 1-800-882-6597 with a copy of the application available[8]."
-    },
-    {
-      "name": "PAAD (Pharmaceutical Assistance to the Aged and Disabled)",
-      "eligibility": {
-        "age": "65 or older, or 18-64 and receiving Social Security Title II Disability benefits",
-        "income_limits": "For 2026: $54,943 or less if single; $62,390 or less if married (filing jointly). Note: Figures vary slightly by source and year (e.g., 2025: $53,446 single/$60,690 married)[2][5]; no variation by additional household size beyond single/married",
-        "asset_limits": "No asset limits; assets do not count toward eligibility[5][6]",
-        "other_requirements": [
-          "New Jersey resident (at least 30 days prior to application in some sources)[1]",
-          "Not eligible for Medicaid[2][5]",
-          "If Medicare-eligible, must enroll in Medicare Part D plan or Medicare Advantage with Part D; enrolled in Medicare Parts A and/or B[2][4][5][6]"
-        ]
-      },
-      "benefits": {
-        "type": "financial",
-        "value": "$5 copay per generic drug; $7 copay per brand-name drug (PAAD covers remainder after Medicare Part D where applicable); PAAD pays monthly premium for certain basic Part D plans at/below regional benchmark (up to $5 over in some cases with no deductible); for Medicare Advantage with Part D, contributes up to regional benchmark toward drug portion of premium. Covers FDA-approved drugs on formulary[4][6]",
-        "varies_by": "not_applicable"
-      },
-      "application": {
-        "methods": [
-          "Online: www.aging.nj.gov or NJ SAVE webpage[2][6]",
-          "Phone: 1-800-792-9745 (request application by mail, info, or assistance)[2][6]",
-          "Mail: Submit NJ SAVE paper application (downloadable) with docs; fax to 1-609-588-7122[5][6][7]",
-          "In-person: Local offices/designated agencies for support[1]"
+          "Online: njfamilycare.org or njfamilycare.dhs.state.nj.us (NJ FamilyCare Aged, Blind, Disabled Program Application)",
+          "Phone: County Board of Social Services (e.g., Salem County 856-299-7200 option 6); ADRC for LTSS clinical eval",
+          "Download/print/mail: NJ FamilyCare Aged, Blind, Disabled Program Application (PDF from nj.gov/humanservices/dmahs/clients/medicaid/abd/)",
+          "In-person: County welfare/Medicaid offices"
         ],
         "processing_time": "Not specified in sources",
         "waitlist": null,
         "forms": [
-          "NJ SAVE (universal application for PAAD and related programs)"
+          "NJ FamilyCare Aged, Blind, Disabled Program Application",
+          "Designated Authorized Representative Form (optional)",
+          "Spousal Information Form (if married)",
+          "ABD Checklist for prep[6]"
         ],
         "documents": [
-          "Proof of income (e.g., tax returns, Social Security benefits)",
-          "Proof of residency",
-          "Proof of identification (e.g., birth certificate)",
-          "Medicare enrollment proof if applicable[1][7]"
+          "Use ABD Checklist from nj.gov",
+          "Proof of income, resources/assets (5 years for LTSS)",
+          "ID, residency, citizenship/immigration status",
+          "SSI/Medicare/SSA disability determination if applicable[1][4][6]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must reside in NJ",
+        "regional_variations": "Administered via county Boards of Social Services (e.g., different phone numbers like Salem 856-299-7200); potential regional wait/processing differences not detailed[1]",
+        "offices_or_providers": [
+          "County Boards of Social Services",
+          "ADRC for LTSS clinical eval[1][4]"
+        ]
+      },
+      "official_source": "https://www.nj.gov/humanservices/dmahs/clients/medicaid/abd/[6]",
+      "gotchas": [
+        "5-year look-back on asset transfers for LTSS can disqualify if transfers below fair market value[1]",
+        "Financial eligibility considers spouse/parents' income/resources[6]",
+        "SSI auto-eligible but non-SSI has strict SSI-related or 100% FPL limits; income slightly over may use NJRAER ABD[4]",
+        "Dual eligible with Medicare: Medicaid secondary, covers premiums/gaps[2]",
+        "Estate recovery possible post-death (no surviving spouse/child under 21/blind/disabled)[6]",
+        "Contact county office first due to complexity[1]"
+      ],
+      "data_shape_notes": "Multiple tiers (SSI-related Medicaid Only, NJ Care/Special at 100% FPL, NJRAER ABD for working disabled, LTSS/MLTSS); county-administered with spousal/parental deeming; 5-year look-back unique for LTSS; no full household size table beyond single/couple[1][4][6]",
+      "_raw": "{\n  \"name\": \"NJ FamilyCare Aged, Blind, Disabled (ABD) Medicaid Programs\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Varies by program. SSI recipients are automatically eligible. Medicaid Only: income and resources under SSI standards (not specified in sources). New Jersey Care/Special Medicaid: ≤100% Federal Poverty Level ($1,255/month single, $1,704/month couple in 2024; $1,350/month single, $1,763/month couple in 2025). NJRAER ABD: slightly higher than SSI, up to $1,350/month individual or $1,763 couple (2025). Household considered with spouse or parents.[1][2][4][6]\",\n    \"asset_limits\": \"Medicaid Only: under SSI resource standards. New Jersey Care/Special: $4,000 single, $6,000 couple (2024). 5-year look-back on asset transfers for LTSS applicants. What counts: financial accounts/resources; exemptions not detailed in sources.[1][6]\",\n    \"other_requirements\": [\n      \"Live in New Jersey\",\n      \"U.S. citizen or qualified immigrant (e.g., legal permanent resident)\",\n      \"Blind or disabled per SSA or NJ DMAHS (under 65), or age 65+\",\n      \"For LTSS: meet nursing facility level of care\",\n      \"No intent to leave NJ\",\n      \"SSI not required but auto-eligible if receiving\",\n      \"5-year financial disclosure for LTSS[1][2][4][6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive health care coverage for nearly all needs, including Medicare premiums/costs if dual eligible (Medicare primary). Long-term services/supports (LTSS/MLTSS) for those meeting nursing facility level of care: managed long-term care services. Exact services/hours not detailed; covers doctor visits, hospital, prescriptions, etc.[1][2][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: njfamilycare.org or njfamilycare.dhs.state.nj.us (NJ FamilyCare Aged, Blind, Disabled Program Application)\",\n      \"Phone: County Board of Social Services (e.g., Salem County 856-299-7200 option 6); ADRC for LTSS clinical eval\",\n      \"Download/print/mail: NJ FamilyCare Aged, Blind, Disabled Program Application (PDF from nj.gov/humanservices/dmahs/clients/medicaid/abd/)\",\n      \"In-person: County welfare/Medicaid offices\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"NJ FamilyCare Aged, Blind, Disabled Program Application\",\n      \"Designated Authorized Representative Form (optional)\",\n      \"Spousal Information Form (if married)\",\n      \"ABD Checklist for prep[6]\"\n    ],\n    \"documents\": [\n      \"Use ABD Checklist from nj.gov\",\n      \"Proof of income, resources/assets (5 years for LTSS)\",\n      \"ID, residency, citizenship/immigration status\",\n      \"SSI/Medicare/SSA disability determination if applicable[1][4][6]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must reside in NJ\",\n    \"regional_variations\": \"Administered via county Boards of Social Services (e.g., different phone numbers like Salem 856-299-7200); potential regional wait/processing differences not detailed[1]\",\n    \"offices_or_providers\": [\"County Boards of Social Services\", \"ADRC for LTSS clinical eval[1][4]\"]\n  },\n  \"official_source\": \"https://www.nj.gov/humanservices/dmahs/clients/medicaid/abd/[6]\",\n  \"gotchas\": [\n    \"5-year look-back on asset transfers for LTSS can disqualify if transfers below fair market value[1]\",\n    \"Financial eligibility considers spouse/parents' income/resources[6]\",\n    \"SSI auto-eligible but non-SSI has strict SSI-related or 100% FPL limits; income slightly over may use NJRAER ABD[4]\",\n    \"Dual eligible with Medicare: Medicaid secondary, covers premiums/gaps[2]\",\n    \"Estate recovery possible post-death (no surviving spouse/child under 21/blind/disabled)[6]\",\n    \"Contact county office first due to complexity[1]\"\n  ],\n  \"data_shape_notes\": \"Multiple tiers (SSI-related Medicaid Only, NJ Care/Special at 100% FPL, NJRAER ABD for working disabled, LTSS/MLTSS); county-administered with spousal/parental deeming; 5-year look-back unique for LTSS; no full household size table beyond single/couple[1][4][6]\"\n}"
+    },
+    {
+      "name": "Managed Long Term Services and Supports (MLTSS)",
+      "eligibility": {
+        "age": "21 years or older (with different rules for children under 20)[1][3]",
+        "income_limits": {
+          "2025": "$2,901/month for individuals; each spouse in a couple is evaluated individually at $2,901/month[2][8]",
+          "2026": "$2,982/month or less[8]",
+          "note": "Income limits increase annually in January. Higher income may qualify with a Qualified Income Trust (QIT)[2][8]"
+        },
+        "asset_limits": {
+          "liquid_assets": "$2,000 for individuals; $3,000 for couples[8]",
+          "exempt_assets": "Primary home (if applicant lives there or intends to return, with home equity not exceeding $1,097,000 in 2025), household furnishings and appliances, personal effects, one vehicle[2]",
+          "home_equity_exception": "Home equity interest must not exceed $1,097,000 (2025) if applicant lives in home, has intent to return, has spouse in home, or has minor/blind/disabled child in home[2]",
+          "look_back_rule": "Assets cannot be given away or sold below fair market value within 60 months prior to application; violations result in penalty period of Medicaid ineligibility[2]"
+        },
+        "other_requirements": [
+          "U.S. citizen or qualified alien (most immigrants who arrived after August 22, 1996 are barred for 5 years)[4]",
+          "Resident of New Jersey[4]",
+          "Age 65 or older, OR under 65 and determined to be blind or disabled by Social Security Administration or State of New Jersey[1][3]",
+          "Meet clinical/functional requirements (see below)",
+          "For children under 20: parental income and resources are NOT counted in financial eligibility determination[3][7]"
+        ],
+        "clinical_requirements": {
+          "nursing_facility_level_of_care": "Required[3]",
+          "activities_of_daily_living": "Require hands-on assistance with at least 3 ADLs (transferring bed to chair, mobility, eating, toileting, bathing, dressing)[2][3]",
+          "cognitive_deficits": "If cognitive deficits present (e.g., Alzheimer's, dementia), supervision and prompting with minimum 3 ADLs meets requirement; diagnosis of dementia alone does not qualify[2]"
+        }
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Long-term services and supports delivered through managed care; can be received in nursing facility or community (home, assisted living)[5]",
+        "specific_services": "Private duty nursing in community for eligible children; hands-on personal care assistance; community-based long-term services[9]",
+        "varies_by": "Individual clinical need and care plan; children have separate eligibility pathway with different clinical criteria (Pediatric Clinical Eligibility per Comprehensive Waiver approved August 2017)[3][7]"
+      },
+      "application": {
+        "methods": [
+          "For individuals currently with Medicaid: Contact assigned Managed Care Organization (MCO) to initiate assessment[9]",
+          "For adults (21+) without Medicaid: Contact County Aging and Disability Resource Center (ADRC) or County Social Service Agencies[9]",
+          "For children (under 20) without Medicaid: Contact Division of Disability Services at 1-888-285-3036 and follow prompts to speak with Information and Referral (I&R) Specialist[9]",
+          "Local county social services agency office (phone available through county government)[8]"
+        ],
+        "processing_time": "Not specified in search results",
+        "waitlist": "Not specified in search results",
+        "forms": "Not specified in search results",
+        "documents": "Not specified in search results; recommend preparing: proof of income (recent pay stubs, tax returns), proof of assets (bank statements), proof of residency, proof of citizenship/immigration status, medical records documenting functional limitations and ADL needs, Social Security determination letter (if disabled/blind)"
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must be New Jersey resident[4]",
+        "regional_variations": "Application process varies by whether individual already has Medicaid; county-level administration through County Aging and Disability Resource Centers and County Social Service Agencies[9]",
+        "offices_or_providers": "Managed Care Organizations (MCOs) administer MLTSS; Division of Aging Services (DoAS) makes clinical eligibility determination[3]; Division of Disability Services handles children's applications[9]"
+      },
+      "official_source": "https://www.nj.gov/humanservices/dmahs/home/mltss.html",
+      "gotchas": [
+        "Clinical eligibility is NOT automatic: requiring nursing home level of care is mandatory, not just having a diagnosis. Dementia diagnosis alone does not qualify—functional limitations must be documented[2]",
+        "60-month look-back rule: Any asset transfers or below-market sales within 5 years before application trigger a penalty period of Medicaid ineligibility. This is a common mistake in estate planning[2]",
+        "Home equity cap: Even if primary home is exempt, home equity interest cannot exceed $1,097,000 (2025 figure; increases annually). High-value homes may disqualify applicants[2]",
+        "Parental income does NOT count for children under 20, but DOES count for applicants 21+, even if living with parents[3][7]",
+        "Must have lived in long-term care facility for at least 60 days (including Medicare rehabilitation) to qualify for Money Follows the Person (MFP) program variant that allows community discharge[5]",
+        "Qualified Income Trust (QIT) option exists for those exceeding income limits, but requires legal setup and ongoing administration[2][8]",
+        "Immigrants: Most immigrants arriving after August 22, 1996 are barred from Medicaid programs for 5 years, which affects MLTSS eligibility[4]",
+        "MCO enrollment required: Clinical eligibility alone is insufficient; individual must be enrolled with a Managed Care Organization to receive MLTSS services[7]",
+        "Different application pathways: Process differs significantly depending on whether applicant already has Medicaid; those without must contact county agencies or Division of Disability Services[9]"
+      ],
+      "data_shape_notes": "MLTSS eligibility has three independent requirement categories (financial, clinical, age/disability) that must ALL be met. Clinical requirements are functional/needs-based rather than diagnosis-based. Program structure differs for children under 20 (no parental income counting) vs. adults 21+. Application routing depends on current Medicaid status. Benefits are service-based (not cash) and individualized by care plan. No specific dollar amounts or service hours provided in official sources—determined by clinical assessment and MCO care planning.",
+      "_raw": "```json\n{\n  \"name\": \"Managed Long Term Services and Supports (MLTSS)\",\n  \"eligibility\": {\n    \"age\": \"21 years or older (with different rules for children under 20)[1][3]\",\n    \"income_limits\": {\n      \"2025\": \"$2,901/month for individuals; each spouse in a couple is evaluated individually at $2,901/month[2][8]\",\n      \"2026\": \"$2,982/month or less[8]\",\n      \"note\": \"Income limits increase annually in January. Higher income may qualify with a Qualified Income Trust (QIT)[2][8]\"\n    },\n    \"asset_limits\": {\n      \"liquid_assets\": \"$2,000 for individuals; $3,000 for couples[8]\",\n      \"exempt_assets\": \"Primary home (if applicant lives there or intends to return, with home equity not exceeding $1,097,000 in 2025), household furnishings and appliances, personal effects, one vehicle[2]\",\n      \"home_equity_exception\": \"Home equity interest must not exceed $1,097,000 (2025) if applicant lives in home, has intent to return, has spouse in home, or has minor/blind/disabled child in home[2]\",\n      \"look_back_rule\": \"Assets cannot be given away or sold below fair market value within 60 months prior to application; violations result in penalty period of Medicaid ineligibility[2]\"\n    },\n    \"other_requirements\": [\n      \"U.S. citizen or qualified alien (most immigrants who arrived after August 22, 1996 are barred for 5 years)[4]\",\n      \"Resident of New Jersey[4]\",\n      \"Age 65 or older, OR under 65 and determined to be blind or disabled by Social Security Administration or State of New Jersey[1][3]\",\n      \"Meet clinical/functional requirements (see below)\",\n      \"For children under 20: parental income and resources are NOT counted in financial eligibility determination[3][7]\"\n    ],\n    \"clinical_requirements\": {\n      \"nursing_facility_level_of_care\": \"Required[3]\",\n      \"activities_of_daily_living\": \"Require hands-on assistance with at least 3 ADLs (transferring bed to chair, mobility, eating, toileting, bathing, dressing)[2][3]\",\n      \"cognitive_deficits\": \"If cognitive deficits present (e.g., Alzheimer's, dementia), supervision and prompting with minimum 3 ADLs meets requirement; diagnosis of dementia alone does not qualify[2]\"\n    }\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Long-term services and supports delivered through managed care; can be received in nursing facility or community (home, assisted living)[5]\",\n    \"specific_services\": \"Private duty nursing in community for eligible children; hands-on personal care assistance; community-based long-term services[9]\",\n    \"varies_by\": \"Individual clinical need and care plan; children have separate eligibility pathway with different clinical criteria (Pediatric Clinical Eligibility per Comprehensive Waiver approved August 2017)[3][7]\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"For individuals currently with Medicaid: Contact assigned Managed Care Organization (MCO) to initiate assessment[9]\",\n      \"For adults (21+) without Medicaid: Contact County Aging and Disability Resource Center (ADRC) or County Social Service Agencies[9]\",\n      \"For children (under 20) without Medicaid: Contact Division of Disability Services at 1-888-285-3036 and follow prompts to speak with Information and Referral (I&R) Specialist[9]\",\n      \"Local county social services agency office (phone available through county government)[8]\"\n    ],\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": \"Not specified in search results\",\n    \"forms\": \"Not specified in search results\",\n    \"documents\": \"Not specified in search results; recommend preparing: proof of income (recent pay stubs, tax returns), proof of assets (bank statements), proof of residency, proof of citizenship/immigration status, medical records documenting functional limitations and ADL needs, Social Security determination letter (if disabled/blind)\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must be New Jersey resident[4]\",\n    \"regional_variations\": \"Application process varies by whether individual already has Medicaid; county-level administration through County Aging and Disability Resource Centers and County Social Service Agencies[9]\",\n    \"offices_or_providers\": \"Managed Care Organizations (MCOs) administer MLTSS; Division of Aging Services (DoAS) makes clinical eligibility determination[3]; Division of Disability Services handles children's applications[9]\"\n  },\n  \"official_source\": \"https://www.nj.gov/humanservices/dmahs/home/mltss.html\",\n  \"gotchas\": [\n    \"Clinical eligibility is NOT automatic: requiring nursing home level of care is mandatory, not just having a diagnosis. Dementia diagnosis alone does not qualify—functional limitations must be documented[2]\",\n    \"60-month look-back rule: Any asset transfers or below-market sales within 5 years before application trigger a penalty period of Medicaid ineligibility. This is a common mistake in estate planning[2]\",\n    \"Home equity cap: Even if primary home is exempt, home equity interest cannot exceed $1,097,000 (2025 figure; increases annually). High-value homes may disqualify applicants[2]\",\n    \"Parental income does NOT count for children under 20, but DOES count for applicants 21+, even if living with parents[3][7]\",\n    \"Must have lived in long-term care facility for at least 60 days (including Medicare rehabilitation) to qualify for Money Follows the Person (MFP) program variant that allows community discharge[5]\",\n    \"Qualified Income Trust (QIT) option exists for those exceeding income limits, but requires legal setup and ongoing administration[2][8]\",\n    \"Immigrants: Most immigrants arriving after August 22, 1996 are barred from Medicaid programs for 5 years, which affects MLTSS eligibility[4]\",\n    \"MCO enrollment required: Clinical eligibility alone is insufficient; individual must be enrolled with a Managed Care Organization to receive MLTSS services[7]\",\n    \"Different application pathways: Process differs significantly depending on whether applicant already has Medicaid; those without must contact county agencies or Division of Disability Services[9]\"\n  ],\n  \"data_shape_notes\": \"MLTSS eligibility has three independent requirement categories (financial, clinical, age/disability) that must ALL be met. Clinical requirements are functional/needs-based rather than diagnosis-based. Program structure differs for children under 20 (no parental income counting) vs. adults 21+. Application routing depends on current Medicaid status. Benefits are service-based (not cash) and individualized by care plan. No specific dollar amounts or service hours provided in official sources—determined by clinical assessment and MCO care planning.\"\n}\n```\n\n## Key Takeaways for Families\n\n**The Three-Part Test:** Your elderly loved one must simultaneously meet financial requirements (income under ~$2,900/month, assets under $2,000), clinical requirements (need hands-on help with 3+ daily activities), and age/disability requirements (65+ or disabled/blind under 65)[1][3][8].\n\n**Home Equity Matters:** The primary home is protected, but only if home equity doesn't exceed $1,097,000 (2025 figure)[2]. High-value properties in New Jersey may disqualify applicants.\n\n**The 60-Month Trap:** Any gifts or below-market asset sales in the 5 years before applying trigger a penalty period where Medicaid is denied[2]. This is critical for families considering Medicaid planning.\n\n**Clinical Eligibility is Strict:** A diagnosis of dementia or Alzheimer's alone doesn't qualify. The applicant must demonstrate functional need—requiring hands-on assistance with bathing, dressing, toileting, eating, mobility, or transfers[2]. Cognitive deficits can substitute for hands-on need, but only with documented supervision/prompting requirements.\n\n**Application Routing Matters:** If your loved one already receives Medicaid, contact their MCO directly. If not, contact your county's Aging and Disability Resource Center or Social Services office[9]. This distinction affects processing significantly.\n\n**No Published Timeline:** The search results do not specify processing times, waitlists, or required documents. Contact your county agency directly for these specifics[8]."
+    },
+    {
+      "name": "Pharmaceutical Assistance to the Aged and Disabled (PAAD)",
+      "eligibility": {
+        "age": "65 or older, or 18-64 and receiving Social Security Title II Disability benefits",
+        "income_limits": "For 2026: $54,943 or less if single; $62,390 or less if married (filing jointly). Income includes Social Security benefits. Limits updated annually; not scaled by larger household sizes beyond couple.",
+        "asset_limits": "No asset test; assets are not considered for eligibility.",
+        "other_requirements": [
+          "New Jersey resident",
+          "Not eligible for Medicaid",
+          "If Medicare-eligible, must enroll in a Medicare Part D Prescription Drug Plan or Medicare Advantage plan with Part D coverage",
+          "Do not need to be U.S. citizen or lawful permanent resident"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "$5 copay per generic drug prescription; $7 copay per brand-name drug prescription (may pay less for generics if Medicare Part D charges under $5). Covers FDA-approved legend drugs, insulin, insulin supplies, syringes/needles for insulin or multiple sclerosis injectables. Pays certain Medicare Part D premiums up to regional benchmark (or up to $5 over for no-deductible plans). Does not cover diabetic testing supplies or most Medicare Part D excluded drugs (except benzodiazepines/barbiturates). Only in-state purchases from rebate-agreeing manufacturers.",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Online: NJSaves website (njsave.net or similar NJHelps portal)",
+          "Phone: 1-800-792-9745",
+          "Mail: Pharmaceutical Assistance to the Aged and Disabled (PAAD) Program, Department of Health and Senior Services, P.O. Box 360, Trenton, NJ 08625-0360",
+          "Paper application available for download or request"
+        ],
+        "processing_time": "Not specified in sources; most renew every 2 years, some annually.",
+        "waitlist": null,
+        "forms": [
+          "NJSave online application",
+          "PAAD paper application (downloadable from program site)"
+        ],
+        "documents": [
+          "Proof of NJ residency",
+          "Proof of age or Social Security Title II Disability benefits",
+          "Proof of income (e.g., tax returns, Social Security statements)",
+          "Proof of Medicare Part D enrollment (if applicable)",
+          "Medicare card or enrollment details"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to all NJ residents meeting eligibility.",
+        "regional_variations": null,
+        "offices_or_providers": [
+          "Central processing: P.O. Box 360, Trenton, NJ 08625-0360"
+        ]
+      },
+      "official_source": "https://www.nj.gov/humanservices/doas/services/q-z/ship/medicare_drug.shtml (NJ.gov PAAD page); call 1-800-792-9745 for latest official details",
+      "gotchas": [
+        "Must enroll in Medicare Part D (or MA-PD) if Medicare-eligible; PAAD pays select premiums but requires coordination—state pays up to benchmark, not all plans.",
+        "Not eligible if on Medicaid.",
+        "Only covers in-state prescriptions from NJ-rebate manufacturers; out-of-state or non-rebate drugs excluded.",
+        "Income limits are annual gross (including SS); higher earners may qualify for Senior Gold instead.",
+        "Renewals: Most every 2 years, but some must reapply yearly—check notice.",
+        "Copays apply even with coverage; PAAD pays remainder after copay.",
+        "Outdated info common online; always verify 2026 limits via phone/official site as they adjust yearly."
+      ],
+      "data_shape_notes": "No asset test; income binary (under limit, no household size scaling beyond couple); mandatory Medicare Part D coordination with premium payment caps; statewide uniform with annual income updates.",
+      "_raw": "{\n  \"name\": \"Pharmaceutical Assistance to the Aged and Disabled (PAAD)\",\n  \"eligibility\": {\n    \"age\": \"65 or older, or 18-64 and receiving Social Security Title II Disability benefits\",\n    \"income_limits\": \"For 2026: $54,943 or less if single; $62,390 or less if married (filing jointly). Income includes Social Security benefits. Limits updated annually; not scaled by larger household sizes beyond couple.\",\n    \"asset_limits\": \"No asset test; assets are not considered for eligibility.\",\n    \"other_requirements\": [\n      \"New Jersey resident\",\n      \"Not eligible for Medicaid\",\n      \"If Medicare-eligible, must enroll in a Medicare Part D Prescription Drug Plan or Medicare Advantage plan with Part D coverage\",\n      \"Do not need to be U.S. citizen or lawful permanent resident\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"$5 copay per generic drug prescription; $7 copay per brand-name drug prescription (may pay less for generics if Medicare Part D charges under $5). Covers FDA-approved legend drugs, insulin, insulin supplies, syringes/needles for insulin or multiple sclerosis injectables. Pays certain Medicare Part D premiums up to regional benchmark (or up to $5 over for no-deductible plans). Does not cover diabetic testing supplies or most Medicare Part D excluded drugs (except benzodiazepines/barbiturates). Only in-state purchases from rebate-agreeing manufacturers.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: NJSaves website (njsave.net or similar NJHelps portal)\",\n      \"Phone: 1-800-792-9745\",\n      \"Mail: Pharmaceutical Assistance to the Aged and Disabled (PAAD) Program, Department of Health and Senior Services, P.O. Box 360, Trenton, NJ 08625-0360\",\n      \"Paper application available for download or request\"\n    ],\n    \"processing_time\": \"Not specified in sources; most renew every 2 years, some annually.\",\n    \"waitlist\": null,\n    \"forms\": [\"NJSave online application\", \"PAAD paper application (downloadable from program site)\"],\n    \"documents\": [\n      \"Proof of NJ residency\",\n      \"Proof of age or Social Security Title II Disability benefits\",\n      \"Proof of income (e.g., tax returns, Social Security statements)\",\n      \"Proof of Medicare Part D enrollment (if applicable)\",\n      \"Medicare card or enrollment details\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to all NJ residents meeting eligibility.\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\"Central processing: P.O. Box 360, Trenton, NJ 08625-0360\"]\n  },\n  \"official_source\": \"https://www.nj.gov/humanservices/doas/services/q-z/ship/medicare_drug.shtml (NJ.gov PAAD page); call 1-800-792-9745 for latest official details\",\n  \"gotchas\": [\n    \"Must enroll in Medicare Part D (or MA-PD) if Medicare-eligible; PAAD pays select premiums but requires coordination—state pays up to benchmark, not all plans.\",\n    \"Not eligible if on Medicaid.\",\n    \"Only covers in-state prescriptions from NJ-rebate manufacturers; out-of-state or non-rebate drugs excluded.\",\n    \"Income limits are annual gross (including SS); higher earners may qualify for Senior Gold instead.\",\n    \"Renewals: Most every 2 years, but some must reapply yearly—check notice.\",\n    \"Copays apply even with coverage; PAAD pays remainder after copay.\",\n    \"Outdated info common online; always verify 2026 limits via phone/official site as they adjust yearly.\"\n  ],\n  \"data_shape_notes\": \"No asset test; income binary (under limit, no household size scaling beyond couple); mandatory Medicare Part D coordination with premium payment caps; statewide uniform with annual income updates.\"\n}"
+    },
+    {
+      "name": "Specified Low-Income Medicare Beneficiary (SLMB and SLMB QI-1)",
+      "eligibility": {
+        "age": "65 or older, OR between 18 and 64 AND receiving Social Security Disability benefits[1]",
+        "income_limits": {
+          "description": "Income limits are set at percentages of the Federal Poverty Guidelines (FPG) and adjust annually each January[3]. For 2026, the limits are:[2]",
+          "SLMB": {
+            "single": "$1,478/month",
+            "married": "$1,992/month",
+            "note": "Covers income from QMB levels up to these amounts"
+          },
+          "QI_1": {
+            "single": "$1,660/month",
+            "married": "$2,239/month",
+            "note": "Covers income from SLMB levels up to these amounts"
+          },
+          "important_note": "Income limits are higher than regular Medicaid (ABD) limits[7]"
+        },
+        "asset_limits": {
+          "description": "New Jersey uses federal asset limits for MSPs, which are higher than regular Medicaid[2][5]",
+          "limits": {
+            "single": "$9,090",
+            "married": "$13,630"
+          },
+          "what_counts": "Money in checking and savings accounts, stocks, bonds[3]",
+          "what_does_not_count": "Primary home, one vehicle, furniture and household/personal items, burial plots, up to $1,500 in burial expenses per person[3]"
+        },
+        "other_requirements": [
+          "Be a resident of the State of New Jersey[1]",
+          "Be eligible for or enrolled in Medicare Part A (Hospital) and Medicare Part B (Medical)[1]",
+          "Not all income and assets are counted — certain portions may be excluded, so applicants should apply even if they think they exceed limits[3]"
+        ]
+      },
+      "benefits": {
+        "SLMB": {
+          "type": "financial",
+          "coverage": "Pays for Medicare Part B premiums only[2][6]",
+          "additional_benefit": "Qualifies you for Extra Help paying for prescription drugs; you'll pay no more than $12.65 in 2026 for each drug your Medicare drug plan covers[6]",
+          "important_limitation": "Does NOT help with Part A premiums, deductibles, or co-insurance[7]"
+        },
+        "QI_1": {
+          "type": "financial",
+          "coverage": "Pays for Medicare Part B premiums only[2]",
+          "important_limitation": "Does NOT help with Part A premiums, deductibles, or co-insurance[7]"
+        },
+        "varies_by": "Program tier (SLMB vs. QI-1) — both provide the same benefit (Part B premium payment) but QI-1 has higher income limits"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-800-792-9745 (New Jersey Department of Human Services, Division on Aging)[1]",
+          "Phone: 1-877-839-2675 (State Health Insurance Assistance Program/SHIP — can help determine eligibility and file application)[3]",
+          "Website: www.aging.nj.gov[1]",
+          "In-person or mail: Contact your local county social services office (specific addresses not provided in search results)"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": "Not mentioned in available sources",
+        "forms": "Specific form names/numbers not provided in search results",
+        "documents": [
+          "Proof of New Jersey residency",
+          "Medicare card or proof of Medicare Part A and B enrollment",
+          "Proof of income (Social Security statements, pay stubs, tax returns)",
+          "Proof of assets (bank statements, investment statements)",
+          "Proof of age or disability status (birth certificate, Social Security Disability award letter)"
+        ],
+        "enrollment_note": "You will be enrolled in the Medicare Savings Program for which you qualify based on your income and assets — you cannot choose between SLMB and QI-1[3]"
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must be a resident of the State of New Jersey[1]",
+        "regional_variations": null,
+        "offices_or_providers": "Contact New Jersey Department of Human Services, Division on Aging or your local county social services office"
+      },
+      "official_source": "https://www.nj.gov/humanservices/doas/ and www.aging.nj.gov[1]",
+      "gotchas": [
+        "SLMB and QI-1 pay ONLY for Part B premiums — they do NOT cover deductibles, co-insurance, or Part A premiums[7]. Beneficiaries still pay these costs out-of-pocket.",
+        "If you qualify for SLMB but also qualify for full Medicaid, you become 'dual-eligible' and may qualify for SLMB Plus (SLMB+), which offers additional benefits[3]. Ask about this when applying.",
+        "Income and asset limits change every January based on Federal Poverty Guidelines[3]. What qualifies one year may not the next.",
+        "Not all income and assets count toward the limits — certain portions are excluded[3]. You should apply even if you think you exceed the limits.",
+        "You cannot choose between SLMB and QI-1; you are automatically enrolled in whichever program your income and assets qualify you for[3].",
+        "Asset limits for MSPs ($9,090 single / $13,630 married) are much higher than regular Medicaid limits ($2,000 single / $3,000 couple)[5], but if assets exceed MSP limits, you are ineligible until they are reduced[5].",
+        "If you qualify for SLMB, you automatically qualify for Extra Help with prescription drug costs[6].",
+        "These programs are for Medicare beneficiaries only — you must be enrolled in both Part A and Part B[1]."
+      ],
+      "data_shape_notes": "This program has two tiers (SLMB and QI-1) with different income limits but identical benefits (Part B premium payment only). Enrollment is automatic based on income/asset qualification — applicants do not choose their tier. Income and asset limits are indexed annually to Federal Poverty Guidelines. The program is statewide with no regional variations. Key distinction: SLMB and QI-1 are narrower than QMB (which covers more cost-sharing) but broader than regular Medicaid in terms of asset limits. Processing timelines and specific application forms are not documented in available sources.",
+      "_raw": "```json\n{\n  \"name\": \"Specified Low-Income Medicare Beneficiary (SLMB and SLMB QI-1)\",\n  \"eligibility\": {\n    \"age\": \"65 or older, OR between 18 and 64 AND receiving Social Security Disability benefits[1]\",\n    \"income_limits\": {\n      \"description\": \"Income limits are set at percentages of the Federal Poverty Guidelines (FPG) and adjust annually each January[3]. For 2026, the limits are:[2]\",\n      \"SLMB\": {\n        \"single\": \"$1,478/month\",\n        \"married\": \"$1,992/month\",\n        \"note\": \"Covers income from QMB levels up to these amounts\"\n      },\n      \"QI_1\": {\n        \"single\": \"$1,660/month\",\n        \"married\": \"$2,239/month\",\n        \"note\": \"Covers income from SLMB levels up to these amounts\"\n      },\n      \"important_note\": \"Income limits are higher than regular Medicaid (ABD) limits[7]\"\n    },\n    \"asset_limits\": {\n      \"description\": \"New Jersey uses federal asset limits for MSPs, which are higher than regular Medicaid[2][5]\",\n      \"limits\": {\n        \"single\": \"$9,090\",\n        \"married\": \"$13,630\"\n      },\n      \"what_counts\": \"Money in checking and savings accounts, stocks, bonds[3]\",\n      \"what_does_not_count\": \"Primary home, one vehicle, furniture and household/personal items, burial plots, up to $1,500 in burial expenses per person[3]\"\n    },\n    \"other_requirements\": [\n      \"Be a resident of the State of New Jersey[1]\",\n      \"Be eligible for or enrolled in Medicare Part A (Hospital) and Medicare Part B (Medical)[1]\",\n      \"Not all income and assets are counted — certain portions may be excluded, so applicants should apply even if they think they exceed limits[3]\"\n    ]\n  },\n  \"benefits\": {\n    \"SLMB\": {\n      \"type\": \"financial\",\n      \"coverage\": \"Pays for Medicare Part B premiums only[2][6]\",\n      \"additional_benefit\": \"Qualifies you for Extra Help paying for prescription drugs; you'll pay no more than $12.65 in 2026 for each drug your Medicare drug plan covers[6]\",\n      \"important_limitation\": \"Does NOT help with Part A premiums, deductibles, or co-insurance[7]\"\n    },\n    \"QI_1\": {\n      \"type\": \"financial\",\n      \"coverage\": \"Pays for Medicare Part B premiums only[2]\",\n      \"important_limitation\": \"Does NOT help with Part A premiums, deductibles, or co-insurance[7]\"\n    },\n    \"varies_by\": \"Program tier (SLMB vs. QI-1) — both provide the same benefit (Part B premium payment) but QI-1 has higher income limits\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 1-800-792-9745 (New Jersey Department of Human Services, Division on Aging)[1]\",\n      \"Phone: 1-877-839-2675 (State Health Insurance Assistance Program/SHIP — can help determine eligibility and file application)[3]\",\n      \"Website: www.aging.nj.gov[1]\",\n      \"In-person or mail: Contact your local county social services office (specific addresses not provided in search results)\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not mentioned in available sources\",\n    \"forms\": \"Specific form names/numbers not provided in search results\",\n    \"documents\": [\n      \"Proof of New Jersey residency\",\n      \"Medicare card or proof of Medicare Part A and B enrollment\",\n      \"Proof of income (Social Security statements, pay stubs, tax returns)\",\n      \"Proof of assets (bank statements, investment statements)\",\n      \"Proof of age or disability status (birth certificate, Social Security Disability award letter)\"\n    ],\n    \"enrollment_note\": \"You will be enrolled in the Medicare Savings Program for which you qualify based on your income and assets — you cannot choose between SLMB and QI-1[3]\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must be a resident of the State of New Jersey[1]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": \"Contact New Jersey Department of Human Services, Division on Aging or your local county social services office\"\n  },\n  \"official_source\": \"https://www.nj.gov/humanservices/doas/ and www.aging.nj.gov[1]\",\n  \"gotchas\": [\n    \"SLMB and QI-1 pay ONLY for Part B premiums — they do NOT cover deductibles, co-insurance, or Part A premiums[7]. Beneficiaries still pay these costs out-of-pocket.\",\n    \"If you qualify for SLMB but also qualify for full Medicaid, you become 'dual-eligible' and may qualify for SLMB Plus (SLMB+), which offers additional benefits[3]. Ask about this when applying.\",\n    \"Income and asset limits change every January based on Federal Poverty Guidelines[3]. What qualifies one year may not the next.\",\n    \"Not all income and assets count toward the limits — certain portions are excluded[3]. You should apply even if you think you exceed the limits.\",\n    \"You cannot choose between SLMB and QI-1; you are automatically enrolled in whichever program your income and assets qualify you for[3].\",\n    \"Asset limits for MSPs ($9,090 single / $13,630 married) are much higher than regular Medicaid limits ($2,000 single / $3,000 couple)[5], but if assets exceed MSP limits, you are ineligible until they are reduced[5].\",\n    \"If you qualify for SLMB, you automatically qualify for Extra Help with prescription drug costs[6].\",\n    \"These programs are for Medicare beneficiaries only — you must be enrolled in both Part A and Part B[1].\"\n  ],\n  \"data_shape_notes\": \"This program has two tiers (SLMB and QI-1) with different income limits but identical benefits (Part B premium payment only). Enrollment is automatic based on income/asset qualification — applicants do not choose their tier. Income and asset limits are indexed annually to Federal Poverty Guidelines. The program is statewide with no regional variations. Key distinction: SLMB and QI-1 are narrower than QMB (which covers more cost-sharing) but broader than regular Medicaid in terms of asset limits. Processing timelines and specific application forms are not documented in available sources.\"\n}\n```\n\n## Additional Context for Families\n\n**Critical distinction from other programs:** SLMB and QI-1 are **premium-only programs**[7]. If your loved one needs help with deductibles, co-insurance, or other cost-sharing, they may qualify for the **Qualified Medicare Beneficiary (QMB) program** instead, which has lower income limits ($1,235/month single, $1,663/month married[2]) but covers all cost-sharing plus premiums[2].\n\n**Dual-eligible pathway:** If your loved one qualifies for SLMB *and* full Medicaid, they should ask about **SLMB Plus**, which provides additional benefits beyond premium payment[3].\n\n**Application strategy:** Start by calling your State Health Insurance Assistance Program (SHIP) at 1-877-839-2675[3]. SHIP counselors can determine eligibility and help file the application at no cost. This is often easier than navigating the application alone.\n\n**Income counting:** Social Security benefits, wages, pensions, and investment income all count, but certain exclusions apply[3]. If your loved one is close to the income limit, ask specifically about what income is excluded — you may still qualify."
+    },
+    {
+      "name": "Lifeline Credit",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Eligibility is primarily based on enrollment or eligibility in specific programs like Pharmaceutical Assistance to the Aged and Disabled (PAAD) or Supplemental Security Income (SSI), rather than strict income limits. Secondary sources indicate approximate income thresholds tied to PAAD: $42,141 yearly for single/divorced/widowed; $49,208 for married (figures from 2024, may update annually). No full household size table provided in statutes; PAAD/SSI eligibility determines qualification.[1][2]",
+        "asset_limits": "No asset limits specified in statutes or sources.",
+        "other_requirements": [
+          "Residential electric or gas customer in New Jersey as of July 1 or within next 6 months.",
+          "Enrolled in, eligible for, or would be eligible for PAAD (except certain exclusions under N.J.S.A. 30:4D-23).",
+          "Receiving or eligible for SSI benefits.",
+          "Receiving federal Social Security disability benefits (42 U.S.C. § 416(i)) and meeting PAAD income/residency requirements.",
+          "New Jersey resident.",
+          "Over 65 or 18-64 with SSA disability (per secondary sources tying to PAAD/SSI).[1][2][8]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Annual credit of $225 applied to electric and/or gas utility bills. If customer of one utility, full $225 applied there. If both electric and gas, $225 split as $112.50 each. One credit per household per year. Tenants receive check instead if utilities included in rent. Special Utility Supplement for certain SSI recipients added to monthly SSI check.[5][6]",
+        "varies_by": "fixed"
+      },
+      "application": {
+        "methods": [
+          "Contact utility provider (e.g., Orange and Rockland Utilities for their customers).",
+          "Apply through NJ Department of Human Services or PAAD/SSI channels for automatic eligibility determination.",
+          "No specific statewide phone/website/form in results; utility-specific applications like CenturyLink Lifeline form (distinct but related).[4]"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": null,
+        "forms": [
+          "Utility-specific Lifeline application forms (e.g., CenturyLink NJ Lifeline Application); PAAD/SSI documentation suffices for eligibility.[4]"
+        ],
+        "documents": [
+          "Proof of PAAD, SSI, or Social Security disability eligibility.",
+          "If income-based: Last year's tax return, employer income statement, or 3 months' paycheck stubs.",
+          "Program participation proof: ID card or letter for SSI, Medicaid, SNAP, etc.",
+          "Signed application certifying info.[4]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to NJ residential utility customers statewide.",
+        "regional_variations": "Administered via utilities; no regional differences in eligibility/benefits noted, but providers vary by service area (e.g., Orange and Rockland in parts of NJ).[5]",
+        "offices_or_providers": [
+          "Local electric/gas utilities; NJ Department of Human Services for eligibility schedule.[1]"
+        ]
+      },
+      "official_source": "https://law.justia.com/codes/new-jersey/title-48/section-48-2-29-16/ (N.J.S.A. 48:2-29.16)",
+      "gotchas": [
+        "Must be actual utility customer; tenants get separate check process.",
+        "Only one credit per household/year, even with multiple eligibles.",
+        "Eligibility tied to PAAD/SSI—apply there first for automatic qual.[1][6]",
+        "Credit unused portion carries if service terminates, but no retroactive if ineligible later.[6]",
+        "Not the federal Lifeline phone program; utility-specific credit.[3][4]",
+        "Non-citizens eligible.[7]"
+      ],
+      "data_shape_notes": "Eligibility driven by PAAD/SSI enrollment (no direct income/asset test in statute); fixed $225 statewide credit split by utility type; household-limited.",
+      "_raw": "{\n  \"name\": \"Lifeline Credit\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Eligibility is primarily based on enrollment or eligibility in specific programs like Pharmaceutical Assistance to the Aged and Disabled (PAAD) or Supplemental Security Income (SSI), rather than strict income limits. Secondary sources indicate approximate income thresholds tied to PAAD: $42,141 yearly for single/divorced/widowed; $49,208 for married (figures from 2024, may update annually). No full household size table provided in statutes; PAAD/SSI eligibility determines qualification.[1][2]\",\n    \"asset_limits\": \"No asset limits specified in statutes or sources.\",\n    \"other_requirements\": [\n      \"Residential electric or gas customer in New Jersey as of July 1 or within next 6 months.\",\n      \"Enrolled in, eligible for, or would be eligible for PAAD (except certain exclusions under N.J.S.A. 30:4D-23).\",\n      \"Receiving or eligible for SSI benefits.\",\n      \"Receiving federal Social Security disability benefits (42 U.S.C. § 416(i)) and meeting PAAD income/residency requirements.\",\n      \"New Jersey resident.\",\n      \"Over 65 or 18-64 with SSA disability (per secondary sources tying to PAAD/SSI).[1][2][8]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Annual credit of $225 applied to electric and/or gas utility bills. If customer of one utility, full $225 applied there. If both electric and gas, $225 split as $112.50 each. One credit per household per year. Tenants receive check instead if utilities included in rent. Special Utility Supplement for certain SSI recipients added to monthly SSI check.[5][6]\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact utility provider (e.g., Orange and Rockland Utilities for their customers).\",\n      \"Apply through NJ Department of Human Services or PAAD/SSI channels for automatic eligibility determination.\",\n      \"No specific statewide phone/website/form in results; utility-specific applications like CenturyLink Lifeline form (distinct but related).[4]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [\"Utility-specific Lifeline application forms (e.g., CenturyLink NJ Lifeline Application); PAAD/SSI documentation suffices for eligibility.[4]\"],\n    \"documents\": [\n      \"Proof of PAAD, SSI, or Social Security disability eligibility.\",\n      \"If income-based: Last year's tax return, employer income statement, or 3 months' paycheck stubs.\",\n      \"Program participation proof: ID card or letter for SSI, Medicaid, SNAP, etc.\",\n      \"Signed application certifying info.[4]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to NJ residential utility customers statewide.\",\n    \"regional_variations\": \"Administered via utilities; no regional differences in eligibility/benefits noted, but providers vary by service area (e.g., Orange and Rockland in parts of NJ).[5]\",\n    \"offices_or_providers\": [\"Local electric/gas utilities; NJ Department of Human Services for eligibility schedule.[1]\"]\n  },\n  \"official_source\": \"https://law.justia.com/codes/new-jersey/title-48/section-48-2-29-16/ (N.J.S.A. 48:2-29.16)\",\n  \"gotchas\": [\n    \"Must be actual utility customer; tenants get separate check process.\",\n    \"Only one credit per household/year, even with multiple eligibles.\",\n    \"Eligibility tied to PAAD/SSI—apply there first for automatic qual.[1][6]\",\n    \"Credit unused portion carries if service terminates, but no retroactive if ineligible later.[6]\",\n    \"Not the federal Lifeline phone program; utility-specific credit.[3][4]\",\n    \"Non-citizens eligible.[7]\"\n  ],\n  \"data_shape_notes\": \"Eligibility driven by PAAD/SSI enrollment (no direct income/asset test in statute); fixed $225 statewide credit split by utility type; household-limited.\"\n}"
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; open to all New Jersey Medicare beneficiaries of any age[1][2][3]",
+        "asset_limits": "No asset limits or tests apply[1][2]",
+        "other_requirements": [
+          "Must be a New Jersey Medicare beneficiary (original Medicare or Medicare Advantage), including those with supplemental policies, claims issues, or questions about benefits, Medigap, long-term care insurance, or prescriptions[1][2][3][5]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free one-on-one counseling, information, and assistance from trained volunteer counselors on Medicare benefits, claims processing, health insurance options, Medigap/supplemental policies, long-term care insurance, prescription coverage, and related issues; also connects to NJ Save for low-income premium/prescription assistance[1][2][3][5]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: SHIP Information Center 1-800-792-8820[1][4][6]",
+          "In-person or phone via county offices (one in each of NJ's 21 counties, e.g., Atlantic: 609-645-7700, Bergen: 201-336-7413)[1][7]",
+          "Online: NJ Save application for related low-income assistance (via nj.gov/humanservices/doas/services/q-z/ship/)[1][2]"
+        ],
+        "processing_time": "No formal application or processing time; counseling provided upon contact, though local availability may vary[1][5]",
+        "waitlist": null,
+        "forms": [
+          "No specific forms required for SHIP counseling; NJ Save has an online application for premium assistance[1][2]"
+        ],
+        "documents": [
+          "No documents specified; bring Medicare card, insurance details, or claims paperwork if available for counseling sessions[1][5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to all NJ Medicare beneficiaries[1][2]",
+        "regional_variations": "Delivered through counseling sites in all 21 counties with local county offices/providers handling services; contact local office for appointments, but core services uniform statewide[1][2][7]",
+        "offices_or_providers": [
+          "County-specific offices listed at nj.gov/humanservices/doas/assistance/medicare/offices.shtml, e.g., Middlesex: 732-745-3295 or Jewish Family Services 732-777-1940[2][7]"
+        ]
+      },
+      "official_source": "https://www.nj.gov/humanservices/doas/services/q-z/ship/[1]",
+      "gotchas": [
+        "Not a financial aid or healthcare provider program—only free counseling/education, no direct payments or medical services; must be a Medicare beneficiary (not general health insurance help); local county availability may require scheduling; often confused with NJ Save, which is for low-income premium relief[1][2][5]",
+        "Volunteers provide services, so hours/appointments depend on local sites[1][7]"
+      ],
+      "data_shape_notes": "no income/asset test; counseling only via statewide network of 21 county offices; open to Medicare beneficiaries of all ages; no formal application process[1][2][7]",
+      "_raw": "{\n  \"name\": \"State Health Insurance Assistance Program (SHIP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; open to all New Jersey Medicare beneficiaries of any age[1][2][3]\",\n    \"asset_limits\": \"No asset limits or tests apply[1][2]\",\n    \"other_requirements\": [\"Must be a New Jersey Medicare beneficiary (original Medicare or Medicare Advantage), including those with supplemental policies, claims issues, or questions about benefits, Medigap, long-term care insurance, or prescriptions[1][2][3][5]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free one-on-one counseling, information, and assistance from trained volunteer counselors on Medicare benefits, claims processing, health insurance options, Medigap/supplemental policies, long-term care insurance, prescription coverage, and related issues; also connects to NJ Save for low-income premium/prescription assistance[1][2][3][5]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: SHIP Information Center 1-800-792-8820[1][4][6]\", \"In-person or phone via county offices (one in each of NJ's 21 counties, e.g., Atlantic: 609-645-7700, Bergen: 201-336-7413)[1][7]\", \"Online: NJ Save application for related low-income assistance (via nj.gov/humanservices/doas/services/q-z/ship/)[1][2]\"],\n    \"processing_time\": \"No formal application or processing time; counseling provided upon contact, though local availability may vary[1][5]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required for SHIP counseling; NJ Save has an online application for premium assistance[1][2]\"],\n    \"documents\": [\"No documents specified; bring Medicare card, insurance details, or claims paperwork if available for counseling sessions[1][5]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to all NJ Medicare beneficiaries[1][2]\",\n    \"regional_variations\": \"Delivered through counseling sites in all 21 counties with local county offices/providers handling services; contact local office for appointments, but core services uniform statewide[1][2][7]\",\n    \"offices_or_providers\": [\"County-specific offices listed at nj.gov/humanservices/doas/assistance/medicare/offices.shtml, e.g., Middlesex: 732-745-3295 or Jewish Family Services 732-777-1940[2][7]\"]\n  },\n  \"official_source\": \"https://www.nj.gov/humanservices/doas/services/q-z/ship/[1]\",\n  \"gotchas\": [\"Not a financial aid or healthcare provider program—only free counseling/education, no direct payments or medical services; must be a Medicare beneficiary (not general health insurance help); local county availability may require scheduling; often confused with NJ Save, which is for low-income premium relief[1][2][5]\", \"Volunteers provide services, so hours/appointments depend on local sites[1][7]\"],\n  \"data_shape_notes\": \"no income/asset test; counseling only via statewide network of 21 county offices; open to Medicare beneficiaries of all ages; no formal application process[1][2][7]\"\n}"
+    },
+    {
+      "name": "Stay NJ",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "Annual income below $500,000 for 2025 (does not vary by household size; applies to the applicant). Social Security disability does not qualify.",
+        "asset_limits": "No asset limits mentioned.",
+        "other_requirements": [
+          "Must be a New Jersey homeowner (not mobile homeowners or renters) paying property taxes or P.I.L.O.T. (Payments-in-Lieu-of-Tax) payments.",
+          "Home must have been principal residence owned and lived in for the full 12 months of the prior year (e.g., 2025 for 2026 application).",
+          "Must be 65 or older in the application year."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Reimburses 50% of property taxes billed on primary residence (on land and improvements), up to a maximum of $6,500 for 2025. If also eligible for Senior Freeze and/or ANCHOR, Stay NJ fills the gap to reach 50% of property taxes (up to $6,500 total across programs). Examples: $10,000 taxes = $5,000 benefit; $14,000 taxes = $6,500 max.",
+        "varies_by": "property_tax_amount"
+      },
+      "application": {
+        "methods": [
+          "Online: propertytaxreliefapp.nj.gov (requires ID.me verification with driver's license, state ID, passport card, or passport; direct deposit available).",
+          "Mail: Print PAS-1 form and send to New Jersey Division of Taxation.",
+          "Combined application covers Stay NJ, Senior Freeze, and ANCHOR."
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": null,
+        "forms": [
+          "PAS-1 (Property Tax Relief Application)"
+        ],
+        "documents": [
+          "Latest property tax bill or property information from state Tax Assessor’s office.",
+          "Gross income from most recent state income tax return.",
+          "Proof of identity: driver's license, state ID, or passport for online verification."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to eligible homeowners statewide.",
+        "regional_variations": null,
+        "offices_or_providers": []
+      },
+      "official_source": "https://www.nj.gov/treasury/taxation/staynj/index.shtml",
+      "gotchas": [
+        "Only homeowners (excludes mobile homeowners and renters).",
+        "Must own and live in home full 12 months of prior year.",
+        "Social Security disability does not qualify (age 65+ required).",
+        "Benefit caps at $6,500 and supplements (does not duplicate) Senior Freeze/ANCHOR.",
+        "Application deadline: November 2, 2026 for next round (check official site for updates; prior was October 31, 2025).",
+        "Eligibility based on prior year (e.g., 2025 income/residency for 2026 benefit)."
+      ],
+      "data_shape_notes": "Benefit calculated as gap-filler to 50% property taxes after other programs (Senior Freeze/ANCHOR); high income threshold ($500k) but strict residency/ownership rules; single combined PAS-1 form for multiple relief programs.",
+      "_raw": "{\n  \"name\": \"Stay NJ\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Annual income below $500,000 for 2025 (does not vary by household size; applies to the applicant). Social Security disability does not qualify.\",\n    \"asset_limits\": \"No asset limits mentioned.\",\n    \"other_requirements\": [\n      \"Must be a New Jersey homeowner (not mobile homeowners or renters) paying property taxes or P.I.L.O.T. (Payments-in-Lieu-of-Tax) payments.\",\n      \"Home must have been principal residence owned and lived in for the full 12 months of the prior year (e.g., 2025 for 2026 application).\",\n      \"Must be 65 or older in the application year.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Reimburses 50% of property taxes billed on primary residence (on land and improvements), up to a maximum of $6,500 for 2025. If also eligible for Senior Freeze and/or ANCHOR, Stay NJ fills the gap to reach 50% of property taxes (up to $6,500 total across programs). Examples: $10,000 taxes = $5,000 benefit; $14,000 taxes = $6,500 max.\",\n    \"varies_by\": \"property_tax_amount\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: propertytaxreliefapp.nj.gov (requires ID.me verification with driver's license, state ID, passport card, or passport; direct deposit available).\",\n      \"Mail: Print PAS-1 form and send to New Jersey Division of Taxation.\",\n      \"Combined application covers Stay NJ, Senior Freeze, and ANCHOR.\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [\"PAS-1 (Property Tax Relief Application)\"],\n    \"documents\": [\n      \"Latest property tax bill or property information from state Tax Assessor’s office.\",\n      \"Gross income from most recent state income tax return.\",\n      \"Proof of identity: driver's license, state ID, or passport for online verification.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to eligible homeowners statewide.\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": []\n  },\n  \"official_source\": \"https://www.nj.gov/treasury/taxation/staynj/index.shtml\",\n  \"gotchas\": [\n    \"Only homeowners (excludes mobile homeowners and renters).\",\n    \"Must own and live in home full 12 months of prior year.\",\n    \"Social Security disability does not qualify (age 65+ required).\",\n    \"Benefit caps at $6,500 and supplements (does not duplicate) Senior Freeze/ANCHOR.\",\n    \"Application deadline: November 2, 2026 for next round (check official site for updates; prior was October 31, 2025).\",\n    \"Eligibility based on prior year (e.g., 2025 income/residency for 2026 benefit).\"\n  ],\n  \"data_shape_notes\": \"Benefit calculated as gap-filler to 50% property taxes after other programs (Senior Freeze/ANCHOR); high income threshold ($500k) but strict residency/ownership rules; single combined PAS-1 form for multiple relief programs.\"\n}"
+    },
+    {
+      "name": "Senior Freeze (Property Tax Reimbursement)",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "Income eligibility thresholds have been expanded and vary by year; for 2024 filing (covering 2022-2023), annual income must be $150,000 or less in 2022 and $163,050 or less in 2023 (all gross income, including Social Security). Earlier thresholds were $99,735 or less. Exact limits for 2025 applications (based on 2024 and 2025 income) are determined via the combined application; must meet requirements each year from base year through application year. Does not vary by household size.",
+        "asset_limits": "No asset limits mentioned in program details.",
+        "other_requirements": [
+          "Age 65 or older as of December 31 of the base year (e.g., 2022) or receiving federal Social Security disability benefits (recently expanded to include Railroad Retirement disability benefits) as of December 31 of the base year.",
+          "Own and have lived in the principal residence (home or mobile home) continuously since the base year (e.g., December 31, 2019 or earlier for 2024 filing) and still own and live there as of December 31 of the application year (e.g., 2023).",
+          "New Jersey resident; residency requirement reduced from 10 years to at least 3 years in recent updates.",
+          "Must meet all eligibility criteria for every year from base year through application year."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Reimbursement for property tax increases (or mobile home park site fees) on principal residence above the base year amount (first year of eligibility). Provides the difference between base year taxes/fees and current year if higher; does not freeze taxes but reimburses increases. State-funded checks issued annually.",
+        "varies_by": "base_year_taxes_and_current_increases"
+      },
+      "application": {
+        "methods": [
+          "Online via combined PAS-1 application at https://www.nj.gov/treasury/taxation/ptr/ or propertytaxrelief.nj.gov (prefilled for prior recipients).",
+          "Mail-in PAS-1 form (print from https://www.nj.gov/treasury/taxation/ptr/).",
+          "Phone assistance via Senior Freeze Hotline: 1-800-882-6597 (have application copy ready).",
+          "Check status online at https://www20.state.nj.us/TYTR_PTR_INQ/jsp/PTRLogin.jsp (using SSN and ZIP code)."
+        ],
+        "processing_time": "Payments expected in early 2026 for 2025 applications; specific timelines not detailed but status checkable online.",
+        "waitlist": null,
+        "forms": [
+          "PAS-1 (combined application for Senior Freeze, ANCHOR, and Stay NJ)"
+        ],
+        "documents": [
+          "Proof of income for relevant years (all gross income, including Social Security).",
+          "Proof of property taxes or mobile home site fees for base year and current year.",
+          "Proof of residency, home ownership, and occupancy since base year.",
+          "Social Security number and disability benefit verification if applicable.",
+          "Property tax bills and prior application details for returning applicants."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "New Jersey residents only; principal residence must be in NJ.",
+        "regional_variations": "No regional variations in eligibility, benefits, or processing; administered uniformly by state Division of Taxation, though local tax assessors may provide info (e.g., Monroe Township, Margate, Montgomery, Freehold).",
+        "offices_or_providers": [
+          "NJ Division of Taxation (statewide hotline and online)"
+        ]
+      },
+      "official_source": "https://www.nj.gov/treasury/taxation/ptr/",
+      "gotchas": [
+        "Must meet eligibility every year from base year to application year; missing one year disqualifies.",
+        "Does not actually freeze taxes—only reimburses increases above base year; no benefit if taxes decrease or stay same.",
+        "Combined PAS-1 application auto-considers ANCHOR and Stay NJ; previous recipients get prefilled base year but must refile annually.",
+        "Income includes all gross sources (e.g., Social Security); thresholds change yearly and are subject to state budget.",
+        "Filing deadline strict (e.g., November 2, 2026 for 2025); late applications not accepted.",
+        "Base year preserved unless municipal reassessment occurs.",
+        "Mobile homeowners eligible only for site fees, not under Stay NJ."
+      ],
+      "data_shape_notes": "Must qualify continuously from base year (e.g., 2019+) through application year; reimbursement tied to specific base year taxes/fees with annual increases only; combined single PAS-1 form for multiple programs; income limits expanded recently and vary by year, not household size; disability expanded to Railroad Retirement.",
+      "_raw": "{\n  \"name\": \"Senior Freeze (Property Tax Reimbursement)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Income eligibility thresholds have been expanded and vary by year; for 2024 filing (covering 2022-2023), annual income must be $150,000 or less in 2022 and $163,050 or less in 2023 (all gross income, including Social Security). Earlier thresholds were $99,735 or less. Exact limits for 2025 applications (based on 2024 and 2025 income) are determined via the combined application; must meet requirements each year from base year through application year. Does not vary by household size.\",\n    \"asset_limits\": \"No asset limits mentioned in program details.\",\n    \"other_requirements\": [\n      \"Age 65 or older as of December 31 of the base year (e.g., 2022) or receiving federal Social Security disability benefits (recently expanded to include Railroad Retirement disability benefits) as of December 31 of the base year.\",\n      \"Own and have lived in the principal residence (home or mobile home) continuously since the base year (e.g., December 31, 2019 or earlier for 2024 filing) and still own and live there as of December 31 of the application year (e.g., 2023).\",\n      \"New Jersey resident; residency requirement reduced from 10 years to at least 3 years in recent updates.\",\n      \"Must meet all eligibility criteria for every year from base year through application year.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Reimbursement for property tax increases (or mobile home park site fees) on principal residence above the base year amount (first year of eligibility). Provides the difference between base year taxes/fees and current year if higher; does not freeze taxes but reimburses increases. State-funded checks issued annually.\",\n    \"varies_by\": \"base_year_taxes_and_current_increases\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online via combined PAS-1 application at https://www.nj.gov/treasury/taxation/ptr/ or propertytaxrelief.nj.gov (prefilled for prior recipients).\",\n      \"Mail-in PAS-1 form (print from https://www.nj.gov/treasury/taxation/ptr/).\",\n      \"Phone assistance via Senior Freeze Hotline: 1-800-882-6597 (have application copy ready).\",\n      \"Check status online at https://www20.state.nj.us/TYTR_PTR_INQ/jsp/PTRLogin.jsp (using SSN and ZIP code).\"\n    ],\n    \"processing_time\": \"Payments expected in early 2026 for 2025 applications; specific timelines not detailed but status checkable online.\",\n    \"waitlist\": null,\n    \"forms\": [\"PAS-1 (combined application for Senior Freeze, ANCHOR, and Stay NJ)\"],\n    \"documents\": [\n      \"Proof of income for relevant years (all gross income, including Social Security).\",\n      \"Proof of property taxes or mobile home site fees for base year and current year.\",\n      \"Proof of residency, home ownership, and occupancy since base year.\",\n      \"Social Security number and disability benefit verification if applicable.\",\n      \"Property tax bills and prior application details for returning applicants.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"New Jersey residents only; principal residence must be in NJ.\",\n    \"regional_variations\": \"No regional variations in eligibility, benefits, or processing; administered uniformly by state Division of Taxation, though local tax assessors may provide info (e.g., Monroe Township, Margate, Montgomery, Freehold).\",\n    \"offices_or_providers\": [\"NJ Division of Taxation (statewide hotline and online)\"]\n  },\n  \"official_source\": \"https://www.nj.gov/treasury/taxation/ptr/\",\n  \"gotchas\": [\n    \"Must meet eligibility every year from base year to application year; missing one year disqualifies.\",\n    \"Does not actually freeze taxes—only reimburses increases above base year; no benefit if taxes decrease or stay same.\",\n    \"Combined PAS-1 application auto-considers ANCHOR and Stay NJ; previous recipients get prefilled base year but must refile annually.\",\n    \"Income includes all gross sources (e.g., Social Security); thresholds change yearly and are subject to state budget.\",\n    \"Filing deadline strict (e.g., November 2, 2026 for 2025); late applications not accepted.\",\n    \"Base year preserved unless municipal reassessment occurs.\",\n    \"Mobile homeowners eligible only for site fees, not under Stay NJ.\"\n  ],\n  \"data_shape_notes\": \"Must qualify continuously from base year (e.g., 2019+) through application year; reimbursement tied to specific base year taxes/fees with annual increases only; combined single PAS-1 form for multiple programs; income limits expanded recently and vary by year, not household size; disability expanded to Railroad Retirement.\"\n}"
+    },
+    {
+      "name": "PAAD (Pharmaceutical Assistance to the Aged and Disabled)",
+      "eligibility": {
+        "age": "65 or older, or 18-64 if receiving Social Security Title II Disability benefits",
+        "income_limits": "For 2026: $54,943 or less if single; $62,390 or less if married (couple). Note: Figures vary slightly across sources (e.g., 2025 limits $53,446 single/$60,690 married); use most recent for current year[2][5]. No variation by additional household size beyond single/couple mentioned.",
+        "asset_limits": "No asset limits; assets do not count toward eligibility[5][6].",
+        "other_requirements": [
+          "New Jersey resident (at least 30 days prior to application)[1]",
+          "Not eligible for Medicaid[2]",
+          "Legal U.S. resident[1]",
+          "Enrolled in Medicare Part D Prescription Drug Plan or Medicare Advantage plan with Part D coverage (required for Medicare beneficiaries; PAAD pays premiums for qualifying plans up to regional benchmark)[2][3][5][6]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "$5 copay per generic drug; $7 copay per brand-name drug (PAAD covers remainder for FDA-approved drugs on formulary). PAAD pays Medicare Part D premiums for qualifying basic plans up to regional benchmark (or $5 over for no-deductible plans); contributes up to benchmark for MA-Part D prescription portion[3][6]. Lower copay possible if Medicare plan charges less than $5 for generic.",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Online: www.aging.nj.gov or NJ SAVE webpage (universal application)[2][6]",
+          "Phone: 1-800-792-9745 (request application by mail or info)[2][6]",
+          "Mail/Fax: AP-2 Universal Application for PAAD (download from nj.gov/humanservices/doas/forms/ap-2.pdf); fax to 1-609-588-7122[4][5]",
+          "In-person: Local offices/designated agencies for assistance[1]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": null,
+        "forms": [
+          "AP-2 Universal Application for PAAD, Senior Gold, and others[4]",
+          "NJ SAVE (online universal application)[6]"
+        ],
+        "documents": [
+          "Proof of age (e.g., birth certificate, driver's license, Medicare card)[4]",
+          "Proof of Social Security disability if 18-64 (e.g., award letter)[4]",
+          "Proof of NJ residency within last 6 months[4]",
+          "Copy of Medicare card[4]",
+          "Front/back of health and prescription insurance cards[4]",
+          "Proof of income (e.g., tax returns)[7]"
         ]
       },
       "geography": {
         "statewide": true,
         "restrictions": "New Jersey residents only",
-        "regional_variations": "Part D premiums PAAD covers vary by regional benchmark, but program uniform statewide; no other regional differences noted",
+        "regional_variations": "Premium benchmarks vary by Medicare region, but program uniform statewide; no county/provider differences noted[6]",
         "offices_or_providers": null
       },
-      "official_source": "www.aging.nj.gov (NJ Division of Aging Services) or NJ SAVE webpage",
+      "official_source": "https://www.nj.gov/humanservices/doas/home (implied via forms); www.aging.nj.gov for applications[2][4]",
       "gotchas": [
-        "Must enroll in Medicare Part D or MA-PD if Medicare-eligible; PAAD won't cover if not enrolled, and may require plan switch for formulary coverage[2][4][6]",
-        "Not for Medicaid-eligible individuals[2][5]",
-        "Income limits adjust annually; recheck eligibility even if previously ineligible[2]",
-        "PAAD pays Part D premiums only for specific low-premium plans; self-enroll in non-covered plan and pay full premium yourself[4][6]",
-        "Residency: At least 30 days in NJ prior[1]"
+        "Must enroll in Medicare Part D or MA-PD; PAAD pays only for qualifying low-premium plans—may need to switch plans or request exceptions if drug not covered[3][6]",
+        "Not eligible if on Medicaid[2]",
+        "Income limits adjust annually—check current year (e.g., 2025 vs. 2026 figures differ)[1][2][3]",
+        "Universal AP-2 screens for other programs (e.g., Senior Gold, Lifeline); PAAD applicants must complete all pages[4]",
+        "No asset test, but must prove disability precisely if under 65[4][5]"
       ],
-      "data_shape_notes": "No asset test; income binary (single vs. married only, no larger household tiers); tied to Medicare Part D enrollment and specific plan premiums by region; copays fixed regardless of income",
-      "_raw": "{\n  \"name\": \"PAAD (Pharmaceutical Assistance to the Aged and Disabled)\",\n  \"eligibility\": {\n    \"age\": \"65 or older, or 18-64 and receiving Social Security Title II Disability benefits\",\n    \"income_limits\": \"For 2026: $54,943 or less if single; $62,390 or less if married (filing jointly). Note: Figures vary slightly by source and year (e.g., 2025: $53,446 single/$60,690 married)[2][5]; no variation by additional household size beyond single/married\",\n    \"asset_limits\": \"No asset limits; assets do not count toward eligibility[5][6]\",\n    \"other_requirements\": [\n      \"New Jersey resident (at least 30 days prior to application in some sources)[1]\",\n      \"Not eligible for Medicaid[2][5]\",\n      \"If Medicare-eligible, must enroll in Medicare Part D plan or Medicare Advantage with Part D; enrolled in Medicare Parts A and/or B[2][4][5][6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"$5 copay per generic drug; $7 copay per brand-name drug (PAAD covers remainder after Medicare Part D where applicable); PAAD pays monthly premium for certain basic Part D plans at/below regional benchmark (up to $5 over in some cases with no deductible); for Medicare Advantage with Part D, contributes up to regional benchmark toward drug portion of premium. Covers FDA-approved drugs on formulary[4][6]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: www.aging.nj.gov or NJ SAVE webpage[2][6]\",\n      \"Phone: 1-800-792-9745 (request application by mail, info, or assistance)[2][6]\",\n      \"Mail: Submit NJ SAVE paper application (downloadable) with docs; fax to 1-609-588-7122[5][6][7]\",\n      \"In-person: Local offices/designated agencies for support[1]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [\"NJ SAVE (universal application for PAAD and related programs)\"],\n    \"documents\": [\n      \"Proof of income (e.g., tax returns, Social Security benefits)\",\n      \"Proof of residency\",\n      \"Proof of identification (e.g., birth certificate)\",\n      \"Medicare enrollment proof if applicable[1][7]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"New Jersey residents only\",\n    \"regional_variations\": \"Part D premiums PAAD covers vary by regional benchmark, but program uniform statewide; no other regional differences noted\",\n    \"offices_or_providers\": null\n  },\n  \"official_source\": \"www.aging.nj.gov (NJ Division of Aging Services) or NJ SAVE webpage\",\n  \"gotchas\": [\n    \"Must enroll in Medicare Part D or MA-PD if Medicare-eligible; PAAD won't cover if not enrolled, and may require plan switch for formulary coverage[2][4][6]\",\n    \"Not for Medicaid-eligible individuals[2][5]\",\n    \"Income limits adjust annually; recheck eligibility even if previously ineligible[2]\",\n    \"PAAD pays Part D premiums only for specific low-premium plans; self-enroll in non-covered plan and pay full premium yourself[4][6]\",\n    \"Residency: At least 30 days in NJ prior[1]\"\n  ],\n  \"data_shape_notes\": \"No asset test; income binary (single vs. married only, no larger household tiers); tied to Medicare Part D enrollment and specific plan premiums by region; copays fixed regardless of income\"\n}"
+      "data_shape_notes": "No asset test; income binary (single/couple only, no larger household tiers); Medicare Part D enrollment mandatory with PAAD premium payment capped by regional benchmark; copays fixed regardless of income within limits",
+      "_raw": "{\n  \"name\": \"PAAD (Pharmaceutical Assistance to the Aged and Disabled)\",\n  \"eligibility\": {\n    \"age\": \"65 or older, or 18-64 if receiving Social Security Title II Disability benefits\",\n    \"income_limits\": \"For 2026: $54,943 or less if single; $62,390 or less if married (couple). Note: Figures vary slightly across sources (e.g., 2025 limits $53,446 single/$60,690 married); use most recent for current year[2][5]. No variation by additional household size beyond single/couple mentioned.\",\n    \"asset_limits\": \"No asset limits; assets do not count toward eligibility[5][6].\",\n    \"other_requirements\": [\n      \"New Jersey resident (at least 30 days prior to application)[1]\",\n      \"Not eligible for Medicaid[2]\",\n      \"Legal U.S. resident[1]\",\n      \"Enrolled in Medicare Part D Prescription Drug Plan or Medicare Advantage plan with Part D coverage (required for Medicare beneficiaries; PAAD pays premiums for qualifying plans up to regional benchmark)[2][3][5][6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"$5 copay per generic drug; $7 copay per brand-name drug (PAAD covers remainder for FDA-approved drugs on formulary). PAAD pays Medicare Part D premiums for qualifying basic plans up to regional benchmark (or $5 over for no-deductible plans); contributes up to benchmark for MA-Part D prescription portion[3][6]. Lower copay possible if Medicare plan charges less than $5 for generic.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: www.aging.nj.gov or NJ SAVE webpage (universal application)[2][6]\",\n      \"Phone: 1-800-792-9745 (request application by mail or info)[2][6]\",\n      \"Mail/Fax: AP-2 Universal Application for PAAD (download from nj.gov/humanservices/doas/forms/ap-2.pdf); fax to 1-609-588-7122[4][5]\",\n      \"In-person: Local offices/designated agencies for assistance[1]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [\"AP-2 Universal Application for PAAD, Senior Gold, and others[4]\", \"NJ SAVE (online universal application)[6]\"],\n    \"documents\": [\n      \"Proof of age (e.g., birth certificate, driver's license, Medicare card)[4]\",\n      \"Proof of Social Security disability if 18-64 (e.g., award letter)[4]\",\n      \"Proof of NJ residency within last 6 months[4]\",\n      \"Copy of Medicare card[4]\",\n      \"Front/back of health and prescription insurance cards[4]\",\n      \"Proof of income (e.g., tax returns)[7]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"New Jersey residents only\",\n    \"regional_variations\": \"Premium benchmarks vary by Medicare region, but program uniform statewide; no county/provider differences noted[6]\",\n    \"offices_or_providers\": null\n  },\n  \"official_source\": \"https://www.nj.gov/humanservices/doas/home (implied via forms); www.aging.nj.gov for applications[2][4]\",\n  \"gotchas\": [\n    \"Must enroll in Medicare Part D or MA-PD; PAAD pays only for qualifying low-premium plans—may need to switch plans or request exceptions if drug not covered[3][6]\",\n    \"Not eligible if on Medicaid[2]\",\n    \"Income limits adjust annually—check current year (e.g., 2025 vs. 2026 figures differ)[1][2][3]\",\n    \"Universal AP-2 screens for other programs (e.g., Senior Gold, Lifeline); PAAD applicants must complete all pages[4]\",\n    \"No asset test, but must prove disability precisely if under 65[4][5]\"\n  ],\n  \"data_shape_notes\": \"No asset test; income binary (single/couple only, no larger household tiers); Medicare Part D enrollment mandatory with PAAD premium payment capped by regional benchmark; copays fixed regardless of income within limits\"\n}"
     },
     {
       "name": "JACC (Jersey Assistance for Community Caregiving)",
       "eligibility": {
         "age": 60,
-        "income_limits": "Monthly income not greater than 365% of the Federal Poverty Level: $4,855 for an individual; $6,582 for a married couple (2026 figures). No table provided for larger households; limits apply to countable income.[2][3]",
-        "asset_limits": "Countable assets $40,000 or less for an individual; $60,000 or less for a couple. Specific details on what counts as countable vs. exempt not specified in sources.[2][3]",
+        "income_limits": "Monthly income not greater than 365% of the Federal Poverty Level: $4,855 for an individual; $6,582 for a married couple (2026 figures). Countable income used for sliding scale co-pay[2][3].",
+        "asset_limits": "Countable assets $40,000 or less for an individual; $60,000 or less for a couple. Specific details on what counts as countable vs. exempt not specified in sources[2][3].",
         "other_requirements": [
           "United States citizen or Qualified Alien[1][2]",
           "New Jersey resident[1][2]",
           "Resides in the community (not in a facility, nursing home, assisted living, or residential care)[1][2][3]",
           "Determined to require nursing facility level of care (assistance with minimum of 3 ADLs: bathing, toileting, dressing, transfers, locomotion)[1][2]",
           "Not participating in Medicaid programs (e.g., NJ FamilyCare, MLTSS) or financially ineligible for them[1][2][3]",
-          "No alternate means available to secure needed services[3][6]"
+          "No alternate means to secure needed services[3]"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "In-home and community-based services based on needs assessment and plan of care, including: Case Management, Respite Care, Homemaker Services, Environmental Accessibility Modifications, Personal Emergency Response Systems, Home-Delivered Meals, Caregiver/Recipient Training, Special Medical Equipment and Supplies, Transportation, Chore Services, Attendant Care. Monthly cost cap ~$1,156 (or ~$1,090 plus care management in some sources); co-pay required based on sliding scale of countable income, paid to billing agent.[3][5] Services provided by qualified providers or participant-employed providers (PEPs, e.g., family/friends).[1][2]",
+        "value": "In-home and community-based services based on needs assessment and plan of care, including: Case Management, Respite Care, Homemaker Services, Environmental Accessibility Modifications, Personal Emergency Response Systems, Home-Delivered Meals, Caregiver/Recipient Training, Special Medical Equipment and Supplies, Transportation, Chore Services, Attendant Care. Monthly cost cap around $1,156 (or approx. $1,090 plus care management); services provided by qualified providers or participant-employed providers (PEPs). Co-pay required based on income sliding scale, paid to billing agent[1][2][3][5].",
         "varies_by": "priority_tier"
       },
       "application": {
         "methods": [
-          "Phone: County NJ EASE / Area Agency on Aging at 1-877-222-3737 (statewide toll-free)[3][5][6]",
-          "County-specific: e.g., Hunterdon County at 908-788-1361[1]",
-          "Through local County Aging and Disability Resource Connection (ADRC)[6]"
+          "Phone: County offices (e.g., Hunterdon: 908-788-1361) or statewide NJ EASE toll-free: 1-877-222-3737[1][3][5]",
+          "Through local County Aging and Disability Resource Connection (ADRC)[2][5][6]"
         ],
         "processing_time": "Not specified in sources",
         "waitlist": "Availability of services and funding may limit access; no specific waitlist details[1]",
         "forms": [
-          "No specific form names/numbers listed; applications processed via county ADRC with assessment by care manager[3][5][6]"
+          "No specific form names/numbers listed; applications processed through county NJ EASE/ADRC with screening and assessment[3][5]"
         ],
         "documents": [
-          "Documentation of income, assets, expenses (e.g., bank statements, pension statements, Social Security letters)[4]",
-          "Proof of other insurance coverage[4]",
-          "Medical information and physician input for functional assessment[4]"
+          "Documentation of income, assets, expenses (e.g., bank statements, pension statements, Social Security letters, proof of insurance)[4]",
+          "Medical information and physician input for assessment[4]"
         ]
       },
       "geography": {
         "statewide": true,
         "restrictions": "New Jersey residents only",
-        "regional_variations": "Applications processed through local county offices/ADRCs with potential county-specific contacts (e.g., Hunterdon: 908-788-1361); services/providers may vary by county; wait times/funding availability may differ regionally[1][3][6]",
+        "regional_variations": "Applications and screening handled through local county offices/ADRCs (e.g., different phone numbers per county like Hunterdon, Warren, Union); providers may vary by county[1][3][5][7]",
         "offices_or_providers": [
-          "Local County Aging and Disability Resource Connection (ADRC) or Area Agency on Aging (AAA)[3][5][6]"
+          "Local County Aging and Disability Resource Connection (ADRC); examples: Hunterdon County (908-788-1361), statewide entry via 1-877-222-3737[1][3][5]"
         ]
       },
       "official_source": "https://www.nj.gov/humanservices/doas/services/a-k/jacc/[2]",
       "gotchas": [
         "Not a Medicaid program; excludes those eligible for Medicaid/MLTSS[1][2]",
-        "Co-pay required based on income sliding scale, even if eligible[1][3]",
-        "Monthly service cost cap limits total benefits (~$1,156)[3]",
-        "Must have no other means for services and meet nursing home level of care[3][6]",
-        "Services based on funding availability and assessment, not guaranteed full needs met[1]",
-        "One source mentions possible eligibility for 18-59 with disabilities, but official sources specify 60+[2][4]"
+        "Requires nursing facility level of care (min. 3 ADLs); functional assessment mandatory[2]",
+        "Monthly service cap and income-based co-pay apply; participant contributes to costs[1][3]",
+        "Services based on funding availability and no alternate means of support[1][3]",
+        "Must live in community, not facilities[1][2]",
+        "One non-official source mentions possible eligibility for 18-59 with disabilities, but official sources specify 60+[2][4]"
       ],
-      "data_shape_notes": "Statewide but county-administered with local contacts; financial limits fixed by individual/couple (no household size table); benefits capped monthly and needs-assessed with co-pay; clinical eligibility requires nursing home level of care determination",
-      "_raw": "{\n  \"name\": \"JACC (Jersey Assistance for Community Caregiving)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Monthly income not greater than 365% of the Federal Poverty Level: $4,855 for an individual; $6,582 for a married couple (2026 figures). No table provided for larger households; limits apply to countable income.[2][3]\",\n    \"asset_limits\": \"Countable assets $40,000 or less for an individual; $60,000 or less for a couple. Specific details on what counts as countable vs. exempt not specified in sources.[2][3]\",\n    \"other_requirements\": [\n      \"United States citizen or Qualified Alien[1][2]\",\n      \"New Jersey resident[1][2]\",\n      \"Resides in the community (not in a facility, nursing home, assisted living, or residential care)[1][2][3]\",\n      \"Determined to require nursing facility level of care (assistance with minimum of 3 ADLs: bathing, toileting, dressing, transfers, locomotion)[1][2]\",\n      \"Not participating in Medicaid programs (e.g., NJ FamilyCare, MLTSS) or financially ineligible for them[1][2][3]\",\n      \"No alternate means available to secure needed services[3][6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"In-home and community-based services based on needs assessment and plan of care, including: Case Management, Respite Care, Homemaker Services, Environmental Accessibility Modifications, Personal Emergency Response Systems, Home-Delivered Meals, Caregiver/Recipient Training, Special Medical Equipment and Supplies, Transportation, Chore Services, Attendant Care. Monthly cost cap ~$1,156 (or ~$1,090 plus care management in some sources); co-pay required based on sliding scale of countable income, paid to billing agent.[3][5] Services provided by qualified providers or participant-employed providers (PEPs, e.g., family/friends).[1][2]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: County NJ EASE / Area Agency on Aging at 1-877-222-3737 (statewide toll-free)[3][5][6]\",\n      \"County-specific: e.g., Hunterdon County at 908-788-1361[1]\",\n      \"Through local County Aging and Disability Resource Connection (ADRC)[6]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Availability of services and funding may limit access; no specific waitlist details[1]\",\n    \"forms\": [\"No specific form names/numbers listed; applications processed via county ADRC with assessment by care manager[3][5][6]\"],\n    \"documents\": [\n      \"Documentation of income, assets, expenses (e.g., bank statements, pension statements, Social Security letters)[4]\",\n      \"Proof of other insurance coverage[4]\",\n      \"Medical information and physician input for functional assessment[4]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"New Jersey residents only\",\n    \"regional_variations\": \"Applications processed through local county offices/ADRCs with potential county-specific contacts (e.g., Hunterdon: 908-788-1361); services/providers may vary by county; wait times/funding availability may differ regionally[1][3][6]\",\n    \"offices_or_providers\": [\"Local County Aging and Disability Resource Connection (ADRC) or Area Agency on Aging (AAA)[3][5][6]\"]\n  },\n  \"official_source\": \"https://www.nj.gov/humanservices/doas/services/a-k/jacc/[2]\",\n  \"gotchas\": [\n    \"Not a Medicaid program; excludes those eligible for Medicaid/MLTSS[1][2]\",\n    \"Co-pay required based on income sliding scale, even if eligible[1][3]\",\n    \"Monthly service cost cap limits total benefits (~$1,156)[3]\",\n    \"Must have no other means for services and meet nursing home level of care[3][6]\",\n    \"Services based on funding availability and assessment, not guaranteed full needs met[1]\",\n    \"One source mentions possible eligibility for 18-59 with disabilities, but official sources specify 60+[2][4]\"\n  ],\n  \"data_shape_notes\": \"Statewide but county-administered with local contacts; financial limits fixed by individual/couple (no household size table); benefits capped monthly and needs-assessed with co-pay; clinical eligibility requires nursing home level of care determination\"\n}"
-    },
-    {
-      "name": "Lifeline Credit",
-      "eligibility": {
-        "age": "65 or older, or 18-64 with SSA disability",
-        "income_limits": "Annual gross income not exceeding $42,141 for single/divorced/widowed or $49,208 for married (some sources cite higher: $54,943 single/$62,390 married); only one per household; SSI recipients automatically eligible without application[1][5]",
-        "asset_limits": "No asset limits mentioned; eligibility often tied to programs like PAAD, MAA, MAO, NJ Care, or SSI which may have their own asset rules[1]",
-        "other_requirements": [
-          "New Jersey resident",
-          "Meet PAAD requirements, receive MAA/MAO/NJ Care, or SSI",
-          "Utility customer (electric/gas) or tenant with utilities in rent",
-          "US citizenship not required[1][7]"
-        ]
-      },
-      "benefits": {
-        "type": "financial",
-        "value": "$225 annual credit applied to electric and/or gas bills (full to one utility, split if both); homeowners and renters eligible[1][4][5][6]",
-        "varies_by": "not_applicable"
-      },
-      "application": {
-        "methods": [
-          "Contact utility provider (e.g., PSE&G, Orange and Rockland)",
-          "Phone: Varies by utility; check NJ 211 or utility sites",
-          "Mail: Utility-specific forms",
-          "No central statewide online URL specified; SSI auto-included[1][5]"
-        ],
-        "processing_time": "Not specified in sources",
-        "waitlist": null,
-        "forms": [
-          "Utility-specific Lifeline applications (e.g., CenturyLink NJ Lifeline form); no universal form number[3]"
-        ],
-        "documents": [
-          "Proof of age/disability (SSA award letter)",
-          "Proof of income (tax return, pay stubs, SS statement)",
-          "Proof of residency/utility account",
-          "Participation proof in PAAD/MAA/SSI/Medicaid (ID card/letter)",
-          "Social Security cards, photo ID, proof of address (lease/mortgage)[3][5]"
-        ]
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "None; available statewide for NJ residents",
-        "regional_variations": "Administered via local utilities (e.g., PSE&G, Orange and Rockland); no differences in benefits noted[1][4][5]",
-        "offices_or_providers": [
-          "Local utility companies; NJ 211 for assistance[8]"
-        ]
-      },
-      "official_source": "https://www.nj.gov/treasury/administration/paad/lifeline.shtml (inferred from context; primary admin via NJ Treasury/PAAD)",
-      "gotchas": [
-        "Only one benefit per household, even with multiple eligibles",
-        "SSI recipients get auto-supplement in check—do not apply separately",
-        "Only natural gas/electric; excludes propane/oil/wood/coal",
-        "Income limits conflict across sources (use latest/utility-specific)",
-        "Must be direct utility customer or tenant with utilities in rent for relevant program variant[1][6]"
-      ],
-      "data_shape_notes": "Three related programs (Credit for utility customers, Tenants Assistance check, SSI Supplement); eligibility cross-tied to PAAD/SSI; one-per-household cap; utility-administered statewide[1][6]",
-      "_raw": "{\n  \"name\": \"Lifeline Credit\",\n  \"eligibility\": {\n    \"age\": \"65 or older, or 18-64 with SSA disability\",\n    \"income_limits\": \"Annual gross income not exceeding $42,141 for single/divorced/widowed or $49,208 for married (some sources cite higher: $54,943 single/$62,390 married); only one per household; SSI recipients automatically eligible without application[1][5]\",\n    \"asset_limits\": \"No asset limits mentioned; eligibility often tied to programs like PAAD, MAA, MAO, NJ Care, or SSI which may have their own asset rules[1]\",\n    \"other_requirements\": [\n      \"New Jersey resident\",\n      \"Meet PAAD requirements, receive MAA/MAO/NJ Care, or SSI\",\n      \"Utility customer (electric/gas) or tenant with utilities in rent\",\n      \"US citizenship not required[1][7]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"$225 annual credit applied to electric and/or gas bills (full to one utility, split if both); homeowners and renters eligible[1][4][5][6]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact utility provider (e.g., PSE&G, Orange and Rockland)\",\n      \"Phone: Varies by utility; check NJ 211 or utility sites\",\n      \"Mail: Utility-specific forms\",\n      \"No central statewide online URL specified; SSI auto-included[1][5]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [\"Utility-specific Lifeline applications (e.g., CenturyLink NJ Lifeline form); no universal form number[3]\"],\n    \"documents\": [\n      \"Proof of age/disability (SSA award letter)\",\n      \"Proof of income (tax return, pay stubs, SS statement)\",\n      \"Proof of residency/utility account\",\n      \"Participation proof in PAAD/MAA/SSI/Medicaid (ID card/letter)\",\n      \"Social Security cards, photo ID, proof of address (lease/mortgage)[3][5]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide for NJ residents\",\n    \"regional_variations\": \"Administered via local utilities (e.g., PSE&G, Orange and Rockland); no differences in benefits noted[1][4][5]\",\n    \"offices_or_providers\": [\"Local utility companies; NJ 211 for assistance[8]\"]\n  },\n  \"official_source\": \"https://www.nj.gov/treasury/administration/paad/lifeline.shtml (inferred from context; primary admin via NJ Treasury/PAAD)\",\n  \"gotchas\": [\n    \"Only one benefit per household, even with multiple eligibles\",\n    \"SSI recipients get auto-supplement in check—do not apply separately\",\n    \"Only natural gas/electric; excludes propane/oil/wood/coal\",\n    \"Income limits conflict across sources (use latest/utility-specific)\",\n    \"Must be direct utility customer or tenant with utilities in rent for relevant program variant[1][6]\"\n  ],\n  \"data_shape_notes\": \"Three related programs (Credit for utility customers, Tenants Assistance check, SSI Supplement); eligibility cross-tied to PAAD/SSI; one-per-household cap; utility-administered statewide[1][6]\"\n}"
+      "data_shape_notes": "Statewide with county-level application processing; financial eligibility at 365% FPL with asset caps for individual/couple; services capped monthly and needs-assessed with co-pay sliding scale; non-Medicaid for nursing-home level care in community",
+      "_raw": "{\n  \"name\": \"JACC (Jersey Assistance for Community Caregiving)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Monthly income not greater than 365% of the Federal Poverty Level: $4,855 for an individual; $6,582 for a married couple (2026 figures). Countable income used for sliding scale co-pay[2][3].\",\n    \"asset_limits\": \"Countable assets $40,000 or less for an individual; $60,000 or less for a couple. Specific details on what counts as countable vs. exempt not specified in sources[2][3].\",\n    \"other_requirements\": [\n      \"United States citizen or Qualified Alien[1][2]\",\n      \"New Jersey resident[1][2]\",\n      \"Resides in the community (not in a facility, nursing home, assisted living, or residential care)[1][2][3]\",\n      \"Determined to require nursing facility level of care (assistance with minimum of 3 ADLs: bathing, toileting, dressing, transfers, locomotion)[1][2]\",\n      \"Not participating in Medicaid programs (e.g., NJ FamilyCare, MLTSS) or financially ineligible for them[1][2][3]\",\n      \"No alternate means to secure needed services[3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"In-home and community-based services based on needs assessment and plan of care, including: Case Management, Respite Care, Homemaker Services, Environmental Accessibility Modifications, Personal Emergency Response Systems, Home-Delivered Meals, Caregiver/Recipient Training, Special Medical Equipment and Supplies, Transportation, Chore Services, Attendant Care. Monthly cost cap around $1,156 (or approx. $1,090 plus care management); services provided by qualified providers or participant-employed providers (PEPs). Co-pay required based on income sliding scale, paid to billing agent[1][2][3][5].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: County offices (e.g., Hunterdon: 908-788-1361) or statewide NJ EASE toll-free: 1-877-222-3737[1][3][5]\",\n      \"Through local County Aging and Disability Resource Connection (ADRC)[2][5][6]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Availability of services and funding may limit access; no specific waitlist details[1]\",\n    \"forms\": [\"No specific form names/numbers listed; applications processed through county NJ EASE/ADRC with screening and assessment[3][5]\"],\n    \"documents\": [\n      \"Documentation of income, assets, expenses (e.g., bank statements, pension statements, Social Security letters, proof of insurance)[4]\",\n      \"Medical information and physician input for assessment[4]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"New Jersey residents only\",\n    \"regional_variations\": \"Applications and screening handled through local county offices/ADRCs (e.g., different phone numbers per county like Hunterdon, Warren, Union); providers may vary by county[1][3][5][7]\",\n    \"offices_or_providers\": [\"Local County Aging and Disability Resource Connection (ADRC); examples: Hunterdon County (908-788-1361), statewide entry via 1-877-222-3737[1][3][5]\"]\n  },\n  \"official_source\": \"https://www.nj.gov/humanservices/doas/services/a-k/jacc/[2]\",\n  \"gotchas\": [\n    \"Not a Medicaid program; excludes those eligible for Medicaid/MLTSS[1][2]\",\n    \"Requires nursing facility level of care (min. 3 ADLs); functional assessment mandatory[2]\",\n    \"Monthly service cap and income-based co-pay apply; participant contributes to costs[1][3]\",\n    \"Services based on funding availability and no alternate means of support[1][3]\",\n    \"Must live in community, not facilities[1][2]\",\n    \"One non-official source mentions possible eligibility for 18-59 with disabilities, but official sources specify 60+[2][4]\"\n  ],\n  \"data_shape_notes\": \"Statewide with county-level application processing; financial eligibility at 365% FPL with asset caps for individual/couple; services capped monthly and needs-assessed with co-pay sliding scale; non-Medicaid for nursing-home level care in community\"\n}"
     },
     {
       "name": "Statewide Respite Care Program",
       "eligibility": {
         "age": 18,
-        "income_limits": "At or below $2,742 per month for a single person ($5,484 for couples). Sliding scale co-pay from 0% to 25% of service costs based on care recipient's (and spouse's) income. Only the care recipient's income is considered.[2][1]",
-        "asset_limits": "Liquid resources less than $40,000 (assets convertible to cash within 20 working days). Specific exemptions not detailed in sources.[2][1]",
+        "income_limits": "Single person (unmarried or widowed): Maximum $2,982 monthly gross income in 2026; maximum $40,000 liquid assets. Married person/couple: Maximum $5,964 combined monthly gross income in 2026; maximum $60,000 combined liquid assets. Sliding scale copay 0-25% of service costs based on care recipient's (and spouse's) income, starting at lower thresholds in some counties (e.g., $1,402 single/$2,804 couple in Bergen). Note: Older county data shows lower limits like $2,742 single/$5,484 couple, but 2026 statewide figures from NJ.gov apply.[2]",
+        "asset_limits": "Liquid assets only (e.g., cash, bank accounts, stocks that can be converted to cash within 20 working days). Maximum $40,000 single; $60,000 couple. Primary residence, one vehicle, and personal belongings typically exempt (standard Medicaid-like rules implied).[2][3]",
         "other_requirements": [
-          "Receive daily basic care/supervision from uncompensated caregiver (age 18+, e.g., spouse, family, friend).",
-          "Functional impairments requiring care, certified by licensed medical provider.",
-          "Reside in community (not facility, assisted living, nursing home).",
-          "New Jersey resident.",
-          "Not participating in Medicaid/NJ FamilyCare, MLTSS, JACC, Alzheimer's Adult Day Services, Congregate Housing Services Program, or VA Aid & Assistance. Can switch from JACC or Alzheimer's program.",
-          "Frail or functionally impaired adult with chronic physical/mental disability needing supervision/assistance with daily needs.",
-          "Priority to those at risk of institutionalization due to caregiver inability.[1][2][5]"
+          "NJ resident living in the community (not in facility, nursing home, assisted living).",
+          "Age 18+ with functional impairments requiring daily basic care/supervision, certified by licensed medical provider.",
+          "Receives daily care from uncompensated caregiver (spouse, family, friend, etc., age 18+).",
+          "Not enrolled in MLTSS, NJ FamilyCare Medicaid, JACC, Alzheimer's Adult Day Services, or Congregate Housing Services Program (can switch from JACC/Alzheimer's program).",
+          "Priority for those at risk of institutionalization due to caregiver burden.[1][2][3]"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Short-term/periodic respite: Companion (in-home hourly supervision); Homemaker/Home Health Aide (in-home hourly/overnight personal care/housekeeping); Private Duty Nursing (in-home hourly RN/LPN); Adult Family Care (short-term placement in trained home); In-patient Care (short-term licensed facility); Social/Medical Adult Day Health Care (structured day program). Caregiver Directed Option for reimbursing services/items easing care. Co-pay 0-25% based on income.[1][2][5]",
+        "value": "In-home and out-of-home respite services including: Companion/sitter (hourly supervision); Homemaker/Home Health Aide (hourly/overnight personal care/housekeeping); Private Duty Nursing (hourly RN/LPN); Adult Family Care (short-term placement in trained home); In-patient Care (short-term in licensed facility); Social/Medical Adult Day Health; Camp; Skilled Nursing; Caregiver Directed Option (reimbursement for caregiver-chosen services/items). One emergency/planned respite benefit per year. Family pays 0-25% sliding scale copay; program covers remainder. No fixed hours/dollar cap specified, short-term/periodic/intermittent relief.[1][3][4][7]",
         "varies_by": "priority_tier"
       },
       "application": {
         "methods": [
-          "Phone: Aging and Disability Resource Connection at 1-877-222-3737.",
-          "Website: www.state.nj.us/humanservices/doas/services/srcp.",
-          "County sponsor agency (one per county administers locally; contact via phone above or local Office on Aging).[1][2][5]"
+          "Phone: Aging and Disability Resource Connection (ADRC) toll-free 1-877-222-3737 (connects to county program).",
+          "County sponsor agency (one per county; e.g., Hunterdon County, Warren County Offices on Aging). No central online form; contact via phone for local intake.",
+          "Brochures available: English/Spanish at https://www.nj.gov/humanservices/doas/services/q-z/srcp/.[2][4]"
         ],
         "processing_time": "Not specified in sources.",
-        "waitlist": "Not specified in sources.",
+        "waitlist": null,
         "forms": [
-          "Not specified; assessment via county sponsor agency."
+          "No specific form name/number listed; intake via county ADRC/sponsor agency."
         ],
         "documents": [
-          "Documentation of income and assets.",
-          "Certification of functional impairments from licensed medical provider.",
+          "Proof of income (e.g., pay stubs, tax returns, gross before deductions).",
+          "Proof of liquid assets.",
+          "Medical certification of functional impairments from licensed provider.",
           "Proof of NJ residency and community living.",
-          "Evidence of uncompensated caregiver providing daily care."
+          "Caregiver details (uncompensated status).[1][2]"
         ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "None; available statewide to NJ residents.",
-        "regional_variations": "Administered locally by sponsor agency in each county (e.g., Hunterdon County, Warren County, Union County). May have county-specific contacts/providers, but core eligibility/services consistent.[1][2][6]",
+        "restrictions": "Available in every county via local sponsor agency; care recipient must reside in that county (e.g., Bergen County residency required for Bergen program).[2][7]",
+        "regional_variations": "Administered locally by county sponsor agency (e.g., Offices on Aging). Income/asset thresholds may use slightly outdated county figures (e.g., Warren $2,742 single; Bergen sliding scale starts $1,402), but statewide 2026 limits apply. Potential differences in providers, wait times, processing by county. No explicit wait time data.[1][3][7]",
         "offices_or_providers": [
-          "County sponsor agencies via NJ Department of Health & Senior Services overall administration; contact Aging and Disability Resource Connection for local office."
+          "County sponsor agencies via ADRC 1-877-222-3737 (e.g., Hunterdon, Warren, Bergen Counties)."
         ]
       },
-      "official_source": "www.state.nj.us/humanservices/doas/services/srcp",
+      "official_source": "https://www.nj.gov/humanservices/doas/services/q-z/srcp/",
       "gotchas": [
-        "Cannot participate if in Medicaid/NJ FamilyCare, MLTSS, JACC (unless switching), Alzheimer's Adult Day, etc.",
-        "Only care recipient's income/assets counted, but co-pay based on recipient/spouse.",
+        "Cannot participate if enrolled in MLTSS, NJ FamilyCare Medicaid, JACC (unless switching), Alzheimer's Adult Day, or Congregate Housing.",
+        "Only care recipient's (and spouse's) income/assets counted; caregiver income ignored.",
         "Must live in community, not facility.",
-        "Priority for at-risk of institutionalization; others may face delays.",
-        "Liquid assets strictly defined (convertible to cash in 20 days).",
-        "Uncompensated caregiver required (no paid caregivers qualify).[1][2][5]"
+        "Sliding scale copay (0-25%) based on income; not fully free.",
+        "Priority for institutionalization risk; lower priority may affect access.",
+        "County-specific administration means contacting local ADRC essential; no statewide online app.",
+        "Income is gross monthly before deductions; liquid assets strictly defined.[1][2][3]"
       ],
-      "data_shape_notes": "County-administered with local sponsor agencies; income/asset limits cited as $2,742 single/$5,484 couple monthly, <$40k liquid assets; priority-based access; co-pay sliding scale; exclusions for other similar programs.",
-      "_raw": "{\n  \"name\": \"Statewide Respite Care Program\",\n  \"eligibility\": {\n    \"age\": 18,\n    \"income_limits\": \"At or below $2,742 per month for a single person ($5,484 for couples). Sliding scale co-pay from 0% to 25% of service costs based on care recipient's (and spouse's) income. Only the care recipient's income is considered.[2][1]\",\n    \"asset_limits\": \"Liquid resources less than $40,000 (assets convertible to cash within 20 working days). Specific exemptions not detailed in sources.[2][1]\",\n    \"other_requirements\": [\n      \"Receive daily basic care/supervision from uncompensated caregiver (age 18+, e.g., spouse, family, friend).\",\n      \"Functional impairments requiring care, certified by licensed medical provider.\",\n      \"Reside in community (not facility, assisted living, nursing home).\",\n      \"New Jersey resident.\",\n      \"Not participating in Medicaid/NJ FamilyCare, MLTSS, JACC, Alzheimer's Adult Day Services, Congregate Housing Services Program, or VA Aid & Assistance. Can switch from JACC or Alzheimer's program.\",\n      \"Frail or functionally impaired adult with chronic physical/mental disability needing supervision/assistance with daily needs.\",\n      \"Priority to those at risk of institutionalization due to caregiver inability.[1][2][5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Short-term/periodic respite: Companion (in-home hourly supervision); Homemaker/Home Health Aide (in-home hourly/overnight personal care/housekeeping); Private Duty Nursing (in-home hourly RN/LPN); Adult Family Care (short-term placement in trained home); In-patient Care (short-term licensed facility); Social/Medical Adult Day Health Care (structured day program). Caregiver Directed Option for reimbursing services/items easing care. Co-pay 0-25% based on income.[1][2][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Aging and Disability Resource Connection at 1-877-222-3737.\",\n      \"Website: www.state.nj.us/humanservices/doas/services/srcp.\",\n      \"County sponsor agency (one per county administers locally; contact via phone above or local Office on Aging).[1][2][5]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Not specified in sources.\",\n    \"forms\": [\"Not specified; assessment via county sponsor agency.\"],\n    \"documents\": [\n      \"Documentation of income and assets.\",\n      \"Certification of functional impairments from licensed medical provider.\",\n      \"Proof of NJ residency and community living.\",\n      \"Evidence of uncompensated caregiver providing daily care.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide to NJ residents.\",\n    \"regional_variations\": \"Administered locally by sponsor agency in each county (e.g., Hunterdon County, Warren County, Union County). May have county-specific contacts/providers, but core eligibility/services consistent.[1][2][6]\",\n    \"offices_or_providers\": [\"County sponsor agencies via NJ Department of Health & Senior Services overall administration; contact Aging and Disability Resource Connection for local office.\"]\n  },\n  \"official_source\": \"www.state.nj.us/humanservices/doas/services/srcp\",\n  \"gotchas\": [\n    \"Cannot participate if in Medicaid/NJ FamilyCare, MLTSS, JACC (unless switching), Alzheimer's Adult Day, etc.\",\n    \"Only care recipient's income/assets counted, but co-pay based on recipient/spouse.\",\n    \"Must live in community, not facility.\",\n    \"Priority for at-risk of institutionalization; others may face delays.\",\n    \"Liquid assets strictly defined (convertible to cash in 20 days).\",\n    \"Uncompensated caregiver required (no paid caregivers qualify).[1][2][5]\"\n  ],\n  \"data_shape_notes\": \"County-administered with local sponsor agencies; income/asset limits cited as $2,742 single/$5,484 couple monthly, <$40k liquid assets; priority-based access; co-pay sliding scale; exclusions for other similar programs.\"\n}"
+      "data_shape_notes": "County-administered with statewide guidelines; income/asset limits updated annually (2026 figures current); sliding copay scale; priority-based access; caregiver-directed option unique; one program per county with minor local threshold variations.",
+      "_raw": "{\n  \"name\": \"Statewide Respite Care Program\",\n  \"eligibility\": {\n    \"age\": 18,\n    \"income_limits\": \"Single person (unmarried or widowed): Maximum $2,982 monthly gross income in 2026; maximum $40,000 liquid assets. Married person/couple: Maximum $5,964 combined monthly gross income in 2026; maximum $60,000 combined liquid assets. Sliding scale copay 0-25% of service costs based on care recipient's (and spouse's) income, starting at lower thresholds in some counties (e.g., $1,402 single/$2,804 couple in Bergen). Note: Older county data shows lower limits like $2,742 single/$5,484 couple, but 2026 statewide figures from NJ.gov apply.[2]\",\n    \"asset_limits\": \"Liquid assets only (e.g., cash, bank accounts, stocks that can be converted to cash within 20 working days). Maximum $40,000 single; $60,000 couple. Primary residence, one vehicle, and personal belongings typically exempt (standard Medicaid-like rules implied).[2][3]\",\n    \"other_requirements\": [\n      \"NJ resident living in the community (not in facility, nursing home, assisted living).\",\n      \"Age 18+ with functional impairments requiring daily basic care/supervision, certified by licensed medical provider.\",\n      \"Receives daily care from uncompensated caregiver (spouse, family, friend, etc., age 18+).\",\n      \"Not enrolled in MLTSS, NJ FamilyCare Medicaid, JACC, Alzheimer's Adult Day Services, or Congregate Housing Services Program (can switch from JACC/Alzheimer's program).\",\n      \"Priority for those at risk of institutionalization due to caregiver burden.[1][2][3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"In-home and out-of-home respite services including: Companion/sitter (hourly supervision); Homemaker/Home Health Aide (hourly/overnight personal care/housekeeping); Private Duty Nursing (hourly RN/LPN); Adult Family Care (short-term placement in trained home); In-patient Care (short-term in licensed facility); Social/Medical Adult Day Health; Camp; Skilled Nursing; Caregiver Directed Option (reimbursement for caregiver-chosen services/items). One emergency/planned respite benefit per year. Family pays 0-25% sliding scale copay; program covers remainder. No fixed hours/dollar cap specified, short-term/periodic/intermittent relief.[1][3][4][7]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Aging and Disability Resource Connection (ADRC) toll-free 1-877-222-3737 (connects to county program).\",\n      \"County sponsor agency (one per county; e.g., Hunterdon County, Warren County Offices on Aging). No central online form; contact via phone for local intake.\",\n      \"Brochures available: English/Spanish at https://www.nj.gov/humanservices/doas/services/q-z/srcp/.[2][4]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific form name/number listed; intake via county ADRC/sponsor agency.\"],\n    \"documents\": [\n      \"Proof of income (e.g., pay stubs, tax returns, gross before deductions).\",\n      \"Proof of liquid assets.\",\n      \"Medical certification of functional impairments from licensed provider.\",\n      \"Proof of NJ residency and community living.\",\n      \"Caregiver details (uncompensated status).[1][2]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in every county via local sponsor agency; care recipient must reside in that county (e.g., Bergen County residency required for Bergen program).[2][7]\",\n    \"regional_variations\": \"Administered locally by county sponsor agency (e.g., Offices on Aging). Income/asset thresholds may use slightly outdated county figures (e.g., Warren $2,742 single; Bergen sliding scale starts $1,402), but statewide 2026 limits apply. Potential differences in providers, wait times, processing by county. No explicit wait time data.[1][3][7]\",\n    \"offices_or_providers\": [\"County sponsor agencies via ADRC 1-877-222-3737 (e.g., Hunterdon, Warren, Bergen Counties).\"]\n  },\n  \"official_source\": \"https://www.nj.gov/humanservices/doas/services/q-z/srcp/\",\n  \"gotchas\": [\n    \"Cannot participate if enrolled in MLTSS, NJ FamilyCare Medicaid, JACC (unless switching), Alzheimer's Adult Day, or Congregate Housing.\",\n    \"Only care recipient's (and spouse's) income/assets counted; caregiver income ignored.\",\n    \"Must live in community, not facility.\",\n    \"Sliding scale copay (0-25%) based on income; not fully free.\",\n    \"Priority for institutionalization risk; lower priority may affect access.\",\n    \"County-specific administration means contacting local ADRC essential; no statewide online app.\",\n    \"Income is gross monthly before deductions; liquid assets strictly defined.[1][2][3]\"\n  ],\n  \"data_shape_notes\": \"County-administered with statewide guidelines; income/asset limits updated annually (2026 figures current); sliding copay scale; priority-based access; caregiver-directed option unique; one program per county with minor local threshold variations.\"\n}"
     }
   ]
 }

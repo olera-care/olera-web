@@ -1,15 +1,15 @@
 {
   "state": "AZ",
   "stateName": "Arizona",
-  "draftedAt": "2026-04-09T08:47:46.510Z",
+  "draftedAt": "2026-04-09T09:28:22.874Z",
   "total": 15,
-  "successful": 3,
+  "successful": 8,
   "programs": [
     {
       "id": "arizona-ahcccs-elders",
       "name": "AHCCCS for Elders",
       "shortName": "AHCCCS Elders",
-      "tagline": "Free long-term care for Arizona seniors who need nursing home level care but want to stay home.",
+      "tagline": "Free long-term care services for Arizona seniors who need daily help with bathing, dressing, or medications.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -22,16 +22,16 @@
           }
         ]
       },
-      "intro": "If your parent is 65+ in Arizona and needs daily help with bathing, dressing, or medication management, AHCCCS for Elders covers all long-term care costs — whether they stay home or move to a facility. This isn't regular health insurance. It's Arizona's Medicaid program specifically for seniors who meet nursing home level of care but can live safely at home with support services.\n\nThe program covers personal care aides, adult day programs, home-delivered meals, respite care for family caregivers, and assisted living if needed. Your parent keeps their doctor and Medicare benefits. Because AHCCCS coordinates all care through one team, you won't juggle multiple providers or fight insurance denials.\n\nIncome limit: $2,982/month for a single person, $5,964/month for couples (2026). Assets must be under $2,000. Your parent must pass a clinical assessment proving they need nursing home level care, even if they plan to stay home.",
+      "intro": "If your parent is 65+ in Arizona and needs daily help with bathing, dressing, or medication management, AHCCCS for Elders can cover nursing home care, in-home personal care, adult day programs, and assisted living. Because this program requires proving your parent needs nursing home level of care (not just low income), you'll need medical documentation showing they need substantial daily assistance.\n\nThe program covers all long-term care services through Arizona's Medicaid system. Your parent may need to pay a monthly \"share of cost\" (like a deductible) if their income exceeds certain limits, but the program covers the remaining costs. Income limits: $2,982/month for a single person, approximately $5,964/month for couples (2026).\n\nBecause slots for home-based care have waitlists in many areas, nursing facility placement often moves faster than getting services at home. Wait times vary significantly by region and are managed by different health plans across Arizona.",
       "savingsRange": "",
       "savingsSource": "Free service",
-      "savingsVerified": true,
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 65+",
-          "Income under $2,982/month (single)",
+          "Income below $2,982/month (single)",
           "Assets under $2,000",
-          "Needs nursing home level care",
+          "Needs nursing home level of care",
           "Arizona resident"
         ],
         "ageRequirement": "65+",
@@ -51,7 +51,7 @@
           "countedAssets": [
             "Bank accounts",
             "Investments",
-            "Second vehicle"
+            "Second vehicles"
           ],
           "exemptAssets": [
             "Primary home (if equity under $713,000)",
@@ -62,7 +62,7 @@
           ],
           "homeEquityCap": 713000
         },
-        "functionalRequirement": "Must need nursing home level care (daily help with bathing, dressing, medication management, or mobility)",
+        "functionalRequirement": "Must need nursing home level of care (daily assistance with bathing, dressing, medication management, or mobility)",
         "otherRequirements": [
           "Arizona resident",
           "U.S. citizen or qualified immigrant",
@@ -72,34 +72,39 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at Health-e-Arizona Plus or call (888) 621-6880 — processing takes weeks to months for full assessment.",
+        "summary": "Apply online at Health-e-Arizona Plus or call (888) 621-6880; processing typically takes weeks to months including care assessment.",
         "steps": [
           {
             "step": 1,
-            "title": "Submit financial application",
-            "description": "Apply online at Health-e-Arizona Plus portal or call ALTCS at (888) 621-6880. You'll need income, asset, and residency documentation."
+            "title": "Gather financial documents",
+            "description": "Collect 3 months of bank statements, income proof, and asset documentation. The $2,000 asset limit is strictly enforced."
           },
           {
             "step": 2,
-            "title": "Complete nursing home level assessment",
-            "description": "AHCCCS schedules a clinical assessment to determine if your parent needs daily care assistance. This happens after financial review."
+            "title": "Submit application",
+            "description": "Apply online at Health-e-Arizona Plus portal or call ALTCS at (888) 621-6880. You'll need form DE-828."
           },
           {
             "step": 3,
-            "title": "Wait for eligibility determination",
-            "description": "AHCCCS reviews both financial and medical criteria. If approved, services start based on assessed needs and available slots."
+            "title": "Complete care assessment",
+            "description": "AHCCCS will schedule an assessment to determine if your parent meets nursing home level of care. This requires medical documentation."
+          },
+          {
+            "step": 4,
+            "title": "Wait for approval",
+            "description": "Financial review and care assessment take weeks to months. Nursing facility placement typically moves faster than home-based services."
           }
         ],
-        "processingTime": "Weeks to months for complete financial and medical assessment",
-        "waitlist": "Possible for home and community services due to limited slots; nursing facility placement typically has shorter waits",
-        "tip": "Start the application before your parent needs immediate placement — the assessment process takes time.",
+        "processingTime": "Weeks to months for complete review including care assessment",
+        "waitlist": "Possible for home and community-based services; nursing facility may have shorter waits",
+        "tip": "Start gathering medical records early—the care assessment requires detailed documentation of daily assistance needs.",
         "urls": [
           {
             "label": "Apply Online",
             "url": "https://www.healthearizonaplus.gov"
           },
           {
-            "label": "AHCCCS Nursing Home Coverage",
+            "label": "Official Program Info",
             "url": "https://www.azahcccs.gov/Members/GetCovered/Categories/nursinghome.html"
           }
         ]
@@ -118,23 +123,22 @@
               "monthlyLimit": 5964
             }
           ],
-          "footnote": "2026 limits for ALTCS (Arizona Long Term Care System)"
+          "footnote": "2026 limits; updated annually"
         },
         {
           "type": "what-counts",
-          "heading": "Asset Limits: What Counts Toward $2,000 Limit",
+          "heading": "Asset Limits: What Counts",
           "included": [
             "Bank accounts and savings",
             "Investments and stocks",
-            "Second vehicle (non-primary)",
-            "Rental property"
+            "Second vehicles (beyond primary car)",
+            "Cash value of life insurance over $1,500"
           ],
           "excluded": [
-            "Primary home (if equity under $713,000 and intent to return)",
+            "Primary home (if equity under $713,000)",
             "One vehicle for transportation",
             "Personal belongings and furniture",
-            "Burial plots and prepaid funeral expenses",
-            "Life insurance with face value up to $1,500",
+            "Burial plots and funeral funds",
             "Retirement accounts in payout status"
           ]
         },
@@ -143,30 +147,28 @@
           "heading": "What to Bring",
           "categories": [
             {
-              "name": "Identity",
+              "name": "Identity & Residency",
               "items": [
-                "Driver's license or state ID",
-                "Birth certificate",
-                "Social Security card"
+                "Driver's license or birth certificate",
+                "Social Security card",
+                "Proof of Arizona residency (utility bill, lease)"
               ]
             },
             {
-              "name": "Financial",
+              "name": "Financial Records",
               "items": [
-                "Bank statements (last 3 months)",
-                "Social Security benefit statement",
-                "Pension or retirement income statements",
+                "3 months of bank statements",
+                "Income documentation (Social Security, pension statements)",
                 "Property deeds or mortgage statements",
-                "Life insurance policies"
+                "Other health insurance cards"
               ]
             },
             {
-              "name": "Medical",
+              "name": "Medical Documentation",
               "items": [
-                "Medicare card and other insurance cards",
                 "Recent medical records showing care needs",
-                "List of current medications",
-                "Doctor contact information"
+                "Documentation of assistance with daily activities",
+                "Current medication lists"
               ]
             }
           ]
@@ -174,38 +176,38 @@
         {
           "type": "callout",
           "tone": "warning",
-          "text": "Arizona will recover costs from your parent's estate after they pass away if they received services after age 55. The state places a lien on the home that must be paid when the property is sold."
+          "text": "Home-based services often have waitlists due to limited slots. Nursing facility placement typically moves faster if your parent needs immediate care."
         },
         {
           "type": "callout",
           "tone": "tip",
-          "text": "If your parent's income is slightly over the limit, they may still qualify but pay a monthly 'share of cost' (like a deductible) toward their care. Don't assume they make too much without applying."
+          "text": "Arizona recovers costs from your parent's estate after death for services received after age 55. This affects inheritance planning but doesn't prevent qualification."
         }
       ],
       "faqs": [
         {
-          "question": "Can Mom keep her house if she qualifies for AHCCCS?",
-          "answer": "Yes, if she intends to return home and the home equity is under $713,000. However, Arizona will place a lien on the home to recover costs after she passes away. The lien must be paid when the home is sold."
+          "question": "Can Mom keep her house if she qualifies?",
+          "answer": "Yes, if she intends to return home and the home equity is under $713,000. The house doesn't count toward the $2,000 asset limit. However, Arizona may recover costs from the home's sale after her death."
         },
         {
-          "question": "What if Dad's income is just over the $2,982 limit?",
-          "answer": "He may still qualify but pay a monthly 'share of cost' — essentially a deductible based on his excess income. For example, if his income is $3,200/month, he might pay $218/month toward his care costs while AHCCCS covers the rest."
+          "question": "What if her income is just over the limit?",
+          "answer": "She may still qualify but will pay a monthly \"share of cost\" (like a deductible) equal to the amount over the income limit. AHCCCS covers remaining costs after she meets her share of cost each month."
         },
         {
-          "question": "Does AHCCCS replace Medicare or work alongside it?",
-          "answer": "AHCCCS works alongside Medicare. Your parent keeps their Medicare benefits for doctor visits and hospital care. AHCCCS covers the long-term care services Medicare doesn't — like personal care aides, adult day programs, and assisted living."
+          "question": "How do they determine if she needs nursing home level of care?",
+          "answer": "AHCCCS conducts an assessment looking at her ability to safely perform daily activities like bathing, dressing, medication management, and mobility. You'll need medical records documenting these limitations."
         },
         {
-          "question": "How long does the nursing home assessment take?",
-          "answer": "The clinical assessment happens after financial approval and typically involves a home visit or phone interview with a nurse assessor. This can add weeks to the overall process, which is why starting early is important."
+          "question": "Can she get services at home instead of a nursing facility?",
+          "answer": "Yes, but home and community-based services often have waitlists. Services can include personal care, adult day programs, home-delivered meals, and respite care, but availability varies by region."
         },
         {
-          "question": "What if there's a waitlist for home care services?",
-          "answer": "Nursing facility placement typically has shorter waits than home and community services. If your parent needs immediate care, they may need to enter a facility first while waiting for home care slots to open up."
+          "question": "What happens if she has Medicare too?",
+          "answer": "She can have both Medicare and AHCCCS. Medicare covers medical care while AHCCCS covers long-term care services that Medicare doesn't pay for, like ongoing personal care assistance."
         },
         {
-          "question": "Will this affect my parent's other benefits like Social Security?",
-          "answer": "No, AHCCCS won't affect Social Security, Medicare, or most other benefits. However, if your parent receives SSI, the coordination can be complex — the AHCCCS office will help sort this out during application."
+          "question": "How long does the application process take?",
+          "answer": "Typically weeks to months because it includes both financial review and clinical assessment. The process can't start before she establishes Arizona residency, and wait times vary by region and contractor."
         }
       ],
       "phone": "(888) 621-6880",
@@ -217,24 +219,23 @@
       "id": "arizona-altcs-long-term-care",
       "name": "Arizona Long Term Care System (ALTCS)",
       "shortName": "ALTCS",
-      "tagline": "If your parent needs daily help with bathing, dressing, or other basic activities, ALTCS can cover their nursing home, assisted living, or home care costs.",
+      "tagline": "Arizona's Medicaid program that covers long-term care costs when your parent needs daily help with bathing, dressing, or other basic activities.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your parent needs daily help with basic activities like bathing or dressing, Arizona's Long Term Care System (ALTCS) can cover the full cost of nursing home care, assisted living, memory care, or home care services. Because ALTCS is Arizona's Medicaid program for long-term care, it pays for services your parent's Medicare or private insurance won't cover.\n\nYour parent must meet both financial limits (income under $2,901/month and assets under $2,000 for a single person in 2025) and functional requirements (needing help with at least two daily activities). ALTCS covers the services your parent needs based on their individual care plan — whether that's 24/7 nursing facility care or a few hours of home care each week.\n\nThe application process takes 60-90 days and requires careful documentation of both your parent's financial situation and care needs. One mistake on the application results in automatic denial, so accuracy is critical.",
+      "intro": "If your parent is 65+ (or disabled) and needs daily help with bathing, dressing, eating, or other basic activities, ALTCS can cover the full cost of their long-term care — whether that's in-home care, assisted living, memory care, or nursing facility care. Because ALTCS is Arizona's Medicaid long-term care program, it covers services that regular Medicare doesn't, but your parent must meet strict income and asset limits.\n\nYour parent can qualify with income up to $2,901/month for a single person (2025) and assets below $2,000. Unlike many programs, ALTCS covers care wherever your parent lives — they don't need to move to a nursing facility first. The program requires both financial eligibility and a clinical assessment proving they need help with at least two activities of daily living.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Age 65+ OR disabled",
-          "Income under $2,901/month (single)",
-          "Assets under $2,000 (single)",
-          "Need help with 2+ daily activities",
-          "Arizona resident"
+          "Age 65+ or disabled",
+          "Income below $2,901/month (single)",
+          "Assets below $2,000",
+          "Need daily help with 2+ activities"
         ],
         "ageRequirement": "65+",
         "incomeTable": [
@@ -258,14 +259,15 @@
             "Some life insurance policies"
           ],
           "exemptAssets": [
-            "Primary Arizona home (up to $752,000 equity)",
+            "Primary residence in Arizona (up to $752,000 home equity)",
             "One vehicle",
-            "Household furnishings and personal items",
+            "Household furnishings and personal effects",
+            "Up to $2,000 in cash",
             "$1,500 for burial expenses"
           ],
           "homeEquityCap": 752000
         },
-        "functionalRequirement": "Must need assistance with at least two activities of daily living (bathing, dressing, eating, toileting, transferring, or continence) OR require nursing facility level of care",
+        "functionalRequirement": "Must need assistance with at least two activities of daily living (bathing, dressing, eating, toileting, transferring, or continence) or require nursing facility level of care",
         "otherRequirements": [
           "Arizona resident",
           "U.S. citizen or proper immigration status"
@@ -279,27 +281,27 @@
           {
             "step": 1,
             "title": "Call ALTCS",
-            "description": "Call (888) 621-6880 to request application form DE-828 and instructions"
+            "description": "Call (888) 621-6880 to request application forms and instructions. A family member or caregiver can call on your parent's behalf."
           },
           {
             "step": 2,
-            "title": "Gather documentation",
-            "description": "Collect proof of income, assets, residency, and physician certification of care needs"
+            "title": "Complete Form DE-828",
+            "description": "Fill out the ALTCS Application completely — any mistakes result in automatic denial."
           },
           {
             "step": 3,
-            "title": "Complete application accurately",
-            "description": "Fill out Form DE-828 with no errors — mistakes result in automatic denial"
+            "title": "Gather documentation",
+            "description": "Collect proof of income, assets, residency, and physician certification of long-term care needs."
           },
           {
             "step": 4,
-            "title": "Submit for review",
-            "description": "Application goes through financial review (assets/income) then medical review (care needs assessment)"
+            "title": "Submit application",
+            "description": "Submit completed application with all required documents for financial and medical review."
           }
         ],
-        "processingTime": "60 to 90 days",
+        "processingTime": "60-90 days",
         "waitlist": null,
-        "tip": "Have a family member or attorney help with the application — one mistake causes automatic denial.",
+        "tip": "Complete the application with zero errors — any mistakes result in automatic denial and you'll need to start over.",
         "urls": [
           {
             "label": "Official ALTCS Information",
@@ -313,17 +315,17 @@
           "heading": "Income Limits by Household Size",
           "rows": [
             {
-              "householdSize": "Single person",
-              "monthlyLimit": "$2,901",
-              "yearlyLimit": "$34,812"
+              "householdSize": 1,
+              "monthlyLimit": 2901,
+              "annualLimit": 34812
             },
             {
-              "householdSize": "Married couple",
-              "monthlyLimit": "$5,802",
-              "yearlyLimit": "$69,624"
+              "householdSize": 2,
+              "monthlyLimit": 5802,
+              "annualLimit": 69624
             }
           ],
-          "footnote": "2025 limits, updated each January"
+          "footnote": "2025 limits, updated annually in January"
         },
         {
           "type": "what-counts",
@@ -336,12 +338,12 @@
             "Some life insurance policies"
           ],
           "excluded": [
-            "Primary Arizona home (up to $752,000 equity)",
-            "One vehicle",
-            "Household furnishings and appliances",
-            "Personal effects",
+            "Primary residence in Arizona (up to $752,000 home equity)",
+            "One vehicle of any value",
+            "Household furnishings and personal effects",
+            "Up to $2,000 in cash",
             "$1,500 designated for burial expenses",
-            "Special Needs Trusts (for disabled under 65)"
+            "Special Needs Trusts (for disabled persons under 65)"
           ]
         },
         {
@@ -349,10 +351,10 @@
           "heading": "What to Bring",
           "categories": [
             {
-              "name": "Identity & Residency",
+              "name": "Identity",
               "items": [
-                "Proof of Arizona residency",
-                "Proof of citizenship or immigration status"
+                "Proof of citizenship or immigration status",
+                "Proof of Arizona residency"
               ]
             },
             {
@@ -360,14 +362,14 @@
               "items": [
                 "Proof of all income sources",
                 "Bank statements for all accounts",
-                "Documentation of all assets and property"
+                "Documentation of all assets"
               ]
             },
             {
               "name": "Medical",
               "items": [
                 "Physician's certification of need for long-term care",
-                "Documentation of limitations with daily activities (bathing, dressing, etc.)"
+                "Documentation of activities of daily living limitations"
               ]
             }
           ]
@@ -375,38 +377,38 @@
         {
           "type": "callout",
           "tone": "warning",
-          "text": "ALTCS has a 60-month look-back rule. If your parent gave away assets or sold them below market value within 5 years of applying, they face a penalty period of ineligibility."
+          "text": "60-month look-back rule: If your parent gave away assets or sold them below fair market value in the past 5 years, they may face a penalty period of ineligibility."
         },
         {
           "type": "callout",
           "tone": "tip",
-          "text": "A dementia or Alzheimer's diagnosis alone does NOT guarantee eligibility. Your parent must demonstrate they need physical help with at least two daily activities."
+          "text": "A dementia or Alzheimer's diagnosis alone does not guarantee eligibility — your parent must still demonstrate they need help with at least two daily activities."
         }
       ],
       "faqs": [
         {
           "question": "Can Mom keep her house if she qualifies for ALTCS?",
-          "answer": "Yes, if it's her primary Arizona residence and the home equity is under $752,000 (2026 limit). The house is exempt from the asset limits as long as she lives there or intends to return."
+          "answer": "Yes, your parent can keep their primary Arizona residence as long as the home equity doesn't exceed $752,000 (2026 limit). The house is exempt from the $2,000 asset limit."
         },
         {
           "question": "What if Dad's income is just over the $2,901 limit?",
-          "answer": "He won't qualify for ALTCS. The income limits are strict — $2,901/month for a single person in 2025. However, limits are updated each January, so check current amounts when applying."
+          "answer": "If his income exceeds $2,901/month, he won't qualify for ALTCS. The income limits are strict and updated annually in January. Consider consulting with a Medicaid planning attorney about spend-down strategies."
         },
         {
-          "question": "Does my parent need to be in a nursing home already to apply?",
-          "answer": "No. Your parent can apply from home, assisted living, or anywhere else. ALTCS will assess their care needs and determine the appropriate level of services."
+          "question": "Does Mom need to be in a nursing home already to apply?",
+          "answer": "No, your parent does not need to already live in a nursing facility to qualify. ALTCS covers care in your parent's own home, assisted living, memory care, or nursing facilities based on their needs."
         },
         {
           "question": "What happens if we make a mistake on the application?",
-          "answer": "Automatic denial. ALTCS requires error-free applications. Consider having a family member, attorney, or Medicaid planning service help complete the paperwork."
+          "answer": "Any mistakes on the application result in automatic denial. You would need to start the entire 60-90 day process over. Consider working with a lawyer or Medicaid planning service to ensure accuracy."
         },
         {
-          "question": "How much of my parent's care will ALTCS actually cover?",
-          "answer": "ALTCS covers all medically necessary long-term care services based on your parent's individual care plan — this could be full nursing home costs, assisted living fees, or home care hours as needed."
+          "question": "Can I apply for ALTCS on behalf of my parent?",
+          "answer": "Yes, family members, caregivers, or estate planning lawyers can assist with or submit the application on your parent's behalf. Call (888) 621-6880 to get started."
         },
         {
-          "question": "If my parents are married, do both need to qualify?",
-          "answer": "No. Only the spouse needing care must meet the medical and age requirements. The community spouse (staying at home) has different asset protections, determined case-by-case."
+          "question": "What if my parents are married and only one needs long-term care?",
+          "answer": "Married couples have different asset limits ($4,000 vs. $2,000 for singles) and special community spouse protections. The healthy spouse may be able to keep more assets and income — this is determined case-by-case."
         }
       ],
       "phone": "(888) 621-6880",
@@ -418,7 +420,7 @@
       "id": "arizona-pace-programs",
       "name": "Arizona PACE Programs",
       "shortName": "Arizona PACE",
-      "tagline": "If your parent needs nursing home level care but wants to stay home, PACE covers all medical care and services through one team.",
+      "tagline": "All-inclusive medical care for parents 55+ who need nursing home-level care but want to stay home.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -435,16 +437,16 @@
           }
         ]
       },
-      "intro": "If your parent is 55+ and needs nursing home level care but wants to stay in their community, Arizona PACE Programs provide comprehensive medical and social services through one coordinated team. Because PACE covers all care under one program, your parent never pays deductibles or co-pays for any medical care, medications, or services provided by their PACE team.\n\nPACE serves adults who have been certified as needing nursing home level of care (a clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other personal care). The average PACE participant is 76 years old with multiple complex medical conditions. If your parent has Medicaid, PACE is fully covered. If not, they pay a monthly premium but still receive all services without additional costs.\n\nCritical limitation: PACE is only available in specific service areas where PACE organizations operate — not all Arizona counties have PACE programs available.",
+      "intro": "If your parent is 55+ and needs significant daily help but wants to avoid a nursing home, Arizona PACE provides all medical care, medications, and social services through one coordinated team. Your parent will never pay deductibles or co-pays for any PACE-covered care. Because PACE covers everything from doctor visits to transportation to adult day programs under one plan, you won't need to coordinate between separate Medicare providers — one interdisciplinary team manages all care.\n\nPACE requires your parent to qualify for nursing home-level care (daily help with bathing, dressing, or medication management), but the program is specifically designed to keep them living safely in the community. About 90% of participants have their care fully covered through Medicaid. The rest pay private monthly premiums directly to the PACE organization.\n\nPACE is not available statewide. Your parent must live in an area where a PACE organization operates, and availability varies significantly by region in Arizona.",
       "savingsRange": "",
       "savingsSource": "Free service",
-      "savingsVerified": true,
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 55+",
-          "Nursing home level of care certification",
-          "Live in PACE service area",
-          "Safe for community living"
+          "Need nursing home-level care",
+          "Must live in PACE service area",
+          "Cannot have Medicare Advantage"
         ],
         "ageRequirement": "55+",
         "incomeTable": [
@@ -456,60 +458,47 @@
         "assetLimits": {
           "individual": 2000,
           "couple": null,
-          "countedAssets": [
-            "Bank accounts",
-            "Stocks and bonds",
-            "Retirement accounts over limit"
-          ],
-          "exemptAssets": [
-            "Primary home",
-            "One vehicle",
-            "Personal belongings"
-          ],
+          "countedAssets": [],
+          "exemptAssets": [],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must be certified by AHCCCS as meeting nursing home level of care (needing daily help with bathing, dressing, medication management, or other personal care tasks)",
+        "functionalRequirement": "Must be certified as needing nursing home-level care (daily assistance with activities like bathing, dressing, medication management, or mobility)",
         "otherRequirements": [
-          "Must live in a PACE organization service area",
+          "Must live in PACE organization service area",
           "Must be able to live safely in community with PACE services",
-          "Cannot be enrolled in Medicare Advantage plans",
+          "Cannot be enrolled in Medicare Advantage or Medicare prescription drug plans",
           "Cannot be receiving hospice services"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your regional AHCCCS number to start the application and nursing home level of care assessment.",
+        "summary": "Call your regional AHCCCS office to start the application process — processing time varies by region.",
         "steps": [
           {
             "step": 1,
-            "title": "Verify PACE availability in your area",
-            "description": "Confirm a PACE organization operates in your parent's zip code before applying."
+            "title": "Call your regional AHCCCS office",
+            "description": "Central Arizona: 800-564-5465, Northern Arizona: 888-788-4408, Southern Arizona: 866-495-6738"
           },
           {
             "step": 2,
-            "title": "Call regional AHCCCS number",
-            "description": "Central Arizona: 800-564-5465, Northern Arizona: 888-788-4408, Southern Arizona: 866-495-6738."
+            "title": "Verify PACE availability",
+            "description": "Confirm a PACE organization operates in your parent's specific area — not all Arizona counties have PACE programs"
           },
           {
             "step": 3,
-            "title": "Complete nursing home level of care assessment",
-            "description": "AHCCCS will assess whether your parent meets the clinical criteria for nursing home placement."
+            "title": "Complete AHCCCS application",
+            "description": "Submit income and medical documentation to establish Medicaid eligibility (if seeking Medicaid funding)"
           },
           {
             "step": 4,
-            "title": "Complete PACE intake assessment",
-            "description": "PACE organization staff will assess whether your parent can live safely in the community with PACE services."
-          },
-          {
-            "step": 5,
-            "title": "Submit financial documentation",
-            "description": "If seeking Medicaid coverage, provide income and asset documentation to determine eligibility."
+            "title": "Schedule PACE intake assessment",
+            "description": "PACE organization staff will assess whether your parent meets nursing home level of care requirements and can live safely in community"
           }
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Gather medical records showing your parent's care needs before calling — this speeds up the nursing home level of care assessment.",
+        "tip": "Before applying, verify that a PACE organization actually serves your parent's address — many Arizona areas have no PACE coverage.",
         "urls": [
           {
             "label": "AHCCCS Application Portal",
@@ -520,43 +509,41 @@
       "contentSections": [
         {
           "type": "what-counts",
-          "heading": "Asset Limits: What Counts (If Using Medicaid)",
+          "heading": "Asset Limits: What Counts (Medicaid Funding Only)",
           "included": [
             "Bank accounts and cash",
-            "Stocks, bonds, and investments",
-            "Retirement accounts (IRA, 401k) over $2,000",
+            "Investments and retirement accounts",
             "Second homes or rental property",
-            "Vehicles worth over $4,650"
+            "Vehicles over $4,650 value"
           ],
           "excluded": [
-            "Primary home (any value)",
-            "One vehicle under $4,650",
+            "Primary home (no equity limit in Arizona)",
+            "One vehicle for transportation",
             "Personal belongings and household items",
-            "Burial plots and $1,500 for burial expenses",
-            "Life insurance with face value under $2,000"
+            "Burial funds up to $1,500"
           ]
         },
         {
           "type": "county-directory",
-          "heading": "Regional Contact Numbers",
+          "heading": "Regional AHCCCS Offices",
           "offices": [
             {
-              "name": "Central Arizona",
+              "name": "Central Arizona Regional Office",
               "type": "service-area",
               "phone": "800-564-5465",
-              "address": "Covers Phoenix metro area and surrounding counties"
+              "address": "Covers Maricopa County and surrounding areas"
             },
             {
-              "name": "Northern Arizona",
+              "name": "Northern Arizona Regional Office",
               "type": "service-area",
               "phone": "888-788-4408",
-              "address": "Covers Flagstaff, Prescott, and northern counties"
+              "address": "Covers northern Arizona counties"
             },
             {
-              "name": "Southern Arizona",
+              "name": "Southern Arizona Regional Office",
               "type": "service-area",
               "phone": "866-495-6738",
-              "address": "Covers Tucson metro area and southern counties"
+              "address": "Covers Pima County and southern Arizona"
             }
           ]
         },
@@ -569,26 +556,25 @@
               "items": [
                 "Recent medical records showing need for daily care assistance",
                 "Current medication list",
-                "Hospital discharge summaries (if applicable)",
-                "Physical therapy or occupational therapy evaluations"
+                "Doctor's assessment of functional limitations"
               ]
             },
             {
-              "name": "Financial (if using Medicaid)",
+              "name": "Financial (if applying for Medicaid funding)",
               "items": [
-                "Social Security award letters",
-                "Pension statements",
-                "Bank statements for all accounts (3 months)",
-                "Investment account statements"
+                "3 months of bank statements",
+                "Social Security award letter",
+                "Pension or retirement income statements",
+                "Property tax records for real estate"
               ]
             },
             {
               "name": "Identity",
               "items": [
+                "Arizona driver's license or ID",
                 "Social Security card",
-                "Birth certificate or passport",
-                "Arizona driver's license or state ID",
-                "Medicare card"
+                "Medicare card",
+                "Proof of residence in PACE service area"
               ]
             }
           ]
@@ -596,38 +582,38 @@
         {
           "type": "callout",
           "tone": "warning",
-          "text": "PACE is not available statewide. You must verify a PACE organization operates in your parent's specific area before starting the application process."
+          "text": "PACE is not available statewide. Many Arizona counties have no PACE organizations operating. You must verify coverage in your parent's specific address before applying."
         },
         {
           "type": "callout",
           "tone": "tip",
-          "text": "Your parent cannot be enrolled in Medicare Advantage plans while receiving PACE services. They may need to disenroll during Medicare's annual open enrollment period."
+          "text": "If your parent has Medicare Advantage, they must disenroll before joining PACE. PACE cannot be combined with Medicare Advantage plans."
         }
       ],
       "faqs": [
         {
-          "question": "Can Mom keep her house if she qualifies for PACE?",
-          "answer": "Yes. Your home is completely exempt from PACE asset limits, regardless of value. PACE is designed to help people stay in their community rather than move to a nursing home."
+          "question": "What if my parent's income is just over the Medicaid limit?",
+          "answer": "PACE has no income limits itself. If your parent's income exceeds $2,982/month for Medicaid eligibility, they can still join PACE by paying private monthly premiums directly to the PACE organization. About 10% of PACE participants pay privately rather than through Medicaid."
         },
         {
-          "question": "What if Dad's income is too high for Medicaid but he needs PACE services?",
-          "answer": "He can still enroll in PACE by paying a monthly premium as a private-pay participant. There are no income limits for PACE itself — only for Medicaid funding. He'll still receive all services without deductibles or co-pays."
+          "question": "Can Mom keep her house if she qualifies?",
+          "answer": "Yes. PACE is designed to help people stay in their homes rather than move to nursing homes. Arizona has no home equity limit for Medicaid, so your parent can keep their primary residence regardless of value."
         },
         {
-          "question": "Does PACE replace Dad's Medicare and current doctors?",
-          "answer": "Yes. Once enrolled, your parent must receive all covered services through the PACE organization's team of doctors, nurses, and specialists. They cannot use Medicare to see outside providers for covered services."
+          "question": "What happens if we move to a different Arizona county?",
+          "answer": "Your parent can only receive PACE services within their PACE organization's service area. If you move to an area without PACE coverage, they would need to disenroll and transition back to regular Medicare and other services."
         },
         {
-          "question": "How do I know if PACE is available where Mom lives?",
-          "answer": "Call your regional AHCCCS number first. They can tell you immediately if a PACE organization serves your parent's zip code. InnovAge operates some Arizona locations, but coverage varies by county."
+          "question": "How is this different from Medicare Advantage?",
+          "answer": "PACE covers all Medicare and Medicaid services plus additional long-term care services like adult day programs and care coordination. Unlike Medicare Advantage, PACE participants never pay deductibles or co-pays for any covered services, and care is managed by one interdisciplinary team."
         },
         {
-          "question": "What's the difference between needing 'nursing home level of care' but being 'safe in the community'?",
-          "answer": "Your parent must be sick enough to qualify for nursing home placement (needing daily help with personal care) but stable enough that PACE services can keep them safe at home. PACE staff assess both requirements during enrollment."
+          "question": "What if Dad doesn't want to go to the adult day center?",
+          "answer": "PACE requires participation in the adult day health center as part of the care plan, typically several days per week. The interdisciplinary team determines the appropriate level of participation based on your parent's health and social needs. This is not optional."
         },
         {
-          "question": "Can Mom leave PACE if she doesn't like it?",
-          "answer": "Yes. PACE enrollment is voluntary and your parent can disenroll at any time. They would return to regular Medicare and Medicaid coverage (if eligible) and choose new healthcare providers."
+          "question": "Can we choose our own doctors under PACE?",
+          "answer": "No. Once enrolled in PACE, your parent must receive all covered medical care through the PACE organization's team of providers. They cannot see outside specialists or use other medical providers for covered services."
         }
       ],
       "phone": "800-564-5465",
@@ -636,24 +622,1034 @@
       "draftedAt": "2026-04-09"
     },
     {
+      "id": "arizona-medicare-savings-programs",
       "name": "Arizona Medicare Savings Programs (QMB, SLMB, QI)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Medicare Savings Programs",
+      "tagline": "Arizona covers your parent's Medicare premiums, deductibles, and copays if their income is under $1,800/month.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local DES/Family Assistance Administration offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to pay Medicare premiums and medical bills, Arizona's Medicare Savings Programs can eliminate these costs entirely. The state pays Medicare Part B premiums ($174.70/month in 2025), deductibles, coinsurance, and copays directly to providers — your parent never sees these bills. Three tiers exist based on income: QMB covers everything, while SLMB and QI cover premiums plus prescription drug help.\n\nUnlike most states, Arizona has no asset limits — your parent can own their home, have savings, and still qualify if their monthly income falls under the limits (roughly $1,330-$1,800 for a single person depending on the tier). Because providers cannot bill QMB recipients for Medicare-covered services, your parent is protected from surprise medical bills.",
+      "savingsRange": "$2,100 – $4,400/year",
+      "savingsSource": "Medicare Part B premiums plus typical deductibles and copays",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ with Medicare",
+          "Income under $1,800/month (single)",
+          "Arizona resident",
+          "No asset limits in Arizona"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1330
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1790
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be enrolled in or eligible for Medicare Part A",
+          "U.S. citizen or qualified non-citizen",
+          "Apply for other available pensions/disability benefits"
+        ],
+        "povertyLevelReference": "100-135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at Health-e-Arizona or visit your local DES office — processing takes 45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Choose your application method",
+            "description": "Apply online at Health-e-Arizona (fastest) or get a paper application from your local DES office."
+          },
+          {
+            "step": 2,
+            "title": "Gather income documents",
+            "description": "Collect Social Security statements, pension letters, and bank statements from the last 3 months."
+          },
+          {
+            "step": 3,
+            "title": "Submit with Medicare information",
+            "description": "Include your parent's Medicare card and proof of Arizona residency (utility bill)."
+          },
+          {
+            "step": 4,
+            "title": "Follow up if applying for QI",
+            "description": "QI funding is limited and first-come, first-served — call AHCCCS at 1-855-432-7587 to check status."
+          }
+        ],
+        "processingTime": "45 days",
+        "waitlist": "QI program may have waitlist if annual funding runs out; QMB and SLMB have no waitlist",
+        "tip": "Apply for the highest tier (QMB) even if you think income might be too high — the $20 monthly disregard and Arizona's no-asset-test policy help many families qualify.",
+        "urls": [
+          {
+            "label": "Health-e-Arizona Online Application",
+            "url": "https://www.healthearizonaplus.gov/"
+          },
+          {
+            "label": "Find Local DES Office",
+            "url": "https://des.az.gov/services/basic-needs"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Full coverage tier",
+              "incomeLimit": "Single: ~$1,330/month; Couple: ~$1,790/month",
+              "coverage": "Pays Part A premium (if applicable), Part B premium, all deductibles, coinsurance, and copays. Automatic Extra Help for prescription drugs."
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Premium assistance tier",
+              "incomeLimit": "Single: ~$1,596/month; Couple: ~$2,148/month",
+              "coverage": "Pays Part B premium only. Automatic Extra Help for prescription drugs."
+            },
+            {
+              "name": "QI (Qualified Individual)",
+              "description": "Limited funding tier",
+              "incomeLimit": "Single: ~$1,796/month; Couple: ~$2,416/month",
+              "coverage": "Pays Part B premium only. Automatic Extra Help for prescription drugs. Must reapply annually."
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Medicare card",
+                "Social Security card",
+                "Birth certificate or proof of citizenship",
+                "Arizona ID or driver's license"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letter",
+                "Pension statements",
+                "Bank statements (last 3 months)",
+                "Pay stubs if still working"
+              ]
+            },
+            {
+              "name": "Residency",
+              "items": [
+                "Utility bill",
+                "Lease agreement or mortgage statement",
+                "Mail addressed to Arizona residence"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Arizona has no asset limits for Medicare Savings Programs — your parent can own their home, have savings in the bank, and still qualify based on income alone. This makes Arizona more generous than most states."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI program funding is limited and awarded first-come, first-served. If your parent's income falls in the QI range, apply early in the year and consider reapplying for SLMB as backup."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house and savings if she qualifies?",
+          "answer": "Yes. Arizona has no asset limits for Medicare Savings Programs. Your mom can own her home, have money in savings accounts, and still qualify based on income alone."
+        },
+        {
+          "question": "What if her income is just over the QMB limit?",
+          "answer": "She may still qualify for SLMB (pays Part B premium) if income is under $1,596/month for a single person, or QI if under $1,796/month. Each tier provides different levels of help."
+        },
+        {
+          "question": "Will this affect her Medicare Advantage plan?",
+          "answer": "No, she can keep her Medicare Advantage plan. The state will pay her Part B premium and she'll get automatic Extra Help for prescription drugs, which coordinates with her plan."
+        },
+        {
+          "question": "What happens if she gets denied but her income changes?",
+          "answer": "She can reapply anytime her income drops. For QMB and SLMB, there's no waitlist. Report income changes to maintain eligibility or qualify for a higher tier."
+        },
+        {
+          "question": "Does this count as Medicaid for her other benefits?",
+          "answer": "These are Medicare cost-sharing programs, not full Medicaid. They won't affect Social Security, pensions, or other benefits. They only help pay Medicare-related costs."
+        },
+        {
+          "question": "Can providers still bill her for Medicare services?",
+          "answer": "No. If she has QMB, providers cannot bill her for any Medicare-covered services — the state pays everything. SLMB and QI recipients may still have some copays for medical services."
+        }
+      ],
+      "phone": "1-855-432-7587",
+      "sourceUrl": "https://www.azahcccs.gov/PlansProviders/FeeForServiceHealthPlans/MedicareSavingsPrograms/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "arizona-snap-food-benefits",
       "name": "Nutrition Assistance (SNAP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "SNAP",
+      "tagline": "Up to $234/month in grocery money if your parent is 60+ and on a fixed income.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Family Assistance Administration (FAA) offices via 1-855-777-8590",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is struggling to afford groceries on Social Security or a pension, SNAP provides monthly money loaded onto an EBT card they can use at grocery stores or online at Amazon and Walmart. Because Arizona has no asset limits for most households, your parent won't lose benefits for having savings or owning their home.\n\nThe amount varies by income and household size — a single person can receive up to $234/month, while a two-person household can get up to $546/month. The program calculates benefits as the maximum amount minus 30% of your parent's net income after deductions for medical expenses over $35/month and high shelter costs.\n\nParents age 60+ get special treatment: no work requirements, higher income limits, and medical expense deductions that can significantly lower their countable income.",
+      "savingsRange": "$1,200 – $2,808/year in 2026",
+      "savingsSource": "Monthly EBT benefits range from $100-234 for individuals, up to $546 for couples",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income below $2,412/month (single)",
+          "Arizona resident",
+          "U.S. citizen or qualified non-citizen"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2412
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3261
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4108
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 4956
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 5805
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 6652
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 7499
+          }
+        ],
+        "assetLimits": {
+          "individual": 4500,
+          "couple": 4500,
+          "countedAssets": [
+            "Bank accounts",
+            "Cash",
+            "Stocks and bonds"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "Vehicles",
+            "Retirement savings",
+            "Household goods",
+            "Life insurance cash value"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in Arizona",
+          "Social Security, pensions, and disability payments count as income",
+          "Asset limits only apply if income is over the gross limit"
+        ],
+        "povertyLevelReference": "185% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at arizonaselfhelp.org or call 1-855-777-8590 — typically processed within 30 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Screen for eligibility",
+            "description": "Use the online screener at arizonaselfhelp.org to see if your parent likely qualifies before starting the full application."
+          },
+          {
+            "step": 2,
+            "title": "Gather income documents",
+            "description": "Collect Social Security award letters, pension statements, and any other income proof for the past month."
+          },
+          {
+            "step": 3,
+            "title": "Document medical expenses",
+            "description": "Gather bills for medical expenses over $35/month — these reduce countable income and can increase benefits."
+          },
+          {
+            "step": 4,
+            "title": "Submit application",
+            "description": "Complete the application online at arizonaselfhelp.org or call 1-855-777-8590 to apply by phone."
+          },
+          {
+            "step": 5,
+            "title": "Attend interview",
+            "description": "Complete a phone or in-person eligibility interview with a caseworker to verify information."
+          }
+        ],
+        "processingTime": "Typically 30 days, expedited processing available for urgent cases",
+        "waitlist": null,
+        "tip": "Medical expenses over $35/month are deductible and can significantly increase your parent's benefits — include everything from Medicare premiums to prescription costs.",
+        "urls": [
+          {
+            "label": "Arizona Self-Help Portal",
+            "url": "https://www.arizonaselfhelp.org"
+          },
+          {
+            "label": "Arizona DES SNAP Info",
+            "url": "https://des.az.gov/services/basic-needs/food/nutrition-assistance"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Gross Income Limits by Household Size (2025-2026)",
+          "rows": [
+            {
+              "householdSize": "1 person",
+              "monthlyLimit": "$2,412",
+              "annualLimit": "$28,944"
+            },
+            {
+              "householdSize": "2 people",
+              "monthlyLimit": "$3,261",
+              "annualLimit": "$39,132"
+            },
+            {
+              "householdSize": "3 people",
+              "monthlyLimit": "$4,108",
+              "annualLimit": "$49,296"
+            },
+            {
+              "householdSize": "4 people",
+              "monthlyLimit": "$4,956",
+              "annualLimit": "$59,472"
+            },
+            {
+              "householdSize": "Each additional",
+              "monthlyLimit": "+$847",
+              "annualLimit": "+$10,164"
+            }
+          ],
+          "footnote": "185% Federal Poverty Level, Oct 2025 - Sept 2026. If over these limits, may still qualify via net income test."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts (Only if Income Over Limit)",
+          "included": [
+            "Bank account balances",
+            "Cash on hand",
+            "Stocks and bonds",
+            "Investment accounts (non-retirement)"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "All vehicles",
+            "401(k), IRA, and other retirement savings",
+            "Household goods and personal belongings",
+            "Life insurance cash value (varies by policy)"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Contact Information",
+          "offices": [
+            {
+              "name": "Statewide Application Line",
+              "type": "service-area",
+              "phone": "1-855-777-8590",
+              "address": "Family Assistance Administration offices throughout Arizona"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residence",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of Arizona residency (utility bill, lease)"
+              ]
+            },
+            {
+              "name": "Income Documentation",
+              "items": [
+                "Social Security award letter",
+                "Pension statements",
+                "VA or disability benefit letters",
+                "Bank statements (last month)"
+              ]
+            },
+            {
+              "name": "Medical Expenses",
+              "items": [
+                "Medicare premium statements",
+                "Prescription receipts",
+                "Medical bills over $35/month",
+                "Health insurance premiums"
+              ]
+            },
+            {
+              "name": "Housing Costs",
+              "items": [
+                "Rent receipt or mortgage statement",
+                "Utility bills (electric, gas, water, phone)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Arizona has no asset limits for most households — your parent can own their home, have savings, and still qualify. Asset limits ($4,500) only apply to elderly households whose income is over the gross limit but trying to qualify via the net income test."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom's Social Security is just over the income limit?",
+          "answer": "She can still qualify through the net income test. After deductions for medical expenses over $35/month and high shelter costs, her countable income may fall below $1,305/month for a single person. Arizona also has no asset limits for most applicants, so savings won't disqualify her."
+        },
+        {
+          "question": "Can Dad keep his house and car if he gets SNAP?",
+          "answer": "Yes. Arizona exempts all vehicles and the primary home regardless of value. These assets don't count toward any limits. The $4,500 asset limit only applies to bank accounts and investments, and only for households over the gross income limit."
+        },
+        {
+          "question": "Do Mom's Medicare premiums help her qualify?",
+          "answer": "Yes. Medicare Part B and Part D premiums, plus any medical expenses over $35/month, are deducted from her income before calculating SNAP benefits. This can significantly increase her monthly benefit amount."
+        },
+        {
+          "question": "Will SNAP benefits affect Dad's other programs?",
+          "answer": "No. SNAP doesn't affect Social Security, Medicare, Medicaid, or housing assistance. The only conflict is with FDPIR (Food Distribution Program on Indian Reservations) — he can't get both simultaneously."
+        },
+        {
+          "question": "What if I live with Mom but buy groceries separately?",
+          "answer": "If you're 22+ and buy/prepare food separately from your parent, you can apply as separate households. But if you share meals or grocery shopping, everyone in the household must be included in the application, which may affect eligibility."
+        },
+        {
+          "question": "Can Mom use SNAP for grocery delivery?",
+          "answer": "Yes. The EBT card works for online grocery orders through Amazon, Walmart, and Instacart/Aldi. This is especially helpful if your parent has mobility issues or lives in a rural area with limited grocery access."
+        }
+      ],
+      "phone": "1-855-777-8590",
+      "sourceUrl": "https://des.az.gov/services/basic-needs/food/nutrition-assistance",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "arizona-liheap-energy-assistance",
       "name": "Low Income Home Energy Assistance Program (LIHEAP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "LIHEAP Energy Help",
+      "tagline": "If your parent struggles with high utility bills, they may qualify for up to $640/year toward electricity or gas costs.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Community Action Programs; contact via (866) 494-1981.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is on a fixed income and struggling to pay utility bills, LIHEAP can provide up to $640/year toward heating or cooling costs. The program gives priority to households with someone 60 or older, meaning your parent may move ahead of other applicants.\n\nLIHEAP covers both regular energy assistance (minimum $160, maximum $640 annually) and crisis help (up to $500 for energy emergencies like shut-off notices). Because funding is limited and distributed first-come-first-served within priority groups, applying early in the season is crucial.\n\nThe program runs seasonally: heating assistance from December through March, cooling assistance from April through October or November (depending on county). Your parent cannot have a utility credit of $500 or more to qualify.",
+      "savingsRange": "$160 – $640/year in 2026",
+      "savingsSource": "Standard LIHEAP benefit range, with additional crisis assistance up to $500",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Gross income below limits (1 person: $2,807/month)",
+          "Priority for age 60+",
+          "Arizona resident",
+          "No utility credit over $500"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2807
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3671
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4535
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5399
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6262
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 7126
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "U.S. citizenship or qualifying immigration status",
+          "Arizona residency with proof",
+          "No utility bill credit of $500 or more",
+          "Income verification for all household members 18+ for last 30 days only"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at des.az.gov/liheap or call (866) 494-1981 — processing time not specified but funding runs out.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect ID, proof of residence, Social Security numbers for all household members, and income verification for the last 30 days for adults 18+"
+          },
+          {
+            "step": 2,
+            "title": "Apply during seasonal window",
+            "description": "Heating assistance: December 1 – March 31. Cooling assistance: April 1 – October/November 30 (varies by county)"
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Apply online at des.az.gov/liheap, call (866) 494-1981, or schedule appointment with local Community Action Program"
+          },
+          {
+            "step": 4,
+            "title": "Wait for priority processing",
+            "description": "Applications processed by priority: elderly 60+, disabled, veterans, and families with children under 6 go first"
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": "Funding may run out — some agencies stop accepting applications early in the season",
+        "tip": "Apply as early as possible when the seasonal window opens, especially if your parent is in a priority group (age 60+).",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://des.az.gov/liheap"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "size": 1,
+              "monthlyLimit": "$2,807",
+              "annualLimit": "$33,684"
+            },
+            {
+              "size": 2,
+              "monthlyLimit": "$3,671",
+              "annualLimit": "$44,052"
+            },
+            {
+              "size": 3,
+              "monthlyLimit": "$4,535",
+              "annualLimit": "$54,420"
+            },
+            {
+              "size": 4,
+              "monthlyLimit": "$5,399",
+              "annualLimit": "$64,788"
+            },
+            {
+              "size": 5,
+              "monthlyLimit": "$6,262",
+              "annualLimit": "$75,144"
+            },
+            {
+              "size": 6,
+              "monthlyLimit": "$7,126",
+              "annualLimit": "$85,512"
+            }
+          ],
+          "footnote": "2026 limits; household includes everyone living at the address who shares the utility bill"
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Priority Groups",
+          "tiers": [
+            {
+              "name": "Priority 1",
+              "description": "Households with elderly (60+), disabled members, veterans, or children under 6",
+              "incomeLimit": "Same income limits apply",
+              "coverage": "Applications processed first within funding limits"
+            },
+            {
+              "name": "General",
+              "description": "All other eligible households",
+              "incomeLimit": "Same income limits apply",
+              "coverage": "Applications processed after Priority 1 if funding remains"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "State driver's license or ID",
+                "Proof of citizenship or immigration status",
+                "Proof of residence (lease, deed, property tax bill)",
+                "Social Security numbers or birth certificates for all household members"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Income verification for last 30 days for all adults 18+ (paystubs, Social Security award letters, etc.)",
+                "Current utility bills",
+                "Termination or delinquent notice (if applicable)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Funding is limited and runs out during the season. Some local agencies stop accepting applications early when their allocation is exhausted. Apply as soon as the seasonal window opens."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent gets priority processing if they're 60 or older, but they still need to apply during the correct season and before funding runs out in their area."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom's Social Security puts her just over the income limit?",
+          "answer": "The income limits are based on gross monthly income for the last 30 days only. If her income varies month to month, the 30-day snapshot used for the application might qualify her even if her annual income seems too high."
+        },
+        {
+          "question": "Can Dad get both heating and cooling assistance in the same year?",
+          "answer": "Yes, these are separate seasonal programs. He can apply for heating assistance (December-March) and cooling assistance (April-October/November) in the same year, up to $640 for each."
+        },
+        {
+          "question": "What counts as a household for the income limits?",
+          "answer": "Everyone living at the same address who shares the utility bill counts as the household, even if they're not related. If your parent lives alone but has a boarder who contributes to utilities, both incomes count."
+        },
+        {
+          "question": "Will this affect Mom's other benefits like Medicare or Social Security?",
+          "answer": "No, LIHEAP is not counted as income for other federal programs. It won't affect her Medicare, Social Security, SNAP, or other benefits."
+        },
+        {
+          "question": "What if the utility company already shut off Dad's power?",
+          "answer": "He may qualify for crisis assistance up to $500 to help with reconnection, in addition to the regular LIHEAP benefit. Apply immediately and mention the shut-off when calling."
+        },
+        {
+          "question": "Why does the application ask about a $500 utility credit?",
+          "answer": "If your parent has a utility bill credit of $500 or more, they're not eligible. This prevents double-dipping from other energy assistance programs."
+        }
+      ],
+      "phone": "(866) 494-1981",
+      "sourceUrl": "https://des.az.gov/liheap",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "arizona-ship",
       "name": "Arizona State Health Insurance Assistance Program (SHIP)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Arizona SHIP",
+      "tagline": "Free expert help navigating Medicare options and finding programs that could save your parent thousands on healthcare costs.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Arizona Department of Economic Security (state office, Phoenix)",
+            "type": "service-area"
+          },
+          {
+            "name": "azship.org network",
+            "type": "service-area"
+          },
+          {
+            "name": "SEAGO (Bisbee, 4-county region)",
+            "type": "service-area"
+          },
+          {
+            "name": "PCOA (Tucson)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare, Arizona SHIP provides free one-on-one counseling to help them understand their options and apply for money-saving programs. Because Medicare has dozens of plan choices and supplemental programs, having an expert guide can save your parent thousands — like helping them qualify for Extra Help (prescription drug savings) or Medicare Savings Programs (up to $8,400/year for individuals).\n\nSHIP counselors help with Medicare Advantage vs. Medigap decisions, Part D enrollment, appeals when claims are denied, and applications for financial assistance programs. They also provide fraud protection education through the Senior Medicare Patrol. No income limits apply — the service is free for all Medicare beneficiaries, their families, and caregivers, though they prioritize help for those with limited incomes or disabilities.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare beneficiary",
+          "Arizona resident",
+          "No income limits",
+          "Family/caregivers also eligible"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a Medicare beneficiary, family member, or caregiver in Arizona"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call 800-432-4040 or complete the online form at azship.org — counselors respond promptly to schedule appointments.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact SHIP",
+            "description": "Call 800-432-4040 or fill out the intake form at azship.org with your parent's basic information and what help you need."
+          },
+          {
+            "step": 2,
+            "title": "Schedule counseling",
+            "description": "A local counselor will call back to schedule a phone, in-person, or virtual appointment based on your preference."
+          },
+          {
+            "step": 3,
+            "title": "Prepare documents",
+            "description": "Gather your parent's Medicare card, current insurance information, and income details if applying for assistance programs."
+          },
+          {
+            "step": 4,
+            "title": "Get personalized help",
+            "description": "Meet with the counselor who will explain options, help compare plans, and assist with applications for savings programs."
+          }
+        ],
+        "processingTime": "Counselors return calls or schedule appointments promptly after contact",
+        "waitlist": null,
+        "tip": "Even if you think your parent's income is too high for assistance programs, have SHIP check — income limits change yearly and there may be programs you don't know about.",
+        "urls": [
+          {
+            "label": "Online intake form",
+            "url": "https://azship.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Offices",
+          "offices": [
+            {
+              "name": "Arizona Department of Economic Security",
+              "type": "service-area",
+              "phone": "800-432-4040",
+              "address": "1789 West Jefferson, Site Code MD6288, Phoenix, AZ 85007"
+            },
+            {
+              "name": "SEAGO (Southeast Arizona region)",
+              "type": "service-area",
+              "phone": null,
+              "address": "Bisbee (serves 4-county region)"
+            },
+            {
+              "name": "PCOA (Pima County/Tucson area)",
+              "type": "service-area",
+              "phone": "520-790-7262",
+              "address": "8467 E Broadway Blvd, Tucson, AZ 85710"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SHIP provides counseling only — they don't pay for healthcare or provide insurance. But they help you apply for programs that do, like Medicare Savings Programs worth up to $8,400/year."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent already has Medicare — can SHIP still help?",
+          "answer": "Yes. SHIP helps people who already have Medicare compare plans during Open Enrollment, apply for Extra Help with prescription costs, appeal denied claims, and find additional savings programs they may have missed."
+        },
+        {
+          "question": "Does my parent's income matter for getting SHIP counseling?",
+          "answer": "No. SHIP is free for all Medicare beneficiaries regardless of income. They prioritize help for people with limited incomes or disabilities, but everyone gets service."
+        },
+        {
+          "question": "Can I call SHIP as the adult child, or does my parent have to call?",
+          "answer": "You can call. SHIP helps family members and caregivers, not just the Medicare beneficiary directly. They understand that adult children often manage their parents' healthcare decisions."
+        },
+        {
+          "question": "What's the difference between SHIP and the Medicare.gov website?",
+          "answer": "SHIP provides personalized one-on-one help from a real person who knows Arizona's specific options. Because Medicare has hundreds of plan combinations, having someone walk through your parent's specific situation is much more useful than trying to figure it out online."
+        },
+        {
+          "question": "How long does a SHIP counseling session take?",
+          "answer": "Sessions vary based on what you need help with. A simple plan comparison might take 30 minutes, while helping with multiple applications for assistance programs could take an hour or more. There's no time limit — they work until your questions are answered."
+        },
+        {
+          "question": "What if my parent needs help with Medicare fraud or scams?",
+          "answer": "SHIP includes the Senior Medicare Patrol program specifically for fraud prevention and reporting. They can help if your parent received suspicious Medicare calls, bills for services they didn't receive, or thinks their Medicare number was stolen."
+        }
+      ],
+      "phone": "800-432-4040",
+      "sourceUrl": "https://azship.org",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "arizona-home-delivered-meals",
       "name": "Home Delivered Meals (Meals on Wheels)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "Home Delivered Meals",
+      "tagline": "If your parent is homebound or lacks reliable transportation, they may qualify for weekly meal deliveries at no cost.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "YWCA Metropolitan Phoenix (Glendale location: 8561 N 61st Ave)[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "St. Mary's Food Bank (statewide home delivery)[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Mom's Meals (available through Medicaid/Medicare Advantage plans)[3][5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and homebound due to illness, disability, or lack of transportation, they may qualify for free meal deliveries directly to their home. Arizona's home-delivered meals program operates through multiple providers, with benefits ranging from one meal per week through St. Mary's Food Bank to up to seven meals weekly through the YWCA program in Glendale.\n\nBecause this program serves homebound seniors who cannot shop or prepare meals independently, it provides both nutrition support and safety through regular wellness checks during delivery. Your parent must be present to receive deliveries, and most programs require household income at or below 185% of the Federal Poverty Level ($2,510/month for a single person in 2026).\n\nThe program operates statewide, but your parent's specific benefits depend on which provider serves their area and their referral source. Seniors with Medicaid or Medicare Advantage should check with their health plan first, as meal benefits may be covered at no cost through their insurance.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ (or 18+ with disability)",
+          "Income below 185% Federal Poverty Level",
+          "Homebound or lacks transportation",
+          "Must be present for delivery"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2510
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3407
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4304
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5201
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": "Must be confined to home due to physical/mental disability, prolonged illness, COVID-19 risk, or lack reliable transportation (excluding public transit)",
+        "otherRequirements": [
+          "Valid photo ID required at delivery",
+          "Must certify household income eligibility"
+        ],
+        "povertyLevelReference": "185% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the Area Agency on Aging at 602-264-4357 to determine eligibility and get referred to the appropriate provider.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call Area Agency on Aging",
+            "description": "Contact 602-264-4357 to discuss your parent's situation and determine which provider serves their area"
+          },
+          {
+            "step": 2,
+            "title": "Complete eligibility screening",
+            "description": "Provide information about income, living situation, and why your parent is homebound"
+          },
+          {
+            "step": 3,
+            "title": "Get provider referral",
+            "description": "AAA will refer your parent to St. Mary's Food Bank, YWCA, or another local provider based on their location"
+          },
+          {
+            "step": 4,
+            "title": "Contact health plan if applicable",
+            "description": "If your parent has Medicaid or Medicare Advantage, call their health plan to ask about meal benefits coverage"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent has Medicaid or Medicare Advantage, call their health plan first—meal benefits may be covered at no cost through their insurance.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (185% Federal Poverty Level)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2510,
+              "annualLimit": 30120
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3407,
+              "annualLimit": 40884
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 4304,
+              "annualLimit": 51648
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 5201,
+              "annualLimit": 62412
+            }
+          ],
+          "footnote": "2026 Federal Poverty Guidelines (185%)"
+        },
+        {
+          "type": "county-directory",
+          "heading": "Key Providers and Contact Information",
+          "offices": [
+            {
+              "name": "Area Agency on Aging (Primary Intake)",
+              "type": "statewide",
+              "phone": "602-264-4357",
+              "address": "Statewide eligibility screening and referrals"
+            },
+            {
+              "name": "YWCA Metropolitan Phoenix",
+              "type": "service-area",
+              "phone": null,
+              "address": "8561 N 61st Ave, Glendale (serves Glendale and surrounding areas)"
+            },
+            {
+              "name": "St. Mary's Food Bank",
+              "type": "statewide",
+              "phone": null,
+              "address": "Statewide home delivery program"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Have Ready",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Valid photo ID (required at time of delivery)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of household income (to verify 185% Federal Poverty Level eligibility)",
+                "Medicaid or Medicare Advantage plan information if applicable"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Documentation of disability or medical condition that keeps your parent homebound"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Your parent must be physically present to receive delivery—meals cannot be left on doorsteps or porches. Delivery windows are typically 6:00 AM to 6:00 PM."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Benefits vary dramatically by provider: St. Mary's Food Bank typically provides one meal per week, while YWCA in Glendale provides up to seven meals weekly. The Area Agency on Aging determines which provider your parent will be referred to based on their location."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the 185% poverty limit?",
+          "answer": "If your parent has Medicaid or Medicare Advantage, contact their health plan directly—meal benefits may be available through their insurance regardless of the food bank income limits. Different funding sources have different eligibility rules."
+        },
+        {
+          "question": "Can my parent get meals if they can drive but just don't want to go grocery shopping?",
+          "answer": "No. Your parent must be confined to home due to physical/mental disability, prolonged illness, COVID-19 risk, or lack of reliable transportation. Simply preferring not to shop doesn't qualify."
+        },
+        {
+          "question": "What happens if my parent isn't home when meals are delivered?",
+          "answer": "Your parent must be present to receive the delivery. Meals cannot be left unattended. If they miss a delivery, they'll need to contact their provider to reschedule."
+        },
+        {
+          "question": "How many meals will my parent actually receive each week?",
+          "answer": "It depends on which provider serves their area. St. Mary's Food Bank typically provides one meal per week, while YWCA in Glendale provides up to seven meals weekly. The Area Agency on Aging will tell you which provider your parent qualifies for."
+        },
+        {
+          "question": "Does my parent's house or savings account affect eligibility?",
+          "answer": "No asset limits are specified in Arizona's program—only income limits apply. Your parent can own their home and have savings and still qualify if their monthly income is below the limit."
+        },
+        {
+          "question": "What if we live in a small town—is this program available everywhere in Arizona?",
+          "answer": "The program is statewide, but different providers serve different areas. Call the Area Agency on Aging at 602-264-4357 to find out which provider serves your parent's specific location."
+        }
+      ],
+      "phone": "602-264-4357",
+      "sourceUrl": null,
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
       "name": "Arizona Caregiver Respite Program",

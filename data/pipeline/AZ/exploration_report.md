@@ -1,7 +1,7 @@
 # Arizona Benefits Exploration Report
 
 > Generated 2026-04-09 by benefits-pipeline.js
-> Cost: $0.090 (18 calls, 1.6m)
+> Cost: $0.010 (2 calls, 1.9m)
 
 ---
 
@@ -9,7 +9,7 @@
 
 | Metric | Value |
 |--------|-------|
-| Programs discovered | 16 |
+| Programs discovered | ? |
 | Programs deep-dived | 15 |
 | New (not in our data) | 7 |
 | Data discrepancies | 8 |
@@ -735,11 +735,16 @@ Our data differs from what official sources say:
 
 ## Content Drafts
 
-Generated 3 page drafts. Review in admin dashboard or `data/pipeline/AZ/drafts.json`.
+Generated 8 page drafts. Review in admin dashboard or `data/pipeline/AZ/drafts.json`.
 
 - **AHCCCS for Elders** (benefit) — 5 content sections, 6 FAQs
 - **Arizona Long Term Care System (ALTCS)** (benefit) — 5 content sections, 6 FAQs
 - **Arizona PACE Programs** (benefit) — 5 content sections, 6 FAQs
+- **Arizona Medicare Savings Programs (QMB, SLMB, QI)** (benefit) — 4 content sections, 6 FAQs
+- **Nutrition Assistance (SNAP)** (benefit) — 5 content sections, 6 FAQs
+- **Low Income Home Energy Assistance Program (LIHEAP)** (benefit) — 5 content sections, 6 FAQs
+- **Arizona State Health Insurance Assistance Program (SHIP)** (resource) — 2 content sections, 6 FAQs
+- **Home Delivered Meals (Meals on Wheels)** (benefit) — 5 content sections, 6 FAQs
 
 ## What We Learned
 

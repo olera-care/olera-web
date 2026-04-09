@@ -1,31 +1,40 @@
 {
   "state": "NM",
   "stateName": "New Mexico",
-  "classifiedAt": "2026-04-09T08:57:03.565Z",
-  "total": 3,
+  "classifiedAt": "2026-04-09T09:38:03.905Z",
+  "total": 5,
   "typeSummary": {
-    "benefit": 3
+    "benefit": 4,
+    "employment": 1
   },
   "scopeSummary": {
-    "state": 2,
-    "local": 1
+    "state": 3,
+    "local": 1,
+    "federal": 1
   },
   "complexitySummary": {
-    "deep": 3
+    "deep": 5
   },
   "programs": [
     {
-      "name": "Community Benefit Program (Centennial Care)",
+      "name": "Centennial Care Community Benefit Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Managed Care Organizations (MCOs); ALTSD for waitlist",
+            "type": "service-area"
+          }
+        ]
       },
       "complexity": "deep",
       "recommendedSections": [
         "prose",
         "income-table",
         "what-counts",
+        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -36,7 +45,71 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "InnovAge New Mexico PACE, 904 Las Lomas Rd NE, Albuquerque, NM 87102 (opened 1998)[7]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
         "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Community Benefit Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Managed Care Organizations (MCOs) statewide; Aging & Long-Term Services Department for registry",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
@@ -48,7 +121,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "State office: 2040 S. Pacheco St., Santa Fe, NM 87505; WIC clinics, senior centers, CSFP locations statewide[3]",
+            "name": "NM DOH WIC offices, local senior centers, AAA/AARP; list of markets at SFMNP locations page[1]",
             "type": "service-area"
           }
         ]
@@ -73,22 +146,26 @@
       }
     },
     {
-      "name": "PNM Good Neighbor Fund",
-      "programType": "benefit",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
       "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
+        "type": "federal",
+        "stateVariation": true,
         "localEntities": [
           {
-            "name": "Rio Grande Food Project (Albuquerque).",
+            "name": "NM Aging & Long-Term Services Department (ALTSD)",
             "type": "service-area"
           },
           {
-            "name": "Goodwill Opportunity Center (Albuquerque).",
+            "name": "NICOA (AZ, MN, NM, ND, OK, SD, WI)",
             "type": "service-area"
           },
           {
-            "name": "Other community agencies by appointment.[1][2]",
+            "name": "Goodwill Industries of NM",
+            "type": "service-area"
+          },
+          {
+            "name": "Local SCSEP offices via state workforce boards.[2][3][4][5]",
             "type": "service-area"
           }
         ]
@@ -97,20 +174,16 @@
       "recommendedSections": [
         "prose",
         "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
+        "documents"
       ],
       "signals": {
-        "benefitType": "financial",
+        "benefitType": "employment",
         "hasIncomeTiers": true,
-        "hasAssetLimits": true,
+        "hasAssetLimits": false,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": true,
-        "isStatewide": false
+        "isStatewide": true
       }
     }
   ]

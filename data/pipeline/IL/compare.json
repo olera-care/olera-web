@@ -1,73 +1,77 @@
 {
   "state": "IL",
   "stateName": "Illinois",
-  "comparedAt": "2026-04-09T09:06:47.653Z",
-  "total": 15,
-  "newPrograms": 8,
-  "withDiffs": 7,
-  "withNovelFields": 7,
+  "comparedAt": "2026-04-09T09:32:38.701Z",
+  "total": 13,
+  "newPrograms": 5,
+  "withDiffs": 8,
+  "withNovelFields": 8,
   "benefitTypes": {
-    "service": 6,
-    "in_kind services": 1,
+    "service": 7,
     "financial": 3,
-    "advocacy": 2,
-    "in_kind": 2,
-    "employment": 1
+    "service|advocacy": 1,
+    "employment": 1,
+    "advocacy": 1
   },
   "variationPatterns": {
-    "priority_tier": 5,
-    "Individual service plan; specialized tracks for HIV/AIDS and Brain Injury populations[9]": 1,
-    "region": 2,
-    "household_size": 1,
     "not_applicable": 2,
-    "issue_type_and_location": 1,
-    "fixed": 3
+    "priority_tier": 3,
+    "region": 3,
+    "household_size": 2,
+    "not_applicable — SHIP provides counseling services, not tiered financial benefits": 1,
+    "priority_tier|region": 1,
+    "fixed": 1
   },
   "novelFieldSummary": {
     "asset_limits": {
       "count": 7,
       "programs": [
-        "Illinois PACE (Program of All-Inclusive Care for the Elderly)",
-        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "Illinois Medicaid (AABD Medical for seniors/disabled)",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "Benefit Access Program (includes QMB, SLMB, QI Medicare Savings Programs)",
         "Supplemental Nutrition Assistance Program (SNAP)",
         "Senior Health Insurance Program (SHIP)",
         "Community Care Program (CCP) Home Delivered Meals",
-        "Illinois Caregiver Support Program",
-        "Long-Term Care Ombudsman Program"
+        "Illinois Caregiver Support Program (includes respite)"
       ],
       "note": "Our model has no asset limit fields"
     },
     "regional_variations": {
-      "count": 7,
+      "count": 8,
       "programs": [
-        "Illinois PACE (Program of All-Inclusive Care for the Elderly)",
-        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "Illinois Medicaid (AABD Medical for seniors/disabled)",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "Benefit Access Program (includes QMB, SLMB, QI Medicare Savings Programs)",
         "Supplemental Nutrition Assistance Program (SNAP)",
         "Senior Health Insurance Program (SHIP)",
         "Community Care Program (CCP) Home Delivered Meals",
-        "Illinois Caregiver Support Program",
+        "Illinois Caregiver Support Program (includes respite)",
         "Long-Term Care Ombudsman Program"
       ],
       "note": "Program varies by region — our model doesn't capture this"
     },
     "waitlist": {
-      "count": 3,
+      "count": 6,
       "programs": [
-        "Illinois PACE (Program of All-Inclusive Care for the Elderly)",
-        "Medicare Savings Programs (QMB, SLMB, QI)",
-        "Community Care Program (CCP) Home Delivered Meals"
+        "Illinois Medicaid (AABD Medical for seniors/disabled)",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "Benefit Access Program (includes QMB, SLMB, QI Medicare Savings Programs)",
+        "Senior Health Insurance Program (SHIP)",
+        "Community Care Program (CCP) Home Delivered Meals",
+        "Illinois Caregiver Support Program (includes respite)"
       ],
       "note": "Has waitlist info — our model has no wait time field"
     },
     "documents_required": {
-      "count": 7,
+      "count": 8,
       "programs": [
-        "Illinois PACE (Program of All-Inclusive Care for the Elderly)",
-        "Medicare Savings Programs (QMB, SLMB, QI)",
+        "Illinois Medicaid (AABD Medical for seniors/disabled)",
+        "PACE (Program of All-Inclusive Care for the Elderly)",
+        "Benefit Access Program (includes QMB, SLMB, QI Medicare Savings Programs)",
         "Supplemental Nutrition Assistance Program (SNAP)",
         "Senior Health Insurance Program (SHIP)",
         "Community Care Program (CCP) Home Delivered Meals",
-        "Illinois Caregiver Support Program",
+        "Illinois Caregiver Support Program (includes respite)",
         "Long-Term Care Ombudsman Program"
       ],
       "note": "Has document checklist — our model doesn't store per-program documents"
@@ -82,51 +86,95 @@
   },
   "comparisons": [
     {
-      "name": "Medical Assistance/Medicaid",
+      "name": "Illinois Medicaid (AABD Medical for seniors/disabled)",
+      "isNew": false,
+      "existingId": "aid-to-the-aged-blind-and-disabled-aabd-medicaid",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1304",
+          "found": "$1,304",
+          "source": "https://www.dhs.state.il.us/page.aspx?item=30370"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$5,000 – $20,000/year",
+          "found": "Comprehensive medical coverage including: doctor visits, hospital stays, prescription drugs, home health services, nursing home care, medical equipment (e.g., wheelchairs), mental health treatment, limited dental and vision for adults. May include long-term care like personal care assistance or adult day care if functional need met. Free or low-cost; pairs with AABD cash assistance for some.",
+          "source": "https://www.dhs.state.il.us/page.aspx?item=30370"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dhs.state.il.us/page.aspx?item=30370"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Countable resources under $17,500 for individuals. Exemptions include ABLE accounts and certain assets specified by the Department (e.g., primary home up to limits, one vehicle). What counts: cash, bank accounts, investments, non-exempt property. Spousal rules apply if one spouse applies.[3][4][5][6]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered locally via IDHS offices; processing may vary slightly by local office, but no major differences noted.[2][6]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Entitlement program; no waitlist if eligible.[4]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of age/disability (SS/SSI award letters, medical records).",
+            "Income proof (pay stubs, SSI/SSDI statements).",
+            "Asset statements (bank, property).",
+            "ID/residency (ID, utility bills).",
+            "Citizenship/immigration status.",
+            "Medical/functional need evidence if applicable."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Entitlement with SSI auto-qualify; strict $17,500 asset cap; income at 100% FPG with spend-down option; pairs with cash aid; functional needs for LTC services.",
+      "gotchas": [
+        "Distinguish AABD Cash (income support) from AABD Medical (health coverage); many sources conflate but focus is Medical.",
+        "Spend-down program for higher incomes often missed.[1][3]",
+        "Non-citizens: Limited cash; use HBIS for seniors.[3][5]",
+        "Estate recovery: HFS recovers costs from estate post-death.[8]",
+        "Spousal income/assets counted differently; no Community Spouse Allowance for Regular AABD.[4]",
+        "Automatic SSI link: Apply for SSI first if possible.",
+        "2026 limits current; FPG adjusts annually."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.dhs.state.il.us/page.aspx?item=30370"
+    },
+    {
+      "name": "Home Services Program (HSP) Waiver / Home and Community-Based Services Waiver for the Elderly",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Varies by sub-program (AABD vs. Nursing Home), marital status, and care level; income/asset limits program-specific and annually adjusted; benefits tiered by functional assessment",
+      "dataShapeNotes": "Eligibility tied to NFLOC via DON tool; benefits fixed to narrow service list; income at 100% FPL for applicant only; statewide but local CCU assessments",
       "gotchas": [
-        "Multiple programs (AABD, Nursing Home, HCBS Waivers) with varying income/asset limits and benefit delivery (e.g., AABD benefits one-at-a-time vs. immediate Nursing Home)",
-        "Spousal rules: Community spouse protections but income may count if only one applies; no Community Spouse Maintenance Needs Allowance in some cases",
-        "Home equity limit $752,000 if no qualifying resident",
-        "Functional assessment required for long-term care; not automatic",
-        "Asset spend-down planning needed; limits differ by program (e.g., $2,000 vs. $17,500)",
-        "Medicare interaction: Some categories exclude Medicare qualifiers"
+        "Income limit updates annually in April (not January like standard FPL)[1]",
+        "Must meet NFLOC via DON assessment, not just age/income[1][3]",
+        "For 60-64: requires physical disability[1][4]",
+        "Services limited to specific list; no broad healthcare[4]",
+        "Managed by MCOs requiring legacy Medicaid ID for providers[8]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
-      "officialSource": "https://hfs.illinois.gov/medicalclients/health/benefitshfs.html"
+      "officialSource": "https://www.medicaid.gov/medicaid/section-1115-demo/demonstration-and-waiver-list/Waiver-Descript-Factsheet/IL (federal waiver factsheet); https://www.dhs.state.il.us/ (Illinois DHS)[4][5]"
     },
     {
-      "name": "Home Services Program (HSP) Waiver",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "HSP is age-restricted (under 60, with exceptions for HIV/AIDS and Brain Injury waivers), asset-tested, and Medicaid-linked. It is NOT an entitlement program—eligibility does not guarantee enrollment due to limited slots. The program has specialized tracks for HIV/AIDS and traumatic brain injury with different age rules. Case management is split between managed care (70%) and fee-for-service (30%), which affects service planning. Specific dollar amounts for services, processing timelines, and detailed application procedures are not available in provided search results.",
-      "gotchas": [
-        "AGE BARRIER: HSP is NOT for elderly people. The program serves people under 60 with severe disabilities[9][10]. Families with elderly relatives should apply for the 'Persons who are Elderly Waiver' instead (age 65+, or 60-64 if physically disabled)[4]",
-        "NOT AN ENTITLEMENT: Meeting eligibility requirements does NOT guarantee enrollment. Limited slots exist; waitlists form when full[4]",
-        "DON SCORE REQUIREMENT: Eligibility hinges on scoring at least 29 on the Determination of Need assessment—this is a specific clinical threshold, not just 'needing help'[3][6]",
-        "ASSET LIMITS ARE STRICT: $17,500 for adults 18+ is a hard cap. Home and one vehicle are exempt, but other assets count[5]",
-        "MEDICAID REQUIREMENT: While interim services don't require Medicaid approval, ongoing HSP services require Medicaid application or eligibility determination[3]",
-        "CASE MANAGEMENT SPLIT: 70% of customers use managed care (Health Choice Illinois); 30% use fee-for-service. This affects who develops your service plan[2]",
-        "PHYSICIAN CERTIFICATION NEEDED: You need a doctor's letter stating care can be safely provided at home—this isn't automatic[3]",
-        "FAMILY CAREGIVERS: Spouses, parents of minor children, and minor children of recipients cannot be paid caregivers; other family members can be[3]"
-      ],
-      "benefitType": "in_kind services",
-      "benefitVariesBy": "Individual service plan; specialized tracks for HIV/AIDS and Brain Injury populations[9]",
-      "officialSource": "https://www.dhs.state.il.us/page.aspx?item=29738"
-    },
-    {
-      "name": "Illinois PACE (Program of All-Inclusive Care for the Elderly)",
+      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
       "isNew": false,
       "existingId": "program-of-all-inclusive-care-for-the-elderly-pace",
       "existingVerified": null,
@@ -141,7 +189,7 @@
         {
           "field": "benefit_value",
           "ours": "$15,000 – $35,000/year",
-          "found": "Comprehensive, all-inclusive care 24/7/365: primary care clinic at PACE center, therapeutic recreation, restorative therapies, socialization, personal care, dining, home care, inpatient (acute/long-term when needed), prescription drugs, transportation. Covers all Medicare/Medicaid services; sole source for enrollees. No specific dollar amounts or hours stated—customized per participant via interdisciplinary team.[1][3][7]",
+          "found": "All-inclusive: primary care at PACE center, therapeutic recreation, restorative therapies, socialization, personal care, dining, home care, inpatient services (acute/long-term when needed), 24/7 care coordination; becomes sole source for Medicare/Medicaid services; no deductibles/copays for PACE-provided services (premium for Part D if no Medicaid)[1][3][5][7].",
           "source": "https://hfs.illinois.gov/medicalproviders/pace.html"
         },
         {
@@ -153,41 +201,41 @@
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "No asset limits for PACE enrollment. For Medicaid (dual-eligibility), assets $2,000 or less for single (excluding primary home, one vehicle, burial plots). Medicaid planning available to qualify.[2][6]",
+          "value": "No asset limits for PACE enrollment; Medicaid qualification (if sought) limits assets to $2,000 (excluding primary home)[1].",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Different PACE organizations/providers per region (e.g., OSF PACE in Peoria area); potential differences in wait times, capacity, services emphasis.",
+          "value": "Different PACE organizations/providers per region; services centered at regional PACE centers; potential wait time/provider differences[4][7].",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "waitlist",
-          "value": "Possible; varies by region/provider—not detailed.",
+          "value": "Possible regional waitlists (not detailed; varies by PACE center capacity)",
           "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of age/residency, medical records for nursing home level assessment, Medicare/Medicaid cards (if applicable), income/asset info for Medicaid (if seeking dual-eligibility)."
+            "Proof of age/residency, Medicare/Medicaid status (if applicable), medical records for functional assessment, personal/medical info for care planning[5]."
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Limited to 5 specific regions with zip code restrictions; no direct income/asset test for PACE but Medicaid financials for no-cost access; provider-specific variations.",
+      "dataShapeNotes": "Limited to 5 regional PACE centers in Illinois; no direct income/asset test for enrollment (Medicaid pathways separate); DON assessment via state CCUs required; dual-eligible focused but open to private pay.",
       "gotchas": [
-        "Not statewide—must live in exact service area zip code; check first.",
-        "Replaces all Medicare/Medicaid; cannot stay on regular plans or Medicare Advantage/hospice.",
-        "Nursing home certification required but must be community-safe with PACE—no financial eligibility for entry, but Medicaid needed for free full coverage.",
-        "Private pay expensive ($7,000+/month) if not dual-eligible.",
-        "Voluntary; can disenroll anytime, but coordinated team manages all care."
+        "Not statewide—must live in one of 5 specific regions[7].",
+        "Electing PACE makes it sole Medicare/Medicaid service source; disenroll anytime but lose regular benefits[3][6].",
+        "Nursing home level of care required (DON 29+), but must still live safely in community[4].",
+        "No Medicare Advantage/Part D/hospice while enrolled[2].",
+        "Premiums for non-Medicaid enrollees (e.g., Part D drugs)[5]."
       ],
       "benefitType": "service",
       "benefitVariesBy": "region",
       "officialSource": "https://hfs.illinois.gov/medicalproviders/pace.html"
     },
     {
-      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "name": "Benefit Access Program (includes QMB, SLMB, QI Medicare Savings Programs)",
       "isNew": false,
       "existingId": "medicare-savings-programs",
       "existingVerified": null,
@@ -196,60 +244,62 @@
         {
           "field": "income_limit",
           "ours": "$1304",
-          "found": "$20",
-          "source": "https://hfs.illinois.gov/medicalclients/medicare_savings_programs/medicaresavingsprograms.html or https://www.dhs.state.il.us/page.aspx?item=14172[6]"
+          "found": "$1,330",
+          "source": "https://hfs.illinois.gov/ (Illinois HFS) or https://www.dhs.state.il.us/page.aspx?item=14172 (DHS QMB page); charts at https://ilaging.illinois.gov/content/dam/soi/en/web/aging/ship/documents/medicare-savings-program-chart.pdf[4]"
         },
         {
           "field": "benefit_value",
           "ours": "$2,000 – $8,000/year",
-          "found": "QMB: Medicare Part A/B premiums, deductibles, coinsurance/copayments (e.g., 20% Part B, extended stays)[4][5]\nSLMB/SLIB: Part B premiums only ($202.90/month in 2026)[3][4]\nQI-1: Part B premiums only; auto-qualifies for Extra Help drug program[1][5]",
-          "source": "https://hfs.illinois.gov/medicalclients/medicare_savings_programs/medicaresavingsprograms.html or https://www.dhs.state.il.us/page.aspx?item=14172[6]"
+          "found": "**QMB**: Pays Medicare Part A & B premiums, deductibles, coinsurance (including 20% Part B, extended hospital/SNF stays)[3][4][6][7]. **SLMB**: Pays Part B premiums only (backdated up to 3 months + application month)[4]. **QI-1**: Pays Part B premiums only (effective month after eligibility; annual renewal)[4][6][9]. QI auto-qualifies for Extra Help (low/no Rx costs, e.g., ≤$12.65/drug in 2026)[9]. Part B premium value: up to $164.90/month or $1,978.80/year[7].",
+          "source": "https://hfs.illinois.gov/ (Illinois HFS) or https://www.dhs.state.il.us/page.aspx?item=14172 (DHS QMB page); charts at https://ilaging.illinois.gov/content/dam/soi/en/web/aging/ship/documents/medicare-savings-program-chart.pdf[4]"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://hfs.illinois.gov/medicalclients/medicare_savings_programs/medicaresavingsprograms.html or https://www.dhs.state.il.us/page.aspx?item=14172[6]"
+          "found": "https://hfs.illinois.gov/ (Illinois HFS) or https://www.dhs.state.il.us/page.aspx?item=14172 (DHS QMB page); charts at https://ilaging.illinois.gov/content/dam/soi/en/web/aging/ship/documents/medicare-savings-program-chart.pdf[4]"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "2026 limits: Individual $9,950, Couple $14,910[4]. Counts most financial resources; exempt: primary home, one vehicle, household items, engagement/wedding rings, burial plots/expenses up to $1,500, life insurance < $1,500 cash value[2].",
+          "value": "2026 limits: $9,950 individual, $14,910 couple for QMB, SLMB, QI-1[4][8][9]. What counts: Bank accounts, stocks, bonds (non-exempt resources). Exempt: Home, one car, personal belongings, burial plots, life insurance up to $1,500 face value, irrevocable burial trusts[2]. Illinois temporarily suspended asset test during public health emergency (pre-2026 status unclear)[2]; confirm current status.",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Administered locally via DHS Family Community Resource Centers; possible processing differences but no explicit variations noted[8]",
+          "value": "Administered uniformly statewide via DHS, but apply at local Family Community Resource Centers (may have regional processing differences); no explicit variations noted[8]",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "waitlist",
-          "value": "QI-1: First-come, first-served, limited funding, annual application required[3][5]",
+          "value": "QI-1 has limited funding; first-come, first-served with priority to prior year recipients—may have waitlist if funds exhausted[6][9]",
           "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Medicare card (proof of Part A)[7]",
-            "Income proof (pay stubs, SSI/SS awards)",
-            "Resource statements (bank, assets)",
-            "ID, SSN, residency proof"
+            "Proof of income (SSA-1099, pay stubs)",
+            "Proof of resources/assets (bank statements)",
+            "Medicare card (confirm Part A)",
+            "ID/SSN, proof of residency",
+            "Household size details"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Tiered by income (QMB <100% FPL, SLMB 120%, QI-1 up to 135%); asset limits single/couple only; QI-1 funding-capped with waitlist risk; income includes specific disregards; statewide but local DHS offices",
+      "dataShapeNotes": "Tiered by income brackets (QMB <100% FPL, SLMB 120% FPL, QI-1 higher); benefits narrow by tier (QMB fullest, QI-1 Part B only); statewide but local DHS offices; QI-1 first-come/annual; asset exemptions standard federal MSP",
       "gotchas": [
-        "QI-1 limited funding, first-come first-served, annual reapplication[3][5]",
-        "Must already have Medicare Part A; recent enrollees wait until coverage starts[6]",
-        "Income disregards ($20 general, wage deductions) often missed[2][3]",
-        "Assets exclude home/car but include most savings; state may vary slightly from federal[10]",
-        "Persons 22-64 in certain DHS facilities ineligible[6]",
-        "Outdated limits common; use 2026 IL chart[4]"
+        "Tiered programs: Too high income for QMB? Check SLMB/QI-1 (common miss)[6]",
+        "QI-1 annual reapplication + funding limits (not automatic; may lose if late)[6][9]",
+        "Asset test may apply post-emergency (IL suspended temporarily; verify)[2]",
+        "Must have Part A first; recent enrollees wait until coverage starts[5]",
+        "Income/assets countable (e.g., exclude home/car, but count savings); limits update yearly[4]",
+        "No eligibility if 22-64 in certain DHS facilities[5]",
+        "Conflicting older limits in sources—use 2026 IL chart[4] for accuracy"
       ],
       "benefitType": "financial",
       "benefitVariesBy": "priority_tier",
-      "officialSource": "https://hfs.illinois.gov/medicalclients/medicare_savings_programs/medicaresavingsprograms.html or https://www.dhs.state.il.us/page.aspx?item=14172[6]"
+      "officialSource": "https://hfs.illinois.gov/ (Illinois HFS) or https://www.dhs.state.il.us/page.aspx?item=14172 (DHS QMB page); charts at https://ilaging.illinois.gov/content/dam/soi/en/web/aging/ship/documents/medicare-savings-program-chart.pdf[4]"
     },
     {
       "name": "Supplemental Nutrition Assistance Program (SNAP)",
@@ -273,7 +323,7 @@
         {
           "field": "benefit_value",
           "ours": "$1,500 – $3,600/year",
-          "found": "Monthly EBT card (Link card in IL) for groceries; amount based on household size, net income (e.g., max allotment for 2-person elderly/disabled: $546/month, minus 30% net income). Exact amount calculated after deductions[1][6].",
+          "found": "Monthly EBT card benefits for food purchases (groceries at authorized retailers). Amount based on household size, net income, and deductions; e.g., maximum allotment for 2-person elderly/disabled household calculated as max allotment minus 30% of net income (example: $546 max - $131 = $415/month)[5]. Exact amount determined post-application.",
           "source": "https://www.dhs.state.il.us/page.aspx?item=30357"
         },
         {
@@ -285,17 +335,17 @@
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "Applies if gross income >200% FPL; limit typically $4,500. Exempt: primary home value, retirement savings, household goods, income-producing property (varies; some states waive for low-income). Countable: cash value of life insurance[2][4][5].",
+          "value": "Households with elderly (60+) or disabled members have a resource limit, typically up to $4,500 (federal standard; confirm via state calculator). Exempt assets include primary home, most retirement savings, and certain vehicles. Countable resources are cash, bank accounts, and non-exempt property[1][4].",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "household_size_table",
-          "value": "For households with members age 60+ or disabled, gross income limit is 200% of Federal Poverty Level (FPL). Specific 2025 limits for seniors: $15,060/month for 1 person, $20,440/month for 2 people. General Illinois limits (updated 10/1/2024) for elderly/disabled households: add $897 per person beyond 10. Most households must meet both gross (165% FPL) and net income tests; deductions include 20% earned income, standard deduction by household size, dependent care, medical expenses for 60+, uncapped housing, utilities, child support[1][2][4][7].",
+          "value": "For households with elderly (60+) or disabled members in Illinois, the gross income limit is 200% of the Federal Poverty Level (FPL). Specific 2025 annual limits include $15,060 for one person or $20,440 for two people (monthly equivalents apply). Limits scale by household size; use the official calculator for exact figures as they adjust annually (e.g., Oct 1, 2025–Sept 30, 2026 federal tables apply). Net income is calculated after deductions including 20% earned income, standard deduction ($205 for ≤3 people, $219 for ≥4), dependent care, excess medical costs over $35/month for elderly/disabled, shelter costs, and child support[1][3][4][5][6].",
           "note": "Benefits/eligibility vary by household size — we store a single number"
         },
         {
           "field": "regional_variations",
-          "value": "Administered locally via IDHS Family Community Resource Centers; processing times may vary by office, no major benefit differences[4][7].",
+          "value": "Administered locally via IDHS Family Community Resource Centers; processing times may vary by local office demand, but no formal regional differences in rules[6]",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
@@ -304,45 +354,69 @@
             "Proof of ID (driver's license, birth certificate)",
             "Social Security card/number",
             "Income proof (pay stubs, Social Security/pension statements, tax returns)",
-            "Expense proof (rent/mortgage, utilities, medical bills for 60+ including transport/mileage)",
+            "Household expenses (rent/mortgage, utilities, medical bills for 60+ or disabled)",
             "Bank statements (if applicable)",
-            "Proof of household (marriage/divorce docs if relevant)"
+            "Proof of medical costs over $35/month (receipts, transport for elderly/disabled)[3]"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Elderly/disabled households use special rules (200% FPL gross, medical deductions, simplified recert); benefits scale by household size and net income after deductions; statewide but local offices handle applications",
+      "dataShapeNotes": "Benefits and eligibility scale by household size with special higher income/resource rules and deductions for elderly (60+) or disabled; statewide but local offices handle applications; income tests both gross (200% FPL for elderly/disabled) and net",
       "gotchas": [
-        "Seniors 60+ get expanded rules: 200% FPL gross income, medical/housing deductions (uncapped housing), recertify every 24 months[1][3].",
-        "All adults in household must be 60+ or disabled for simplified redetermination (EDSRP)[3].",
-        "Social Security/pensions count as income; many eligible seniors don't apply[2].",
-        "New 2025 federal rules may affect work requirements for 55-64 without dependents[4][6].",
-        "Household definition: includes food-sharing members, even if not all 60+[2]."
+        "Social Security, pensions, and VA benefits count as income[1]",
+        "Must include all who buy/prepare food together in household[3]",
+        "Elderly/disabled get higher gross income limit (200% FPL vs. 165%) and medical/shelter deductions often missed[3][4]",
+        "New 2025 federal rules may affect work requirements for ages 55-64 without dependents[3][5][9]",
+        "Only half of eligible seniors enroll; simplified recertification for elderly/disabled via EDSRP[1][2]"
       ],
       "benefitType": "financial",
       "benefitVariesBy": "household_size",
       "officialSource": "https://www.dhs.state.il.us/page.aspx?item=30357"
     },
     {
-      "name": "Illinois Home Weatherization Assistance Program (IHWAP)",
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Statewide via local agencies with priority tiers (elderly/disabled/children first); income at 200% FPL with categorical eligibility; multi-family tenant thresholds; annual federal poverty updates; varying waitlists by region.",
+      "dataShapeNotes": "LIHEAP is a federally funded program administered by Illinois Department of Commerce & Economic Opportunity (DCEO) through local county agencies. Benefits are fixed as one-time payments (amount determined by agency based on household circumstances) rather than tiered. Income eligibility is uniform statewide at 60% of State Median Income but varies by household size. Application timing is priority-based with vulnerable populations getting early access. The program serves both homeowners and renters (with specific rent-to-income requirements for renters). Processing involves both online submission and local agency follow-up, creating potential for regional variation in wait times.",
       "gotchas": [
-        "Priority tiers mean elderly/disabled/young children go first; others may face long waits or denial in application year[4][6][9].",
-        "Multi-family requires 66% (or 50% in cases) income-eligible tenants[1][2].",
-        "Home must be structurally sound; no windows typically[4].",
-        "15-year rule since last service (exceptions for re-weatherization)[4][5].",
-        "All household members counted for income, must be citizens/qualified aliens[5].",
-        "Income guidelines update annually (PY2026 specific table referenced but not fully provided)[3]."
+        "Income is calculated as gross income (before taxes) for the 30 days prior to application, not annual income[3][6]",
+        "For renters, utilities must be included in the rent AND rent must exceed 30% of income to qualify—both conditions must be met[4][5]",
+        "Application season is staggered: vulnerable populations (seniors 60+, disabled, families with young children, disconnected households) can apply starting October 1, but everyone else must wait until November 1[3][4]",
+        "If facing imminent utility disconnection, call your county agency directly rather than waiting for online processing[3]",
+        "CSBG and LIHEAP have different income eligibility limits—don't confuse them[2]",
+        "Bills must be in the applicant's name; you cannot apply for someone else's utility bill[5]",
+        "The program provides a one-time lump sum payment, not ongoing monthly assistance[5]",
+        "Funds are provided directly to the utility company, not to the household[5]",
+        "State can adjust income limits based on federal appropriations availability[4]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://dceo.illinois.gov/communityservices/utilitybillassistance/howtoapply.html and https://helpillinoisfamilies.com"
+    },
+    {
+      "name": "Illinois Home Weatherization Assistance Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered via 100+ local CAAs with regional income tables and providers; priority-based waitlist; dual single/multi-family tracks; annual PY income updates tied to 200% FPL or 60% SMI; no fixed age req but elderly priority",
+      "gotchas": [
+        "Not automatic; pre-app review takes months, priority tiers mean elderly households go first but still may wait",
+        "Home must be structurally sound and not weatherized in last 15 years",
+        "Multi-family requires 66% (or 50%) eligible tenants, entire building applies",
+        "Income guidelines update yearly (PY2026 specific); verify with local CAA as tables differ slightly",
+        "Owner consent needed for rentals; no windows typically eligible",
+        "Funding limited; eligible non-priority households may be deferred to next year"
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
-      "officialSource": "https://dceo.illinois.gov/communityservices/homeweatherization.html[3]"
+      "officialSource": "https://dceo.illinois.gov/communityservices/homeweatherization.html"
     },
     {
       "name": "Senior Health Insurance Program (SHIP)",
@@ -354,44 +428,52 @@
         {
           "field": "benefit_value",
           "ours": "Free counseling service",
-          "found": "Free, unbiased, personalized health insurance counseling including: education on Medicare (Parts A-D), Medicare supplements, Medicare Part D, Medicare Advantage, long-term care insurance; assistance with enrollment in Part D and extra financial help for Part B/D premiums; help filing claims, analyzing policies, resolving billing issues and appeals; community education seminars.",
-          "source": "https://ilaging.illinois.gov/ship.html"
+          "found": "Free counseling and education services. No direct financial payments to beneficiaries. Services include: one-on-one confidential counseling sessions[1], Medicare plan comparisons[3], claims assistance and filing organization[1], insurance policy analysis[1], screening for Medicare benefit programs and Extra Help eligibility[1], legal assistance or referrals for some programs[3], help managing medical bills[3], study guides for Medicare research[3]",
+          "source": "https://ilaging.illinois.gov/ship.html[4]"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://ilaging.illinois.gov/ship.html"
+          "found": "https://ilaging.illinois.gov/ship.html[4]"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "No asset limits or tests apply.",
+          "value": "Not specified in available sources. Extra Help for Part D coverage mentions 'limited income and resources' but specific asset limits are not detailed.",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Delivered through local counselors and organizations (e.g., county health departments, economic opportunity corps, community centers); contact methods and appointment availability vary by region but services standardized statewide.",
+          "value": "SHIP services are delivered through a network of Area Agency on Aging (AAA) offices throughout the state[2], but specific regional variations in services, wait times, or eligibility are not detailed in available sources",
           "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned in available sources",
+          "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Medicare card, current insurance policies/statements, billing/claims notices if issues exist (optional, provided as needed for counseling)"
+            "For Extra Help (Part D) eligibility screening: bring income and resource information[1]",
+            "General documentation for Medicare application assistance (specific documents not detailed in sources)"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "no income/asset test; counseling-only advocacy service via statewide network of local providers; eligibility purely Medicare-based",
+      "dataShapeNotes": "SHIP is fundamentally different from direct-benefit programs — it is a free counseling and advocacy service, not a financial assistance program. Eligibility is based on Medicare status, not income or assets. The program's value lies in helping beneficiaries navigate complex Medicare options and identify other programs they may qualify for. Income and asset limits apply to programs SHIP helps people access (like Extra Help, Medicaid, Medicare Savings Program), not to SHIP itself. Services are delivered through a statewide network of Area Agency on Aging offices, but specific regional variations are not documented in available sources.",
       "gotchas": [
-        "Not an insurance provider or seller—counselors do not sell policies or represent insurers.",
-        "Free service, no enrollment into SHIP itself; it's counseling access.",
-        "Targeted at Medicare navigation, not direct medical care or financial aid.",
-        "During Medicare Open Enrollment (Oct 15-Dec 7), prioritize plan comparisons."
+        "SHIP is a counseling and assistance program, NOT an insurance plan itself — it does not provide direct healthcare coverage or financial payments[1][5]",
+        "SHIP counselors are not affiliated with any insurance company and do not sell insurance[1][5] — they provide objective, unbiased guidance",
+        "Services are available 'by appointment only'[1] — walk-ins may not be accommodated",
+        "While SHIP can screen for Extra Help (Part D) and Medicaid programs, actually qualifying for these programs requires separate applications with specific income/asset thresholds that are not detailed in SHIP materials",
+        "Search results do not provide specific income or asset limits for SHIP eligibility itself, only mention that some programs within SHIP's scope (like Extra Help) have 'limited income and resources' requirements[1]",
+        "No information provided about processing times, waitlists, or how quickly counseling appointments can be scheduled"
       ],
-      "benefitType": "advocacy",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "https://ilaging.illinois.gov/ship.html"
+      "benefitType": "service|advocacy",
+      "benefitVariesBy": "not_applicable — SHIP provides counseling services, not tiered financial benefits",
+      "officialSource": "https://ilaging.illinois.gov/ship.html[4]"
     },
     {
       "name": "Community Care Program (CCP) Home Delivered Meals",
@@ -404,73 +486,61 @@
           "field": "min_age",
           "ours": "65",
           "found": "60",
-          "source": "https://ilaging.illinois.gov/programs/nutrition/nutrition.html"
+          "source": "https://ilaging.illinois.gov/programs/ccp.html"
         },
         {
           "field": "benefit_value",
           "ours": "$1,500 – $3,600/year",
-          "found": "Home-delivered meals meeting at least one-third of daily recommended dietary allowances. Minimum of five meals per week in most areas; some programs offer additional meals for dinners and/or weekends.[5][6] Meals are volunteer-delivered, providing a safety check and face-to-face conversation.[5]",
-          "source": "https://ilaging.illinois.gov/programs/nutrition/nutrition.html"
+          "found": "Home-delivered nutritious meals (at least 1/3 of daily recommended dietary allowances; minimum 5 meals per week in some areas; may include weekends/dinners; ethnically/culturally tailored options like Kosher, South Asian, Korean, Halal in select areas; dietitian-approved menus). Part of broader CCP in-home services including meal preparation assistance.",
+          "source": "https://ilaging.illinois.gov/programs/ccp.html"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://ilaging.illinois.gov/programs/nutrition/nutrition.html"
+          "found": "https://ilaging.illinois.gov/programs/ccp.html"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": {
-            "threshold": "$17,500 in non-exempt assets",
-            "exempt_assets": [
-              "Primary residence and its furnishings[4]",
-              "Personal clothing and effects[4]",
-              "Vehicles (excluding recreational vehicles)[4]",
-              "Prepaid burial plan, burial plots, and markers[4]"
-            ],
-            "note": "Home, car, and personal furnishings do not count toward the $17,500 limit[1][2]"
-          },
+          "value": "Non-exempt assets of $17,500 or less. Exempt: home and furnishings, car (not recreational vehicles), personal clothing and effects, prepaid burial plan, burial plots and markers.",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Suburban Cook County has expanded programs including Meals Kit options and ethnically tailored meals in select areas. Delivery schedules vary by program (most Monday-Friday, but schedules may vary).[5] Farmer's Market Nutrition Program checks are available in 37 participating counties (July 10–October 31 season).[6]",
+          "value": "Delivery schedules vary (e.g., Monday-Friday standard, some weekends); culturally tailored meals in select areas (e.g., Kosher in northern suburbs, Korean, Halal); different providers via local Area Agencies on Aging (AAAs); wait times and availability may differ",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "waitlist",
-          "value": "Not specified in available sources",
+          "value": "Not specified; may vary regionally",
           "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of income[4]",
-            "Proof of assets[4]",
-            "DON assessment results[4]"
+            "Proof of income and assets",
+            "Proof of residency, citizenship/immigration status",
+            "Medicaid application/enrollment if eligible"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "This program's eligibility and benefits are highly individualized. The DON assessment score determines both qualification (minimum 29) and service level (higher scores = more services).[4] Income-based sliding scale fees mean no two households pay the same amount. Regional variation is significant, particularly in suburban Cook County where expanded options exist. Home-delivered meals are one component of a larger CCP that includes care coordination, adult day services, emergency response, and medication management — families cannot access meals alone without qualifying for the full program.",
+      "dataShapeNotes": "Tied to full CCP eligibility with asset cap and DON scoring; benefits vary by region/provider for meal types/schedules; no fixed income table or statewide uniform processing; requires local AAA/CCU assessment",
       "gotchas": [
-        "Home-delivered meals are NOT a standalone program — they are part of the broader Community Care Program, which requires Medicaid enrollment and a DON assessment showing need for long-term care services.[1][2][4]",
-        "Simply being 60+ and wanting meals does NOT qualify you. You must be assessed as at-risk for nursing facility placement (minimum DON score of 29).[4]",
-        "Asset limits are strict ($17,500 non-exempt). While homes and cars are exempt, other savings, investments, and property count toward this limit.[4]",
-        "Income thresholds are tied to federal poverty level, which varies by household size and changes annually. Families must contact their local AAA for current dollar amounts.[4]",
-        "If income is above poverty level, you will be charged on a sliding fee scale based on services needed — it is not free.[4]",
-        "Medicaid enrollment is mandatory; if you don't qualify for Medicaid, you don't qualify for CCP home-delivered meals.[1][4]",
-        "Processing timelines are not published; contact your local AAA for expected wait times, which may vary by region and current demand.[4]",
-        "Specialized meal options (Kosher, cultural cuisines) are only available in select areas, particularly suburban Cook County.[5]",
-        "The program is a 1915(c) Medicaid waiver, meaning it is subject to Medicaid rules and funding availability.[2]"
+        "Home-delivered meals are a component of CCP, requiring full CCP eligibility including DON assessment and Medicaid application—not standalone",
+        "Income above poverty level means participant pays fees based on fee schedules, not free",
+        "Must be at risk for nursing home placement (DON score ≥29); higher scores unlock more services",
+        "Assets strictly limited to $17,500 non-exempt; common exemptions often missed",
+        "Regional differences in meal types, schedules, and providers—contact local AAA essential",
+        "Separate from pure Nutrition Program; CCP targets those needing long-term care alternatives"
       ],
-      "benefitType": "in_kind",
+      "benefitType": "service",
       "benefitVariesBy": "region",
-      "officialSource": "https://ilaging.illinois.gov/programs/nutrition/nutrition.html"
+      "officialSource": "https://ilaging.illinois.gov/programs/ccp.html"
     },
     {
-      "name": "Illinois Caregiver Support Program",
+      "name": "Illinois Caregiver Support Program (includes respite)",
       "isNew": false,
       "existingId": "family-caregiver-support-program",
       "existingVerified": null,
@@ -479,7 +549,7 @@
         {
           "field": "benefit_value",
           "ours": "$2,000 – $8,000/year",
-          "found": "Support services including training and education on caregiving skills and self-care, support groups to share experiences. Provides resources for unpaid family caregivers of adults 60+ (including those with Alzheimer's), grandparents/relative caregivers of children ≤18 (including those with developmental disabilities). Related Community Care Program enables paid family caregiving (e.g., $20/hour via some agencies) with personalized care plans for in-home assistance with activities of daily living.",
+          "found": "Respite care (in-home, facility-based, group, overnight); information and assistance; counseling, support groups, caregiver training; supplemental services; specific examples include up to 180 hours in-home respite per program year (statewide except Cook County for certain programs), $500 emergency respite voucher[2][4][7][8].",
           "source": "https://ilaging.illinois.gov/programs/caregiver/program.html"
         },
         {
@@ -491,34 +561,36 @@
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "Non-exempt assets of $17,500 or less. Exempt assets include: person's home and furnishings, personal clothing and effects, cars (excluding recreational vehicles), prepaid burial plan, burial plots, and markers.",
+          "value": "No asset limits or exemptions detailed in sources.",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Administered through local agencies and Area Agencies on Aging (e.g., AgeGuide serves DuPage, Grundy, Kane, Kankakee, Kendall, Lake, McHenry, Will counties); different providers and offices by region, potential variations in wait times or service delivery.",
+          "value": "Administered through 13 local Area Agencies on Aging; variations in providers, hours, funding availability, and wait times by region; different offices handle intake[2][4][7].",
           "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Possible; local AAAs may run out of funds, leading to waitlists or exhaustion of respite hours[2].",
+          "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of income and assets",
-            "Medicaid application/enrollment if eligible",
-            "Medical verification of need for in-home care (for related paid programs)"
+            "No specific documents listed; prepare for eligibility evaluation including care receiver's condition details[7]."
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Benefits emphasize non-financial support (training/support groups) with ties to CCP for paid in-home care; eligibility via functional DON score + financials; regional via local Aging Network agencies; no fixed income table or hours detailed",
+      "dataShapeNotes": "Administered via 13 regional Area Agencies on Aging with funding/waitlist variations; layered with separate IDHS respite for I/DD (non-waiver); no fixed income/asset tables published; eligibility ties to caregiver status and care receiver's age/condition.",
       "gotchas": [
-        "Program focuses on support (training, groups) for unpaid caregivers; paid family caregiving typically via related Community Care Program (CCP) or Medicaid waivers, not directly this program",
-        "Must score minimum 29 on DON for CCP eligibility; higher scores yield more services",
-        "Asset limit strictly $17,500 non-exempt; many miss exempt items like home/car",
-        "Requires Medicaid application/enrollment if eligible; separate from Home Services Program (HSP) for 18-59",
-        "Caregivers for paid roles need background check, training, agency enrollment"
+        "Primarily for unpaid family caregivers of 60+ adults or those with Alzheimer's/related disorders; not for developmental disabilities unless through separate IDHS respite programs[3][4][8].",
+        "Excludes those on HCBS waivers; local funding shortages cause waitlists or unavailability[2][3].",
+        "Respite often limited (e.g., 180 hours/year, $500 emergency max); one-time for emergency vouchers[2][4].",
+        "Regional exclusions like no in-home in Cook County for some programs[4]."
       ],
       "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
+      "benefitVariesBy": "priority_tier|region",
       "officialSource": "https://ilaging.illinois.gov/programs/caregiver/program.html"
     },
     {
@@ -529,41 +601,38 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Administered via multiple local sub-grantees/national contractors (14 total in IL) through Area Agencies on Aging; eligibility fixed federally but slots vary regionally by funding/service area; priority tiers affect access; no asset test, income scales by household poverty guidelines.",
+      "dataShapeNotes": "This program's structure is unique because it combines employment (paid work at minimum wage) with training and community service. Benefits are fixed (20 hours/week at minimum wage) rather than scaled by household size. Eligibility is income-based but uses a federal poverty threshold that changes annually, requiring families to verify current limits. The program is administered through a decentralized network of Area Agencies on Aging, meaning application processes and availability may vary by region. The search results lack specific dollar amounts for income limits, processing timelines, required documents, and detailed regional variations, requiring applicants to contact local agencies for complete information.",
       "gotchas": [
-        "Not permanent employment—it's temporary training (bridge to unsubsidized jobs); participants must actively job search.",
-        "Limited slots based on funding and local availability; priority to veterans/65+ may create waitlists.",
-        "Income test strictly at 125% poverty (not higher); must be unemployed.",
-        "Paid only minimum wage for part-time hours—not full income replacement.",
-        "Requires community service commitment and IEP development.",
-        "Multiple providers in IL—must contact local AAA for exact options, not centralized application."
+        "Income limits are set at 125% of the federal poverty level, which changes annually—families must verify current thresholds with their local Area Agency on Aging rather than assuming a fixed dollar amount[1][2].",
+        "The program is part-time (typically 20 hours per week), not full-time employment[1][2].",
+        "Participants must be actively looking for employment and willing to engage in job search activities; this is not a permanent subsidized job but a bridge to unsubsidized employment[1][2].",
+        "Funding availability varies by service area and may not be available everywhere in Illinois at all times[6].",
+        "Veterans and qualified spouses of veterans receive first priority for enrollment, followed by individuals over age 65[5]. This means non-veteran applicants may face longer wait times or reduced availability.",
+        "The program requires participants to develop and commit to an Individual Employment Plan (IEP) and attend required meetings and training—it is not a passive income program[6].",
+        "Participants work in community service or not-for-profit agencies, not private sector employers, during the training phase[2]."
       ],
       "benefitType": "employment",
-      "benefitVariesBy": "priority_tier",
+      "benefitVariesBy": "fixed",
       "officialSource": "https://ilaging.illinois.gov/programs/employ.html"
     },
     {
-      "name": "Illinois Legal Aid Online / Senior Legal Helpline",
+      "name": "Illinois Legal Assistance for Seniors",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "This program is highly fragmented by region and provider. There is no single 'Illinois Legal Aid Online' entity — rather, it's a portal connecting users to local legal aid organizations and Area Agencies on Aging. Income limits, service types, and processing times vary significantly by location. Seniors (60+) receive priority and may have different eligibility rules than younger populations. The program explicitly acknowledges insufficient capacity to serve all eligible applicants. Asset limits and specific benefit amounts are not publicly detailed in available sources.",
+      "dataShapeNotes": "Decentralized network of local AAAs and legal aid providers with varying income/asset thresholds (often expanded for seniors); no uniform statewide income table or fixed benefits; regional providers handle delivery",
       "gotchas": [
-        "Income limits are NOT absolute — higher limits exist for specific populations (homeowners at risk of foreclosure, seniors, veterans, HIV+, DV/sexual violence survivors, human trafficking victims). Always ask about higher thresholds if you don't qualify at 150%.[2]",
-        "Seniors (60+) may qualify for legal aid REGARDLESS OF INCOME in some cases, but this is not explicitly guaranteed statewide — verify with your local provider.[1]",
-        "Not all legal issues are covered. Each provider has restrictions (e.g., Legal Aid Chicago excludes small claims). Confirm your specific legal issue is handled before applying.[2]",
-        "Immigration status matters. Undocumented immigrants may qualify in some cases, but eligibility is narrower than for citizens/permanent residents. Verify before applying.[1][2]",
-        "Service availability is NOT guaranteed. The program explicitly states there are insufficient lawyers to serve all eligible people.[1]",
-        "Regional variation is significant. What's available in Cook County may differ from downstate Illinois. Must contact local AAA for your area.[7]",
-        "Online 'Get Legal Help' tool may direct you to organizations that are NOT legal aid (including private bar referrals). Vetted legal aid partners are listed separately from general referrals.[4]",
-        "For criminal cases, this is NOT the right program — public defenders are appointed by courts for criminal defense, not through legal aid organizations.[1]"
+        "Not a single centralized program—must contact local AAA or provider; limited capacity means not everyone qualifies despite meeting criteria",
+        "Focus on civil matters only (no criminal); seniors may need DON-like assessment for service need",
+        "Income/asset guidelines vary and can be higher for seniors but still assessed case-by-case",
+        "Must report changes if enrolled in related services[1][3][7]"
       ],
       "benefitType": "service",
-      "benefitVariesBy": "issue_type_and_location",
-      "officialSource": "illinoislegalaid.org and ilaging.illinois.gov"
+      "benefitVariesBy": "region",
+      "officialSource": "https://ilaging.illinois.gov/programs/legalassistance.html"
     },
     {
       "name": "Long-Term Care Ombudsman Program",
@@ -576,112 +645,48 @@
           "field": "min_age",
           "ours": "65",
           "found": "60",
-          "source": "https://ilaging.illinois.gov (Illinois Department on Aging)"
+          "source": "https://ilaging.illinois.gov/programs/ltcombudsman/"
         },
         {
           "field": "benefit_value",
           "ours": "$10,000 – $30,000/year",
-          "found": "Advocacy to resolve complaints (e.g., neglect, abuse, rights violations); investigation of concerns; education on resident rights, long-term care options, and services; promotion of quality of life and care; facilitation of family councils; routine facility visits; assistance to facility staff; intervention in private homes/community settings for older persons/disabilities[1][2][4][5][7][8]",
-          "source": "https://ilaging.illinois.gov (Illinois Department on Aging)"
+          "found": "Complaint resolution (ranging from minor issues like cold food to serious matters including inadequate staffing, injuries, medication misuse, or abuse); regular presence visits to facilities; information and assistance; resident rights education; family council support; representation to policymakers",
+          "source": "https://ilaging.illinois.gov/programs/ltcombudsman/"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://ilaging.illinois.gov (Illinois Department on Aging)"
+          "found": "https://ilaging.illinois.gov/programs/ltcombudsman/"
         }
       ],
       "novelFields": [
         {
-          "field": "asset_limits",
-          "value": "No asset limits; no financial requirements[5]",
-          "note": "Our model has no asset limit fields"
-        },
-        {
           "field": "regional_variations",
-          "value": "Administered through Office of State Long Term Care Ombudsman with designated regional programs; each region has its own ombudsman coordinators, visit schedules, and contact points; e.g., DuPage County has local phone/options[2][3][5][6]",
+          "value": "Different regional ombudsman programs serve different areas of Illinois (e.g., DuPage County has its own regional program). Contact information and specific services may vary by region, but core advocacy mission remains consistent.",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "documents_required",
           "value": [
-            "No documents needed; contact directly for assistance[5]"
+            "No documents specified as required to access services"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "no income test; statewide with regional delivery; advocacy-only, open to residents/families/staff/community without financial or document barriers",
+      "dataShapeNotes": "This is a statewide advocacy program with no income/asset testing, no application forms, and no waitlist. Eligibility is binary (age 60+ in a long-term care facility = eligible). Services are uniform statewide but delivered through regional programs. The program is mandated by federal law (Older Americans Act) and state law (Illinois Act on Aging). Key distinction: this program advocates FOR residents; it does not provide direct services, financial assistance, or healthcare. Access is immediate upon contact — no processing time or approval needed.",
       "gotchas": [
-        "Not a healthcare or financial benefits program—purely advocacy and complaint resolution[1][7][9]",
-        "Primarily for long-term care facility residents (age 60+); expanded but focus remains facilities[2][4]",
-        "Anyone can contact (no eligibility barriers), but services resolve issues, not provide direct care[1][4][5]",
-        "Regional programs handle local delivery; must contact local ombudsman for facility-specific help[2][3][6]",
-        "Volunteers undergo training/background checks, but residents/families just call for help[6]"
+        "This is NOT a financial assistance program — it provides advocacy and complaint resolution, not direct payment or services",
+        "Eligibility is based on facility residency, not income or assets — anyone 60+ in a long-term care facility qualifies",
+        "Ombudsmen can visit facilities anytime; facilities cannot prevent resident meetings with ombudsmen unless the resident refuses",
+        "Facilities are required to post ombudsman contact information and resident rights posters",
+        "The program also serves prospective residents considering placement and family members of current residents, not just current residents",
+        "Complex complaints are referred to Regional Ombudsmen for escalation",
+        "Program serves both older persons AND persons with disabilities (not age-restricted for disability-based eligibility)",
+        "Volunteers also serve as ombudsmen (must be 18+, fingerprinted, and trained) — this is separate from accessing services"
       ],
       "benefitType": "advocacy",
       "benefitVariesBy": "not_applicable",
-      "officialSource": "https://ilaging.illinois.gov (Illinois Department on Aging)"
-    },
-    {
-      "name": "Illinois Senior Citizens and Persons with Disabilities Property Tax Relief",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Statewide loan-style deferral with phased income increases ($75k 2025, $77k 2026, $79k+ 2027); county-administered with annual reapplication; fixed $7,500 cap per household regardless of size; lien and interest create repayment obligation unlike pure exemptions.",
-      "gotchas": [
-        "Must reapply annually; not automatic renewal like some exemptions.[2][7]",
-        "It's a loan with 6% interest and lien—repaid on sale/death, not forgiveness.[1][5][7]",
-        "Strict March 1 deadline with no extensions; photocopies only.[2]",
-        "Equity limit: cannot defer beyond 80% of property equity or $7,500/year.[3]",
-        "Trust properties require trustee signature and extra docs; start early.[2]",
-        "Persons with disabilities not directly covered under this deferral program—may qualify for separate exemptions (e.g., Cook County Persons with Disabilities exemption).[1]"
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "fixed",
-      "officialSource": "https://tax.illinois.gov/research/publications/pio-64.html"
-    },
-    {
-      "name": "Benefit Access Program (Seniors Ride Free & License Plate Discount)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Income-tested with fixed household size tiers up to 3 persons; no asset test; statewide but local transit variations; one vehicle limit per household",
-      "gotchas": [
-        "Only one license plate discount per household per year, for one vehicle titled to the applicant[1][4]",
-        "Must wait 10 business days post-approval for license plate discount to activate[3][4][5]",
-        "Benefits for those turning 65 available only after birthday[3][5]",
-        "Local transit may require extra steps for free rides[3]",
-        "Spouse must have SSN; include spouse income if living together Dec 31[1][7]",
-        "No discount for multiple vehicles[4]"
-      ],
-      "benefitType": "in_kind",
-      "benefitVariesBy": "fixed",
-      "officialSource": "https://ilaging.illinois.gov/benefitsaccess.html[3]"
-    },
-    {
-      "name": "Health Benefits for Immigrant Seniors (HBIS)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Enrollment paused for new applicants; ongoing for pre-2023 enrollees with annual renewals. Income/asset limits fixed for single/couple, no full household table. Statewide with no regional variations noted.",
-      "gotchas": [
-        "New enrollments paused since November 6, 2023; only existing enrollees (pre-Nov 2023) can renew/continue benefits.[2][7][8][9]",
-        "Annual redeterminations required starting 2024, like Medicaid.[3]",
-        "Copays apply to some hospital services despite most being free.[1][7]",
-        "Excludes long-term care services.[5][7]",
-        "Income/assets based on older 2022 figures in some sources; verify current FPL via HFS.[1]"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "fixed",
-      "officialSource": "https://hfs.illinois.gov/medicalclients/healthbenefitsforimmigrants/healthbenefitsforimmigrantseniors.html"
+      "officialSource": "https://ilaging.illinois.gov/programs/ltcombudsman/"
     }
   ]
 }

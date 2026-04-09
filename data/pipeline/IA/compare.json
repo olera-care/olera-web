@@ -1,0 +1,369 @@
+{
+  "state": "IA",
+  "stateName": "Iowa",
+  "comparedAt": "2026-04-09T09:33:19.769Z",
+  "total": 13,
+  "newPrograms": 12,
+  "withDiffs": 1,
+  "withNovelFields": 1,
+  "benefitTypes": {
+    "service": 6,
+    "financial": 4,
+    "advocacy": 2,
+    "employment": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 4,
+    "Individual need—services are specific to the individual[1][4]": 1,
+    "program_tier": 1,
+    "household_size": 1,
+    "household_size|priority_tier|region": 1,
+    "priority_tier|region": 1,
+    "not_applicable": 2,
+    "region": 2
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 1,
+      "programs": [
+        "Iowa HCBS Elderly Waiver"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 1,
+      "programs": [
+        "Iowa HCBS Elderly Waiver"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 1,
+      "programs": [
+        "Iowa HCBS Elderly Waiver"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 1,
+      "programs": [
+        "Iowa HCBS Elderly Waiver"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Iowa Medicaid Home & Community Based Services Elderly Waiver",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Individualized services based on assessed needs and interdisciplinary team decision; no fixed budgets/hours; requires nursing level of care determination; statewide with provider availability dependency.",
+      "gotchas": [
+        "Must need nursing/skilled level of care (not just general elderly support).",
+        "Services individualized but require approved provider availability.",
+        "Must exhaust other Medicaid services first.",
+        "Home exempt but other assets strictly limited; spousal rules apply for couples.",
+        "Even if income over limit, possible eligibility with conditions (e.g., spenddown).",
+        "Annual service plan review required."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://hhs.iowa.gov/medicaid/services-care/home-and-community-based-services/waiver-programs"
+    },
+    {
+      "name": "Iowa HCBS Elderly Waiver",
+      "isNew": false,
+      "existingId": "elderly-waiver-program-hcbs-waiver",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Individualized services including: homemaker, adult day care, home delivered meals, senior companion, consumer-directed attendant care (CDAC—both skilled and unskilled), case management, respite care, home health aide, nursing, counseling, financial management, independent support broker, home and vehicle modification, personal emergency response system, nutritional counseling, interim medical monitoring and treatment, self-directed personal care, self-directed community supports and employment, and individual-directed goods and services[4][6]",
+          "source": "https://hhs.iowa.gov/medicaid/services-care/home-and-community-based-services/waiver-programs[8]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://hhs.iowa.gov/medicaid/services-care/home-and-community-based-services/waiver-programs[8]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": {
+            "countable_assets_limit": "$2,000 total[3]",
+            "countable_assets_include": "Cash and money in checking or savings accounts[3]",
+            "home_equity_exemption": {
+              "limit_2026": "$752,000[2]",
+              "conditions": "Home is exempt if applicant lives in it or has intent to return, AND home equity interest does not exceed $752,000[2]"
+            },
+            "additional_exemptions": [
+              "Home is exempt if spouse lives in the home[2]",
+              "Home is exempt if minor child (under age 21) lives in the home[2]",
+              "Home is exempt if blind or disabled child (any age) lives in the home[2]"
+            ],
+            "look_back_rule": "Assets should not be given away or sold for under fair market value within 60 months of long-term care Medicaid application; violating this results in a Penalty Period of Medicaid ineligibility[2]"
+          },
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Not specified in available sources",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in available sources",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income[3]",
+            "Proof of assets (bank statements, savings account documentation)[3]",
+            "Proof of age (65 or older)[3]",
+            "Proof of Iowa residency (implied but not explicitly stated)",
+            "Medical documentation supporting need for nursing facility level of care[2]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "This program is age-restricted (65+) with fixed income and asset limits that do not vary by household size. Benefits are individualized by need rather than tiered. The program is statewide but administered through Iowa HHS with no documented regional variations. A major structural change is occurring in 2026 when Iowa consolidates six diagnosis-based waivers into two age-based waivers; existing Elderly Waiver recipients are grandfathered in. Critical gaps in available data: specific application phone numbers, online application URLs, processing timelines, waitlist status, and regional office locations are not documented in the search results provided.",
+      "gotchas": [
+        "Medicaid eligibility is a prerequisite—many families assume their income is too high without checking the actual limits[7]",
+        "The 60-month look-back rule on asset transfers can result in Medicaid ineligibility penalties; families should not gift or sell assets below fair market value before applying[2]",
+        "Home equity exemption has a specific dollar limit ($752,000 in 2026); homes exceeding this may disqualify applicants[2]",
+        "Dementia diagnosis alone does not guarantee qualification; functional assessment is required[2]",
+        "Starting in 2026, Iowa is consolidating waivers: people already on the Elderly Waiver will stay on it, but new applicants may be directed to the 'Adults with Disabilities Waiver' if they don't meet Elderly Waiver criteria[3]",
+        "Specific phone numbers, website URLs for direct application, and processing timelines are not publicly documented in available sources—families should contact Iowa HHS directly for current application procedures"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "Individual need—services are specific to the individual[1][4]",
+      "officialSource": "https://hhs.iowa.gov/medicaid/services-care/home-and-community-based-services/waiver-programs[8]"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Tiered by program (QMB/SLMB/QI) with escalating income thresholds to 135% FPL; primarily individual/couple household sizes; 2026 Iowa-specific limits from HHS; QI funding-limited with annual renewal and priority queue",
+      "gotchas": [
+        "Income limits $20 higher if non-SS income; often missed.",
+        "QI requires annual reapplication; first-come priority, potential funding caps.",
+        "QMB provides 'limited Medicaid' + Medicare wrap; providers can't bill QMB members for Medicare-covered services.",
+        "Assets include most non-exempt items; home/car exempt but value matters if sold.",
+        "If over QMB limits, check SLMB/QI or Medically Needy spenddown.",
+        "Outdated national limits don't apply; use Iowa-specific[1][3][5][6]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "program_tier",
+      "officialSource": "https://hhs.iowa.gov/medicaid/plans-programs/fee-service/medicare-savings-program"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Benefits scale by household size and net income; special rules for 60+ (no asset test if all elderly/disabled, higher deductions); Iowa has broader gross income at 160% FPL; local DSS administration statewide[1][2][7].",
+      "gotchas": [
+        "Iowa expanded eligibility to 160% FPL gross (higher than federal 130%), but seniors over gross can use net/asset tests[2].",
+        "Medical expenses over $35/month deductible for 60+; shelter deduction generous[1][6].",
+        "New 2025 work rules impact 55-64 even if previously exempt[5].",
+        "Include all who buy/prepare food together in household[4].",
+        "SSI recipients often auto-eligible[1]."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://hhs.iowa.gov/assistance-programs/food-assistance/snap[7]"
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Statewide but locally administered by community action agencies with regional offices; income table fixed by household size with +$11k increments; priority for elderly/disabled start date; benefits formula factors income/size/fuel/housing; no asset test.",
+      "gotchas": [
+        "Elderly (60+)/disabled apply Oct 1; others Nov 1 (2025-2026 season); miss window and risk funds exhaustion.[1][4][5]",
+        "Payments direct to utility/vendor; continue paying bills to avoid post-moratorium debt/disconnect (moratorium Nov 1-Apr 1).[5][6]",
+        "Gross income verification strict (30 days/12 months/calendar year); unique incomes (alimony, farm) need specific proof.[1][2]",
+        "First come/first served; early apply critical as funds limited by Congress.",
+        "Disconnect applicants get 30-day hold only after applying.[6]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier|region",
+      "officialSource": "https://iuc.iowa.gov/customer-assistance/how-do-i-apply-energy-assistance-liheap (Iowa Utilities Commission) or https://liheap-apply.hhs.iowa.gov (HHS portal).[5][7]"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Eligibility prioritized via county LIHEAP applicant lists from prior year; services vary by local agency funding/region; no age requirement but priority for elderly",
+      "gotchas": [
+        "Applying for WAP also applies you for LIHEAP; high demand leads to long waits or non-service despite eligibility due to priority list position[3][4]",
+        "Must provide home access during work hours; renters may qualify but confirm with local agency[9]",
+        "Eligibility often tied to recent LIHEAP approval, not standalone[3]",
+        "Funding limits homes served (~2,000/year statewide)[4]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier|region",
+      "officialSource": "https://hhs.iowa.gov/assistance-programs/housing-rent-assistance/weatherization-assistance"
+    },
+    {
+      "name": "Senior Health Insurance Program (SHIIP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income test for counseling; statewide but locally sponsored with varying contact points; focuses on Medicare navigation rather than direct aid; assists with tiered low-income programs without owning their limits",
+      "gotchas": [
+        "Not a direct benefits program—provides counseling/advocacy only, not payments or healthcare; does not sell plans or affiliate with insurers[1][6]",
+        "Assists with low-income programs but eligibility for those is separate (people miss needing to provide income details)[5]",
+        "Annual Medicare changes (e.g., Open Enrollment Oct 15-Dec 7); verify plan coverage by service location/zip[2][4][5]",
+        "Under 65? Must have Medicare due to disability[1][3]",
+        "Contact local sponsor for region-specific events/appointments, not just state line[1]"
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://shiip.iowa.gov/"
+    },
+    {
+      "name": "Meals on Wheels (via Aging Services)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized by local providers/Area Agencies on Aging; no uniform statewide income table or asset test; eligibility tied to county service areas and homebound status",
+      "gotchas": [
+        "Must live in specific delivery zone; out-of-area ineligible[1]",
+        "Homebound status strictly assessed; those who can easily leave home or have caregivers may not qualify[1][3]",
+        "Fees apply if ineligible for subsidies (e.g., $8.10-$9.50/meal); not always free[4][8]",
+        "Separate from Medicaid HCBS Elderly Waiver (65+, nursing facility level of care needed)[5][6]",
+        "Local variations in age (e.g., veterans any age), spouses, holidays[3][8]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "No single statewide .gov URL identified; contact local Area Agency on Aging via aging.iowa.gov or hhs.iowa.gov for HCBS-related meals[5]."
+    },
+    {
+      "name": "National Family Caregiver Support Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered via 15 regional Area Agencies on Aging; no income/asset tests; discretionary services with priority for highest need; not financial aid or payment program",
+      "gotchas": [
+        "Not a paid caregiver program—provides support services, not wages (confused with Medicaid paid family caregiving)[3][4][6]",
+        "No strict income/asset tests, but local AAAs assess need and priority",
+        "Services limited and may have waitlists or funding caps",
+        "Must contact local AAA, not centralized state application[7][8]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://elderaffairs.iowa.gov/programs-services/caregiver-support (inferred state hub; federal: http://acl.gov/programs/support-caregivers/national-family-caregiver-support-program)[4]"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Income at 125% federal poverty (varies by household size); priority tiers affect access; regional via IowaWORKS/Area Agencies on Aging; no asset test; grant-subgrantee model leads to provider variations",
+      "gotchas": [
+        "Priority enrollment: Veterans/qualified spouses first, then over 65, disabled, low literacy/limited English, rural, homeless/at-risk, low prospects, or American Job Center users—may delay non-priority applicants[3][5]",
+        "Temporary training program (not permanent job); goal is transition to unsubsidized employment[1][2]",
+        "No retirement contributions or unemployment insurance[5]",
+        "Limited to part-time (avg. 20 hrs/week); not full income replacement",
+        "Grant-funded; availability may depend on sub-grantees (e.g., 2025-2026 competitive grant open)[4][5]"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "region",
+      "officialSource": "https://workforce.iowa.gov/jobs/worker-programs/scsep"
+    },
+    {
+      "name": "Iowa Legal Aid for Seniors",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No strict asset test or fixed dollar income caps listed (uses % FPL table by household size); special grants expand access for seniors beyond standard 125% FPL; priority-based rather than fixed benefits; statewide but local outreach/priorities vary; funded by LSC with elder-specific focus[1][5][8]",
+      "gotchas": [
+        "Not automatic eligibility even if 60+; must meet income guidelines (125% FPL) unless special grant applies[5][8]",
+        "Means testing prohibited for denial solely on income for 60+, but financial screening occurs[1]",
+        "Priority for vulnerable groups (e.g., at risk of institutionalization, limited English); general low-income Iowans may be screened out[1]",
+        "Confused with Elderly Waiver (Medicaid HCBS, age 65+, strict $2,901/month income & $2,000 assets for 2025); this is legal aid, not care services[2][3]",
+        "Emergencies handled when offices open; call hotline for screening[5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.iowalegalaid.org/"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income test; open to all long-term care residents statewide via local ombudsmen; advocacy-focused, not financial/service provision; volunteer ombudsman recruitment is separate process.",
+      "gotchas": [
+        "Not a volunteer program for families to join (that's separate certification requiring training, background checks, no conflicts of interest); it's free advocacy for residents—call directly for help, no application barriers.",
+        "Does not provide direct care/services, only advocacy and complaint resolution.",
+        "Exclusions apply in some residential settings for high-need cases.",
+        "Families can contact anytime, even pre-placement."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://hhs.iowa.gov/health-prevention/aging-services/ltcombudsman"
+    },
+    {
+      "name": "State Supplementary Assistance (SSA)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Tied to SSI eligibility except income; multiple special needs categories with state-administered subsets; county-based application offices; resource limits fixed regardless of household size beyond couple.",
+      "gotchas": [
+        "Must meet SSI criteria except for income; verify all factors if income exceeds SSI limits.",
+        "Different application locations based on income and category (SSA vs. state HHS).",
+        "Special categories require physician certification; not for nursing home level care.",
+        "Children: blind children eligible in own household or dependent relative; disabled children only with dependent relative.",
+        "Supplementation reduced if income exceeds certain levels (e.g., blind allowance < $22)."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://hhs.iowa.gov/media/3987/download (SSA policy manual); https://hhs.iowa.gov/media/6413/download (SSA pamphlet)"
+    }
+  ]
+}

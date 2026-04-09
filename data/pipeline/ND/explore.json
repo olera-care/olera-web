@@ -4,124 +4,40 @@
   "state": "ND",
   "stateName": "North Dakota",
   "isRegion": false,
-  "exploredAt": "2026-04-09T08:57:14.066Z",
-  "programCount": 16,
+  "exploredAt": "2026-04-09T09:38:21.297Z",
+  "programCount": 4,
   "programs": [
     {
-      "name": "Medicaid Waiver for Home and Community Based Services",
-      "what_it_does": "Offers home and community-based services to help seniors and disabled individuals avoid institutional care. Includes personal care, respite, and support to live independently.[1][5]",
-      "who_its_for": "Seniors and adults with physical disabilities eligible for Medicaid and at risk of nursing home placement.[1]",
-      "official_url": "https://www.hhs.nd.gov/adults-and-aging/services",
-      "benefit_value": "Varies; covers services like personal care by family members including spouses under Ex-SPED expansion.[5]"
-    },
-    {
-      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
-      "what_it_does": "Not specifically named or detailed in North Dakota sources; federal PACE provides comprehensive medical and social services. May not be administered statewide in ND based on available data.",
-      "who_its_for": "Nursing home eligible individuals 55+ who can live safely in community.",
-      "official_url": "",
-      "benefit_value": "N/A - Insufficient ND-specific information."
-    },
-    {
-      "name": "Medicare Savings Programs (MSP)",
-      "what_it_does": "Pays Medicare premiums, deductibles, and copayments for qualifying low-income beneficiaries. Includes Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), and Qualifying Individual (QI). [4]",
-      "who_its_for": "Low-income North Dakota seniors eligible for Medicare.",
-      "official_url": "https://www.hhs.nd.gov",
-      "benefit_value": "Covers Part A/B premiums and cost-sharing; income limits apply (e.g., QMB up to 100% FPL)."
-    },
-    {
-      "name": "SNAP (Supplemental Nutrition Assistance Program)",
-      "what_it_does": "Provides monthly benefits via EBT card to buy food for eligible low-income households. Helps seniors maintain nutrition and independence.[4]",
-      "who_its_for": "Low-income older adults and disabled individuals in North Dakota.",
-      "official_url": "https://www.hhs.nd.gov",
-      "benefit_value": "Varies by household size/income; average senior benefit ~$100-200/month."
-    },
-    {
-      "name": "LIHEAP (Low Income Home Energy Assistance Program)",
-      "what_it_does": "Assists with heating and cooling costs to prevent utility shutoffs. Provides one-time payments or crisis aid.[4]",
-      "who_its_for": "Low-income North Dakota households, prioritizing seniors and disabled.",
-      "official_url": "https://www.hhs.nd.gov",
-      "benefit_value": "Grants $200-$1,000+ per season based on fuel type, income, household."
-    },
-    {
-      "name": "Weatherization Assistance Program",
-      "what_it_does": "Not explicitly detailed in ND senior services; federal program improves home energy efficiency. Likely administered through state energy office for low-income homes.",
-      "who_its_for": "Low-income seniors/disabled homeowners or renters.",
-      "official_url": "",
-      "benefit_value": "N/A - Limited ND-specific senior info."
-    },
-    {
-      "name": "North Dakota SHIP (Senior Health Insurance Assistance Program)",
-      "what_it_does": "Not directly named but covered under Medicare counseling via Aging and Disability Resource Center. Provides free counseling on Medicare options, appeals, and savings programs.",
-      "who_its_for": "North Dakota Medicare beneficiaries, especially seniors.",
-      "official_url": "https://www.hhs.nd.gov/adults-and-aging",
-      "benefit_value": "Free one-on-one assistance; helps save thousands on premiums/costs."
-    },
-    {
-      "name": "Older Adult Nutrition Program",
-      "what_it_does": "Delivers congregate and home-delivered meals (including Meals on Wheels) to promote nutrition. Supports social engagement and independence for older adults.[3]",
-      "who_its_for": "North Dakota adults 60+ who are unable to prepare full meals.",
-      "official_url": "https://www.hhs.nd.gov/adults-and-aging",
-      "benefit_value": "Meals at low/no cost; ~1-2 meals/day for participants."
-    },
-    {
-      "name": "Family Caregiver Support Program / Lifespan Respite Care",
-      "what_it_does": "Funds respite services and support for family caregivers of seniors/disabled. Offers breaks, training, and counseling to prevent caregiver burnout.[1][3]",
-      "who_its_for": "Unpaid family caregivers of older adults or disabled individuals in ND.",
-      "official_url": "https://www.hhs.nd.gov/adults-and-aging/services",
-      "benefit_value": "Varies; respite hours, supplies, counseling based on need."
-    },
-    {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "what_it_does": "Not detailed in results; federal program offers part-time paid training jobs. Helps unemployed low-income seniors gain work skills.",
-      "who_its_for": "Unemployed ND residents 55+ with low income.",
-      "official_url": "",
-      "benefit_value": "N/A - Limited ND-specific info."
-    },
-    {
-      "name": "Legal Assistance for Seniors",
-      "what_it_does": "Not explicitly named; provided via Area Agencies on Aging or Legal Aid. Helps with benefits, housing, abuse issues.",
-      "who_its_for": "Low-income North Dakota seniors.",
-      "official_url": "https://www.hhs.nd.gov/adults-and-aging",
-      "benefit_value": "N/A - General OAA-funded services."
-    },
-    {
-      "name": "Long-Term Care Ombudsman Services",
-      "what_it_does": "Advocates for residents in nursing homes, assisted living, basic care facilities. Resolves complaints and protects rights.[3]",
-      "who_its_for": "Residents/family in ND long-term care facilities.",
-      "official_url": "https://www.hhs.nd.gov/adults-and-aging",
-      "benefit_value": "Free advocacy, investigations, training."
-    },
-    {
-      "name": "Service Payments for Elderly and Disabled (SPED)",
-      "what_it_does": "SPED provides payments and supports to family caregivers of elderly and disabled individuals not eligible for Medicaid, allowing care recipients to remain at home. Family caregivers who enroll as providers and live with the care recipient can receive up to $48 per day plus respite services worth up to $1,142 per month.[1]",
-      "who_its_for": "Family caregivers of elderly or disabled individuals in North Dakota who are not eligible for Medicaid and risk losing property assets.[1]",
-      "whats_unique": "Entirely state-funded program created in 1983 to serve rural populations proactively, exempting home value from asset calculations and proven highly cost-effective at $480 per person per month vs. $8,265 for nursing facilities.[1]",
-      "official_url": "https://www.hhs.nd.gov/adults-and-aging",
-      "benefit_value": "Up to $48/day for caregivers + $1,142/month respite; ~$480/person/month average cost.[1]"
-    },
-    {
       "name": "North Dakota Aging in Community (AIC) Project",
-      "what_it_does": "AIC supports older adults in rural areas by addressing service gaps and fostering community connections to enable aging in place. It provides tailored resources, improving confidence, quality of life, and resource access in pilot counties.[2]",
-      "who_its_for": "Older adults in rural North Dakota communities, such as Lisbon and western Morton Counties.[2]",
-      "whats_unique": "State University Extension Service initiative targeting rural aging challenges like population shifts, with high impact (e.g., 86% more confident at home) and $308 Medicaid savings per $1 spent; reached 4,270 residents in 2024.[2]",
+      "what_it_does": "The North Dakota State University Extension Service’s AIC project supports older adults in rural areas by addressing service gaps and fostering community connections to enable aging in place. It provides tailored resources, improving confidence, quality of life, and resource access, with significant Medicaid cost savings.[1]",
+      "who_its_for": "Older adults in rural North Dakota communities, such as Lisbon and western Morton Counties.",
+      "whats_unique": "State university-led initiative specifically targeting rural aging challenges unique to North Dakota's population shift from rural to urban areas, fostering community integration and saving $308 in Medicaid costs per $1 spent.[1]",
       "official_url": "https://landgrantimpacts.org/north-dakota-program-helps-older-adults-in-rural-communities-live-independently/",
-      "benefit_value": "$308 Medicaid savings per $1 invested; 80-86% improvement in quality of life and confidence.[2]"
+      "benefit_value": "Reached 4,270 residents in 2024; 86% felt more confident living at home, 80% reported improved quality of life.[1]"
     },
     {
       "name": "Senior Safety Program (ND Assistive)",
-      "what_it_does": "Provides qualifying seniors with home safety devices and professional setup assistance to enhance security and independence. Aims to prioritize safety for aging individuals living at home.[3]",
-      "who_its_for": "Qualifying older adults in North Dakota seeking to maintain independence at home.[3]",
-      "whats_unique": "State-specific initiative through ND Assistive focusing on home safety tech and setup, complementing broader assistive programs like iCanConnect for sensory challenges.[3]",
+      "what_it_does": "Provides qualifying North Dakotans with home safety devices and professional setup assistance. Empowers aging individuals' independence and prioritizes their safety for peace of mind.[2]",
+      "who_its_for": "Qualifying older adults in North Dakota.",
+      "whats_unique": "State-specific program through ND Assistive offering free home safety devices and setup, tailored to local seniors beyond standard federal assistive tech programs.[2]",
       "official_url": "https://ndassistive.org/our-programs/",
-      "benefit_value": "Free home safety devices and professional installation.[3]"
+      "benefit_value": "Free home safety devices and professional installation services."
     },
     {
       "name": "Basic Care Assistance Program (BCAP)",
-      "what_it_does": "Helps qualifying individuals cover costs in licensed basic care facilities, similar to assisted living with room, board, and personal care services. Participants pay only a portion of the total cost.[5][6]",
-      "who_its_for": "Older adults or those with physical disabilities in North Dakota needing financial aid for basic care facilities.[5][6]",
-      "whats_unique": "State program subsidizing basic care (a North Dakota facility type between independent living and nursing homes), supporting independent living in communities.[5][6]",
+      "what_it_does": "Helps qualifying individuals pay for care in licensed basic care facilities, similar to assisted living with room, board, and personal care services. Individuals pay only part of the cost, subsidizing the remainder through state funding.[4][6]",
+      "who_its_for": "Qualifying older adults needing basic care facility services in North Dakota.",
+      "whats_unique": "North Dakota-specific state-funded assistance for basic care facilities, a designated care level under state licensing, reducing costs beyond federal Medicaid options.[4][6]",
       "official_url": "https://www.hhs.nd.gov/adults-and-aging",
-      "benefit_value": "Subsidizes portion of costs for room, board, and care services.[5][6]"
+      "benefit_value": "Subsidizes portion of costs for room, board, and care services in licensed facilities."
+    },
+    {
+      "name": "North Dakota State Health Insurance Assistance Program (ND SHIP)",
+      "what_it_does": "Provides free counseling and assistance on Medicare claims, paperwork, and related questions. Helps seniors navigate Medicare effectively through dedicated state support.[7]",
+      "who_its_for": "North Dakota seniors on Medicare or turning 65.",
+      "whats_unique": "State-specific SHIP program offering personalized Medicare guidance, as all states have SHIPs but tailored to ND insurance department resources.[7]",
+      "official_url": "https://www.insurance.nd.gov/consumers/insurance/senior-citizens-insurance",
+      "benefit_value": "Free expert assistance on Medicare issues and claims."
     }
   ]
 }

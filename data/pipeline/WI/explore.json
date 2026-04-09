@@ -4,108 +4,48 @@
   "state": "WI",
   "stateName": "Wisconsin",
   "isRegion": false,
-  "exploredAt": "2026-04-09T09:04:22.020Z",
-  "programCount": 14,
+  "exploredAt": "2026-04-09T09:44:16.787Z",
+  "programCount": 5,
   "programs": [
     {
-      "name": "Family Caregiver Support Program",
-      "what_it_does": "This program offers support services including respite care, counseling, and training for family caregivers of seniors. It helps caregivers manage stress and continue providing care at home.[1]",
-      "who_its_for": "Unpaid family caregivers of adults 60+ or grandparents raising grandchildren.",
-      "official_url": "https://www.dhs.wisconsin.gov/aging/index.htm",
-      "benefit_value": "Respite grants up to $5,000/year, counseling, support groups; varies by local ADRC."
+      "name": "SeniorCare",
+      "what_it_does": "SeniorCare is a state-funded prescription drug assistance program that helps eligible Wisconsin residents age 65 and older pay for their prescription drugs and vaccines. It provides copayments and covers costs after deductibles, reducing out-of-pocket expenses for medications.[4][6]",
+      "who_its_for": "Wisconsin residents aged 65 or older with limited income and assets, not enrolled in certain Medicaid programs; requires annual $30 enrollment fee and renewal.[6]",
+      "whats_unique": "This is a Wisconsin-specific state program offering targeted pharmaceutical aid beyond federal Medicare Part D, with state-managed copays and vaccine coverage.[4][6]",
+      "official_url": "https://www.dhs.wisconsin.gov/seniorcare/index.htm",
+      "benefit_value": "Copays of $5-$15 per prescription after $35-$100 deductible (income-based); annual cap on out-of-pocket costs at $2,250-$3,250 depending on income.[6]"
+    },
+    {
+      "name": "Family Care",
+      "what_it_does": "Family Care is a Medicaid managed long-term care program that coordinates medical, social, and long-term care services to help participants live independently. It includes home care, adult day services, and institutional care options through managed care organizations.[2][4]",
+      "who_its_for": "Older adults (65+) and people with disabilities who meet Medicaid financial eligibility and need long-term care services.[4]",
+      "whats_unique": "Wisconsin's capitated managed long-term care model is more comprehensive than standard Medicaid waivers in many states, emphasizing person-centered planning and self-direction integration.[2][4]",
+      "official_url": "https://www.dhs.wisconsin.gov/familycare/index.htm",
+      "benefit_value": "Comprehensive long-term care benefits including up to thousands in monthly home care hours or facility coverage, tailored to individual needs.[4]"
     },
     {
       "name": "IRIS (Include, Respect, I Self-Direct)",
-      "what_it_does": "IRIS is a Medicaid home and community-based services (HCBS) waiver program allowing participants to self-direct their long-term care services. It provides a budget for participants to hire caregivers or purchase services to stay in their homes.[1][5]",
-      "who_its_for": "Seniors 65+ or adults with disabilities needing nursing home level of care, who meet Medicaid eligibility and choose self-direction.",
-      "official_url": "https://www.dhs.wisconsin.gov/aging/index.htm",
-      "benefit_value": "Individualized monthly budget based on assessed needs, typically $20,000-$40,000 annually for services."
+      "what_it_does": "IRIS is a self-directed long-term care program allowing participants to manage their own budgets and choose services like home care and supports. It promotes independence by giving fiscal control to individuals or their representatives via fiscal employers.[2][4]",
+      "who_its_for": "Elderly adults and people with disabilities eligible for Medicaid long-term care in Wisconsin.[4]",
+      "whats_unique": "One of the nation's largest self-directed programs, Wisconsin's IRIS uniquely scales self-management across a large population with robust fiscal intermediary support, beyond typical federal waivers.[2][4]",
+      "official_url": "https://www.dhs.wisconsin.gov/iris/index.htm",
+      "benefit_value": "Annual budgets ranging from $15,000-$90,000+ based on care needs for customized services like personal care hours or home modifications.[4]"
     },
     {
-      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
-      "what_it_does": "PACE provides comprehensive medical and social services to eligible frail seniors in community-based adult day health centers and at home. It coordinates all Medicare and Medicaid covered services, including long-term care, to prevent nursing home placement.[1]",
-      "who_its_for": "Seniors aged 55+ who are nursing home eligible, live in a PACE service area, and can live safely in the community with PACE support.",
-      "official_url": "https://www.dhs.wisconsin.gov/aging/index.htm",
-      "benefit_value": "All-inclusive capitation coverage for primary, acute, and long-term care services with no deductibles or copays."
-    },
-    {
-      "name": "Medical Assistance (QMB, SLMB, QI)",
-      "what_it_does": "Wisconsin's Medical Assistance programs like Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), and Qualifying Individual (QI) pay Medicare premiums, deductibles, and copayments for eligible low-income seniors. They help cover gaps in Medicare coverage for those with limited income and resources.[4][5]",
-      "who_its_for": "Seniors 65+ with Medicare who meet specific income (e.g., QMB up to 100% FPL) and asset limits.",
-      "official_url": "https://www.dhs.wisconsin.gov/legislative/ebd.htm",
-      "benefit_value": "QMB covers Part A/B premiums/cost-sharing (income ≤100% FPL, assets ≤$9,090 individual); SLMB covers Part B premium (≤120% FPL); QI covers Part B (≤135% FPL)."
-    },
-    {
-      "name": "FoodShare",
-      "what_it_does": "FoodShare is Wisconsin's SNAP program providing monthly benefits via EBT cards to buy healthy food at approved stores. It supplements grocery budgets for low-income households including seniors.[4][6]",
-      "who_its_for": "Low-income seniors 60+ (higher income limits, no work requirements) and households meeting income/resource tests.",
-      "official_url": "https://www.dhs.wisconsin.gov/foodshare/index.htm",
-      "benefit_value": "Average $200-$300/month per senior household; maximum varies by household size (e.g., $291 single person in 2026)."
+      "name": "Wisconsin Senior Employment Program (WISE)",
+      "what_it_does": "WISE provides part-time subsidized employment, training, and support services to help older adults overcome barriers to work. It connects participants with community-based jobs while offering job coaching and benefits counseling.[2][5]",
+      "who_its_for": "Wisconsin residents aged 55+ with low income, who are unemployed or underemployed and not receiving certain other benefits.[5]",
+      "whats_unique": "State-funded employment program tailored for seniors 55+, distinct from federal Senior Community Service Employment Program by focusing on broader community jobs and barrier removal.[2][5]",
+      "official_url": "https://www.dhs.wisconsin.gov/aging/employment.htm",
+      "benefit_value": "Part-time wages (typically $10-$15/hour) for 20 hours/week, plus training and support services at no cost to participants.[5]"
     },
     {
       "name": "Wisconsin Home Energy Assistance Program (WHEAP)",
-      "what_it_does": "WHEAP provides grants to help low-income households pay heating bills, make energy crisis interventions, and cover fuel costs. It operates seasonally to assist with winter energy needs.[6]",
-      "who_its_for": "Low-income households (≤60% state median income) including seniors, disabled, and families with young children.",
+      "what_it_does": "WHEAP provides grants to help low-income households, including seniors, pay for heating fuel, electricity, and emergency energy needs. It also offers furnace repair or replacement to prevent crises.[5]",
+      "who_its_for": "Low-income households (income <60% state median) including seniors; priority for elderly, disabled, and families with young children.[5]",
+      "whats_unique": "Wisconsin's state-administered energy aid extends beyond federal LIHEAP with added emergency furnace services and higher income thresholds for seniors in some cases.[5]",
       "official_url": "https://www.dhs.wisconsin.gov/wheap/index.htm",
-      "benefit_value": "Grants $200-$1,000+ based on income, household size, fuel type, and heating responsibility; crisis aid up to $1,000."
-    },
-    {
-      "name": "Weatherization Assistance Program (WAP)",
-      "what_it_does": "WAP funds energy efficiency upgrades like insulation, air sealing, and furnace repairs for low-income homes to reduce energy costs. It is administered through local agencies in Wisconsin.[7]",
-      "who_its_for": "Low-income households (≤200% FPL) with elderly, disabled, or children prioritized.",
-      "official_url": "https://psc.wi.gov/Pages/ForConsumers/AssistancePrograms.aspx",
-      "benefit_value": "Free home improvements valued at $4,000-$8,000 average per home, saving 15-25% on energy bills."
-    },
-    {
-      "name": "State Health Insurance Assistance Program (SHIP)",
-      "what_it_does": "SHIP provides free, unbiased counseling on Medicare, Medicare supplements, Part D, and low-income assistance programs. Counselors help seniors understand and choose plans during open enrollment.[1][4]",
-      "who_its_for": "All Wisconsin Medicare beneficiaries, especially those 65+ seeking help with coverage options.",
-      "official_url": "https://www.dhs.wisconsin.gov/aging/index.htm",
-      "benefit_value": "Free one-on-one counseling; helps save thousands annually through optimal plan selection."
-    },
-    {
-      "name": "Elderly Nutrition Program",
-      "what_it_does": "The Elderly Nutrition Program funds congregate and home-delivered meals (like Meals on Wheels) to combat hunger among seniors. It supports nutrition and social engagement through local aging agencies.[1]",
-      "who_its_for": "Seniors 60+ who are unable to prepare nutritious meals independently, suggested donation basis.",
-      "official_url": "https://www.dhs.wisconsin.gov/aging/index.htm",
-      "benefit_value": "1-2 meals/day, 5-7 days/week; annual value $2,000-$4,000 per participant."
-    },
-    {
-      "name": "Wisconsin Senior Employment Program (WSEP)",
-      "what_it_does": "WSEP, Wisconsin's SCSEP, provides part-time community service jobs and training to low-income seniors to gain skills and transition to unsubsidized employment. It operates through local sponsors.[1][6]",
-      "who_its_for": "Unemployed low-income individuals 55+ who cannot find work and meet income guidelines.",
-      "official_url": "https://www.dhs.wisconsin.gov/aging/index.htm",
-      "benefit_value": "Minimum wage part-time jobs (up to 20 hrs/week) plus training; annual wages ~$8,000-$10,000."
-    },
-    {
-      "name": "Elder Law Legal Assistance",
-      "what_it_does": "Provides free legal services to low-income seniors on issues like benefits access, housing, consumer protection, and advance directives. Delivered through local legal aid programs and ADRCs.[1]",
-      "who_its_for": "Low-income seniors 60+ facing legal barriers to services and independence.",
-      "official_url": "https://www.dhs.wisconsin.gov/aging/index.htm",
-      "benefit_value": "Free legal advice/representation; value equivalent to $200+/hour attorney fees."
-    },
-    {
-      "name": "Long-Term Care Ombudsman Program",
-      "what_it_does": "The Ombudsman Program advocates for residents in nursing homes, assisted living, and CBRF facilities, investigating complaints and resolving issues. It promotes quality of life and resident rights.[1][5]",
-      "who_its_for": "Residents of long-term care facilities in Wisconsin and their families.",
-      "official_url": "https://www.dhs.wisconsin.gov/aging/index.htm",
-      "benefit_value": "Free advocacy services; resolves 80%+ of complaints without formal action."
-    },
-    {
-      "name": "SeniorCare",
-      "what_it_does": "SeniorCare is a state-funded prescription drug assistance program that helps Wisconsin residents aged 65 and older pay for their prescription drugs and vaccines. It provides copayments and coverage for medications not fully covered by other insurance.[6]",
-      "who_its_for": "Wisconsin residents who are 65 years or older, with income and asset limits; requires a $30 annual enrollment fee.[6]",
-      "whats_unique": "This is a Wisconsin-specific state program offering targeted pharmaceutical assistance beyond federal Medicare Part D, with its own application and funding.[2][6]",
-      "official_url": "https://www.dhs.wisconsin.gov/seniorcare/apply.htm",
-      "benefit_value": "Copays of $5-$25 per prescription after $30 annual fee; covers many drugs and vaccines.[6]"
-    },
-    {
-      "name": "Elder Benefit Specialist (EBS) Program",
-      "what_it_does": "The EBS Program offers free counseling, assistance, and advocacy on public benefits, health insurance, and consumer law issues. Benefit specialists, trained by elder law attorneys, help navigate programs like Medicare, Medicaid, SeniorCare, and housing benefits.[2]",
-      "who_its_for": "Wisconsin residents aged 60 or older, available through county aging offices.[2]",
-      "whats_unique": "Statewide Wisconsin program with specialized elder law-trained benefit specialists located in county aging offices, providing personalized advocacy not replicated in every state.[2]",
-      "official_url": "https://gwaar.org/elder-benefit-specialist-ebs-program",
-      "benefit_value": "Free services including application assistance and problem resolution; donations optional.[2]"
+      "benefit_value": "One-time grants of $200-$1,000 for energy bills; up to $1,400 for furnace repair/replacement.[5]"
     }
   ]
 }

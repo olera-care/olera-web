@@ -1,123 +1,130 @@
 {
   "state": "UT",
   "stateName": "Utah",
-  "comparedAt": "2026-04-09T09:01:57.325Z",
-  "total": 11,
+  "comparedAt": "2026-04-09T09:43:15.126Z",
+  "total": 13,
   "newPrograms": 10,
-  "withDiffs": 1,
-  "withNovelFields": 1,
+  "withDiffs": 3,
+  "withNovelFields": 3,
   "benefitTypes": {
-    "service": 7,
+    "service": 8,
     "unknown": 1,
+    "financial": 2,
     "in_kind": 1,
-    "financial": 1,
-    "employment": 1
+    "advocacy": 1
   },
   "variationPatterns": {
-    "priority_tier": 3,
-    "insurance_status": 1,
+    "priority_tier": 4,
+    "region": 3,
     "program_tier": 1,
     "household_size": 1,
-    "household_size and fuel type": 1,
-    "not_applicable": 1,
-    "region": 2,
-    "fixed": 1
+    "household_size|priority_tier": 1,
+    "not_applicable": 2,
+    "priority_tier and stress_index": 1
   },
   "novelFieldSummary": {
     "asset_limits": {
-      "count": 1,
+      "count": 3,
       "programs": [
-        "Utah Medicaid Aging Waiver"
+        "Utah Medicaid Program",
+        "Utah Aging Waiver",
+        "New Choices Waiver Program"
       ],
       "note": "Our model has no asset limit fields"
     },
     "regional_variations": {
-      "count": 1,
+      "count": 3,
       "programs": [
-        "Utah Medicaid Aging Waiver"
+        "Utah Medicaid Program",
+        "Utah Aging Waiver",
+        "New Choices Waiver Program"
       ],
       "note": "Program varies by region — our model doesn't capture this"
     },
     "waitlist": {
-      "count": 1,
+      "count": 3,
       "programs": [
-        "Utah Medicaid Aging Waiver"
+        "Utah Medicaid Program",
+        "Utah Aging Waiver",
+        "New Choices Waiver Program"
       ],
       "note": "Has waitlist info — our model has no wait time field"
     },
     "documents_required": {
-      "count": 1,
+      "count": 3,
       "programs": [
-        "Utah Medicaid Aging Waiver"
+        "Utah Medicaid Program",
+        "Utah Aging Waiver",
+        "New Choices Waiver Program"
       ],
       "note": "Has document checklist — our model doesn't store per-program documents"
     }
   },
   "comparisons": [
     {
-      "name": "Utah Medicaid Aging Waiver",
+      "name": "Utah Medicaid Program",
       "isNew": false,
-      "existingId": "aging-waiver-home-and-community-based-services",
+      "existingId": "medicaid-for-aged-blind-or-disabled",
       "existingVerified": null,
       "diffsFound": 3,
       "diffs": [
         {
           "field": "income_limit",
           "ours": "$1255",
-          "found": "$1,305",
-          "source": "https://medicaid.utah.gov/medicaid-long-term-care-and-waiver-programs/[6]"
+          "found": "$45",
+          "source": "https://medicaid.utah.gov/"
         },
         {
           "field": "benefit_value",
-          "ours": "$10,000 – $30,000/year",
-          "found": "Home and Community-Based Services (HCBS) to delay/prevent nursing home placement for those meeting NFLOC but living at home; core: case management (ongoing plan of care); additional: medical services not typically available community-wide (day treatment, lifeline/emergency response, in-home respite care); specific hours/dollars not fixed, tailored via case manager assessment[1][5][6].",
-          "source": "https://medicaid.utah.gov/medicaid-long-term-care-and-waiver-programs/[6]"
+          "ours": "$5,000 – $20,000/year",
+          "found": "Long-term care services including nursing home care, HCBS Waivers (home/community-based like personal care, adult day care, home modifications), assisted living, non-medical home supports. Institutional: Covers nursing home costs after income contribution. No specific dollar amounts/hours stated; services based on assessed needs[1][2].",
+          "source": "https://medicaid.utah.gov/"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://medicaid.utah.gov/medicaid-long-term-care-and-waiver-programs/[6]"
+          "found": "https://medicaid.utah.gov/"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "$2,000 countable assets for single applicant (bank accounts, retirement accounts, stocks, bonds, CDs, cash); exempt: primary home (equity under $730,000 if applicant/spouse resides or intends to return), one vehicle, household furnishings/appliances, personal effects, burial plots/irrevocable trusts up to $7,000, life insurance ≤$1,500 face value; 60-month look-back rule applies with penalty period for transfers below fair market value[1][3][4].",
+          "value": "Countable assets under $2,000 for single applicants; $3,000-$4,000 for married couples both applying. Community spouse (non-applicant) keeps up to $157,920 or 50% of joint assets (min $31,584)[2][4]. Exempt: Primary home (equity ≤$730,000 if intent to return), one vehicle, personal belongings/household items, burial plots/irrevocable trusts ≤$7,000, life insurance ≤$1,500 face value[1][4].",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Administered via local Area Agencies on Aging (AAA); potential provider/case manager differences by region (e.g., San Juan County office); no explicit wait time/office variations detailed[5][6].",
+          "value": "Local offices/providers may handle applications (e.g., Utah County: 801-526-9675); potential waitlist differences not detailed[7]",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "waitlist",
-          "value": "Not mentioned; potential due to waiver slots, but no details.",
+          "value": "Possible for Waivers due to enrollment caps (not detailed)[1]",
           "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of income (Social Security awards, pension statements, bank statements).",
-            "Proof of assets (bank/CD statements, retirement accounts).",
-            "Medical records/doctor documentation for NFLOC.",
-            "Proof of residency/citizenship.",
-            "No full list; consult case manager[1][4]."
+            "Proof of income (SSI/SSDI awards, pay stubs)",
+            "Asset statements (bank, retirement, property)",
+            "ID/residency (birth certificate, utility bill)",
+            "Medical records/disability proof",
+            "Home equity details if applicable[2]"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Tailored services via case management/NFLOC tiers rather than fixed dollars/hours; annual March income adjustments; home-based only (vs. institutional alternatives); AAA regional referral entry points.",
+      "dataShapeNotes": "Multiple tiers (Institutional, HCBS Waivers like Aging/New Choices, ABD) with varying income caps and NHLOC requirements; spousal protections; no standard household size scaling beyond couples",
       "gotchas": [
-        "Income/assets updated annually (March); check current limits as 2026 figure ($1,330) supersedes 2025 ($1,305)[1][4].",
-        "60-month look-back penalty for asset transfers[1].",
-        "Must live at home (not in institution/assisted living like New Choices Waiver); NFLOC required but dementia alone insufficient[1][2].",
-        "Distinguish from New Choices Waiver (for institutionalized or 18-64 disabled/65+ with institutional history)[2].",
-        "Special deductions/exemptions vs. regular Medicaid (e.g., spousal income)[5]."
+        "Multiple programs (Institutional, HCBS Waivers, ABD) with different income/asset rules—must match specific needs[1][2]",
+        "Home exempt but subject to Estate Recovery after death[4]",
+        "No immediate ineligibility if over limits—spenddown or planning options exist[2]",
+        "ABD may not cover LTSS without separate Waiver application/assessment[6]",
+        "Income mostly pays toward care in Institutional (only $45 kept)[1][2]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
-      "officialSource": "https://medicaid.utah.gov/medicaid-long-term-care-and-waiver-programs/[6]"
+      "officialSource": "https://medicaid.utah.gov/"
     },
     {
       "name": "Program of All-Inclusive Care for the Elderly (PACE)",
@@ -127,19 +134,18 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "PACE is a national Medicare/Medicaid program with state-by-state availability. Utah does not currently participate. The program is highly targeted to frail elderly (average participant is 76 years old with multiple complex conditions[3]). No income or asset testing for eligibility, but financing constraints may create waitlists. Benefits structure depends on dual vs. single insurance eligibility. Geographic availability is the primary limiting factor for Utah residents.",
+      "dataShapeNotes": "Only available at limited centers/service areas per state; no income/asset test for core eligibility; requires state-certified nursing home level need; enrollment caps create waitlists; replaces all other Medicare/Medicaid long-term care options",
       "gotchas": [
-        "PACE is NOT currently available in Utah[8]. Families in Utah cannot enroll in this program.",
-        "PACE programs are only available in some states that offer PACE under Medicaid[5].",
-        "Once enrolled, the PACE organization becomes the only entity authorized to provide and pay for care[1].",
-        "Enrollment is voluntary but changes how participants access all their benefits[1].",
-        "Approximately 90% of PACE participants are dually eligible for Medicare and Medicaid[3]; those with only Medicare must pay monthly premiums[1].",
-        "Financing is capped by federal and state budgets, so waiting lists and specific income requirements may apply depending on the program and state[4].",
-        "States define 'nursing home level of care' differently, which affects eligibility determination[2]."
+        "Must live in a specific PACE service area—program not statewide",
+        "Once enrolled, PACE organization solely provides/pays for all Medicare/Medicaid-covered care; cannot use other programs like Medicare Advantage, HCBS waivers, or hospice",
+        "Nursing home level of care required but must be able to live safely in community at enrollment",
+        "Limited spots and waitlists common; voluntary but disenrollment possible anytime",
+        "Utah-specific details (providers, exact service areas) require local lookup—not nationwide uniform",
+        "No financial eligibility test for PACE itself, but funding ties to Medicare/Medicaid"
       ],
       "benefitType": "service",
-      "benefitVariesBy": "insurance_status",
-      "officialSource": "https://www.medicare.gov/health-drug-plans/health-plans/your-coverage-options/other-medicare-health-plans/PACE (national program information; not available in Utah)"
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.medicare.gov/health-drug-plans/health-plans/your-coverage-options/other-medicare-health-plans/PACE"
     },
     {
       "name": "Medicare Savings Programs (QMB, SLMB, QI)",
@@ -149,62 +155,59 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "This program consists of three separate tiers (QMB, SLMB, QI) with progressively higher income limits but different benefit levels. QMB is the most comprehensive (covers premiums and cost-sharing), while SLMB and QI cover only Part B premiums. QI has a critical gotcha: it's not an entitlement program and funding can run out mid-year. Income limits are tied to the federal poverty level and update annually in April. All three programs share the same asset limits and exclusions. Processing timelines differ: QMB has a 45-day maximum, while SLMB and QI can be retroactive. Utah uses federal standards but may have more generous standards in specific areas.",
+      "dataShapeNotes": "This program consists of three distinct tiers based on income level (QMB at 100% FPL, SLMB at 100-120% FPL, QI at 120-135% FPL), each with different benefits and eligibility rules. The key differentiator is that QI has no guaranteed funding and may close to new applicants mid-year. Utah follows federal asset and income limits with no state-specific variations mentioned. Benefits are financial (premium and cost-sharing payments) rather than service-based. The program is administered entirely through Utah's Medicaid agency, not through Medicare directly.",
       "gotchas": [
-        "QI is NOT an entitlement program — funding is limited and allocated annually. Once funds run out for the calendar year, new applicants cannot enroll, and eligibility is not guaranteed in future years.",
-        "For QI specifically: You cannot be receiving Medicaid to qualify. If you're on Medicaid, you may only qualify for QMB or SLMB.",
-        "Income limits change every April based on the federal poverty level announcement. Families should verify current limits annually.",
-        "SLMB and QI do not issue Medicaid cards. QMB issues a card that either reads 'MEDICARE COST-SHARING ONLY' (if not receiving Medicaid) or looks like a regular Medicaid card.",
-        "Processing can take up to 45 days for QMB, but SLMB and QI may be retroactive up to 3 months — meaning you could receive back payments if approved.",
-        "The income exclusions ($20 of income, first $65 of wages, etc.) can make a difference in borderline cases; families should calculate carefully.",
-        "Asset limits are relatively low ($9,950 for individuals, $14,910 for couples in 2026). Certain assets don't count (home, one vehicle, burial expenses), but savings and investments do count."
+        "QI program has NO guaranteed funding year-to-year. Even if eligible, you may not receive benefits if the state's annual allocation is exhausted. Check with Utah Medicaid before applying to see if QI is accepting new applicants for the current year.[3]",
+        "QI applicants cannot be receiving any Medicaid benefits; if you qualify for both QMB and QI, you must choose QMB.[3]",
+        "SLMB and QI do not issue Medicaid cards. QMB issues a card that either reads 'MEDICARE COST-SHARING ONLY' (if not receiving Medicaid) or looks like a regular Medicaid card.[3]",
+        "Income limits change every April 1st based on the federal poverty level announced early each year. Verify current limits before applying.[1]",
+        "Asset limits are strict and include most liquid assets. Primary home and one vehicle are exempt, but savings accounts, stocks, and bonds count toward the limit.[5]",
+        "Processing can take up to 45 days for QMB, but SLMB and QI may be retroactive up to 3 months, which can result in back-payment of premiums if approved.[1]",
+        "You must be eligible for Medicare Part A to qualify for any of these programs, even if you haven't enrolled yet.[1]"
       ],
       "benefitType": "unknown",
       "benefitVariesBy": "program_tier",
       "officialSource": "https://medicaid.utah.gov/medicare-cost-sharing-programs/"
     },
     {
-      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "name": "SNAP (Food Stamps)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Elderly/disabled exemptions (no gross income test, higher asset limit $4500, ESAP); benefits scale by household size/income/deductions; statewide with local offices.",
+      "dataShapeNotes": "No gross income test for households with elderly 60+ or disabled; higher asset limit ($4,250); ESAP for simplified elderly process; benefits heavily deduction-driven (medical/shelter for seniors); statewide uniform.",
       "gotchas": [
-        "No gross income test for elderly/disabled households—many miss this and think they earn too much.[2]",
-        "Higher deductions for medical/shelter key for seniors; track out-of-pocket medical >$35/month.[1][5]",
-        "Assets up to $4,500 allowed for elderly (higher than $3,000 general); home/vehicles exempt.[2][8]",
-        "ESAP simplifies recertification—elderly often qualify.[4]",
-        "Include all who buy/prepare food in household.[3]",
-        "Social Security/pensions count as income.[3]"
-      ],
-      "benefitType": "in_kind",
-      "benefitVariesBy": "household_size",
-      "officialSource": "https://jobs.utah.gov/customereducation/services/foodstamps/"
-    },
-    {
-      "name": "LIHEAP (Low-Income Home Energy Assistance Program) / HEAT Program in Utah",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Utah's LIHEAP operates under the state name 'HEAT Program' (Home Energy Assistance Target). Benefits scale by household size and fuel type. The program has a defined program year (October 1 – September 30) with tiered application windows based on household vulnerability (elderly, disabled, young children receive priority). No asset limit exists, making this relatively accessible to asset-rich but income-poor households. Regional administration varies, with some areas served through MAG and others through state offices.",
-      "gotchas": [
-        "Application deadlines vary by household type: Priority applications (elderly 60+, disabled, children under 6) accepted October 1 – September 30; general public applications accepted November 1 – September 30[2]. Elderly applicants should apply early in the priority window",
-        "LIHEAP household definition includes roommates covered by the same utility bill, even if expenses aren't shared—this differs from SNAP household definitions[1]",
-        "Crisis assistance is only available for emergencies (broken furnace, utility shutoff notice), not routine assistance[1]",
-        "Program funds are limited and distributed on first-come, first-served basis until exhausted each program year[2]",
-        "Heating assistance typically available fall/winter; cooling assistance typically available summer; crisis assistance year-round[1]",
-        "You must be responsible for paying utilities to qualify—renters whose landlord pays utilities may not qualify[3]",
-        "Income limits are based on gross monthly income (before taxes), not net income[1]"
+        "No gross income limit for 60+/disabled, but **net income** after deductions (medical, shelter) must qualify—people miss high deductions boosting eligibility.[1][5]",
+        "All household members who buy/prepare food counted, even if ineligible (prorates benefits).[2][6]",
+        "Assets up to $4,250 for elderly (higher than general); excludes home/retirement.[4]",
+        "ESAP simplifies for elderly/disabled: 3-year approval, less paperwork.[3]",
+        "Social Security/pensions count as income; medical expenses deductible.[2]",
+        "Work rules don't apply to 60+.[5][7]"
       ],
       "benefitType": "financial",
-      "benefitVariesBy": "household_size and fuel type",
-      "officialSource": "jobs.utah.gov/housing/scso/seal/heat.html and mydoorway.utah.gov/utility-assistance/[2][4]"
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://jobs.utah.gov/customereducation/services/foodstamps/requirements.html"
+    },
+    {
+      "name": "LIHEAP (HEAT in Utah)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Income at 150% FPL with table by household size; priority tiers by age/disability/young children; regional local providers but uniform rules; no asset test; funds time-limited annually.",
+      "gotchas": [
+        "Priority applications for elderly (60+), disabled, children under 6 start October 1; general public November 1; funds exhaust quickly.[1][2]",
+        "Year-round but limited to federal funds; crisis only for emergencies like shutoff or broken furnace.[1][4]",
+        "Household includes all at address sharing utility bill, unlike SNAP.[1]",
+        "Must be responsible for utilities; proof from prior month required.[3][4]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier",
+      "officialSource": "https://jobs.utah.gov/housing/scso/seal/heat.html"
     },
     {
       "name": "Weatherization Assistance Program",
@@ -214,55 +217,65 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Administered via 7-8 county-specific agencies with unique contacts; priority tiers for elderly/disabled/kids; HEAT crossover eligibility; energy audit gatekeeps services.",
+      "dataShapeNotes": "Administered via 7 county-specific agencies with unique contacts; priority tiers for elderly/disabled/kids under 6/high energy users; dual eligibility paths (200% FPL or HEAT); 15-year re-weatherization rule.",
       "gotchas": [
-        "Must contact specific county agency; not centralized statewide application.[1]",
-        "Renters need landlord agreement and possible cost share; notarized form required.[1][2]",
-        "Home must pass energy audit and not recently weatherized (within 15 years).[2]",
-        "Priority-based waitlist means elderly qualify for precedence but still wait.[2][3]",
-        "HEAT recipients get streamlined entry but must match names/citizenship.[3]",
-        "U.S. citizen/qualified non-citizen adult required in household.[1]"
+        "Must contact specific regional agency for your county; not centralized statewide application.",
+        "Renters need notarized landlord agreement.",
+        "Home ineligible if weatherized within last 15 years.",
+        "Priority rating system used; elderly qualify for priority but no age minimum.",
+        "HEAT recipients get automatic eligibility pathway.",
+        "Applications prioritized then waitlisted; no guaranteed timeline.",
+        "Same household member name required for HEAT and Weatherization if linking.",
+        "Crisis services (furnace/AC/water heater) require being homeowner on HEAT."
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
       "officialSource": "https://jobs.utah.gov/housing/scso/wap/how.html"
     },
     {
-      "name": "Utah State Health Insurance Assistance Program (SHIP)",
+      "name": "State Health Insurance Assistance Program (SHIP)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "no income/asset test; free counseling service statewide via local affiliates; focuses on education and application assistance rather than direct benefits",
+      "dataShapeNotes": "no income/asset test; Medicare eligibility focus; statewide with local delivery in every county; counseling-only service, not direct financial aid",
       "gotchas": [
-        "Not affiliated with insurance companies—provides unbiased advice only, does not sell plans or provide direct financial aid; no enrollment on-site for all plans (assists with process); contact 3 months before Medicare eligibility for best prep; separate from Medicare Savings Programs it helps apply for[3][4][5]"
+        "Not a healthcare or financial benefit provider—only free counseling/education; does not pay premiums or provide direct aid[1][4]",
+        "Services are free but appointment-based; prepare documents in advance for efficiency[1]",
+        "Contact 3 months before Medicare eligibility for best help[1]",
+        "Trained volunteers/staff only give objective info, not sales advice[2][6]",
+        "Families/caregivers can access on behalf of beneficiaries, often overlooked[1]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "not_applicable",
-      "officialSource": "https://daas.utah.gov/seniors/[7]"
+      "officialSource": "https://insurance.utah.gov/consumers/seniors/[3]"
     },
     {
-      "name": "Meals on Wheels (Home-Delivered Meals)",
+      "name": "Meals on Wheels (Utah)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Decentralized by county/provider with local AAAs managing; no statewide income/asset tests; eligibility emphasizes homebound/mobility over finances; delivery zones create geographic patchwork.",
+      "dataShapeNotes": "Meals on Wheels in Utah is a decentralized, county-based program with no single statewide eligibility standard or application process. Benefits are fixed (one meal per day, Monday–Friday) but vary slightly by region in cost and service frequency. Eligibility is uniform in core requirements (age 60+, homebound, mobility challenges) but differs by county in residency restrictions and vehicle ownership rules. Application methods and processing times vary by provider. Waitlists are documented in some regions but not others. Income is explicitly not a factor in eligibility, distinguishing this from means-tested programs. The program is administered through local Area Agencies on Aging and county senior centers, requiring families to identify and contact their specific regional provider.",
       "gotchas": [
-        "Must live in specific delivery zone; verify coverage first or seek alternatives.",
-        "Homebound status strictly assessed; car ownership or ability to leave home may disqualify.",
-        "Client must be home for delivery (notify by 9 AM if absent); door often left unlocked for safety checks.",
-        "Suggested contributions voluntary but support program expansion.",
-        "No weekend/evening deliveries standard; medical/secondary meals have extra requirements.",
-        "Family referrals allowed but eligibility verified directly with applicant."
+        "No statewide program: Meals on Wheels in Utah is fragmented by county and provider. Eligibility, cost, service frequency, and wait times differ significantly by location. Families must contact their specific county provider[1][4][5][6].",
+        "Homebound definition is strict: 'Unable to leave home without assistance' is the standard. Those who can leave home easily or have someone to cook for them may not qualify[1].",
+        "Geographic coverage is limited: Seniors outside a delivery zone cannot access the program, even if they meet other criteria[1].",
+        "Voluntary donations, not free: While the program is federally and state-supported, recipients are asked for voluntary contributions ($3.50–$6 per meal depending on region and age)[4][5]. Those under 60 typically pay more[5].",
+        "Waiting lists exist: Utah County has a documented waiting list as of January 2022[5]. Other regions may also have waiting lists; check with your local provider[1].",
+        "Vehicle ownership may affect eligibility: Some programs (e.g., Davis County) explicitly state 'Do Not drive a vehicle' as an eligibility requirement[4].",
+        "Cancellation protocol: Seniors must call by 9:00 a.m. the day of cancellation if they won't be home[6].",
+        "Door must be unlocked: Drivers need access to deliver meals; seniors must leave doors unlocked or arrange access[6].",
+        "Assessment is mandatory: Eligibility is not self-determined; an in-person assessment with program staff is required before meals begin[5][6].",
+        "Meal frequency varies: Seniors can receive meals daily, a couple times per week, or somewhere in between, depending on assessed need[5]."
       ],
-      "benefitType": "service",
+      "benefitType": "in_kind",
       "benefitVariesBy": "region",
-      "officialSource": "https://rules.utah.gov/publicat/code/r510-104/S510-104.htm (Utah Administrative Code R510-104, Nutrition Programs for the Elderly)"
+      "officialSource": "No single statewide .gov URL. Program is administered by local Area Agencies on Aging and county-level providers. National resource: https://www.mealsonwheelsamerica.org/"
     },
     {
       "name": "Utah Caregiver Support Program (UCSP)",
@@ -272,60 +285,192 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "No income/asset test; eligibility driven by caregiver burden score, care receiver ADL deficits, and priority tiers; regionally administered with waitlists; distinguishes core (universal) vs. respite/supplemental services.",
+      "dataShapeNotes": "This program has no income or asset limits, making it broadly accessible, but eligibility for most valuable services (respite, supplemental) is gated by caregiver burden assessment rather than financial need. Benefits are service-based rather than cash payments. Program operates through county-level Local Area Agencies on Aging, creating potential regional variation in availability and wait times. Priority tiers exist but are based on care recipient condition and caregiver need, not first-come-first-served. No published fee schedule or service hour limits are available in official sources.",
       "gotchas": [
-        "No income test, but strict functional/cognitive needs for care receiver (2+ ADLs) and caregiver stress/burden score required—not automatic.[2][4][5]",
-        "Priority tiers mean highest-need served first; others waitlisted.[2]",
-        "Core services open to all caregivers; respite/supplemental only for those meeting criteria.[1][3][4]",
-        "Not a paid caregiver program (unpaid family/informal caregivers supported via services, not wages).[1][6]",
-        "Regional contacts needed—no single statewide application hotline/form.[5]"
+        "No income requirement sounds good, but eligibility for respite and supplemental services (the most valuable benefits) requires demonstrating medium-to-high caregiver stress/burden — not just having an eligible care recipient[3][5]",
+        "Care recipient must have deficits in at least 2 ADLs or require substantial cognitive supervision — having a 60+ year old alone doesn't qualify[5][6]",
+        "Caregiver burden score is mandatory and determines actual service eligibility; this is not a simple application[3]",
+        "Waitlist exists when funding is insufficient — families should apply early and understand they may not receive services immediately[3]",
+        "Program is designed to delay facility placement, not replace it — services are temporary/respite-focused, not permanent long-term care[1][2]",
+        "Specific dollar amounts for services and hours per week are not published in program materials — families must contact their local agency for details[5][6]",
+        "Different program exists for paid caregiver compensation (Permanent Caregiver Compensation through DSPD for people with disabilities) — families should verify which program applies to their situation[7]"
       ],
       "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://magutah.gov/cgsupport/"
+      "benefitVariesBy": "priority_tier and stress_index",
+      "officialSource": "https://daas.utah.gov/seniors/ (Utah Department of Aging & Adult Services)[2]"
     },
     {
-      "name": "Senior Community Service Employment Program (SCSEP)",
+      "name": "Legal Aid for Seniors",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "This program's structure is defined by: (1) a fixed age threshold (55+) with enrollment priority for those 65+; (2) a relative income limit (125% of poverty level) that varies annually and by household size, requiring individual verification; (3) fixed work hours (average 20/week) and wage structure (highest of federal/state/local minimum); (4) a maximum program duration (48 months); (5) geographic availability limited to all but five Utah counties; (6) funding volatility affecting regional availability; and (7) priority enrollment categories that may affect wait times. The program is employment-focused rather than needs-based, emphasizing job training and community service over direct financial assistance.",
+      "dataShapeNotes": "County-contracted with regional providers and offices; income test with exceptions; no fixed statewide processing times or central application portal; tied to low-income guidelines varying by household size",
       "gotchas": [
-        "Income limits are tied to 125% of federal poverty level, which changes annually and varies by household size—families must verify current thresholds with their local office rather than assuming a fixed dollar amount[2][4][6]",
-        "Program funding is in flux as of 2025, with some organizations experiencing pauses or slowdowns[2]. Applicants should confirm current availability in their area before assuming enrollment is possible.",
-        "Maximum program duration is 48 months[1]—this is not an indefinite benefit",
-        "Participants must be unemployed; those with any current employment may not qualify[2][6]",
-        "The program prioritizes certain populations (veterans, age 65+, disabled, limited English proficiency, rural residents, homeless/at-risk)[1][4][6], which may affect enrollment timelines",
-        "SCSEP is not available in all five counties in Utah[1], though the specific counties are not identified",
-        "Positions must result in an increase in employment opportunities and cannot substitute for existing jobs or impair existing service contracts[3]",
-        "Social Security Disability Insurance (SSDI) is excluded from income calculations, but other income sources count toward the 125% threshold[4]"
-      ],
-      "benefitType": "employment",
-      "benefitVariesBy": "fixed",
-      "officialSource": "https://www.dol.gov/agencies/eta/seniors (U.S. Department of Labor) and https://www.utah.gov/pmn/files/488561.pdf (Utah state program information)"
-    },
-    {
-      "name": "Legal Services for Seniors",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "County-contracted with regional providers; income at 125% FPL with exceptions; no fixed asset table or statewide uniformity; tied to ULS guidelines for seniors 60+.",
-      "gotchas": [
-        "Income based on gross annual household income at 125% FPL, not net; exceptions require documentation.",
-        "Not statewide—must confirm county provider.",
-        "LSC-funded services limited to non-criminal civil matters; prefers in-person for some centers.",
-        "Asset limits not primary but ability to pay considered case-by-case.",
-        "Availability tied to funding and volunteer attorneys; clinics have limited hours."
+        "Not statewide—must contact county-specific provider; income up to 200% FPG possible with exceptions but requires Executive Director approval and documentation[2].",
+        "Focus on civil elder law issues only (no criminal); self-representation required for some clinics[4][7].",
+        "Assets considered beyond income; look-back rules apply in related Medicaid planning[1]."
       ],
       "benefitType": "service",
       "benefitVariesBy": "region",
-      "officialSource": "https://www.utahlegalservices.org/"
+      "officialSource": "https://www.utahlegalservices.org/ (financial guidelines); https://www.saltlakecounty.gov/aging-adult-services/support/legal-services/ (Salt Lake)[2][7]"
+    },
+    {
+      "name": "Long-Term Care Ombudsman",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income test; advocacy-only for long-term care facility residents; county-assigned local Ombudsmen with varying contacts",
+      "gotchas": [
+        "Not a financial or direct service program—purely advocacy and complaint resolution, not healthcare or funding[3][4]",
+        "Must be in or entering a certified long-term care facility (nursing home/assisted living); not for home care[2][3]",
+        "Confidentiality strictly protected unless life-threatening[3]",
+        "Regional contacts vary—use county-specific Ombudsman, not a single statewide number[3][4][5]",
+        "Volunteers must be certified; families cannot self-advocate as Ombudsman[1][3]"
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://daas.utah.gov/long-term-care-ombudsman/[3]"
+    },
+    {
+      "name": "Utah Aging Waiver",
+      "isNew": false,
+      "existingId": "aging-waiver-home-and-community-based-services",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1255",
+          "found": "$1,305",
+          "source": "https://medicaid.utah.gov/ (state Medicaid site; specific waiver pages via regional aging services like saltlakecounty.gov/aging-adult-services)"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Core: Case Management. Additional: Homemaking (cleaning, laundry, shopping, meal prep, errands, medical appts), Chore Services, Companion Services, Home Modifications (limited), plus standard Medicaid benefits. Other potential (from waiver approvals): Respite/Respite Care (up to >13 days in LTC), Specialized Medical Equipment/Supplies/Assistive Technology/Environmental Adaptations (no prescription needed for some), Personal Emergency Response Systems (PERS: install/test/remove/purchase/rental/repair/response), Supplemental Meals, Non-Medical Transportation. No fixed dollar amounts or hours specified; individualized via case manager plan.[3][5]",
+          "source": "https://medicaid.utah.gov/ (state Medicaid site; specific waiver pages via regional aging services like saltlakecounty.gov/aging-adult-services)"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://medicaid.utah.gov/ (state Medicaid site; specific waiver pages via regional aging services like saltlakecounty.gov/aging-adult-services)"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Asset limit same as Medicaid: $2,000 for single applicant (countable assets ≤$2,000). Exempt: primary home, household furnishings/appliances, personal effects, one vehicle. Look-Back Rule applies (60 months): assets given away/sold below fair market value result in Penalty Period of ineligibility.[1][2]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered via local Aging & Adult Services (e.g., Salt Lake County, San Juan County) with regional offices/providers for intake/assessment/services. Wait times/providers may vary by county.[3][4]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned; potential due to prioritization implied by tiered structure.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income, assets, residency.",
+            "Medical records/doctor determination for NFLOC.",
+            "Details on ADLs/IADLs, cognitive/behavioral issues.[1][2][4]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Income limits state-specific timing (March); NFLOC via MDS-HC tool with exact 2-of-3 criteria; regional offices handle intake/services; spousal impoverishment exemptions; no fixed benefit caps, tier/need-based.",
+      "gotchas": [
+        "Income limits update March annually (not FPL Jan timing); check current.[1][2]",
+        "NFLOC requires specific ADL/orientation criteria; dementia alone insufficient.[1]",
+        "60-month Look-Back Penalty for asset transfers.[1]",
+        "Spousal rules allow exempt spouse income/assets under Impoverishment protections.[3]",
+        "Estate recovery only for actual care costs, not full estate.[3]",
+        "Services individualized, not guaranteed fixed hours/dollars; prioritized.[5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://medicaid.utah.gov/ (state Medicaid site; specific waiver pages via regional aging services like saltlakecounty.gov/aging-adult-services)"
+    },
+    {
+      "name": "New Choices Waiver Program",
+      "isNew": false,
+      "existingId": "new-choices-waiver",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "290",
+          "found": "65 or older, or 18-64 and disabled",
+          "source": "https://medicaid.utah.gov/ltc-2/nc/"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$2901",
+          "found": "$2,901",
+          "source": "https://medicaid.utah.gov/ltc-2/nc/"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Expanded package of home and community-based services (HCBS) to support transition to and living in community settings (own home or other integrated settings), based on assessed needs. Specific services not exhaustively listed but include supportive services beyond standard Medicaid to meet NFLOC in community (e.g., personal care, homemaker, respite; exact mix via care plan).[6]",
+          "source": "https://medicaid.utah.gov/ltc-2/nc/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://medicaid.utah.gov/ltc-2/nc/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Countable assets under $2,000 for single applicants; married couples applying together under $3,000 (spouse may have up to $117,240). Standard Medicaid asset rules apply (e.g., primary home often exempt if intent to return, one vehicle exempt; countable assets include bank accounts, investments).[2][4]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "No specific differences noted; providers may vary by area, potential waitlist or processing variations (e.g., Salt Lake County fact sheet).[5][6]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not mentioned in sources; may exist given targeted enrollment and facility residency requirement.[6]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of Medicaid eligibility (income, assets documentation).",
+            "Proof of residency duration in qualifying facility (e.g., 90/365 days).",
+            "Medical records/doctor statement for NFLOC.",
+            "UtahID for online app.",
+            "InterRAI MDS-HC completed by RN.[2][3][6]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Targeted transition from long-term institutional care only (strict facility residency minimums); Medicaid prerequisite with NFLOC via MDS-HC; deductions create complex net income calculation; no open community enrollment.",
+      "gotchas": [
+        "Must already be in qualifying facility for minimum stay (90-365 days) or another HCBS waiver with impending NF need; not for community dwellers seeking to avoid facilities.[3][5][6]",
+        "Requires prior Medicaid LTC approval; all standard Medicaid asset/income rules apply (strategies like spousal protection needed).[2]",
+        "Services not automatic; separate waiver application after Medicaid approval, with NFLOC ongoing requirement.[5][6]",
+        "Cost-of-care contribution from remaining income after deductions must be paid monthly.[1]",
+        "Dementia diagnosis alone doesn't guarantee NFLOC.[3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://medicaid.utah.gov/ltc-2/nc/"
     }
   ]
 }

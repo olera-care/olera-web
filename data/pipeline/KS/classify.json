@@ -1,135 +1,39 @@
 {
   "state": "KS",
   "stateName": "Kansas",
-  "classifiedAt": "2026-04-09T09:06:27.969Z",
-  "total": 8,
+  "classifiedAt": "2026-04-09T09:33:30.835Z",
+  "total": 10,
   "typeSummary": {
-    "benefit": 6,
-    "employment": 1,
-    "resource": 1
+    "benefit": 7,
+    "resource": 3
   },
   "scopeSummary": {
-    "federal": 6,
-    "state": 2
+    "state": 6,
+    "local": 1,
+    "federal": 3
   },
   "complexitySummary": {
-    "deep": 6,
-    "medium": 1,
-    "simple": 1
+    "deep": 7,
+    "simple": 3
   },
   "programs": [
     {
-      "name": "KanCare Medicare Savings Programs (QMB, SLMB, QI)",
+      "name": "KanCare Medicaid",
       "programType": "benefit",
       "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
+        "type": "state",
+        "stateVariation": false,
         "localEntities": [
           {
-            "name": "KDHE KanCare offices statewide; call 1-800-792-4884 for local[6].",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "SNAP (Food Assistance)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local Kansas Department of Children and Families (DCF) offices",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local DCF Service Centers; Evergy Wichita Connect for events.[3]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Weatherization Assistance Program (WAP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Kansas Housing Resources Corporation (KHRC) oversees; find county provider at https://kshousingcorp.org/homeowners/weatherization-assistance/.[3]",
+            "name": "KDHE offices statewide",
             "type": "service-area"
           },
           {
-            "name": "NCRPC: (800) 432-0303.[2]",
+            "name": "KDADS for aging/disability services",
             "type": "service-area"
           },
           {
-            "name": "SCKEDD for listed counties.[8]",
+            "name": "MCOs: Healthy Blue Kansas, Sunflower Health Plan, etc.",
             "type": "service-area"
           }
         ]
@@ -149,31 +53,226 @@
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
+        "hasFunctionalReq": true,
         "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
     {
-      "name": "Kansas Senior Nutrition Program (Meals on Wheels)",
+      "name": "KanCare Frail Elderly Waiver (FE Waiver)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
+        "type": "state",
+        "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local Aging and Disability Resource Centers (call 855-200-ADRC (2372))",
+            "name": "Managed by Kansas Department for Aging and Disability Services (KDADS); providers enroll via fiscal agent (KMAP); delivered through Managed Care Organizations (MCOs) like Sunflower Health Plan[4][5]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
         "what-counts",
         "documents",
         "county-directory",
         "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "KanCare PACE",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Via Christi HOPE: Sedgwick County[3].",
+            "type": "service-area"
+          },
+          {
+            "name": "Unnamed provider: Marion, McPherson, Ottawa, Reno, Rice, Saline counties[3].",
+            "type": "service-area"
+          },
+          {
+            "name": "Midland Care PACE: Wyandotte, Leavenworth, Shawnee, Douglas, Jackson, Jefferson, Osage, Pottawatomie counties[8].",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Food Assistance Program (SNAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Kansas Department for Children and Families (DCF) Economic and Employment Services offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Low-Income Energy Assistance Program (LIEAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local DCF Service Centers (locations not specified in documentation)",
+            "type": "service-area"
+          },
+          {
+            "name": "Evergy's Wichita Connect walk-in center (for Evergy customers)[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "Local helping agencies and utilities[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Kansas Weatherization Assistance Program (K-WAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Kansas Housing Resources Corporation (KHRC) - state administrator[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "ECKAN - 16-county region[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "SCKEDD - south-central Kansas[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Community Action Agency of Greater Kansas City[3]",
+            "type": "service-area"
+          },
+          {
+            "name": "City of Lawrence (separate local program)[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Multiple local providers by county",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Health Insurance Counseling for Kansas (SHICK)",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Kansas Department for Aging and Disability Services, 503 S. Kansas Ave, Topeka, KS 66603[3][8]",
+            "type": "service-area"
+          },
+          {
+            "name": "Local: Central Plains AAA (Wichita, 800-367-7298 ext. 5132), Wyandotte/Leavenworth AAA (Kansas City, 888-661-1444), NC-FH AAA (18-county region)[6][8]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
       ],
       "signals": {
         "benefitType": "service",
@@ -193,15 +292,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Kansas Aging and Disability Resource Center (statewide)",
-            "type": "service-area"
-          },
-          {
-            "name": "Local Area Agencies on Aging (e.g., ECKAAA at 785-242-7200)",
-            "type": "service-area"
-          },
-          {
-            "name": "KanCare/KDADS offices",
+            "name": "Kansas Aging and Disability Resource Center (statewide referrals); local AAAs like East Central Kansas AAA (785-242-7200)[3][8][9]",
             "type": "service-area"
           }
         ]
@@ -226,55 +317,14 @@
       }
     },
     {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "programType": "employment",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "SER Jobs For Progress (Kansas WorkforceONE)",
-            "type": "service-area"
-          },
-          {
-            "name": "Kansas SCSEP team (316-771-6750)",
-            "type": "service-area"
-          },
-          {
-            "name": "Workforce Kansas providers",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "documents"
-      ],
-      "signals": {
-        "benefitType": "employment",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": false,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Legal Assistance for Older Kansans",
+      "name": "Legal Services for Seniors",
       "programType": "resource",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Kansas Legal Services (statewide)",
-            "type": "service-area"
-          },
-          {
-            "name": "Older Americans Act local service providers via KDADS[2]",
+            "name": "Kansas Legal Services offices throughout the state; Northeast Kansas Area Agency on Aging (785-336-6016); cooperates with Kansas Department on Aging and Area Agencies on Aging.",
             "type": "service-area"
           }
         ]
@@ -291,6 +341,34 @@
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "programType": "resource",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Regional Long-Term Care Ombudsmen listed at https://www.ombudsman.ks.gov/find-your-ombudsman",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "simple",
+      "recommendedSections": [
+        "prose",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "advocacy",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     }

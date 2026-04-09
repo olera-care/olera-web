@@ -1,88 +1,147 @@
 {
   "state": "WV",
   "stateName": "West Virginia",
-  "comparedAt": "2026-04-09T09:04:05.504Z",
-  "total": 15,
-  "newPrograms": 11,
-  "withDiffs": 4,
-  "withNovelFields": 4,
+  "comparedAt": "2026-04-09T09:44:37.148Z",
+  "total": 13,
+  "newPrograms": 8,
+  "withDiffs": 5,
+  "withNovelFields": 5,
   "benefitTypes": {
-    "service": 10,
-    "financial": 2,
-    "unknown": 1,
+    "financial": 4,
+    "service": 6,
     "employment": 1,
-    "advocacy": 1
+    "advocacy": 1,
+    "advocacy|service": 1
   },
   "variationPatterns": {
-    "priority_tier": 6,
-    "not_applicable": 5,
-    "program_tier": 1,
+    "priority_tier": 7,
     "region": 1,
-    "fixed": 1
+    "household_size": 1,
+    "household_size|priority_tier|region": 1,
+    "not_applicable": 2,
+    "property_type": 1
   },
   "novelFieldSummary": {
     "asset_limits": {
-      "count": 4,
+      "count": 5,
       "programs": [
-        "Aged and Disabled Waiver",
-        "Medicare Savings Programs (QMB, SLMB, QI)",
-        "West Virginia Senior Legal Aid (WVSLA)",
-        "Long-Term Care Ombudsman"
+        "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+        "West Virginia Aged and Disabled Waiver (ADW)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "Long-Term Care Ombudsman Program",
+        "West Virginia Senior Legal Aid"
       ],
       "note": "Our model has no asset limit fields"
     },
     "regional_variations": {
-      "count": 4,
+      "count": 5,
       "programs": [
-        "Aged and Disabled Waiver",
-        "Medicare Savings Programs (QMB, SLMB, QI)",
-        "West Virginia Senior Legal Aid (WVSLA)",
-        "Long-Term Care Ombudsman"
+        "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+        "West Virginia Aged and Disabled Waiver (ADW)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "Long-Term Care Ombudsman Program",
+        "West Virginia Senior Legal Aid"
       ],
       "note": "Program varies by region — our model doesn't capture this"
     },
     "waitlist": {
-      "count": 2,
+      "count": 3,
       "programs": [
-        "Aged and Disabled Waiver",
-        "Medicare Savings Programs (QMB, SLMB, QI)"
+        "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+        "West Virginia Aged and Disabled Waiver (ADW)",
+        "West Virginia Senior Legal Aid"
       ],
       "note": "Has waitlist info — our model has no wait time field"
     },
     "documents_required": {
-      "count": 4,
+      "count": 5,
       "programs": [
-        "Aged and Disabled Waiver",
-        "Medicare Savings Programs (QMB, SLMB, QI)",
-        "West Virginia Senior Legal Aid (WVSLA)",
-        "Long-Term Care Ombudsman"
+        "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+        "West Virginia Aged and Disabled Waiver (ADW)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "Long-Term Care Ombudsman Program",
+        "West Virginia Senior Legal Aid"
       ],
       "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "SNAP (Supplemental Nutrition Assistance Program)"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
     }
   },
   "comparisons": [
     {
-      "name": "West Virginia Medicaid Personal Care Services Program",
-      "isNew": true,
-      "existingId": null,
+      "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+      "isNew": false,
+      "existingId": "medicare-savings-program",
       "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Entitlement (no waitlist); hours scale by assessed personal care needs/medical necessity tier; requires prior Medicaid eligibility + separate medical assessment; statewide with RN-supervised in-home services",
-      "gotchas": [
-        "Must already have or qualify for Medicaid first (financial eligibility strict; use spenddown if over income)",
-        "Medical eligibility requires needs in at least 3 ADLs and physician order; not just any impairment",
-        "Housekeeping only if combined with personal care - not standalone",
-        "No skilled tasks (meds, wounds, injections); compare to waivers like I/DD Waiver which have different criteria (e.g., developmental disability diagnosis)[1][2][3][4]",
-        "Entitlement but apply only if eligible to avoid denial[1]"
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$967",
+          "found": "$1,325",
+          "source": "https://bms.wv.gov (WV Bureau for Medical Services); form at dhhr.wv.gov/bcf/policy/imm[3][9]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "- **QMB**: Pays Medicare Part A premiums (if applicable), Part B premiums/deductible/coinsurance/copays; providers cannot bill beneficiary for Medicare-covered services (acts like Medigap); auto-qualifies for Extra Help (Part D low-income subsidy, ≤$12.65 copay/drug in 2026)[1][2][5].\n- **SLMB**: Pays Part B premiums only[1][2].\n- **QI**: Pays Part B premiums only[1][2].\nSaves hundreds/thousands annually depending on utilization[1].",
+          "source": "https://bms.wv.gov (WV Bureau for Medical Services); form at dhhr.wv.gov/bcf/policy/imm[3][9]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://bms.wv.gov (WV Bureau for Medical Services); form at dhhr.wv.gov/bcf/policy/imm[3][9]"
+        }
       ],
-      "benefitType": "service",
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Total countable resources: $9,660 individual / $14,470 married couple (federal limits used in WV; consistent across QMB/SLMB/QI)[2][3]. Countable: cash, checking/savings accounts, stocks, bonds, annuities, CDs[3]. Exempt: typically primary home, one vehicle, personal belongings, burial plots (standard Medicaid exemptions apply; WV follows federal)[1][2].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Processing via local DHHR offices; no major benefit differences, possible minor wait time variations by county workload[2].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI may have waitlist or funding caps (federal limit on QI slots; apply early)[1][6].",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (SSI award, pay stubs, pension statements).",
+            "Proof of resources (bank statements, stock/bond values).",
+            "Medicare card (Parts A/B).",
+            "ID (SSN, birth certificate, proof of citizenship).",
+            "Proof of residency.",
+            "Household size details if married[3]."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tiered by income brackets (QMB <100% FPL, SLMB 100-120% FPL, QI 120-135% FPL); single/couple only (no larger household multipliers); federal asset caps with WV adoption; QI funding-capped",
+      "gotchas": [
+        "Income/asset limits change annually (check current via BMS; figures here from 2023-2026 sources may need update)[1][2][5].",
+        "QMB providers cannot bill you, but confirm with 'QMB' status on Medicaid card; report billing violations[1][5].",
+        "QI has limited federal funding/waitlist—higher priority for earliest applicants[1][6].",
+        "Automatic Extra Help with QMB but not always SLMB/QI—apply separately if needed[1][5].",
+        "Married couples: Combined income/assets; living arrangements matter (e.g., separate households may qualify separately)[2].",
+        "Not for Medicare Advantage—applies to Original Medicare only[6]."
+      ],
+      "benefitType": "financial",
       "benefitVariesBy": "priority_tier",
-      "officialSource": "https://bms.wv.gov/media/30546/download?inline (WV Medicaid Personal Care Services Program PDF); https://wvaging.com/personal-care/[3][4]"
+      "officialSource": "https://bms.wv.gov (WV Bureau for Medical Services); form at dhhr.wv.gov/bcf/policy/imm[3][9]"
     },
     {
-      "name": "Aged and Disabled Waiver",
+      "name": "West Virginia Aged and Disabled Waiver (ADW)",
       "isNew": false,
       "existingId": "aged-and-disabled-waiver-adw",
       "existingVerified": null,
@@ -92,176 +151,178 @@
           "field": "min_age",
           "ours": "65",
           "found": "18",
-          "source": "https://www.wvseniorservices.gov (MNER form); https://bms.wv.gov (Bureau for Medical Services)"
+          "source": "https://bms.wv.gov"
         },
         {
           "field": "income_limit",
           "ours": "$2901",
           "found": "$209",
-          "source": "https://www.wvseniorservices.gov (MNER form); https://bms.wv.gov (Bureau for Medical Services)"
+          "source": "https://bms.wv.gov"
         },
         {
           "field": "benefit_value",
           "ours": "$10,000 – $30,000/year",
-          "found": "In-home and community-based services equivalent to nursing home care, including personal care/attendant services, case management. Specific services: support for ADLs (eating, bathing, dressing, grooming, mobility, restroom). Exact hours/dollars not specified; person-centered to promote independence.[3][4][5][6]",
-          "source": "https://www.wvseniorservices.gov (MNER form); https://bms.wv.gov (Bureau for Medical Services)"
+          "found": "Person-centered home and community-based services (e.g., personal attendant, agency direct-care, case management, RN visits) equivalent to nursing home care, promoting independence. Specific services ordered by physician; not for household convenience.",
+          "source": "https://bms.wv.gov"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://www.wvseniorservices.gov (MNER form); https://bms.wv.gov (Bureau for Medical Services)"
+          "found": "https://bms.wv.gov"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "Home equity interest no greater than $730,000 (2025 limit) if living in home or intent to return. Exemptions: spouse or dependent relative (child, grandchild, parent, aunt/uncle, sibling, niece/nephew) living in home.[1]",
+          "value": "Home equity interest no greater than $730,000 (2025 limit). Exemptions: applicant lives in home or intends to return; spouse or dependent relative (child, grandchild, parent, aunt/uncle, sibling, niece/nephew) lives in home.",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Administered via local DHHR county offices; potential waitlist/funded slot variations by region not detailed.[2]",
+          "value": "Administered via local DHHR county offices; potential waitlist variations by funded slot availability, but no specific regional differences detailed.",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "waitlist",
-          "value": "Enrollment dependent on availability of funded ADW slot.[2]",
+          "value": "Enrollment dependent on availability of funded ADW slot.",
           "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
+            "Physician-completed MNER.",
             "Proof of WV residency.",
-            "MNER completed by doctor.",
-            "Financial documents for DHHR review (income, assets).[2][5]"
+            "Financial documents for DHHR/SSA review.",
+            "KEPRO letter."
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Financial eligibility via Medicaid standards (SSI/DHHR), no fixed income table; tiered by NFLOC with 5 deficits; statewide but county DHHR offices handle finances; funded slots create waitlist variability.",
+      "dataShapeNotes": "Enrollment capped by funded slots; two-step process (financial then medical); physician-ordered services; person-centered with NFLOC via PAS assessment.",
       "gotchas": [
-        "Must have exactly 5 functional deficits for NFLOC; dementia diagnosis alone insufficient.[1]",
-        "Home equity limit $730,000 (2025); exemptions narrow.[1]",
-        "Slot availability limits enrollment; waitlist possible.[2]",
-        "SSI recipients determined by SSA, others by DHHR.[2]",
-        "Must choose waiver over nursing home; safe environment required.[4]",
-        "Financial eligibility separate from medical; Medically Needy pathway for over-limit.[7]"
+        "Must have exactly 5 functional deficits for NFLOC; dementia diagnosis alone insufficient.",
+        "Home equity limit $730,000 (2025); exemptions narrow.",
+        "Financial eligibility first, then medical; no medical assessment without yellow DHS-2.",
+        "Slot availability limits enrollment (waitlist risk).",
+        "Not for sole purpose of Medicaid eligibility or minor services.",
+        "Must provide safe environment for providers."
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
-      "officialSource": "https://www.wvseniorservices.gov (MNER form); https://bms.wv.gov (Bureau for Medical Services)"
+      "officialSource": "https://bms.wv.gov"
     },
     {
-      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Not specifically named in WV sources",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Limited WV-specific data; not statewide, only at select providers/centers; no income/asset tests detailed; eligibility tied to service area and state nursing home certification; expansion advocated but not confirmed as of sources[3][9]",
+      "dataShapeNotes": "Limited to specific service areas with one known WV provider (PACE Your Life); no income/asset test for enrollment but Medicaid status affects cost; requires state NFLOC certification; potential waitlists and regional capacity limits",
       "gotchas": [
-        "Not yet widely available in WV; may be limited to specific areas/providers unlike VA examples[9]",
-        "Becomes sole source of Medicare/Medicaid benefits; disenroll anytime but coordinate other coverage[4][7]",
-        "Must live safely in community at enrollment; nursing home-level need required[1][4]",
-        "No WV state certification process or income/asset details in sources; contact provider directly",
-        "Private pay possible but most dually eligible[3]"
+        "Not available statewide in West Virginia; must live in specific service area near PACE center",
+        "Requires Nursing Home Level of Care certification by West Virginia, which involves functional assessment",
+        "Possible waitlists due to funding caps",
+        "Private pay monthly fee if not Medicaid-eligible (amount not listed; contact provider)",
+        "Cannot be enrolled in Medicare Advantage, Part D, or hospice",
+        "Must be able to live safely in community with PACE help at enrollment"
       ],
       "benefitType": "service",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "No WV-specific .gov URL found; general: https://www.cms.gov/medicare/medicaid-coordination/about/pace[5]; https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly[7]"
+      "benefitVariesBy": "region",
+      "officialSource": "https://paceyourlifemwv.com/ (West Virginia PACE provider); https://www.medicare.gov/health-drug-plans/health-plans/your-coverage-options/other-medicare-health-plans/PACE (federal overview)[6][8]"
     },
     {
-      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "isNew": false,
-      "existingId": "medicare-savings-program",
+      "existingId": "supplemental-nutrition-assistance-program-snap",
       "existingVerified": null,
-      "diffsFound": 3,
+      "diffsFound": 4,
       "diffs": [
         {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://dhhr.wv.gov/bcf/Pages/SNAP.aspx or https://wvpath.wv.gov"
+        },
+        {
           "field": "income_limit",
-          "ours": "$967",
-          "found": "$1,350,",
-          "source": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs and West Virginia DHHR (https://www.wvdhhr.org/)"
+          "ours": "$1922",
+          "found": "$2608",
+          "source": "https://dhhr.wv.gov/bcf/Pages/SNAP.aspx or https://wvpath.wv.gov"
         },
         {
           "field": "benefit_value",
-          "ours": "$2,000 – $8,000/year",
-          "found": "QMB: Pays Medicare Part A monthly premiums (when applicable), Part B monthly premiums and annual deductible, and co-insurance and deductible amounts for services covered under Parts A and B[1]. SLMB: Pays Medicare Part B premium for the calendar year[1]. QI: Helps pay for Part B premiums[6]. All programs that qualify you for Original Medicare also automatically qualify you for Medicare Part D Extra Help, with maximum out-of-pocket drug costs of $12.65 per drug in 2026[2][6].",
-          "source": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs and West Virginia DHHR (https://www.wvdhhr.org/)"
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly EBT card benefits for food purchases (average $188/month for older adults; exact amount based on income, household size, deductions). Benefits only for food for human consumption, seeds/plants. Certification period: 24 months for households with 60+ or disabled members (vs. 12 months for others).[3][8]",
+          "source": "https://dhhr.wv.gov/bcf/Pages/SNAP.aspx or https://wvpath.wv.gov"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs and West Virginia DHHR (https://www.wvdhhr.org/)"
+          "found": "https://dhhr.wv.gov/bcf/Pages/SNAP.aspx or https://wvpath.wv.gov"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "Total asset limits for QMB, SLMB, and QI programs in West Virginia are: Individual $9,660, Married couple $14,470[3]. Countable resources include: cash, money in checking or savings accounts, stocks, bonds, annuities, and CDs[3]. Some states (e.g., Connecticut) have no asset limit for QI[1].",
+          "value": "No asset limit for most households in West Virginia (home and vehicles exempt). Households with a member 60+ or disabled who exceed gross income limit must meet federal asset limit of $4500 in countable resources (e.g., bank accounts; excludes home, vehicles, retirement savings in some cases).[1]",
           "note": "Our model has no asset limit fields"
         },
         {
-          "field": "regional_variations",
-          "value": "Search results do not specify regional variations within West Virginia for processing times, benefit amounts, or application procedures. However, general guidance notes that states may have more generous standards than federal minimums, suggesting potential variation by state but not by region within West Virginia[1][6].",
-          "note": "Program varies by region — our model doesn't capture this"
+          "field": "household_size_table",
+          "value": "For Oct. 1, 2025 through Sept. 30, 2026, most households must meet a gross income limit of 200% of the federal poverty level: 1 person $2608/month, 2 people $3526/month, 3 people $4442/month, 4 people $5358/month, 5 people $6276/month, 6 people $7192/month, 7 people $8108/month, each additional +$916/month. Households with a member 60+ or disabled are exempt from the gross income test and only need to meet the net income test (gross minus deductions like medical expenses over $35/month for elderly/disabled, shelter costs, utilities). If gross income exceeds 200% FPL, must also meet asset test under federal rules ($4500 limit).[1][3]",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
         },
         {
-          "field": "waitlist",
-          "value": "For QI Program specifically: States approve applications on a first-come, first-served basis with priority given to people who received QI benefits the previous year[6]. General waitlist status for West Virginia not specified in search results.",
-          "note": "Has waitlist info — our model has no wait time field"
+          "field": "regional_variations",
+          "value": "Administered uniformly by state DHHR but apply at local county offices; no noted differences in eligibility/benefits, potential variation in processing times by county workload",
+          "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of Medicare eligibility (Part A enrollment documentation)",
-            "Proof of income (recent pay stubs, Social Security statements, tax returns, or other income documentation)",
-            "Proof of resources/assets (bank statements, investment statements)",
-            "Proof of citizenship or qualified non-citizen status",
-            "Identification"
+            "Proof of income (pay stubs, Social Security statements, veterans/disability benefits)",
+            "Proof of expenses (rent/mortgage, utilities, medical costs over $35/month for 60+/disabled)",
+            "ID (driver's license, birth certificate)",
+            "Social Security numbers for household",
+            "Proof of residency"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Medicare Savings Programs are tiered by income level: QMB (lowest income, most comprehensive benefits), SLMB (middle income, Part B premium only), QI (higher income, Part B premium only). Income limits are pegged to Federal Poverty Level and reset annually on April 1. West Virginia uses 135% FPL as the maximum eligibility threshold across all programs[4]. All three programs share the same asset limits. Eligibility and benefits vary significantly by program tier but not by region within West Virginia based on available information. QI has a first-come, first-served funding model, making it distinct from QMB and SLMB.",
+      "dataShapeNotes": "Benefits and gross income limits scale by household size; elderly/disabled exempt from gross income and asset tests (use net only or federal asset if over gross); statewide with county offices; high deductions for medical/shelter key for seniors",
       "gotchas": [
-        "Income limits change every April 1[1]. Families must reapply annually to maintain eligibility, especially for QI (which explicitly requires annual reapplication)[6].",
-        "QI has a first-come, first-served approval process with priority only for prior-year recipients[6]. This means funding may run out mid-year in some states.",
-        "If someone is eligible for Medicaid, they cannot use QI but may qualify for QMB or SLMB instead[5].",
-        "QI only applies to Original Medicare (Parts A and B) and does not affect Medicare Advantage (Part C) or Medigap plans[5].",
-        "Asset limits are relatively low ($9,660 individual / $14,470 couple in West Virginia)[3]. Savings, investments, and CDs all count toward this limit.",
-        "Some states have more generous income or asset limits than federal standards[1][6]. West Virginia families should verify current limits with their state Medicaid office.",
-        "Eligibility is effective on the first day of the month following approval[1], not the application date.",
-        "The programs help with premiums and cost-sharing but do not cover all Medicare expenses."
+        "Elderly/disabled households skip gross income test but must meet net income; many miss high medical/shelter deductions that lower net income",
+        "WV expanded eligibility beyond federal standards (no asset limit for most); other sites may show stricter rules",
+        "Social Security, veterans/disability benefits count as income",
+        "Must include all who buy/prepare food together in household",
+        "24-month certification for elderly/disabled requires less frequent recertification but still report changes"
       ],
       "benefitType": "financial",
-      "benefitVariesBy": "program_tier",
-      "officialSource": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs and West Virginia DHHR (https://www.wvdhhr.org/)"
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://dhhr.wv.gov/bcf/Pages/SNAP.aspx or https://wvpath.wv.gov"
     },
     {
-      "name": "LIEAP (Low Income Energy Assistance Program) & LIHEAP-RRP (Repair and Replace Program)",
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "LIEAP benefits scale by household size and heating costs; income limits vary by household size. LIHEAP-RRP has strict household composition requirements (must include vulnerable individual) in addition to income limits. Both programs are federally funded with annual variations. LIEAP operates on a seasonal window (winter months); LIHEAP-RRP operates year-round but with limited annual funding (~$6M). Application methods differ: LIEAP can be applied for online or in-person; LIHEAP-RRP must go through local Community Action Agencies.",
+      "dataShapeNotes": "Income at 60% state median (examples scale by household size, +$567/additional); exclusions vary by period (e.g., SS/Vet income); seasonal with early application critical due to limited funding; local offices handle intake with regional processing variations",
       "gotchas": [
-        "Two separate programs: LIEAP is for heating bill assistance; LIHEAP-RRP is for system repair/replacement. Families may qualify for one, both, or neither[1][3]",
-        "Income limits vary by household size AND by program (LIEAP uses 60% state median income OR 150% federal poverty level; LIHEAP-RRP uses 60% state median income)[1][3]",
-        "LIEAP has a narrow application window (typically February in FY2026) and closes when funding exhausted—missing the deadline means waiting until next year[1][7]",
-        "LIHEAP-RRP requires household to include someone age 60+, under 6, or disabled—elderly alone may not qualify[3]",
-        "Some income types are excluded from LIEAP calculations (varies by year)[5]",
-        "LIHEAP-RRP is administered through Community Action Agencies, not directly through state—must contact local agency for your county[3]",
-        "For LIEAP, households must be responsible for paying heating expenses; renters whose landlord pays may not qualify[1]",
-        "Online LIEAP application requires creating an account; in-person assistance available at Senior Centers and Community Action Agencies[2]",
-        "Crisis LIEAP component exists for emergencies but requires separate application/evaluation[7]"
+        "Funding fixed annually and runs out—apply early in season (heating: fall/winter; cooling: summer; crisis: emergencies only)",
+        "Household includes all sharing address/utility bill (unlike SNAP)",
+        "Income based strictly on application month; some income excluded but countable income must not exceed max",
+        "Program not year-round; closes when funds deplete—no applications accepted after",
+        "Must reapply each year; prior approval doesn't carry over",
+        "Crisis requires DHHR worker evaluation for emergency"
       ],
-      "benefitType": "unknown",
-      "benefitVariesBy": null,
-      "officialSource": "https://bfa.wv.gov/utility-assistancelieap (LIEAP)[7]; https://wvcad.org/sustainability/liheap (LIHEAP-RRP)[3]"
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier|region",
+      "officialSource": "https://bfa.wv.gov/utility-assistance/lieap or https://dhhr.wv.gov/bcf/Services/familyassistance/Pages/default.aspx"
     },
     {
       "name": "Weatherization Assistance Program (WAP)",
@@ -271,58 +332,37 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Administered county-by-county via local community action agencies; waitlist with priority tiers (elderly 60+ get points); income at exactly 200% FPG with prior-year gross proof and exclusions; building eligibility required.",
+      "dataShapeNotes": "Administered via county-specific Community Action Agencies; waitlist with priority tiers (elderly/disabled/children/high energy); income table scales by household size at 200% FPG; building eligibility required.",
       "gotchas": [
-        "Income verification is time-consuming with official documentation required for ALL sources from prior year.[2]",
-        "Dwelling must meet building eligibility (not all homes qualify).[1]",
+        "Income based on prior full tax year gross cash income (verification time-consuming).[1][2]",
+        "Dwelling must qualify structurally; not all homes eligible.[1]",
         "Renters need landlord permission first.[2]",
-        "Services once per home; waitlist prioritization favors elderly/disabled/children—others may wait longer.[1][2]",
-        "Not for utility bill payment; energy efficiency/weatherization only.[8]",
-        "Funding varies annually by federal appropriations—may impact availability.[1]"
+        "Waitlist prioritization favors elderly/disabled/children/high energy needs—not first-come.[1]",
+        "Funding limited (e.g., $4.3M for 2024-2025); services depend on federal appropriations.[1]",
+        "Separate from DHHR Repair/Replacement Program (60% SMI, for heating repairs).[3]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "priority_tier",
       "officialSource": "https://wvcad.org/sustainability/weatherization-assistance-program"
     },
     {
-      "name": "SHIP (State Health Insurance Assistance Program)",
+      "name": "State Health Insurance Assistance Program (SHIP)",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "no income test; counseling-only service, not benefits-paying; delivered via statewide network of senior centers with central phone line",
+      "dataShapeNotes": "no income/asset test; counseling only, delivered via statewide network of county senior centers; prioritizes limited-income Medicare beneficiaries but open to all[1][3][5]",
       "gotchas": [
-        "Not a financial aid or healthcare provision program—only free counseling and information, no direct payments or coverage[4]",
-        "People confuse with CHIP (children's program) or Medicaid due to similar acronyms; SHIP is Medicare-specific[1][4][8]",
-        "Must be Medicare beneficiary; does not cover non-Medicare individuals[4][8]",
-        "Services are appointment-based; call ahead as no walk-in guarantee at county centers[8]"
+        "Not a healthcare or financial aid program—provides counseling only, not direct payments or medical care[1][2]",
+        "Free but requires contacting for appointment; no walk-ins guaranteed outside main office[3]",
+        "Often confused with Medicare Savings Programs (which SHIP helps apply for); SHIP itself has no eligibility barriers[1]",
+        "Services via local county centers may vary in availability by location[5]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "not_applicable",
-      "officialSource": "https://www.shiphelp.org/ships/west-virginia/ (links to WV SHIP site); Bureau of Senior Services contact via CMS[6][7]"
-    },
-    {
-      "name": "Caregiver/Respite Support",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Highly fragmented by county/local providers; no statewide elderly caregiver respite with uniform eligibility/benefits; Medicaid waivers target IDD not general elderly; access via 55+ Area Agencies on Aging centers.",
-      "gotchas": [
-        "No unified statewide program for elderly; must contact county-specific providers[1][2][4][6][7].",
-        "Medicaid does not offer respite for aged/disabled in WV (unlike some states); adult day care may substitute[1].",
-        "Many programs county-restricted; rural areas may have limited access.",
-        "Some exclude Medicaid-eligible[6]; others fee-based on income[7].",
-        "Caregiver cannot be legally responsible person in some waivers[3].",
-        "Funding donation-based in areas like McDowell, potentially limiting availability[4]."
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "region",
-      "officialSource": "https://dhhr.wv.gov/bms/Members/Apply/Pages/default.aspx (Medicaid); local AAAs via aging.wv.gov"
+      "officialSource": "https://www.wvship.org[3][4][9]"
     },
     {
       "name": "Senior Community Service Employment Program (SCSEP)",
@@ -332,19 +372,122 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Grantee-based by county clusters (not uniform statewide); priority enrollment tiers; no fixed income table or asset test in sources—income verified locally against current 125% FPL",
+      "dataShapeNotes": "Multiple regional grantees with county-specific coverage and contact points; income test at 125% FPL; priority tiers affect access; part-time training only via nonprofit/public host sites",
       "gotchas": [
-        "Not statewide—must confirm county coverage with specific grantee; contact local provider first[1][5]",
-        "Income at ≤125% FPL requires verification; priority groups get preference, potentially longer waits for others[3]",
-        "Temporary training (avg. 20 hrs/wk, ~6 months), not permanent job or full income replacement[3][4]",
-        "Wage is minimum (highest federal/state/local), modest pay only[3][4]"
+        "Not available uniformly statewide; must confirm county-specific provider as coverage overlaps and gaps may exist[1][6]",
+        "Income limit is 125% FPL for family size—requires verification of current federal poverty guidelines[3][4]",
+        "Priority enrollment tiers may delay access for non-priority applicants[3]",
+        "Temporary training (avg. 20 hrs/wk, ~6 months) aimed at unsubsidized jobs, not long-term employment[3][4]",
+        "Funded by DOL grants to nonprofits; subject to federal funding changes/delays[4][5]"
       ],
       "benefitType": "employment",
       "benefitVariesBy": "priority_tier",
       "officialSource": "https://www.dol.gov/agencies/eta/seniors"
     },
     {
-      "name": "West Virginia Senior Legal Aid (WVSLA)",
+      "name": "Legal Aid for Seniors (e.g., Lighthouse Program elements)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Statewide via 55 county senior centers; sliding fee scale (no fixed income table published); medically tiered by RN ADL assessment; hours capped at 60/month with service area limits; not true legal aid but in-home care for seniors ineligible for Medicaid.",
+      "gotchas": [
+        "Not legal aid; provides in-home care services (personal care, etc.), not attorney services—user query mixes with West Virginia Senior Legal Aid (WVSLA), which is separate (age 60+, no income limits, call 1-800-229-5068).[2][4][5]",
+        "Up to 60 hours/month only, based on RN assessment, caregiver availability, and sliding fee (may involve client cost-sharing).[1][5]",
+        "Environmental services capped at 1/3 of hours; must have 2+ ADL needs at 'Much Assistance' or 'Cannot Perform' level.[5]",
+        "Designed specifically for those over Medicaid income/asset limits.[1][5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://wvaging.com/lighthouse/"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "west-virginia-long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Investigating and resolving complaints about health, safety, welfare, and rights; routine unannounced facility visits to monitor care; providing information and referral services on long-term care options; representing residents to government agencies; educating on rights; training volunteers. All services are free and confidential.",
+          "source": "https://legalaidwv.org/our-programs/long-term-care/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://legalaidwv.org/our-programs/long-term-care/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits; no financial eligibility requirements apply.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Program operates through 9 regional ombudsmen with specific counties served and local offices; services consistent statewide but delivered by regional advocates (e.g., Brenda Alvarado serves Clay, Fayette, Nicholas, Kanawha; Mary Nicholas in Martinsburg serves Berkeley, Grant, Hampshire, Hardy, Jefferson, Mineral, Morgan, Pendleton, Preston, Tucker).",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents needed to initiate contact or file a complaint; provide details of the issue verbally or in writing."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income test; advocacy-only for long-term care facility residents; delivered via 9 regional non-attorney ombudsmen under Legal Aid WV; open to residents, families, friends without eligibility barriers.",
+      "gotchas": [
+        "This is not a direct service provider (e.g., no healthcare, housing, or financial aid); it's purely advocacy and complaint resolution. Not for general eligibility determination but for issues in facilities. Ombudsman staff are non-attorneys. Access requires facility residency or acting on behalf of one. No entry to certain facility areas without resident consent. For health facility complaints outside ombudsman scope, use OHFLAC at (304) 558-0050."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://legalaidwv.org/our-programs/long-term-care/"
+    },
+    {
+      "name": "Lighthouse Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "State-funded program delivered uniformly via 140+ local county senior centers; no strict income/asset caps but sliding fee scale; medically tiered by RN-assessed ADL needs; hours capped at 60/month with environmental services limited to 1/3",
+      "gotchas": [
+        "Must pay a sliding fee based on income—not free; fee determined by state schedule[1][2][3]",
+        "Limited to 60 hours/month max, based on need and caregiver availability—may not cover full needs[2][3][4]",
+        "Environmental services (housekeeping) capped at 1/3 of monthly hours[5]",
+        "Targeted at those ineligible for Medicaid/other programs; not a Medicaid waiver[4][5][6]",
+        "Medically eligible only after RN assessment—two ADL needs typically required[5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "http://www.wvseniorservices.gov (West Virginia Bureau of Senior Services)[3]"
+    },
+    {
+      "name": "FAIR (Family Alzheimer's In-Home Respite)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No Alzheimer's respite program found; all data pertains to property insurance FAIR Plan. Eligibility based on insurability/fire standards, not income/age/health. Agent-mediated applications only.",
+      "gotchas": [
+        "Must first attempt voluntary market insurance; requires licensed agent (no direct public application); incomplete apps rejected; no liability coverage; higher cost/less coverage than private insurance.[1][3][4]",
+        "Not a healthcare/Alzheimer's program—user query mismatches all sources."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "property_type",
+      "officialSource": "https://www.wvfairplan.com[5]"
+    },
+    {
+      "name": "West Virginia Senior Legal Aid",
       "isNew": false,
       "existingId": "west-virginia-senior-medicare-patrol-smp",
       "existingVerified": null,
@@ -359,7 +502,7 @@
         {
           "field": "benefit_value",
           "ours": "$1,000 – $5,000/year",
-          "found": "Free civil legal services, including legal advice, advocacy, and representation in civil matters relevant to seniors (e.g., government benefits, housing, consumer issues). Basic services available to all eligible; enhanced services for priority groups.",
+          "found": "Free civil legal services. Specific services include legal advice, legal advocacy, and representation in court proceedings. No fee charged for any services.[4]",
           "source": "https://www.seniorlegalaid.org"
         },
         {
@@ -371,154 +514,41 @@
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "No asset limits mentioned.",
+          "value": "Not specified in available sources.",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "Higher service levels may vary based on factors like rural location, but program is statewide with no specified regional differences in eligibility or wait times.",
+          "value": "Not specified in available sources.",
           "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in available sources.",
+          "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Not explicitly listed; prepare to discuss legal issue, household, and financial situation during intake."
+            "Full name[1]",
+            "Telephone number[1]",
+            "Email address (if available)[1]",
+            "Brief description of legal issue and/or assistance requested[1]"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "No income or asset tests for entry; services tiered by vulnerability/priority rather than strict financial cutoffs; senior must self-initiate contact.",
+      "dataShapeNotes": "This program is distinguished by its age-based eligibility (60+) with no income limits for basic access, but tiered service levels based on vulnerability factors. It is statewide and serves only civil legal matters. Unlike Legal Aid of West Virginia (which requires low-income status), Senior Legal Aid prioritizes seniors based on age and vulnerability rather than income alone. Specific operational details (processing times, regional offices, service capacity) are not documented in publicly available sources.",
       "gotchas": [
-        "The person age 60+ must call themselves—family cannot apply on their behalf.",
-        "Basic eligibility is open, but full advocacy/representation prioritized for vulnerable groups (low-income, etc.); others may get limited brief advice.",
-        "Does not handle criminal cases, accidents, personal injury, or class actions.",
-        "Intake requires personal details on legal issue, household, and finances."
+        "The senior age 60+ must personally call to request services—family members cannot call on their behalf.[6]",
+        "This program handles civil legal matters only; it does not handle criminal cases, accidents, or personal injury issues.[1]",
+        "No income limits exist for basic eligibility, but higher service levels are prioritized for low-income seniors and other vulnerable populations.[3] Families should not assume their income disqualifies them.",
+        "This is a separate program from Legal Aid of West Virginia (which serves low-income residents of all ages). Seniors age 60+ should contact West Virginia Senior Legal Aid specifically, not the general Legal Aid program.[3][6]",
+        "Specific dollar amounts, hours of service, and processing timelines are not publicly detailed in available sources—families should ask during initial contact."
       ],
-      "benefitType": "service",
+      "benefitType": "advocacy|service",
       "benefitVariesBy": "priority_tier",
       "officialSource": "https://www.seniorlegalaid.org"
-    },
-    {
-      "name": "Long-Term Care Ombudsman",
-      "isNew": false,
-      "existingId": "west-virginia-long-term-care-ombudsman-program",
-      "existingVerified": null,
-      "diffsFound": 2,
-      "diffs": [
-        {
-          "field": "benefit_value",
-          "ours": "$10,000 – $30,000/year",
-          "found": "Identifying, investigating, and resolving complaints; routine unannounced facility visits to monitor care; representing interests to government agencies for administrative, legal, or other remedies; all services free and confidential[4][5][7]",
-          "source": "https://legalaidwv.org/our-programs/long-term-care/ (operated by Legal Aid of WV); https://code.wvlegislature.gov/16-5L/ (enabling WV Code)"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://legalaidwv.org/our-programs/long-term-care/ (operated by Legal Aid of WV); https://code.wvlegislature.gov/16-5L/ (enabling WV Code)"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "No asset limits or tests apply[4][5]",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "State divided into 9 regions with dedicated regional ombudsmen serving specific counties; different contact points and offices per region, but services consistent statewide[4][5]",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "No documents needed to initiate contact or receive advocacy; provide details of complaint or concern verbally or in writing[4][5]"
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "no income/asset test; advocacy only for long-term care facility residents; 9 regional structure with county-specific ombudsmen; free/confidential for residents/families/anyone concerned",
-      "gotchas": [
-        "Not a healthcare or financial benefits program—purely advocacy for complaints and rights in facilities; ombudsmen are non-attorneys, though they pursue remedies[4][5]; anyone can contact on behalf of resident, including families considering placement[5][7]; volunteer program available but separate from resident services[5]"
-      ],
-      "benefitType": "advocacy",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "https://legalaidwv.org/our-programs/long-term-care/ (operated by Legal Aid of WV); https://code.wvlegislature.gov/16-5L/ (enabling WV Code)"
-    },
-    {
-      "name": "Lighthouse Program",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "State-funded, county-administered via local aging agencies; sliding fee (not asset-tested); up to 60 hours/month capped by need/availability; targets Medicaid-ineligible seniors with functional needs.",
-      "gotchas": [
-        "Not free—uses sliding fee scale based on income; not income-disregarded.[1][2][3][5]",
-        "Program of last resort for non-Medicaid eligible; won't substitute for Medicaid or private pay.[4][5]",
-        "Hours capped at 60/month, based on need/availability—may not meet full needs.[2][3]",
-        "Must contact local county program (not centralized); statewide hotline routes to locals.[1][2][3]",
-        "Medical eligibility requires RN assessment; functional needs in ADLs (activities of daily living) essential.[1][2][3][4][5]"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://www.wvseniorservices.gov"
-    },
-    {
-      "name": "Aging Well, Safe at Home Initiative: WV BoSS Home Modification and Accessibility Program",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "no income test; eligibility hinges on age 60+ and demonstrated need only; administered via statewide ADRC with central mail/phone application[1][6]",
-      "gotchas": [
-        "No mention of income or asset limits, but similar programs like Lighthouse exclude based on income/assets disqualifying from Medicaid—confirm no hidden financial test[1][2][5]",
-        "Must demonstrate specific need for modifications/devices, not automatic approval[1][6]",
-        "Documents and exact funding amounts not detailed; applicants should verify with ADRC to avoid generic assumptions[1][6]",
-        "Potentially confused with Medicaid waivers (e.g., ADW) which have strict financial and medical criteria[2][5]"
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "https://www.wvadrc.com/assistance-programs.html"
-    },
-    {
-      "name": "Take Me Home, West Virginia Program",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Tied to Medicaid MFP grant; eligibility hinges on institutional stay duration and Medicaid status rather than age/income/assets directly; services person-centered via field staff statewide.",
-      "gotchas": [
-        "Must be Medicaid-eligible at transition; program supports but does not replace Medicaid requirements like Nursing Home Level of Care.[1][3][4]",
-        "60-day minimum institutional stay (excluding Medicare rehab); intent to return to community required.[1][2][3]",
-        "Focuses on transition support only—not ongoing long-term care; success measured by 365-day community retention.[2]",
-        "No explicit details on processing times, waitlists, or exact service dollar amounts/hours."
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "https://bms.wv.gov/take-me-home-tmh-transition-program"
-    },
-    {
-      "name": "FAIR (Family Alzheimer's In-Home Respite)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "County-restricted to Mineral County; no financial eligibility tests mentioned; fixed benefit of up to 16 hours/week respite care.",
-      "gotchas": [
-        "Not statewide—restricted to Mineral County residents only.",
-        "Requires formal diagnosis of Alzheimer’s or related dementia.",
-        "Limited information available on application process, processing times, or required documents; families should contact provider directly."
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "fixed",
-      "officialSource": "https://wvaging.com/fair/"
     }
   ]
 }

@@ -1,264 +1,701 @@
 {
   "state": "NH",
   "stateName": "New Hampshire",
-  "diveAt": "2026-04-09T08:56:32.833Z",
-  "total": 6,
-  "parsed": 5,
+  "diveAt": "2026-04-09T09:37:20.083Z",
+  "total": 13,
+  "parsed": 13,
   "programs": [
     {
-      "name": "NH Medication Bridge Program",
+      "name": "New Hampshire Medicaid (Nursing Home Medicaid for seniors)",
       "eligibility": {
-        "age": null,
-        "income_limits": "Household income generally must be less than 200% of the federal poverty level, though limits vary by pharmaceutical company. No specific dollar amounts or household size table provided in sources; monthly household income guidelines differ per company.[1][3]",
-        "asset_limits": "No asset limits mentioned.",
+        "age": 65,
+        "income_limits": "For a single applicant in 2026, income must be under $2,982/month (almost all income counts, including Social Security, pensions, wages; most income goes to patient liability after $90-$93 personal needs allowance and Medicare premiums). Income cannot exceed the Medicaid reimbursement rate for the specific nursing facility (typically over $5,500/month, so rarely an issue). For married couples, community spouse income not counted; applicant entitled to certain deductions (e.g., alimony, debts). No full household size table provided in sources, but couples have higher asset considerations.[2][3][5][7]",
+        "asset_limits": "Single applicant: $2,500 countable assets (some sources note $7,500 with asset disregard or allowance; excess must be spent down). Married (one applying): Community spouse can retain up to $157,920 (depending on circumstances); all assets counted jointly regardless of ownership. Countable: Cash, bank accounts, stocks, non-exempt property (must liquidate). Exempt: Primary home (under conditions), one vehicle, personal belongings, burial plots, life insurance (limited face value), IRA/pensions in payout. 5-year look-back for transfers/gifts with penalties.[2][3][4][6][7][8]",
         "other_requirements": [
-          "U.S. resident or citizen.[1][2]",
-          "Not eligible for other prescription coverage for the specific medication, including Medicaid, VA, private insurance, HMO, etc.[1][2][3]",
-          "Long-term medications only (not short-term).[1][3]",
-          "Often requires a provider from the participating health center (e.g., Monadnock Community Hospital or White Mountain Community Health Center).[2][4]"
+          "New Hampshire resident",
+          "U.S. citizen or qualified immigrant",
+          "Nursing Facility Level of Care (NFLOC): Need full-time nursing home care based on ADLs (bathing, dressing, eating, etc.), IADLs, cognitive/behavioral issues; assessed by state",
+          "Care needed for 30 consecutive days"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Assistance accessing free or reduced-cost prescriptions from pharmaceutical company patient assistance programs. Some implementations charge $6 per 90-day supply upon eligibility approval.[4]",
+        "value": "Coverage for nursing home care including room and board, 24-hour skilled nursing care, medical supplies/equipment, rehabilitation services, personal care assistance, medication management. Beneficiaries contribute most income (patient liability) toward costs, keeping $90-$93/month personal needs allowance + Medicare premiums.",
+        "varies_by": "fixed"
+      },
+      "application": {
+        "methods": [
+          "Online: New Hampshire Department of Health and Human Services ACCESS portal (dhhs.nh.gov specific application page not detailed; general Medicaid application via ACCESS)",
+          "Phone: Contact local District Office or central line (specific numbers not in results; call 211 or local DHHS office)",
+          "Mail/In-person: Local DHHS District Offices (locations vary by region)"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": null,
+        "forms": [
+          "Medicaid Application via ACCESS system (no specific form number listed)"
+        ],
+        "documents": [
+          "Proof of income (Social Security statements, pension, bank statements)",
+          "Proof of assets (bank/investment statements, property deeds)",
+          "Proof of residency, citizenship/immigration status",
+          "Medical records or doctor's note for NFLOC assessment",
+          "Spousal financial info if married",
+          "Proof of expenses/deductions (debts, alimony)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Income eligibility tied to specific nursing facility's Medicaid reimbursement rate (varies by facility); processing/offices via regional DHHS District Offices; potential wait time differences not detailed.",
+        "offices_or_providers": [
+          "Local DHHS District Offices; nursing homes statewide that accept Medicaid"
+        ]
+      },
+      "official_source": "https://www.dhhs.nh.gov/programs-services/medicaid (inferred primary; specifics from search results point to DHHS ACCESS)",
+      "gotchas": [
+        "Asset confusion: Official limit $2,500 but $7,500 allowance/disregard often applies; must spend down excess properly (no gifting due to 5-year look-back/penalties)",
+        "Patient liability: Most income goes to care costs post-allowance; not full income retention",
+        "Married couples: All joint assets counted; community spouse protections exist but complex",
+        "NFLOC required: Functional assessment mandatory, not automatic at 65",
+        "Facility-specific income cap: Rare but ties to nursing home's rate",
+        "No full household income/asset tables; single/couple focus"
+      ],
+      "data_shape_notes": "Income capped by facility reimbursement rate (not fixed SSI level); asset limit varies in reporting ($2,500 vs $7,500 allowance); spousal asset protections up to $157,920; statewide but regional DHHS offices and facility rate variations",
+      "_raw": "{\n  \"name\": \"New Hampshire Medicaid (Nursing Home Medicaid for seniors)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"For a single applicant in 2026, income must be under $2,982/month (almost all income counts, including Social Security, pensions, wages; most income goes to patient liability after $90-$93 personal needs allowance and Medicare premiums). Income cannot exceed the Medicaid reimbursement rate for the specific nursing facility (typically over $5,500/month, so rarely an issue). For married couples, community spouse income not counted; applicant entitled to certain deductions (e.g., alimony, debts). No full household size table provided in sources, but couples have higher asset considerations.[2][3][5][7]\",\n    \"asset_limits\": \"Single applicant: $2,500 countable assets (some sources note $7,500 with asset disregard or allowance; excess must be spent down). Married (one applying): Community spouse can retain up to $157,920 (depending on circumstances); all assets counted jointly regardless of ownership. Countable: Cash, bank accounts, stocks, non-exempt property (must liquidate). Exempt: Primary home (under conditions), one vehicle, personal belongings, burial plots, life insurance (limited face value), IRA/pensions in payout. 5-year look-back for transfers/gifts with penalties.[2][3][4][6][7][8]\",\n    \"other_requirements\": [\n      \"New Hampshire resident\",\n      \"U.S. citizen or qualified immigrant\",\n      \"Nursing Facility Level of Care (NFLOC): Need full-time nursing home care based on ADLs (bathing, dressing, eating, etc.), IADLs, cognitive/behavioral issues; assessed by state\",\n      \"Care needed for 30 consecutive days\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Coverage for nursing home care including room and board, 24-hour skilled nursing care, medical supplies/equipment, rehabilitation services, personal care assistance, medication management. Beneficiaries contribute most income (patient liability) toward costs, keeping $90-$93/month personal needs allowance + Medicare premiums.\",\n    \"varies_by\": \"fixed\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: New Hampshire Department of Health and Human Services ACCESS portal (dhhs.nh.gov specific application page not detailed; general Medicaid application via ACCESS)\",\n      \"Phone: Contact local District Office or central line (specific numbers not in results; call 211 or local DHHS office)\",\n      \"Mail/In-person: Local DHHS District Offices (locations vary by region)\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [\"Medicaid Application via ACCESS system (no specific form number listed)\"],\n    \"documents\": [\n      \"Proof of income (Social Security statements, pension, bank statements)\",\n      \"Proof of assets (bank/investment statements, property deeds)\",\n      \"Proof of residency, citizenship/immigration status\",\n      \"Medical records or doctor's note for NFLOC assessment\",\n      \"Spousal financial info if married\",\n      \"Proof of expenses/deductions (debts, alimony)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Income eligibility tied to specific nursing facility's Medicaid reimbursement rate (varies by facility); processing/offices via regional DHHS District Offices; potential wait time differences not detailed.\",\n    \"offices_or_providers\": [\"Local DHHS District Offices; nursing homes statewide that accept Medicaid\"]\n  },\n  \"official_source\": \"https://www.dhhs.nh.gov/programs-services/medicaid (inferred primary; specifics from search results point to DHHS ACCESS)\",\n  \"gotchas\": [\n    \"Asset confusion: Official limit $2,500 but $7,500 allowance/disregard often applies; must spend down excess properly (no gifting due to 5-year look-back/penalties)\",\n    \"Patient liability: Most income goes to care costs post-allowance; not full income retention\",\n    \"Married couples: All joint assets counted; community spouse protections exist but complex\",\n    \"NFLOC required: Functional assessment mandatory, not automatic at 65\",\n    \"Facility-specific income cap: Rare but ties to nursing home's rate\",\n    \"No full household income/asset tables; single/couple focus\"\n  ],\n  \"data_shape_notes\": \"Income capped by facility reimbursement rate (not fixed SSI level); asset limit varies in reporting ($2,500 vs $7,500 allowance); spousal asset protections up to $157,920; statewide but regional DHHS offices and facility rate variations\"\n}"
+    },
+    {
+      "name": "Choices for Independence (CFI) Waiver",
+      "eligibility": {
+        "age": "65+ or 18-64 and disabled (can continue services after turning 65 if previously eligible)[1]",
+        "income_limits": "Individual: $2,901/month (300% of 2025 Federal Benefit Rate). Married couple both applying: $5,802/month. One spouse applying: $2,901/month (non-applicant spouse income disregarded)[1]",
+        "asset_limits": "Home equity limit: $730,000 (2025) if applicant lives in home or intends to return. Exemptions: home if spouse, child under 21, or disabled/blind child of any age lives there. Other assets follow standard Medicaid rules (not detailed in sources)[1]",
+        "other_requirements": [
+          "New Hampshire resident[1]",
+          "Nursing Facility Level of Care (NFLOC) determined by registered nurse using Medical Eligibility Assessment (MEA) based on limitations in Activities of Daily Living (ADLs: bathing, dressing, eating, toileting, transferring, continence)[1]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Wide range of home and community-based services to enable remaining at home (specific services not enumerated in sources; includes case management to identify goals and develop comprehensive care plan)[3][5]",
         "varies_by": "priority_tier"
       },
       "application": {
         "methods": [
-          "Phone: (603) 225-0900[1][3]",
-          "Contact financial services at local health centers (e.g., Monadnock Community Hospital, White Mountain Community Health Center).[2][4]",
-          "Mail or in-person: Submit application and proof of income to participating health centers.[4]",
-          "No statewide online application; varies by provider."
+          "Contact NH Department of Health and Human Services (DHHS) or case management agency (e.g., Community Partners: (603) 516-9300, 25 Old Dover Road, Rochester, NH 03867)[3]",
+          "No specific online URL, form name, mail address, or in-person offices listed in sources; eligibility determined by DHHS after financial and medical criteria met[3]"
         ],
-        "processing_time": "4-6 weeks for first medication shipment.[4]",
-        "waitlist": null,
+        "processing_time": "Not specified in sources",
+        "waitlist": "Not specified in sources",
         "forms": [
-          "Medication Bridge Program application (specific forms at health centers like MedBridge Application at White Mountain Community Health Center).[4]",
-          "New Patient Application and Information Release Consent Form (at some centers).[4]"
+          "Medical Eligibility Assessment (MEA) instrument for functional need[1]"
         ],
         "documents": [
-          "Proof of income: most recent tax return (first 2 pages), current paystubs (last 4 weeks), unemployment benefits statement, child support/alimony, Social Security award letter, VA benefit statement, or other as advised.[4]",
-          "Proof required yearly.[4]"
+          "Proof of income, assets/home equity, residency, disability (if under 65), medical/functional need evidence for NFLOC assessment (not explicitly listed; inferred from criteria)[1]"
         ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "No county restrictions, but access through participating health centers.",
-        "regional_variations": "Implemented by local health centers (e.g., Monadnock Community Hospital, White Mountain Community Health Center); processing and providers differ by location. No longer centrally managed by Foundation for Healthy Communities as of 2021—contact local financial services.[2][4][6]",
+        "restrictions": "None; New Hampshire residents[1]",
+        "regional_variations": "Case management agencies assigned statewide (e.g., Community Partners in Rochester area); potential provider differences but program uniform[3]",
         "offices_or_providers": [
-          "Monadnock Community Hospital Financial Services.[2]",
-          "White Mountain Community Health Center.[4]",
-          "Other local health care systems' financial departments.[6]"
+          "Community Partners, 25 Old Dover Road, Rochester, NH 03867 (example)[3]"
         ]
       },
-      "official_source": "No single active .gov URL; program facilitated statewide via health centers. Historical info at https://healthynh.org/initiatives/access-to-care/medication-bridge/ (noted as no longer managed centrally as of 2021).[6]",
+      "official_source": "https://www.dhhs.nh.gov (inferred from program admin; see also Medicaid.gov waiver: https://www.medicaid.gov/medicaid/section-1115-demo/demonstration-and-waiver-list/82541)[2]",
       "gotchas": [
-        "Not a direct state program—it's assistance navigating pharma company programs; eligibility varies per drug/manufacturer.[1][3][6]",
-        "Program no longer centrally managed by Foundation for Healthy Communities since 2021; must contact local health center financial services.[6]",
-        "Excludes those with any other coverage for the specific med, even if low-income.[1][2]",
-        "Only long-term meds; requires participating provider at some centers.[1][2][3]",
-        "Proof of income needed yearly; financial info not shared with medical chart but used only for applications.[4]"
+        "Income limit is 300% FBR ($2,901 individual for 2025); exceeds standard Medicaid but spousal rules apply[1]",
+        "Must meet NFLOC via MEA assessment, not just age/disability[1]",
+        "Home equity limit $730,000 with specific exemptions; intent to return required[1]",
+        "Assigned case management agency post-eligibility; can request specific one[3]",
+        "Limited 2022-2027; rules in He-E 801[2][4]"
       ],
-      "data_shape_notes": "Decentralized service via local health centers, not a uniform state program; eligibility and income tied to individual pharma companies; no fixed age/income table, varies by med and provider.",
-      "_raw": "{\n  \"name\": \"NH Medication Bridge Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Household income generally must be less than 200% of the federal poverty level, though limits vary by pharmaceutical company. No specific dollar amounts or household size table provided in sources; monthly household income guidelines differ per company.[1][3]\",\n    \"asset_limits\": \"No asset limits mentioned.\",\n    \"other_requirements\": [\n      \"U.S. resident or citizen.[1][2]\",\n      \"Not eligible for other prescription coverage for the specific medication, including Medicaid, VA, private insurance, HMO, etc.[1][2][3]\",\n      \"Long-term medications only (not short-term).[1][3]\",\n      \"Often requires a provider from the participating health center (e.g., Monadnock Community Hospital or White Mountain Community Health Center).[2][4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Assistance accessing free or reduced-cost prescriptions from pharmaceutical company patient assistance programs. Some implementations charge $6 per 90-day supply upon eligibility approval.[4]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: (603) 225-0900[1][3]\",\n      \"Contact financial services at local health centers (e.g., Monadnock Community Hospital, White Mountain Community Health Center).[2][4]\",\n      \"Mail or in-person: Submit application and proof of income to participating health centers.[4]\",\n      \"No statewide online application; varies by provider.\"\n    ],\n    \"processing_time\": \"4-6 weeks for first medication shipment.[4]\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"Medication Bridge Program application (specific forms at health centers like MedBridge Application at White Mountain Community Health Center).[4]\",\n      \"New Patient Application and Information Release Consent Form (at some centers).[4]\"\n    ],\n    \"documents\": [\n      \"Proof of income: most recent tax return (first 2 pages), current paystubs (last 4 weeks), unemployment benefits statement, child support/alimony, Social Security award letter, VA benefit statement, or other as advised.[4]\",\n      \"Proof required yearly.[4]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"No county restrictions, but access through participating health centers.\",\n    \"regional_variations\": \"Implemented by local health centers (e.g., Monadnock Community Hospital, White Mountain Community Health Center); processing and providers differ by location. No longer centrally managed by Foundation for Healthy Communities as of 2021—contact local financial services.[2][4][6]\",\n    \"offices_or_providers\": [\n      \"Monadnock Community Hospital Financial Services.[2]\",\n      \"White Mountain Community Health Center.[4]\",\n      \"Other local health care systems' financial departments.[6]\"\n    ]\n  },\n  \"official_source\": \"No single active .gov URL; program facilitated statewide via health centers. Historical info at https://healthynh.org/initiatives/access-to-care/medication-bridge/ (noted as no longer managed centrally as of 2021).[6]\",\n  \"gotchas\": [\n    \"Not a direct state program—it's assistance navigating pharma company programs; eligibility varies per drug/manufacturer.[1][3][6]\",\n    \"Program no longer centrally managed by Foundation for Healthy Communities since 2021; must contact local health center financial services.[6]\",\n    \"Excludes those with any other coverage for the specific med, even if low-income.[1][2]\",\n    \"Only long-term meds; requires participating provider at some centers.[1][2][3]\",\n    \"Proof of income needed yearly; financial info not shared with medical chart but used only for applications.[4]\"\n  ],\n  \"data_shape_notes\": \"Decentralized service via local health centers, not a uniform state program; eligibility and income tied to individual pharma companies; no fixed age/income table, varies by med and provider.\"\n}"
+      "data_shape_notes": "Financial eligibility uses 300% FBR (higher than standard Medicaid); services via assigned case managers with comprehensive care plan; statewide but provider-based delivery; NFLOC via nurse MEA tool[1][3][4]",
+      "_raw": "{\n  \"name\": \"Choices for Independence (CFI) Waiver\",\n  \"eligibility\": {\n    \"age\": \"65+ or 18-64 and disabled (can continue services after turning 65 if previously eligible)[1]\",\n    \"income_limits\": \"Individual: $2,901/month (300% of 2025 Federal Benefit Rate). Married couple both applying: $5,802/month. One spouse applying: $2,901/month (non-applicant spouse income disregarded)[1]\",\n    \"asset_limits\": \"Home equity limit: $730,000 (2025) if applicant lives in home or intends to return. Exemptions: home if spouse, child under 21, or disabled/blind child of any age lives there. Other assets follow standard Medicaid rules (not detailed in sources)[1]\",\n    \"other_requirements\": [\n      \"New Hampshire resident[1]\",\n      \"Nursing Facility Level of Care (NFLOC) determined by registered nurse using Medical Eligibility Assessment (MEA) based on limitations in Activities of Daily Living (ADLs: bathing, dressing, eating, toileting, transferring, continence)[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Wide range of home and community-based services to enable remaining at home (specific services not enumerated in sources; includes case management to identify goals and develop comprehensive care plan)[3][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact NH Department of Health and Human Services (DHHS) or case management agency (e.g., Community Partners: (603) 516-9300, 25 Old Dover Road, Rochester, NH 03867)[3]\",\n      \"No specific online URL, form name, mail address, or in-person offices listed in sources; eligibility determined by DHHS after financial and medical criteria met[3]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Not specified in sources\",\n    \"forms\": [\"Medical Eligibility Assessment (MEA) instrument for functional need[1]\"],\n    \"documents\": [\"Proof of income, assets/home equity, residency, disability (if under 65), medical/functional need evidence for NFLOC assessment (not explicitly listed; inferred from criteria)[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; New Hampshire residents[1]\",\n    \"regional_variations\": \"Case management agencies assigned statewide (e.g., Community Partners in Rochester area); potential provider differences but program uniform[3]\",\n    \"offices_or_providers\": [\"Community Partners, 25 Old Dover Road, Rochester, NH 03867 (example)[3]\"]\n  },\n  \"official_source\": \"https://www.dhhs.nh.gov (inferred from program admin; see also Medicaid.gov waiver: https://www.medicaid.gov/medicaid/section-1115-demo/demonstration-and-waiver-list/82541)[2]\",\n  \"gotchas\": [\n    \"Income limit is 300% FBR ($2,901 individual for 2025); exceeds standard Medicaid but spousal rules apply[1]\",\n    \"Must meet NFLOC via MEA assessment, not just age/disability[1]\",\n    \"Home equity limit $730,000 with specific exemptions; intent to return required[1]\",\n    \"Assigned case management agency post-eligibility; can request specific one[3]\",\n    \"Limited 2022-2027; rules in He-E 801[2][4]\"\n  ],\n  \"data_shape_notes\": \"Financial eligibility uses 300% FBR (higher than standard Medicaid); services via assigned case managers with comprehensive care plan; statewide but provider-based delivery; NFLOC via nurse MEA tool[1][3][4]\"\n}"
     },
     {
-      "name": "New Hampshire Partnership for Prescription",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "eligibility": {
-        "age": null,
-        "income_limits": "No income limits; open to all New Hampshire residents regardless of income or household size[1][2].",
-        "asset_limits": "No asset limits or tests apply[1][2].",
+        "age": 55,
+        "income_limits": "No specific dollar amounts or household size table provided in sources; eligibility tied to state Medicaid financial criteria and nursing facility level of care (NFLOC) certification, with most participants dually eligible for Medicare and Medicaid[2][4][5][6]",
+        "asset_limits": "Not specified in sources; financial criteria referenced generally under state Medicaid rules[5]",
         "other_requirements": [
-          "New Hampshire resident only[1][2]",
-          "No enrollment or application required[1][2]",
-          "No pre-existing condition exclusions[2]"
+          "Live in the service area of a PACE organization (in NH, Neighborhood Healthcare PACE contracted areas)[1][4][6]",
+          "Meet New Hampshire's definition of Nursing Facility Level of Care (NFLOC)[4][6]",
+          "Able to live safely in the community (home, assisted living, or similar) with PACE services[2][4][6]"
         ]
       },
       "benefits": {
-        "type": "financial",
-        "value": "Discount card providing up to 80% off brand and generic FDA-approved prescription medications at participating pharmacies; savings vary by pharmacy and medication[2].",
+        "type": "service",
+        "value": "Comprehensive medical and social services including: primary care, specialists (podiatrist, dentist, optometrist, audiologist), in-home nursing assessments and care, adult day center social support, transportation, physical/speech/rehabilitation therapy, social work support for paperwork/life challenges; also covers prescriptions, durable medical equipment, nutritional counseling, caregiver support, 24/7 emergency access; nursing home stays if needed but 95% live in community[1][2][4][5]",
         "varies_by": "not_applicable"
       },
       "application": {
         "methods": [
-          "No application needed; obtain free discount card instantly online at https://nhrxcard.com or by phone at (800) 931-5042[1][2]",
-          "Print or download card and present at over 68,000 pharmacies including major chains[2]"
+          "Contact Neighborhood Healthcare PACE via their website at https://www.nhpace.org[1]",
+          "No specific phone number, mail address, or in-person details listed; general inquiry through provider recommended[1]"
         ],
-        "processing_time": "Immediate; card is pre-activated with no waiting period[2].",
-        "waitlist": null,
-        "forms": [
-          "No forms required[1][2]"
-        ],
-        "documents": [
-          "No personal information or documents needed; card is confidential[2]"
-        ]
+        "processing_time": "Not specified in sources",
+        "waitlist": "Not specified in sources",
+        "forms": [],
+        "documents": "Not specified in sources; prepare proof of age, residency in service area, medical records for NFLOC assessment, Medicaid/Medicare info if applicable"
       },
       "geography": {
-        "statewide": true,
-        "restrictions": "New Hampshire residents only[1][2]",
-        "regional_variations": null,
+        "statewide": false,
+        "restrictions": "Limited to service area of Neighborhood Healthcare PACE provider (specific contracted areas in NH, not statewide)[1][7]",
+        "regional_variations": "Operated by Neighborhood Healthcare with 3 PACE centers in NH; potential differences in wait times or access by location within contracted area[1][7]",
         "offices_or_providers": [
-          "Accepted at pharmacies statewide and nationwide (over 68,000 locations)[2]"
+          "Neighborhood Healthcare PACE (3 centers in NH, exact locations searchable via https://www.npaonline.org/find-a-pace-program or provider site)[1][7][8]"
         ]
       },
-      "official_source": "https://nhrxcard.com/about",
+      "official_source": "https://www.nhpace.org (NH provider); https://www.cms.gov/medicare/medicaid-coordination/about/pace (federal overview)",
       "gotchas": [
-        "Not insurance; use for non-covered prescriptions or when cheaper than copay—check with pharmacist[2]",
-        "Savings vary by pharmacy and medication; not guaranteed 80% off[2]",
-        "Can be used alongside insurance for better savings on specific drugs[2]",
-        "No coverage for over-the-counter drugs[2]"
+        "Not available statewide in NH—must live in Neighborhood Healthcare PACE service area[1][7]",
+        "Requires nursing home level of care certification, even if living at home or assisted living[4][6]",
+        "Most participants dual-eligible (Medicare/Medicaid), but not strictly required—financial criteria apply via state Medicaid[2][4][5]",
+        "Limited to specific provider (Neighborhood Healthcare); use NPA finder for confirmation[8]"
       ],
-      "data_shape_notes": "no income test, no age requirement, no application or enrollment, instant access via free discount card, pharmacy-specific pricing",
-      "_raw": "{\n  \"name\": \"New Hampshire Partnership for Prescription\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; open to all New Hampshire residents regardless of income or household size[1][2].\",\n    \"asset_limits\": \"No asset limits or tests apply[1][2].\",\n    \"other_requirements\": [\"New Hampshire resident only[1][2]\", \"No enrollment or application required[1][2]\", \"No pre-existing condition exclusions[2]\"]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Discount card providing up to 80% off brand and generic FDA-approved prescription medications at participating pharmacies; savings vary by pharmacy and medication[2].\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"No application needed; obtain free discount card instantly online at https://nhrxcard.com or by phone at (800) 931-5042[1][2]\", \"Print or download card and present at over 68,000 pharmacies including major chains[2]\"],\n    \"processing_time\": \"Immediate; card is pre-activated with no waiting period[2].\",\n    \"waitlist\": null,\n    \"forms\": [\"No forms required[1][2]\"],\n    \"documents\": [\"No personal information or documents needed; card is confidential[2]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"New Hampshire residents only[1][2]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\"Accepted at pharmacies statewide and nationwide (over 68,000 locations)[2]\"]\n  },\n  \"official_source\": \"https://nhrxcard.com/about\",\n  \"gotchas\": [\"Not insurance; use for non-covered prescriptions or when cheaper than copay—check with pharmacist[2]\", \"Savings vary by pharmacy and medication; not guaranteed 80% off[2]\", \"Can be used alongside insurance for better savings on specific drugs[2]\", \"No coverage for over-the-counter drugs[2]\"],\n  \"data_shape_notes\": \"no income test, no age requirement, no application or enrollment, instant access via free discount card, pharmacy-specific pricing\"\n}"
+      "data_shape_notes": "Only available through Neighborhood Healthcare at 3 centers in contracted NH areas; no income/asset dollar specifics or statewide coverage; eligibility hinges on NFLOC and service area residency",
+      "_raw": "{\n  \"name\": \"Program of All-Inclusive Care for the Elderly (PACE)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No specific dollar amounts or household size table provided in sources; eligibility tied to state Medicaid financial criteria and nursing facility level of care (NFLOC) certification, with most participants dually eligible for Medicare and Medicaid[2][4][5][6]\",\n    \"asset_limits\": \"Not specified in sources; financial criteria referenced generally under state Medicaid rules[5]\",\n    \"other_requirements\": [\n      \"Live in the service area of a PACE organization (in NH, Neighborhood Healthcare PACE contracted areas)[1][4][6]\",\n      \"Meet New Hampshire's definition of Nursing Facility Level of Care (NFLOC)[4][6]\",\n      \"Able to live safely in the community (home, assisted living, or similar) with PACE services[2][4][6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive medical and social services including: primary care, specialists (podiatrist, dentist, optometrist, audiologist), in-home nursing assessments and care, adult day center social support, transportation, physical/speech/rehabilitation therapy, social work support for paperwork/life challenges; also covers prescriptions, durable medical equipment, nutritional counseling, caregiver support, 24/7 emergency access; nursing home stays if needed but 95% live in community[1][2][4][5]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact Neighborhood Healthcare PACE via their website at https://www.nhpace.org[1]\",\n      \"No specific phone number, mail address, or in-person details listed; general inquiry through provider recommended[1]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Not specified in sources\",\n    \"forms\": [],\n    \"documents\": \"Not specified in sources; prepare proof of age, residency in service area, medical records for NFLOC assessment, Medicaid/Medicare info if applicable\"\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to service area of Neighborhood Healthcare PACE provider (specific contracted areas in NH, not statewide)[1][7]\",\n    \"regional_variations\": \"Operated by Neighborhood Healthcare with 3 PACE centers in NH; potential differences in wait times or access by location within contracted area[1][7]\",\n    \"offices_or_providers\": [\n      \"Neighborhood Healthcare PACE (3 centers in NH, exact locations searchable via https://www.npaonline.org/find-a-pace-program or provider site)[1][7][8]\"\n    ]\n  },\n  \"official_source\": \"https://www.nhpace.org (NH provider); https://www.cms.gov/medicare/medicaid-coordination/about/pace (federal overview)\",\n  \"gotchas\": [\n    \"Not available statewide in NH—must live in Neighborhood Healthcare PACE service area[1][7]\",\n    \"Requires nursing home level of care certification, even if living at home or assisted living[4][6]\",\n    \"Most participants dual-eligible (Medicare/Medicaid), but not strictly required—financial criteria apply via state Medicaid[2][4][5]\",\n    \"Limited to specific provider (Neighborhood Healthcare); use NPA finder for confirmation[8]\"\n  ],\n  \"data_shape_notes\": \"Only available through Neighborhood Healthcare at 3 centers in contracted NH areas; no income/asset dollar specifics or statewide coverage; eligibility hinges on NFLOC and service area residency\"\n}"
     },
     {
-      "name": "NH Medicaid Waiver Programs (Multiple Programs)",
-      "eligibility": {
-        "age": "Varies by program: 65+ or 18-64 (CFI); 0-21 (DD, IHS); 0-18 (ABD)",
-        "income_limits": "For nursing home Medicaid applicants: under $2,982/month for single applicants[1]. For Granite Advantage (adult waiver program): adults age 19-64 with incomes at or below 138% of Federal Poverty Level[2]. Income-based eligibility varies by specific waiver program.",
-        "asset_limits": "For nursing home Medicaid: under $2,500 for single applicants[1]. Asset treatment varies by specific waiver program.",
-        "other_requirements": [
-          "Require Nursing Facility Level of Care (NFLOC) for most waivers[1]",
-          "Functional need for long-term care services with Activities of Daily Living (ADLs) support[1]",
-          "For DD and IHS waivers: ICF/IID level of care requirement[5]",
-          "For children's waivers: disability (medical, developmental, intellectual, or psychiatric) that would otherwise require institutional care[6]",
-          "Work/community engagement requirement: 100 hours per month for Granite Advantage enrollees ages 19-64 (with exemptions for illness, disability, hospitalization, caregiving, or participation in drug court)[2]"
-        ]
-      },
-      "benefits": {
-        "type": "service",
-        "value": "CFI Waiver: adult day services, home health aide, homemaker, personal care, respite, supported employment, financial management, adult family care, in-home services, community transition, environmental accessibility, home-delivered meals, non-medical transportation, personal emergency response, skilled nursing, specialized medical equipment, supportive housing[5]. DD Waiver and IHS Waiver: residential habilitation, service coordination, assistive technology, community integration, environmental/vehicle modifications, individual goods/services, non-medical transportation, personal emergency response, respite, wellness coaching[5][6]",
-        "varies_by": "program (four distinct waiver programs with different service arrays)"
-      },
-      "application": {
-        "methods": [
-          "Online: HealthCare.gov[4]",
-          "Phone: 1-800-852-3345, extension 9700[4]",
-          "Paper application: through New Hampshire Department of Health and Human Services[4]",
-          "In-person: through area agencies (regional locations vary)[3]"
-        ],
-        "processing_time": "Not specified in available sources",
-        "waitlist": "Not specified in available sources; note that DD Waiver has 5,303 spots with expiration 8/31/2026[6]",
-        "forms": "Not specified in available sources",
-        "documents": "Not specified in available sources"
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "Programs administered by area agencies located in various regions throughout the state[3]",
-        "regional_variations": "Area agencies are region-specific; families must identify their area agency through NH DHHS website[3]",
-        "offices_or_providers": "Four Medicaid waiver programs administered through area agencies; specific locations available at https://www.dhhs.nh.gov/programs-services/disability-care/area-agencies[3]"
-      },
-      "official_source": "https://www.dhhs.nh.gov/programs-services",
-      "gotchas": [
-        "New Hampshire has FOUR separate waiver programs (CFI, DD, ABD, IHS), not one unified program—eligibility and services differ significantly by program[3][5]",
-        "Spousal income treatment: if only one spouse applies, the non-applicant spouse's income is disregarded, but they may receive a Minimum Monthly Maintenance Needs Allowance (MMMNA) of $2,644/month (eff. 7/1/25-6/30/26) if their income falls below this threshold[1]",
-        "Work requirement applies to Granite Advantage enrollees ages 19-64 (100 hours/month community engagement required), with specific exemptions for disability, illness, hospitalization, caregiving, and drug court participation[2]",
-        "Retroactive eligibility waived: unlike traditional Medicaid, New Hampshire's waiver program does not provide three months of retroactive coverage[2]",
-        "Functional/medical need is mandatory—income and assets alone do not qualify applicants[1]",
-        "DD Waiver has limited spots (5,303) and expires 8/31/2026; IHS Waiver expires 12/31/2025—renewal status should be verified[6]"
-      ],
-      "data_shape_notes": "New Hampshire's 'Medicaid Waiver' is not a single program but a portfolio of four distinct 1915(c) waivers (CFI, DD, ABD, IHS) with different age ranges, functional requirements, service arrays, and spot limitations. Eligibility criteria, income limits, and benefits vary significantly by waiver type. The search results do not provide complete information on processing times, specific application forms, required documents, or detailed regional variations in wait times. Families must first determine which waiver program applies to their situation before applying.",
-      "_raw": "```json\n{\n  \"name\": \"NH Medicaid Waiver Programs (Multiple Programs)\",\n  \"eligibility\": {\n    \"age\": \"Varies by program: 65+ or 18-64 (CFI); 0-21 (DD, IHS); 0-18 (ABD)\",\n    \"income_limits\": \"For nursing home Medicaid applicants: under $2,982/month for single applicants[1]. For Granite Advantage (adult waiver program): adults age 19-64 with incomes at or below 138% of Federal Poverty Level[2]. Income-based eligibility varies by specific waiver program.\",\n    \"asset_limits\": \"For nursing home Medicaid: under $2,500 for single applicants[1]. Asset treatment varies by specific waiver program.\",\n    \"other_requirements\": [\n      \"Require Nursing Facility Level of Care (NFLOC) for most waivers[1]\",\n      \"Functional need for long-term care services with Activities of Daily Living (ADLs) support[1]\",\n      \"For DD and IHS waivers: ICF/IID level of care requirement[5]\",\n      \"For children's waivers: disability (medical, developmental, intellectual, or psychiatric) that would otherwise require institutional care[6]\",\n      \"Work/community engagement requirement: 100 hours per month for Granite Advantage enrollees ages 19-64 (with exemptions for illness, disability, hospitalization, caregiving, or participation in drug court)[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"CFI Waiver: adult day services, home health aide, homemaker, personal care, respite, supported employment, financial management, adult family care, in-home services, community transition, environmental accessibility, home-delivered meals, non-medical transportation, personal emergency response, skilled nursing, specialized medical equipment, supportive housing[5]. DD Waiver and IHS Waiver: residential habilitation, service coordination, assistive technology, community integration, environmental/vehicle modifications, individual goods/services, non-medical transportation, personal emergency response, respite, wellness coaching[5][6]\",\n    \"varies_by\": \"program (four distinct waiver programs with different service arrays)\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: HealthCare.gov[4]\",\n      \"Phone: 1-800-852-3345, extension 9700[4]\",\n      \"Paper application: through New Hampshire Department of Health and Human Services[4]\",\n      \"In-person: through area agencies (regional locations vary)[3]\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not specified in available sources; note that DD Waiver has 5,303 spots with expiration 8/31/2026[6]\",\n    \"forms\": \"Not specified in available sources\",\n    \"documents\": \"Not specified in available sources\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Programs administered by area agencies located in various regions throughout the state[3]\",\n    \"regional_variations\": \"Area agencies are region-specific; families must identify their area agency through NH DHHS website[3]\",\n    \"offices_or_providers\": \"Four Medicaid waiver programs administered through area agencies; specific locations available at https://www.dhhs.nh.gov/programs-services/disability-care/area-agencies[3]\"\n  },\n  \"official_source\": \"https://www.dhhs.nh.gov/programs-services\",\n  \"gotchas\": [\n    \"New Hampshire has FOUR separate waiver programs (CFI, DD, ABD, IHS), not one unified program—eligibility and services differ significantly by program[3][5]\",\n    \"Spousal income treatment: if only one spouse applies, the non-applicant spouse's income is disregarded, but they may receive a Minimum Monthly Maintenance Needs Allowance (MMMNA) of $2,644/month (eff. 7/1/25-6/30/26) if their income falls below this threshold[1]\",\n    \"Work requirement applies to Granite Advantage enrollees ages 19-64 (100 hours/month community engagement required), with specific exemptions for disability, illness, hospitalization, caregiving, and drug court participation[2]\",\n    \"Retroactive eligibility waived: unlike traditional Medicaid, New Hampshire's waiver program does not provide three months of retroactive coverage[2]\",\n    \"Functional/medical need is mandatory—income and assets alone do not qualify applicants[1]\",\n    \"DD Waiver has limited spots (5,303) and expires 8/31/2026; IHS Waiver expires 12/31/2025—renewal status should be verified[6]\"\n  ],\n  \"data_shape_notes\": \"New Hampshire's 'Medicaid Waiver' is not a single program but a portfolio of four distinct 1915(c) waivers (CFI, DD, ABD, IHS) with different age ranges, functional requirements, service arrays, and spot limitations. Eligibility criteria, income limits, and benefits vary significantly by waiver type. The search results do not provide complete information on processing times, specific application forms, required documents, or detailed regional variations in wait times. Families must first determine which waiver program applies to their situation before applying.\"\n}\n```\n\n---\n\n## Critical Gaps in Available Information\n\nThe search results provide foundational eligibility and service information but **lack several details essential for a comprehensive family guide**:\n\n**Missing Data:**\n- **Processing timelines**: No specific information on how long applications take to process[1][2][3][4][5][6]\n- **Waitlist details**: Limited information; only DD Waiver spot count (5,303) is provided[6]\n- **Application forms**: Specific form names/numbers not identified in sources[1][2][3][4][5][6]\n- **Required documents**: No checklist of what families must submit[1][2][3][4][5][6]\n- **Regional wait time variation**: No data on whether processing times differ by area agency[1][2][3][4][5][6]\n- **Spousal asset treatment**: Asset limits for couples not specified[1]\n- **Service dollar caps or hour limits**: No maximum benefit amounts stated for any waiver[5][6]\n\n**Recommendation**: Contact the NH Department of Health and Human Services directly at 1-800-852-3345, extension 9700[4] or visit https://www.dhhs.nh.gov/programs-services to obtain current processing times, waitlist status, required documentation, and area agency contact information for your region[3]."
-    },
-    {
-      "name": "REAP (Respite, Education, and Assistance Program)",
+      "name": "Medicare Savings Program (MSP) - QMB, SLMB, QI",
       "eligibility": {
         "age": null,
-        "income_limits": "No income limits specified in available sources; eligibility based on business/agricultural operations rather than personal income.",
-        "asset_limits": "No asset limits; applicants must have no outstanding delinquent federal taxes, debt, judgment, or debarment.",
+        "income_limits": "New Hampshire-specific monthly income limits (effective as of latest available data, with $13 unearned income disregard): QMB: $1,235 single / $1,663 married; SLMB: $1,478 single / $1,992 married (from QMB levels up to this); QI (SLMB-135): $1,660 single / $2,239 married (from SLMB levels up). Limits based on Federal Poverty Level, updated annually around April 1; states may adjust but NH follows these tiers[1]. Note: Figures from other sources vary by year (e.g., 2026 federal: QMB $1,350 single / $1,824 couple[6]); confirm current with state.",
+        "asset_limits": "Federal limits apply: $9,090 single / $13,630 married for QMB, SLMB, QI. Counts typical countable assets (e.g., bank accounts, stocks); exempts home, one car, burial plots, life insurance up to certain values (standard Medicaid rules). NH has not eliminated asset test unlike some states[1][4].",
         "other_requirements": [
-          "Agricultural producers directly engaged in production of agricultural products with at least 50% of gross income from agricultural operations[1][2].",
-          "Small businesses (fewer than 50 employees, less than $1 million annual receipts, meeting SBA size standards per 13 CFR 121) located in eligible rural areas (population under 50,000)[1][2][3].",
-          "For-profit entities only (sole proprietorship, partnership, corporation, cooperative, electric utility serving rural consumers, or Tribal business entities)[2][3].",
-          "Must provide matching funds for grant-only applications[2].",
-          "U.S. citizens or permanent residents for individual borrowers; loan funds must remain in U.S.[2]."
+          "Must be eligible for Medicare Part A (even if not enrolled for QMB); Part A and B required for SLMB/QI[1][2][6].",
+          "U.S. citizen or qualified immigrant.",
+          "Reside in New Hampshire."
         ]
       },
       "benefits": {
         "type": "financial",
-        "value": "Grants up to 50% of project costs (max $1 million) for renewable energy systems (e.g., solar, wind, biomass, geothermal, hydropower) or energy efficiency improvements (e.g., HVAC, insulation, lighting); loan guarantees up to 80%[1][2].",
-        "varies_by": "project_type"
+        "value": "QMB: Pays Medicare Part A premiums (if applicable), Part B premiums/deductibles, coinsurance/copayments for Medicare-covered services. SLMB: Pays Part B premiums only. QI: Pays Part B premiums only; auto-qualifies for Extra Help (low copays on drugs, e.g., ≤$12.65 per drug in 2026)[1][2][6].",
+        "varies_by": "program_tier"
       },
       "application": {
         "methods": [
-          "Online via REAP website (specific URL not listed in results; visit USDA RD site)[1][2]",
-          "Work with local lender for loan guarantees[1]"
+          "Apply through NH Department of Health and Human Services (DHHS) Medicaid agency: Online via NH EASY portal (https://www.dhhs.nh.gov/programs-services/medicaid/apply-medicaid), phone 1-800-852-3345, mail/in-person at local DHHS district offices[1][4].",
+          "No specific form number listed; use Medicaid application which covers MSP."
         ],
-        "processing_time": "Not specified in sources",
-        "waitlist": null,
-        "forms": [],
+        "processing_time": "Effective first day of month of application for QMB; SLMB/QI may vary, typically 45 days for Medicaid apps[2].",
+        "waitlist": "QI has first-come, first-served with priority to prior-year recipients; possible waitlist if funds exhausted[6].",
+        "forms": [
+          "NH Medicaid Application (via EASY system or paper form from DHHS)"
+        ],
         "documents": [
-          "Proof of agricultural income (50%+ from ag operations) or small business status[1][2]",
-          "Project details for renewable energy or energy efficiency[1][2]",
-          "Matching funds documentation for grants[2]",
-          "Evidence of no delinquent federal debts[2]"
+          "Proof of income (SS awards, pay stubs, pension statements).",
+          "Proof of assets/resources (bank statements, investment accounts).",
+          "Medicare card or proof of eligibility.",
+          "ID (birth certificate, driver's license), proof of residency.",
+          "Social Security number."
         ]
       },
       "geography": {
-        "statewide": false,
-        "restrictions": "Eligible rural areas only (population <50,000); available in New Hampshire rural regions[1][2][4]",
-        "regional_variations": "Administered federally with state-specific rural eligibility; no NH regional provider differences noted[4]",
-        "offices_or_providers": []
+        "statewide": true,
+        "restrictions": "None; available statewide to NH residents.",
+        "regional_variations": "Administered via local DHHS district offices, but uniform eligibility/benefits; possible minor processing differences[4].",
+        "offices_or_providers": [
+          "Local DHHS District Offices across NH (e.g., Manchester, Nashua, Concord); find via dhhs.nh.gov"
+        ]
       },
-      "official_source": "https://www.rd.usda.gov/programs-services/energy-programs/rural-energy-america-program-renewable-energy-systems-energy-efficiency-improvement-guaranteed-loans",
+      "official_source": "https://www.dhhs.nh.gov/programs-services/medicaid",
       "gotchas": [
-        "Not for nonprofits or standalone EV charging stations (unless part of renewable system for self-use)[3].",
-        "One renewable energy and one energy efficiency application per fiscal year[3].",
-        "Must show energy use reduction for efficiency projects; projects must meet standards for 50% grant (e.g., zero GHG emissions, Energy Community location, Tribal entity)[2][3].",
-        "This is USDA Rural Energy for America Program (REAP), not a respite/elderly care program—query may refer to different 'REAP'[1][2]"
+        "QI called SLMB-135 in NH; must reapply annually for QI, first-come priority[1][6].",
+        "QMB providers cannot bill beneficiary for Medicare-covered services (key protection often missed)[2].",
+        "Income disregard of first $13 unearned income specific to NH[1].",
+        "Asset test still applies (unlike 13 states); home/car exempt but others count[1][4].",
+        "If income exceeds one tier, check next (e.g., over QMB may qualify SLMB)[1].",
+        "Limits update yearly ~April; verify current FPL-based amounts."
       ],
-      "data_shape_notes": "Federal program focused on rural ag producers/small businesses for energy projects; rural area restriction, no personal income/age test, grant/loan hybrid with matching funds required",
-      "_raw": "{\n  \"name\": \"REAP (Respite, Education, and Assistance Program)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits specified in available sources; eligibility based on business/agricultural operations rather than personal income.\",\n    \"asset_limits\": \"No asset limits; applicants must have no outstanding delinquent federal taxes, debt, judgment, or debarment.\",\n    \"other_requirements\": [\n      \"Agricultural producers directly engaged in production of agricultural products with at least 50% of gross income from agricultural operations[1][2].\",\n      \"Small businesses (fewer than 50 employees, less than $1 million annual receipts, meeting SBA size standards per 13 CFR 121) located in eligible rural areas (population under 50,000)[1][2][3].\",\n      \"For-profit entities only (sole proprietorship, partnership, corporation, cooperative, electric utility serving rural consumers, or Tribal business entities)[2][3].\",\n      \"Must provide matching funds for grant-only applications[2].\",\n      \"U.S. citizens or permanent residents for individual borrowers; loan funds must remain in U.S.[2].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Grants up to 50% of project costs (max $1 million) for renewable energy systems (e.g., solar, wind, biomass, geothermal, hydropower) or energy efficiency improvements (e.g., HVAC, insulation, lighting); loan guarantees up to 80%[1][2].\",\n    \"varies_by\": \"project_type\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online via REAP website (specific URL not listed in results; visit USDA RD site)[1][2]\",\n      \"Work with local lender for loan guarantees[1]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": [\n      \"Proof of agricultural income (50%+ from ag operations) or small business status[1][2]\",\n      \"Project details for renewable energy or energy efficiency[1][2]\",\n      \"Matching funds documentation for grants[2]\",\n      \"Evidence of no delinquent federal debts[2]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Eligible rural areas only (population <50,000); available in New Hampshire rural regions[1][2][4]\",\n    \"regional_variations\": \"Administered federally with state-specific rural eligibility; no NH regional provider differences noted[4]\",\n    \"offices_or_providers\": []\n  },\n  \"official_source\": \"https://www.rd.usda.gov/programs-services/energy-programs/rural-energy-america-program-renewable-energy-systems-energy-efficiency-improvement-guaranteed-loans\",\n  \"gotchas\": [\n    \"Not for nonprofits or standalone EV charging stations (unless part of renewable system for self-use)[3].\",\n    \"One renewable energy and one energy efficiency application per fiscal year[3].\",\n    \"Must show energy use reduction for efficiency projects; projects must meet standards for 50% grant (e.g., zero GHG emissions, Energy Community location, Tribal entity)[2][3].\",\n    \"This is USDA Rural Energy for America Program (REAP), not a respite/elderly care program—query may refer to different 'REAP'[1][2]\"\n  ],\n  \"data_shape_notes\": \"Federal program focused on rural ag producers/small businesses for energy projects; rural area restriction, no personal income/age test, grant/loan hybrid with matching funds required\"\n}"
+      "data_shape_notes": "Tiered by income brackets (QMB 100% FPL, SLMB 120%, QI 135%); NH uses federal assets with $13 unearned disregard; QI funding-limited with annual reapplication and priority queue.",
+      "_raw": "{\n  \"name\": \"Medicare Savings Program (MSP) - QMB, SLMB, QI\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"New Hampshire-specific monthly income limits (effective as of latest available data, with $13 unearned income disregard): QMB: $1,235 single / $1,663 married; SLMB: $1,478 single / $1,992 married (from QMB levels up to this); QI (SLMB-135): $1,660 single / $2,239 married (from SLMB levels up). Limits based on Federal Poverty Level, updated annually around April 1; states may adjust but NH follows these tiers[1]. Note: Figures from other sources vary by year (e.g., 2026 federal: QMB $1,350 single / $1,824 couple[6]); confirm current with state.\",\n    \"asset_limits\": \"Federal limits apply: $9,090 single / $13,630 married for QMB, SLMB, QI. Counts typical countable assets (e.g., bank accounts, stocks); exempts home, one car, burial plots, life insurance up to certain values (standard Medicaid rules). NH has not eliminated asset test unlike some states[1][4].\",\n    \"other_requirements\": [\n      \"Must be eligible for Medicare Part A (even if not enrolled for QMB); Part A and B required for SLMB/QI[1][2][6].\",\n      \"U.S. citizen or qualified immigrant.\",\n      \"Reside in New Hampshire.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"QMB: Pays Medicare Part A premiums (if applicable), Part B premiums/deductibles, coinsurance/copayments for Medicare-covered services. SLMB: Pays Part B premiums only. QI: Pays Part B premiums only; auto-qualifies for Extra Help (low copays on drugs, e.g., ≤$12.65 per drug in 2026)[1][2][6].\",\n    \"varies_by\": \"program_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Apply through NH Department of Health and Human Services (DHHS) Medicaid agency: Online via NH EASY portal (https://www.dhhs.nh.gov/programs-services/medicaid/apply-medicaid), phone 1-800-852-3345, mail/in-person at local DHHS district offices[1][4].\",\n      \"No specific form number listed; use Medicaid application which covers MSP.\"\n    ],\n    \"processing_time\": \"Effective first day of month of application for QMB; SLMB/QI may vary, typically 45 days for Medicaid apps[2].\",\n    \"waitlist\": \"QI has first-come, first-served with priority to prior-year recipients; possible waitlist if funds exhausted[6].\",\n    \"forms\": [\"NH Medicaid Application (via EASY system or paper form from DHHS)\"],\n    \"documents\": [\n      \"Proof of income (SS awards, pay stubs, pension statements).\",\n      \"Proof of assets/resources (bank statements, investment accounts).\",\n      \"Medicare card or proof of eligibility.\",\n      \"ID (birth certificate, driver's license), proof of residency.\",\n      \"Social Security number.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide to NH residents.\",\n    \"regional_variations\": \"Administered via local DHHS district offices, but uniform eligibility/benefits; possible minor processing differences[4].\",\n    \"offices_or_providers\": [\"Local DHHS District Offices across NH (e.g., Manchester, Nashua, Concord); find via dhhs.nh.gov\"]\n  },\n  \"official_source\": \"https://www.dhhs.nh.gov/programs-services/medicaid\",\n  \"gotchas\": [\n    \"QI called SLMB-135 in NH; must reapply annually for QI, first-come priority[1][6].\",\n    \"QMB providers cannot bill beneficiary for Medicare-covered services (key protection often missed)[2].\",\n    \"Income disregard of first $13 unearned income specific to NH[1].\",\n    \"Asset test still applies (unlike 13 states); home/car exempt but others count[1][4].\",\n    \"If income exceeds one tier, check next (e.g., over QMB may qualify SLMB)[1].\",\n    \"Limits update yearly ~April; verify current FPL-based amounts.\"\n  ],\n  \"data_shape_notes\": \"Tiered by income brackets (QMB 100% FPL, SLMB 120%, QI 135%); NH uses federal assets with $13 unearned disregard; QI funding-limited with annual reapplication and priority queue.\"\n}"
     },
     {
-      "name": "Easterseals NH Adult Day Services",
-      "_parseError": true,
-      "_raw": "I cannot provide the comprehensive JSON guide you've requested because the search results contain significant gaps in the specific information you need.\n\nHere's what the search results **do** provide about Easterseals NH Adult Day Services:\n\n**Available Information:**\n\n- **Locations:** Two centers in Manchester and Rochester, NH[1][3]\n- **Hours:** Manchester: 9 AM–3 PM (extended 7:30 AM–5:30 PM available); Rochester: 9 AM–2 PM[1][3]\n- **Attendance flexibility:** 2–5 days per week[1][4]\n- **Activities:** Brain-healthy activities, woodworking, gardening, expressive arts, animal-assisted therapy, intergenerational programs, music and movement[1][3][4]\n- **Transportation:** FREE for Manchester residents; available as needed for Strafford County residents in Rochester[1][3]\n- **Contact:** Manchester: 603.845.9318; Rochester: 603.335.1770[1][3]\n- **Populations served:** Seniors, adults with disabilities, people with Alzheimer's/dementia, diabetes, stroke, and cardiovascular disease[4][5]\n- **Funding:** Medicaid waivers (Home and Community-Based Services) may cover costs for those who qualify; Medicare typically does not cover adult day services except when included in physical therapy under Part B[6]\n\n**Critical Gaps in Search Results:**\n\nThe search results do **not** contain:\n- Specific age requirements or income/asset limits\n- Exact eligibility criteria or application procedures\n- Processing times or waitlist information\n- Required documents for application\n- Detailed regional variations beyond the two locations mentioned\n- Specific cost/pricing information\n- Official state government URLs or forms\n\n**To get the comprehensive guide you need, contact:**\n- **Manchester:** 603.845.9318 (request a free trial day)[1]\n- **Rochester:** 603.335.1770[3]\n- **General senior advisor line:** (800) 755-1458[6]\n\nThese contacts can provide the specific eligibility requirements, application forms, processing timelines, and cost details necessary for your guide."
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "For households with a member 60+ or disabled (Oct 1, 2025 - Sept 30, 2026): Gross income limit at 200% federal poverty level - 1 person: $2608/month, 2: $3526, 3: $4442, 4: $5358, 5: $6276, 6: $7192, 7: $8108, each additional +$916. If gross exceeds this, qualify via Net Income test (100% FPG, e.g., ~$15060/year for 1, $20440 for 2 in 2025) and Asset test. Most households (gross ≤200% FPG) exempt from gross/net/asset tests due to NH expansion.[1][5]",
+        "asset_limits": "No asset limit for most households (gross ≤200% FPG). For households with 60+ or disabled member exceeding gross limit: $4500 federal limit applies. Exempt: primary home, retirement savings, 1 vehicle (value if owned), household goods, life insurance cash value (if not income-producing).[1][2]",
+        "other_requirements": [
+          "U.S. citizen or qualified non-citizen.",
+          "Live in NH.",
+          "Household includes those who buy/prepare food together.",
+          "Categorical eligibility if all members receive SSI, TANF, etc., or gross ≤185% FPG (older rule).[4]",
+          "Work requirements may apply (exempt for 60+).[4]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Monthly EBT card for food purchases (groceries only, no hot foods/alcohol/tobacco). Amount based on net income, household size: ~$100 more net income = $30 less benefits. Minimum/maximum allotments vary (e.g., example: 2-person elderly/disabled household with $1200 gross may get $415/month).[1][3]",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "Online: NHEasy (https://www.nheasy.nh.gov), help via 1-877-347-SNAP (1-877-347-7627) or email.[5]",
+          "Phone: Local DHHS office or 1-877-347-SNAP.[5]",
+          "Mail/In-person: Local DHHS District Offices (statewide locations via dhhs.nh.gov)."
+        ],
+        "processing_time": "Not specified in sources; contact local office for NH-specific timeline.[3]",
+        "waitlist": null,
+        "forms": [
+          "SNAP application via NHEasy portal or paper form from DHHS offices."
+        ],
+        "documents": [
+          "Proof of income (Social Security, pension, pay stubs).",
+          "Proof of expenses (rent, utilities, medical costs >$35/month for elderly/disabled).",
+          "ID, SSN, proof of disability if claiming.",
+          "Assets if applicable (bank statements).[1][2]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Administered uniformly by state DHHS District Offices; no specified differences in rules, but processing/wait times may vary by office load.[3]",
+        "offices_or_providers": [
+          "DHHS District Offices statewide (find via dhhs.nh.gov)"
+        ]
+      },
+      "official_source": "https://www.dhhs.nh.gov/programs-services/food-stamps (inferred from context; apply via NHEasy.nh.gov)[5]",
+      "gotchas": [
+        "Elderly/disabled over gross limit (200% FPG) must pass net income + $4500 asset test (missed by many).[1]",
+        "Application may still ask for assets even if limit doesn't apply.[1]",
+        "Include all who buy/prepare food as household.[2]",
+        "Medical expenses >$35/month deductible for 60+ (boosts eligibility).[2]",
+        "Only ~40% eligible elderly in NH participate.[6]",
+        "Gross income includes Social Security/pensions.[2]"
+      ],
+      "data_shape_notes": "NH expanded: gross limit 200% FPG (most exempt asset test); elderly/disabled special path if over gross (net + assets); benefits scale by household size/net income.",
+      "_raw": "{\n  \"name\": \"SNAP (Supplemental Nutrition Assistance Program)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"For households with a member 60+ or disabled (Oct 1, 2025 - Sept 30, 2026): Gross income limit at 200% federal poverty level - 1 person: $2608/month, 2: $3526, 3: $4442, 4: $5358, 5: $6276, 6: $7192, 7: $8108, each additional +$916. If gross exceeds this, qualify via Net Income test (100% FPG, e.g., ~$15060/year for 1, $20440 for 2 in 2025) and Asset test. Most households (gross ≤200% FPG) exempt from gross/net/asset tests due to NH expansion.[1][5]\",\n    \"asset_limits\": \"No asset limit for most households (gross ≤200% FPG). For households with 60+ or disabled member exceeding gross limit: $4500 federal limit applies. Exempt: primary home, retirement savings, 1 vehicle (value if owned), household goods, life insurance cash value (if not income-producing).[1][2]\",\n    \"other_requirements\": [\n      \"U.S. citizen or qualified non-citizen.\",\n      \"Live in NH.\",\n      \"Household includes those who buy/prepare food together.\",\n      \"Categorical eligibility if all members receive SSI, TANF, etc., or gross ≤185% FPG (older rule).[4]\",\n      \"Work requirements may apply (exempt for 60+).[4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly EBT card for food purchases (groceries only, no hot foods/alcohol/tobacco). Amount based on net income, household size: ~$100 more net income = $30 less benefits. Minimum/maximum allotments vary (e.g., example: 2-person elderly/disabled household with $1200 gross may get $415/month).[1][3]\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: NHEasy (https://www.nheasy.nh.gov), help via 1-877-347-SNAP (1-877-347-7627) or email.[5]\",\n      \"Phone: Local DHHS office or 1-877-347-SNAP.[5]\",\n      \"Mail/In-person: Local DHHS District Offices (statewide locations via dhhs.nh.gov).\"\n    ],\n    \"processing_time\": \"Not specified in sources; contact local office for NH-specific timeline.[3]\",\n    \"waitlist\": null,\n    \"forms\": [\"SNAP application via NHEasy portal or paper form from DHHS offices.\"],\n    \"documents\": [\n      \"Proof of income (Social Security, pension, pay stubs).\",\n      \"Proof of expenses (rent, utilities, medical costs >$35/month for elderly/disabled).\",\n      \"ID, SSN, proof of disability if claiming.\",\n      \"Assets if applicable (bank statements).[1][2]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Administered uniformly by state DHHS District Offices; no specified differences in rules, but processing/wait times may vary by office load.[3]\",\n    \"offices_or_providers\": [\"DHHS District Offices statewide (find via dhhs.nh.gov)\"]\n  },\n  \"official_source\": \"https://www.dhhs.nh.gov/programs-services/food-stamps (inferred from context; apply via NHEasy.nh.gov)[5]\",\n  \"gotchas\": [\n    \"Elderly/disabled over gross limit (200% FPG) must pass net income + $4500 asset test (missed by many).[1]\",\n    \"Application may still ask for assets even if limit doesn't apply.[1]\",\n    \"Include all who buy/prepare food as household.[2]\",\n    \"Medical expenses >$35/month deductible for 60+ (boosts eligibility).[2]\",\n    \"Only ~40% eligible elderly in NH participate.[6]\",\n    \"Gross income includes Social Security/pensions.[2]\"\n  ],\n  \"data_shape_notes\": \"NH expanded: gross limit 200% FPG (most exempt asset test); elderly/disabled special path if over gross (net + assets); benefits scale by household size/net income.\"\n}"
     },
     {
-      "name": "Easterseals NH In-Home Care & Health Services",
+      "name": "Low Income Home Energy Assistance Program (LIHEAP)",
       "eligibility": {
         "age": null,
-        "income_limits": "No specific income limits stated; accepts Medicaid, long-term care insurance, private pay, and Veterans’ vouchers[4].",
-        "asset_limits": "No asset limits mentioned in available information[4].",
+        "income_limits": "Gross monthly income limits (2025): 1 Person: $3,967; 2 People: $5,187; 3 People: $6,408; 4 People: $7,629; 5 People: $8,849; 6 People: $10,070. Alternative source lists slightly higher: 1: $4,004 monthly/$48,711 annually; 2: $5,236/$63,699; 3: $6,467/$78,688; 4: $7,700/$93,676; 5: $8,931/$108,634; 6: $10,163/$123,653; 7: $10,394/$126,463; 8: $10,625/$129,274. Limits subject to change; priority for elderly, disabled, families with young children.[1][2][4]",
+        "asset_limits": "No asset limit.[1]",
         "other_requirements": [
-          "Services for older adults or those needing in-home support; subject to staff availability in served areas[4]"
+          "New Hampshire resident.",
+          "Household includes everyone at the address sharing utility bills.",
+          "Priority for elderly, disabled, or families with children under 6.",
+          "Program targets low-income, elderly, and handicapped for heating/utility expenses.[2][3][4]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Heating assistance grants from $94 minimum to $2,177 maximum per household for winter season (October through following winter); applied to fuel costs. Winter Crisis assistance up to $2,177. No cooling assistance. Does not count as income for other programs.[1][3][4]",
+        "varies_by": "household_size|priority_tier|income|fuel_type"
+      },
+      "application": {
+        "methods": [
+          "Contact local Community Action Agency by region: Hillsborough/Rockingham Counties: (603) 893-9172 or (603) 924-2243; Strafford County: (603) 435-2500; Belknap/Merrimack Counties: (603) 223-0043.[3]",
+          "Complete Fuel Assistance Application; pre-applications for priority groups (elderly, disabled, young children) after July 1, others after September 1 for 2025-2026 season.[4]",
+          "Offices open year-round M-F 8:30am-4:30pm; applications accepted starting ~July 30, 2025 until funding exhausted. Program open Dec 1 - Apr 30.[2][3][4]"
+        ],
+        "processing_time": "Not specified; apply early as funding limited.[3][4]",
+        "waitlist": "No waitlist mentioned; benefits until funding depleted.[3]",
+        "forms": [
+          "Fuel Assistance Application (complete and submit via local agency).[2][4]"
+        ],
+        "documents": [
+          "Proof of income, household size, residency, and heating/utility expenses (specifics determined by agency; prepare tax returns, pay stubs, utility bills).[4]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "New Hampshire residents only.",
+        "regional_variations": "Administered by regional Community Action Agencies with different phone numbers and offices by county (e.g., Hillsborough/Rockingham, Strafford, Belknap/Merrimack). Potential variations in processing.[3][4]",
+        "offices_or_providers": [
+          "Regional Community Action Agencies; e.g., CAPHR for certain areas, SCS for others.[2][4]"
+        ]
+      },
+      "official_source": "https://www.energy.nh.gov/ (NH Department of Energy referenced); national LIHEAP site via local agencies.[4]",
+      "gotchas": [
+        "Not year-round; heating seasonal (fall/winter), crisis only for emergencies like shutoffs.[1]",
+        "Funding limited; apply early (pre-apps July/Sept 2025), stops when exhausted.[3][4]",
+        "Household includes all at address sharing utilities, even non-related.[1]",
+        "Over-income applicants may qualify for Senior Energy Assistance Program (SEAS) up to $500 if 60+.[2]",
+        "Denials possible for incomplete docs, prior benefit, subsidized heat; appeal via Fair Hearing.[4]",
+        "Conflicting income limits across sources; verify with local agency."
+      ],
+      "data_shape_notes": "Administered regionally via Community Action Agencies; income limits vary slightly by source and may update annually; benefits scale by income, size, fuel type, priority (elderly/disabled prioritized); seasonal with early application windows for priority groups.",
+      "_raw": "{\n  \"name\": \"Low Income Home Energy Assistance Program (LIHEAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Gross monthly income limits (2025): 1 Person: $3,967; 2 People: $5,187; 3 People: $6,408; 4 People: $7,629; 5 People: $8,849; 6 People: $10,070. Alternative source lists slightly higher: 1: $4,004 monthly/$48,711 annually; 2: $5,236/$63,699; 3: $6,467/$78,688; 4: $7,700/$93,676; 5: $8,931/$108,634; 6: $10,163/$123,653; 7: $10,394/$126,463; 8: $10,625/$129,274. Limits subject to change; priority for elderly, disabled, families with young children.[1][2][4]\",\n    \"asset_limits\": \"No asset limit.[1]\",\n    \"other_requirements\": [\"New Hampshire resident.\", \"Household includes everyone at the address sharing utility bills.\", \"Priority for elderly, disabled, or families with children under 6.\", \"Program targets low-income, elderly, and handicapped for heating/utility expenses.[2][3][4]\"]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Heating assistance grants from $94 minimum to $2,177 maximum per household for winter season (October through following winter); applied to fuel costs. Winter Crisis assistance up to $2,177. No cooling assistance. Does not count as income for other programs.[1][3][4]\",\n    \"varies_by\": \"household_size|priority_tier|income|fuel_type\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Community Action Agency by region: Hillsborough/Rockingham Counties: (603) 893-9172 or (603) 924-2243; Strafford County: (603) 435-2500; Belknap/Merrimack Counties: (603) 223-0043.[3]\",\n      \"Complete Fuel Assistance Application; pre-applications for priority groups (elderly, disabled, young children) after July 1, others after September 1 for 2025-2026 season.[4]\",\n      \"Offices open year-round M-F 8:30am-4:30pm; applications accepted starting ~July 30, 2025 until funding exhausted. Program open Dec 1 - Apr 30.[2][3][4]\"\n    ],\n    \"processing_time\": \"Not specified; apply early as funding limited.[3][4]\",\n    \"waitlist\": \"No waitlist mentioned; benefits until funding depleted.[3]\",\n    \"forms\": [\"Fuel Assistance Application (complete and submit via local agency).[2][4]\"],\n    \"documents\": [\"Proof of income, household size, residency, and heating/utility expenses (specifics determined by agency; prepare tax returns, pay stubs, utility bills).[4]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"New Hampshire residents only.\",\n    \"regional_variations\": \"Administered by regional Community Action Agencies with different phone numbers and offices by county (e.g., Hillsborough/Rockingham, Strafford, Belknap/Merrimack). Potential variations in processing.[3][4]\",\n    \"offices_or_providers\": [\"Regional Community Action Agencies; e.g., CAPHR for certain areas, SCS for others.[2][4]\"]\n  },\n  \"official_source\": \"https://www.energy.nh.gov/ (NH Department of Energy referenced); national LIHEAP site via local agencies.[4]\",\n  \"gotchas\": [\n    \"Not year-round; heating seasonal (fall/winter), crisis only for emergencies like shutoffs.[1]\",\n    \"Funding limited; apply early (pre-apps July/Sept 2025), stops when exhausted.[3][4]\",\n    \"Household includes all at address sharing utilities, even non-related.[1]\",\n    \"Over-income applicants may qualify for Senior Energy Assistance Program (SEAS) up to $500 if 60+.[2]\",\n    \"Denials possible for incomplete docs, prior benefit, subsidized heat; appeal via Fair Hearing.[4]\",\n    \"Conflicting income limits across sources; verify with local agency.\"\n  ],\n  \"data_shape_notes\": \"Administered regionally via Community Action Agencies; income limits vary slightly by source and may update annually; benefits scale by income, size, fuel type, priority (elderly/disabled prioritized); seasonal with early application windows for priority groups.\"\n}"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Eligibility is determined by qualification for New Hampshire Fuel Assistance Program (FAP) or Electric Assistance Program (EAP), typically at or below 200% of Federal Poverty Guidelines (FPG). Exact income limits are not listed in sources but tied to FAP/EAP; priority given to elderly, disabled, families with children under 6, high energy burden households. For related Eversource income-eligible program (potentially overlapping), limits at 100% State Median Income are: 1 person < $69,394; 2 < $90,746; 3 < $112,098; 4 < $133,449; 5 < $154,801; 6 < $176,154[5].",
+        "asset_limits": "No asset limits mentioned.",
+        "other_requirements": [
+          "Must qualify for and/or participate in Fuel Assistance Program (FAP) or Electric Assistance Program (EAP); FAP/EAP application serves as WAP application.",
+          "Home cannot have significant structural issues, disrepair, leaking roof, failing plumbing or electrical systems[1].",
+          "Homeowners (stick-built and manufactured), renters eligible with landlord permission[1][2].",
+          "Homes previously weatherized after September 1994 generally ineligible; case-by-case for others[1][2].",
+          "Priority: elderly, disabled, families with young children (under 6), high energy use, long-term FAP participants[1][2][4]."
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Nursing services (medication management, routine health and wellness checks); Homemaker services (light housekeeping, running errands, laundry, preparing meals); Personal care services (assistance with bathing and daily personal routines)[4]. No fixed dollar amounts or hours specified; personalized care plans created[4].",
+        "value": "Free energy conservation services including: energy audit, air sealing, insulation, heating system repairs/replacements (limited funding), LED bulbs, low-flow devices, ventilation, health/safety items (smoke/CO alarms), potential refrigerator replacement if qualified. Follow-up inspection. Focuses on cost-effective measures per audit; not rehabilitation or ongoing repairs[1][2][3].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Apply through Fuel Assistance Program (FAP) or Electric Assistance Program (EAP) application; answer 'YES' to weatherization interest question[1][2][7].",
+          "Regional providers: CAPBM (Merrimack/Belknap Counties) via CAPBM.org[1]; CAPHR via caphr.org[2][7]; Strafford County (CAPSC): online application, email info@straffordcap.org, phone 603-435-2500 x 2350, mail to 577 Central Ave. Suite 10, Dover, NH 03820[4].",
+          "Statewide admin: NH Department of Energy; contact local community action agencies or utilities (Eversource, Unitil, NH Electric Co-op)[4].",
+          "Federal DOE map for state administrator[6]."
+        ],
+        "processing_time": "Not specified; involves energy audit scheduling and contractor work with follow-up inspection[1][2].",
+        "waitlist": "Funding limited; priority-based, potential wait implied but not detailed[1][4].",
+        "forms": [
+          "Fuel Assistance Program (FAP) application",
+          "Electric Assistance Program (EAP) application (dual-purpose for WAP)"
+        ],
+        "documents": [
+          "Proof of income for FAP/EAP (pay stubs, W-2, etc.)[5].",
+          "For renters: landlord permission[1][2].",
+          "Fuel/electric bill, photo ID for related programs[5]."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Statewide but administered regionally by community action partnerships (e.g., CAPBM for Merrimack/Belknap Counties[1], CAPHR[2], CAPSC Strafford County[4]).",
+        "regional_variations": "Different local providers handle intake/applications; partnerships with local utilities (Eversource, Unitil, NH Electric Co-op) vary by area; priority and services consistent but contact points differ[1][2][4].",
+        "offices_or_providers": [
+          "CAPBM (Merrimack/Belknap): capbm.org[1]",
+          "CAPHR: caphr.org[2][7]",
+          "CAPSC Strafford: straffordcap.org, 603-435-2500[4]"
+        ]
+      },
+      "official_source": "https://www.energy.nh.gov/ (NH Department of Energy administers; regional via community action partnerships); federal https://www.energy.gov/cmei/scep/wap[4][6]",
+      "gotchas": [
+        "Must first qualify via FAP/EAP; not standalone application[1][2][4].",
+        "Home must be in reasonable condition—no major structural/ roof/plumbing/electrical issues[1].",
+        "Renters need landlord permission; heating repairs more restricted for rentals[1].",
+        "Previously weatherized homes (post-1994) usually ineligible[1][2].",
+        "Limited funding for heating replacements; no ongoing tune-ups[1].",
+        "Priority tiers mean elderly may wait if high demand[1][2][4]."
+      ],
+      "data_shape_notes": "Eligibility fully tied to Fuel Assistance Program (FAP)/Electric Assistance Program (EAP) qualification (200% FPG); regionally administered by community action agencies with utility partnerships; priority-tiered with elderly emphasis but no strict age cutoff; home condition pre-check required.",
+      "_raw": "{\n  \"name\": \"Weatherization Assistance Program (WAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Eligibility is determined by qualification for New Hampshire Fuel Assistance Program (FAP) or Electric Assistance Program (EAP), typically at or below 200% of Federal Poverty Guidelines (FPG). Exact income limits are not listed in sources but tied to FAP/EAP; priority given to elderly, disabled, families with children under 6, high energy burden households. For related Eversource income-eligible program (potentially overlapping), limits at 100% State Median Income are: 1 person < $69,394; 2 < $90,746; 3 < $112,098; 4 < $133,449; 5 < $154,801; 6 < $176,154[5].\",\n    \"asset_limits\": \"No asset limits mentioned.\",\n    \"other_requirements\": [\n      \"Must qualify for and/or participate in Fuel Assistance Program (FAP) or Electric Assistance Program (EAP); FAP/EAP application serves as WAP application.\",\n      \"Home cannot have significant structural issues, disrepair, leaking roof, failing plumbing or electrical systems[1].\",\n      \"Homeowners (stick-built and manufactured), renters eligible with landlord permission[1][2].\",\n      \"Homes previously weatherized after September 1994 generally ineligible; case-by-case for others[1][2].\",\n      \"Priority: elderly, disabled, families with young children (under 6), high energy use, long-term FAP participants[1][2][4].\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free energy conservation services including: energy audit, air sealing, insulation, heating system repairs/replacements (limited funding), LED bulbs, low-flow devices, ventilation, health/safety items (smoke/CO alarms), potential refrigerator replacement if qualified. Follow-up inspection. Focuses on cost-effective measures per audit; not rehabilitation or ongoing repairs[1][2][3].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Apply through Fuel Assistance Program (FAP) or Electric Assistance Program (EAP) application; answer 'YES' to weatherization interest question[1][2][7].\",\n      \"Regional providers: CAPBM (Merrimack/Belknap Counties) via CAPBM.org[1]; CAPHR via caphr.org[2][7]; Strafford County (CAPSC): online application, email info@straffordcap.org, phone 603-435-2500 x 2350, mail to 577 Central Ave. Suite 10, Dover, NH 03820[4].\",\n      \"Statewide admin: NH Department of Energy; contact local community action agencies or utilities (Eversource, Unitil, NH Electric Co-op)[4].\",\n      \"Federal DOE map for state administrator[6].\"\n    ],\n    \"processing_time\": \"Not specified; involves energy audit scheduling and contractor work with follow-up inspection[1][2].\",\n    \"waitlist\": \"Funding limited; priority-based, potential wait implied but not detailed[1][4].\",\n    \"forms\": [\"Fuel Assistance Program (FAP) application\", \"Electric Assistance Program (EAP) application (dual-purpose for WAP)\"],\n    \"documents\": [\n      \"Proof of income for FAP/EAP (pay stubs, W-2, etc.)[5].\",\n      \"For renters: landlord permission[1][2].\",\n      \"Fuel/electric bill, photo ID for related programs[5].\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Statewide but administered regionally by community action partnerships (e.g., CAPBM for Merrimack/Belknap Counties[1], CAPHR[2], CAPSC Strafford County[4]).\",\n    \"regional_variations\": \"Different local providers handle intake/applications; partnerships with local utilities (Eversource, Unitil, NH Electric Co-op) vary by area; priority and services consistent but contact points differ[1][2][4].\",\n    \"offices_or_providers\": [\n      \"CAPBM (Merrimack/Belknap): capbm.org[1]\",\n      \"CAPHR: caphr.org[2][7]\",\n      \"CAPSC Strafford: straffordcap.org, 603-435-2500[4]\"\n    ]\n  },\n  \"official_source\": \"https://www.energy.nh.gov/ (NH Department of Energy administers; regional via community action partnerships); federal https://www.energy.gov/cmei/scep/wap[4][6]\",\n  \"gotchas\": [\n    \"Must first qualify via FAP/EAP; not standalone application[1][2][4].\",\n    \"Home must be in reasonable condition—no major structural/ roof/plumbing/electrical issues[1].\",\n    \"Renters need landlord permission; heating repairs more restricted for rentals[1].\",\n    \"Previously weatherized homes (post-1994) usually ineligible[1][2].\",\n    \"Limited funding for heating replacements; no ongoing tune-ups[1].\",\n    \"Priority tiers mean elderly may wait if high demand[1][2][4].\"\n  ],\n  \"data_shape_notes\": \"Eligibility fully tied to Fuel Assistance Program (FAP)/Electric Assistance Program (EAP) qualification (200% FPG); regionally administered by community action agencies with utility partnerships; priority-tiered with elderly emphasis but no strict age cutoff; home condition pre-check required.\"\n}"
+    },
+    {
+      "name": "New Hampshire State Health Insurance Assistance Program (SHIP)",
+      "eligibility": {
+        "age": "No specific age requirement for counseling services; however, the program primarily serves Medicare beneficiaries (age 65+), Medicare beneficiaries under age 65 with disabilities, and individuals dually eligible for Medicare and Medicaid[2][6]",
+        "income_limits": "No income limits for SHIP counseling services themselves[8]. However, the programs SHIP helps people apply for have income limits: Medicare Savings Programs (MSPs) have income limits up to approximately $1,800/month for individuals or $2,400/month for couples, though exact limits vary by state[4]. In New Hampshire specifically: QMB ($1,235/month single, $1,663/month married), SLMB ($1,478/month single, $1,992/month married), QI/SLMB-135 ($1,660/month single, $2,239/month married)[3]. Extra Help has income limits up to approximately $2,000/month for individuals or $2,600/month for couples[4]",
+        "asset_limits": "No asset limits for SHIP counseling services. However, for Medicare Savings Programs that SHIP helps people access: New Hampshire uses federal asset limits of $9,090 if single and $13,630 if married[3]. New Hampshire disregards the first $13 of unearned income (e.g., Social Security, pensions) when determining eligibility[3]",
+        "other_requirements": [
+          "Must be a Medicare beneficiary, family member, or caregiver of a Medicare beneficiary[2]",
+          "No citizenship or residency restrictions stated for SHIP counseling access"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free, one-on-one personalized health insurance counseling and assistance. Specific services include: information and printed materials about Medicare Parts A & B, Part D (prescription drug coverage), Medigap (Medicare Supplement Insurance), Medicare Advantage plans, long-term care insurance, Medicare Savings Programs (QMB, SLMB, QI), prescription drug assistance programs, Medicaid, and other insurance programs[5]. SHIP also assists with enrollment in coverage options and helps beneficiaries apply for cost-assistance programs[2]. Nationally, SHIP oversees a network of over 2,200 local sites with over 12,500 team members[2]",
+        "varies_by": "not_applicable — counseling services are free and available to all Medicare beneficiaries regardless of income or demographics[8]"
+      },
+      "application": {
+        "methods": [
+          "Phone: 877-839-2675 (national SHIP hotline; say 'Medicare' when prompted)[4]",
+          "Online: Visit shiphelp.org to locate your local SHIP or use the SHIP Locator[4][9]",
+          "In-person: Contact NH SHIP - ServiceLink Resource Center at NH DHHS, Bureau of Elderly & Adult Services, 105 Pleasant St., Gov. Gallan State Office Park S., Concord, NH 03301-3857[7]",
+          "Local community sites: SHIP services are delivered through state units on aging, state departments of insurance, local area agencies on aging, senior housing programs, and hospitals[2][6]"
+        ],
+        "processing_time": "Not specified in available sources",
+        "waitlist": "Not specified in available sources",
+        "forms": "No specific form names or numbers provided in available sources",
+        "documents": "Not specified in available sources; contact SHIP directly for documentation requirements"
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None stated; SHIP operates statewide in New Hampshire[6]",
+        "regional_variations": "Not specified in available sources. SHIP services are delivered through multiple local sponsoring agencies (area agencies on aging, social services agencies, senior housing programs, hospitals) throughout the state, but specific regional differences in service delivery are not detailed[2][6]",
+        "offices_or_providers": [
+          "NH SHIP - ServiceLink Resource Center (primary contact): 105 Pleasant St., Gov. Gallan State Office Park S., Concord, NH 03301-3857[7]",
+          "Services also delivered through local area agencies on aging and community-based partners statewide[2]"
+        ]
+      },
+      "official_source": "https://www.cms.gov/contacts/nh-ship-servicelink-resource-center/general-beneficiary-contact/1562141 and shiphelp.org",
+      "gotchas": [
+        "SHIP provides counseling and assistance to apply for benefits, but does not directly provide financial assistance or pay healthcare costs itself[2][5]. Families must apply separately for the actual assistance programs (Medicare Savings Programs, Extra Help, Medicaid) that SHIP helps them access[4]",
+        "SHIP services are free, but eligibility for the programs SHIP helps people apply for (QMB, SLMB, QI, Extra Help) depends on meeting specific income and asset limits that vary by program and state[3][4]",
+        "Extra Help requires that beneficiaries maintain a Part D plan; Extra Help alone does not provide prescription drug coverage[4]",
+        "Some programs require automatic enrollment (e.g., Extra Help if you have Medicaid or SSI), while others require manual application[4]",
+        "New Hampshire's income disregard of $13 for unearned income is a state-specific rule that may affect eligibility calculations compared to other states[3]"
+      ],
+      "data_shape_notes": "SHIP is a counseling and enrollment assistance program, not a direct benefit program. Its primary value is helping Medicare beneficiaries navigate complex eligibility rules and apply for multiple overlapping programs (Medicare Savings Programs, Extra Help, Medicaid). Income limits and asset limits are program-specific, not SHIP-specific. Processing times, waitlists, and detailed application procedures are not publicly documented in available sources and should be obtained directly from the program. Regional variations in service delivery exist but are not detailed in available documentation.",
+      "_raw": "```json\n{\n  \"name\": \"New Hampshire State Health Insurance Assistance Program (SHIP)\",\n  \"eligibility\": {\n    \"age\": \"No specific age requirement for counseling services; however, the program primarily serves Medicare beneficiaries (age 65+), Medicare beneficiaries under age 65 with disabilities, and individuals dually eligible for Medicare and Medicaid[2][6]\",\n    \"income_limits\": \"No income limits for SHIP counseling services themselves[8]. However, the programs SHIP helps people apply for have income limits: Medicare Savings Programs (MSPs) have income limits up to approximately $1,800/month for individuals or $2,400/month for couples, though exact limits vary by state[4]. In New Hampshire specifically: QMB ($1,235/month single, $1,663/month married), SLMB ($1,478/month single, $1,992/month married), QI/SLMB-135 ($1,660/month single, $2,239/month married)[3]. Extra Help has income limits up to approximately $2,000/month for individuals or $2,600/month for couples[4]\",\n    \"asset_limits\": \"No asset limits for SHIP counseling services. However, for Medicare Savings Programs that SHIP helps people access: New Hampshire uses federal asset limits of $9,090 if single and $13,630 if married[3]. New Hampshire disregards the first $13 of unearned income (e.g., Social Security, pensions) when determining eligibility[3]\",\n    \"other_requirements\": [\n      \"Must be a Medicare beneficiary, family member, or caregiver of a Medicare beneficiary[2]\",\n      \"No citizenship or residency restrictions stated for SHIP counseling access\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free, one-on-one personalized health insurance counseling and assistance. Specific services include: information and printed materials about Medicare Parts A & B, Part D (prescription drug coverage), Medigap (Medicare Supplement Insurance), Medicare Advantage plans, long-term care insurance, Medicare Savings Programs (QMB, SLMB, QI), prescription drug assistance programs, Medicaid, and other insurance programs[5]. SHIP also assists with enrollment in coverage options and helps beneficiaries apply for cost-assistance programs[2]. Nationally, SHIP oversees a network of over 2,200 local sites with over 12,500 team members[2]\",\n    \"varies_by\": \"not_applicable — counseling services are free and available to all Medicare beneficiaries regardless of income or demographics[8]\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 877-839-2675 (national SHIP hotline; say 'Medicare' when prompted)[4]\",\n      \"Online: Visit shiphelp.org to locate your local SHIP or use the SHIP Locator[4][9]\",\n      \"In-person: Contact NH SHIP - ServiceLink Resource Center at NH DHHS, Bureau of Elderly & Adult Services, 105 Pleasant St., Gov. Gallan State Office Park S., Concord, NH 03301-3857[7]\",\n      \"Local community sites: SHIP services are delivered through state units on aging, state departments of insurance, local area agencies on aging, senior housing programs, and hospitals[2][6]\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not specified in available sources\",\n    \"forms\": \"No specific form names or numbers provided in available sources\",\n    \"documents\": \"Not specified in available sources; contact SHIP directly for documentation requirements\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None stated; SHIP operates statewide in New Hampshire[6]\",\n    \"regional_variations\": \"Not specified in available sources. SHIP services are delivered through multiple local sponsoring agencies (area agencies on aging, social services agencies, senior housing programs, hospitals) throughout the state, but specific regional differences in service delivery are not detailed[2][6]\",\n    \"offices_or_providers\": [\n      \"NH SHIP - ServiceLink Resource Center (primary contact): 105 Pleasant St., Gov. Gallan State Office Park S., Concord, NH 03301-3857[7]\",\n      \"Services also delivered through local area agencies on aging and community-based partners statewide[2]\"\n    ]\n  },\n  \"official_source\": \"https://www.cms.gov/contacts/nh-ship-servicelink-resource-center/general-beneficiary-contact/1562141 and shiphelp.org\",\n  \"gotchas\": [\n    \"SHIP provides counseling and assistance to apply for benefits, but does not directly provide financial assistance or pay healthcare costs itself[2][5]. Families must apply separately for the actual assistance programs (Medicare Savings Programs, Extra Help, Medicaid) that SHIP helps them access[4]\",\n    \"SHIP services are free, but eligibility for the programs SHIP helps people apply for (QMB, SLMB, QI, Extra Help) depends on meeting specific income and asset limits that vary by program and state[3][4]\",\n    \"Extra Help requires that beneficiaries maintain a Part D plan; Extra Help alone does not provide prescription drug coverage[4]\",\n    \"Some programs require automatic enrollment (e.g., Extra Help if you have Medicaid or SSI), while others require manual application[4]\",\n    \"New Hampshire's income disregard of $13 for unearned income is a state-specific rule that may affect eligibility calculations compared to other states[3]\"\n  ],\n  \"data_shape_notes\": \"SHIP is a counseling and enrollment assistance program, not a direct benefit program. Its primary value is helping Medicare beneficiaries navigate complex eligibility rules and apply for multiple overlapping programs (Medicare Savings Programs, Extra Help, Medicaid). Income limits and asset limits are program-specific, not SHIP-specific. Processing times, waitlists, and detailed application procedures are not publicly documented in available sources and should be obtained directly from the program. Regional variations in service delivery exist but are not detailed in available documentation.\"\n}\n```\n\n## Key Context for Families\n\n**What SHIP Actually Does:** New Hampshire SHIP is a **free counseling and enrollment assistance service**, not a direct financial assistance program[2][8]. SHIP counselors help elderly Medicare beneficiaries and their families understand their coverage options and apply for programs that *do* pay healthcare costs—such as Medicare Savings Programs, Extra Help for prescription drugs, and Medicaid[5].\n\n**The Application Reality:** There is no single \"SHIP application.\" Instead, families contact SHIP for guidance, and SHIP counselors help them apply for the specific assistance programs their loved one qualifies for. Each of those programs has its own eligibility rules and application process[4].\n\n**Income Limits Matter:** While SHIP counseling itself has no income limits, the programs SHIP helps access do. For example, Medicare Savings Programs in New Hampshire serve individuals with incomes up to roughly $1,235–$1,660/month (single) depending on the specific program[3]. Families should contact SHIP to determine which programs their loved one might qualify for.\n\n**Start Here:** Call **877-839-2675** or visit **shiphelp.org** to find your local New Hampshire SHIP counselor[4]. They will walk through the entire process at no cost."
+    },
+    {
+      "name": "Meals on Wheels (Council on Aging programs)",
+      "eligibility": {
+        "age": "60 years or older, or disabled and homebound (any age)",
+        "income_limits": "No income restrictions for adults 60+. Income restrictions apply for adults with disabilities under 60 years old; specific dollar amounts not provided in available sources. Varies by location and provider.",
+        "asset_limits": "Not specified in available sources",
+        "other_requirements": [
+          "Must be homebound or have mobility challenges that make it difficult to shop for food, prepare meals, or socialize",
+          "Must reside within a designated delivery zone (geographic coverage varies by local program)",
+          "Spouses of eligible seniors may qualify",
+          "Disabled individuals accompanying a senior or residing in housing facilities where congregate meals are served may qualify"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "One meal per delivery day that meets 1/3 of the Recommended Daily Allowances for people age 60+. Includes entrée, two vegetables or fruits, bread, dessert, and milk. Deliveries are five days per week in most areas; Monday, Wednesday, and Friday in very rural towns.",
         "varies_by": "region"
       },
       "application": {
         "methods": [
-          "Phone: 603-845-9318 for free consultation[4]",
-          "Online inquiry via Easterseals NH website (https://eastersealsnh.org/programs/senior-services/in-home-care-health-services/)[4]"
+          "Contact local Area Agency on Aging (primary method)",
+          "Contact Aging and Disability Resource Center (ADRC) at 1-866-634-9412 or www.servicelink.nh.gov",
+          "Online application at www.NHEasy.NH.gov (for Choices for Independence program, which includes Medicaid meals)",
+          "Visit local DHHS Office (call 603-271-9700 or visit www.dhhs.nh.gov to find nearest office)"
         ],
-        "processing_time": "Home visit arranged after contact; personalized care plan developed thereafter. No specific timeline provided[4].",
-        "waitlist": "Services subject to staff availability; no formal waitlist details[4].",
-        "forms": [],
+        "processing_time": "Not specified in available sources; described as varying by program with note that 'patience might be needed'",
+        "waitlist": "Not specified in available sources",
+        "forms": [
+          "Application form (specific form name/number not provided)",
+          "May require referral letter from doctor or social worker"
+        ],
         "documents": [
-          "No specific documents listed; prepare details on needs for home visit and care plan development[4]"
+          "Proof of income (may be necessary)",
+          "Information about age, health, mobility, and ability to prepare meals",
+          "Dietary restrictions",
+          "Emergency contacts",
+          "Medical conditions information"
         ]
       },
       "geography": {
-        "statewide": false,
-        "restrictions": "Serves communities across the Seacoast, Greater Nashua, Greater Manchester, and Greater Rochester (services subject to staff availability)[4].",
-        "regional_variations": "Availability varies by region due to staff constraints[4].",
+        "statewide": true,
+        "restrictions": "Must reside within a designated delivery zone. Each local program has its own geographic coverage. Seniors living outside a service area must seek other meal assistance programs.",
+        "regional_variations": "Delivery frequency varies: five days per week in most areas; Monday, Wednesday, and Friday in very rural towns such as Gilsum and Sullivan. Cheshire County serves 330 people per weekday through Home Healthcare, Hospice and Community Services (HCS) contract with State of NH Bureau of Aging and Adult Services. Income restrictions for disabled adults under 60 vary by location.",
         "offices_or_providers": [
-          "Offices in Manchester and Keene for related services, but in-home care focused on specified regions[2][3][4]"
+          "Local Area Agency on Aging (varies by region)",
+          "Aging and Disability Resource Center (ADRC) - statewide",
+          "Home Healthcare, Hospice and Community Services (HCS) - serves Cheshire County",
+          "Local DHHS offices throughout state"
         ]
       },
-      "official_source": "No primary .gov URL; program operated by Easterseals NH nonprofit (https://eastersealsnh.org/programs/senior-services/in-home-care-health-services/)[4].",
+      "official_source": "www.servicelink.nh.gov (Aging and Disability Resource Center); www.NHEasy.NH.gov (online applications); www.dhhs.nh.gov (local DHHS offices)",
       "gotchas": [
-        "Not a free government program with strict eligibility—requires payment via private pay, insurance, Medicaid, or Veterans’ vouchers[4].",
-        "Limited to specific regions with staff availability restrictions, not fully statewide[4].",
-        "Personalized services, so no guaranteed hours or fixed benefits; depends on assessment[4].",
-        "Primarily private/non-medical model, unlike waiver programs with nursing home level eligibility[1][4]."
+        "Geographic coverage is NOT statewide for all providers—you must verify your address is within a delivery zone before applying. Rural areas may have limited delivery days.",
+        "Income limits for disabled adults under 60 are NOT specified in public materials—you must contact your local provider for exact thresholds.",
+        "The program operates on a suggested donation model ($2.00 per meal in some areas), but there is no charge for those who cannot pay. However, drivers collect donation envelopes weekly.",
+        "Meals must be eaten upon delivery while hot; food left unrefrigerated may become unsafe.",
+        "Eligibility criteria and income guidelines vary significantly by location and provider—what qualifies in one county may not in another.",
+        "Some programs serve meals at congregate dining sites (like senior centers) rather than home-delivered; verify the service type available in your area.",
+        "For disabled adults under 60, Medicaid eligibility through the Choices for Independence (CFI) program may be required, which has separate income and asset guidelines.",
+        "Referrals from doctors or social workers may be required by some providers."
       ],
-      "data_shape_notes": "Private pay/insurance-based with regional staff-limited availability; no strict income/age/assets test; personalized plans vary by need and location",
-      "_raw": "{\n  \"name\": \"Easterseals NH In-Home Care & Health Services\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No specific income limits stated; accepts Medicaid, long-term care insurance, private pay, and Veterans’ vouchers[4].\",\n    \"asset_limits\": \"No asset limits mentioned in available information[4].\",\n    \"other_requirements\": [\"Services for older adults or those needing in-home support; subject to staff availability in served areas[4]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Nursing services (medication management, routine health and wellness checks); Homemaker services (light housekeeping, running errands, laundry, preparing meals); Personal care services (assistance with bathing and daily personal routines)[4]. No fixed dollar amounts or hours specified; personalized care plans created[4].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 603-845-9318 for free consultation[4]\", \"Online inquiry via Easterseals NH website (https://eastersealsnh.org/programs/senior-services/in-home-care-health-services/)[4]\"],\n    \"processing_time\": \"Home visit arranged after contact; personalized care plan developed thereafter. No specific timeline provided[4].\",\n    \"waitlist\": \"Services subject to staff availability; no formal waitlist details[4].\",\n    \"forms\": [],\n    \"documents\": [\"No specific documents listed; prepare details on needs for home visit and care plan development[4]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Serves communities across the Seacoast, Greater Nashua, Greater Manchester, and Greater Rochester (services subject to staff availability)[4].\",\n    \"regional_variations\": \"Availability varies by region due to staff constraints[4].\",\n    \"offices_or_providers\": [\"Offices in Manchester and Keene for related services, but in-home care focused on specified regions[2][3][4]\"]\n  },\n  \"official_source\": \"No primary .gov URL; program operated by Easterseals NH nonprofit (https://eastersealsnh.org/programs/senior-services/in-home-care-health-services/)[4].\",\n  \"gotchas\": [\"Not a free government program with strict eligibility—requires payment via private pay, insurance, Medicaid, or Veterans’ vouchers[4].\", \"Limited to specific regions with staff availability restrictions, not fully statewide[4].\", \"Personalized services, so no guaranteed hours or fixed benefits; depends on assessment[4].\", \"Primarily private/non-medical model, unlike waiver programs with nursing home level eligibility[1][4].\"],\n  \"data_shape_notes\": \"Private pay/insurance-based with regional staff-limited availability; no strict income/age/assets test; personalized plans vary by need and location\"\n}"
+      "data_shape_notes": "This program's structure is highly decentralized: eligibility, income limits, delivery frequency, and application processes vary significantly by county and provider. No income restrictions exist for seniors 60+, but income restrictions apply for younger disabled adults with amounts varying by location. The program operates through multiple funding sources (federal Title 3 and Title 20, Medicaid, state, local, and donations) and is administered through local Area Agencies on Aging rather than a single state entity. Geographic service areas are fragmented—not all of New Hampshire is covered. Delivery frequency varies from five days per week to three days per week in rural areas.",
+      "_raw": "```json\n{\n  \"name\": \"Meals on Wheels (Council on Aging programs)\",\n  \"eligibility\": {\n    \"age\": \"60 years or older, or disabled and homebound (any age)\",\n    \"income_limits\": \"No income restrictions for adults 60+. Income restrictions apply for adults with disabilities under 60 years old; specific dollar amounts not provided in available sources. Varies by location and provider.\",\n    \"asset_limits\": \"Not specified in available sources\",\n    \"other_requirements\": [\n      \"Must be homebound or have mobility challenges that make it difficult to shop for food, prepare meals, or socialize\",\n      \"Must reside within a designated delivery zone (geographic coverage varies by local program)\",\n      \"Spouses of eligible seniors may qualify\",\n      \"Disabled individuals accompanying a senior or residing in housing facilities where congregate meals are served may qualify\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"One meal per delivery day that meets 1/3 of the Recommended Daily Allowances for people age 60+. Includes entrée, two vegetables or fruits, bread, dessert, and milk. Deliveries are five days per week in most areas; Monday, Wednesday, and Friday in very rural towns.\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Area Agency on Aging (primary method)\",\n      \"Contact Aging and Disability Resource Center (ADRC) at 1-866-634-9412 or www.servicelink.nh.gov\",\n      \"Online application at www.NHEasy.NH.gov (for Choices for Independence program, which includes Medicaid meals)\",\n      \"Visit local DHHS Office (call 603-271-9700 or visit www.dhhs.nh.gov to find nearest office)\"\n    ],\n    \"processing_time\": \"Not specified in available sources; described as varying by program with note that 'patience might be needed'\",\n    \"waitlist\": \"Not specified in available sources\",\n    \"forms\": [\n      \"Application form (specific form name/number not provided)\",\n      \"May require referral letter from doctor or social worker\"\n    ],\n    \"documents\": [\n      \"Proof of income (may be necessary)\",\n      \"Information about age, health, mobility, and ability to prepare meals\",\n      \"Dietary restrictions\",\n      \"Emergency contacts\",\n      \"Medical conditions information\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must reside within a designated delivery zone. Each local program has its own geographic coverage. Seniors living outside a service area must seek other meal assistance programs.\",\n    \"regional_variations\": \"Delivery frequency varies: five days per week in most areas; Monday, Wednesday, and Friday in very rural towns such as Gilsum and Sullivan. Cheshire County serves 330 people per weekday through Home Healthcare, Hospice and Community Services (HCS) contract with State of NH Bureau of Aging and Adult Services. Income restrictions for disabled adults under 60 vary by location.\",\n    \"offices_or_providers\": [\n      \"Local Area Agency on Aging (varies by region)\",\n      \"Aging and Disability Resource Center (ADRC) - statewide\",\n      \"Home Healthcare, Hospice and Community Services (HCS) - serves Cheshire County\",\n      \"Local DHHS offices throughout state\"\n    ]\n  },\n  \"official_source\": \"www.servicelink.nh.gov (Aging and Disability Resource Center); www.NHEasy.NH.gov (online applications); www.dhhs.nh.gov (local DHHS offices)\",\n  \"gotchas\": [\n    \"Geographic coverage is NOT statewide for all providers—you must verify your address is within a delivery zone before applying. Rural areas may have limited delivery days.\",\n    \"Income limits for disabled adults under 60 are NOT specified in public materials—you must contact your local provider for exact thresholds.\",\n    \"The program operates on a suggested donation model ($2.00 per meal in some areas), but there is no charge for those who cannot pay. However, drivers collect donation envelopes weekly.\",\n    \"Meals must be eaten upon delivery while hot; food left unrefrigerated may become unsafe.\",\n    \"Eligibility criteria and income guidelines vary significantly by location and provider—what qualifies in one county may not in another.\",\n    \"Some programs serve meals at congregate dining sites (like senior centers) rather than home-delivered; verify the service type available in your area.\",\n    \"For disabled adults under 60, Medicaid eligibility through the Choices for Independence (CFI) program may be required, which has separate income and asset guidelines.\",\n    \"Referrals from doctors or social workers may be required by some providers.\"\n  ],\n  \"data_shape_notes\": \"This program's structure is highly decentralized: eligibility, income limits, delivery frequency, and application processes vary significantly by county and provider. No income restrictions exist for seniors 60+, but income restrictions apply for younger disabled adults with amounts varying by location. The program operates through multiple funding sources (federal Title 3 and Title 20, Medicaid, state, local, and donations) and is administered through local Area Agencies on Aging rather than a single state entity. Geographic service areas are fragmented—not all of New Hampshire is covered. Delivery frequency varies from five days per week to three days per week in rural areas.\"\n}\n```\n\n## Key Findings for Families\n\n**Critical limitation:** The search results do not contain specific dollar amounts for income limits, asset limits, or the exact processing timeline. To build a truly comprehensive guide, you will need to contact individual Area Agencies on Aging or the statewide ADRC at **1-866-634-9412** to obtain:\n\n- Exact income thresholds for disabled adults under 60 (varies by county)\n- Asset limits and exemptions\n- Specific processing times by region\n- Current waitlist status\n\n**What the program actually is:** Meals on Wheels in New Hampshire is a **decentralized network of local programs** administered through Area Agencies on Aging, not a single statewide program. This means eligibility criteria, income limits, delivery schedules, and application processes can differ substantially between counties.[1][2][5]\n\n**The core service:** One nutritionally balanced meal per delivery day (meeting 1/3 of daily nutritional requirements for seniors 60+), delivered five days per week in most areas, three days per week in rural towns.[5] The suggested donation is $2.00 per meal, but there is no charge for those unable to pay.[3]\n\n**The major gotcha:** Geographic coverage is incomplete—not all of New Hampshire is served. Families must verify their address is within a delivery zone before investing time in the application.[1][2]"
+    },
+    {
+      "name": "New Hampshire Family Caregiver Support Program",
+      "eligibility": {
+        "age": "Caregivers: 18+; Care recipients vary by category (60+ for primary, any age for ADRD if living together, children <18 for grandparents 55+)[1][4]",
+        "income_limits": "No specific income or asset limits mentioned across sources; financial eligibility tied to Medicaid waivers in related programs but not core FCSP[1][2][6]",
+        "asset_limits": "Not applicable; no asset tests specified, though Medicaid-linked services may apply separately[6]",
+        "other_requirements": [
+          "Care recipients 60+ with impairment in at least two ADLs (Title III-E)[1][4]",
+          "For ADRD: Caregivers 18+, care recipient with Alzheimer's/related dementia, live together, recipient cannot follow through after cuing[4]",
+          "Grandparents/relative caregivers 55+ caring for children <18 (in absence of parent) or adult children >18 with severe disabilities (priority)[1][4]",
+          "Unpaid family caregivers; priority for severe disabilities[3][4]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Respite grants, care management, counseling, assistive technology, emergency response, home modifications, homemaker/personal care, education/training, support groups, individual counseling, follow-up for respite[1][3][4]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local Aging and Disability Resource Center (ADRC) Options Counselors (e.g., Monadnock Region/Sullivan County)[3]",
+          "Home visits available by counselor[3]",
+          "State administration via NH Department of Health and Human Services/Bureau of Elderly and Adult Services[1]"
+        ],
+        "processing_time": "Not specified",
+        "waitlist": "Limited availability in related Medicaid waivers; respite grants may have follow-up but no core waitlist details[3][6]",
+        "forms": [
+          "No specific form names/numbers identified"
+        ],
+        "documents": [
+          "Not explicitly listed; prepare proof of relationship, caregiver status (unpaid, age), care recipient needs (ADL impairments, diagnosis if ADRD)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Administered statewide by NH DHHS/Bureau of Elderly and Adult Services; local delivery via ADRCs[1][3]",
+        "regional_variations": "Local ADRCs (e.g., Monadnock/Sullivan) provide counseling, respite grants, support groups; may differ by provider availability[3]",
+        "offices_or_providers": [
+          "Aging and Disability Resource Centers, Bureau of Elderly and Adult Services[1][3]"
+        ]
+      },
+      "official_source": "https://www.dhhs.nh.gov/programs-services/elderly-adult-services (inferred from administration; primary details via nasua.org/sf-nh.pdf)[1]",
+      "gotchas": [
+        "Multiple sub-programs with varying eligibility (e.g., ADRD requires cohabitation, grandparents 55+ only)[1][4]",
+        "Not direct payment to caregivers (unlike CFI Medicaid program); focuses on support services/respite[1][2][6]",
+        "Priority for severe disabilities or specific groups; all unpaid caregivers encouraged but respite grants require assessment[3][4]",
+        "Often confused with paid Medicaid programs like Choices for Independence (CFI) or veteran stipends[2][6]"
+      ],
+      "data_shape_notes": "Tiered by care recipient type (60+ frail, ADRD, grandparents 55+ for kids/disabled adults); no income/asset tests in core program; local ADRC delivery with statewide admin; services not cash payments",
+      "_raw": "{\n  \"name\": \"New Hampshire Family Caregiver Support Program\",\n  \"eligibility\": {\n    \"age\": \"Caregivers: 18+; Care recipients vary by category (60+ for primary, any age for ADRD if living together, children <18 for grandparents 55+)[1][4]\",\n    \"income_limits\": \"No specific income or asset limits mentioned across sources; financial eligibility tied to Medicaid waivers in related programs but not core FCSP[1][2][6]\",\n    \"asset_limits\": \"Not applicable; no asset tests specified, though Medicaid-linked services may apply separately[6]\",\n    \"other_requirements\": [\n      \"Care recipients 60+ with impairment in at least two ADLs (Title III-E)[1][4]\",\n      \"For ADRD: Caregivers 18+, care recipient with Alzheimer's/related dementia, live together, recipient cannot follow through after cuing[4]\",\n      \"Grandparents/relative caregivers 55+ caring for children <18 (in absence of parent) or adult children >18 with severe disabilities (priority)[1][4]\",\n      \"Unpaid family caregivers; priority for severe disabilities[3][4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Respite grants, care management, counseling, assistive technology, emergency response, home modifications, homemaker/personal care, education/training, support groups, individual counseling, follow-up for respite[1][3][4]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Aging and Disability Resource Center (ADRC) Options Counselors (e.g., Monadnock Region/Sullivan County)[3]\",\n      \"Home visits available by counselor[3]\",\n      \"State administration via NH Department of Health and Human Services/Bureau of Elderly and Adult Services[1]\"\n    ],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": \"Limited availability in related Medicaid waivers; respite grants may have follow-up but no core waitlist details[3][6]\",\n    \"forms\": [\"No specific form names/numbers identified\"],\n    \"documents\": [\"Not explicitly listed; prepare proof of relationship, caregiver status (unpaid, age), care recipient needs (ADL impairments, diagnosis if ADRD)\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Administered statewide by NH DHHS/Bureau of Elderly and Adult Services; local delivery via ADRCs[1][3]\",\n    \"regional_variations\": \"Local ADRCs (e.g., Monadnock/Sullivan) provide counseling, respite grants, support groups; may differ by provider availability[3]\",\n    \"offices_or_providers\": [\"Aging and Disability Resource Centers, Bureau of Elderly and Adult Services[1][3]\"]\n  },\n  \"official_source\": \"https://www.dhhs.nh.gov/programs-services/elderly-adult-services (inferred from administration; primary details via nasua.org/sf-nh.pdf)[1]\",\n  \"gotchas\": [\n    \"Multiple sub-programs with varying eligibility (e.g., ADRD requires cohabitation, grandparents 55+ only)[1][4]\",\n    \"Not direct payment to caregivers (unlike CFI Medicaid program); focuses on support services/respite[1][2][6]\",\n    \"Priority for severe disabilities or specific groups; all unpaid caregivers encouraged but respite grants require assessment[3][4]\",\n    \"Often confused with paid Medicaid programs like Choices for Independence (CFI) or veteran stipends[2][6]\"\n  ],\n  \"data_shape_notes\": \"Tiered by care recipient type (60+ frail, ADRD, grandparents 55+ for kids/disabled adults); no income/asset tests in core program; local ADRC delivery with statewide admin; services not cash payments\"\n}"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Family income of no more than 125% of the federal poverty level. Exact dollar amounts vary by household size and are updated annually via HHS Poverty Guidelines (effective January 15, 2025). No specific NH table in sources; consult current federal guidelines for precise figures by household size[1][2][3].",
+        "asset_limits": "No asset limits mentioned in sources.",
+        "other_requirements": [
+          "Unemployed at time of enrollment[1][2][3]",
+          "Resident of New Hampshire[1]",
+          "Eligible to work in the United States[1]",
+          "Desire to learn/refresh job skills as a path to employment[1]",
+          "Interest in returning to work[1]"
+        ]
+      },
+      "benefits": {
+        "type": "employment",
+        "value": "Part-time community service work (average 20 hours per week) at non-profit/public facilities (e.g., schools, hospitals, day-care centers, senior centers); paid stipend at highest of federal, state, or local minimum wage; job search assistance and guidance to permanent employment; on-the-job training in skills like computers or vocational areas[1][2][3][4].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: Operation ABLE (NH provider) - specific number not in sources; national toll-free: 1-877-872-5627 (1-877-US2-JOBS)[2]",
+          "Online: CareerOneStop Older Worker Program Finder for local NH programs[2]",
+          "In-person: Local NH providers like Operation ABLE (info sessions highlighted)[1]",
+          "Contact AARP Foundation SCSEP for eligibility check (no specific NH number)[4]"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Not specified; may vary by demand and priority (e.g., veterans first)[2][3].",
+        "forms": [
+          "No specific form names/numbers listed in sources."
+        ],
+        "documents": [
+          "Not explicitly listed; prepare proof of age, income, unemployment status, US work eligibility, NH residency (inferred from requirements)[1][2]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "NH resident required[1]; served through specific grantees.",
+        "regional_variations": "Operated by Operation ABLE in NH service areas (specific areas spotlighted in video); potential differences in host sites or wait times by region not detailed[1].",
+        "offices_or_providers": [
+          "Operation ABLE (primary NH SCSEP provider)[1]"
+        ]
+      },
+      "official_source": "https://www.dol.gov/agencies/eta/seniors[2]",
+      "gotchas": [
+        "Enrollment priority: Veterans/qualified spouses first, then over 65, disabled, low literacy, limited English, rural residents, homeless/at-risk, low prospects, or prior American Job Center users - may delay non-priority applicants[2][3]",
+        "Program is temporary bridge to unsubsidized work, not permanent job[2][4]",
+        "Must be actively unemployed and motivated to return to work - not for retirees seeking supplemental income[1]",
+        "Income limit strictly 125% FPL; excludes those above threshold even if otherwise eligible[1][2]"
+      ],
+      "data_shape_notes": "Federally uniform but locally administered via grantees like Operation ABLE in NH; priority tiers affect access; no asset test or fixed dollar benefits - wage-based stipend; income scales by household size via federal poverty guidelines.",
+      "_raw": "{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income of no more than 125% of the federal poverty level. Exact dollar amounts vary by household size and are updated annually via HHS Poverty Guidelines (effective January 15, 2025). No specific NH table in sources; consult current federal guidelines for precise figures by household size[1][2][3].\",\n    \"asset_limits\": \"No asset limits mentioned in sources.\",\n    \"other_requirements\": [\"Unemployed at time of enrollment[1][2][3]\", \"Resident of New Hampshire[1]\", \"Eligible to work in the United States[1]\", \"Desire to learn/refresh job skills as a path to employment[1]\", \"Interest in returning to work[1]\"]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Part-time community service work (average 20 hours per week) at non-profit/public facilities (e.g., schools, hospitals, day-care centers, senior centers); paid stipend at highest of federal, state, or local minimum wage; job search assistance and guidance to permanent employment; on-the-job training in skills like computers or vocational areas[1][2][3][4].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Operation ABLE (NH provider) - specific number not in sources; national toll-free: 1-877-872-5627 (1-877-US2-JOBS)[2]\", \"Online: CareerOneStop Older Worker Program Finder for local NH programs[2]\", \"In-person: Local NH providers like Operation ABLE (info sessions highlighted)[1]\", \"Contact AARP Foundation SCSEP for eligibility check (no specific NH number)[4]\"],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Not specified; may vary by demand and priority (e.g., veterans first)[2][3].\",\n    \"forms\": [\"No specific form names/numbers listed in sources.\"],\n    \"documents\": [\"Not explicitly listed; prepare proof of age, income, unemployment status, US work eligibility, NH residency (inferred from requirements)[1][2]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"NH resident required[1]; served through specific grantees.\",\n    \"regional_variations\": \"Operated by Operation ABLE in NH service areas (specific areas spotlighted in video); potential differences in host sites or wait times by region not detailed[1].\",\n    \"offices_or_providers\": [\"Operation ABLE (primary NH SCSEP provider)[1]\"]\n  },\n  \"official_source\": \"https://www.dol.gov/agencies/eta/seniors[2]\",\n  \"gotchas\": [\"Enrollment priority: Veterans/qualified spouses first, then over 65, disabled, low literacy, limited English, rural residents, homeless/at-risk, low prospects, or prior American Job Center users - may delay non-priority applicants[2][3]\", \"Program is temporary bridge to unsubsidized work, not permanent job[2][4]\", \"Must be actively unemployed and motivated to return to work - not for retirees seeking supplemental income[1]\", \"Income limit strictly 125% FPL; excludes those above threshold even if otherwise eligible[1][2]\"],\n  \"data_shape_notes\": \"Federally uniform but locally administered via grantees like Operation ABLE in NH; priority tiers affect access; no asset test or fixed dollar benefits - wage-based stipend; income scales by household size via federal poverty guidelines.\"\n}"
+    },
+    {
+      "name": "New Hampshire Legal Assistance (NHLA) Justice in Aging Project",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No income limits for seniors; eligible regardless of income. For non-seniors, up to 200% of federal poverty level (e.g., family of four up to $53,000 per year as of referenced data).",
+        "asset_limits": "No asset limits for seniors; eligible regardless of assets.",
+        "other_requirements": [
+          "New Hampshire resident",
+          "Civil legal issues in NHLA priority areas (e.g., housing, public benefits, aging-specific issues like nursing home rights, debt collection, financial exploitation)"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free civil legal services including advice, representation in court (e.g., eviction defense, protective orders), negotiation (e.g., with landlords), appeals for public benefits denials, assistance with nursing home rights, debt collection harassment, financial exploitation, estate planning, Medicare/Medicaid, housing, domestic issues.",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-800-639-5290 (603 Legal Aid intake for NHLA referral)",
+          "Online: 603 Legal Aid website (connect via nh-cls.org or 603legalaid.org)",
+          "Regional offices (e.g., Nashua: 800-517-0577 or 603-598-3800, 21 East Pearl Street, Suite 2)"
+        ],
+        "processing_time": "Initial assessment upon contact; representation subject to availability (not specified)",
+        "waitlist": "NHLA may not take every case due to resource limits",
+        "forms": [
+          "No specific form named; intake via 603 Legal Aid assesses eligibility"
+        ],
+        "documents": [
+          "Proof of age (for seniors), income/asset details if non-senior, details of legal issue (e.g., eviction notice, denial letter)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "New Hampshire residents only",
+        "regional_variations": "Multiple regional offices with local phone numbers (e.g., Nashua, Manchester area via 888-353-9944); potential differences in wait times or case acceptance by office demand",
+        "offices_or_providers": [
+          "603 Legal Aid (statewide intake)",
+          "NHLA offices (e.g., Nashua: 21 East Pearl Street, Suite 2)"
+        ]
+      },
+      "official_source": "https://www.nhla.org",
+      "gotchas": [
+        "Not all cases accepted due to resource limits even if eligible",
+        "Must be civil legal issue in NHLA priority areas (no criminal cases)",
+        "Seniors prioritized regardless of income/assets, but apply via 603 Legal Aid for seamless referral",
+        "Data from 2021; confirm current details via intake"
+      ],
+      "data_shape_notes": "Seniors (60+) have no income/asset test—unique priority access; intake centralized via 603 Legal Aid partnership; case acceptance varies by priority and resources, not fixed benefits",
+      "_raw": "{\n  \"name\": \"New Hampshire Legal Assistance (NHLA) Justice in Aging Project\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No income limits for seniors; eligible regardless of income. For non-seniors, up to 200% of federal poverty level (e.g., family of four up to $53,000 per year as of referenced data).\",\n    \"asset_limits\": \"No asset limits for seniors; eligible regardless of assets.\",\n    \"other_requirements\": [\"New Hampshire resident\", \"Civil legal issues in NHLA priority areas (e.g., housing, public benefits, aging-specific issues like nursing home rights, debt collection, financial exploitation)\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free civil legal services including advice, representation in court (e.g., eviction defense, protective orders), negotiation (e.g., with landlords), appeals for public benefits denials, assistance with nursing home rights, debt collection harassment, financial exploitation, estate planning, Medicare/Medicaid, housing, domestic issues.\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 1-800-639-5290 (603 Legal Aid intake for NHLA referral)\", \"Online: 603 Legal Aid website (connect via nh-cls.org or 603legalaid.org)\", \"Regional offices (e.g., Nashua: 800-517-0577 or 603-598-3800, 21 East Pearl Street, Suite 2)\"],\n    \"processing_time\": \"Initial assessment upon contact; representation subject to availability (not specified)\",\n    \"waitlist\": \"NHLA may not take every case due to resource limits\",\n    \"forms\": [\"No specific form named; intake via 603 Legal Aid assesses eligibility\"],\n    \"documents\": [\"Proof of age (for seniors), income/asset details if non-senior, details of legal issue (e.g., eviction notice, denial letter)\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"New Hampshire residents only\",\n    \"regional_variations\": \"Multiple regional offices with local phone numbers (e.g., Nashua, Manchester area via 888-353-9944); potential differences in wait times or case acceptance by office demand\",\n    \"offices_or_providers\": [\"603 Legal Aid (statewide intake)\", \"NHLA offices (e.g., Nashua: 21 East Pearl Street, Suite 2)\"]\n  },\n  \"official_source\": \"https://www.nhla.org\",\n  \"gotchas\": [\"Not all cases accepted due to resource limits even if eligible\", \"Must be civil legal issue in NHLA priority areas (no criminal cases)\", \"Seniors prioritized regardless of income/assets, but apply via 603 Legal Aid for seamless referral\", \"Data from 2021; confirm current details via intake\"],\n  \"data_shape_notes\": \"Seniors (60+) have no income/asset test—unique priority access; intake centralized via 603 Legal Aid partnership; case acceptance varies by priority and resources, not fixed benefits\"\n}"
+    },
+    {
+      "name": "New Hampshire Long-Term Care Ombudsman Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; services are free and available to all regardless of financial status.",
+        "asset_limits": "No asset limits or tests apply.",
+        "other_requirements": [
+          "Must be a resident of a long-term care facility in New Hampshire, including nursing homes, assisted living facilities, long-term rehabilitation centers, adult day care facilities, or hospice centers.",
+          "Services also extend to families, friends, and staff of residents."
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Free and confidential advocacy services, including investigating and resolving complaints about care quality, treatment, rights, and facility issues; providing information on facilities and rights; representing interests to ensure dignity, fair treatment, and ethical care; collaborating with residents, families, facility staff, and officials.",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: Toll-free (800) 442-5640 or local (603) 271-4375 (hours: 8:00 am - 4:30 pm)",
+          "Fax: (603) 271-5574",
+          "Mail/In-person: New Hampshire Long-Term Care Ombudsman Program, 129 Pleasant Street, Concord, NH 03301-3857"
+        ],
+        "processing_time": "Not specified in available sources; immediate assistance typically available via phone for urgent issues.",
+        "waitlist": null,
+        "forms": [
+          "No specific application forms required; contact directly to discuss concerns."
+        ],
+        "documents": [
+          "No documents needed to initiate contact; provide details about the resident, facility, and issue."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Limited to residents of long-term care facilities across New Hampshire; no county restrictions.",
+        "regional_variations": "Program operates statewide from central office in Concord with possible regional ombudsmen or volunteers, but no specific regional differences in services, wait times, or providers detailed.",
+        "offices_or_providers": [
+          "Central office: 129 Pleasant Street, Concord, NH 03301-3857"
+        ]
+      },
+      "official_source": "https://www.dhhs.state.nh.us (referenced in program contacts; primary state DHHS site)",
+      "gotchas": [
+        "Not a direct care or healthcare provider—ombudsmen do not deliver medical services, only advocate and resolve issues.",
+        "Requires residency in a qualifying long-term care facility; does not cover home-based or community care.",
+        "Services are confidential but involve collaboration with facilities and officials to resolve complaints.",
+        "Potentially outdated contact leadership (e.g., prior State Ombudsman named)."
+      ],
+      "data_shape_notes": "no income test; advocacy-only for long-term care facility residents statewide; free/confidential; no formal application or waitlist",
+      "_raw": "{\n  \"name\": \"New Hampshire Long-Term Care Ombudsman Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; services are free and available to all regardless of financial status.\",\n    \"asset_limits\": \"No asset limits or tests apply.\",\n    \"other_requirements\": [\"Must be a resident of a long-term care facility in New Hampshire, including nursing homes, assisted living facilities, long-term rehabilitation centers, adult day care facilities, or hospice centers.\", \"Services also extend to families, friends, and staff of residents.\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Free and confidential advocacy services, including investigating and resolving complaints about care quality, treatment, rights, and facility issues; providing information on facilities and rights; representing interests to ensure dignity, fair treatment, and ethical care; collaborating with residents, families, facility staff, and officials.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Toll-free (800) 442-5640 or local (603) 271-4375 (hours: 8:00 am - 4:30 pm)\", \"Fax: (603) 271-5574\", \"Mail/In-person: New Hampshire Long-Term Care Ombudsman Program, 129 Pleasant Street, Concord, NH 03301-3857\"],\n    \"processing_time\": \"Not specified in available sources; immediate assistance typically available via phone for urgent issues.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific application forms required; contact directly to discuss concerns.\"],\n    \"documents\": [\"No documents needed to initiate contact; provide details about the resident, facility, and issue.\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Limited to residents of long-term care facilities across New Hampshire; no county restrictions.\",\n    \"regional_variations\": \"Program operates statewide from central office in Concord with possible regional ombudsmen or volunteers, but no specific regional differences in services, wait times, or providers detailed.\",\n    \"offices_or_providers\": [\"Central office: 129 Pleasant Street, Concord, NH 03301-3857\"]\n  },\n  \"official_source\": \"https://www.dhhs.state.nh.us (referenced in program contacts; primary state DHHS site)\",\n  \"gotchas\": [\"Not a direct care or healthcare provider—ombudsmen do not deliver medical services, only advocate and resolve issues.\", \"Requires residency in a qualifying long-term care facility; does not cover home-based or community care.\", \"Services are confidential but involve collaboration with facilities and officials to resolve complaints.\", \"Potentially outdated contact leadership (e.g., prior State Ombudsman named).\"],\n  \"data_shape_notes\": \"no income test; advocacy-only for long-term care facility residents statewide; free/confidential; no formal application or waitlist\"\n}"
     }
   ]
 }

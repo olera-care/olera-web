@@ -1,30 +1,36 @@
 {
   "state": "VA",
   "stateName": "Virginia",
-  "classifiedAt": "2026-04-09T09:03:01.276Z",
-  "total": 15,
+  "classifiedAt": "2026-04-09T09:43:09.565Z",
+  "total": 16,
   "typeSummary": {
-    "benefit": 11,
+    "benefit": 12,
     "resource": 3,
     "employment": 1
   },
   "scopeSummary": {
-    "state": 5,
-    "local": 2,
-    "federal": 8
+    "state": 6,
+    "local": 3,
+    "federal": 7
   },
   "complexitySummary": {
-    "deep": 10,
-    "medium": 2,
-    "simple": 3
+    "deep": 11,
+    "simple": 3,
+    "medium": 2
   },
   "programs": [
     {
-      "name": "Medicaid for Persons Who are Aged, Blind, or Disabled (ABD)",
+      "name": "Medicaid for Seniors/Disabled",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local DSS offices statewide; e.g., Arlington DHS Public Assistance.",
+            "type": "service-area"
+          }
+        ]
       },
       "complexity": "deep",
       "recommendedSections": [
@@ -47,22 +53,14 @@
       }
     },
     {
-      "name": "Home and Community-Based Services (HCBS) Waiver",
+      "name": "Virginia PACE (Program of All-Inclusive Care for the Elderly)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "state",
+        "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local Department of Social Services (DSS)",
-            "type": "service-area"
-          },
-          {
-            "name": "Local Community Services Board (CSB) for case management and assessments",
-            "type": "service-area"
-          },
-          {
-            "name": "LTSS screening team",
+            "name": "Specific sites listed in DMAS 'Virginia PACE Locations' document (addresses, phones, websites for each PACE organization across Virginia).",
             "type": "service-area"
           }
         ]
@@ -72,7 +70,6 @@
         "prose",
         "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -80,37 +77,6 @@
       "signals": {
         "benefitType": "service",
         "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Program of All-Inclusive Care for the Elderly (PACE) in Virginia",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Specific locations listed in 'Virginia PACE Locations' document from DMAS; InnovAge PACE centers in Virginia.[8][9]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
@@ -123,13 +89,20 @@
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
-        "stateVariation": true
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Department of Social Services offices (locator: dss.virginia.gov/localagency)",
+            "type": "service-area"
+          }
+        ]
       },
       "complexity": "deep",
       "recommendedSections": [
         "prose",
         "income-table",
         "what-counts",
+        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
@@ -140,7 +113,7 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
@@ -149,22 +122,27 @@
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
-        "stateVariation": true
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Virginia DSS offices (directory at dss.virginia.gov/localagency)",
+            "type": "service-area"
+          }
+        ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
         "income-table",
         "what-counts",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "financial",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": false,
+        "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
         "isStatewide": true
@@ -178,39 +156,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Virginia Department of Social Services offices",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Weatherization Assistance Program (WAP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Use DHCD tool at https://www.dhcd.virginia.gov/wx to find local provider by home address.[6]",
+            "name": "Local departments of social services (full list at dss.virginia.gov/localagency)",
             "type": "service-area"
           }
         ]
@@ -226,7 +172,7 @@
         "callout"
       ],
       "signals": {
-        "benefitType": "service",
+        "benefitType": "financial",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
@@ -236,18 +182,45 @@
       }
     },
     {
-      "name": "Virginia Insurance Counseling and Assistance Program (VICAP) - Virginia's SHIP",
+      "name": "Weatherization Assistance Program (WAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "in_kind",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP)",
       "programType": "resource",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Main office: Department for Aging and Rehabilitative Services, 1610 Forest Ave., Henrico, VA 23229[3]",
+            "name": "Virginia Insurance Counseling and Assistance Program (VICAP), Department for Aging and Rehabilitative Services, 1610 Forest Ave., Henrico VA 23229[3]",
             "type": "service-area"
           },
           {
-            "name": "Local providers via area agencies on aging and community partners[5]",
+            "name": "Local example: Fairfax County office[10]",
             "type": "service-area"
           }
         ]
@@ -268,30 +241,30 @@
       }
     },
     {
-      "name": "Home Delivered Meals (Meals on Wheels)",
+      "name": "Home Delivered Meals",
       "programType": "benefit",
       "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
+        "type": "local",
+        "stateVariation": false,
         "localEntities": [
           {
-            "name": "Feed More (Richmond area and surrounding counties)[1][4]",
+            "name": "FeedMore (Richmond region)",
             "type": "service-area"
           },
           {
-            "name": "District Three Governmental Cooperative (other Virginia regions)[2]",
+            "name": "District Three Governmental Cooperative",
             "type": "service-area"
           },
           {
-            "name": "The Span Center (partnership with Feed More)[4]",
+            "name": "Span Center (Richmond + counties)",
             "type": "service-area"
           },
           {
-            "name": "Mom's Meals (Medicaid/Medicare Advantage option)[3]",
+            "name": "SSS EVA (Southside)",
             "type": "service-area"
           },
           {
-            "name": "Local Area Agencies on Aging (statewide coordination)[5]",
+            "name": "Local Area Agencies on Aging via DARS",
             "type": "service-area"
           }
         ]
@@ -305,7 +278,7 @@
         "callout"
       ],
       "signals": {
-        "benefitType": "in_kind",
+        "benefitType": "service",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
@@ -315,18 +288,14 @@
       }
     },
     {
-      "name": "Virginia Lifespan Respite Voucher Program (VLRVP)",
+      "name": "Virginia Lifespan Respite Voucher Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Virginia Department for Aging and Rehabilitative Services (DARS)",
-            "type": "service-area"
-          },
-          {
-            "name": "Virginia Caregiver Coalition",
+            "name": "Central: Virginia Department for Aging and Rehabilitative Services (DARS)",
             "type": "service-area"
           }
         ]
@@ -354,7 +323,21 @@
       "programType": "employment",
       "geographicScope": {
         "type": "federal",
-        "stateVariation": true
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "DARS Division for Rehabilitative Services: https://dars.virginia.gov/[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Virginia Career Works-Charlottesville: 944 Glenwood Station Lane, Suite 103, Charlottesville, VA 22901; (434) 529-6791[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Goodwill T-NVA: Contact Sue Malinowski at 276-525-2204[6]",
+            "type": "service-area"
+          }
+        ]
       },
       "complexity": "deep",
       "recommendedSections": [
@@ -368,7 +351,7 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
@@ -380,19 +363,19 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Central Virginia Legal Aid Society[1]",
+            "name": "Central Virginia Legal Aid Society (804-648-1012)",
             "type": "service-area"
           },
           {
-            "name": "Southwest Virginia Legal Aid Society[2]",
+            "name": "Southwest Virginia Legal Aid Society",
             "type": "service-area"
           },
           {
-            "name": "Virginia Legal Aid Society[9]",
+            "name": "Virginia Legal Aid Society",
             "type": "service-area"
           },
           {
-            "name": "9 legal aid programs total via valegalaid.org[6][7]",
+            "name": "9 total legal aid programs via valegalaid.org",
             "type": "service-area"
           }
         ]
@@ -420,15 +403,11 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Office of the State Long-Term Care Ombudsman (Richmond, under Department for Aging and Rehabilitative Services - DARS).",
+            "name": "State Office: Department for Aging and Rehabilitative Services (DARS), 804-565-1600",
             "type": "service-area"
           },
           {
-            "name": "Regional programs such as Northern Virginia Long-Term Care Ombudsman Program.",
-            "type": "service-area"
-          },
-          {
-            "name": "Local host entities designated by state office.",
+            "name": "Local examples: Fairfax County/Northern VA, Prince William County 703-792-7662, Span Center 804-343-3000, Bay Aging 757-808-5275 (Williamsburg), etc.; full list at https://dars.virginia.gov/aging/ombudsman/find-your-local-ombudsman/",
             "type": "service-area"
           }
         ]
@@ -456,11 +435,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local Department of Social Services (statewide).",
-            "type": "service-area"
-          },
-          {
-            "name": "Example: Fairfax County Aging, Disability and Caregiver Resources (703-324-7948 for 18+).[6]",
+            "name": "Local Departments of Social Services; screening team assists with local providers.[2]",
             "type": "service-area"
           }
         ]
@@ -468,7 +443,6 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
         "tier-comparison",
         "documents",
@@ -477,7 +451,7 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
@@ -493,7 +467,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local DSS offices, e.g., Lee County DSS, King George County DSS[3][5]",
+            "name": "Local Department of Social Services in each county/city (e.g., Lee County DSS, King George County DSS[3][4])",
             "type": "service-area"
           }
         ]
@@ -501,18 +475,79 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
+        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "No Wrong Door System",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Virginia Department of Aging and Rehabilitative Services (DARS) for statewide oversight; 25 AAAs for local implementation[2]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "SeniorNavigator",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Partnerships like Henrico Area Mental Health & Developmental Services[3]; community providers statewide[1]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
         "hasMultipleTiers": false,
         "isStatewide": true
       }

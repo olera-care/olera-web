@@ -4,56 +4,140 @@
   "state": "FL",
   "stateName": "Florida",
   "isRegion": false,
-  "exploredAt": "2026-04-09T08:48:55.110Z",
-  "programCount": 6,
+  "exploredAt": "2026-04-09T09:29:35.429Z",
+  "programCount": 18,
   "programs": [
     {
-      "name": "Home Care for the Elderly (HCE) Program",
-      "what_it_does": "Provides a basic subsidy to support family-type living arrangements for seniors age 60 and older within private homes. This state-funded program helps elders remain in community settings rather than institutional care.",
-      "who_its_for": "Florida residents aged 60+ in family-type living arrangements with income and asset limits.",
-      "whats_unique": "Florida-specific state-funded subsidy unique to private home care arrangements, not a federal program.",
-      "official_url": "https://elderaffairs.org/programs-services/community-services/home-care-for-the-elderly/",
-      "benefit_value": "Basic monthly subsidy (amount varies by income, up to ~$160/month based on state guidelines)"
+      "name": "Statewide Medicaid Managed Care Long Term Care Program",
+      "what_it_does": "This program provides Medicaid coverage for nursing facility care and home and community-based services for seniors and disabled individuals needing long-term care. It is administered through managed care plans that reimburse for over two dozen home-based services to help avoid institutionalization.[1][4]",
+      "who_its_for": "Florida residents aged 65 or older, or 18+ with disabilities, who meet Medicaid financial eligibility (income and assets) and require nursing facility level of care.[1][4]",
+      "official_url": "https://aaaswfl.org/other-programs/",
+      "benefit_value": "Covers costs of nursing home care and home-based services including personal care, homemaker services, and medical equipment; value varies by individual needs and plan."
     },
     {
-      "name": "Community Care for the Elderly (CCE) Program",
-      "what_it_does": "Delivers community-based services including medical supplies, emergency alert response, and therapeutic services to functionally impaired elders. Services are organized to enable living in the least restrictive, cost-effective environment.",
-      "who_its_for": "Functionally impaired Florida elders needing community-based support, based on assessed needs, income, and residency.",
-      "whats_unique": "Florida's state-administered non-Medicaid program providing a continuum of care services tailored to avoid institutionalization.",
-      "official_url": "https://elderaffairs.org/programs-services/community-services/community-care-for-the-elderly/",
-      "benefit_value": "Varies by service package; can include in-home care, meals, and supplies worth thousands annually"
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "PACE provides comprehensive medical and social services to eligible seniors in community settings, including adult day health care and home care. It coordinates all Medicare and Medicaid benefits through a single provider team.[2]",
+      "who_its_for": "Florida seniors 55+ who are nursing facility eligible, live in a PACE service area, and can safely be managed in the community.",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Full coverage of Medicare/Medicaid services including hospitalization, drugs, and transportation; average annual value exceeds $60,000 per participant."
     },
     {
-      "name": "Respite for Elders Living in Everyday Families (RELIEF) Program",
-      "what_it_does": "Offers in-home respite care to give family caregivers breaks from responsibilities for homebound elderly individuals. This increases the family unit's ability to continue providing care at home.",
-      "who_its_for": "Family caregivers of homebound Florida elders, with eligibility based on elder's age, frailty, and family income.",
-      "whats_unique": "State-funded respite specifically for everyday family caregivers in Florida, distinct from federal OAA allotments.",
-      "official_url": "https://elderaffairs.org/programs-services/community-services/relief/",
-      "benefit_value": "In-home respite hours (typically 20-360 hours/year depending on priority level)"
+      "name": "Medicare Savings Programs",
+      "what_it_does": "These programs help pay Medicare Part A/B premiums, deductibles, and copayments for eligible low-income seniors. Administered by Florida Department of Children and Families, including QMB, SLMB, and QI categories.[1]",
+      "who_its_for": "Medicare beneficiaries 65+ with low income/assets; specific limits vary (e.g., QMB up to 100% FPL, SLMB up to 120% FPL).[1]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "QMB covers all Medicare costs ($0 premiums/copays); SLMB/QI cover Part B premium ($185/month in 2025); serves thousands of FL seniors."
     },
     {
-      "name": "Optional State Supplementation (OSS) for SSI Recipients",
-      "what_it_does": "Provides monthly cash supplements to SSI recipients in assisted living or adult family care homes. Supports basic expenses for qualifying seniors in residential care facilities.",
-      "who_its_for": "SSI-eligible Florida seniors in adult family care homes or assisted living facilities meeting federal resource limits.",
-      "whats_unique": "Florida's state-level supplement to federal SSI, optional and targeted at specific residential care settings (unlike states without OSS).",
-      "official_url": "https://www.myflfamilies.com/service-programs/supplemental-security-income-state-supplementation/",
-      "benefit_value": "$78.40 monthly for residential care (2025 rate)"
+      "name": "SNAP Food Assistance",
+      "what_it_does": "Provides monthly benefits via EBT card to purchase groceries for low-income seniors. Florida administers through Department of Children and Families with senior-specific deductions.[1]",
+      "who_its_for": "Seniors 60+ or disabled with income below 200% FPL; households with net income under limits.[1]",
+      "official_url": "https://www.myfloridacfo.com/mymoney/me/govbenefits",
+      "benefit_value": "Average $200-$300/month per senior household; thousands of FL older adults receive aid."
     },
     {
-      "name": "Additional Homestead Exemption for Seniors",
-      "what_it_does": "Offers supplemental property tax exemption beyond the standard $25,000 homestead for qualifying seniors. Reduces taxable property value by up to $50,000 in some areas, saving on annual taxes.",
-      "who_its_for": "Florida homeowners aged 65+ meeting income thresholds (varies by county, e.g., $35,000 or less).",
-      "whats_unique": "State-authorized extra exemption stacking on federal homestead, with local variations like $50,000 in Tampa—beyond standard federal tax relief.",
-      "official_url": "https://floridarevenue.com/property/Documents/pt109.pdf",
-      "benefit_value": "Up to $50,000 exemption; ~$600-$2,400 annual tax savings depending on millage rate"
+      "name": "Florida Emergency Home Energy Assistance Program (EHEAP)",
+      "what_it_does": "Offers one-time help with energy bills for households in heating/cooling crisis, such as shut-off notices. Funded by Florida Department of Elder Affairs for seniors facing utility emergencies.[4]",
+      "who_its_for": "Households with one member 60+, income <150% FPL, and documented energy crisis.[4]",
+      "official_url": "https://aaaswfl.org/other-programs/",
+      "benefit_value": "One-time payment up to $1,000-$2,000 for bills; exact amount based on crisis severity."
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "what_it_does": "Funds home energy efficiency upgrades like insulation and sealing to reduce utility costs for low-income households. Florida coordinates federal funds through community agencies.[2]",
+      "who_its_for": "Low-income seniors 60+ meeting income guidelines (typically <200% FPL).[2]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Free upgrades worth $3,000-$8,000 per home, saving 10-30% on energy bills annually."
     },
     {
       "name": "SHINE (Serving Health Insurance Needs of Elders)",
-      "what_it_does": "Provides free, unbiased one-on-one counseling on Medicare, Medicaid, and health insurance options. Empowers seniors through volunteer-assisted guidance to select optimal coverage.",
-      "who_its_for": "All Florida elders (primarily 65+) seeking health insurance counseling, no income restrictions.",
-      "whats_unique": "Florida Department of Elder Affairs' statewide volunteer network for personalized insurance help, not replicated identically in every state.",
-      "official_url": "https://www.floridashine.org",
-      "benefit_value": "Free counseling; potential savings of thousands via optimized Medicare/Part D plans"
+      "what_it_does": "Free counseling on Medicare, Medigap, Part D, and savings programs by trained volunteers. Provided statewide through Area Agencies on Aging.[4]",
+      "who_its_for": "All Florida Medicare beneficiaries 65+, especially those with questions on coverage/options.[4]",
+      "official_url": "https://aaaswfl.org/other-programs/",
+      "benefit_value": "Free personalized counseling; helps access $1,000s in annual savings via optimal plans."
+    },
+    {
+      "name": "Home-Delivered Meals",
+      "what_it_does": "Delivers nutritious meals to homebound seniors to promote health and independence. Funded via Older Americans Act through Florida Department of Elder Affairs.[2]",
+      "who_its_for": "Homebound elders 60+ unable to prepare meals, often low-income or at nutrition risk.[2]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "5-7 meals/week; annual value $1,500-$3,000 per participant."
+    },
+    {
+      "name": "Respite for Elders Living in Everyday Families (RELIEF)",
+      "what_it_does": "Provides in-home respite care to support family caregivers of homebound seniors. Helps families continue caring at home and prevents caregiver burnout.[2][4][6]",
+      "who_its_for": "Family caregivers of homebound elders 60+; income-eligible households.[2]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Paid respite hours (up to 320/year); value $20-$30/hour, totaling $5,000+ annually."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Offers part-time community service jobs with training for unemployed low-income seniors. Leads to unsubsidized employment; funded under Older Americans Act.[2]",
+      "who_its_for": "Unemployed 55+ with income <125% FPL, limited work experience.[2]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Minimum wage part-time work (20 hrs/wk); annual wages ~$10,000-$12,000 plus training."
+    },
+    {
+      "name": "Legal Aid for Seniors",
+      "what_it_does": "Provides free legal services for issues like housing, benefits, abuse, and consumer problems. Delivered through Elder Law programs via Area Agencies on Aging.[2]",
+      "who_its_for": "Low-income seniors 60+ facing civil legal needs.[2]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Free attorney representation; saves $5,000+ in legal fees per case."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in long-term care facilities, resolving complaints and protecting rights. Operates statewide under Florida Department of Elder Affairs.[2]",
+      "who_its_for": "Residents of nursing homes, assisted living, and adult family care homes in Florida.[2]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Free advocacy resolving 80%+ of complaints; prevents abuse/neglect for 60,000+ residents."
+    },
+    {
+      "name": "Home Care for the Elderly",
+      "what_it_does": "Provides assistance with daily activities in the home to help seniors maintain independence and avoid institutionalization. The program offers targeted support services through the health department to reduce the need for nursing home care.[1][3]",
+      "who_its_for": "Florida seniors eligible through local agencies, often with income and residency requirements.",
+      "whats_unique": "State-funded program specifically designed to support aging in place, distinct from federal Medicaid waivers available in every state.[1][3]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Varies by need; reduces institutional care costs through home-based services."
+    },
+    {
+      "name": "Optional State Supplementation (OSS)",
+      "what_it_does": "Provides monthly payments to supplement federal SSI for seniors in specific care settings. Supports individuals in adult family care homes or assisted living facilities with basic expenses.[1]",
+      "who_its_for": "Qualifying SSI recipients aged 65+ in residential care facilities in Florida.",
+      "whats_unique": "Florida's state-level SSI supplement, not offered in states without OSS programs; up to $78.40 monthly.[1]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "$78.40 monthly for eligible residential care residents."
+    },
+    {
+      "name": "Homestead Exemption for Seniors",
+      "what_it_does": "Offers a $25,000 reduction on the assessed value of homestead property for tax purposes, with an additional $25,000 exemption on values between $50,000-$75,000 (excluding school taxes). Applies to all ad valorem tax categories, helping lower property tax burdens.[1]",
+      "who_its_for": "Florida homeowners aged 65+ meeting age, income, and residency criteria.",
+      "whats_unique": "Florida-specific two-tier structure with enhanced exemptions beyond standard federal programs, including up to $25,722 additional for 2025; leverages state's low 0.83% property tax rate.[1]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Up to $50,000+ in assessed value reduction, maximum additional $25,722 for 2025."
+    },
+    {
+      "name": "Florida Discount Drug Card Program",
+      "what_it_does": "Delivers additional cost reductions on prescription medications for seniors. Complements federal programs like Medicare Part D with state-issued discount cards.[1][2]",
+      "who_its_for": "Florida residents, including seniors, with no income restrictions mentioned.",
+      "whats_unique": "State-specific free Rx card program offering discounts beyond national options like Extra Help.[1][2]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Discounts on prescriptions; exact % varies by pharmacy and drug."
+    },
+    {
+      "name": "Alzheimer's Disease Initiative (ADI)",
+      "what_it_does": "Provides specialized support for individuals with Alzheimer's and their families, including respite services and support groups. Offered through local agencies to address disease-specific needs.[3]",
+      "who_its_for": "Florida seniors with Alzheimer's and their caregivers, via local Aging Resource Centers.",
+      "whats_unique": "Florida state initiative with targeted Alzheimer's programs beyond federal National Family Caregiver Support.[3]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Respite care, support groups; value varies by services accessed."
+    },
+    {
+      "name": "RELIEF Program (Respite for Elders Living in Everyday Families)",
+      "what_it_does": "Offers temporary care services to provide breaks for family caregivers of seniors. Helps sustain family-based care through short-term relief.[3]",
+      "who_its_for": "Family caregivers of Florida elders, available regardless of income via local agencies.",
+      "whats_unique": "Florida-specific respite program focused on everyday family settings, supplementing national caregiver supports.[3]",
+      "official_url": "https://elderaffairs.org/programs-and-services/",
+      "benefit_value": "Temporary respite services; duration and cost relief varies."
     }
   ]
 }

@@ -1,59 +1,31 @@
 {
   "state": "MS",
   "stateName": "Mississippi",
-  "classifiedAt": "2026-04-09T08:54:39.624Z",
-  "total": 12,
+  "classifiedAt": "2026-04-09T09:36:11.072Z",
+  "total": 5,
   "typeSummary": {
-    "benefit": 8,
-    "resource": 3,
-    "navigator": 1
+    "benefit": 2,
+    "resource": 2,
+    "employment": 1
   },
   "scopeSummary": {
-    "federal": 7,
-    "state": 3,
-    "local": 2
+    "state": 2,
+    "federal": 3
   },
   "complexitySummary": {
-    "medium": 3,
-    "deep": 5,
-    "simple": 4
+    "deep": 3,
+    "simple": 2
   },
   "programs": [
     {
-      "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "unknown",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Mississippi Elderly and Disabled (E&D) Waiver",
+      "name": "Mississippi Medicaid Elderly and Disabled Waiver",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Planning and Development Districts (e.g., SMPDD, NCPDD); Office of Long Term Care[2][4][7]",
+            "name": "Administered by Mississippi Division of Medicaid; providers statewide per CMS-approved waiver[2]",
             "type": "service-area"
           }
         ]
@@ -78,127 +50,14 @@
       }
     },
     {
-      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Not available in MS",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": false
-      }
-    },
-    {
-      "name": "Mississippi SNAP (Supplemental Nutrition Assistance Program)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Mississippi LIHEAP (Low-Income Home Energy Assistance Program)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local Community Action Agencies (CAAs) in each county.[1]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Mississippi Weatherization Assistance Program (WAP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local Community Action Agencies (CAAs); find via MDHS or Access MS.[1][5]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Mississippi SHIP (State Health Insurance Assistance Program)",
+      "name": "Mississippi State Health Insurance Assistance Program (SHIP)",
       "programType": "resource",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Main office: Mississippi Department of Human Services, 750 North State Street, Jackson MS 39202[4]",
+            "name": "Mississippi Department of Human Services, 750 North State Street, Jackson MS 39202 (central office); local sites via community providers[2][5]",
             "type": "service-area"
           }
         ]
@@ -219,106 +78,14 @@
       }
     },
     {
-      "name": "Mississippi Meals on Wheels (via Aging and Disability Resource Centers)",
-      "programType": "navigator",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local Area Agencies on Aging/ADRCs statewide; example: Mississippi Methodist Senior Services, 2800 West Main St., Tupelo, MS 38801 for Lee County[4][6]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "provider-list"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Mississippi Family Caregiver Support Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Area Agencies on Aging (AAA), local community providers; contact via MAC Center[6].",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Mississippi Legal Services (Senior Legal Helpline)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "North Mississippi Rural Legal Services (NMRLS): north MS, nmrls.com",
-            "type": "service-area"
-          },
-          {
-            "name": "Mississippi Center for Legal Services (MCLSC): central/southern MS (43 counties), mscenterforlegalservices.org",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": false
-      }
-    },
-    {
-      "name": "Mississippi Long-Term Care Ombudsman Program",
+      "name": "State Long Term Care Ombudsman Program",
       "programType": "resource",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Delivered via Division of Aging and Adult Services (DAAS) contracts with AAAs; central office in Jackson.",
+            "name": "Operated by Mississippi Department of Human Services, Division of Aging & Adult Services (DAAS) via AAAs across the state; main office in Jackson.",
             "type": "service-area"
           }
         ]
@@ -334,7 +101,7 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
@@ -346,7 +113,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local long-term care providers; contact via mississippiaccesstocare.org",
+            "name": "Local Aging and Disability Resource Centers via mississippiaccesstocare.org[9]",
             "type": "service-area"
           }
         ]
@@ -368,6 +135,51 @@
         "hasFunctionalReq": true,
         "hasMultipleTiers": false,
         "isStatewide": true
+      }
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "programType": "employment",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "City of Jackson Senior Services Division (Hinds, Rankin, Scott, Warren Counties): Kimberly Moore, (601) 960-0419, kimberlym@city.jackson.ms.us",
+            "type": "service-area"
+          },
+          {
+            "name": "Copiah-Lincoln Community College (Adams, Amite, Claiborne, Copiah, Franklin, Jefferson, Lawrence, Lincoln, Pike, Simpson, Smith, Walthall, Wilkinson Counties): Brenda Orr, (601) 643-8671, brenda.orr@colin.edu",
+            "type": "service-area"
+          },
+          {
+            "name": "East Central Planning and Development District (Clarke, Jasper, Kemper, Lauderdale, Neshoba Counties): Rosie Coleman, (601) 683-2007, rjcoleman@ecpdd.org",
+            "type": "service-area"
+          },
+          {
+            "name": "Southern Mississippi Planning and Development District (Forrest, George, Greene, Hancock, Harrison, Jackson, Jones, Lamar, Marion, Pearl River, Perry, Stone, Wayne Counties): Jan Hale, (228) 314-1433, jhale@smpdd.com",
+            "type": "service-area"
+          },
+          {
+            "name": "Southern Foundation for Homeless Children, Inc. (Pearl River, Jones, Harrison, Jefferson Davis, Forrest, Covington Counties)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "documents"
+      ],
+      "signals": {
+        "benefitType": "employment",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": false
       }
     }
   ]

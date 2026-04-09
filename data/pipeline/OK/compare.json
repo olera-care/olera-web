@@ -1,0 +1,544 @@
+{
+  "state": "OK",
+  "stateName": "Oklahoma",
+  "comparedAt": "2026-04-09T09:39:48.379Z",
+  "total": 12,
+  "newPrograms": 7,
+  "withDiffs": 5,
+  "withNovelFields": 5,
+  "benefitTypes": {
+    "service": 5,
+    "financial": 4,
+    "employment": 1,
+    "advocacy": 1,
+    "in_kind": 1
+  },
+  "variationPatterns": {
+    "priority_tier": 5,
+    "region": 1,
+    "household_size": 1,
+    "household_size|priority_tier": 1,
+    "program_variant": 1,
+    "legal_issue_type": 1,
+    "not_applicable": 1,
+    "fixed": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 5,
+      "programs": [
+        "ADvantage Waiver Program",
+        "Medicare Savings Program",
+        "SNAP",
+        "LIHEAP",
+        "Long-term care ombudsman"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 5,
+      "programs": [
+        "ADvantage Waiver Program",
+        "Medicare Savings Program",
+        "SNAP",
+        "LIHEAP",
+        "Long-term care ombudsman"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 3,
+      "programs": [
+        "ADvantage Waiver Program",
+        "Medicare Savings Program",
+        "LIHEAP"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 5,
+      "programs": [
+        "ADvantage Waiver Program",
+        "Medicare Savings Program",
+        "SNAP",
+        "LIHEAP",
+        "Long-term care ombudsman"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "SNAP"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "ADvantage Waiver Program",
+      "isNew": false,
+      "existingId": "advantage-waiver-program",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "65 or older, or 19-64 with physical disability, developmental disability (without intellectual disability or cognitive impairment), or clinically documented progressive degenerative disease process",
+          "source": "https://oklahoma.gov/okdhs/services/cap/advantage-services.html"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$2901",
+          "found": "$2,199",
+          "source": "https://oklahoma.gov/okdhs/services/cap/advantage-services.html"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Home and community-based services as alternative to nursing facility placement, including assistance to remain safely at home and active in community; specific services determined by individualized treatment plan via case manager (e.g., personal care, homemaker, therapies; requires at least monthly services to avoid institutionalization); promotes individual choice and self-direction",
+          "source": "https://oklahoma.gov/okdhs/services/cap/advantage-services.html"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://oklahoma.gov/okdhs/services/cap/advantage-services.html"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Resource limit of $2,000 (standard Medicaid countable resources); home equity interest no greater than $730,000 in 2025 if living in home or intending to return (home exempt if spouse, minor child under 21, or permanently disabled/blind child lives there; subject to potential Medicaid Estate Recovery)",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered via local county OKDHS offices (potential variation in wait times, providers, or processing by county)",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Yes, statewide waitlist if all waiver slots filled (limited number authorized by CMS); name placed on waiting list until slot opens",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income, resources/assets (to determine Medicaid financial eligibility)",
+            "Proof of residency, citizenship/legal status",
+            "Medical documentation for disability, NFLOC needs (e.g., ADLs/IADLs deficits)",
+            "Home equity details if applicable"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Limited statewide waiver slots create waitlist; eligibility combines Medicaid financial test with NFLOC assessment; services individualized by case manager based on targeted groups (frail elderly 65+, physically disabled 19-64, certain developmentally disabled 19-64); county OKDHS offices handle regional assessments",
+      "gotchas": [
+        "Limited waiver slots lead to waitlist; not guaranteed even if eligible",
+        "Must need NFLOC and at least monthly services to avoid institutionalization; dementia alone insufficient without NFLOC",
+        "Developmentally disabled applicants 19-64 cannot have intellectual disability or cognitive impairment",
+        "Home equity limit ($730,000 in 2025) and potential Estate Recovery on home",
+        "Disabled participants can continue post-65, but slots are capped",
+        "Annual redeterminations required",
+        "Not for sole purpose of gaining Medicaid eligibility"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://oklahoma.gov/okdhs/services/cap/advantage-services.html"
+    },
+    {
+      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Limited to few regional providers/centers; financial test via SoonerCare ADvantage (income/asset limits by household); nursing level via UCAT; provider-exclusive services.",
+      "gotchas": [
+        "Not statewide—must live in specific provider service area; check ZIP code first.",
+        "Sole provider lock-in: Cannot use other Medicare/Medicaid providers except emergencies; financial liability for unauthorized services.",
+        "Financial eligibility mirrors SoonerCare ADvantage (income/asset tests apply, unlike some national PACE claims of no financial criteria).",
+        "Nursing home level but community-safe: IDT denial if unsafe, with referral to alternatives.",
+        "Private pay expensive ($4k+/month) if not Medicaid-eligible.",
+        "New UCAT needed for program switches (e.g., ADvantage to PACE if >6 months old)."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://oklahoma.gov/ohca/policies-and-rules/xpolicy/medical-assistance-for-adults-and-children-eligibility/programs-of-all-inclusive-care-for-the-elderly-pace-/eligibility-criteria.html (OHCA OAC 317:35-18-5)"
+    },
+    {
+      "name": "Medicare Savings Program",
+      "isNew": false,
+      "existingId": "soonercare-medicare-savings-programs",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1305",
+          "found": "$1,215",
+          "source": "https://oklahoma.gov/okdhs/services/health/help.html"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "QMB: Pays Medicare Part A premiums (if applicable), Part B premiums/deductible, Part A/B coinsurance/deductibles. SLMB: Part B premiums. QI: Part B premiums. QDWI: Part A premiums. Also provides Extra Help for drugs (QI: ≤$12.65 per drug in 2026). Monthly savings example: ~$185[1][3][5][6][7].",
+          "source": "https://oklahoma.gov/okdhs/services/health/help.html"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://oklahoma.gov/okdhs/services/health/help.html"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Resources limited by tier (e.g., ~$2,000 individual/$3,000 couple for some; up to $9,660 individual/$14,470 couple in examples). Counts: checking/savings, CDs, life insurance cash value, stocks, bonds, real estate. Exempt: home, furnishings, car, pre-paid funeral trusts up to $10,000. Worker reviews all resources. Spousal rules allow non-applicant spouse up to $148,620 if one applies[2][6][7].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered locally; potential variation in processing by OKDHS center location, but no specific differences noted[6].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI may have waitlist or cap due to federal funding; apply even if unsure[3][7].",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of Medicare Parts A/B enrollment/eligibility.",
+            "Income proof (Social Security statements, pay stubs; add back Part B premium deducted from SS).",
+            "Resource documentation (bank statements, asset lists).",
+            "ID and residency proof."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tiered by income (QMB lowest, QI highest up to 135% FPL); state-specific limits in OKDHS Appendix C-1 Schedules VI-VII.a; resource exemptions detailed; employment income deduction; spousal impoverishment protections.",
+      "gotchas": [
+        "State determines tier upon application; you may qualify for multiple/higher than expected[3][7].",
+        "QI requires annual reapplication, first-come/first-served with prior-year priority; funding caps possible[3].",
+        "Income calculation: Add back Part B premium from SS check; excludes >50% employment income[6].",
+        "Assets strictly reviewed; exempt items like home/car must be verified[6].",
+        "Limits update yearly (April); check Appendix C-1 for current[6].",
+        "Not full Medicaid; compares to LTSS programs with different limits (e.g., $688K home equity cap)[2]."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://oklahoma.gov/okdhs/services/health/help.html"
+    },
+    {
+      "name": "SNAP",
+      "isNew": false,
+      "existingId": "snap-food-benefits",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://oklahoma.gov/okdhs/services/snap.html"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$1980",
+          "found": "$1,696",
+          "source": "https://oklahoma.gov/okdhs/services/snap.html"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly EBT card benefits for food purchases. Amount based on household size, net income (e.g., example 2-person elderly/disabled: $415 full month after deductions). Minimum $24 for some. Certification: 12 months general; 24 months for 60+ or disabled with no earned income[1][4][6].",
+          "source": "https://oklahoma.gov/okdhs/services/snap.html"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://oklahoma.gov/okdhs/services/snap.html"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Countable resources limit: $2,750 general; $4,250 if household has member 60+ or disabled. Countable: cash, bank accounts. Exempt: home and land it sits on, most retirement/pension plans (withdrawals count as income)[1].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "For households without elderly (60+) or disabled members: Gross monthly income limit is 130% of FPL (Oct 1, 2025-Sep 30, 2026): 1: $1,696; 2: $2,292; 3: $2,888; 4: $3,483; 5: $4,079; 6: $4,675; 7: $5,271; 8: $5,867; +$596 per additional. Net income: 100% FPL. For households with elderly (60+) or disabled: Gross limit 165% FPL if elderly/disabled cannot purchase/prepare meals separately due to permanent disability; otherwise, standard 130% gross and 100% net FPL. Households with 60+ or disabled subject only to 100% net FPL in some cases[1][3][6].",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Apply via local Human Services Centers; no specific wait time or provider differences noted[2].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documentation required to start application",
+            "SSN for household members",
+            "Income verification, deductions details (caseworker advises)",
+            "Proof of disability if claiming special rules"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Elderly/disabled special rules (higher gross/asset limits, exemptions from work reqs, longer certification); income tables scale by household size; statewide via local centers",
+      "gotchas": [
+        "Elderly/disabled households have special rules: higher gross (165% if cannot prepare meals), asset limit $4,250, longer certification (24 months no earned income), but still need net 100% FPL",
+        "Work requirements exempt for 60+, but apply to younger able-bodied adults in household",
+        "Home/land/pensions exempt from assets, but withdrawals count as income",
+        "Must provide SSNs or denied",
+        "Benefits calculated after deductions (e.g., 30% of net from max allotment)[1][4][6]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://oklahoma.gov/okdhs/services/snap.html"
+    },
+    {
+      "name": "LIHEAP",
+      "isNew": false,
+      "existingId": "low-income-home-energy-assistance-program-liheap",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2490",
+          "found": "$240",
+          "source": "https://oklahoma.gov/okdhs/services/liheap/utilityservicesliheapmain.html"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "One-time payment to utility: Regular Heating max $500/min $40; Cooling max $650/min $150; Crisis max $750. Varies by income, size, fuel, dwelling. Payments to primary heating/cooling source.[1]",
+          "source": "https://oklahoma.gov/okdhs/services/liheap/utilityservicesliheapmain.html"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://oklahoma.gov/okdhs/services/liheap/utilityservicesliheapmain.html"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Available resources considered, but no specific dollar limits or exemptions detailed in sources.[5]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Tribal providers (e.g., Choctaw) have separate apps/income rules but no duplicate funding; no other regional differences noted.[3][4]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Higher call volumes during enrollment; apply online for faster service; funding limited (subject to federal funds).[4][5]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "30 days proof of income for all under same roof (if no open benefits case).[7]",
+            "Utility bill (full info as appears).[4][7]",
+            "For crisis: Health professional note if life-threatening.[2]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Seasonal components (heating, cooling, crisis); household defined by utility meter; Native/tribal dual-path with no duplicate; income with earned deduction; benefits scaled by income/size/fuel",
+      "gotchas": [
+        "Only one payment per household per program component per year.[2][4]",
+        "Everyone under same utility meter counts as household and must apply together.[2]",
+        "Seasonal: Heating ~Dec-Feb; Cooling summer; Crisis/emergency year-round only for life-threatening.[1][2]",
+        "Tribal vs DHS: Cannot receive from both same year.[3][4][5]",
+        "Pre-authorized if receiving other OKHS benefits (check notifications).[4]",
+        "Funding not guaranteed; subject to federal availability.[5]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier",
+      "officialSource": "https://oklahoma.gov/okdhs/services/liheap/utilityservicesliheapmain.html"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized via 77-county local providers with priority tiers; income at 200% FPL; no statewide application portal—agency-specific.",
+      "gotchas": [
+        "Must contact local agency (not centralized); long waitlists common.",
+        "Priority-based selection, not guaranteed service.",
+        "Utility programs have separate, stricter criteria (e.g., income caps, home size/age).",
+        "Renters need landlord permission.[1][2][3][4][6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.okcommerce.gov/weatherization/"
+    },
+    {
+      "name": "Home Delivered Meals (under Title III)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered via  local AAAs with priority tiers (e.g., poverty level); no income/asset test for eligibility but used for prioritization; varies by provider service area and local policies.",
+      "gotchas": [
+        "Homebound strictly defined (needs assistance to leave; not eligible if can drive, use taxi, or household member can prepare meals).[1][4]",
+        "No automatic entitlement; AAAs set additional criteria and priorities (e.g., economic need).[1][6]",
+        "Separate from Medicaid ADvantage program (requires OAA Title III contract).[2][5]",
+        "Voluntary contributions requested but cannot be required.[3]",
+        "May be denied for health/safety risks to providers.[4]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.law.cornell.edu/regulations/oklahoma/OAC-340-105-10-83"
+    },
+    {
+      "name": "Respite Voucher Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Primarily for developmental disabilities caregivers, not general elderly care; multiple overlapping voucher programs with variant incomes ($45k-$90k), exclusions, and funders (DDSD, ACL AoA via Sooner SUCCESS); funding availability caps access; chronological processing.[1][2][3][5][7]",
+      "gotchas": [
+        "Strict exclusions: Cannot receive other state/federal respite, DDS waiver services, or >20 hours/week state-funded services.",
+        "Caregiver must provide at least 8 hours/day care and reside with recipient.",
+        "Funding-limited; applications chronological, incomplete returned.",
+        "Multiple similar programs (e.g., Lifespan Respite Grant, post-adoption, OAA NFCSP) with different eligibility—income $75k vs $90k, age groups.",
+        "Not for elderly without developmental disability; focus on developmental disabilities, not general aging.[1][2][3][5]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "program_variant",
+      "officialSource": "https://oklahoma.gov/okdhs (primary OKDHS site; specific program pages via Sooner SUCCESS at https://soonersuccess.ouhsc.edu/Services-Programs/Respite/OKDHS-DDS-Respite-Voucher-Program).[5]"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Regionally administered via sub-contractors in specific counties with limited slots; remaining counties use national grantees; income tied to federal poverty levels (125%) without fixed table here; priority-based access",
+      "gotchas": [
+        "Not permanent employment—training bridge to unsubsidized jobs only[3][4]",
+        "Limited slots by county; not available everywhere[2][3]",
+        "Income at or below 125% poverty (check current levels as they update yearly)[4][5]",
+        "Must be unemployed and seeking workforce entry; proof required upfront[1]",
+        "Priority tiers may delay non-priority applicants[4]"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://oklahoma.gov/okdhs/services/aging/scommsep.html"
+    },
+    {
+      "name": "Legal Aid for Seniors in Oklahoma",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Oklahoma offers a two-tier senior legal aid system: OK-SPLASH provides universal access (no income test) for seniors 60+ seeking legal information and brief advice, while Legal Aid Services of Oklahoma (LASO) provides full legal representation for low-income seniors meeting 125–200% of poverty guidelines. Income eligibility thresholds vary by household size but specific dollar amounts are not published in these sources—applicants must contact intake to learn their threshold. Asset limits are individualized. The program is statewide but coordinates through Area Agencies on Aging at the local level.",
+      "gotchas": [
+        "Two separate programs exist for seniors: OK-SPLASH (free legal advice/counseling for 60+, no income test) and general LASO services (civil legal representation, income-based eligibility)[1][3][5]. Families should clarify which program fits their needs.",
+        "LASO does not accept medical malpractice, personal injury, or 'fee-generating' cases (cases a private attorney could take on contingency)[1].",
+        "Income limits can extend to 200% of poverty guidelines with 'certain other eligibility factors,' but these factors are not detailed in available sources—families must ask during intake[1].",
+        "Assets are evaluated case-by-case with no published exemption schedule, creating uncertainty about what will disqualify applicants[4].",
+        "Phone intake is limited to Mon–Thurs, 9 a.m. to 4 p.m.[1][6].",
+        "Processing time and waitlist status are not publicly disclosed, so families should ask directly when applying.",
+        "OK-SPLASH provides legal information and advice but may refer complex cases to full legal representation through LASO, which has income restrictions[5]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "legal_issue_type",
+      "officialSource": "https://legalaidok.org/programs/senior-legal-help/"
+    },
+    {
+      "name": "Long-term care ombudsman",
+      "isNew": false,
+      "existingId": "long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Receives and investigates complaints from residents, families, or friends; mediates resolutions with facility staff; explores problems and makes recommendations for corrective action with resident consent; provides information on facilities, resident rights, laws/regulations, advance directives, transfers/discharges; improves quality of life and care; no fixed dollar amounts or hours—services provided as needed per case.",
+          "source": "https://oklahoma.gov/oag/about/divisions/ltco.html"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://oklahoma.gov/oag/about/divisions/ltco.html"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests apply.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Program operates through local Area Agencies on Aging (e.g., INCOG in Tulsa/Creek/Osage Counties for regional supervision and volunteers); volunteer availability and supervisors may vary by region, but core services uniform.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Resident consent (written or oral, documented by ombudsman) for investigations/disclosures; optional: details of complaint, facility name/address, resident info."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income/asset test; consent-driven advocacy only for long-term care facility residents; volunteer-supported via regional Area Agencies on Aging; distinct from health department enforcement or Medicaid programs.",
+      "gotchas": [
+        "Requires resident consent (written/oral) for file access or investigations—cannot act without it unless court-ordered.",
+        "Not a regulatory body or substitute for Oklahoma State Department of Health complaints (1-800-747-8419 for licensing violations).",
+        "Staff/volunteers must be free of conflicts (e.g., not employed by facilities, Medicaid eligibility roles, or protective services).",
+        "Families can contact pre-admission for facility info but services focus on current residents.",
+        "Not financial aid or direct care—purely advocacy and mediation."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://oklahoma.gov/oag/about/divisions/ltco.html"
+    },
+    {
+      "name": "Senior Farmers' Market Nutrition Program (SFMNP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This program's structure is complex due to tribal administration: eligibility criteria and application processes vary depending on whether the applicant is applying through Choctaw Nation, Chickasaw Nation, or the general Oklahoma Human Services program. Age requirements differ for Native Americans (55) vs. non-Native Americans (60). Income limits are tied to federal poverty guidelines but specific dollar amounts are not provided in available documentation. The program operates seasonally (May–October or June–October) and has an annual application window (through September 30). Benefits are fixed at $50 per participant regardless of household size or income level.",
+      "gotchas": [
+        "Application window is limited: Applications accepted only through September 30 each year, or until funding is depleted[1]",
+        "Benefits are seasonal: EBT card benefits can only be used May through October (or June through October in some years)[1][3]",
+        "Tribal vs. non-tribal eligibility differs: Native Americans can qualify at age 55, but non-Native Americans must be 60 unless living in a Native American household[1][2]",
+        "Program administration is fragmented: Different tribal nations administer the program in their service areas; eligibility and application processes may vary slightly by region[1][3]",
+        "Income verification required: Applicants must provide recent financial documentation; eligibility is not automatic based on age alone[1]",
+        "Limited to specific foods: Card can only purchase locally grown produce, unprocessed honey, and fresh-cut herbs—not all food items[7]",
+        "Funding is not guaranteed: Program states applications accepted 'until funding is depleted,' suggesting potential year-to-year availability issues[1]"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "fixed",
+      "officialSource": "oksfmnp.org[4]; Oklahoma Human Services; individual tribal nation websites (Choctaw Nation, Chickasaw Nation)"
+    }
+  ]
+}

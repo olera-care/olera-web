@@ -1,7 +1,7 @@
 # Delaware Benefits Exploration Report
 
 > Generated 2026-04-09 by benefits-pipeline.js
-> Cost: $0.105 (21 calls, 1.1m)
+> Cost: $0.110 (22 calls, 1.7m)
 
 ---
 
@@ -9,11 +9,11 @@
 
 | Metric | Value |
 |--------|-------|
-| Programs discovered | 19 |
-| Programs deep-dived | 18 |
-| New (not in our data) | 15 |
-| Data discrepancies | 3 |
-| Fields our model can't capture | 3 |
+| Programs discovered | 20 |
+| Programs deep-dived | 17 |
+| New (not in our data) | 13 |
+| Data discrepancies | 4 |
+| Fields our model can't capture | 4 |
 
 ## Data Model Gaps
 
@@ -21,195 +21,193 @@ These data fields appeared across programs but don't exist in our current model:
 
 | Field | Programs | Note |
 |-------|----------|------|
-| `asset_limits` | 3 | Our model has no asset limit fields |
-| `waitlist` | 3 | Has waitlist info — our model has no wait time field |
-| `documents_required` | 3 | Has document checklist — our model doesn't store per-program documents |
-| `regional_variations` | 1 | Program varies by region — our model doesn't capture this |
+| `asset_limits` | 4 | Our model has no asset limit fields |
+| `waitlist` | 2 | Has waitlist info — our model has no wait time field |
+| `documents_required` | 4 | Has document checklist — our model doesn't store per-program documents |
+| `regional_variations` | 3 | Program varies by region — our model doesn't capture this |
 
 ## Program Types
 
-- **service**: 7 programs
-- **unknown**: 2 programs
-- **financial**: 5 programs
-- **in_kind**: 1 programs
-- **employment**: 2 programs
-- **advocacy|service**: 1 programs
+- **service**: 6 programs
+- **financial**: 6 programs
+- **service|advocacy**: 1 programs
+- **in_kind**: 2 programs
+- **employment**: 1 programs
+- **advocacy**: 1 programs
 
 ## Data Discrepancies
 
 Our data differs from what official sources say:
 
-### Diamond State Health Plan Plus (DSHP Plus)
-
-- **benefit_value**: Ours says `$1,000 – $5,000/year` → Source says `Comprehensive medical and long-term services including: medical benefits (doctor visits, lab services, x-rays, hospitalization), dental, behavioral health, nursing facility care, and Home and Community Based Services (HCBS)[1]. Specific HCBS services include: case management (all participants), day habilitation, home-delivered meals (up to two per day as of 2022 amendment)[7], minor home modifications (wheelchair ramps, handrails, grab bars), nutritional supports for HIV/AIDS, personal care/attendant care, personal emergency response systems, respite care (in-home and out-of-home), specialized medical equipment/supplies, support for participant-directed care, and transitional services from nursing homes to community[1]` ([source](https://dhss.delaware.gov/dhss/dmma/medicaid.html))
-- **source_url**: Ours says `MISSING` → Source says `https://dhss.delaware.gov/dhss/dmma/medicaid.html`
-
 ### Delaware Medicare Savings Programs (QMB, SLMB, QI)
 
-- **source_url**: Ours says `MISSING` → Source says `Delaware Department of Insurance (insurance.delaware.gov) and Medicare.gov`
+- **income_limit**: Ours says `$994` → Source says `$1,350` ([source](https://www.medicare.gov/basics/costs/help/medicare-savings-programs))
+- **benefit_value**: Ours says `$2,000 – $8,000/year` → Source says `QMB: Pays Medicare Part A premiums (if applicable), Part B premiums, deductibles, coinsurance, and copayments for Medicare-covered services and items. Also qualifies for Extra Help with prescription drugs (max $12.65 per drug in 2026)[5]. SLMB: Pays Medicare Part B premiums only; does not cover deductibles, coinsurance, or copayments (potential savings over $1,000/year)[1][4]. QI: Pays all or part of Medicare Part B premiums only; does not cover deductibles, coinsurance, or copayments[1][4]. All three programs also qualify beneficiaries for Extra Help with Medicare Part D prescription drug costs[2][5].` ([source](https://www.medicare.gov/basics/costs/help/medicare-savings-programs))
+- **source_url**: Ours says `MISSING` → Source says `https://www.medicare.gov/basics/costs/help/medicare-savings-programs`
 
-### Delaware Energy Assistance Program (DEAP)
+### Delaware LIHEAP
 
-- **benefit_value**: Ours says `$500 – $2,000/year` → Source says `Varies by household size, income, and heating source. Supplemental payment, not designed to cover all heating costs.` ([source](https://www.dhss.delaware.gov/dhss/dss/liheap.html))
+- **income_limit**: Ours says `$2820` → Source says `$3,278` ([source](https://www.dhss.delaware.gov/dhss/dss/liheap.html))
+- **benefit_value**: Ours says `$500 – $2,000/year` → Source says `Regular heating: $100 min to $2,561 max; cooling: $1 min to $1,000 max; crisis: up to $10,000 max. Paid as one-time grant to utility or household. Average ~$553/year. Includes winter heating (Oct-Mar), year-round crisis aid, summer cooling flat benefit. Weatherization separate (insulation, repairs)[1][4][6].` ([source](https://www.dhss.delaware.gov/dhss/dss/liheap.html))
 - **source_url**: Ours says `MISSING` → Source says `https://www.dhss.delaware.gov/dhss/dss/liheap.html`
+
+### Delaware Family Caregiver Support Program
+
+- **benefit_value**: Ours says `$2,000 – $8,000/year` → Source says `Respite care, caregiver training, counseling, support groups, supplemental services (e.g., assistive devices, home modifications). Not direct payment to caregivers; focuses on support to relieve family caregivers.` ([source](https://dhss.delaware.gov/dsaapd/faq_attendant2.html))
+- **source_url**: Ours says `MISSING` → Source says `https://dhss.delaware.gov/dsaapd/faq_attendant2.html`
+
+### Delaware Long-Term Care Ombudsman Program
+
+- **benefit_value**: Ours says `$10,000 – $30,000/year` → Source says `Investigate and resolve complaints about care, rights violations, abuse/neglect (referred to specialists), mistreatment, or financial exploitation; inform residents/families of rights under federal/state law; provide information/referrals; conduct facility visits and annual assessments; advocate for quality of life improvements; supervised by paid staff and volunteers who visit 1-2 hours per month[2][4][5][6]` ([source](https://dhss.delaware.gov/dhss (primary state DHSS site)[2]))
+- **source_url**: Ours says `MISSING` → Source says `https://dhss.delaware.gov/dhss (primary state DHSS site)[2]`
 
 ## New Programs (Not in Our Data)
 
-- **Delaware Medicaid for Elderly and Disabled** — service ([source](https://dhss.delaware.gov/dmma/))
-  - Shape notes: Multiple subprograms (ABD basic vs LTC/NFLOC vs waivers/PACE); income/assets program-specific with spousal deeming; county phone variation; NFLOC tiers benefits
-- **Delaware PACE Program** — service ([source](https://www.law.cornell.edu/regulations/delaware/16-Del-Admin-Code-SS-20000-20775))
-  - Shape notes: Limited to specific provider service areas (not statewide); no direct income/asset test for enrollment but tied to Medicaid for free coverage; requires state NFLOC certification and community safety assessment.
-- **Delaware Food First Program (SNAP)** — financial ([source](https://www.dhss.delaware.gov/dss/foodstamps.html))
-  - Shape notes: Elderly/disabled households: no gross income test, no asset limits, enhanced deductions (medical/shelter); broad categorical eligibility at 200% FPL gross; benefits scale by household size/income; expedited for very low income/resources; 12-month certification for seniors.
-- **Delaware Weatherization Assistance Program** — in_kind ([source](https://dnrec.delaware.gov/climate-coastal-energy/sustainable-communities/weatherization/))
-  - Shape notes: Benefits are fixed in-kind services (not tiered by income), but priority for waitlist placement varies by household characteristics (age, disabilities, children, need level). Income limits scale by household size with a formula for households over 8 persons. Program is statewide with no regional variations in eligibility or services. The key structural feature is the waiting list — eligibility does not guarantee service in any given year.
-- **Delaware Senior Medicare Patrol (SMP)** — service ([source](https://dhss.delaware.gov/dsaapd (Delaware DHSS DSAAPD administers); national https://smpresource.org[2][7][9]))
-  - Shape notes: no income/asset/age test for beneficiaries; volunteer-based education/advocacy service only; no enrollment or waitlist—immediate access via contact; integrates with SHIP counseling[2][3][7]
-- **Delaware Home Delivered Meals (Multiple Programs)** — unknown
-  - Shape notes: Delaware does not have a single unified 'Home Delivered Meals' program. Instead, there are at least 5 separate programs with different eligibility criteria, age groups, benefits, and application processes. Families must: (1) determine which program(s) their loved one might qualify for based on age, income, Medicaid status, and specific circumstances; (2) contact the appropriate provider or health plan; (3) understand that Title III-C (Older Americans Act) is the primary program for seniors 60+, but Medicaid-enrolled individuals may have additional options through their health plan. The search results do not provide complete application procedures, processing times, or waitlist information for most programs.
-- **CARE Delaware Caregiver Support Program** — service ([source](https://www.dhss.delaware.gov/dsaapd))
-  - Shape notes: Eligibility requirements vary by program/service; no fixed income/asset tables—requires direct contact; statewide but assessment-driven; linked to DSAAPD for physically/mentally impaired adults 18+[3]
-- **Delaware Senior Community Service Employment Program (SCSEP)** — employment ([source](https://laborfiles.delaware.gov/main/det/one-stop/FS-3_SenEmp.pdf (DE Labor SCSEP fact sheet); https://www.nationalable.org/wp-content/uploads/2020/02/SCSEP_DelawareHandbook_013120.pdf (DE handbook)[1][3]))
-  - Shape notes: Operated by grantees like National Able; priority tiers for enrollment; funding-dependent slots; no fixed income table or asset test in sources, requires provider contact for current 125% FPL figures
-- **Delaware Long Term Care Ombudsman Program** — advocacy|service ([source](https://dhss.delaware.gov/dsaapd (Division of Services for Aging and Adults with Physical Disabilities)[4]))
-  - Shape notes: This is a statewide advocacy and complaint resolution program, not an eligibility-based benefit program. There are no income, asset, or age limits for residents to receive ombudsman services. Families access the program by contacting the state office directly by phone or website; there is no formal application. The program operates through trained volunteer ombudsmen assigned to specific facilities. Key distinction: this program advocates FOR residents' rights rather than providing direct services or financial assistance.
-- **Delaware Prescription Assistance Program (DPAP)** — financial ([source](https://dhss.delaware.gov/dss/dpap.html (inferred from application PDF at dhss.delaware.gov/wp-content/uploads/sites/11/dss/pdf/dpapapplication.pdf); regulations at regulations.delaware.gov/AdminCode/title16/30000))
-  - Shape notes: Income test at 200% FPL with alternative Rx cost threshold; no asset test; Medicare Part D mandatory bridge required; fixed annual cap per person with co-pay; statewide but centralized mail processing in New Castle
-- **Nursing Home Transition Program** — service ([source](https://dhss.delaware.gov/dhss/dmma/index.shtml (DMMA/DSHP-Plus); program referenced in https://www.delawarefirsthealth.com/content/dam/centene/delaware/Policies/providernotification/DE.CP.MP.02_05.24.pdf))
-  - Shape notes: Tied to DSHP-Plus Medicaid LTSS; 60-day institutional stay mandatory; $2,500 transition cap; no standalone income table but uses Medicaid LTC thresholds.
-- **Wilmington Senior Tax Assistance Program** — financial ([source](https://www.wilmingtonde.gov/residents/senior-citizen-exemptions-and-programs))
-  - Shape notes: This is a crisis-intervention program, not a routine tax relief program. It requires proof of imminent foreclosure and delinquent bills. The high income limit ($93,725) combined with the foreclosure requirement distinguishes it from Delaware's other senior tax exemption programs. The $3,000 maximum grant is a one-time assistance amount, not an ongoing annual benefit. Program availability may depend on funding; no information on current enrollment capacity or waitlists is available.
-- **SCAT – Senior Citizens Affordable Taxi** — service ([source](http://www.dartfirststate.com/scat/))
-  - Shape notes: No income or asset test; eligibility purely age 65+ or certified disability preventing driving; ticket-based discount system requiring in-person ID issuance at 2 statewide offices; exclusions for specific health risks
-- **Delaware Foster Grandparent Program** — employment ([source](https://delaware211.org/iresource/state-office-of-volunteerism-foster-grandparent-program-sussex-county/))
-  - Shape notes: Federal AmeriCorps Seniors program run statewide via DHSS/Division of State Service Centers; income eligibility only for stipend (volunteering open broader); county-level operations with Sussex example; no exact income tables or forms in sources
-- **Over-60 Tuition Benefit** — financial ([source](https://delcode.delaware.gov/title14/c034/sc10/index.html (enabling law); https://www.continuingstudies.udel.edu/60-tuition-free-degree/ (UD); https://dtcc.smartcatalogiq.com/en/current/catalog/financial/senior-citizen-tuition-policy (DTCC)))
-  - Shape notes: Statewide tuition waiver at public institutions for degree-seeking seniors; no income/asset test; institution-specific apps, exclusions, and space rules; authorized by DE law for UD, DSU, DTCC (DSU details not in results)
+- **Delaware Medicaid for the Elderly** — service ([source](https://www.dhss.delaware.gov/))
+  - Shape notes: Delaware Medicaid for the elderly is split into two main programs: (1) Nursing Home Medicaid for institutional care and (2) Long-Term Care Community Services (LTCCS) for community-based care. Both have the same 2025 income limit ($2,417.50/month) but different asset limits and service delivery models. Regular ABD Medicaid is a separate program with lower income limits ($967/month) but covers basic healthcare. Income limits are indexed to 250% of SSI federal benefit rate and may change annually. Spousal asset and income treatment differs significantly depending on whether one or both spouses are applying. The program is statewide but LTCCS has geographic service area restrictions. Processing times are variable and not standardized.
+- **Diamond State HCBS Waiver** — service ([source](https://dhss.delaware.gov/dmma (primary DHSS/DMMA site); https://www.medicaidlongtermcare.org/eligibility/delaware/[2]))
+  - Shape notes: No separate elderly HCBS waiver; benefits via DSHP Plus LTCCS Program with NFLOC requirement and statewide Medicaid integration; limited slots historically led to waitlists; financials tied to ABD Medicaid with $2,000 single asset cap[6]
+- **Delaware PACE** — service ([source](https://www.law.cornell.edu/regulations/delaware/16-Del-Admin-Code-SS-20000-20775 (Delaware Admin Code); https://www.dhss.delaware.gov/dmma/ (Delaware DMMA for providers)))
+  - Shape notes: Limited to specific provider service areas (not statewide); no financial criteria for enrollment but Medicaid needed for free services; requires state-certified nursing facility level of care; private pay option with flat fee
+- **Delaware Food First/SNAP** — financial ([source](https://www.dhss.delaware.gov/dss/foodstamps.html))
+  - Shape notes: Expanded eligibility to 200% FPL gross income with no asset test for most; special net income path for elderly/disabled households; categorical eligibility for SSI/TANF/GA; benefits via EBT card scaling by household size, income, and deductions like medical costs.
+- **Delaware Weatherization Assistance Program** — service ([source](https://dnrec.delaware.gov/climate-coastal-energy/sustainable-communities/weatherization/[1]))
+  - Shape notes: Statewide fixed services via single contractor (ECA); income at 200% FPL with household size table; priority tiers by vulnerability (elderly/disabled/children); waitlist and annual reapplication due to funding limits.
+- **Delaware Senior Medicare Patrol (SMP/SHIP)** — service|advocacy ([source](https://smp.dhss.delaware.gov/[6]))
+  - Shape notes: no income/asset/age test beyond Medicare eligibility; service-based not financial; volunteer-driven outreach statewide via events/phone; often bundled with SHIP counseling[1][2][3][4]
+- **Delaware Meals on Wheels** — in_kind ([source](https://mealsonwheelsde.org and regional provider websites))
+  - Shape notes: Delaware Meals on Wheels operates as a decentralized network of regional providers rather than a single statewide program. Eligibility is uniform (age 60+, homebound, unable to cook/shop), but application processes, meal options, and service details vary significantly by county and provider. No income limits exist statewide, which is unusual and important for families to know. The program explicitly prioritizes reaching low-income seniors but does not restrict services based on income[3]. Non-elderly disabled adults have a narrow eligibility pathway requiring SSDI proof and co-residence with an eligible elderly person.
+- **Delaware Senior Community Service Employment Program (SCSEP)** — employment ([source](https://laborfiles.delaware.gov/main/det/one-stop/FS-3_SenEmp.pdf (Delaware DOL flyer); https://www.nationalable.org/wp-content/uploads/2020/02/SCSEP_DelawareHandbook_013120.pdf (DE-specific handbook)))
+  - Shape notes: Income at 125% FPL (varies by household size/year, no fixed table in sources); priority enrollment tiers; grantee/provider-based (National Able in DE, county offices); funding slots limit access
+- **Delaware Prescription Assistance Program (DPAP)** — financial ([source](https://dhss.delaware.gov (DPAP application at https://dhss.delaware.gov/wp-content/uploads/sites/11/dss/pdf/dpapapplication.pdf); regulations at https://regulations.delaware.gov/AdminCode/title16/30000[4][6]))
+  - Shape notes: Income test at 200% FPL or 40% drug costs; strict Medicare Part D mandate; no assets test; statewide but centralized in New Castle; fiscal year benefits cap per individual
+- **Wilmington Senior Tax Assistance Program** — financial ([source](https://www.destatehousing.com/ (DSHA website for application and complete information)))
+  - Shape notes: Emergency grant program restricted to Wilmington city homeowners 62+ at risk of foreclosure; high income threshold ($93,725) but requires proof of delinquency and imminent foreclosure.
+- **SCAT – Senior Citizens Affordable Taxi** — service ([source](https://www.dartfirststate.com/Programs/ or https://www.dartfirststate.com/information/forms/index.shtml))
+  - Shape notes: No income or asset tests; ticket-based discount system requiring photo ID and participating taxis; certification-focused eligibility; statewide but ID pickup limited to two offices
+- **Over-60 Tuition Benefit** — financial ([source](https://delcode.delaware.gov/title14/c034/sc10/index.html (state law); https://www.continuingstudies.udel.edu/60-tuition-free-degree/ (UD); https://dtcc.smartcatalogiq.com/en/current/catalog/financial/senior-citizen-tuition-policy (DTCC)))
+  - Shape notes: Statewide via 3 public institutions; no income/asset test; degree-seeking only; space-available enrollment; institution-specific processes and exclusions
+- **Assistive Devices Program** — in_kind ([source](https://dhss.delaware.gov/dsaapd (DSAAPD primary); http://www.dati.org (DATI)))
+  - Shape notes: Tied to DSAAPD for adults with physical disabilities; no fixed income/asset tables provided—'specified financial criteria'; device-specific assessed need required; statewide but location-based access
 
 ## Program Details
 
-### Delaware Medicaid for Elderly and Disabled
+### Delaware Medicaid for the Elderly
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
 - Age: 65+
-- Income: For Aged, Blind, and Disabled (ABD) Medicaid and Regular Medicaid long-term care in 2026: Single applicant under $994/month (income cap state at $2,485/month for nursing home, but lower for ABD). Nursing Home Medicaid single applicant: under $2,485/month. Limits vary by program; both spouses' income counted for single applicant in ABD (no spousal maintenance allowance). Contact local LTC unit for current limits as they differ by subcategory.[1][2][5]
-- Assets: Single applicant: $2,000 in countable assets. Exempt: primary home (if spouse, child under 21/blind/disabled, sibling with 1-year equity, or adult child caregiver lives there), one vehicle, personal belongings, burial plots/funds. Countable: bank accounts, second vehicles, investments (non-exempt).[1][2][5]
-- Delaware resident
-- U.S. citizen or qualified/lawful alien
-- Aged 65+, blind, or disabled (SSI-related automatic eligibility in DE)
-- For long-term care/nursing home: Nursing Facility Level of Care (NFLOC) based on ADLs (bathing, dressing, eating, toileting, mobility) and IADLs (shopping, cooking, cleaning, meds); functional assessment required
-- For basic ABD coverage: age/blind/disabled only (no NFLOC for physician visits, Rx, ER, short hospital)
-- Voluntary entry into nursing facility or LTCCS program[1][2][3][5]
+- Income: {"description":"Delaware is an income cap state. For 2025, the income limit for Nursing Home Medicaid and Long-Term Care Community Services (LTCCS) is $2,417.50/month for a single applicant[5]. Income limits are calculated at 250% of the Supplemental Security Income (SSI) federal benefit rate[3]. For Regular Medicaid/Aged Blind and Disabled (ABD), the income limit is $967/month for a single applicant[6]. Excess income can be placed into a Qualified Income Trust (Miller Trust) to achieve eligibility[5].","single_applicant_nursing_home":"$2,417.50/month (2025)[5]","single_applicant_regular_abd":"$967/month[6]","married_one_spouse_applying_nursing_home":"Only the applicant spouse's income is considered; the non-applicant spouse may receive a Minimum Monthly Maintenance Needs Allowance (MMMNA) to avoid spousal impoverishment[6]","married_both_spouses_applying_regular_abd":"Both spouses' income is considered; no MMMNA available[6]","income_counted":"Wages, pensions, Social Security benefits, and IRAs[6]","income_not_counted":"Holocaust restitution payments, VA Aid & Attendance, and Housebound Allowances[6]"}
+- Assets: {"single_applicant":"$2,000 in countable assets (2026)[1]","married_one_spouse_applying_nursing_home":"$3,000 for the applicant; $157,920 for the non-applicant spouse[6]","married_both_spouses_applying_regular_abd":"$3,000[6]","what_counts":"Cash, savings, investments, and property you own[6]","what_is_exempt":"Retirement accounts (IRAs and 401(k)s), personal items, one car, a primary home, and certain prepaid funeral trusts[6]. Also exempt: life insurance policies where the applicant or spouse is the owner, and contracts for prepaid burial[3]"}
+- Must be a Delaware resident[3]
+- Must be a U.S. citizen or lawful alien admitted for permanent residency[3]
+- Must be willing to enter a nursing facility voluntarily or accept Long Term Care Community Services (LTCCS) program services voluntarily[3]
+- For Nursing Home Medicaid: Must require a Nursing Facility Level of Care (NFLOC), meaning full-time care that can only be provided in a nursing home. Assessment includes ability to perform Activities of Daily Living (mobility, bathing, dressing, eating, toileting) and Instrumental Activities of Daily Living (cleaning, cooking, shopping, paying bills), plus any cognitive or behavioral issues[1]
+- For Regular ABD Medicaid: Must be aged (65 or over), blind, or disabled. If requiring long-term care services, Delaware Medicaid will assess ability to perform Activities of Daily Living and Instrumental Activities of Daily Living[1]
 
-**Benefits:** Basic ABD: physician visits, prescription drugs, ER, short-term hospital. Long-term care: nursing home (full coverage, applicant keeps $50/month income), home/community-based services (case management, homemaker, adult/medical day care, respite, orthotics/prosthetics/hearing aids, emergency response). PACE (for 55+ in service area): comprehensive community care at NFLOC. Regular Medicaid LTC: ADL help without full NFLOC.[1][2][5][6]
+**Benefits:** Nursing Home Medicaid covers full-time nursing facility care for as long as the senior qualifies for needing the care, even if this means multiple years of care until death[2]. Long-Term Care Community Services (LTCCS) provides comprehensive community-based care and services to people who meet nursing home level of care criteria[3]. Regular ABD Medicaid covers physician's visits, prescription medication, emergency room visits, and short-term hospital stays[1]. A nursing facility resident receiving Medicaid may keep $50.00 of his/her monthly income[3].
+- Varies by: program_type
+
+**How to apply:**
+- Online: Use Delaware ASSIST (Application for Social Services and Internet Screening Tool) to determine eligibility[4]
+- In-person or phone: Contact your local Long Term Care (LTC) unit[3]
+- Mail: Submit application to local LTC unit (specific address available through Delaware DHSS)
+
+**Timeline:** Applications sometimes take longer than expected[2]. Coverage can possibly begin from 3 months prior to the application's approval[2]. You should ask about the usual approval timeframe when you submit your initial application[2].
+**Waitlist:** Not specified in available sources
+
+**Watch out for:**
+- Delaware is an income cap state — even if you have low assets, exceeding the income limit disqualifies you. However, excess income can be placed into a Qualified Income Trust (Miller Trust) to achieve eligibility[5]
+- Asset limits are strict at $2,000 for single applicants; married couples have different limits depending on whether one or both spouses are applying[6]
+- For married couples where one spouse applies for nursing home Medicaid, the non-applicant spouse can retain up to $157,920 in assets, but only the applicant spouse's income counts toward the limit[6]
+- A nursing facility resident can only keep $50/month of their income; the rest goes toward care costs[3]
+- The functional/medical requirement is strict: applicants must require a Nursing Facility Level of Care (NFLOC), meaning they need full-time care that can only be provided in a nursing home. This is not just about being elderly or having some health issues[1]
+- LTCCS (community-based long-term care) has additional restrictions: applicants must be 55 or older and live within the specified PACE service area[3]
+- Processing times are variable and can be longer than expected; families should ask about typical approval timeframes when applying[2]
+- Coverage can be retroactive up to 3 months before approval, but this is not guaranteed[2]
+- Regular ABD Medicaid and Nursing Home Medicaid have different income limits and spousal treatment; families must apply for the correct program[6]
+
+**Data shape:** Delaware Medicaid for the elderly is split into two main programs: (1) Nursing Home Medicaid for institutional care and (2) Long-Term Care Community Services (LTCCS) for community-based care. Both have the same 2025 income limit ($2,417.50/month) but different asset limits and service delivery models. Regular ABD Medicaid is a separate program with lower income limits ($967/month) but covers basic healthcare. Income limits are indexed to 250% of SSI federal benefit rate and may change annually. Spousal asset and income treatment differs significantly depending on whether one or both spouses are applying. The program is statewide but LTCCS has geographic service area restrictions. Processing times are variable and not standardized.
+
+**Source:** https://www.dhss.delaware.gov/
+
+---
+
+### Diamond State HCBS Waiver
+
+> **NEW** — not currently in our data
+
+**Eligibility:**
+- Income: Must meet Medicaid financial eligibility for Aged, Blind, and Disabled (ABD) or long-term care programs. For single applicants in 2026: income under $2,485/month (Nursing Home Medicaid) or at/below 250% of SSI ($564/month as of older data, likely adjusted). Couples and households follow Medicaid ABD rules with spousal impoverishment protections; exact table not specified in sources but asset limit of $2,000 applies to single applicants[2][6].
+- Assets: Single applicant: $2,000 or less in countable assets. Countable assets include bank accounts, stocks, bonds; exempt typically primary home (if intent to return), one vehicle, personal belongings, burial plots. 60-month look-back period penalizes asset transfers[2].
+- Delaware resident
+- Medicaid eligible (via Diamond State Health Plan Plus for long-term care)
+- Nursing Facility Level of Care (NFLOC): at risk of nursing home placement based on needs in Activities of Daily Living (ADLs: mobility, bathing, dressing, eating, toileting) and Instrumental ADLs (IADLs: cleaning, cooking, shopping, bills), plus cognitive/behavioral issues. Alzheimer's/dementia does not guarantee NFLOC[2][6]
+- Prior HCBS waivers for elderly absorbed into Long-Term Care Community Services (LTCCS) Program under Diamond State Health Plan Plus; no separate elderly/disabled waiver slots[6]
+
+**Benefits:** Home and community-based services (HCBS) to avoid institutionalization, including personal care, respite, assistive technology, day habilitation, supported employment, prevocational services (examples from related waivers; specific LTCCS under DSHP Plus covers long-term care community services like assisted living community services for those needing significant care). No fixed dollar amounts or hours specified; services in addition to standard Medicaid[1][3][4][6][8].
 - Varies by: priority_tier
 
 **How to apply:**
-- Online: Delaware ASSIST (dhss.delaware.gov/dmma/ or ASSIST tool)
-- Phone: Division of Services for Aging and Adults with Physical Disabilities (DSAAPD) - New Castle County (302) 453-3820, Kent/Sussex Counties (302) 422-1386; Delaware Helpline
-- In-person: Local Long Term Care (LTC) unit
-- Mail: Contact LTC unit for forms[4][5][6]
+- Contact Division of Medicaid and Medical Assistance (DMMA) or local offices for eligibility screening (specific phone/website not in results; refer to dhss.delaware.gov/dmma)
+- Apply for Medicaid via Diamond State Health Plan (DSHP) as prerequisite
+- Lifespan Waiver (related): Medicaid application process[4]
 
 **Timeline:** Not specified in sources
-**Waitlist:** Not specified; voluntary acceptance required, potential for services based on assessment[5]
+**Waitlist:** Prior HCBS waivers had limited slots and waitlists; current LTCCS absorbed prior waivers but may still have capacity limits[6]
 
 **Watch out for:**
-- Income cap state ($2,485/month for nursing home); ABD lower at $994/month
-- Both spouses' income counted even if one applies (no MMNA for non-applicant spouse in ABD)
-- NFLOC required for LTC/nursing, but not basic ABD coverage
-- Home exemptions narrow (specific family must live there)
-- SSI automatic in DE, but non-SSI ABD needs functional assessment for LTC
-- Contact LTC unit for exact current limits (vary by program subcategory)[1][2][5][6]
+- No standalone 'Diamond State HCBS Waiver' for elderly; prior Elderly & Disabled Waiver absorbed into LTCCS Program under Diamond State Health Plan Plus (DSHP Plus)[6]
+- Must first qualify for Medicaid; HCBS requires NFLOC, not just age/diagnosis[2][6]
+- 60-month look-back penalizes asset transfers; no gifting assets[2]
+- Excludes those with comprehensive insurance, Medicare, or military coverage[7]
+- Program under development or restructured; verify current status as data references waivers now integrated[1][6]
 
-**Data shape:** Multiple subprograms (ABD basic vs LTC/NFLOC vs waivers/PACE); income/assets program-specific with spousal deeming; county phone variation; NFLOC tiers benefits
+**Data shape:** No separate elderly HCBS waiver; benefits via DSHP Plus LTCCS Program with NFLOC requirement and statewide Medicaid integration; limited slots historically led to waitlists; financials tied to ABD Medicaid with $2,000 single asset cap[6]
 
-**Source:** https://dhss.delaware.gov/dmma/
+**Source:** https://dhss.delaware.gov/dmma (primary DHSS/DMMA site); https://www.medicaidlongtermcare.org/eligibility/delaware/[2]
 
 ---
 
-### Diamond State Health Plan Plus (DSHP Plus)
-
-
-**Eligibility:**
-- Income: Not specified in available sources. Contact DMMA Central Intake Unit at 866-940-8963 for current income thresholds.
-- Assets: Not specified in available sources. Contact DMMA Central Intake Unit at 866-940-8963 for current asset limits and exemptions.
-- Must be enrolled in Delaware Medicaid or Medicaid-expansion CHIP[4]
-- Program targets elderly and adults with physical disabilities[6]
-- Includes existing nursing facility residents, HCBS waiver participants, and AIDS waiver participants[6]
-- Full benefit dual eligibles (Medicare + Medicaid) may be eligible for certain populations[4]
-- Medicaid eligibility begins as of the date of application — no retroactive coverage[3]
-
-**Benefits:** Comprehensive medical and long-term services including: medical benefits (doctor visits, lab services, x-rays, hospitalization), dental, behavioral health, nursing facility care, and Home and Community Based Services (HCBS)[1]. Specific HCBS services include: case management (all participants), day habilitation, home-delivered meals (up to two per day as of 2022 amendment)[7], minor home modifications (wheelchair ramps, handrails, grab bars), nutritional supports for HIV/AIDS, personal care/attendant care, personal emergency response systems, respite care (in-home and out-of-home), specialized medical equipment/supplies, support for participant-directed care, and transitional services from nursing homes to community[1]
-- Varies by: Individual service plan — while all participants receive case management, an individualized assessment determines which other HCBS services each participant receives[1]
-
-**How to apply:**
-- Phone: DMMA Central Intake Unit at 866-940-8963 to request application packet[1]
-- Phone: Medicaid Customer Relations at 866-843-7212[1]
-- Mail: Request application packet from Division of Medicaid & Medical Assistance (DMMA) Central Intake Unit[1]
-- Online: Visit DMMA website at https://dhss.delaware.gov/dhss/dmma/medicaid.html[4]
-
-**Timeline:** Not specified in available sources. Contact DMMA Central Intake Unit at 866-940-8963 for current processing timelines.
-**Waitlist:** Not specified in available sources. Contact DMMA Central Intake Unit at 866-940-8963 for current waitlist status.
-
-**Watch out for:**
-- DSHP-Plus is a mandatory managed long-term care program — it integrates nursing facility services and HCBS into managed care delivery, meaning beneficiaries must receive services through managed care organizations rather than fee-for-service[6]
-- No retroactive Medicaid coverage — eligibility begins only from the date of application, not before[3]
-- DSHP-Plus is an entitlement program, meaning meeting eligibility requirements guarantees immediate receipt of benefits[1], but specific HCBS services are individualized based on assessment, not automatic
-- The program incorporates Money Follows the Person (MFP) for those transitioning from institutions to community[6]
-- Full benefit dual eligibles (Medicare + Medicaid) have limited eligibility — only certain populations qualify[4]
-- DSHP-Plus waiver expires December 31, 2028[2]; verify current status before applying
-- Respite care and personal care services can be participant-directed (self-directed), but this requires additional support and training[1]
-
-**Data shape:** DSHP-Plus is a managed long-term services and supports (MLTSS) program that consolidated multiple prior 1915(c) waivers into a single 1115 demonstration waiver[5]. Benefits are not fixed by income or household size but rather determined through individualized service planning. The program serves a specific population (elderly and adults with physical disabilities) rather than being universally available to all Medicaid beneficiaries. Critical eligibility and benefit details (income limits, asset limits, processing times, required documents) are not publicly specified in available sources and require direct contact with DMMA.
-
-**Our model can't capture:**
-- `asset_limits`: Our model has no asset limit fields
-- `waitlist`: Has waitlist info — our model has no wait time field
-- `documents_required`: Has document checklist — our model doesn't store per-program documents
-
-**Source:** https://dhss.delaware.gov/dhss/dmma/medicaid.html
-
----
-
-### Delaware PACE Program
+### Delaware PACE
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
 - Age: 55+
-- Income: No specific income limits for PACE enrollment; however, for full coverage without a monthly premium, participants typically need Medicaid eligibility (income under 300% of Federal Benefit Rate: $2,901/month for 2025, assets $2,000 or less excluding primary home). Non-Medicaid eligible pay a flat monthly fee.[2][6][7]
-- Assets: No asset limits for PACE enrollment itself; Medicaid pathway has $2,000 asset limit (exemptions include primary home, one vehicle, personal belongings, burial funds up to $1,500, life insurance up to $1,500 face value).[2]
-- Meet Delaware's nursing home level of care criteria (assessed by state).
-- Reside in a PACE approved service area (e.g., specific zip codes for providers like Saint Francis LIFE or PACE Your LIFE).
-- Living in the community (not in a nursing home).
-- Able to be maintained safely in the community with PACE assistance at time of enrollment.
-- Not enrolled in Medicaid/Medicare managed care, Medicare Advantage, hospice, or certain other programs.
-- Voluntarily agree to receive services exclusively through the PACE organization.
-- U.S. citizen or legal resident for 5 years for Medicare eligibility (if applicable).[1][2][3][5][6]
+- Income: No specific income limits for PACE enrollment; Medicaid eligibility (for free services) requires income under 300% of the Federal Benefit Rate ($2,901/month in 2025) and assets $2,000 or less (excluding primary home) for long-term care, but private pay option exists for those exceeding limits[2][6][7]. Does not vary by household size for PACE itself.
+- Assets: No asset limits for PACE enrollment; for Medicaid (free services), assets $2,000 or less excluding primary home[2].
+- Meet Delaware's nursing home level of care criteria (assessed by state)[1][4].
+- Reside in the PACE approved service area (specific to provider, e.g., Saint Francis LIFE zip codes)[1][6].
+- Living in the community (not in nursing home)[1].
+- Able to be maintained safely in the community with PACE assistance at enrollment[1][4].
+- Not enrolled in Medicaid/Medicare managed care, Medicare Advantage, hospice, or certain other programs[1][3].
+- Voluntarily agree to receive services exclusively through the PACE organization[1].
+- Eligible for Medicaid, Medicare (if applicable), or able to pay privately[4].
 
-**Benefits:** All-inclusive care including primary care, hospital/inpatient care, nursing home care when needed, prescription drugs, social services, restorative therapies, nutritional counseling, transportation to centers, personal care aides, homemaker services, home-delivered meals, physical/occupational/speech therapy, and adult day health care; no deductibles or copays for PACE-provided services; comprehensive interdisciplinary team care.[3][4]
+**Benefits:** All-inclusive care for the elderly including primary care, hospital care, prescription drugs, social services, restorative therapies, personal care, respite care, home care, adult day health care, and all Medicare/Medicaid-covered services; comprehensive plan developed by interdisciplinary team; no participant cost contribution for care from PACE organization[1][3].
 
 **How to apply:**
-- Contact providers directly: Saint Francis LIFE (Trinity Health PACE) or PACE Your LIFE.
-- Phone/email for intake: PACE Your LIFE at info@paceyourlifemwv.com (specific phone not listed; call Delaware DMMA for referrals).
-- In-person/home visit screening by PACE staff.
-- State assessment for nursing home level of care via Delaware Division of Medicaid & Medical Assistance (DMMA).[5][6]
+- Contact Saint Francis LIFE (Trinity Health PACE) or PACE Your LIFE providers directly for intake[4][6].
+- Phone/email for PACE Your LIFE: info@paceyourlifemwv.com (specific Delaware numbers not listed; call Delaware DMMA or providers)[4][7].
+- In-person/home visit and intake assessment[4].
+- No specific statewide online URL or form listed; start with provider contact
 
-**Timeline:** Not specified; involves intake, home visit, medical records release, state NFLOC approval, and interdisciplinary team assessment (multi-step process over days to weeks).[5]
-**Waitlist:** Not mentioned in sources; may vary by provider capacity.
+**Timeline:** Not specified in sources; involves intake, assessments, and state NF LOC approval[4].
+**Waitlist:** Not mentioned; may vary by provider capacity
 
 **Watch out for:**
-- Must live in specific service area zip codes; not statewide.
-- Services exclusively through PACE—no outside providers without approval.
-- Enrollment voluntary but requires agreement to full PACE model; disenrollment if move out of area >30 days, non-compliance, or disruptive behavior.
-- Private pay monthly fee if not Medicaid-eligible (amount not specified).
-- Cannot be in Medicare Advantage or managed care.[1][3][6]
+- Must live in specific provider service area, not statewide[1][6].
+- Services exclusively through PACE; cannot use other Medicare/Medicaid providers[1][3].
+- Private pay flat monthly fee if not Medicaid-eligible (amount not specified)[6][7].
+- Disenrollment if moves out of area >30 days, non-compliant, or disruptive[1].
+- Nursing home level of care required, but must be safe in community with PACE[1][5].
+- No Medicare/Medicaid managed care enrollment allowed[1].
 
-**Data shape:** Limited to specific provider service areas (not statewide); no direct income/asset test for enrollment but tied to Medicaid for free coverage; requires state NFLOC certification and community safety assessment.
+**Data shape:** Limited to specific provider service areas (not statewide); no financial criteria for enrollment but Medicaid needed for free services; requires state-certified nursing facility level of care; private pay option with flat fee
 
-**Source:** https://www.law.cornell.edu/regulations/delaware/16-Del-Admin-Code-SS-20000-20775
+**Source:** https://www.law.cornell.edu/regulations/delaware/16-Del-Admin-Code-SS-20000-20775 (Delaware Admin Code); https://www.dhss.delaware.gov/dmma/ (Delaware DMMA for providers)
 
 ---
 
@@ -217,116 +215,117 @@ Our data differs from what official sources say:
 
 
 **Eligibility:**
-- Income: {"description":"Income limits vary by program and household size. All figures are monthly gross income for 2026.","QMB":{"individual":"$1,350","married_couple":"$1,824"},"SLMB":{"individual":"$1,585","married_couple":"$2,135"},"QI_1":{"individual":"$1,781","married_couple":"$2,400"},"note":"QMB has the lowest income limits; SLMB and QI have progressively higher limits. You must be a Delaware resident and entitled to Medicare Part A to qualify for any program."}
-- Assets: {"description":"Delaware has NO asset limit for QMB, SLMB, or QI programs.","exemptions":"Your home and one vehicle are not counted as assets in any calculation.","note":"This is a significant advantage compared to many other states—asset limits do not restrict eligibility."}
-- Must be entitled to Medicare Part A
-- Must be a Delaware resident
-- Must have U.S. citizenship or qualified alien status
-- Income must fall within the specific program's limits
+- Income: Delaware offers three tiers with 2026 income limits (monthly gross): QMB: $1,350 individual / $1,824 married couple[5]; SLMB: $1,478 individual / $1,992 married couple[1]; QI: $1,660 individual / $2,239 married couple[1]. All three programs require Medicare Part A enrollment. QMB and SLMB enrollees must have both Part A and Part B; QI enrollees must also have both Part A and Part B[1][5].
+- Assets: Delaware has NO asset limit for Medicare Savings Programs[1]. This is a significant advantage compared to other states. However, for reference, the federal QMB asset limits are $9,950 individual / $14,910 married couple (2026)[5], but Delaware does not enforce these.
+- Must be entitled to Medicare Part A[1][5]
+- Must be a Delaware resident[1]
+- QI enrollees cannot receive any other Medicaid benefits (QMB and SLMB enrollees may receive full Medicaid or have a Medicaid spend-down)[1]
+- Must meet income limits; income is calculated as monthly gross income[1]
 
-**Benefits:** N/A
-- Varies by: program_tier
+**Benefits:** QMB: Pays Medicare Part A premiums (if applicable), Part B premiums, deductibles, coinsurance, and copayments for Medicare-covered services and items. Also qualifies for Extra Help with prescription drugs (max $12.65 per drug in 2026)[5]. SLMB: Pays Medicare Part B premiums only; does not cover deductibles, coinsurance, or copayments (potential savings over $1,000/year)[1][4]. QI: Pays all or part of Medicare Part B premiums only; does not cover deductibles, coinsurance, or copayments[1][4]. All three programs also qualify beneficiaries for Extra Help with Medicare Part D prescription drug costs[2][5].
+- Varies by: priority_tier
 
 **How to apply:**
-- Phone: (302) 674-7364 — Delaware Medicaid Assistance Branch (DMAB)
-- Mail: Contact DMAB at the phone number above for mailing address
-- In-person: Contact DMAB for office location(s)
-- Online: Check Delaware Department of Insurance website (insurance.delaware.gov) for potential online application options
+- Phone: Delaware Medicaid Assistance Bureau (DMAB) at (302) 674-7364[2]
+- Mail: Contact DMAB for mailing address (not provided in search results)
+- In-person: Contact DMAB for office locations (not provided in search results)
+- Online: Not explicitly mentioned in search results; contact DMAB for web-based options
 
-**Timeline:** Not specified in available sources; contact DMAB directly for current processing times.
-**Waitlist:** QI-1 program operates on a first-come, first-served basis with priority given to people who received QI benefits in the previous year. No waitlist information provided for QMB or SLMB.
+**Timeline:** Not specified in search results
+**Waitlist:** QI program has limited funding and operates on a first-come, first-served basis; applications are approved until money runs out. QI enrollees must re-apply every year, with priority given to those who received QI benefits the previous year[4][5]. QMB and SLMB do not appear to have waitlists based on available information.
 
 **Watch out for:**
-- QI-1 has annual funding limits and operates first-come, first-served — if you miss the application window or funding runs out, you must wait until the next year.
-- QI-1 enrollees cannot receive ANY other Medicaid benefits, unlike QMB and SLMB enrollees who may qualify for additional Medicaid coverage.
-- QI-1 requires annual re-application; QMB and SLMB may also require periodic re-certification — missing deadlines could result in loss of benefits.
-- Income limits are strict and based on monthly gross income; even small income increases could disqualify you from a program.
-- Delaware has NO asset limit for these programs, which is advantageous, but you must still meet income requirements.
-- If you qualify for QMB, you are automatically enrolled in Extra Help for Part D; if you qualify for SLMB or QI-1, you are also automatically enrolled. Do not assume you need to apply separately.
-- Medicare providers are not allowed to bill you for covered services if you're in QMB, but you may still receive a small Medicaid copayment bill if one applies.
-- The programs cover premiums and cost-sharing but do NOT cover services Medicare itself doesn't cover.
+- Delaware has NO asset limits for MSPs, making it easier to qualify than many states — families should not assume asset limits apply[1]
+- QI program has limited federal funding and operates first-come, first-served; applications may be denied once funding runs out in a given year[4][5]
+- QI enrollees cannot receive any other Medicaid benefits, unlike QMB and SLMB enrollees[1]
+- QI requires annual re-application; beneficiaries must reapply every year to maintain coverage[4][5]
+- SLMB and QI only pay Part B premiums — they do NOT cover deductibles, coinsurance, or copayments, unlike QMB[1][4]
+- All three programs require Medicare Part A enrollment; individuals without Part A are ineligible[1][5]
+- QMB and SLMB enrollees may receive small Medicaid copayments even when covered by the program[4][5]
+- Extra Help prescription drug benefit caps copayments at $12.65 per drug (2026), but this only applies if enrolled in a Medicare Part D plan[2][5]
+- Income is calculated as monthly gross income; families should verify their exact monthly income against the limits before applying[1]
 
-**Data shape:** This program structure consists of three distinct tiers (QMB, SLMB, QI-1) with progressively higher income limits but fewer benefits as you move up the income scale. QMB is the most comprehensive but has the lowest income threshold; QI-1 is the most limited but has the highest income threshold. Delaware's lack of asset limits is a significant structural advantage. QI-1's first-come, first-served funding model and annual re-application requirement make it structurally different from QMB and SLMB. All three programs automatically enroll qualifying beneficiaries in Extra Help for Part D prescription drugs.
+**Data shape:** Delaware's MSP structure is tiered by income level (QMB < SLMB < QI), with benefits decreasing as income increases. The key differentiator is Delaware's elimination of asset limits, which is not standard nationally. The QI program's first-come, first-served funding model creates uncertainty for late applicants. All three programs tie to Medicare Part A enrollment and offer automatic Extra Help for prescription drugs. Processing timelines, specific forms, required documents, and regional office locations are not detailed in available sources and require direct contact with DMAB.
 
 **Our model can't capture:**
 - `asset_limits`: Our model has no asset limit fields
 - `waitlist`: Has waitlist info — our model has no wait time field
 - `documents_required`: Has document checklist — our model doesn't store per-program documents
 
-**Source:** Delaware Department of Insurance (insurance.delaware.gov) and Medicare.gov
+**Source:** https://www.medicare.gov/basics/costs/help/medicare-savings-programs
 
 ---
 
-### Delaware Food First Program (SNAP)
+### Delaware Food First/SNAP
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
 - Age: 60+
-- Income: Delaware's Food Supplement Program (SNAP) has a maximum gross monthly income limit of 200% FPL for most households (e.g., $2,430 for household of 1). For elderly/disabled households (all members 60+ or disabled), only the net income test at 100% FPL applies (e.g., $1,215 for household of 1); no gross income test. Seniors 60+ may qualify if gross income ≤130% FPL (~$1,580/month for one person) and net ≤100% FPL. Full table (2026, household size 1 example provided; scales by size): |Household Size|Max Gross 200% FPL|$2,430 (1)|; 130% FPL: $1,580 (1); Net 100% FPL: $1,215 (1). SSI recipients are categorically eligible without income test.[1][2][4][5][7]
-- Assets: No asset limits for households where all members are 60+ or disabled, or most households meeting 200% FPL gross income under broad-based categorical eligibility (BBCE). Resources under $100 may qualify for expedited benefits.[1][2][5][7]
-- U.S. citizen or eligible non-citizen (lawfully present). Undocumented non-citizens ineligible.[2][4][5][7]
-- Delaware resident.[5][6]
-- Household defined as those who live together, buy/prepare food together. All children ≤21 living with parents must apply together.[4][5][7]
-- Work registration for most adults (exemptions for 60+, disabled).[6]
+- Income: Delaware SNAP (Food Supplement Program) has expanded eligibility. Most households qualify if gross monthly income is at or below 200% of the Federal Poverty Level (FPL). For Oct 1, 2025 - Sept 30, 2026: 1 person $2608/month, 2 $3526, 3 $4442, 4 $5358, 5 $6276, 6 $7192, 7 $8108, each additional +$916. Households with elderly (60+) or disabled members may qualify via net income and asset tests if over gross limit. Separate 165% FPL gross limit may apply for elderly/disabled separate households. SSI, TANF, or GA recipients are categorically eligible without income test. All children 21 or under living with parents must be included.
+- Assets: No resource/asset test for most households meeting 200% FPL gross income limit. Households with elderly (60+) or disabled may be exempt from asset test or qualify under special rules; standard SNAP exemptions apply (e.g., home, most retirement accounts exempt, countable assets like cash typically under $2,750 or $4,250 if elderly/disabled).
+- U.S. citizen or eligible lawfully present non-citizen.
+- Live in Delaware.
+- Household includes people who live together, buy/prepare food together (includes spouse, children under 22 even if food separate; parents if under 22).
+- Work registration for most adults (exemptions for elderly 60+, disabled).
 
-**Benefits:** Monthly benefits loaded on EBT card (used like debit at stores, farmers markets, some online). Max ~$291 (1-person household), ~$535 (2-person); most seniors receive less, based on income/deductions. Special for elderly: higher medical deduction (out-of-pocket >$35/month), generous shelter deduction.[1][5]
+**Benefits:** Monthly EBT card benefits (Delaware Food First card) for groceries. Maximum amounts vary by household size, income, and expenses (e.g., deducts medical costs over $35/month for elderly/disabled). Exact max benefits not fully tabled in sources but scale with net income (e.g., full benefit if $0 net income).
 - Varies by: household_size
 
 **How to apply:**
-- Online: Delaware's online application portal (via dhss.delaware.gov).[1][5]
-- Phone: State SNAP hotline (local Department of Social Services).[1]
-- In-person: Local Department of Social Services office.[1]
-- Mail: Submit application to local DSS.
+- Online: Delaware ASSIST portal (dhss.delaware.gov/mealsystems - implied state portal).
+- Phone: Call Delaware 211 or local DHSS office (specific numbers via dhss.delaware.gov/dss/foodstamps.html).
+- Mail/In-person: Local Division of Social Services offices statewide.
+- Ask for expedited SNAP if low income/cash (<$150 income or <$100 cash for quick 7-day approval).
 
-**Timeline:** Expedited SNAP within 7 days if qualify (income <$150 + resources <$100, or income/resources < rent/utilities). Standard: certification period 12 months for 60+/disabled households.[3][5]
+**Timeline:** 30 days standard; 7 days for expedited if qualify.
 
 **Watch out for:**
-- Elderly households skip gross income test (only net), but must still meet net 100% FPL; people miss special deductions (medical/shelter).[1][2]
-- No asset test for elderly/disabled or BBCE households, but expedited requires low resources.[2][7]
-- Certification 12 months for seniors vs. 6 months others; simplified reporting.[1][5]
-- EBT works at farmers markets/online; not cash.[5]
-- Children ≤21 with parents must apply together.[4][7]
+- Expanded 200% FPL gross income limit (higher than standard 130%) - many miss this and think ineligible.
+- Elderly/disabled households can skip gross income test, qualify on net income/assets; deduct high medical expenses.
+- No asset test for most at 200% FPL, but applies if using elderly/disabled path.
+- Must include all household members (kids under 22, spouse); SSI recipients auto-eligible.
+- Non-citizens: only eligible lawfully present, not undocumented.
+- Work rules may apply unless 60+ or disabled.
 
-**Data shape:** Elderly/disabled households: no gross income test, no asset limits, enhanced deductions (medical/shelter); broad categorical eligibility at 200% FPL gross; benefits scale by household size/income; expedited for very low income/resources; 12-month certification for seniors.
+**Data shape:** Expanded eligibility to 200% FPL gross income with no asset test for most; special net income path for elderly/disabled households; categorical eligibility for SSI/TANF/GA; benefits via EBT card scaling by household size, income, and deductions like medical costs.
 
 **Source:** https://www.dhss.delaware.gov/dss/foodstamps.html
 
 ---
 
-### Delaware Energy Assistance Program (DEAP)
+### Delaware LIHEAP
 
 
 **Eligibility:**
-- Income: 60% of Delaware State Median Income (SMI), after Federal and local taxes have been deducted. Specific dollar amounts vary annually and by household size; contact Catholic Charities for current year limits.
-- Assets: No asset limit for LIHEAP in Delaware
-- Must be income-eligible (60% of state median income)
-- Utility bill in applicant's name or proof of responsibility for energy costs
-- Proof of income for all household members over 18 (last 30 days)
+- Income: Gross monthly household income must be at or below 60% of Delaware State Median Income (SMI), after federal and local taxes. Recent 2025 guidelines: 1 person $3,278/month ($39,336/year), 2 people $4,287/month ($51,444/year), 3 people $5,296/month ($63,552/year), 4 people $6,304/month ($75,648/year), 5 people $7,313/month ($87,756/year), 6 people $8,322/month ($99,864/year). Older data (2021) used 200% FPL annually: 1 person $25,536, 2 $34,488, 3 $43,440, 4 $52,416[1][2][4].
+- Assets: No asset limit applies[1].
+- Household includes all at the address sharing utility bills (e.g., roommates count)[1]
+- Eligible heating fuels: electricity, natural gas, oil, kerosene, propane, coal, wood[4]
+- Homeowners and renters qualify[2][4]
+- Priority for elderly (60+), disabled, families with young children[5]
 
-**Benefits:** Varies by household size, income, and heating source. Supplemental payment, not designed to cover all heating costs.
-- Varies by: household_size, income, heating_source, priority_tier
+**Benefits:** Regular heating: $100 min to $2,561 max; cooling: $1 min to $1,000 max; crisis: up to $10,000 max. Paid as one-time grant to utility or household. Average ~$553/year. Includes winter heating (Oct-Mar), year-round crisis aid, summer cooling flat benefit. Weatherization separate (insulation, repairs)[1][4][6].
+- Varies by: household_size|priority_tier|fuel_type
 
 **How to apply:**
-- Online: www.mybenefits.ny.gov (note: search results reference NY system; verify current Delaware online portal with Catholic Charities)
-- Phone: (302) 255-9875
-- In-person at Catholic Charities Diocese of Wilmington
-- Mail: Contact Catholic Charities for mailing address
+- Online: dhss.delaware.gov/dhss/dss/liheap.html or Catholic Charities (specific link via site)[4]
+- Phone: (302) 255-9875[4]
+- Local agencies via Division of State Service Centers (DSSC)[4]
+- In-person/mail through contracted local providers like Catholic Charities[4]
 
-**Timeline:** Not specified in available sources; contact Catholic Charities for current timeline
-**Waitlist:** Weatherization Assistance Program operates year-round with a waiting list. Regular DEAP processing timeline not specified.
+**Timeline:** Not specified in sources
+**Waitlist:** Funds vary by demand and enrollment timing; no guaranteed availability[6]
 
 **Watch out for:**
-- DEAP is a SUPPLEMENTAL program—it does not cover all heating costs. Households must continue paying their own energy bills.
-- Income limits are based on 60% of Delaware State Median Income AFTER taxes, not gross income. This is more restrictive than some other assistance programs.
-- No asset limit exists, but income is the primary eligibility factor.
-- Crisis assistance is available year-round and can be received IN ADDITION to seasonal benefits—many people don't know about this option.
-- Weatherization assistance has a waiting list; apply early if interested.
-- The program operates on available funding; benefits are not guaranteed and depend on fund availability.
-- Elderly (60+) receive priority but are not exclusively eligible—the program serves all income-eligible households.
-- Search results reference a NY HEAP program; ensure you're applying to Delaware's DEAP, not confusing it with other states' programs.
+- Income is gross monthly before taxes for household sharing utilities (roommates count)[1]
+- Supplemental only, not full heating costs[4]
+- Priority groups (elderly 60+, disabled) get preference but no strict age cutoff[5]
+- Older income data (e.g., 2021) outdated; verify current SMI/200% FPL[1][2]
+- Crisis requires proof like shut-off notice or low fuel (≤10%)[4]
+- Funds not guaranteed; apply early in season[6]
 
-**Data shape:** Benefits scale by household size, income, and heating source. Program has three distinct components (winter heating, summer cooling, crisis) with different maximum benefits. Regional variation exists in service delivery through contracted agencies, but eligibility and benefits are statewide. No waiting list for regular DEAP, but weatherization component has waiting list. Priority given to vulnerable populations but not exclusive to them.
+**Data shape:** Income at 60% SMI or 200% FPL (updates yearly); benefits scale by income/size/fuel/season; priority tiers for vulnerable; statewide but local agency delivery; no assets test
 
 **Our model can't capture:**
 - `asset_limits`: Our model has no asset limit fields
@@ -343,108 +342,143 @@ Our data differs from what official sources say:
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: {"basis":"200% of Federal Poverty Level (also described as 60% of median family income, annually established)[2][3]","household_size_table":{"1_person":"$30,120","2_persons":"$40,880","3_persons":"$51,640","4_persons":"$62,400","5_persons":"$73,160","6_persons":"$83,920","7_persons":"$94,680","8_persons":"$105,440","note":"For families with more than 8 persons, add $10,280 for each additional person[1]"},"verification_required":"Income must be verified annually; applicants not served within 12 months must reapply[1][6]"}
-- Residential housing only: single-family homes, rowhomes, and trailers acceptable[2]
-- Multi-family homes are NOT eligible[2]
-- Homeowners and renters both eligible[2]
-- Renters must have landlord permission and provide a copy of rental agreement[2]
-- For renters, utilities must be in renter's name (if utilities included in rent, program cannot be used)[8]
-- Someone age 18 or older must be present when contractors are in the home[1][6]
+- Income: Income at or below 200% of the Federal Poverty Level, based on household size. Current guidelines: 1 person $30,120; 2 persons $40,880; 3 persons $51,640; 4 persons $62,400; 5 persons $73,160; 6 persons $83,920; 7 persons $94,680; 8 persons $105,440. For families with more than 8 persons, add $10,280 per additional person.[1][2]
+- Assets: No asset limits mentioned in program guidelines.[1][2][5]
+- Household income based on gross income of all members.
+- Residential housing only: rowhomes, single family homes, trailers eligible; no multi-family homes.
+- Homeowners and renters eligible; renters need landlord permission and copy of rental agreement.
+- Someone age 18+ must be present during contractor visits.
+- Proof of identity, income, ownership/rental status required.
+- Prioritization for elderly, persons with disabilities, children in home, and highest need.[1][2][5][8]
 
-**Benefits:** Free energy efficiency improvements; average annual savings nationally is $283 per household[8]
-- Varies by: household_need_and_priority
-
-**How to apply:**
-- Online: Apply using form at Energy Coordinating Agency website (ecasavesenergy.org)[4]
-- Phone: Call Energy Coordinating Agency at 302-504-6111 to set up appointment[1]
-- Phone: Call DNREC at 302-735-3480 for questions[1]
-- In-person: Contact Energy Coordinating Agency to schedule appointment[1]
-
-**Timeline:** Not explicitly stated in search results; applicants placed on waiting list after eligibility determination[1]
-**Waitlist:** Yes. After deemed eligible, name placed on waiting list prioritized by: (1) household need, (2) age and special needs of residents, (3) annual funding levels. Not all applicants served in any one program year[1][6][8]
-
-**Watch out for:**
-- Multi-family homes are explicitly excluded — only single-family homes, rowhomes, and trailers qualify[2]
-- For renters: utilities must be in renter's name; if utilities are included in rent, the program cannot be used because savings would benefit the landlord, not the renter[8]
-- Landlord must sign off on work for renters[8]
-- Program does NOT cover major repairs (full roof replacement, window replacement, regular heating system maintenance) — only minor repairs necessary to enable energy-saving measures[8]
-- Waiting list exists and is not guaranteed to serve all applicants in a given year[1][6]
-- If not served within 12 months, must reapply annually to verify income eligibility[1][6]
-- Homeowner/renter must be present on multiple days during contractor visits; someone 18+ must be home each time[1][6]
-- Income limits are based on Federal Poverty Level (200%) and are annually adjusted; the dollar amounts provided are current but may change year to year[1][3]
-- Pre-WAP program exists for homes that don't yet qualify for full WAP — includes roof repair, window/door replacement, masonry repair to bring home into compliance[2]
-
-**Data shape:** Benefits are fixed in-kind services (not tiered by income), but priority for waitlist placement varies by household characteristics (age, disabilities, children, need level). Income limits scale by household size with a formula for households over 8 persons. Program is statewide with no regional variations in eligibility or services. The key structural feature is the waiting list — eligibility does not guarantee service in any given year.
-
-**Source:** https://dnrec.delaware.gov/climate-coastal-energy/sustainable-communities/weatherization/
-
----
-
-### Delaware Senior Medicare Patrol (SMP)
-
-> **NEW** — not currently in our data
-
-**Eligibility:**
-- Income: No income limits; open to all Medicare beneficiaries, families, and caregivers regardless of income[2][3]
-- Assets: No asset limits or tests apply[2][3]
-- Must be a Medicare beneficiary (age 65+, younger with disabilities or ESRD), family member, or caregiver; no other restrictions[2][3]
-
-**Benefits:** Outreach, education, and counseling to prevent, detect, and report Medicare fraud, errors, and abuse; community awareness presentations, health fairs, one-on-one counseling, advocacy to resolve billing disputes, referrals to investigators; often includes SHIP health insurance counseling[2][7]
-
-**How to apply:**
-- Phone: Use national SMP Locator at 877-808-2468 to find Delaware contact[4]
-- Online: SMP Locator at smpresource.org to locate Delaware SMP[2][4]
-- In-person or local contact: Administered by Delaware DHSS Division of Services for Aging and Adults with Physical Disabilities (DSAAPD)[7][9]
-
-**Timeline:** No formal application or processing time; services provided upon contact for education/counseling[2]
-
-**Watch out for:**
-- Not a financial assistance or healthcare benefits program—focuses solely on fraud prevention/education, not direct aid or eligibility for other benefits; often confused with SHIP (which it may co-provide); volunteers deliver services, not paid staff; report fraud promptly to avoid identity theft[2][7][9]
-
-**Data shape:** no income/asset/age test for beneficiaries; volunteer-based education/advocacy service only; no enrollment or waitlist—immediate access via contact; integrates with SHIP counseling[2][3][7]
-
-**Source:** https://dhss.delaware.gov/dsaapd (Delaware DHSS DSAAPD administers); national https://smpresource.org[2][7][9]
-
----
-
-### Delaware Home Delivered Meals (Multiple Programs)
-
-> **NEW** — not currently in our data
-
-**Data shape:** Delaware does not have a single unified 'Home Delivered Meals' program. Instead, there are at least 5 separate programs with different eligibility criteria, age groups, benefits, and application processes. Families must: (1) determine which program(s) their loved one might qualify for based on age, income, Medicaid status, and specific circumstances; (2) contact the appropriate provider or health plan; (3) understand that Title III-C (Older Americans Act) is the primary program for seniors 60+, but Medicaid-enrolled individuals may have additional options through their health plan. The search results do not provide complete application procedures, processing times, or waitlist information for most programs.
-
----
-
-### CARE Delaware Caregiver Support Program
-
-> **NEW** — not currently in our data
-
-**Eligibility:**
-- Age: 18+
-- Income: Varies by specific service within the program; financial eligibility required for services like respite care, aligned with Delaware Medicaid thresholds (e.g., household income at or below 100% Federal Poverty Level for full Medicaid, higher for specific groups like children/pregnant women up to 200% FPL). No exact dollar table provided in sources; contact CARE Delaware for current amounts by household size[3][7].
-- Assets: Financial resources must be under certain limits for long-term care programs (specific to Medicaid-linked services); details not quantified. Primary residence and certain assets may be exempt in Medicaid spend-down scenarios[5][7].
-- Care recipient: Delaware residents aged 18+ with physical/mental impairments needing supervision/support in activities of daily living (ADLs) such as bathing, dressing, toileting, feeding, mobility[3].
-- Caregiver: Adults 18+ providing care; special populations include adults 55+ caring for non-child adults 18+ with developmental disabilities, or grandparents/relatives 55+ caring for children 18 and under[1][3].
-- Medical need: Assistance with at least 1-2 ADLs; functional impairment[3][5][6].
-
-**Benefits:** Respite services (in-home or nursing home, regular or occasional); caregiver skills training; support groups; needs assessment and care planning; case management. No specific dollar amounts or hours per week stated; tailored via care plan[3].
+**Benefits:** Free home energy audit followed by installation of weatherization measures including air-sealing, insulation, heating system repair or tune-up, lighting upgrades, and minor repairs (e.g., roof patching, window/door glass replacement or crack patching, masonry repair) to enable weatherization. Does not include major repairs like full roof replacement, window replacement, or routine heating maintenance.[1][2][7][8]
 - Varies by: priority_tier
 
 **How to apply:**
-- Phone: 800.223.9074 (DSAAPD or Joining Generations)[3]
-- Website: www.dhss.delaware.gov/dsaapd[3]
+- Phone: Energy Coordinating Agency at 302-504-6111 to set up appointment.[1][8]
+- Online: Apply via form at Energy Coordinating Agency website (ecasavesenergy.org/services/delaware/weatherization/apply/).[4]
+- General questions: 302-735-3480.[1]
 
-**Timeline:** Not specified in sources
+**Timeline:** Not specified; once eligible, placed on waiting list. Must reapply every 12 months if not served to verify income.[1][6]
+**Waitlist:** Yes, prioritizes by need, age/special needs of residents, children in home, and funding levels. Not all applicants served in one program year.[1][6][8]
 
 **Watch out for:**
-- Eligibility varies by specific service (e.g., respite vs. training); not all caregivers qualify for all benefits—must contact for assessment[3].
-- Financial/medical eligibility tied to Medicaid criteria; asset spend-down required but protectable (consult elder law expert)[5].
-- Not a paid caregiver program; focuses on support/respite, unlike VA PCAFC or family pay programs[2][6].
-- Special populations (e.g., grandparents 55+) have distinct rules[1].
+- Renters: Landlord must approve and sign off; utilities must be tenant-paid (not included in rent, or can't benefit landlord).[2][8]
+- Waiting list prioritization means not all eligible are served annually due to funding; reapply yearly if not served within 12 months.[1][6]
+- Home must pass pre-weatherization repairs if needed (e.g., via Pre-WAP for roof/window/masonry issues).[2]
+- Requires homeowner time investment and 18+ presence on multiple visit days.[1][6]
+- No categorical eligibility from other programs; full income verification required.[5]
 
-**Data shape:** Eligibility requirements vary by program/service; no fixed income/asset tables—requires direct contact; statewide but assessment-driven; linked to DSAAPD for physically/mentally impaired adults 18+[3]
+**Data shape:** Statewide fixed services via single contractor (ECA); income at 200% FPL with household size table; priority tiers by vulnerability (elderly/disabled/children); waitlist and annual reapplication due to funding limits.
 
-**Source:** https://www.dhss.delaware.gov/dsaapd
+**Source:** https://dnrec.delaware.gov/climate-coastal-energy/sustainable-communities/weatherization/[1]
+
+---
+
+### Delaware Senior Medicare Patrol (SMP/SHIP)
+
+> **NEW** — not currently in our data
+
+**Eligibility:**
+- Income: No income limits; open to all Medicare beneficiaries, their families, and caregivers[1][3][4]
+- Assets: No asset limits or tests apply[1][3]
+- Must be a Medicare beneficiary (age 65+, younger with disabilities or ESRD), family member, or caregiver seeking help with Medicare fraud prevention, detection, reporting, errors, abuse, or health insurance counseling[1][3][4]
+
+**Benefits:** Free one-on-one counseling on Medicare fraud, errors, abuse; community outreach and education presentations at events, health fairs, senior centers, libraries; dissemination of consumer education materials; advocacy to resolve billing disputes; referrals to state/federal agencies for suspected fraud investigations; SHIP services including free local health insurance counseling, outreach, and training on Medicare options[1][2][4][5][6][7]
+
+**How to apply:**
+- Phone: (302) 255-9642 (primary contact Barbara Jackson) or (800) 223-9074 (national volunteer line, also for services)[4]
+- Website: https://smp.dhss.delaware.gov/[6]
+- In-person: Events at libraries, health fairs, senior centers statewide (e.g., Frankford Public Library)[7][8]
+
+**Timeline:** Immediate for counseling and education; no formal application processing as services are provided on-demand via phone, events, or contact[1][2][4]
+
+**Watch out for:**
+- Not a financial assistance or healthcare benefits program—focuses solely on education, counseling, and fraud reporting, not direct aid or enrollment in Medicare benefits[1][2][3]
+- Often paired with SHIP but SMP specifically targets fraud prevention/detection[1][3]
+- Volunteer-based with no cost to users, but funded by federal grants which may face cuts[7]
+- Contact for services, not formal 'application' as it's not an entitlement program[4]
+
+**Data shape:** no income/asset/age test beyond Medicare eligibility; service-based not financial; volunteer-driven outreach statewide via events/phone; often bundled with SHIP counseling[1][2][3][4]
+
+**Source:** https://smp.dhss.delaware.gov/[6]
+
+---
+
+### Delaware Meals on Wheels
+
+> **NEW** — not currently in our data
+
+**Eligibility:**
+- Age: 60+
+- Income: No income limits. Income is explicitly not a criterion for eligibility[3]. However, some regional providers may consider income for determining meal costs or donations[2].
+- Must be homebound — confined to home due to lack of mobility, illness, or disability[1]
+- Unable to shop or cook meals independently, or no household member available to prepare meals[2]
+- Physical disability (if under 60) must be anticipated to last 12+ months and include at least one Activity of Daily Living (ADL) deficit impacting independent living[3]
+- Non-elderly disabled adults may qualify if they are household members of an eligible elderly person and have proof of Social Security Disability Insurance coverage[3]
+
+**Benefits:** At least one hot or appropriate meal per day, delivered at least five days per week[3]
+- Varies by: region
+
+**How to apply:**
+- Phone: Contact your local regional provider (see geography section for numbers)
+- Online: Visit provider websites (URLs listed in geography section)
+- In-person: Visit local senior centers or meal program offices
+- Mail: Contact information available through regional providers
+
+**Timeline:** Not specified in available sources
+**Waitlist:** Not specified in available sources
+
+**Watch out for:**
+- No income limits exist, but some programs request donations or offer financial aid based on ability to pay[2] — don't assume you're ineligible due to income
+- You must be homebound; if you can leave home independently, you may not qualify, though you can visit dining room locations instead[1]
+- Non-elderly disabled adults can only qualify if they live with an eligible elderly person AND have proof of Social Security Disability Insurance coverage[3] — this is a strict requirement
+- Physical disabilities for younger applicants must be expected to last 12+ months and include ADL deficits — temporary conditions don't qualify[3]
+- Delaware has no statewide single application; you must contact your specific regional provider — there is no centralized intake[7]
+- Meals are delivered at least five days per week, but specific delivery schedules vary by provider and participant needs[3][7]
+- The program serves 4,360 homebound seniors in Delaware[6]; availability may be limited in less populated areas
+
+**Data shape:** Delaware Meals on Wheels operates as a decentralized network of regional providers rather than a single statewide program. Eligibility is uniform (age 60+, homebound, unable to cook/shop), but application processes, meal options, and service details vary significantly by county and provider. No income limits exist statewide, which is unusual and important for families to know. The program explicitly prioritizes reaching low-income seniors but does not restrict services based on income[3]. Non-elderly disabled adults have a narrow eligibility pathway requiring SSDI proof and co-residence with an eligible elderly person.
+
+**Source:** https://mealsonwheelsde.org and regional provider websites
+
+---
+
+### Delaware Family Caregiver Support Program
+
+
+**Eligibility:**
+- Age: 60+
+- Income: No specific income or asset limits detailed for this program in available sources; often tied to broader Medicaid eligibility which uses Federal Poverty Level (e.g., 100% FPL for general Medicaid, varying by household size and category like 133% for children 1-6 or 200% for pregnant women/infants). Exact tables not provided for this program.
+- Assets: Not specified for this program; Medicaid-linked programs may have resource limits for long-term care.
+- Care recipient is 60+ or has Alzheimer's (any age), or grandparent/relative caregiver 55+ caring for child or disabled adult child.
+- Delaware resident.
+- US citizen or legally residing noncitizen for full benefits.
+- May require need for assistance with activities of daily living (ADLs).
+
+**Benefits:** Respite care, caregiver training, counseling, support groups, supplemental services (e.g., assistive devices, home modifications). Not direct payment to caregivers; focuses on support to relieve family caregivers.
+- Varies by: priority_tier
+
+**How to apply:**
+- Contact Delaware Aging and Disability Resource Center (ADRC) by phone or visit https://dhss.delaware.gov/dsaapd/faq_attendant2.html for Personal Attendant Services info.
+- Contact local Area Agency on Aging.
+
+**Timeline:** Not specified.
+
+**Watch out for:**
+- Not a paid caregiver program; confusable with Medicaid Personal Attendant Services or self-direction waivers that allow hiring family as paid attendants.
+- Requires enrollment in specific programs for payment options.
+- VA or insurance programs have separate rules.
+- Background checks often required for paid roles.
+
+**Data shape:** Administered via Area Agencies on Aging; links to Medicaid waivers for paid family caregiving options; no direct income test specified, but functional/age-based; not statewide uniform in delivery.
+
+**Our model can't capture:**
+- `asset_limits`: Our model has no asset limit fields
+- `regional_variations`: Program varies by region — our model doesn't capture this
+- `documents_required`: Has document checklist — our model doesn't store per-program documents
+
+**Source:** https://dhss.delaware.gov/dsaapd/faq_attendant2.html
 
 ---
 
@@ -454,71 +488,73 @@ Our data differs from what official sources say:
 
 **Eligibility:**
 - Age: 55+
-- Income: Family income no more than 125% of the federal poverty level. Exact dollar amounts vary by household size and year; families must contact the local provider to confirm current thresholds based on recent income (last 6-12 months, including SSA, SSDI, SSI, etc.). No specific table provided in sources[1][2][3][4].
-- Assets: No asset limits mentioned in sources.
+- Income: Family income no more than 125% of the federal poverty level. Exact dollar amounts vary by household size and year; families must contact the local provider to confirm current thresholds based on recent income (last 6-12 months, including Social Security, disability benefits, etc.). No specific table provided in sources[1][2][3][4].
+- Assets: No asset limits mentioned in program sources.
 - Unemployed
 - Reside in a National Able service area with available funding (Delaware covered)
-- U.S. work authorized
-- Willing to provide community service, attend meetings/training, develop Individual Employment Plan (IEP), use job search resources
-- Have barriers to employment, low employment prospects, need job skills training
-- Priority: veterans/qualified spouses, age 65+, disability, low literacy, limited English, rural resident, homeless/at risk, failed American Job Center services[1][2][3][4][6]
+- Eligible to work in the United States
+- Willing to provide community service, attend required meetings and training
+- Willing to develop a personalized Individual Employment Plan (IEP)
+- Willing to use all available resources for job searches and economic self-sufficiency
+- Have barriers to employment or low employment prospects
+- Enrollment priority: veterans and qualified spouses, then individuals over 65, with disabilities, low literacy, limited English proficiency, rural residents, homeless/at risk, or failed American Job Center services[1][3][4][6][8]
 
-**Benefits:** Part-time on-the-job training (average 20 hours/week) at community sites (e.g., child care, customer service, teachers' aide, computer technician, maintenance, health care); paid highest of federal/state/local minimum wage; yearly physical; workshops on job seeking; skills assessment; bridge to unsubsidized employment (typically 6 months training)[1][2][3][4]
+**Benefits:** Part-time on-the-job training (average 20 hours/week) at community nonprofits/public agencies (e.g., child care, customer service, teachers' aide, computer technician, building maintenance, health care worker); paid the highest of federal, state, or local minimum wage; subsidized wages; yearly physical; informative workshops on job seeking skills; skills assessment and training toward unsubsidized employment (typically 6 months training before job placement)[1][2][3][4]
 - Varies by: priority_tier
 
 **How to apply:**
-- Contact National Able (Delaware provider): See handbook for local contact or call general SCSEP line; application includes SCSEP Participant Form and DOL eligibility documents[1]
-- First State Community Action Agency (Sussex region): delawareadrc.com/iresource/first-state-community-action-senior-community-service-employment-program-sussex/[8]
-- Online form example: tfaforms.com/4891021 (general SCSEP, verify for DE)[5]
-- Local SCSEP office or American Job Center[2][3]
+- In-person or contact: New Castle County - Rose Hill Community Center, Inc., 19 Lambson Lane, Suite 105A, New Castle, DE (from Delaware labor flyer)[3]
+- Contact National Able for Delaware (primary grantee per handbook): application process involves signing SCSEP Participant Form and DOL eligibility documents; orientation follows eligibility determination[1]
+- Online interest form example: https://www.tfaforms.com/4891021 (general SCSEP, confirms Delaware eligibility check)[5]
+- Phone/website: Contact local SCSEP office via Delaware Department of Labor or National Able (specific DE phone not listed; use general SCSEP locator through DOL or provider)[2][3]
 
-**Timeline:** Eligibility determined after application review and staff approval; orientation follows; no specific timeline stated[1]
-**Waitlist:** Possible if no spots available; depends on funding[1][2]
+**Timeline:** Eligibility determination after application review; formal orientation upon approval; initial skills assessment upon entry. No specific timeline stated[1]
+**Waitlist:** Possible waitlist if no immediate openings; enrollment if eligible and no waiting list[2]
 
 **Watch out for:**
-- Not entitled to benefits until formal eligibility approval and orientation; annual re-eligibility review[1]
-- Limited spots based on funding; possible waitlist[1][2]
-- Must commit to community service, IEP, job search; not permanent job but training bridge[1][2]
-- Income calculated for entire family/household, including all sources[1][5]
+- Not entitled to benefits until formal eligibility approval and communication from staff; annual eligibility review required[1]
+- Must be willing to commit to community service, IEP, and job search resources—failure may lead to exit[1]
+- Priority tiers mean veterans/65+ get first access; funding-limited slots may create waitlists[2][4][6]
+- Program is temporary training (avg. 6 months) bridge to unsubsidized work, not permanent employment[2][4]
+- Residency tied to available funding areas[1]
 
-**Data shape:** Operated by grantees like National Able; priority tiers for enrollment; funding-dependent slots; no fixed income table or asset test in sources, requires provider contact for current 125% FPL figures
+**Data shape:** Income at 125% FPL (varies by household size/year, no fixed table in sources); priority enrollment tiers; grantee/provider-based (National Able in DE, county offices); funding slots limit access
 
-**Source:** https://laborfiles.delaware.gov/main/det/one-stop/FS-3_SenEmp.pdf (DE Labor SCSEP fact sheet); https://www.nationalable.org/wp-content/uploads/2020/02/SCSEP_DelawareHandbook_013120.pdf (DE handbook)[1][3]
+**Source:** https://laborfiles.delaware.gov/main/det/one-stop/FS-3_SenEmp.pdf (Delaware DOL flyer); https://www.nationalable.org/wp-content/uploads/2020/02/SCSEP_DelawareHandbook_013120.pdf (DE-specific handbook)
 
 ---
 
-### Delaware Long Term Care Ombudsman Program
+### Delaware Long-Term Care Ombudsman Program
 
-> **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: Not specified in available sources
-- Assets: Not specified in available sources
-- Resident of a long-term care facility (nursing home, assisted living residence, or other long-term care facility)[6]
-- No specific citizenship or work authorization requirement for residents receiving services (work authorization only required for paid staff positions)[1]
+- Income: No income limits; open to all residents of long-term care facilities regardless of financial status[2][4][5]
+- Assets: No asset limits or tests apply[2][4][5]
+- Must be a resident of a licensed long-term care facility (nursing homes, assisted living residences, family care homes), or have a complaint/concern on behalf of such a resident[2][4][5][6]
 
-**Benefits:** Volunteer ombudsman visits 1-2 hours per week or month to residents; advocacy for resident rights; complaint referral and resolution assistance; information about resident rights under federal and state law; assistance protecting resident rights[2][6]
-- Varies by: fixed
+**Benefits:** Investigate and resolve complaints about care, rights violations, abuse/neglect (referred to specialists), mistreatment, or financial exploitation; inform residents/families of rights under federal/state law; provide information/referrals; conduct facility visits and annual assessments; advocate for quality of life improvements; supervised by paid staff and volunteers who visit 1-2 hours per month[2][4][5][6]
 
 **How to apply:**
-- Phone: 1-800-223-9074[2][4]
+- Phone: 800-223-9074[2]
 - Website: www.dhss.delaware.gov/dhss[2]
-- Mail/In-person: Long-Term Care Ombudsman Program, Main Administration Building, 1901 North [address incomplete in source][2]
+- In-person or facility referral via regional offices (e.g., Kent/Sussex via Delaware ADRC)[6]
 
-**Timeline:** Not specified in available sources
-**Waitlist:** Not specified in available sources
+**Timeline:** Not specified; complaint investigations begin upon contact, with periodic site visits[4]
 
 **Watch out for:**
-- This is an ADVOCACY program, not a direct service or financial assistance program—it provides resident representation and complaint resolution, not healthcare or financial benefits[5][6]
-- Residents do not apply; the program is available to all residents of participating long-term care facilities[6]
-- Families contact the program on behalf of residents; there is no formal application process for residents or families[2]
-- Volunteer ombudsmen visit 1-2 hours per week or month—this is not intensive case management or daily support[2]
-- The program is funded federally through the Older Americans Act, not state-specific funding, which may affect program stability[4]
-- Conflict of interest rules apply: volunteer ombudsmen cannot have immediate family employed at or residing in the assigned facility[2]
+- Not a direct service provider (no healthcare/financial aid); focuses on advocacy/complaints only[4][5]
+- Abuse/neglect complaints referred to Division of Long Term Care Residents Protection, not handled directly[5]
+- Volunteers cannot serve if family works/resides in assigned facility or conflict of interest exists[2]
+- Families can contact on behalf of residents; no personal eligibility barriers[2][6]
 
-**Data shape:** This is a statewide advocacy and complaint resolution program, not an eligibility-based benefit program. There are no income, asset, or age limits for residents to receive ombudsman services. Families access the program by contacting the state office directly by phone or website; there is no formal application. The program operates through trained volunteer ombudsmen assigned to specific facilities. Key distinction: this program advocates FOR residents' rights rather than providing direct services or financial assistance.
+**Data shape:** no income test; advocacy-only for LTC facility residents; volunteer-supported with statewide coverage but regional volunteer assignment
 
-**Source:** https://dhss.delaware.gov/dsaapd (Division of Services for Aging and Adults with Physical Disabilities)[4]
+**Our model can't capture:**
+- `asset_limits`: Our model has no asset limit fields
+- `regional_variations`: Program varies by region — our model doesn't capture this
+- `documents_required`: Has document checklist — our model doesn't store per-program documents
+
+**Source:** https://dhss.delaware.gov/dhss (primary state DHSS site)[2]
 
 ---
 
@@ -528,75 +564,40 @@ Our data differs from what official sources say:
 
 **Eligibility:**
 - Age: 65+
-- Income: Income at or below 200% of the Federal Poverty Level (FPL), or prescription costs exceeding 40% of annual income. Couples counted as two individuals. Exact FPL dollar amounts published annually by HHS; program updates standard within 10 business days of FPL release. Individuals over 200% FPL qualify if drug costs >40% of countable income.[1][2][4][5]
-- Assets: No asset limits mentioned in program requirements.[1][2][4][5]
+- Income: Countable income at or below 200% of the Federal Poverty Level (FPL), which varies annually and by household size (couples counted as two individuals). Individuals over 200% FPL qualify if yearly prescription costs exceed 40% of countable income. No specific dollar table in sources; FPL published annually with standards issued within 10 business days.[1][2][4][5]
+- Assets: No asset limits mentioned in sources.
 - Delaware resident
 - Age 65 or older, or under 65 and receiving Social Security Disability benefits (SSDI or SSI; former recipients switched to Survivors benefits may qualify)
 - No prescription coverage other than Medicare Part D
-- If eligible for Medicare Part A/B, must enroll in Medicare Part D and provide proof
+- If eligible for Medicare Part A/B, must enroll in Medicare Part D and provide proof (enroll within 90 days if not yet enrolled)
 - If potentially eligible for Low-Income Subsidy (LIS/Extra Help), must apply via Social Security
-- Not eligible if receiving full Medicaid benefits or have other health insurance with prescription coverage (except Medicare Part D)
-- U.S. citizen or lawful resident (proof required if not citizen)
+- Not eligible for full Medicaid benefits
+- Not an inmate of a public institution
+- U.S. citizen or lawful resident (proof if not citizen)
 
-**Benefits:** Up to $2,500-$3,000 per individual per benefit year (state fiscal year: July 1-June 30) toward prescription costs and Medicare Part D premiums. Co-pay: 25% of prescription cost or $5 minimum, whichever greater, paid at pharmacy.[1][2][3][4][5]
+**Benefits:** Up to $2,500-$3,000 per individual per benefit year (sources vary; state fiscal year July 1-June 30) for prescription drugs and Medicare Part D premiums. Client pays co-pay of 25% of prescription cost or $5 minimum, whichever greater, collected by pharmacy.[1][2][3][4][5]
 - Varies by: fixed
 
 **How to apply:**
-- Phone: 1-800-996-9969 to request application
-- Mail: Download/print DPAP application form and mail to P.O. Box 950, New Castle, DE 19720-9914 (self-addressed envelope provided)
-- Program address for reference: Lewis Building, DHSS Campus, 1901 N. DuPont Highway, New Castle, DE 19720
+- Mail: Complete DPAP application form and send with documents to P.O. Box 950, New Castle, DE 19720-9914 or Lewis Building, DHSS Campus, 1901 N. DuPont Highway, New Castle, DE 19720
+- Phone: Call 1-800-996-9969 for information and to request application
+- Download form: Available at dhss.delaware.gov (specific PDF: dpapapplication.pdf)
 
-**Timeline:** Timely determination per regulations (§ 30000-30202), but no specific days stated; applications handled via mail only, no in-person.[3][5][6]
-**Waitlist:** Not mentioned; funding from tobacco settlement may limit availability[2][3]
+**Timeline:** Timely determination required per regulations, but no specific days stated.[6]
+**Waitlist:** Not mentioned in sources.
 
 **Watch out for:**
-- Must enroll in Medicare Part D within 90 days if eligible but not enrolled; proof required
-- Apply for LIS/Extra Help if potentially eligible, even if denied
-- Co-pay is 25% or $5 min per prescription, collected at pharmacy
-- No eligibility if full Medicaid or other Rx coverage (except Part D)
+- Must enroll in Medicare Part D if eligible (even within 90 days of starting benefits); no other prescription coverage allowed except Part D
+- 25% co-pay ($5 min) required per prescription
+- Not for those with full Medicaid or other insurance covering prescriptions
+- Income over 200% FPL possible via 40% drug cost test, but proof needed
 - Benefit year is state fiscal (July 1-June 30); annual renewal required
-- Over 200% FPL still possible if Rx costs >40% income, but prove it
-- Mail-only applications; call for form
-- Ineligible if inmate of public institution
+- Applications mail-only; call for info but no in-person apply mentioned
+- Funding from tobacco settlement; limits per person ($2500-$3000)
 
-**Data shape:** Income test at 200% FPL with alternative Rx cost threshold; no asset test; Medicare Part D mandatory bridge required; fixed annual cap per person with co-pay; statewide but centralized mail processing in New Castle
+**Data shape:** Income test at 200% FPL or 40% drug costs; strict Medicare Part D mandate; no assets test; statewide but centralized in New Castle; fiscal year benefits cap per individual
 
-**Source:** https://dhss.delaware.gov/dss/dpap.html (inferred from application PDF at dhss.delaware.gov/wp-content/uploads/sites/11/dss/pdf/dpapapplication.pdf); regulations at regulations.delaware.gov/AdminCode/title16/30000
-
----
-
-### Nursing Home Transition Program
-
-> **NEW** — not currently in our data
-
-**Eligibility:**
-- Age: 65+
-- Income: For Medicaid long-term care (DSHP-Plus), monthly income cannot exceed $2,901 (2025 general limit). Spousal minimum monthly income allowance is $2,177.55. Exact limits determined by Division of Medicaid and Medical Assistance (DMMA); varies by household size per state Medicaid rules.
-- Assets: Countable assets cannot exceed $2,000 for individual. Spousal minimum asset allowance is $27,480 to $137,400 (half of countable assets). Home equity limit is $636,000. Must meet Medicaid financial criteria via DMMA.
-- Eligible for and receiving Medicaid for at least one day prior to transition.
-- Residing in a Medicaid-funded nursing home or institution (e.g., for mental diseases, intermediate care for intellectual disabilities) for at least 60 consecutive days.
-- Require Institutional Level of Care but can live in community with Home and Community Based Services (HCBS).
-- Express desire to transition to qualified community residence (own home, relative's home, apartment, or small group home with max 4 unrelated residents).
-
-**Benefits:** Transition services for moving from nursing facility to community, including security deposit, telephone connection fee, groceries, furniture, linens, etc., up to $2,500 per transition. Part of DSHP-Plus LTSS HCBS, which may include nutritional supports, specialized medical equipment, minor home modifications, home-delivered meals.
-
-**How to apply:**
-- Contact Delaware First Health (DSHP-Plus MCO) case manager for prior authorization.
-- Apply for DSHP-Plus Medicaid via DMMA.
-- Phone: Delaware Aging and Disability Resource Center (ADRC) at (302) 633-7400 or Meals on Wheels reference (302) 656-3257 for related support.
-
-**Timeline:** Not specified in sources.
-
-**Watch out for:**
-- Must already be Medicaid recipient and institutionalized 60+ days; not for those still at home.
-- Services capped at $2,500 per transition; only 'what you need' covered.
-- Requires prior authorization by MCO case manager and healthcare professional recommendation.
-- Part of federal Money Follows the Person framework but state-administered via DSHP-Plus LTSS; confirm current limits as 2025 figures used.
-- Institutional Level of Care required despite community transition.
-
-**Data shape:** Tied to DSHP-Plus Medicaid LTSS; 60-day institutional stay mandatory; $2,500 transition cap; no standalone income table but uses Medicaid LTC thresholds.
-
-**Source:** https://dhss.delaware.gov/dhss/dmma/index.shtml (DMMA/DSHP-Plus); program referenced in https://www.delawarefirsthealth.com/content/dam/centene/delaware/Policies/providernotification/DE.CP.MP.02_05.24.pdf
+**Source:** https://dhss.delaware.gov (DPAP application at https://dhss.delaware.gov/wp-content/uploads/sites/11/dss/pdf/dpapapplication.pdf); regulations at https://regulations.delaware.gov/AdminCode/title16/30000[4][6]
 
 ---
 
@@ -606,32 +607,28 @@ Our data differs from what official sources say:
 
 **Eligibility:**
 - Age: 62+
-- Income: Household income may not exceed $93,725 per year
-- Property must be located within Wilmington City Limits
-- Property must be the primary residence of the applicant
-- Applicant must be listed as the property owner on tax records
-- Facing imminent foreclosure due to delinquent property taxes and/or water and sewer bills
-- Must provide photo ID or other government-issued identification verifying age
+- Income: Household income may not exceed $93,725 per year. No variation specified by household size or single/couple.
+- Assets: No asset limits mentioned.
+- Property must be located within Wilmington city limits and be the applicant's primary residence.
+- Applicant must be listed as the property owner on tax records.
+- Facing imminent foreclosure due to delinquent property taxes, water bills, or sewer bills.
 
-**Benefits:** Maximum grant amount of $3,000 to cover delinquent property taxes and/or water and sewer bills
+**Benefits:** Maximum grant of $3,000 to cover delinquent property taxes, water bills, or sewer bills.
 - Varies by: fixed
 
 **How to apply:**
-- Phone: (302) 577-5001 to set up an appointment with Delaware State Housing Authority (DSHA)
+- Phone: Contact DSHA at (302) 577-5001 to set up an appointment.
 
-**Timeline:** Not specified in available sources
+**Timeline:** Not specified in available sources.
 
 **Watch out for:**
-- This program is specifically for homeowners facing imminent foreclosure — it is not a general tax relief program for all seniors
-- The program targets seniors who have paid off their mortgages but cannot afford property taxes or water/sewer bills
-- Maximum grant is $3,000, which may not cover all delinquent amounts
-- Applicants aged 65 or older must also apply for the separate Property Tax Exemption program to be eligible
-- The income limit of $93,725 is significantly higher than other Delaware senior tax programs (which typically cap at $19,000–$50,000), suggesting this program is designed for a broader income range facing specific hardship
-- Program is administered jointly by City of Wilmington, Delaware State Housing Authority (DSHA), and United Way of Delaware (UWD)
+- Targets only those facing imminent foreclosure due to specific delinquent bills (property taxes, water, sewer); not general tax relief.
+- Must be homeowner with paid-off mortgage in many cases, per program descriptions.
+- Distinct from Wilmington's separate Senior Property Tax Exemption (age 65+, lower income limits like $15k single/$19k couple, $565 exemption).
 
-**Data shape:** This is a crisis-intervention program, not a routine tax relief program. It requires proof of imminent foreclosure and delinquent bills. The high income limit ($93,725) combined with the foreclosure requirement distinguishes it from Delaware's other senior tax exemption programs. The $3,000 maximum grant is a one-time assistance amount, not an ongoing annual benefit. Program availability may depend on funding; no information on current enrollment capacity or waitlists is available.
+**Data shape:** Emergency grant program restricted to Wilmington city homeowners 62+ at risk of foreclosure; high income threshold ($93,725) but requires proof of delinquency and imminent foreclosure.
 
-**Source:** https://www.wilmingtonde.gov/residents/senior-citizen-exemptions-and-programs
+**Source:** https://www.destatehousing.com/ (DSHA website for application and complete information)
 
 ---
 
@@ -641,66 +638,33 @@ Our data differs from what official sources say:
 
 **Eligibility:**
 - Age: 65+
-- Income: No income limits or asset limits mentioned; eligibility based solely on age or disability criteria listed on the application[1][2][3]
-- Assets: No asset limits; no information on what counts or exemptions as none apply[1]
-- Physical or mental disability preventing operation of a motor vehicle (certified via application criteria)
-- Certification required to verify age and/or disability
-- Exclusions: acute/chronic alcoholism, drug addiction, contagious diseases risking others[1]
+- Income: No income limits mentioned in available sources.
+- Assets: No asset limits mentioned in available sources.
+- Physical or mental disability preventing operation of a motor vehicle (certification required)
+- Certification to verify age and/or disability
+- Exclusions: acute or chronic alcoholism, drug addiction, contagious diseases risking others
 
-**Benefits:** 50% discount on taxi fares via purchase of SCAT tickets; present DART SCAT Photo ID to driver; rides for any purpose; use participating taxi companies; fare set by individual taxi company and paid with tickets[1][2][3][4][5]
+**Benefits:** 50% discount on taxi fares via purchase of SCAT tickets; present DART SCAT Photo ID to driver; rides for any purpose; must use participating taxi companies
 - Varies by: fixed
 
 **How to apply:**
-- Downloadable application form at http://www.dartfirststate.com/scat/[1]
-- In-person photo ID required post-approval at DTC offices: 400 S. Madison St, Wilmington or 900 Public Safety Boulevard, Dover, DE 19901[1]
-- Purchase tickets after approval, then call participating taxi company[1]
+- Download form from https://www.dartfirststate.com/information/forms/index.shtml
+- Phone: 800.553.3278 (to request application)
+- Mail to: Delaware Transit Corporation, 400 S. Madison St., Wilmington, DE 19801 or 900 Public Safety Boulevard, Dover, DE 19901
+- In-person: DTC offices at 400 S. Madison St., Wilmington or 900 Public Safety Blvd., Dover (for photo ID after approval)
 
 **Timeline:** Not specified in sources
 
 **Watch out for:**
-- Must purchase SCAT tickets separately after approval; present Photo ID each ride or denied service[1]
-- Certification solely based on application criteria; DTC may verify with certifiers[1]
-- Fees for application completion not covered by DTC[1]
-- Exclusions for certain conditions like addiction or contagious diseases[1]
-- Applicant pays for trip to get Photo ID[1]
-- Only participating taxi companies accepted[5]
+- Must purchase SCAT tickets separately after approval (fare paid with tickets, not cash)
+- Present DART SCAT Photo ID at pickup (must visit DTC office for photo)
+- Only participating taxi companies accepted; taxi dispatched by calling them directly
+- DTC may verify certification; applicant pays for any photo ID trip to office
+- Disability determination based solely on application criteria
 
-**Data shape:** No income or asset test; eligibility purely age 65+ or certified disability preventing driving; ticket-based discount system requiring in-person ID issuance at 2 statewide offices; exclusions for specific health risks
+**Data shape:** No income or asset tests; ticket-based discount system requiring photo ID and participating taxis; certification-focused eligibility; statewide but ID pickup limited to two offices
 
-**Source:** http://www.dartfirststate.com/scat/
-
----
-
-### Delaware Foster Grandparent Program
-
-> **NEW** — not currently in our data
-
-**Eligibility:**
-- Age: 55+
-- Income: Must meet income eligibility for tax-free stipend (exact federal poverty guidelines not specified in sources; typically ≤125% of poverty level per federal rules, but Delaware-specific dollar amounts or household size table unavailable in results)
-- Able to volunteer with at-risk children in community settings like schools, day cares, Head Start, and alternative education sites
-- Pass criminal background check (including National Service Criminal History Check)
-- Commit to service hours (not specified)
-
-**Benefits:** Tax-free stipend (if income eligible); transportation reimbursements; meals while on duty; annual physical exams; accident and personal liability insurance; orientation and training; paid holidays; earned sick and vacation days; recognition events
-- Varies by: income_eligibility
-
-**How to apply:**
-- Contact State Office of Volunteerism, Foster Grandparent Program, Sussex County (specific phone/location via delaware211.org; statewide through Delaware Health and Social Services and Division of State Service Centers)
-- In-person at Division of State Service Centers
-- Related state services via local Division of Social Services offices (locations on DHSS leaflets)
-
-
-**Watch out for:**
-- This is a volunteer program for seniors (55+) to mentor at-risk children, not foster care placement or financial aid for families raising grandchildren—often confused with Kinship Care or TANF
-- Stipend is tax-free but income-tested only for stipend receipt (non-income-eligible can still volunteer without it)
-- Seasonal adjustments by county (e.g., summer program reorganization)
-- Requires background check and driver's license for some roles
-- Distinct from PA Delaware County program
-
-**Data shape:** Federal AmeriCorps Seniors program run statewide via DHSS/Division of State Service Centers; income eligibility only for stipend (volunteering open broader); county-level operations with Sussex example; no exact income tables or forms in sources
-
-**Source:** https://delaware211.org/iresource/state-office-of-volunteerism-foster-grandparent-program-sussex-county/
+**Source:** https://www.dartfirststate.com/Programs/ or https://www.dartfirststate.com/information/forms/index.shtml
 
 ---
 
@@ -710,34 +674,73 @@ Our data differs from what official sources say:
 
 **Eligibility:**
 - Age: 60+
-- Income: No income limits; available to all qualifying Delaware residents regardless of income.
-- Assets: No asset limits or tests.
+- Income: No income limits or asset limits apply. Eligibility is based solely on age and Delaware residency, with no household size variations, asset counts, or exemptions needed.
+- Assets: No asset limits apply.
 - Delaware resident
-- Must be admitted as a formal degree candidate (matriculated undergraduate or graduate student at University of Delaware, or eligible for credit courses at Delaware Technical Community College on space-available basis)
-- High school diploma or equivalent for new UD applicants (SAT not required)
-- For DTCC: Excludes Workforce Development, Community Education, and competitive admissions programs
+- Must apply and be admitted as a formal degree candidate (undergraduate or graduate at University of Delaware; credit courses at Delaware Technical Community College and Delaware State University)
+- High school diploma or equivalent expected for new UD applicants (SATs not required)
+- Space-available basis
+- For DTCC: Excludes Workforce Development, Community Education, and competitive admissions programs; registration opens one week before term starts
 
-**Benefits:** Waives tuition and mandatory fees (e.g., Student Center, Wellbeing, Comprehensive fees at UD); covers registration, late registration, and student services fees at DTCC. Student pays books, supplies, course-related fees (lab, shop), and optional costs like housing or dining.
+**Benefits:** Waiver of tuition and mandatory fees (e.g., Student Center, Wellbeing, Comprehensive fees at UD). Covers credit or audit classes toward a degree. Students pay for books, supplies, course-related fees (labs, shops), and optional services like housing or dining.
 
 **How to apply:**
-- University of Delaware (new applicants): Online Over-60 Undergraduate Application at https://www.continuingstudies.udel.edu/60-tuition-free-degree/ (disabled after deadlines)
-- UD previously admitted: Contact ACCESS Center at access-advise@udel.edu
-- DTCC: Register during senior citizen period (1 week before 15-week fall/spring or 12-week summer sessions); registrations before period ineligible for waiver
-- Deadlines: UD Fall May 1, Spring Nov 1 (space-available after); DTCC space-available basis
+- University of Delaware (new applicants): Online Over-60 Undergraduate Application at https://www.continuingstudies.udel.edu/60-tuition-free-degree/ (disabled after deadlines: Fall May 1, Spring Nov 1; late on space-available basis)
+- University of Delaware (previously admitted): Contact ACCESS Center at access-advise@udel.edu for readmission application
+- Delaware Technical Community College: Register during senior citizen period (1 week before 15-week fall/spring or 12-week summer sessions)
+- Delaware State University: Apply through standard admissions as formal degree candidate (details via school contact per state law)
+- In-person/mail: Official transcripts to UD Undergraduate Admissions Office; DTCC/DSU via respective college processes
 
-**Timeline:** UD: 6-8 weeks after all materials received; DTCC: Immediate at registration if space available
-**Waitlist:** No formal waitlist; space-available basis only
+**Timeline:** UD: 6-8 weeks after all materials received. DTCC/DSU: Space-available at registration opening.
+**Waitlist:** No formal waitlist; enrollment strictly space-available after priority students.
 
 **Watch out for:**
-- Must be 60 at term start and formal degree candidate (not non-degree or audit at UD)
-- Space-available only; apply early (UD processing 6-8 weeks; DTCC late registration period)
-- Excludes certain DTCC programs (Workforce/Community Ed, competitive admissions); pays books/fees
-- UD deadlines strict (May 1 fall, Nov 1 spring); late apps space-available
-- Not for continuing ed or non-credit unless specified at DTCC
+- Must be formal degree candidate, not non-degree or continuing ed (except DTCC credit courses)
+- Space-available only—priority to paying students; register late (e.g., DTCC 1 week before term)
+- Deadlines strict (UD May 1 fall, Nov 1 spring); late apps space-available only
+- Pays books, supplies, lab/shop fees—not fully 'free'
+- DTCC: No waiver if registered before senior period; excludes some programs
+- No financial aid stacking beyond tuition/fees at some schools
 
-**Data shape:** Statewide tuition waiver at public institutions for degree-seeking seniors; no income/asset test; institution-specific apps, exclusions, and space rules; authorized by DE law for UD, DSU, DTCC (DSU details not in results)
+**Data shape:** Statewide via 3 public institutions; no income/asset test; degree-seeking only; space-available enrollment; institution-specific processes and exclusions
 
-**Source:** https://delcode.delaware.gov/title14/c034/sc10/index.html (enabling law); https://www.continuingstudies.udel.edu/60-tuition-free-degree/ (UD); https://dtcc.smartcatalogiq.com/en/current/catalog/financial/senior-citizen-tuition-policy (DTCC)
+**Source:** https://delcode.delaware.gov/title14/c034/sc10/index.html (state law); https://www.continuingstudies.udel.edu/60-tuition-free-degree/ (UD); https://dtcc.smartcatalogiq.com/en/current/catalog/financial/senior-citizen-tuition-policy (DTCC)
+
+---
+
+### Assistive Devices Program
+
+> **NEW** — not currently in our data
+
+**Eligibility:**
+- Age: 18+
+- Income: Specific income limits not detailed in sources; must meet financial criteria for DSAAPD services or Medicaid waivers. For related Medicaid long-term care (e.g., nursing home), single applicant under $2,485/month in 2026[1]. Varies by program and household; complex formulas apply[7].
+- Assets: Must meet resource criteria for DSAAPD; for Medicaid long-term care, single applicant under $2,000[1]. Counts and exemptions not specified.
+- Functionally-impaired adults with physical disabilities
+- Assessed need for assistive device to promote independent action or communication[4]
+- Specific social, financial, and physical criteria for ages 18-59; age 60+ broader[4]
+- Medically necessary for Medicaid coverage[6]
+
+**Benefits:** Assistive devices (e.g., kitchen utensils with large grips, shower seats, wheelchairs, specialized computers) that promote independence; related services may include evaluations, training, demonstrations, loans via DATI[4][5]. No fixed dollar amounts or hours specified.
+
+**How to apply:**
+- Phone: 800.223.9074 (DSAAPD)[4]
+- Website: www.dhss.delaware.gov/dsaapd[4]
+- Contact DSAAPD for locations; no formal application for DATI services—direct contact to ATRCs[5]
+- Medicaid-related: online at Delaware DHSS, phone 1-866-843-7212, in-person DHSS office[2]
+
+**Timeline:** Not specified
+
+**Watch out for:**
+- Must have assessed need; item must directly promote independence or communication[4]
+- Complex, varying financial criteria by subcategory—not uniform[7]
+- Ages 18-59 require stricter financial/medical criteria than 60+[4]
+- No formal application for some services (DATI)—direct contact only[5]
+- Medicaid coverage requires medical necessity[6]
+
+**Data shape:** Tied to DSAAPD for adults with physical disabilities; no fixed income/asset tables provided—'specified financial criteria'; device-specific assessed need required; statewide but location-based access
+
+**Source:** https://dhss.delaware.gov/dsaapd (DSAAPD primary); http://www.dati.org (DATI)
 
 ---
 
@@ -745,71 +748,70 @@ Our data differs from what official sources say:
 
 | Program | Type | Scope | Complexity |
 |---------|------|-------|------------|
-| Delaware Medicaid for Elderly and Disabl | benefit | state | deep |
-| Diamond State Health Plan Plus (DSHP Plu | benefit | state | medium |
-| Delaware PACE Program | benefit | local | deep |
-| Delaware Medicare Savings Programs (QMB, | benefit | federal | medium |
-| Delaware Food First Program (SNAP) | benefit | federal | medium |
-| Delaware Energy Assistance Program (DEAP | benefit | state | deep |
-| Delaware Weatherization Assistance Progr | benefit | federal | medium |
-| Delaware Senior Medicare Patrol (SMP) | benefit | federal | medium |
-| Delaware Home Delivered Meals (Multiple  | benefit | state | simple |
-| CARE Delaware Caregiver Support Program | benefit | state | deep |
+| Delaware Medicaid for the Elderly | benefit | state | deep |
+| Diamond State HCBS Waiver | benefit | state | deep |
+| Delaware PACE | benefit | local | deep |
+| Delaware Medicare Savings Programs (QMB, | benefit | federal | deep |
+| Delaware Food First/SNAP | benefit | federal | medium |
+| Delaware LIHEAP | benefit | federal | deep |
+| Delaware Weatherization Assistance Progr | benefit | federal | deep |
+| Delaware Senior Medicare Patrol (SMP/SHI | benefit | federal | medium |
+| Delaware Meals on Wheels | benefit | federal | medium |
+| Delaware Family Caregiver Support Progra | benefit | state | deep |
 | Delaware Senior Community Service Employ | employment | federal | deep |
-| Delaware Long Term Care Ombudsman Progra | resource | federal | simple |
+| Delaware Long-Term Care Ombudsman Progra | resource | federal | simple |
 | Delaware Prescription Assistance Program | benefit | state | medium |
-| Nursing Home Transition Program | benefit | state | deep |
 | Wilmington Senior Tax Assistance Program | benefit | local | medium |
 | SCAT – Senior Citizens Affordable Taxi | benefit | state | medium |
-| Delaware Foster Grandparent Program | employment | state | medium |
-| Over-60 Tuition Benefit | benefit | state | medium |
+| Over-60 Tuition Benefit | benefit | state | deep |
+| Assistive Devices Program | benefit | state | deep |
 
-**Types:** {"benefit":15,"employment":2,"resource":1}
-**Scopes:** {"state":10,"local":2,"federal":6}
-**Complexity:** {"deep":6,"medium":10,"simple":2}
+**Types:** {"benefit":15,"employment":1,"resource":1}
+**Scopes:** {"state":7,"local":2,"federal":8}
+**Complexity:** {"deep":10,"medium":6,"simple":1}
 
 ## Content Drafts
 
-Generated 0 page drafts. Review in admin dashboard or `data/pipeline/DE/drafts.json`.
+Generated 3 page drafts. Review in admin dashboard or `data/pipeline/DE/drafts.json`.
 
+- **Delaware Medicaid for the Elderly** (benefit) — 5 content sections, 6 FAQs
+- **Diamond State HCBS Waiver** (benefit) — 5 content sections, 6 FAQs
+- **Delaware PACE** (benefit) — 5 content sections, 6 FAQs
 
 ## What We Learned
 
 ### Patterns Observed
 
 How benefits vary across these programs:
-- **priority_tier**: 3 programs
-- **Individual service plan — while all participants receive case management, an individualized assessment determines which other HCBS services each participant receives[1]**: 1 programs
-- **not_applicable**: 4 programs
-- **program_tier**: 1 programs
+- **program_type**: 1 programs
+- **priority_tier**: 5 programs
+- **not_applicable**: 5 programs
 - **household_size**: 1 programs
-- **household_size, income, heating_source, priority_tier**: 1 programs
-- **household_need_and_priority**: 1 programs
-- **fixed**: 4 programs
-- **income_eligibility**: 1 programs
+- **household_size|priority_tier|fuel_type**: 1 programs
+- **region**: 1 programs
+- **fixed**: 3 programs
 
 ### Data Shape Notes
 
 Unique structural observations from each program:
 
-- **Delaware Medicaid for Elderly and Disabled**: Multiple subprograms (ABD basic vs LTC/NFLOC vs waivers/PACE); income/assets program-specific with spousal deeming; county phone variation; NFLOC tiers benefits
-- **Diamond State Health Plan Plus (DSHP Plus)**: DSHP-Plus is a managed long-term services and supports (MLTSS) program that consolidated multiple prior 1915(c) waivers into a single 1115 demonstration waiver[5]. Benefits are not fixed by income or household size but rather determined through individualized service planning. The program serves a specific population (elderly and adults with physical disabilities) rather than being universally available to all Medicaid beneficiaries. Critical eligibility and benefit details (income limits, asset limits, processing times, required documents) are not publicly specified in available sources and require direct contact with DMMA.
-- **Delaware PACE Program**: Limited to specific provider service areas (not statewide); no direct income/asset test for enrollment but tied to Medicaid for free coverage; requires state NFLOC certification and community safety assessment.
-- **Delaware Medicare Savings Programs (QMB, SLMB, QI)**: This program structure consists of three distinct tiers (QMB, SLMB, QI-1) with progressively higher income limits but fewer benefits as you move up the income scale. QMB is the most comprehensive but has the lowest income threshold; QI-1 is the most limited but has the highest income threshold. Delaware's lack of asset limits is a significant structural advantage. QI-1's first-come, first-served funding model and annual re-application requirement make it structurally different from QMB and SLMB. All three programs automatically enroll qualifying beneficiaries in Extra Help for Part D prescription drugs.
-- **Delaware Food First Program (SNAP)**: Elderly/disabled households: no gross income test, no asset limits, enhanced deductions (medical/shelter); broad categorical eligibility at 200% FPL gross; benefits scale by household size/income; expedited for very low income/resources; 12-month certification for seniors.
-- **Delaware Energy Assistance Program (DEAP)**: Benefits scale by household size, income, and heating source. Program has three distinct components (winter heating, summer cooling, crisis) with different maximum benefits. Regional variation exists in service delivery through contracted agencies, but eligibility and benefits are statewide. No waiting list for regular DEAP, but weatherization component has waiting list. Priority given to vulnerable populations but not exclusive to them.
-- **Delaware Weatherization Assistance Program**: Benefits are fixed in-kind services (not tiered by income), but priority for waitlist placement varies by household characteristics (age, disabilities, children, need level). Income limits scale by household size with a formula for households over 8 persons. Program is statewide with no regional variations in eligibility or services. The key structural feature is the waiting list — eligibility does not guarantee service in any given year.
-- **Delaware Senior Medicare Patrol (SMP)**: no income/asset/age test for beneficiaries; volunteer-based education/advocacy service only; no enrollment or waitlist—immediate access via contact; integrates with SHIP counseling[2][3][7]
-- **Delaware Home Delivered Meals (Multiple Programs)**: Delaware does not have a single unified 'Home Delivered Meals' program. Instead, there are at least 5 separate programs with different eligibility criteria, age groups, benefits, and application processes. Families must: (1) determine which program(s) their loved one might qualify for based on age, income, Medicaid status, and specific circumstances; (2) contact the appropriate provider or health plan; (3) understand that Title III-C (Older Americans Act) is the primary program for seniors 60+, but Medicaid-enrolled individuals may have additional options through their health plan. The search results do not provide complete application procedures, processing times, or waitlist information for most programs.
-- **CARE Delaware Caregiver Support Program**: Eligibility requirements vary by program/service; no fixed income/asset tables—requires direct contact; statewide but assessment-driven; linked to DSAAPD for physically/mentally impaired adults 18+[3]
-- **Delaware Senior Community Service Employment Program (SCSEP)**: Operated by grantees like National Able; priority tiers for enrollment; funding-dependent slots; no fixed income table or asset test in sources, requires provider contact for current 125% FPL figures
-- **Delaware Long Term Care Ombudsman Program**: This is a statewide advocacy and complaint resolution program, not an eligibility-based benefit program. There are no income, asset, or age limits for residents to receive ombudsman services. Families access the program by contacting the state office directly by phone or website; there is no formal application. The program operates through trained volunteer ombudsmen assigned to specific facilities. Key distinction: this program advocates FOR residents' rights rather than providing direct services or financial assistance.
-- **Delaware Prescription Assistance Program (DPAP)**: Income test at 200% FPL with alternative Rx cost threshold; no asset test; Medicare Part D mandatory bridge required; fixed annual cap per person with co-pay; statewide but centralized mail processing in New Castle
-- **Nursing Home Transition Program**: Tied to DSHP-Plus Medicaid LTSS; 60-day institutional stay mandatory; $2,500 transition cap; no standalone income table but uses Medicaid LTC thresholds.
-- **Wilmington Senior Tax Assistance Program**: This is a crisis-intervention program, not a routine tax relief program. It requires proof of imminent foreclosure and delinquent bills. The high income limit ($93,725) combined with the foreclosure requirement distinguishes it from Delaware's other senior tax exemption programs. The $3,000 maximum grant is a one-time assistance amount, not an ongoing annual benefit. Program availability may depend on funding; no information on current enrollment capacity or waitlists is available.
-- **SCAT – Senior Citizens Affordable Taxi**: No income or asset test; eligibility purely age 65+ or certified disability preventing driving; ticket-based discount system requiring in-person ID issuance at 2 statewide offices; exclusions for specific health risks
-- **Delaware Foster Grandparent Program**: Federal AmeriCorps Seniors program run statewide via DHSS/Division of State Service Centers; income eligibility only for stipend (volunteering open broader); county-level operations with Sussex example; no exact income tables or forms in sources
-- **Over-60 Tuition Benefit**: Statewide tuition waiver at public institutions for degree-seeking seniors; no income/asset test; institution-specific apps, exclusions, and space rules; authorized by DE law for UD, DSU, DTCC (DSU details not in results)
+- **Delaware Medicaid for the Elderly**: Delaware Medicaid for the elderly is split into two main programs: (1) Nursing Home Medicaid for institutional care and (2) Long-Term Care Community Services (LTCCS) for community-based care. Both have the same 2025 income limit ($2,417.50/month) but different asset limits and service delivery models. Regular ABD Medicaid is a separate program with lower income limits ($967/month) but covers basic healthcare. Income limits are indexed to 250% of SSI federal benefit rate and may change annually. Spousal asset and income treatment differs significantly depending on whether one or both spouses are applying. The program is statewide but LTCCS has geographic service area restrictions. Processing times are variable and not standardized.
+- **Diamond State HCBS Waiver**: No separate elderly HCBS waiver; benefits via DSHP Plus LTCCS Program with NFLOC requirement and statewide Medicaid integration; limited slots historically led to waitlists; financials tied to ABD Medicaid with $2,000 single asset cap[6]
+- **Delaware PACE**: Limited to specific provider service areas (not statewide); no financial criteria for enrollment but Medicaid needed for free services; requires state-certified nursing facility level of care; private pay option with flat fee
+- **Delaware Medicare Savings Programs (QMB, SLMB, QI)**: Delaware's MSP structure is tiered by income level (QMB < SLMB < QI), with benefits decreasing as income increases. The key differentiator is Delaware's elimination of asset limits, which is not standard nationally. The QI program's first-come, first-served funding model creates uncertainty for late applicants. All three programs tie to Medicare Part A enrollment and offer automatic Extra Help for prescription drugs. Processing timelines, specific forms, required documents, and regional office locations are not detailed in available sources and require direct contact with DMAB.
+- **Delaware Food First/SNAP**: Expanded eligibility to 200% FPL gross income with no asset test for most; special net income path for elderly/disabled households; categorical eligibility for SSI/TANF/GA; benefits via EBT card scaling by household size, income, and deductions like medical costs.
+- **Delaware LIHEAP**: Income at 60% SMI or 200% FPL (updates yearly); benefits scale by income/size/fuel/season; priority tiers for vulnerable; statewide but local agency delivery; no assets test
+- **Delaware Weatherization Assistance Program**: Statewide fixed services via single contractor (ECA); income at 200% FPL with household size table; priority tiers by vulnerability (elderly/disabled/children); waitlist and annual reapplication due to funding limits.
+- **Delaware Senior Medicare Patrol (SMP/SHIP)**: no income/asset/age test beyond Medicare eligibility; service-based not financial; volunteer-driven outreach statewide via events/phone; often bundled with SHIP counseling[1][2][3][4]
+- **Delaware Meals on Wheels**: Delaware Meals on Wheels operates as a decentralized network of regional providers rather than a single statewide program. Eligibility is uniform (age 60+, homebound, unable to cook/shop), but application processes, meal options, and service details vary significantly by county and provider. No income limits exist statewide, which is unusual and important for families to know. The program explicitly prioritizes reaching low-income seniors but does not restrict services based on income[3]. Non-elderly disabled adults have a narrow eligibility pathway requiring SSDI proof and co-residence with an eligible elderly person.
+- **Delaware Family Caregiver Support Program**: Administered via Area Agencies on Aging; links to Medicaid waivers for paid family caregiving options; no direct income test specified, but functional/age-based; not statewide uniform in delivery.
+- **Delaware Senior Community Service Employment Program (SCSEP)**: Income at 125% FPL (varies by household size/year, no fixed table in sources); priority enrollment tiers; grantee/provider-based (National Able in DE, county offices); funding slots limit access
+- **Delaware Long-Term Care Ombudsman Program**: no income test; advocacy-only for LTC facility residents; volunteer-supported with statewide coverage but regional volunteer assignment
+- **Delaware Prescription Assistance Program (DPAP)**: Income test at 200% FPL or 40% drug costs; strict Medicare Part D mandate; no assets test; statewide but centralized in New Castle; fiscal year benefits cap per individual
+- **Wilmington Senior Tax Assistance Program**: Emergency grant program restricted to Wilmington city homeowners 62+ at risk of foreclosure; high income threshold ($93,725) but requires proof of delinquency and imminent foreclosure.
+- **SCAT – Senior Citizens Affordable Taxi**: No income or asset tests; ticket-based discount system requiring photo ID and participating taxis; certification-focused eligibility; statewide but ID pickup limited to two offices
+- **Over-60 Tuition Benefit**: Statewide via 3 public institutions; no income/asset test; degree-seeking only; space-available enrollment; institution-specific processes and exclusions
+- **Assistive Devices Program**: Tied to DSAAPD for adults with physical disabilities; no fixed income/asset tables provided—'specified financial criteria'; device-specific assessed need required; statewide but location-based access
 
 ### Questions for Chantel's Review
 

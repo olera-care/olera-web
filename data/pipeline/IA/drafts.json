@@ -1,0 +1,621 @@
+{
+  "state": "IA",
+  "stateName": "Iowa",
+  "draftedAt": "2026-04-09T09:34:00.446Z",
+  "total": 13,
+  "successful": 3,
+  "programs": [
+    {
+      "id": "iowa-medicaid-elderly-waiver",
+      "name": "Iowa Medicaid Home & Community Based Services Elderly Waiver",
+      "shortName": "Iowa Elderly Waiver",
+      "tagline": "Get your parent the help they need to stay home instead of moving to a nursing home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local HHS offices for application and assessment; statewide providers.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home level care but wants to stay home, Iowa's Elderly Waiver can provide the services to make that possible. This program covers everything from home health aides and meal delivery to home modifications and emergency response systems — the same level of care your parent would get in a facility, but in their own home.\n\nTo qualify, your parent must be 65+, meet Medicaid's income limits (typically $2,901/month or less for a single person), and need daily help with activities like bathing, dressing, or medication management. The program provides individualized services based on what your parent specifically needs, determined by a comprehensive assessment.\n\nBecause this waiver is an alternative to nursing home care, your parent must actually qualify for that level of institutional care to be eligible. The state will conduct a clinical assessment to determine if your parent meets this requirement.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income $2,901/month or less",
+          "Need nursing home level care",
+          "Iowa resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2901
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home (any value)",
+            "One car",
+            "Household goods",
+            "Burial/funeral funds or contracts"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need nursing facility or skilled level of care — daily help with bathing, dressing, medication management, or similar activities of daily living",
+        "otherRequirements": [
+          "Iowa resident",
+          "U.S. citizen or qualified legal entrant",
+          "At risk of nursing home placement",
+          "Approved provider must be available in your area"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through Iowa's benefits portal or call 1-855-889-7985 — processing time varies but assessment is scheduled after initial application.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Submit Medicaid application",
+            "description": "Apply online at Iowa HHS Benefits Portal, call 1-855-889-7985, or visit your local HHS office. You'll need proof of income, assets, residency, and citizenship."
+          },
+          {
+            "step": 2,
+            "title": "Complete level of care assessment",
+            "description": "Iowa Medicaid Medical Services Unit will schedule a comprehensive assessment to determine if your parent needs nursing home level care. This includes evaluating daily living activities and medical needs."
+          },
+          {
+            "step": 3,
+            "title": "Develop service plan",
+            "description": "If approved, an interdisciplinary team will work with you and your parent to create an individualized service plan based on specific needs and available providers in your area."
+          },
+          {
+            "step": 4,
+            "title": "Annual review",
+            "description": "Service plans are reviewed annually to adjust services as your parent's needs change."
+          }
+        ],
+        "processingTime": "Not specified — assessment scheduled after application contact",
+        "waitlist": null,
+        "tip": "Even if your parent's income is over $2,901/month, they may still qualify under certain conditions — don't assume they're ineligible without applying.",
+        "urls": [
+          {
+            "label": "Iowa HHS Benefits Portal",
+            "url": "https://hhs.iowa.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2901,
+              "annualLimit": 34812
+            }
+          ],
+          "footnote": "2025 limits. Couples follow nursing home Medicaid rules. May still be eligible if over limit under certain conditions."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "excluded": [
+            "Primary home (any value in most cases)",
+            "One car",
+            "Household goods and personal belongings",
+            "Burial/funeral funds or contracts"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Proof of Iowa residency",
+                "Proof of U.S. citizenship or qualified legal status"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letter",
+                "Bank statements",
+                "Proof of all assets (excluding exempt items)"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records showing need for daily assistance",
+                "Information about current health conditions",
+                "List of current medications and treatments"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Your parent must qualify for nursing home level care to be eligible. This isn't for general elderly support — they need to demonstrate they require daily assistance with activities like bathing, dressing, or medication management."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Services depend on approved provider availability in your area. Even if your parent qualifies, specific services may not be available if there aren't approved providers nearby."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for the waiver?",
+          "answer": "Yes. Your parent's primary home is exempt regardless of value in most cases. The $2,000 asset limit only applies to countable assets like bank accounts and investments."
+        },
+        {
+          "question": "What if Dad's income is just over $2,901 per month?",
+          "answer": "He may still be eligible under certain conditions. Iowa allows some flexibility for people whose income is slightly over the limit. Don't assume he's ineligible — apply anyway."
+        },
+        {
+          "question": "How do they determine if Mom needs nursing home level care?",
+          "answer": "Iowa Medicaid Medical Services Unit conducts a comprehensive assessment looking at daily activities like bathing, dressing, medication management, and mobility. They evaluate whether your parent needs the same level of daily assistance provided in nursing facilities."
+        },
+        {
+          "question": "What services are actually covered under the waiver?",
+          "answer": "Services are individualized based on your parent's needs, including home health aides, meal delivery, transportation, emergency response systems, home modifications, respite care, and case management. Plus all standard Medicaid benefits like medical care, dental, and vision."
+        },
+        {
+          "question": "Can we choose which services Dad receives?",
+          "answer": "Services are determined through an assessment and developed by an interdisciplinary team working with you and your parent. The plan is based on medical necessity and what's available from approved providers in your area."
+        },
+        {
+          "question": "What happens if Mom's needs change after she's approved?",
+          "answer": "Service plans are reviewed annually and can be adjusted as your parent's needs change. You can also request plan changes if your parent's condition significantly improves or worsens between annual reviews."
+        }
+      ],
+      "phone": "1-855-889-7985",
+      "sourceUrl": "https://hhs.iowa.gov/medicaid/services-care/home-and-community-based-services/waiver-programs",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "iowa-hcbs-elderly-waiver",
+      "name": "Iowa HCBS Elderly Waiver",
+      "shortName": "Iowa Elderly Waiver",
+      "tagline": "Get home care services to help your parent avoid nursing home placement while staying in their own home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If your parent is 65+ and needs daily help with bathing, dressing, or medication management, Iowa's HCBS Elderly Waiver can provide home care services to help them stay in their own home instead of moving to a nursing facility. This program covers services like homemaker assistance, adult day care, home-delivered meals, personal care attendants, respite care for family caregivers, and home modifications. To qualify, your parent must be eligible for Medicaid with income under $35,788/year and assets under $2,000 (their home doesn't count toward this limit if they live in it and it's worth less than $752,000). Because this program requires meeting \"Nursing Facility Level of Care\" — a clinical assessment proving your parent needs significant daily assistance — simply having a dementia diagnosis alone won't qualify them.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income under $35,788/year",
+          "Assets under $2,000",
+          "Need daily care assistance",
+          "Iowa resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Cash and money in checking or savings accounts"
+          ],
+          "exemptAssets": [
+            "Home (if you live in it and equity under $752,000)",
+            "Home (if spouse lives in it)",
+            "Home (if minor or disabled child lives in it)"
+          ],
+          "homeEquityCap": 752000
+        },
+        "functionalRequirement": "Must need Nursing Facility Level of Care (daily help with bathing, dressing, mobility, eating, continence, or medication management based on clinical assessment)",
+        "otherRequirements": [
+          "Must qualify for Medicaid",
+          "Iowa resident",
+          "Cannot have given away assets in past 60 months"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact Iowa Department of Health and Human Services to start the Medicaid application and functional assessment process.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact Iowa HHS",
+            "description": "Call Iowa Department of Health and Human Services to request a Medicaid application and explain you're interested in the HCBS Elderly Waiver."
+          },
+          {
+            "step": 2,
+            "title": "Complete Medicaid application",
+            "description": "Submit financial documentation proving income under $35,788/year and assets under $2,000."
+          },
+          {
+            "step": 3,
+            "title": "Schedule functional assessment",
+            "description": "Iowa will arrange for an interRAI Home Care assessment to determine if your parent meets Nursing Facility Level of Care requirements."
+          },
+          {
+            "step": 4,
+            "title": "Wait for eligibility determination",
+            "description": "Iowa HHS will review both Medicaid eligibility and functional assessment results to determine waiver qualification."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Don't assume your parent's income is too high — the limit is $35,788/year, higher than many people expect.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Cash and money in checking accounts",
+            "Money in savings accounts",
+            "Home equity over $752,000"
+          ],
+          "excluded": [
+            "Home (if your parent lives in it and equity under $752,000)",
+            "Home (if spouse lives in it)",
+            "Home (if minor child under 21 lives in it)",
+            "Home (if blind or disabled adult child lives in it)"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Age",
+              "items": [
+                "Birth certificate or other proof of age 65+",
+                "Social Security card",
+                "Iowa residency documentation"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements for all checking and savings accounts",
+                "Proof of all income sources",
+                "Documentation of any asset transfers in past 60 months"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records showing need for daily care assistance",
+                "Current medication list",
+                "Documentation of functional limitations"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Starting in 2026, Iowa is consolidating its waiver programs. People already on the Elderly Waiver will keep their benefits, but new applicants may be directed to the Adults with Disabilities Waiver if they don't meet Elderly Waiver criteria."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Don't give away assets or sell them below fair market value within 60 months of applying — this creates a penalty period where your parent cannot receive Medicaid benefits."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes, if your parent lives in the home and the home equity is under $752,000 (2026 limit). The home also doesn't count if a spouse, minor child, or blind/disabled adult child lives there."
+        },
+        {
+          "question": "My parent has dementia — do they automatically qualify?",
+          "answer": "No. Having dementia alone doesn't guarantee qualification. Your parent must pass a functional assessment proving they need daily help with activities like bathing, dressing, mobility, eating, or medication management."
+        },
+        {
+          "question": "What if my parent's income is just over $35,788?",
+          "answer": "They won't qualify for this waiver program. However, they may qualify for other programs or should explore spend-down options with Iowa HHS to reduce countable income."
+        },
+        {
+          "question": "Can I be paid to care for my parent through this program?",
+          "answer": "Yes, the program includes consumer-directed attendant care (CDAC) which allows family members to be hired as paid caregivers in many cases."
+        },
+        {
+          "question": "What happens if my parent gave money to grandchildren recently?",
+          "answer": "Any assets given away or sold below fair market value within 60 months creates a penalty period where your parent is ineligible for Medicaid. Contact Iowa HHS to discuss your specific situation."
+        },
+        {
+          "question": "How long does the application process take?",
+          "answer": "Processing times aren't publicly documented. Contact Iowa HHS directly for current timelines, as both Medicaid eligibility and the functional assessment must be completed."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://hhs.iowa.gov/medicaid/services-care/home-and-community-based-services/waiver-programs",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "iowa-medicare-savings-programs",
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "If your parent's Medicare premiums and copays are straining their budget, these programs can eliminate those costs entirely.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Iowa HHS offices; find via https://hhs.iowa.gov",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is on Medicare and struggling with premiums, deductibles, or copays, Iowa's Medicare Savings Programs can eliminate these costs. The Qualified Medicare Beneficiary (QMB) program covers all Medicare premiums, deductibles, and copays — plus adds limited Medicaid for dental and prescription drugs. The Specified Low-Income Medicare Beneficiary (SLMB) and Qualifying Individual (QI) programs cover Medicare Part B premiums only, but QI automatically qualifies your parent for Extra Help with prescription drugs (capping most medications at $12.65 each in 2026).\n\nThese programs work on a tiered system based on income. QMB serves those with the lowest incomes (up to $1,330/month for a single person), while SLMB and QI serve those with slightly higher incomes up to $1,781/month. Because QMB wraps around Medicare, providers cannot bill your parent for any Medicare-covered services — eliminating surprise bills entirely.",
+      "savingsRange": "$1,000 – $3,600/year in 2026",
+      "savingsSource": "Based on Medicare Part B premiums ($185/month) plus typical deductibles and copays",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ (or disabled with Medicare)",
+          "Income below $1,781/month (single)",
+          "Assets below $9,950 (single)",
+          "Iowa resident with Medicare Part A"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1781
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2400
+          }
+        ],
+        "assetLimits": {
+          "individual": 9950,
+          "couple": 14910,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Stocks",
+            "Bonds"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Household items",
+            "Wedding/engagement rings",
+            "Burial plots and expenses up to $1,500",
+            "Life insurance with cash value under $1,500"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have Medicare Part A",
+          "Must have Medicare Part B (for SLMB and QI)",
+          "Must be U.S. citizen or qualified immigrant"
+        ],
+        "povertyLevelReference": "100-135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through Iowa's Medicaid application — no separate form needed — with processing typically taking 45-90 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect proof of income, bank statements, Medicare card, and ID before starting the application."
+          },
+          {
+            "step": 2,
+            "title": "Complete Iowa's Medicaid application",
+            "description": "Use the general Medicaid application online or by phone — Medicare Savings Programs are included, no separate form needed."
+          },
+          {
+            "step": 3,
+            "title": "Submit supporting documents",
+            "description": "Upload or mail required documentation to your local Iowa HHS office."
+          },
+          {
+            "step": 4,
+            "title": "Follow up if applying for QI",
+            "description": "QI operates first-come, first-served with limited funding — call to check status if you don't hear back within 60 days."
+          }
+        ],
+        "processingTime": "45-90 days typical",
+        "waitlist": "QI has first-come, first-served with priority to prior recipients; potential waitlist if funding limited",
+        "tip": "If your parent has income other than Social Security, add $20 to the income limits — this exception is often missed.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://hhs.iowa.gov/medicaid/apply-medicaid"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Most comprehensive coverage",
+              "incomeLimit": "Up to $1,330/month (single), $1,804/month (couple)",
+              "coverage": "All Medicare premiums, deductibles, copays, plus limited Medicaid for dental and some prescription drugs"
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Premium assistance only",
+              "incomeLimit": "$1,330-$1,596/month (single), $1,804-$2,156/month (couple)",
+              "coverage": "Medicare Part B premiums only"
+            },
+            {
+              "name": "QI (Qualifying Individual)",
+              "description": "Premium assistance plus prescription help",
+              "incomeLimit": "$1,596-$1,781/month (single), $2,156-$2,400/month (couple)",
+              "coverage": "Medicare Part B premiums plus automatic Extra Help for prescriptions ($12.65 cap per drug)"
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Cash and checking/savings accounts",
+            "Stocks, bonds, and other investments",
+            "Additional vehicles beyond the first one",
+            "Real estate other than primary home"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "One vehicle of any value",
+            "Household items and personal belongings",
+            "Wedding and engagement rings",
+            "Burial plots and burial expenses up to $1,500",
+            "Life insurance with cash value under $1,500"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Birth certificate or passport",
+                "Social Security card",
+                "Medicare card",
+                "Proof of Iowa residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letter",
+                "Pension statements",
+                "Bank statements (last 3 months)",
+                "Property deeds or mortgage statements",
+                "Medical bills (if pursuing Medically Needy)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI operates on limited federal funding with first-come, first-served processing. If your parent qualifies, apply early in the year to avoid potential waitlists."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent has any income besides Social Security (like a small pension), the income limits increase by $20. Many families miss this adjustment and assume they don't qualify."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for QMB?",
+          "answer": "Yes. The primary home is completely exempt from asset limits regardless of value. She can own a $50,000 home or a $500,000 home — it doesn't count toward the $9,950 asset limit."
+        },
+        {
+          "question": "What if Dad's income is just over the QMB limit but he really needs help with Medicare costs?",
+          "answer": "Check if he qualifies for SLMB (up to $1,596/month) or QI (up to $1,781/month). While these don't cover as much as QMB, they still eliminate the $185/month Medicare Part B premium. QI also caps most prescriptions at $12.65 each."
+        },
+        {
+          "question": "Will QMB affect Mom's regular Medicare benefits?",
+          "answer": "No, QMB enhances Medicare — it doesn't replace it. She keeps all her Medicare benefits, but QMB pays the costs Medicare normally charges her. Providers cannot bill QMB members for Medicare-covered services."
+        },
+        {
+          "question": "How is this different from regular Medicaid?",
+          "answer": "These are 'limited Medicaid' programs specifically for people with Medicare. QMB provides some Medicaid benefits (like dental) but focuses on covering Medicare costs. SLMB and QI only cover Medicare premiums — they don't provide other Medicaid services."
+        },
+        {
+          "question": "What happens if Dad gets approved for QI but there's a waitlist next year?",
+          "answer": "Prior recipients get priority when reapplying for QI. As long as he still qualifies, he'll likely be approved again before new applicants. The waitlist mainly affects first-time applicants when funding runs low."
+        },
+        {
+          "question": "Can Mom have both Medicare Savings Programs and a Medicare Supplement plan?",
+          "answer": "No, you cannot have both. QMB, SLMB, and QI replace the need for Medigap policies by covering Medicare costs directly. If she qualifies for QMB, it's usually better financial protection than any Medigap plan."
+        }
+      ],
+      "phone": "1-800-338-8366",
+      "sourceUrl": "https://hhs.iowa.gov/medicaid/plans-programs/fee-service/medicare-savings-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Senior Health Insurance Program (SHIIP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Meals on Wheels (via Aging Services)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "National Family Caregiver Support Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Iowa Legal Aid for Seniors",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "State Supplementary Assistance (SSA)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    }
+  ],
+  "stateOverview": null
+}

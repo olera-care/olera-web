@@ -1,7 +1,7 @@
 # Hawaii Benefits Exploration Report
 
 > Generated 2026-04-09 by benefits-pipeline.js
-> Cost: $0.085 (17 calls, 1.8m)
+> Cost: $0.090 (18 calls, 58s)
 
 ---
 
@@ -9,9 +9,9 @@
 
 | Metric | Value |
 |--------|-------|
-| Programs discovered | 15 |
-| Programs deep-dived | 14 |
-| New (not in our data) | 13 |
+| Programs discovered | 16 |
+| Programs deep-dived | 13 |
+| New (not in our data) | 12 |
 | Data discrepancies | 1 |
 | Fields our model can't capture | 1 |
 
@@ -29,11 +29,9 @@ These data fields appeared across programs but don't exist in our current model:
 ## Program Types
 
 - **service**: 8 programs
-- **unknown**: 1 programs
-- **financial**: 2 programs
+- **financial**: 3 programs
 - **employment**: 1 programs
 - **advocacy**: 1 programs
-- **in_kind**: 1 programs
 
 ## Data Discrepancies
 
@@ -41,37 +39,36 @@ Our data differs from what official sources say:
 
 ### Med-QUEST Home and Community-Based Services (HCBS) Waivers
 
-- **benefit_value**: Ours says `$10,000 – $30,000/year` → Source says `Home and community-based services (HCBS) as alternatives to institutional care, including person-centered supports identified via planning process. Specific services via providers or Consumer-Directed (CD) Option; examples not exhaustively listed but cover needs for target groups like I/DD (e.g., case management coordination). No fixed dollar amounts or hours specified; tied to assessed needs[1][2].` ([source](https://health.hawaii.gov/ddd/participants-families/waiver/ and https://medquest.hawaii.gov/[2][7]))
+- **income_limit**: Ours says `$1500` → Source says `$2,000` ([source](https://health.hawaii.gov/ddd/participants-families/waiver/ and https://medquest.hawaii.gov/[2][7]))
+- **benefit_value**: Ours says `$10,000 – $30,000/year` → Source says `Home and Community-Based Services (HCBS) as alternatives to institutional care, including person-centered services/supports identified via planning process. Specifics for I/DD waiver: case management, services from qualified providers or Consumer-Directed (CD) Option. Not generic healthcare; targets needs like long-term supports for frail seniors or I/DD (e.g., home modifications if unable to live safely at home without). No fixed dollar amounts or hours per week specified; individualized based on service plan[1][2][3].` ([source](https://health.hawaii.gov/ddd/participants-families/waiver/ and https://medquest.hawaii.gov/[2][7]))
 - **source_url**: Ours says `MISSING` → Source says `https://health.hawaii.gov/ddd/participants-families/waiver/ and https://medquest.hawaii.gov/[2][7]`
 
 ## New Programs (Not in Our Data)
 
-- **Hawai'i PACE (Program of All-Inclusive Care for the Elderly)** — service ([source](https://www.law.cornell.edu/regulations/hawaii/Haw-Code-R-SS-17-1746-11 (Hawaii Administrative Rules § 17-1746-11)))
-  - Shape notes: Hawaii PACE eligibility is defined by state regulation (Haw. Code R. § 17-1746-11) with specific acuity level requirements and QUEST program exclusion. However, critical operational details—provider locations, service areas, contact information, processing timelines, and specific application procedures—are not available in the search results. The program appears to be geographically restricted by provider service areas, but the number and location of providers are not specified. Income and asset limits are not explicitly stated in Hawaii regulations, suggesting they may follow federal Medicaid standards or be individually assessed.
-- **Medicare Savings Programs (QMB, SLMB, QI)** — unknown ([source](https://medquest.hawaii.gov/content/medquest/en/members-applicants/get-started/programs.html[10]))
-  - Shape notes: Hawaii's Medicare Savings Programs are administered as a single Medicaid eligibility group with three tiers (QMB, SLMB, QI) based on income level. The key distinguishing feature is that Hawaii has raised income limits above federal standards for all three programs, making them more accessible than in most other states. QI differs from QMB and SLMB in that it operates on a first-come, first-served basis and requires annual reapplication. Benefits scale by program tier: QMB covers the most (premiums, deductibles, copayments), while SLMB and QI cover Part B premiums only. The search results lack critical operational details (phone numbers, specific office locations, processing times, detailed application procedures) that families would need for actual application.
-- **SNAP (Supplemental Nutrition Assistance Program)** — financial ([source](https://humanservices.hawaii.gov/bessd/snap/))
-  - Shape notes: Benefits scale by household size and net income after elderly-specific deductions (medical/shelter); no asset test under BBCE but federal fallback for high-gross elderly/disabled households; statewide with ESAP option for seniors.
-- **Hawaii Home Energy Assistance Program (H-HEAP, formerly LIHEAP)** — financial ([source](https://www.hawaiianelectric.com/billing-and-payment/payment-assistance/low-income-programs/h-heap))
-  - Shape notes: This program is geographically fragmented with different application methods and providers by island/county, creating significant regional variation in accessibility. The application window is extremely narrow (30 days annually), making timing critical. Benefits are one-time payments with unspecified dollar amounts. The program serves as a safety valve for utility crises rather than ongoing assistance. Eligibility is income-based with an automatic pathway for households receiving other safety-net benefits, but documentation requirements are extensive. No asset limits are disclosed, suggesting they may not apply or may be determined case-by-case.
-- **Sage PLUS (SHIP - State Health Insurance Assistance Program)** — service ([source](https://www.hawaiiship.org))
-  - Shape notes: no income or asset test; volunteer counseling service only, not benefits-paying program; statewide uniform access via phone/virtual with no formal application
-- **Home-Delivered Meals (Meals on Wheels)** — service ([source](No single statewide .gov site; key providers: hmow.org (Hawaii Meals on Wheels), lanakilapacific.org (Lanakila Pacific). State resources via humanservices.hawaii.gov or aging.hawaii.gov (not directly cited).[6]))
-  - Shape notes: Multiple independent providers (not centralized state program); Oahu-heavy; no fixed income/asset tests but priority-based; varies by provider on delivery frequency/payment.
-- **Executive Office on Aging Family Caregiver Support Program** — service ([source](https://health.hawaii.gov/eoa/))
-  - Shape notes: Administered statewide via 4 county AAAs with priority tiers for greatest needs; no fixed income/asset tests but funding-limited; benefits include caregiver-specific respite/counseling plus linkages
+- **Hawai‘i PACE (Program of All-Inclusive Care for the Elderly)** — service ([source](https://files.hawaii.gov/dhs/main/har/har_current/17-1746.PDF (Hawaii Administrative Rules for PACE)[1][8]))
+  - Shape notes: Restricted to specific PACE provider service areas (not statewide); ties directly to Hawaii Medicaid eligibility with acuity levels A/C; no fixed income/asset tables beyond Medicaid rules; limited provider info available
+- **Medicare Savings Programs (QMB, SLMB, QI)** — financial ([source](https://medquest.hawaii.gov/content/medquest/en/members-applicants/get-started/programs.html))
+  - Shape notes: Tiered by income (QMB lowest, QI highest); Hawaii higher income/resource limits than federal; QI capped funding/first-come; benefits fixed by tier not household size beyond couple.
+- **Supplemental Nutrition Assistance Program (SNAP)** — financial ([source](https://humanservices.hawaii.gov/bessd/snap/))
+  - Shape notes: Hawaii's SNAP program is notable for: (1) having NO asset limit, unlike federal rules; (2) expanded eligibility through BBCE for most households; (3) special flexibility for households with members 60+ or with disabilities who can qualify through Net Income and Asset tests if they exceed gross income limits; (4) recent federal changes (2025) that may restrict work requirement exemptions for seniors aged 60-64; (5) significant participation gap among eligible seniors due to awareness and application barriers; (6) medical expense deductions that substantially affect benefit calculations for elderly and disabled households.
+- **Low Income Home Energy Assistance Program (LIHEAP)** — financial ([source](https://humanservices.hawaii.gov (DHS Benefit Employment & Support Services Division); https://www.hawaiianelectric.com/billing-and-payment/payment-assistance/low-income-programs/h-heap))
+  - Shape notes: Regionally administered with different providers and application methods per island/county; short annual windows (e.g., June); automatic qualifiers via SNAP/SSI/TANF in H-HEAP variant; benefits tiered by heating/cooling/crisis and household factors.
+- **Weatherization Assistance Program (WAP)** — service ([source](https://labor.hawaii.gov/ocs/service-programs-index/weatherization-assistance-program/))
+  - Shape notes: County-specific subgrantees handle applications; priority-based allocation with limited funding; income at 200% FPG or TANF/SSI auto-eligible; benefits from fixed Hawaii priority list.
+- **Family Caregiver Support Program** — service ([source](No single primary .gov URL identified; related info at health.hawaii.gov (DDD, not direct) or implied via executiveofficeonaging.hawaii.gov (not in results)[5]))
+  - Shape notes: Tied to National Family Caregiver Support Program via Area Agencies on Aging; Native Hawaiian variant with ethnicity proof; prioritizes by need tier, no fixed income/asset numbers; services not cash payments
 - **Senior Community Service Employment Program (SCSEP)** — employment ([source](https://labor.hawaii.gov/wdd/job-seekers/scsep/))
-  - Shape notes: Income at 125% federal poverty level (family-based, annual update); priority enrollment tiers; statewide with county sub-providers and varying host agencies; no fixed processing times or asset limits specified
-- **Legal Aid Society of Hawaii Elder Law Program** — service ([source](https://www.legalaidhawaii.org/elder-law-services.html))
-  - Shape notes: Statewide with island-specific intake lines; no detailed income/asset tables or forms listed; priority-based allocation due to high demand (serves 18,000+ clients yearly across Legal Aid)[5][7]; distinct from UHELP which is Oahu-restricted academic clinic
-- **Long-Term Care Ombudsman Program (LTCOP)** — advocacy ([source](https://health.hawaii.gov/eoa/home/long-term-care-ombudsman-program/))
-  - Shape notes: no income test; advocacy-only for LTC facility residents statewide; volunteer-driven with certification requirements; free and open to all qualifying residents without financial barriers
-- **Kūpuna Aging in Place (KAP)** — service ([source](https://www.hawaiicommunityfoundation.org/strengthening/kupuna-aging-in-place))
-  - Shape notes: Grant-funded via Hawaiʻi Community Foundation to nonprofits; not a direct government entitlement program; benefits via provider networks with individual care plans and financial intake; age 65+ focus distinguishes from 60+ state programs
-- **Kūpuna Care Program** — service ([source](Hawaii Revised Statutes § 349-17 (law.justia.com/codes/hawaii/title-20/chapter-349/section-349-17/); Hawaii Department of Human Services Elderly Affairs Division))
-  - Shape notes: This program has two distinct service delivery models: traditional service delivery OR participant-directed services and support, based on individualized support plans[1]. Benefits scale by priority tier (economic need, social need, institutional placement risk) rather than by household size. No specific income or asset limits are documented in available sources, making this a needs-based rather than means-tested program. The program serves three populations: care recipients (frail older adults), caregivers (family members), and employed caregivers (working individuals providing direct care). Employed caregivers have a separate benefit structure ($70/day maximum) distinct from care recipients. Regional implementation varies through area agencies on aging, but no specific county-level variations are documented.
-- **Senior Food Box Program (CSFP)** — in_kind ([source](https://labor.hawaii.gov/ocs/service-programs-index/federal-food-assistance-programs/csfp/))
-  - Shape notes: This program's data structure is unique in that: (1) Hawaii's income limit (150% FPL) is higher than the national baseline (130% FPL)[3][4], (2) it operates on a caseload assignment system with limited slots (3,226 for FFY 2024)[3], creating a waitlist dynamic, (3) it requires county-level residency verification[3], (4) it is exclusively for seniors 60+ following 2014 legislative changes[4], and (5) recertification frequency may vary (sources cite both 6 months and 12 months—verify current requirement). The program is administered by Hawaii Department of Labor with Hawaii Foodbank as the primary provider for Oahu[1][3].
+  - Shape notes: Income test at 125% FPL by household size (annual HHS guidelines); statewide with county-specific providers and residency rules; priority tiers affect enrollment; no fixed hours/wage beyond avg 19-20/wk at min wage
+- **Legal Assistance for Seniors in Hawaii** — service ([source](https://www.legalaidhawaii.org))
+  - Shape notes: Critical gaps in available data: Specific income dollar amounts by household size not provided; processing times unknown; document requirements not specified; service scope and hours not detailed; waitlist status unclear. Search results confirm program existence and basic eligibility but lack operational details needed for comprehensive family guidance.
+- **Long-Term Care Ombudsman Program (LTCOP)** — advocacy ([source](https://www.hi-ltc-ombudsman.org))
+  - Shape notes: no income or asset test; advocacy-only for residents of licensed LTC facilities statewide; on-demand complaint resolution rather than enrollment-based benefits
+- **Kupuna Caregivers Program** — service ([source](https://elderlyaffairs.com/services/eligibility-requirements/ (Honolulu example); statewide via http://www.hawaiiadrc.org))
+  - Shape notes: State/county-funded with priority tiers; caregiver employment required; services via contracted providers; county AAAs administer with potential regional variations in delivery and wait times.
+- **Kumu Kahi – Ke Ola Pono No Nā Kūpuna Program** — service ([source](https://www.alulike.org/services/kumu-kahi/ke-ola-pono-no-na-kupuna/))
+  - Shape notes: Ancestry-restricted to Native Hawaiians; island-specific sites with limited services; no income/asset tests; separate from caregiver support program under same department[1][4]
+- **Kumu Kahi – Native American Caregivers Support Program** — service ([source](https://www.alulike.org/services/kumu-kahi/caregiver-support/))
+  - Shape notes: No income or asset tests; eligibility hinges on Native Hawaiian ethnicity proof for recipient, elder's need level ('unable to be left alone'), and limited funding tiers; Oahu-centric administration with potential statewide reach via Native Hawaiian networks.
 
 ## Program Details
 
@@ -79,35 +76,35 @@ Our data differs from what official sources say:
 
 
 **Eligibility:**
-- Income: Must meet Med-QUEST Medicaid financial eligibility, which varies by program and category. For seniors (65+), low-income thresholds apply with pathways like up to 138% FPL for adults or higher for children; exact 2026 dollar amounts not specified in sources but asset-tested for long-term care. For single nursing home applicants (relevant to HCBS level of care), nearly all monthly income contributes to care costs[3][5][6].
-- Assets: For seniors 65+, blind, or disabled seeking long-term care HCBS, assets under $2,000 for singles (no asset limits for children or adults under 65). Counts typical countable assets; exemptions not detailed but standard Medicaid rules apply (e.g., primary home often exempt up to equity limits)[3][5][6].
-- Medicaid eligible through Med-QUEST Division[2][4].
-- Eligible for specific division services, e.g., Developmental Disabilities Division (DDD) for I/DD waiver[2][4].
-- Meet nursing home level of care (NHLOC) or equivalent institutional level of care[1][3].
-- For DDD HCBS waiver: Eligible for DDD services and case management[2][4].
-- Functional need in activities of daily living (ADLs); additional criteria for some benefits like home modifications[3].
+- Income: Must meet Medicaid financial eligibility through Med-QUEST Division (Department of Human Services). For long-term care programs like HCBS waivers targeting seniors, income must be contributed nearly entirely toward care costs (specific 2026 dollar amounts not detailed in sources; e.g., simplified single nursing home applicant contributes nearly all monthly income). Asset limit of $2,000 for singles applying for nursing home level care (applies to HCBS requiring similar level). Limits vary annually by marital status and household; low income/resources required for aged 65+, blind, or disabled. No full household size table provided; children under 65 have no asset test[3][5][6].
+- Assets: $2,000 for single applicants in long-term care HCBS/nursing home programs (excludes primary home in some cases, but specifics on exempt assets like home equity not detailed). What counts: countable resources like bank accounts, investments. Exempt: typically primary residence (if intent to return), one vehicle, personal belongings (confirm via Med-QUEST). No asset limits for children or non-elderly adults under MAGI rules[3][5][6].
+- Must be Medicaid eligible via Med-QUEST Division[2][4].
+- Eligible for specific division services, e.g., Developmental Disabilities Division (DDD) for I/DD waiver: intellectual/developmental disabilities[2][4].
+- Meet Nursing Home Level of Care (NHLOC) or equivalent institutional level of care[1][3].
+- For DDD waiver: eligible for DDD case management services[2][4].
+- Target group criteria (varies by waiver, e.g., chronic mental illness age 22-64 or 65+ in some cases, but primarily I/DD focused in Hawaii sources)[1].
+- Functional need in Activities of Daily Living (ADLs) for some services[3].
 
-**Benefits:** Home and community-based services (HCBS) as alternatives to institutional care, including person-centered supports identified via planning process. Specific services via providers or Consumer-Directed (CD) Option; examples not exhaustively listed but cover needs for target groups like I/DD (e.g., case management coordination). No fixed dollar amounts or hours specified; tied to assessed needs[1][2].
+**Benefits:** Home and Community-Based Services (HCBS) as alternatives to institutional care, including person-centered services/supports identified via planning process. Specifics for I/DD waiver: case management, services from qualified providers or Consumer-Directed (CD) Option. Not generic healthcare; targets needs like long-term supports for frail seniors or I/DD (e.g., home modifications if unable to live safely at home without). No fixed dollar amounts or hours per week specified; individualized based on service plan[1][2][3].
 - Varies by: priority_tier
 
 **How to apply:**
-- Online at My Medical Benefits (medquest.hawaii.gov)[5][7].
-- Phone: 1-877-628-5076 or 1-800-316-8005[5][6].
-- Paper application (fill out and mail/submit)[5].
-- For DDD waiver: Contact Developmental Disabilities Division after Medicaid eligibility[2].
-- HCBS Waiver Application form (1915(c))[1].
+- Online: My Medical Benefits (medquest.hawaii.gov for Med-QUEST eligibility)[5][7].
+- Phone: 1-877-628-5076 (Med-QUEST application); (808) 586-4400 for DDD/HDOH accommodations[2][5].
+- Application form: Application for 1915(c) HCBS Waiver (health.hawaii.gov/ddd/files/2026/01/HCBS-Waiver-Application-July2026.pdf); Med-QUEST general application[1][5].
+- In-person/mail: Contact Med-QUEST Division or DDD offices (specific addresses via phone/online)[2].
 
 **Timeline:** Not specified in sources.
-**Waitlist:** Implied by limited slots in 1915(c) waivers, but no specific details[1][2].
+**Waitlist:** Likely exists due to waiver caps (federal 1915(c) limits slots); apply early as services for those meeting institutional level of care[1][2].
 
 **Watch out for:**
-- Multiple HCBS waivers exist (e.g., I/DD-specific via DDD); not a single elderly-focused waiver—must identify target group[1][2].
-- Requires both Medicaid eligibility AND division-specific eligibility (e.g., DDD) AND level of care[2][4].
-- Financial rules vary by marital status, annually update, and have spend-down paths[3].
-- Asset limits apply only to certain groups (65+, blind/disabled); NHLOC required for HCBS[3][5].
-- Services person-centered but provider/coordinator-dependent; waitlists likely due to waiver caps[1].
+- Multiple waivers exist under Med-QUEST HCBS (e.g., I/DD-focused via DDD); not a single elderly-only program—confirm target group (e.g., I/DD vs. aged/disabled)[2][4].
+- Must qualify for BOTH Medicaid AND specific waiver (DDD eligibility + level of care); people miss DDD case management step[2][4].
+- Waiver slots capped federally—waitlists common despite eligibility[1].
+- Financial eligibility stricter for long-term care HCBS ($2,000 assets); spend-down required, varies by marital status[3].
+- Not all frail elderly qualify without disability/DD diagnosis or NHLOC[3].
 
-**Data shape:** Multiple target-group waivers under Med-QUEST (e.g., I/DD via DDD); eligibility layered (Medicaid + division + LOC); no single elderly waiver specified, benefits need-assessed not fixed-dollar; statewide but division-specific.
+**Data shape:** Multiple targeted waivers under Med-QUEST (e.g., I/DD via DDD partnership); requires dual eligibility (Medicaid + division-specific + institutional LOC); no fixed elderly age cutoff but $2k assets for LTC seniors; individualized person-centered services, not fixed hours/dollars; statewide but DDD-focused in sources.
 
 **Our model can't capture:**
 - `asset_limits`: Our model has no asset limit fields
@@ -119,44 +116,39 @@ Our data differs from what official sources say:
 
 ---
 
-### Hawai'i PACE (Program of All-Inclusive Care for the Elderly)
+### Hawai‘i PACE (Program of All-Inclusive Care for the Elderly)
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
 - Age: 55+
-- Income: Not specified in available sources. Search results indicate that PACE programs generally do not apply financial criteria for eligibility determination, though most participants are dually eligible for Medicare and Medicaid, which have their own income thresholds.
-- Assets: Not specified in available sources for Hawaii PACE specifically. General Medicaid long-term care guidelines suggest asset limits around $2,000 (excluding primary home), but Hawaii-specific limits were not found.
-- Must reside within the specified geographical service area of a PACE provider[1][3]
-- Must be certified by the state (Hawaii Department of Human Services medical consultant) as requiring nursing home level of care (acuity level A or C in Hawaii)[1]
-- Must be able to live safely in the community with PACE services at time of enrollment[3][4]
-- Must be eligible for federally-funded medical assistance (Medicaid)[1]
-- Must not be enrolled in Hawaii QUEST program[1]
-- Must not be enrolled in Medicare Advantage (Part C) plan, Medicare prepayment plan, or Medicare prescription drug plan[3]
-- Cannot be enrolled in hospice services or certain other programs[3]
-- Enrollment is voluntary and individuals must sign a statement requesting PACE services[1]
+- Income: Must be eligible for Hawaii Medicaid (federally-funded medical assistance). For long-term care Medicaid in 2025, income under 300% of Federal Benefit Rate ($2,901/month); exact limits vary and Medicaid planning can help qualify. No program-specific income table provided beyond Medicaid rules[1][2].
+- Assets: Medicaid asset limit of $2,000 or less (excluding primary home) for long-term care eligibility. Medicaid planning pathways exist if not met[2].
+- Reside in the specified geographical service area of the PACE provider[1]
+- Certified by department's medical consultant as requiring acuity level A or acuity level C (nursing home level of care)[1]
+- Not enrolled in Hawaii QUEST program[1]
+- Able to live safely in the community with PACE services[1][2][3]
+- Voluntarily elects to participate and signs statement[1]
 
-**Benefits:** Comprehensive long-term care services including adult day programs, medical clinics, activities, occupational and physical therapy, and other support services to enable community living[5]
-- Varies by: not_applicable — specific service hours, dollar amounts, or tiered benefits are not detailed in available sources
+**Benefits:** Comprehensive all-inclusive care for the elderly, including nursing home-level services delivered in community settings via PACE provider (specific services like primary care, hospitalization, prescription drugs, social services, restorative therapies, transportation, and supportive services; PACE becomes sole source for Medicare/Medicaid enrollees). No specific dollar amounts or hours stated[1][5].
+- Varies by: region
 
 **How to apply:**
-- Contact local PACE provider directly (specific phone numbers and websites not provided in search results)
-- In-person at PACE centers (specific addresses not provided in search results)
+- Contact local PACE provider or Hawaii Department of Human Services (specific phone/website not in results; general Medicaid office recommended)[4]
+- No specific URLs, phone numbers, or addresses listed in results
 
-**Timeline:** Not specified in available sources
-**Waitlist:** Not specified in available sources
+**Timeline:** Not specified in available data
 
 **Watch out for:**
-- Hawaii PACE has specific acuity level requirements (A or C) that differ from general nursing home level of care definitions used in other states[1]
-- Applicants cannot be enrolled in Hawaii QUEST program, which is a specific Hawaii Medicaid managed care plan[1]
-- PACE becomes the sole source of services for Medicare and Medicaid eligible enrollees — individuals cannot use other providers for covered services[4]
-- Individuals can leave the program at any time, but re-enrollment may have different requirements[4]
-- Search results do not provide specific contact information, provider locations, or application procedures — families will need to contact Hawaii Department of Human Services directly
-- Income and asset limits are not explicitly stated in Hawaii regulations; they may follow federal Medicaid guidelines or be determined on a case-by-case basis
+- Must reside in specific PACE provider service area; not available statewide[1]
+- Cannot be enrolled in Hawaii QUEST, Medicare Advantage, hospice, or certain other programs[1][3]
+- Requires Medicaid eligibility determination by state; private pay possible if Medicare-only but with premiums (rare)[2][4]
+- Certification of specific acuity levels A or C needed, not just general nursing home level[1]
+- Voluntary election in lieu of standard Medicaid services[1]
 
-**Data shape:** Hawaii PACE eligibility is defined by state regulation (Haw. Code R. § 17-1746-11) with specific acuity level requirements and QUEST program exclusion. However, critical operational details—provider locations, service areas, contact information, processing timelines, and specific application procedures—are not available in the search results. The program appears to be geographically restricted by provider service areas, but the number and location of providers are not specified. Income and asset limits are not explicitly stated in Hawaii regulations, suggesting they may follow federal Medicaid standards or be individually assessed.
+**Data shape:** Restricted to specific PACE provider service areas (not statewide); ties directly to Hawaii Medicaid eligibility with acuity levels A/C; no fixed income/asset tables beyond Medicaid rules; limited provider info available
 
-**Source:** https://www.law.cornell.edu/regulations/hawaii/Haw-Code-R-SS-17-1746-11 (Hawaii Administrative Rules § 17-1746-11)
+**Source:** https://files.hawaii.gov/dhs/main/har/har_current/17-1746.PDF (Hawaii Administrative Rules for PACE)[1][8]
 
 ---
 
@@ -165,225 +157,180 @@ Our data differs from what official sources say:
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: {"note":"Hawaii has significantly higher income limits than most states. All three programs (QMB, SLMB, QI) share the same income thresholds in Hawaii.","QMB":{"individual_monthly":"$1,550[5]","couple_monthly":"$2,095[5]","federal_standard":"$1,350 individual / $1,824 couple[6]","hawaii_difference":"Hawaii's limits are approximately 15% higher than federal limits[5]"},"SLMB":{"individual_monthly":"$1,616[6]","couple_monthly":"$2,184[6]","note":"SLMB has slightly higher limits than QMB to accommodate those with more resources[1]"},"QI":{"individual_monthly":"$1,816[6]","couple_monthly":"$2,455[6]","note":"QI has the highest income limits of the three programs[6]"},"additional_dependents":"$500 per additional legally dependent family member[1]","working_income_exception":"If you have income from working, you may qualify even if your income exceeds these limits[6]","income_disregard":"$20 general monthly income disregard applies[3]"}
-- Assets: {"individual":"$9,950[6]","couple":"$14,910[6]","what_counts":"Countable resources include liquid assets, savings, investments[4]","what_may_be_exempt":"Primary residence and certain other assets may be excluded, but search results do not specify full exemptions","note":"Asset limits are the same across all three programs (QMB, SLMB, QI)[6]"}
-- Must be a legal Hawaii resident[1]
-- Must be enrolled in Medicare Part A and Part B (for SLMB and QI programs)[3][6]
-- Must be a U.S. citizen or qualified immigrant[3]
-- Cannot qualify for Medicaid if applying for QI program[6]
+- Age: 65+
+- Income: Hawaii uses higher limits than federal standards. Federal base for 2026 (with $20 disregard): QMB individual $1,350/month, couple $1,824/month; SLMB individual $1,616/month, couple $2,184/month; QI individual ~$1,823/month (135% FPL), couple ~$2,463/month. Hawaii limits slightly higher; older sources cite QMB individual $1,550/month, couple $2,095/month. Limits apply monthly; vary by program tier (QMB <100% FPL, SLMB 100-120% FPL, QI 120-135% FPL). No full household size table beyond couple; contact state for exact current figures as they adjust annually.[5][6][7]
+- Assets: Individual: $9,950; Couple: $14,910 (2026 federal/Hawaii limits). Counts: Bank accounts, stocks (some exempt). Exempt: Primary home, one vehicle, household items, engagement/wedding rings, burial plots/expenses up to $1,500, life insurance < $1,500 cash value, certain Native American payments/stocks. Hawaii may disregard more resources per federal allowance.[3][4][5][6]
+- Must have Medicare Part A (free for most over 65); US citizen/resident; Hawaii resident; not eligible for full Medicaid for QI; QI first-come-first-served and annual reapplication with priority to prior enrollees.
 
-**Benefits:** N/A
-- Varies by: program_tier
+**Benefits:** QMB: Part A premium (if applicable), Part B premium (~$202.90/month 2026), Part A deductible ($1,484+ annually), Part B deductible ($203+), coinsurance/copayments. SLMB: Part B premium only. QI: Part B premium only. All auto-qualify for Extra Help (low/no cost Part D drugs). No direct services; pays costs to Medicare.[1][4][6][7]
+- Varies by: priority_tier
 
 **How to apply:**
-- Contact Hawaii Medicaid (MedQuest) — specific phone number and online portal not provided in search results[10]
-- In-person at local Medicaid office — specific office locations not provided in search results
-- Mail application to Hawaii Medicaid — specific mailing address not provided in search results
+- Online: medquest.hawaii.gov (MedQUEST portal)
+- Phone: Hawaii MedQUEST at 1-800-316-8005
+- Mail/In-person: Local MedQUEST district offices (e.g., Oahu: 601 Kamokila Blvd, Kapolei)
+- Through SHIP counselor: hawaiiship.org
 
-**Timeline:** Not specified in search results
-**Waitlist:** [object Object]
+**Timeline:** Typically 45 days; no specific Hawaii data.
+**Waitlist:** QI: First-come, first-served with funding caps; possible waitlist if funds exhausted.
 
 **Watch out for:**
-- Hawaii's income limits are significantly higher than federal limits — approximately 15% higher for QMB and SLMB[5]. Families should not assume they don't qualify based on federal thresholds.
-- QI program is first-come, first-served and requires annual reapplication, unlike SLMB which does not require annual reapplication[1][4][6]
-- QI program does not automatically include Extra Help for prescription drugs, while QMB and SLMB do[6]
-- You cannot qualify for the QI program if you already qualify for Medicaid[6]
-- The $20 monthly income disregard applies to all three programs, which may allow qualification even if income slightly exceeds stated limits[3]
-- Working income may be treated differently — if you have earned income, you may qualify even if total income exceeds limits[6]
-- Search results do not specify which assets are exempt (e.g., primary residence, vehicles) — families should contact MedQuest directly for clarification
-- Specific application procedures, phone numbers, online portals, and processing timelines are not detailed in available search results; families must contact MedQuest directly
+- Outdated limits in sources (use 2026 figures, confirm with state as Hawaii higher); QI annual reapply + funding limits; income disregards ($20 general, wage/shelter deductions) often missed; assets include spouse even if not applying; auto-Extra Help but must confirm enrollment; differs from mainland by higher limits/no resource test in some states.[1][3][5][6]
 
-**Data shape:** Hawaii's Medicare Savings Programs are administered as a single Medicaid eligibility group with three tiers (QMB, SLMB, QI) based on income level. The key distinguishing feature is that Hawaii has raised income limits above federal standards for all three programs, making them more accessible than in most other states. QI differs from QMB and SLMB in that it operates on a first-come, first-served basis and requires annual reapplication. Benefits scale by program tier: QMB covers the most (premiums, deductibles, copayments), while SLMB and QI cover Part B premiums only. The search results lack critical operational details (phone numbers, specific office locations, processing times, detailed application procedures) that families would need for actual application.
+**Data shape:** Tiered by income (QMB lowest, QI highest); Hawaii higher income/resource limits than federal; QI capped funding/first-come; benefits fixed by tier not household size beyond couple.
 
-**Source:** https://medquest.hawaii.gov/content/medquest/en/members-applicants/get-started/programs.html[10]
+**Source:** https://medquest.hawaii.gov/content/medquest/en/members-applicants/get-started/programs.html
 
 ---
 
-### SNAP (Supplemental Nutrition Assistance Program)
+### Supplemental Nutrition Assistance Program (SNAP)
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Age: 60+
-- Income: For Oct. 1, 2025 through Sept. 30, 2026, Hawaii uses Broad-Based Categorical Eligibility (BBCE) with a gross income limit of 200% of the federal poverty level: 1 person $2,998/month, 2 people $4,054/month, 3 people $5,108/month, 4 people $6,164/month, 5 people $7,218/month, 6 people $8,274/month, 7 people $9,328/month, each additional +$1,056/month. Households with a member 60+ or disabled who exceed gross may qualify via net income (100% FPL or less after deductions) and asset tests. Deductions include 20% earned income, standard deduction (higher in Hawaii), medical expenses over $35/month for elderly/disabled, shelter costs.[2][6][7]
-- Assets: No asset limit under Hawaii's BBCE for most households (home and vehicles exempt). Households with member 60+ or disabled exceeding gross income follow federal rules with $4,500 asset limit (exempt: home, vehicles, retirement savings, household goods; countable: bank accounts, cash value of life insurance).[2][6]
-- Hawaii resident.
-- U.S. citizen or qualified non-citizen (eligible members can receive benefits even if others ineligible).
-- Social Security number or proof of application.
-- Work registration for able-bodied adults (exempt: 60+, disabled, pregnant). Note: Potential changes from One Big Beautiful Bill Act of 2025 may affect exemptions for 50-65 age group, requiring 20 hours/week work unless documented disability.[1][5][6]
+- Age: No minimum age requirement for household members, but special rules apply to households with members 60 or older[1][3]+
+- Income: {"standard_gross_income_limits_200_percent_fpl":"1 person: $2,998/month | 2 people: $4,054/month | 3 people: $5,108/month | 4 people: $6,164/month | 5 people: $7,218/month | 6 people: $8,274/month | 7 people: $9,328/month | Each additional person: +$1,056/month[1]","note_for_elderly_or_disabled":"Households with a member 60+ or with a disability that exceed the gross income limit can qualify by meeting Net Income and Asset tests instead[1]","federal_poverty_level_reference":"Gross income limits are 200% of federal poverty level[1]","broad_based_categorical_eligibility":"Most households qualify for BBCE, which expands eligibility to households with gross incomes up to 200% FPL and waives certain tests[5]","categorical_eligibility":"Households where all members receive or are authorized to receive TANF or SSI have no gross income limit or net income limit[5][8]"}
+- Assets: {"hawaii_specific":"There is no asset limit in Hawaii[1]","what_counts":"Countable resources include funds in bank accounts[1]","what_is_exempt":"A home and vehicles are not counted as resources[1]","alternative_federal_rules":"If a household with a member 60+ or with a disability did not meet the gross income test, they can alternatively qualify under federal program rules which have an asset limit of $4,500 but no gross income limit[1]"}
+- Must be a resident of Hawaii[2][5]
+- Must be a U.S. citizen, legal permanent resident (of 5+ years), or other qualified alien[5]
+- All applicants must have a Social Security number or proof of application for one[5]
+- Most able-bodied adults must register for work and accept suitable employment, with exemptions for seniors, pregnant individuals, and those with disabilities[2][5]
+- As of April 2025, the ABAWD (Able-Bodied Adults Without Dependents) rule may require work documentation of 20 hours per week for adults under 65 who do not qualify as officially disabled[4]
 
-**Benefits:** Monthly EBT card benefits for purchasing food (amount calculated based on net income, household size, and deductions; higher for elderly/disabled due to medical/shelter deductions; e.g., seniors on fixed incomes like Social Security often qualify).[2][4][6]
-- Varies by: household_size
+**Benefits:** SNAP benefit amounts are based on a household's net income. In general, $100 more in net income equals $30 less in benefits. There are minimum and maximum SNAP benefit amounts, though specific amounts are not detailed in available sources[1]
+- Varies by: household_size and net_income
 
 **How to apply:**
-- Online: humanservices.hawaii.gov/bessd/snap/
-- Phone: Call local office or 1-877-628-6460 (statewide assistance line implied via official site).[8]
-- Mail or in-person: Local Department of Human Services offices statewide.
-- ESAP (Elderly Simplified Application Project) available for 60+ households to simplify process (check with state for adoption).[5]
+- Online: Through Hawaii's Department of Human Services[7]
+- In-person: At Department of Human Services offices[5][7]
+- By mail: Mail applications to Hawaii's Department of Human Services[5][7]
+- Phone: Contact Lanakila Pacific SNAP Outreach staff for assistance with application (specific phone number not provided in sources, but organization offers phone support)[7]
 
-**Timeline:** Typically 30 days; expedited for emergencies (7 days if very low income/cash).[2]
+**Timeline:** Not specified in available sources
+**Waitlist:** Not mentioned in available sources
 
 **Watch out for:**
-- Seniors 60+ exempt from work requirements but potential 2025 federal changes (One Big Beautiful Bill Act) may require work proof for 50-65 unless disabled, risking 16,570 elders.[5][7]
-- Only ~half of eligible seniors apply; use ESAP for simplified process.[4][5]
-- Medical expenses over $35/month deductible for 60+, often missed.[6][7]
-- Household includes all who buy/prepare food together.[4][6]
-- BBCE expands limits but exceeding 200% gross requires federal net/asset tests.[2]
+- Work requirements changed in 2025: The One Big Beautiful Bill Act of 2025 modified SNAP work requirements. The ABAWD exemption may no longer be available until age 65 (previously 60), potentially pushing an estimated 16,570 older adults in Hawaii off the program unless they can document 20 hours of work per week[4][6]
+- Participation gap among seniors: Only about half of eligible seniors participate in SNAP, often because they are unaware they qualify or have difficulty completing applications[4]
+- Gray zone for older adults: Many older adults aged 60-64 may not qualify as officially disabled but have chronic conditions (arthritis, diabetes, back pain) that make steady work difficult, creating a gap in coverage[4]
+- Job instability in rural areas: The kinds of jobs available in rural Hawaii are often unstable and don't guarantee 20 hours per week, meaning one missed day could result in losing SNAP benefits[4]
+- Hawaii expanded eligibility: Hawaii has expanded eligibility beyond standard federal SNAP requirements, so other websites may display stricter financial eligibility requirements than what actually applies in Hawaii[1]
+- Medical expense deductions available: Households with members 60+ or with disabilities can deduct medical expenses over $35/month, which can significantly affect net income calculations and benefit amounts[6]
+- Broad-Based Categorical Eligibility (BBCE): Most households qualify for BBCE, which waives certain tests and raises income limits to 200% FPL—families should ask about this when applying[5]
+- ESAP tool underutilized: The USDA offers the Elderly Simplified Application Project (ESAP) federal waiver to make enrollment easier for households with adults 60+, but it is not widely known or utilized[4]
 
-**Data shape:** Benefits scale by household size and net income after elderly-specific deductions (medical/shelter); no asset test under BBCE but federal fallback for high-gross elderly/disabled households; statewide with ESAP option for seniors.
+**Data shape:** Hawaii's SNAP program is notable for: (1) having NO asset limit, unlike federal rules; (2) expanded eligibility through BBCE for most households; (3) special flexibility for households with members 60+ or with disabilities who can qualify through Net Income and Asset tests if they exceed gross income limits; (4) recent federal changes (2025) that may restrict work requirement exemptions for seniors aged 60-64; (5) significant participation gap among eligible seniors due to awareness and application barriers; (6) medical expense deductions that substantially affect benefit calculations for elderly and disabled households.
 
 **Source:** https://humanservices.hawaii.gov/bessd/snap/
 
 ---
 
-### Hawaii Home Energy Assistance Program (H-HEAP, formerly LIHEAP)
+### Low Income Home Energy Assistance Program (LIHEAP)
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: Gross annual income must be 60% or less of the National Median Income. For a single person: approximately $37,000. For a family of four: approximately $71,000.[4] Exact limits vary by household size.[4] Alternatively, households automatically qualify regardless of income if at least one member receives TANF (Temporary Assistance for Needy Families), SSI (Supplemental Security Income), or SNAP (Supplemental Nutrition Assistance Program).[4]
-- Assets: Not specified in available documentation.
-- Must have an active residential service account open for the household.[1]
-- Applicants must apply during the designated application window (June 1-30 for the 2024 program year).[2]
-- All household members must provide proof of citizenship status or immigration documentation.[1][3]
-- Households may only receive one type of H-HEAP payment per program year (October 1 – September 30).[1]
-
-**Benefits:** One-time payment toward electric or gas bill.[2] Specific dollar amount not disclosed in available documentation.
-- Varies by: Two credit types available: Energy Credit (EC) or Energy Crisis Intervention (ECI). ECI requires a Notice of Disconnection.[1]
-
-**How to apply:**
-- In-person only for Oahu residents (Honolulu Community Action Program - HCAP). Mail-in and email applications not accepted.[2]
-- Phone appointment reservation required for Hawaii Island residents (Hawaii County Economic Opportunity Council - HCEOC).[4]
-- Mail or in-person drop-off for Maui County residents (Maui Economic Opportunity - MEO).[4]
-- Contact Kauai Economic Opportunity, Inc. for Kauai residents.[4]
-
-**Timeline:** Not specified in available documentation.
-**Waitlist:** Not mentioned in available documentation.
-
-**Watch out for:**
-- One payment per program year only (October 1 – September 30).[1] Households cannot receive multiple payments in a single year.
-- Application window is narrow: June 1-30 only.[2][4] Missing this window means waiting until the next program year.
-- Oahu residents cannot apply by mail or email; in-person application is mandatory.[2] This creates a significant barrier for homebound elderly individuals.
-- Must have an active residential service account at the time of application.[1] Households with disconnected service may not qualify for Energy Credit (EC), though Energy Crisis Intervention (ECI) may be available with a Notice of Disconnection.
-- The program name changed from LIHEAP to H-HEAP, which may cause confusion when searching for resources or historical information.[2]
-- Automatic qualification through TANF, SSI, or SNAP participation bypasses income verification but still requires all other documentation.[4]
-- All household members over 1 year old must provide Social Security numbers; this can be a barrier for mixed-status households.[2][4]
-
-**Data shape:** This program is geographically fragmented with different application methods and providers by island/county, creating significant regional variation in accessibility. The application window is extremely narrow (30 days annually), making timing critical. Benefits are one-time payments with unspecified dollar amounts. The program serves as a safety valve for utility crises rather than ongoing assistance. Eligibility is income-based with an automatic pathway for households receiving other safety-net benefits, but documentation requirements are extensive. No asset limits are disclosed, suggesting they may not apply or may be determined case-by-case.
-
-**Source:** https://www.hawaiianelectric.com/billing-and-payment/payment-assistance/low-income-programs/h-heap
-
----
-
-### Sage PLUS (SHIP - State Health Insurance Assistance Program)
-
-> **NEW** — not currently in our data
-
-**Eligibility:**
-- Age: 60+
-- Income: No income limits. Open to all regardless of income.
-- Assets: No asset limits or tests apply.
-- Must have Medicare or be Medicare-eligible
-- Hawaii resident
-- Includes beneficiaries, families, caregivers, agencies, and soon-to-be retirees
-
-**Benefits:** Free one-on-one counseling, consultations, referrals, and presentations on Medicare coverage, Medigap/Medicare Advantage options, prescription drug coverage, travel coverage, resources to help pay Medicare costs, Medicaid, and long-term care; provided by trained certified volunteer counselors over phone, virtually via Zoom, or in-person if necessary; no charge to the public
-
-**How to apply:**
-- Phone: 808-586-7299 (Oahu) or toll-free 1-888-875-9229; TTY: 1-866-810-4379
-- Website: https://www.hawaiiship.org (request counseling)
-- In-person: Accommodations available upon request via phone
-
-**Timeline:** Immediate scheduling for phone/virtual counseling; in-person as needed
-
-**Watch out for:**
-- Not a financial aid or healthcare provider program—only free counseling and information assistance, not direct payments or services; people often confuse with Medicaid/Med-Quest which have strict income/asset limits; requires Medicare enrollment for full relevance; volunteer-based so availability depends on counselor schedules
-
-**Data shape:** no income or asset test; volunteer counseling service only, not benefits-paying program; statewide uniform access via phone/virtual with no formal application
-
-**Source:** https://www.hawaiiship.org
-
----
-
-### Home-Delivered Meals (Meals on Wheels)
-
-> **NEW** — not currently in our data
-
-**Eligibility:**
-- Age: 60+
-- Income: No strict income limits; priority given to low-income elders, but not required for eligibility. No specific dollar amounts or household size tables provided.[1][4][6]
-- Assets: No asset limits mentioned.[1][4]
-- Homebound and unable to cook or shop for themselves due to physical or mental disability with no meal preparation assistance.
-- Lack physical mobility to shop for food and prepare adequate meals with no assistance.
-- Convalescing post-hospital discharge needing temporary service.
-- Lack adequate cooking facilities and unable to acquire them.
-- Lack proper nutritional support due to caregiver stress.
-- Must be home at delivery time, admit volunteers into home, have safe/accessibly home environment.
-- Able to feed themselves or have caregiver to feed them.
-- Willing to provide physician/health care professional verification of need.
-- Agree to initial assessment and periodic reassessment.
-- Priority to low-income, minority, socially isolated elders.[1]
-- Spouses as primary caregivers or younger individuals with disabilities may qualify in some programs.[4]
-
-**Benefits:** Hot, nutritious meals delivered Monday-Friday (including holidays), meeting 1/3 Recommended Daily Allowance: hot entree, vegetables, starch, dessert (often fruit), milk/juice. Special diets like diabetic, low-sodium accommodated. Hawaii Meals on Wheels: daily delivery. Lanakila Pacific: weekly delivery with rotating monthly menu (e.g., beef spaghetti, miso fish).[1][4]
-- Varies by: provider
-
-**How to apply:**
-- Hawaii Meals on Wheels (Oahu): Call (808) 988-6747 Monday-Friday 8am-5pm.[1][6]
-- Lanakila Pacific (Oahu island-wide): Contact through website lanakilapacific.org/mealsonwheels/ or City & County Aging and Disability Resource Center/health insurance for free eligibility; otherwise pay via credit/debit, online, check, SNAP EBT.[4]
-- Complete client application form (name not specified).[1]
-
-**Timeline:** Service starts within 2 days if eligible, space on route available, and application completed.[1]
-**Waitlist:** Depends on space on existing delivery routes; priority affects access.[1]
-
-**Watch out for:**
-- Must be home to accept delivery and admit volunteers; safe home environment required.
-- Space on routes limits immediate start; priority to low-income/minority/isolated.
-- Physician verification and assessments mandatory.
-- Not all islands equally covered; Oahu dominant.
-- Some programs weekly vs. daily; paid options if not free-eligible.
-- Not automatic for age 60+; must meet homebound/need criteria.[1][4]
-
-**Data shape:** Multiple independent providers (not centralized state program); Oahu-heavy; no fixed income/asset tests but priority-based; varies by provider on delivery frequency/payment.
-
-**Source:** No single statewide .gov site; key providers: hmow.org (Hawaii Meals on Wheels), lanakilapacific.org (Lanakila Pacific). State resources via humanservices.hawaii.gov or aging.hawaii.gov (not directly cited).[6]
-
----
-
-### Executive Office on Aging Family Caregiver Support Program
-
-> **NEW** — not currently in our data
-
-**Eligibility:**
-- Age: 60+
-- Income: No strict income limits; services available regardless of income, but priority given to those with greatest economic and social needs, focusing on low-income minorities, limited English-speaking, and the disabled[6].
+- Income: Gross monthly income must be at or below 150% of Federal Poverty Level (standard LIHEAP threshold). Specific limits: 1 person $3,495/month; 2 people $4,570/month; 3 people $5,645/month; 4 people $6,721/month; 5 people $7,796/month; 6 people $8,872/month. Alternative program (H-HEAP) uses 60% National Median Income: ~$37,000/year (1 person), $71,000/year (family of 4), or automatic qualification if household receives TANF, SSI, or SNAP.[1][6]
 - Assets: No asset limits mentioned in available sources.
-- Care recipient must be 60 years or older with impairments in at least 2 ADLs or IADLs and an unmet need[1]
-- Family caregiver must be unpaid and providing care to eligible senior[1][3]
-- Special populations: Adults 55+ caring for non-child over 18 with developmental disabilities; grandparents/relatives 55+ caring for children 18 and under[3]
-- Native Hawaiian-specific: Caregiver of Native Hawaiian 60+ with chronic illness/disability, or Native Hawaiian grandparent/relative caring for child 18 or under[3]
+- U.S. citizen or Lawful Permanent Resident for all household members.
+- All adults must sign application and provide picture ID.
+- Social Security Number required for all household members over 1 year old.
+- Must reside in Hawaii and be responsible for electric and/or gas utility bill.
+- Proof of residence and active utility account required.
+- Household includes all living at address covered by same utility bill.
 
-**Benefits:** Information and assistance, individual counseling, support groups and training, respite (in-home or out-of-home such as personal care, homemaker, adult day care), supplemental services; case management, care planning, linkages to community services[1][2][7]
+**Benefits:** Heating/Cooling: Maximum $1,400, Minimum $280. Crisis: Maximum $700. One-time payment applied directly to utility bill (H-HEAP variant). Benefits calculated based on income, household size, and fuel type.[1]
+- Varies by: household_size|priority_tier|region
+
+**How to apply:**
+- In-person (Oahu: Honolulu Community Action Program (HCAP); Maui: Maui Economic Opportunity (MEO); Hawaii Island: Hawaii County Economic Opportunity Council (HCEOC); Kauai: Kauai Economic Opportunity, Inc.). June 1-30 for H-HEAP.[4][6]
+- Mail or drop-off (Maui County).[6]
+- Phone to reserve appointment (Hawaii Island).[6]
+- Forms include State of Hawaii DHS L-1 Application, L-3 Consent to Release, L-4 Declaration of Active Utility Account.[2][5]
+
+**Timeline:** Not specified; limited funding periods (e.g., Heating/Cooling Mar 1-Sep 30, Crisis year-round; H-HEAP June applications).[1][4]
+**Waitlist:** Funding limited; applications may close early if funds exhausted. No formal waitlist mentioned.[1]
+
+**Watch out for:**
+- Limited application windows (e.g., June 1-30 for H-HEAP, Mar-Sep for heating/cooling); funds run out early—apply ASAP.[1][4][6]
+- Must have active utility account at time of payment posting, or ineligible.[5]
+- All adults must sign and provide ID/SSN; incomplete apps denied.[2][3][5]
+- Household includes all at address on utility bill, even non-expense sharers.[1]
+- Program formerly LIHEAP, now H-HEAP in some contexts; check current name.[4]
+- No year-round regular assistance; crisis only for emergencies.[1]
+
+**Data shape:** Regionally administered with different providers and application methods per island/county; short annual windows (e.g., June); automatic qualifiers via SNAP/SSI/TANF in H-HEAP variant; benefits tiered by heating/cooling/crisis and household factors.
+
+**Source:** https://humanservices.hawaii.gov (DHS Benefit Employment & Support Services Division); https://www.hawaiianelectric.com/billing-and-payment/payment-assistance/low-income-programs/h-heap
+
+---
+
+### Weatherization Assistance Program (WAP)
+
+> **NEW** — not currently in our data
+
+**Eligibility:**
+- Income: Household income at or below 200% of the Federal Poverty Guidelines for Hawaii. Automatic eligibility if any household member receives TANF or SSI. Example limits from Kauai provider (may vary by year): 1-person: $28,260; 2: $38,440; 3: $48,620; 4: $58,800; 5: $69,000; 6: $79,140; 7: $89,280; 8: $99,420; add $5,220 per additional person.[6][1][3]
+- Assets: No asset limits mentioned in Hawaii-specific sources.[1][3][5]
+- Priority to elderly (60+), persons with disabilities, families with children (under 19 or 6 per some providers), high energy users, high energy burden households.[1][3][7]
+- Homeowners, renters, mobile home owners eligible; single-family homes and multi-family up to 4 units.[4]
+
+**Benefits:** Free weatherization measures per Hawaii Priority List: low-flow showerheads/faucet aerators, CFL/LED lighting, advanced power strips, hybrid heat pump/solar water heaters, small/very large room ACs, refrigerator replacement. Includes energy efficiency education and in-home assessment.[3][1]
 - Varies by: priority_tier
 
 **How to apply:**
-- Phone: Oahu 808-768-7700 (Elderly Affairs Division), Neighbor Islands 1-800-570-1101[1][6]
-- Website: https://health.hawaii.gov/eoa/ or https://hawaiiadrc.org[2][4]
-- In-person: Contact local Area Agency on Aging offices (e.g., Honolulu Elderly Affairs Division)[6]
-- Aging & Disability Resource Center (ADRC): 808-643-2372[5]
+- Oahu (Honolulu): Contact HCAP via https://www.hcapweb.org/weatherization-assistance-program/ or their site form.[1]
+- Hawaii County (Hilo): Email wap@hceoc.net (PDF/DOC), mail or in-person to 47 Rainbow Drive, WAP Office Bldg 2, Hilo, HI 96720.[5]
+- Kauai: Complete KEO Intake Form via https://keoinc.org/services/weatherization-assistance/.[6]
+- Statewide admin: Hawaii Dept of Labor OCS at https://labor.hawaii.gov/ocs/service-programs-index/weatherization-assistance-program/.[3]
+- No specific statewide phone listed; contact local providers.
 
 **Timeline:** Not specified in sources.
-**Waitlist:** Services depend on eligibility and availability due to limited funding; priority for greatest needs may imply waitlists[6]
+**Waitlist:** Limited applications due to funding; HCEOC notes limited approvals.[5]
 
 **Watch out for:**
-- Funding prioritizes greatest needs (low-income, minorities, limited English, disabled), so higher-income may be deprioritized or wait longer[6]
-- Services vary by county AAA and availability; not all services in every location[6]
-- Must have unpaid caregiver and specific impairments (2+ ADLs/IADLs); independent seniors without caregiver may not qualify[1]
-- Respite and other services depend on eligibility assessment, not guaranteed[7]
+- Funding-limited, so not all eligible get services; must apply via specific county provider, not centralized; automatic eligibility for TANF/SSI but still need to apply/contact local agency; priority tiers mean elderly may wait if high demand; verify current 200% FPG as they update annually.[1][3][5]
+- Services free but only pre-approved measures from Hawaii list.[3]
 
-**Data shape:** Administered statewide via 4 county AAAs with priority tiers for greatest needs; no fixed income/asset tests but funding-limited; benefits include caregiver-specific respite/counseling plus linkages
+**Data shape:** County-specific subgrantees handle applications; priority-based allocation with limited funding; income at 200% FPG or TANF/SSI auto-eligible; benefits from fixed Hawaii priority list.
 
-**Source:** https://health.hawaii.gov/eoa/
+**Source:** https://labor.hawaii.gov/ocs/service-programs-index/weatherization-assistance-program/
+
+---
+
+### Family Caregiver Support Program
+
+> **NEW** — not currently in our data
+
+**Eligibility:**
+- Age: 60+
+- Income: Prioritizes greatest economic need (low-income), but no specific dollar amounts or household size table provided in sources[2][5]
+- Assets: No asset limits mentioned[1][2]
+- Family caregiver of adult age 60+ needing care (unable to be left alone for Native Hawaiian program)[1][2]
+- Special populations: Caregivers age 55+ for adults 18+ with developmental disabilities (not their child); grandparents/relatives 55+ caring for children 18 and under[1]
+- For Native Hawaiian program: Care recipient must be Native Hawaiian age 60+ with chronic illness/disability; proof of age/ethnicity required[1][2]
+- Limited funding for Native Hawaiian grandparents/relatives caring for children 18 and under[2]
+
+**Benefits:** Case management, respite care, training, counseling, support groups, supplemental services (e.g., transportation, attendant care, home-delivered meals, homemaker, adult day care, personal care via Kupuna Caregivers Program); no specific hours, dollar amounts, or payment to caregivers stated[1][5]
+- Varies by: priority_tier
+
+**How to apply:**
+- Phone: 808-768-7700 (Kupuna Caregivers Program)[5]
+- Contact local Area Agency on Aging on Aging (implied via caregiver.org, no specific numbers)[1]
+
+**Timeline:** Not specified
+**Waitlist:** Limited funding may imply waitlists, but not explicitly stated[2]
+
+**Watch out for:**
+- Multiple similar programs (e.g., Native Hawaiian-specific via ALU LIKE, Kupuna Caregivers, VA, Medicaid); confirm exact program[1][2][5]
+- Proof of Native Hawaiian ethnicity required for targeted program[2]
+- Prioritizes low-income, at-risk for institutionalization, minorities, rural, limited English; not all qualify equally[5]
+- No direct pay to family caregivers specified; focuses on support services[1][5]
+- VA and Medicaid programs have separate, stricter criteria (e.g., 70% disability rating)[3]
+
+**Data shape:** Tied to National Family Caregiver Support Program via Area Agencies on Aging; Native Hawaiian variant with ethnicity proof; prioritizes by need tier, no fixed income/asset numbers; services not cash payments
+
+**Source:** No single primary .gov URL identified; related info at health.hawaii.gov (DDD, not direct) or implied via executiveofficeonaging.hawaii.gov (not in results)[5]
 
 ---
 
@@ -393,70 +340,71 @@ Our data differs from what official sources say:
 
 **Eligibility:**
 - Age: 55+
-- Income: Family income must be at or below 125% of the federal poverty level for the calendar year. Exact dollar amounts vary by household size and are updated annually; refer to current Poverty Guidelines at https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines. For example, in Maui County, gross family income cannot exceed 125% of HHS poverty levels.
-- Unemployed and eligible to work in the US
+- Income: Family income must be at or below 125% of the federal poverty level for the calendar year. Exact dollar amounts vary by household size and are updated annually; refer to current Poverty Guidelines at https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines. For example, in Maui County, gross family income cannot exceed 125% of HHS poverty levels.[2][3][6]
+- Assets: No asset limits mentioned in program requirements.[2][6]
+- Unemployed at time of enrollment and eligible to work in the US
 - Resident of Hawaii (or specific service area, e.g., Maui County for some providers)
-- Poor employment prospects (job-ready individuals may be referred to WIOA Adult Program)
-- Enrollment priority: veterans/qualified spouses, 65+, disabled, limited English/low literacy, rural residents, low employment prospects, homeless/at-risk
+- Poor employment prospects (job-ready individuals may be referred to WIOA instead)
+- Enrollment priority: veterans/qualified spouses, age 65+, disabled, limited English/low literacy, rural residents, low employment prospects, homeless/at-risk[2][5][6]
 
-**Benefits:** Paid part-time community service training assignments at public/non-profit host agencies, averaging 19-20 hours per week at Hawaii state minimum wage. Includes skills assessment, job search training, counseling, soft skills development to transition to unsubsidized employment.
+**Benefits:** Paid part-time community service training at host agencies (government/non-profits) averaging 19-20 hours/week at Hawaii state minimum wage; skills assessment, job search training, counseling, supportive services to transition to unsubsidized employment.[1][2][5]
 - Varies by: priority_tier
 
 **How to apply:**
-- Phone: Leila Shar, Acting Programs Manager at (808) 586-9169 or [email protected]
-- Phone: Tekawitha M. Iese, Program Specialist at (808) 586-8819 or [email protected]
-- Website: https://labor.hawaii.gov/wdd/job-seekers/scsep/ or https://labor.hawaii.gov/wdd/employers/scsep/
-- In-person: Contact local American Job Centers or providers like Maui American Job Center (mauiamericanjobcenter.com) or HCAP on Oahu
+- Phone: Leila Shar, Acting Programs Manager at (808) 586-9169 or [email protected][1]
+- Phone: Tekawitha M. Iese, Program Specialist at (808) 586-8819 or [email protected][4]
+- Website: https://labor.hawaii.gov/wdd/job-seekers/scsep/ or https://labor.hawaii.gov/wdd/employers/scsep/[1][2][4]
+- In-person: Through local American Job Centers or providers like Maui American Job Center (Maui County)[3]
 
-**Waitlist:** Not specified; may vary by region and funding availability
+**Timeline:** Not specified in sources
+**Waitlist:** Not mentioned; may vary by demand and region
 
 **Watch out for:**
-- Not for job-ready individuals; they are referred to WIOA Adult Program
-- Training is temporary; participants must seek unsubsidized employment after completion (host agencies may hire but wages unsubsidized)
-- Income based on family/household, not individual
-- Priority groups get preference; limited slots due to federal funding
-- Must be unemployed at enrollment; no asset test but strict poverty threshold
-- County-specific residency for some sub-programs (e.g., Maui-only)
+- Must have poor employment prospects; job-ready seniors may be disqualified and referred to WIOA Adult Program[2]
+- Training is temporary; participants must seek unsubsidized employment after completion (host agencies may hire but not required)[6]
+- Income based on family/household, not individual; includes all members[3]
+- Priority groups get preference, potentially creating waitlists for others[5][6]
+- Paid at state minimum wage only (no additional benefits specified like health insurance)
 
-**Data shape:** Income at 125% federal poverty level (family-based, annual update); priority enrollment tiers; statewide with county sub-providers and varying host agencies; no fixed processing times or asset limits specified
+**Data shape:** Income test at 125% FPL by household size (annual HHS guidelines); statewide with county-specific providers and residency rules; priority tiers affect enrollment; no fixed hours/wage beyond avg 19-20/wk at min wage
 
 **Source:** https://labor.hawaii.gov/wdd/job-seekers/scsep/
 
 ---
 
-### Legal Aid Society of Hawaii Elder Law Program
+### Legal Assistance for Seniors in Hawaii
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
 - Age: 60+
-- Income: Low-income required, but exact dollar amounts or household size table not specified in available sources; cases evaluated individually based on limited income[4][7].
-- Assets: Not specified; low assets implied as part of low-income evaluation, but no details on what counts or exemptions[4][7].
-- Low-income individuals or families
-- Civil legal needs only (e.g., no criminal or fee-generating cases)
-- Priority to most needy due to limited resources[4][7]
+- Income: 125% of federal poverty guidelines (2024). Specific dollar amounts not provided in available sources. Income thresholds adjust annually as federal poverty guidelines change.[1][5]
+- Assets: Not specified in available sources
+- No conflict of interest issues (Legal Aid cannot have previously assisted anyone with a legal problem involving the applicant)[1]
+- Exception: Income limits may be waived for seniors facing foreclosure, losing public benefits, or needing advice on specific matters[1]
 
-**Benefits:** Free legal advice; advance planning services (specifics like advance health care directives, powers of attorney, wills not detailed for this program but implied in elder law context); areas include family, housing, consumer, public benefits[4][6][7].
-- Varies by: priority_tier
+**Benefits:** Free civil legal assistance. Specific service hours, case limits, or dollar caps not provided in available sources.[4]
+- Varies by: Legal problem type (some areas have income-limit exceptions)
 
 **How to apply:**
-- Phone: 808-536-4302 (Oahu) or 1-800-499-4302 (neighbor islands), Monday-Friday 9:00AM-11:30AM & 1:00PM-3:30PM[4][7]
-- Website: https://www.legalaidhawaii.org/elder-law-services.html[4]
-- No walk-in intake; physical offices not open to public, but accommodations for current clients[7]
-- Mail or in-person not specified for initial intake
+- Phone: 808-536-4302 (Oahu)[4]
+- Phone: 1-800-499-4302 (Neighbor Islands)[4]
+- Senior Legal Hotline: 536-0011 (Oahu) or 1-888-536-8011 (Neighbor Islands)[1]
+- In-person: Physical office spaces not currently open to public; accommodations available for current clients[4]
 
-**Timeline:** Not specified
-**Waitlist:** Not specified; priority given to most needy due to limited resources, implying potential delays[4][7]
+**Timeline:** Not specified in available sources
+**Waitlist:** Not specified in available sources
 
 **Watch out for:**
-- Phone intake limited to specific hours (M-F 9-11:30AM & 1-3:30PM); no walk-in or public office access[4][7]
-- Services free but limited to civil matters; priority to neediest may mean not all qualify or face waits[4][7]
-- No fees, but does not handle criminal, business, personal injury, or fee-generating cases[4][7]
-- Often confused with University of Hawaii Elder Law Program (UHELP), which is Oahu-only, student-supervised clinic with different contact (808-956-6544)[1][3][8]
+- Income limits may be waived for specific situations (foreclosure, loss of public benefits) even if household income exceeds 125% threshold[1]
+- Conflict of interest rules strictly applied—if Legal Aid previously assisted anyone with a legal problem involving you, they cannot help[1]
+- Physical offices not accepting walk-in intake; phone intake is primary access method[4]
+- If income exceeds Legal Aid guidelines, Affordable Lawyers Project may offer low-fee services depending on legal problem type[1]
+- Legal Aid responds to up to 20,000 inquiries annually, suggesting potential volume constraints[1]
 
-**Data shape:** Statewide with island-specific intake lines; no detailed income/asset tables or forms listed; priority-based allocation due to high demand (serves 18,000+ clients yearly across Legal Aid)[5][7]; distinct from UHELP which is Oahu-restricted academic clinic
+**Data shape:** Critical gaps in available data: Specific income dollar amounts by household size not provided; processing times unknown; document requirements not specified; service scope and hours not detailed; waitlist status unclear. Search results confirm program existence and basic eligibility but lack operational details needed for comprehensive family guidance.
 
-**Source:** https://www.legalaidhawaii.org/elder-law-services.html
+**Source:** https://www.legalaidhawaii.org
 
 ---
 
@@ -465,146 +413,138 @@ Our data differs from what official sources say:
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Income: No income limits; available to all residents of long-term care facilities regardless of financial status.
-- Assets: No asset limits; no financial tests apply.
-- Must be a resident (or acting on behalf of a resident) of a long-term care facility in Hawaii, such as nursing homes, assisted living facilities, adult residential care homes (ARCH), expanded ARCH, CCFFH, or similar settings.
+- Income: No income limits; open to any resident of a qualifying facility regardless of financial status.
+- Assets: No asset limits or tests apply.
+- Must be a resident of a licensed long-term care facility in Hawaii, such as nursing homes, assisted living facilities, adult residential care homes (ARCH), community care foster family homes (CCFFH), expanded ARCH, hospice centers, or adult day care.[5][6]
 
-**Benefits:** Identifies, investigates, and resolves complaints related to action, inaction, or decisions adversely affecting health, safety, welfare, and rights; provides information, referral, and consultation on long-term care issues including alternatives to nursing home placement, payment options, choosing facilities, power of attorney/guardianship, refusing treatment, and resident rights; supports resident and family councils; conducts confidential face-to-face visits by certified ombudsmen (volunteers commit to weekly visits).
+**Benefits:** Advocacy services including identifying, investigating, and resolving complaints made by or on behalf of residents; regular in-person facility visits; protection of health, safety, welfare, and rights; technical support for resident and family councils; information on obtaining services; timely responses to complaints; monitoring for abuse, neglect, and exploitation.[1][5][6]
 
 **How to apply:**
-- Phone: 808-586-7268 (Oahu) or 1-888-229-2231 (statewide toll-free)
-- Email: eoa.ltcop@doh.hawaii.gov
-- Website: https://health.hawaii.gov/eoa/home/long-term-care-ombudsman-program/ or https://www.hi-ltc-ombudsman.org
-- In-person: Contact via phone for local office arrangements; Executive Office on Aging at 250 S. Hotel St., Ste. 406, Honolulu, HI 96813
+- Phone: 1-888-229-2231 (toll-free) or (808) 586-7268[4][6]
+- Website: https://www.hi-ltc-ombudsman.org (for information and contact)[6]
+- Email: lynn.niitani@doh.hawaii.gov[3]
+- In-person: Contact via phone for facility visits or office at 250 S. Hotel St., Ste. 406, Honolulu, HI 96813[7]
 
-**Timeline:** Not specified; complaint investigation begins promptly upon contact.
+**Timeline:** Timely and responsive handling of complaints and concerns; no formal processing time specified as services are provided on-demand via advocacy visits and investigations.
 
 **Watch out for:**
-- Not a direct service provider or financial aid program—offers advocacy and complaint resolution only, not healthcare or payment; requires resident consent for most actions (documented orally or in writing); confusion with volunteer recruitment (separate from receiving services); volunteers must reside locally (e.g., Oahu) with vehicle; not for non-facility residents unless seeking info/referral.
+- This is not a direct service or financial aid program but pure advocacy for residents already in facilities—families cannot 'apply' their loved one into a facility through LTCOP.[6]
+- Services are for current facility residents only, not for qualification into care or home-based care.[5]
+- Strict confidentiality: Information shared is protected unless resident consents or required by law.[1][6]
+- Not for volunteers (who must apply separately with training and checks).[3][4]
 
-**Data shape:** no income test; advocacy-only for LTC facility residents statewide; volunteer-driven with certification requirements; free and open to all qualifying residents without financial barriers
+**Data shape:** no income or asset test; advocacy-only for residents of licensed LTC facilities statewide; on-demand complaint resolution rather than enrollment-based benefits
 
-**Source:** https://health.hawaii.gov/eoa/home/long-term-care-ombudsman-program/
+**Source:** https://www.hi-ltc-ombudsman.org
 
 ---
 
-### Kūpuna Aging in Place (KAP)
+### Kupuna Caregivers Program
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
-- Age: 65+
-- Income: Low- to moderate-income levels; specific dollar amounts or household size tables not detailed in sources. Financial eligibility determined via intake process with case management[4][7].
-- Assets: Not specified in sources.
-- Hawaiʻi resident
-- Nonprofit-provided services via 501(c)(3) organizations funded by Hawaiʻi Community Foundation grants
-- Functional needs supporting aging in place (e.g., frailty, ADL/IADL limitations implied via similar programs)
-- Not eligible for Medicaid or comparable government/private home- and community-based services (distinction from Kupuna Care)
-- U.S. citizen or legal alien (from related Kupuna Care brochure)
+- Age: 60+
+- Income: No specific dollar amounts or household size table provided in sources; cost-sharing may apply based on income and ability to pay. Priority for greatest economic need, low-income, minorities, limited English proficiency, rural residents, and those at risk of institutional placement.[1][5]
+- Assets: No asset limits or details on what counts/exempts mentioned.
+- Care recipient must be Hawaii resident, US citizen or qualified alien, 60+, not residing in long-term care facility, and have impairments in at least two ADLs or two IADLs, or one ADL and one IADL, or substantive cognitive impairment requiring substantial supervision.[3]
+- Caregiver must be employed at least 30 hours/week (may be reduced during state of emergency).[3][6]
+- Care recipient must have functional needs (frailty or limitations in ADLs/IADLs) and not qualify for Medicaid or comparable programs.[1]
+- Provides direct care to care recipient.[3]
 
-**Benefits:** Community-based support services (case management, falls prevention education, home-delivered meals, transportation, socialization, respite, personal care); adult day care or adult day health (with tuition assistance); caregiver support (education, support groups, training, counseling). Provided in homes or at centers/facilities[4][7].
+**Benefits:** Up to $70 per day (or up to $210 per week) in services paid directly to contracted providers (not caregiver), including attendant care, transportation, home-delivered meals, homemaker, adult day care, personal care, case management, chore services. Delivered via traditional service delivery or kupuna caregiver-directed services based on support plan.[3][5][6][7]
 - Varies by: priority_tier
 
 **How to apply:**
-- Apply through funded nonprofit organizations providing KAP services (no central state application; contact providers via Hawaiʻi Community Foundation grantees)
-- Formal intake process by providers for kūpuna and financial eligibility determination[4]
-- Hawaiʻi Community Foundation Grants Portal for organizations (not individuals): applications for 2026-2029 open until March 20, 2026[7]
+- Phone: Statewide Aging and Disability Resource Center (ADRC) at (808) 643-2372 or TTY (808) 643-0899; call will be directed to local Area Agency on Aging (AAA) by county.[3][7]
+- Website: http://www.hawaiiadrc.org[3]
 
-**Timeline:** Not specified.
-**Waitlist:** Possible for services with prioritization for greatest economic/social need or institutional risk (from related programs)[1][6]; no specific KAP details.
+**Timeline:** Not specified; includes employment verification, care recipient assessment, and caregiver burden assessment.[3]
+**Waitlist:** Some services may have waitlists; priority for greatest economic/social need and at-risk individuals. Funding limited (e.g., historical $600,000 until June 2018).[1][3]
 
 **Watch out for:**
-- KAP is a grant program funding nonprofits, not a direct state-run service like Kupuna Care; families must contact providers, not a single agency[1][4][7]
-- Age 65+ (vs 60+ for OAA Title III or Kupuna Care); targets low-moderate income with case management required[1][4]
-- No direct individual application to funders; relies on provider intake and care plans[4]
-- Often confused with state Kupuna Care program, which has stricter non-Medicaid eligibility and cost-sharing[1][3][6]
+- Payments go directly to contracted providers, not the caregiver.[3][6]
+- Does not cover those eligible for Medicaid or comparable programs; it's a gap-filler.[1]
+- Funding is limited and subject to availability; may have waitlists.[1][3]
+- Caregiver must meet 30-hour work requirement (flexible in emergencies).[6]
+- Distinct from federal OAA Title III (no cost-sharing) and Native Hawaiian-specific programs.[1][2]
 
-**Data shape:** Grant-funded via Hawaiʻi Community Foundation to nonprofits; not a direct government entitlement program; benefits via provider networks with individual care plans and financial intake; age 65+ focus distinguishes from 60+ state programs
+**Data shape:** State/county-funded with priority tiers; caregiver employment required; services via contracted providers; county AAAs administer with potential regional variations in delivery and wait times.
 
-**Source:** https://www.hawaiicommunityfoundation.org/strengthening/kupuna-aging-in-place
+**Source:** https://elderlyaffairs.com/services/eligibility-requirements/ (Honolulu example); statewide via http://www.hawaiiadrc.org
 
 ---
 
-### Kūpuna Care Program
+### Kumu Kahi – Ke Ola Pono No Nā Kūpuna Program
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
 - Age: 60+
-- Income: Not specified in available sources. Program prioritizes those with 'greatest economic need' but no specific income thresholds or tables are documented.
-- Assets: Not specified in available sources.
-- U.S. citizen or legal alien[2]
-- Not covered by any comparable government or private home- and community-based care services[2]
-- Not residing in an institution (intermediate care facility, skilled nursing facility, adult residential care, hospital, or foster family)[2]
-- Impairment of two or more ADL (Activities of Daily Living) or IADL (Instrumental Activities of Daily Living), or significantly reduced mental capacity[2]
-- Unmet need in performing an ADL or IADL[2]
-- Individual must be a care recipient, caregiver, or employed caregiver as defined in Hawaii Revised Statutes § 349-16[1]
+- Income: No income limits specified; voluntary donations accepted for services[1][4]
+- Assets: No asset limits specified or mentioned[1][4]
+- Independent individuals (able to live independently)
+- Native Hawaiian ancestry (proof required via birth certificate)
+- Spouses of eligible individuals also qualify
+- Available on Hawaii, Kauai, Maui, Molokai, and Oahu islands only[1]
 
-**Benefits:** Services include: transportation, attendant care, case management, home-delivered meals, homemaker services, adult day care, and personal care services[5]. For employed caregivers specifically: up to $70 per day in services (subject to availability of funds, paid directly to contracted service providers, not the caregiver)[4].
-- Varies by: priority_tier and caregiver_employment_status
+**Benefits:** Nutritious congregate meals at sites; limited home-delivered meals for those unable to attend; limited transportation to/from sites and health-related locations during program hours; outreach, information, and assistance linking to other agencies; cultural activities (hula, Hawaiian language, history); intergenerational activities; health monitoring, promotion, education, nutritional counseling, physical activities; phone reassurance, friendly visits; education; recreation and social support; volunteer opportunities. Voluntary donations accepted; no fixed dollar amounts or hours specified[1]
+- Varies by: region
 
 **How to apply:**
-- Phone: Aging and Disability Resource Center (ADRC) statewide number (808) 643-2372[4]
-- Phone: ADRC TTY line (808) 643-0899[4]
-- Phone: Alternative number for Kupuna Caregivers Program information: 808-768-7700[5]
-- Online: www.hawaiiadrc.org[4]
-- In-person: Area agencies on aging (specific locations not provided in sources)
+- Contact ALU LIKE, Inc. Kumu Kahi Department (specific phone/website not listed in sources; primary site: https://www.alulike.org/services/kumu-kahi/ke-ola-pono-no-na-kupuna/ )[1][4]
+- In-person at program sites on Hawaii, Kauai, Maui, Molokai, Oahu[1]
 
-**Timeline:** Not specified in available sources.
-**Waitlist:** Not specified in available sources.
+**Timeline:** Not specified
+**Waitlist:** Not mentioned; limited services (e.g., home meals, transportation) imply potential capacity constraints[1]
 
 **Watch out for:**
-- Program explicitly excludes individuals already receiving comparable government or private home- and community-based care services[2] — dual enrollment is not permitted.
-- Individuals residing in ANY institutional setting (including skilled nursing facilities, adult residential care, hospitals) are ineligible[2].
-- For employed caregivers: must work at least 30 hours per week and provide direct care to qualify for the Kupuna Caregivers Program specifically[4].
-- Services are paid directly to contracted service providers, NOT to the caregiver or family member[4] — this is not a cash payment program.
-- Program funding is limited and subject to legislative appropriation[4] — availability may vary year to year.
-- Eligibility is confirmed through in-home assessment; preliminary determination alone does not guarantee services[1].
-- Individual can be deemed ineligible if they leave the state, refuse services, or their whereabouts become unknown[1].
+- Must prove Native Hawaiian ancestry with birth certificate even for spouses[1]
+- Only for independent elders (not those unable to be left alone, which is a separate caregiver program)[1][3][4]
+- Limited availability of some services like home meals and transportation[1]
+- Not statewide; no service on Lanai[1]
+- Funded by Older Americans Act Title VI Part B; eligibility strictly tied to Native Hawaiian ancestry[1][4]
 
-**Data shape:** This program has two distinct service delivery models: traditional service delivery OR participant-directed services and support, based on individualized support plans[1]. Benefits scale by priority tier (economic need, social need, institutional placement risk) rather than by household size. No specific income or asset limits are documented in available sources, making this a needs-based rather than means-tested program. The program serves three populations: care recipients (frail older adults), caregivers (family members), and employed caregivers (working individuals providing direct care). Employed caregivers have a separate benefit structure ($70/day maximum) distinct from care recipients. Regional implementation varies through area agencies on aging, but no specific county-level variations are documented.
+**Data shape:** Ancestry-restricted to Native Hawaiians; island-specific sites with limited services; no income/asset tests; separate from caregiver support program under same department[1][4]
 
-**Source:** Hawaii Revised Statutes § 349-17 (law.justia.com/codes/hawaii/title-20/chapter-349/section-349-17/); Hawaii Department of Human Services Elderly Affairs Division
+**Source:** https://www.alulike.org/services/kumu-kahi/ke-ola-pono-no-na-kupuna/
 
 ---
 
-### Senior Food Box Program (CSFP)
+### Kumu Kahi – Native American Caregivers Support Program
 
 > **NEW** — not currently in our data
 
 **Eligibility:**
 - Age: 60+
-- Income: Maximum monthly household income at or below 150% of the Federal Poverty Income Guidelines for Hawaii[3]. The exact dollar amounts vary by household size and are set annually by the federal government. For reference, in fiscal year 2022, the program nationally served participants with incomes at or below 130% of the federal poverty level[4], though Hawaii's state plan specifies 150%[3]. Applicants who are fully eligible for SNAP, FDPIR, SSI, LIS, or MSP may also be accepted as income-eligible[3].
-- Must be a resident of the county in which applying to receive services[3]
-- For Oahu-specific program: Oahu resident[1]
-- Must show proof of nutritional risk (as determined by physician or local agency staff) in some cases, though this is not universally required[2]
+- Income: No income limits mentioned in available sources.
+- Assets: No asset limits mentioned in available sources.
+- Family caregivers of Native Hawaiian elders age 60+ who are unable to be left alone (due to chronic condition or disability).
+- Proof of age and Native Hawaiian ethnicity required for the care recipient (e.g., birth certificate); not required for caregiver.
+- Limited funding available for Native Hawaiian grandparents or older relatives (age 60+) caring for children age 18 and under; birth certificate required for proof of age and ethnicity.
 
-**Benefits:** Monthly food boxes containing items from the following categories: cereal, juice, protein, milk, peanut butter/dry beans, potatoes/grains, cheese, fruit, and vegetables[3]. Boxes are designed to supplement diets with nutritious USDA Foods and provide nutrients typically lacking in the beneficiary population's diets[3].
-- Varies by: fixed
+**Benefits:** Information and assistance about available services; assistance gaining access to supportive services; referrals to individual counseling, support groups, and caregiver training; respite support to relieve caregivers temporarily; limited supplemental services to complement caregiver-provided care. No cost to participants.
+- Varies by: priority_tier
 
 **How to apply:**
-- Online: Visit https://hawaiifoodbank.org/csfp/ and click 'DOWNLOAD AN APPLICATION'[1]
-- Mail: Complete application and mail to Hawaii Foodbank, 2611 Kilihau St., Honolulu, HI 96819[1]
-- Phone: (808) 836-3600[1]
-- Email: info@hawaiifoodbank.org[1]
+- Phone: (808) 535-6700
+- Email: info@alulike.org
+- Website: https://www.alulike.org/services/kumu-kahi/caregiver-support/
+- In-person: 550 Paiea St., Suite 226, Honolulu, HI 96819
 
-**Timeline:** Not specified in available sources. However, the program notes that slots can be filled quickly and there will be a waitlist[1].
-**Waitlist:** Yes. If waitlisted, there is an option to attend the monthly pick-up at chosen location site and may be able to receive a food box if there are any left over[1]. For FFY 2024, Hawaii's caseload assignment is 3,226 participants[3].
+**Timeline:** Not specified in sources.
+**Waitlist:** Limited funding may imply waitlist or prioritization, but not explicitly stated.
 
 **Watch out for:**
-- Income limits vary by state: Hawaii uses 150% of Federal Poverty Income Guidelines[3], while the national baseline is 130%[4]. Verify the current year's income limits with Hawaii Department of Labor[3].
-- Slots fill quickly with a waitlist[1]. Families should apply early in the fiscal year.
-- Recertification required annually[1]. Applicants must reapply every 12 months to maintain eligibility.
-- One source mentions recertification every 6 months[5], while another states annually[1]—clarify current requirement with Hawaii Foodbank.
-- Valid photo ID required at every monthly pick-up[1], not just at application.
-- County residency requirement: Must reside in the specific county where applying[3]. This is not statewide reciprocal.
-- Program is exclusively for seniors 60+. Women, infants, and children are no longer eligible unless they were certified before February 6, 2014[4].
-- Can be combined with SNAP and other benefits—no prohibition against receiving both[4].
-- If waitlisted, attendance at monthly pick-up location may result in receiving a box if extras are available[1].
+- Proof of Native Hawaiian ethnicity and age required only for care recipient (not caregiver), which families may overlook.
+- Elders must be 'unable to be left alone' due to chronic condition/disability.
+- Limited funding available, especially for grandparents caring for children—may affect access.
+- Free services, but respite and supplemental services are limited.
+- Funded under Older Americans Act Title VI, Part C—distinct from general caregiver programs.
 
-**Data shape:** This program's data structure is unique in that: (1) Hawaii's income limit (150% FPL) is higher than the national baseline (130% FPL)[3][4], (2) it operates on a caseload assignment system with limited slots (3,226 for FFY 2024)[3], creating a waitlist dynamic, (3) it requires county-level residency verification[3], (4) it is exclusively for seniors 60+ following 2014 legislative changes[4], and (5) recertification frequency may vary (sources cite both 6 months and 12 months—verify current requirement). The program is administered by Hawaii Department of Labor with Hawaii Foodbank as the primary provider for Oahu[1][3].
+**Data shape:** No income or asset tests; eligibility hinges on Native Hawaiian ethnicity proof for recipient, elder's need level ('unable to be left alone'), and limited funding tiers; Oahu-centric administration with potential statewide reach via Native Hawaiian networks.
 
-**Source:** https://labor.hawaii.gov/ocs/service-programs-index/federal-food-assistance-programs/csfp/
+**Source:** https://www.alulike.org/services/kumu-kahi/caregiver-support/
 
 ---
 
@@ -613,65 +553,57 @@ Our data differs from what official sources say:
 | Program | Type | Scope | Complexity |
 |---------|------|-------|------------|
 | Med-QUEST Home and Community-Based Servi | benefit | state | deep |
-| Hawai'i PACE (Program of All-Inclusive C | benefit | local | deep |
-| Medicare Savings Programs (QMB, SLMB, QI | benefit | federal | medium |
-| SNAP (Supplemental Nutrition Assistance  | benefit | federal | deep |
-| Hawaii Home Energy Assistance Program (H | navigator | federal | simple |
-| Sage PLUS (SHIP - State Health Insurance | resource | federal | simple |
-| Home-Delivered Meals (Meals on Wheels) | benefit | federal | deep |
-| Executive Office on Aging Family Caregiv | benefit | state | deep |
+| Hawai‘i PACE (Program of All-Inclusive C | benefit | local | deep |
+| Medicare Savings Programs (QMB, SLMB, QI | benefit | federal | deep |
+| Supplemental Nutrition Assistance Progra | benefit | federal | deep |
+| Low Income Home Energy Assistance Progra | benefit | federal | deep |
+| Weatherization Assistance Program (WAP) | benefit | federal | deep |
+| Family Caregiver Support Program | benefit | state | deep |
 | Senior Community Service Employment Prog | employment | federal | deep |
-| Legal Aid Society of Hawaii Elder Law Pr | resource | state | simple |
+| Legal Assistance for Seniors in Hawaii | resource | state | simple |
 | Long-Term Care Ombudsman Program (LTCOP) | resource | federal | simple |
-| Kūpuna Aging in Place (KAP) | benefit | state | deep |
-| Kūpuna Care Program | benefit | state | deep |
-| Senior Food Box Program (CSFP) | benefit | state | medium |
+| Kupuna Caregivers Program | benefit | state | deep |
+| Kumu Kahi – Ke Ola Pono No Nā Kūpuna Pro | benefit | local | medium |
+| Kumu Kahi – Native American Caregivers S | resource | local | simple |
 
-**Types:** {"benefit":9,"navigator":1,"resource":3,"employment":1}
-**Scopes:** {"state":6,"local":1,"federal":7}
-**Complexity:** {"deep":8,"medium":2,"simple":4}
+**Types:** {"benefit":9,"employment":1,"resource":3}
+**Scopes:** {"state":4,"local":3,"federal":6}
+**Complexity:** {"deep":9,"simple":3,"medium":1}
 
 ## Content Drafts
 
-Generated 3 page drafts. Review in admin dashboard or `data/pipeline/HI/drafts.json`.
+Generated 0 page drafts. Review in admin dashboard or `data/pipeline/HI/drafts.json`.
 
-- **Med-QUEST Home and Community-Based Services (HCBS) Waivers** (benefit) — 5 content sections, 6 FAQs
-- **Hawai'i PACE (Program of All-Inclusive Care for the Elderly)** (benefit) — 2 content sections, 6 FAQs
-- **Medicare Savings Programs (QMB, SLMB, QI)** (benefit) — 5 content sections, 6 FAQs
 
 ## What We Learned
 
 ### Patterns Observed
 
 How benefits vary across these programs:
-- **priority_tier**: 5 programs
-- **not_applicable — specific service hours, dollar amounts, or tiered benefits are not detailed in available sources**: 1 programs
-- **program_tier**: 1 programs
-- **household_size**: 1 programs
-- **Two credit types available: Energy Credit (EC) or Energy Crisis Intervention (ECI). ECI requires a Notice of Disconnection.[1]**: 1 programs
-- **not_applicable**: 2 programs
-- **provider**: 1 programs
-- **priority_tier and caregiver_employment_status**: 1 programs
-- **fixed**: 1 programs
+- **priority_tier**: 7 programs
+- **region**: 2 programs
+- **household_size and net_income**: 1 programs
+- **household_size|priority_tier|region**: 1 programs
+- **Legal problem type (some areas have income-limit exceptions)**: 1 programs
+- **not_applicable**: 1 programs
 
 ### Data Shape Notes
 
 Unique structural observations from each program:
 
-- **Med-QUEST Home and Community-Based Services (HCBS) Waivers**: Multiple target-group waivers under Med-QUEST (e.g., I/DD via DDD); eligibility layered (Medicaid + division + LOC); no single elderly waiver specified, benefits need-assessed not fixed-dollar; statewide but division-specific.
-- **Hawai'i PACE (Program of All-Inclusive Care for the Elderly)**: Hawaii PACE eligibility is defined by state regulation (Haw. Code R. § 17-1746-11) with specific acuity level requirements and QUEST program exclusion. However, critical operational details—provider locations, service areas, contact information, processing timelines, and specific application procedures—are not available in the search results. The program appears to be geographically restricted by provider service areas, but the number and location of providers are not specified. Income and asset limits are not explicitly stated in Hawaii regulations, suggesting they may follow federal Medicaid standards or be individually assessed.
-- **Medicare Savings Programs (QMB, SLMB, QI)**: Hawaii's Medicare Savings Programs are administered as a single Medicaid eligibility group with three tiers (QMB, SLMB, QI) based on income level. The key distinguishing feature is that Hawaii has raised income limits above federal standards for all three programs, making them more accessible than in most other states. QI differs from QMB and SLMB in that it operates on a first-come, first-served basis and requires annual reapplication. Benefits scale by program tier: QMB covers the most (premiums, deductibles, copayments), while SLMB and QI cover Part B premiums only. The search results lack critical operational details (phone numbers, specific office locations, processing times, detailed application procedures) that families would need for actual application.
-- **SNAP (Supplemental Nutrition Assistance Program)**: Benefits scale by household size and net income after elderly-specific deductions (medical/shelter); no asset test under BBCE but federal fallback for high-gross elderly/disabled households; statewide with ESAP option for seniors.
-- **Hawaii Home Energy Assistance Program (H-HEAP, formerly LIHEAP)**: This program is geographically fragmented with different application methods and providers by island/county, creating significant regional variation in accessibility. The application window is extremely narrow (30 days annually), making timing critical. Benefits are one-time payments with unspecified dollar amounts. The program serves as a safety valve for utility crises rather than ongoing assistance. Eligibility is income-based with an automatic pathway for households receiving other safety-net benefits, but documentation requirements are extensive. No asset limits are disclosed, suggesting they may not apply or may be determined case-by-case.
-- **Sage PLUS (SHIP - State Health Insurance Assistance Program)**: no income or asset test; volunteer counseling service only, not benefits-paying program; statewide uniform access via phone/virtual with no formal application
-- **Home-Delivered Meals (Meals on Wheels)**: Multiple independent providers (not centralized state program); Oahu-heavy; no fixed income/asset tests but priority-based; varies by provider on delivery frequency/payment.
-- **Executive Office on Aging Family Caregiver Support Program**: Administered statewide via 4 county AAAs with priority tiers for greatest needs; no fixed income/asset tests but funding-limited; benefits include caregiver-specific respite/counseling plus linkages
-- **Senior Community Service Employment Program (SCSEP)**: Income at 125% federal poverty level (family-based, annual update); priority enrollment tiers; statewide with county sub-providers and varying host agencies; no fixed processing times or asset limits specified
-- **Legal Aid Society of Hawaii Elder Law Program**: Statewide with island-specific intake lines; no detailed income/asset tables or forms listed; priority-based allocation due to high demand (serves 18,000+ clients yearly across Legal Aid)[5][7]; distinct from UHELP which is Oahu-restricted academic clinic
-- **Long-Term Care Ombudsman Program (LTCOP)**: no income test; advocacy-only for LTC facility residents statewide; volunteer-driven with certification requirements; free and open to all qualifying residents without financial barriers
-- **Kūpuna Aging in Place (KAP)**: Grant-funded via Hawaiʻi Community Foundation to nonprofits; not a direct government entitlement program; benefits via provider networks with individual care plans and financial intake; age 65+ focus distinguishes from 60+ state programs
-- **Kūpuna Care Program**: This program has two distinct service delivery models: traditional service delivery OR participant-directed services and support, based on individualized support plans[1]. Benefits scale by priority tier (economic need, social need, institutional placement risk) rather than by household size. No specific income or asset limits are documented in available sources, making this a needs-based rather than means-tested program. The program serves three populations: care recipients (frail older adults), caregivers (family members), and employed caregivers (working individuals providing direct care). Employed caregivers have a separate benefit structure ($70/day maximum) distinct from care recipients. Regional implementation varies through area agencies on aging, but no specific county-level variations are documented.
-- **Senior Food Box Program (CSFP)**: This program's data structure is unique in that: (1) Hawaii's income limit (150% FPL) is higher than the national baseline (130% FPL)[3][4], (2) it operates on a caseload assignment system with limited slots (3,226 for FFY 2024)[3], creating a waitlist dynamic, (3) it requires county-level residency verification[3], (4) it is exclusively for seniors 60+ following 2014 legislative changes[4], and (5) recertification frequency may vary (sources cite both 6 months and 12 months—verify current requirement). The program is administered by Hawaii Department of Labor with Hawaii Foodbank as the primary provider for Oahu[1][3].
+- **Med-QUEST Home and Community-Based Services (HCBS) Waivers**: Multiple targeted waivers under Med-QUEST (e.g., I/DD via DDD partnership); requires dual eligibility (Medicaid + division-specific + institutional LOC); no fixed elderly age cutoff but $2k assets for LTC seniors; individualized person-centered services, not fixed hours/dollars; statewide but DDD-focused in sources.
+- **Hawai‘i PACE (Program of All-Inclusive Care for the Elderly)**: Restricted to specific PACE provider service areas (not statewide); ties directly to Hawaii Medicaid eligibility with acuity levels A/C; no fixed income/asset tables beyond Medicaid rules; limited provider info available
+- **Medicare Savings Programs (QMB, SLMB, QI)**: Tiered by income (QMB lowest, QI highest); Hawaii higher income/resource limits than federal; QI capped funding/first-come; benefits fixed by tier not household size beyond couple.
+- **Supplemental Nutrition Assistance Program (SNAP)**: Hawaii's SNAP program is notable for: (1) having NO asset limit, unlike federal rules; (2) expanded eligibility through BBCE for most households; (3) special flexibility for households with members 60+ or with disabilities who can qualify through Net Income and Asset tests if they exceed gross income limits; (4) recent federal changes (2025) that may restrict work requirement exemptions for seniors aged 60-64; (5) significant participation gap among eligible seniors due to awareness and application barriers; (6) medical expense deductions that substantially affect benefit calculations for elderly and disabled households.
+- **Low Income Home Energy Assistance Program (LIHEAP)**: Regionally administered with different providers and application methods per island/county; short annual windows (e.g., June); automatic qualifiers via SNAP/SSI/TANF in H-HEAP variant; benefits tiered by heating/cooling/crisis and household factors.
+- **Weatherization Assistance Program (WAP)**: County-specific subgrantees handle applications; priority-based allocation with limited funding; income at 200% FPG or TANF/SSI auto-eligible; benefits from fixed Hawaii priority list.
+- **Family Caregiver Support Program**: Tied to National Family Caregiver Support Program via Area Agencies on Aging; Native Hawaiian variant with ethnicity proof; prioritizes by need tier, no fixed income/asset numbers; services not cash payments
+- **Senior Community Service Employment Program (SCSEP)**: Income test at 125% FPL by household size (annual HHS guidelines); statewide with county-specific providers and residency rules; priority tiers affect enrollment; no fixed hours/wage beyond avg 19-20/wk at min wage
+- **Legal Assistance for Seniors in Hawaii**: Critical gaps in available data: Specific income dollar amounts by household size not provided; processing times unknown; document requirements not specified; service scope and hours not detailed; waitlist status unclear. Search results confirm program existence and basic eligibility but lack operational details needed for comprehensive family guidance.
+- **Long-Term Care Ombudsman Program (LTCOP)**: no income or asset test; advocacy-only for residents of licensed LTC facilities statewide; on-demand complaint resolution rather than enrollment-based benefits
+- **Kupuna Caregivers Program**: State/county-funded with priority tiers; caregiver employment required; services via contracted providers; county AAAs administer with potential regional variations in delivery and wait times.
+- **Kumu Kahi – Ke Ola Pono No Nā Kūpuna Program**: Ancestry-restricted to Native Hawaiians; island-specific sites with limited services; no income/asset tests; separate from caregiver support program under same department[1][4]
+- **Kumu Kahi – Native American Caregivers Support Program**: No income or asset tests; eligibility hinges on Native Hawaiian ethnicity proof for recipient, elder's need level ('unable to be left alone'), and limited funding tiers; Oahu-centric administration with potential statewide reach via Native Hawaiian networks.
 
 ### Questions for Chantel's Review
 

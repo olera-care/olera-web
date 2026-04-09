@@ -1,44 +1,38 @@
 {
   "state": "WY",
   "stateName": "Wyoming",
-  "classifiedAt": "2026-04-09T09:04:58.184Z",
-  "total": 15,
+  "classifiedAt": "2026-04-09T09:45:17.095Z",
+  "total": 14,
   "typeSummary": {
     "benefit": 10,
-    "resource": 4,
+    "resource": 3,
     "employment": 1
   },
   "scopeSummary": {
     "state": 5,
     "local": 2,
-    "federal": 8
+    "federal": 7
   },
   "complexitySummary": {
-    "deep": 9,
-    "simple": 4,
-    "medium": 2
+    "deep": 10,
+    "simple": 3,
+    "medium": 1
   },
   "programs": [
     {
-      "name": "Wyoming Medicaid",
+      "name": "Wyoming Medicaid Long-Term Care",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "County public health nursing offices for assessments",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": false
       },
       "complexity": "deep",
       "recommendedSections": [
         "prose",
         "what-counts",
-        "tier-comparison",
         "documents",
-        "county-directory"
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "service",
@@ -46,7 +40,7 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
@@ -58,44 +52,11 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "County Benefits & Eligibility Specialists",
+            "name": "County-specific Benefits & Eligibility Specialists[1][3]",
             "type": "service-area"
           },
           {
-            "name": "County-specific case management agencies (select from provided list)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Former: WY PACE (Cheyenne Regional Medical Center); none active.",
+            "name": "Case management agencies listed by county on application[2][4]",
             "type": "service-area"
           }
         ]
@@ -116,21 +77,46 @@
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
         "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "PACE Wyoming",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Formerly WY PACE at Cheyenne Regional Medical Center (closed 2021)[5][6]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
         "isStatewide": false
       }
     },
     {
-      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "name": "Medicare Savings Programs (QMB, SLMB, QI) in Wyoming",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local county DFS offices (e.g., Cheyenne: 307-777-8192; find all at health.wyo.gov/healthcarefin/medicaid/county-offices/",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": true
       },
       "complexity": "deep",
       "recommendedSections": [
@@ -146,7 +132,7 @@
         "benefitType": "financial",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
-        "hasRegionalVariation": true,
+        "hasRegionalVariation": false,
         "hasFunctionalReq": false,
         "hasMultipleTiers": true,
         "isStatewide": true
@@ -160,7 +146,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "County Department of Family Services offices (list at dfs.wyo.gov/field-offices)",
+            "name": "Local county Department of Family Services offices",
             "type": "service-area"
           }
         ]
@@ -191,15 +177,19 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Community Action Agency",
+            "name": "Wyoming Department of Family Services",
             "type": "service-area"
           },
           {
-            "name": "Area Agency on Aging",
+            "name": "NOWCAP (eligibility contractor)",
             "type": "service-area"
           },
           {
-            "name": "Wyoming Department of Family Services LIEAP office",
+            "name": "Local Community Action Agencies",
+            "type": "service-area"
+          },
+          {
+            "name": "Area Agencies on Aging",
             "type": "service-area"
           }
         ]
@@ -224,18 +214,22 @@
       }
     },
     {
-      "name": "Weatherization Assistance Program (WAP)",
+      "name": "Weatherization Assistance Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Johnson County: 307-686-2730[5]",
+            "name": "Wyoming Department of Family Services (DFS) oversees.",
             "type": "service-area"
           },
           {
-            "name": "Other regional offices available through 1-800-246-4221[1]",
+            "name": "Local agencies e.g., Johnson County 307-686-2730.",
+            "type": "service-area"
+          },
+          {
+            "name": "Weatherization agencies contact post-approval.[1][3][5]",
             "type": "service-area"
           }
         ]
@@ -251,7 +245,7 @@
         "callout"
       ],
       "signals": {
-        "benefitType": "in_kind",
+        "benefitType": "service",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
@@ -261,14 +255,22 @@
       }
     },
     {
-      "name": "Wyoming State Health Insurance Information Program (WSHIIP/SHIP)",
+      "name": "Wyoming State Health Insurance Information Program (WSHIIP)",
       "programType": "resource",
       "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
+        "type": "state",
+        "stateVariation": false,
         "localEntities": [
           {
-            "name": "Wyoming Seniors, Inc. (WSCI) administers; local volunteers county-wide; main contact Riverton[3][4]",
+            "name": "Primary office: Wyoming Dept of Insurance, 106 West Adams Ave, Riverton, WY 82501[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "Program Manager: Tisha Tuttle, WSHIIP Program Manager/SMP Program Coordinator, 106 West Adams Avenue, Riverton, WY 82501[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Over eighty volunteers in almost every county[6]",
             "type": "service-area"
           }
         ]
@@ -279,9 +281,9 @@
         "county-directory"
       ],
       "signals": {
-        "benefitType": "advocacy",
+        "benefitType": "service",
         "hasIncomeTiers": false,
-        "hasAssetLimits": true,
+        "hasAssetLimits": false,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": true,
@@ -289,41 +291,42 @@
       }
     },
     {
-      "name": "Meals on Wheels (via Title III-B Support Services)",
+      "name": "Meals on Wheels (via Title III-C)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Natrona County Meals on Wheels (Casper): 307-635-5542[5]",
+            "name": "Natrona County Meals on Wheels (Casper)",
             "type": "service-area"
           },
           {
-            "name": "Meals on Wheels of Cheyenne: 307-635-5542[5]",
+            "name": "Meals on Wheels of Cheyenne",
             "type": "service-area"
           },
           {
-            "name": "Contact Wyoming Department of Health, Aging Division for statewide provider list[2]",
+            "name": "Local Area Agencies on Aging per region",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
         "what-counts",
+        "tier-comparison",
         "documents",
         "county-directory",
         "callout"
       ],
       "signals": {
-        "benefitType": "in_kind",
+        "benefitType": "service",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
@@ -335,11 +338,7 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Wyoming Senior Citizens, Inc. (https://www.wyomingseniors.com/services/national-family-caregiver-support-program) for specific counties[2]",
-            "type": "service-area"
-          },
-          {
-            "name": "Local Aging Division offices via Wyoming Department of Health[1][7]",
+            "name": "Available in all Wyoming counties except Albany, Niobrara, Park, Platte, Sublette, Washakie, and Weston; contact via Wyoming Department of Health Aging Division.",
             "type": "service-area"
           }
         ]
@@ -370,15 +369,11 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Wyoming Department of Workforce Services (Casper: 444 West Collins Drive, Casper, WY 82601)",
+            "name": "Wyoming Department of Workforce Services: 444 West Collins Drive, Casper, WY 82601 (serves Hot Springs, Fremont, Natrona, Washakie, Converse counties)[2]",
             "type": "service-area"
           },
           {
-            "name": "AARP Foundation (oversees in Wyoming)",
-            "type": "service-area"
-          },
-          {
-            "name": "Casper Senior Center referral (307-473-3968)",
+            "name": "The Center for Workforce Inclusion, Inc. (serves Fremont, Hot Springs, Natrona, Washakie counties)[8]",
             "type": "service-area"
           }
         ]
@@ -392,22 +387,30 @@
       "signals": {
         "benefitType": "employment",
         "hasIncomeTiers": true,
-        "hasAssetLimits": false,
+        "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": false
       }
     },
     {
-      "name": "Legal Assistance for Seniors (via Wyoming Senior Services Board)",
+      "name": "Legal Assistance for Seniors (via Wyoming Legal Services)",
       "programType": "resource",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Legal Aid of Wyoming (statewide non-profit)",
+            "name": "Legal Aid of Wyoming (statewide non-profit)[8]",
+            "type": "service-area"
+          },
+          {
+            "name": "Wyoming State Bar Modest Means Program (statewide)[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "Estate Planning Practicum (307) 766-6416[6]",
             "type": "service-area"
           }
         ]
@@ -423,7 +426,7 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
@@ -435,19 +438,11 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "State Office: Wyoming Dept of Health, Cheyenne[2][3]",
+            "name": "State: Wyoming Dept. of Health, Cheyenne[2][3]",
             "type": "service-area"
           },
           {
-            "name": "Regional Provider: Wyoming Senior Citizens, Inc.[3][4]",
-            "type": "service-area"
-          },
-          {
-            "name": "Riverton Regional: 106 E. Adams Ave, Riverton, WY 82501 (Ember Lucas)[3]",
-            "type": "service-area"
-          },
-          {
-            "name": "Cheyenne Regional: 3120 Old Faithful Road, Suite 200, Cheyenne, WY 82001 (Nicholas Wiseman)[3]",
+            "name": "Regional: Wyoming Senior Citizens, Inc. (WSCI), Riverton and Cheyenne offices[3][4]",
             "type": "service-area"
           }
         ]
@@ -468,14 +463,14 @@
       }
     },
     {
-      "name": "Wyoming Home Services Program",
+      "name": "Wyoming Home Services Program (WyHS)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "County-specific: e.g., Campbell County Senior Center, Wyoming Senior Citizens Inc. (Albany/Fremont/Park). Contact local senior services.[5][6]",
+            "name": "One provider per county; examples: Campbell County Senior Center, Wyoming Senior Citizens Inc. (Albany, Fremont, Park Counties). Contact local senior services.[5][6][8]",
             "type": "service-area"
           }
         ]
@@ -496,38 +491,6 @@
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Wyoming Senior Companion Program",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Wyoming Senior Citizens, Inc. (primary)",
-            "type": "service-area"
-          },
-          {
-            "name": "Wyoming State SCP - Riverton",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
         "isStatewide": true
       }
     }

@@ -1,339 +1,932 @@
 {
   "state": "FL",
   "stateName": "Florida",
-  "diveAt": "2026-04-09T08:49:14.723Z",
-  "total": 6,
-  "parsed": 6,
+  "diveAt": "2026-04-09T09:30:14.007Z",
+  "total": 18,
+  "parsed": 16,
   "programs": [
     {
-      "name": "Home Care for the Elderly (HCE) Program",
+      "name": "Statewide Medicaid Managed Care Long Term Care Program",
       "eligibility": {
-        "age": 60,
-        "income_limits": "Income and assets must not exceed Institutional Care Program (ICP) limits established by Medicaid and DCF. Exact 2026 dollar amounts not specified in sources; SSI, QMB, or SLMB recipients automatically qualify without further financial test. ICP for single nursing home Medicaid applicant is under $2,982/month income[1][4].",
-        "asset_limits": "Assets must not exceed ICP limits (e.g., under $2,000 for single nursing home Medicaid applicant). Specific counts/exemptions not detailed; SSI/QMB/SLMB automatic eligibility bypasses detailed asset review[1][4].",
+        "age": "65 or older, or 18 and older if disabled",
+        "income_limits": "Determined by Department of Children and Families (DCF) for Medicaid eligibility; specific dollar amounts and household size variations follow standard Florida Medicaid thresholds (e.g., for Aged/Disabled: 88% of Federal Poverty Level for individual, higher for households; consult DCF for current table as not specified in sources)",
+        "asset_limits": "Standard Medicaid asset limits apply (typically $2,000 for individual; primary home, one vehicle, personal belongings, and certain prepaid funeral expenses often exempt; full details via DCF financial eligibility determination)",
         "other_requirements": [
-          "Florida resident with intent to remain in state",
-          "At risk of nursing home placement based on 701B assessment",
-          "Live in a private home with an approved adult caregiver (age 18+ who provides full-time family-type living arrangement and meets Rule 58H-1.006, F.A.C. requirements; dwelling meets Rule 58H-1.007, F.A.C.)[1]"
+          "Must be eligible for Medicaid financially via DCF",
+          "Must require Nursing Facility Level of Care (NFLOC) as determined by Comprehensive Assessment and Review for Long-Term Care Services (CARES) unit at Department of Elder Affairs (DOEA)",
+          "Meet one or more established clinical criteria via CARES assessment using AHCA Form 5000-3008"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Home care services to prevent nursing home placement, provided through approved caregiver in private home. Specific services, hours, or dollar amounts not detailed in sources; focuses on social, physical, and emotional needs[1].",
-        "varies_by": "priority_tier"
+        "value": "Home and Community-Based Services (HCBS) and institutional care including: Adult Day Care, Home-Delivered Meals, Hospice Care, Medical Supplies and Equipment, Medication Administration & Management, Nursing Home Care, Intermittent/Skilled Nursing Services, Nutritional Assessment & Risk Reduction, Personal Care Services (non-medical assistance with hygiene, toileting, meals, housework), Personal Emergency Response System (PERS), Respite Care (in-home/out-of-home), Therapies (occupational, physical, respiratory, speech), Non-Emergency Transportation; services based on medical necessity to delay/prevent nursing home placement; delivered via single Managed Care Organization (MCO) plan; some non-medical benefits like personal care can be consumer-directed (hire own providers including family)",
+        "varies_by": "individual_needs|medical_necessity"
       },
       "application": {
         "methods": [
-          "Contact local Aging and Disability Resource Center (ADRC) or Department of Elder Affairs case manager (specific phone/website not in results; statewide via elderaffairs.org or local offices)",
-          "In-person or phone assessment by case manager for functional, financial, and caregiver eligibility[1]"
+          "Screening via Aging and Disability Resource Center (ADRC); find ADRCs on Florida DOEA website or call Elder Helpline 1-800-96-ELDER (1-800-963-5337)",
+          "Financial eligibility via Department of Children and Families (DCF)",
+          "Medical eligibility via DOEA CARES unit",
+          "Enrollment in LTC plan via AHCA and enrollment broker after eligibility"
         ],
-        "processing_time": "Not specified in sources",
-        "waitlist": "Not specified; potential regional waitlists implied but not detailed",
+        "processing_time": "Not specified; involves multi-step process with screening, assessment, and enrollment",
+        "waitlist": "Possible wait list release step prior to CARES assessment",
         "forms": [
-          "No specific form name/number listed; involves 701B assessment and case manager determination[1]"
+          "AHCA 5000-3008 Form (Medical Certification for Medicaid Long-Term Care Services and Patient Transfer Form)"
         ],
         "documents": [
-          "Proof of income/assets (self-declared)",
-          "Proof of SSI/QMB/SLMB if claiming automatic eligibility",
-          "Caregiver documentation (age 18+, background check, willingness to provide care)",
-          "Proof of Florida residency and dwelling suitability[1]"
+          "Proof of income and assets for DCF financial eligibility",
+          "Medical records for CARES NFLOC assessment",
+          "Identification and residency proof"
         ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "None; available statewide to eligible Florida residents",
-        "regional_variations": "Administered locally via Area Agencies on Aging (AAA) or ADRCs, potentially varying providers, wait times, or processing by region/county[1]",
+        "restrictions": "None; available statewide for eligible Florida residents",
+        "regional_variations": "Services delivered via regional Managed Care Organizations (MCOs) with plan choice; screenings via local ADRCs; potential regional differences in providers, wait times, or availability not detailed",
         "offices_or_providers": [
-          "Local AAA, ADRC, or Department of Elder Affairs offices (specific locations via elderaffairs.org)[1]"
+          "Local Aging and Disability Resource Centers (ADRCs)",
+          "Managed Care Plans selected via enrollment broker"
         ]
       },
-      "official_source": "https://elderaffairs.org/programs-services/home-care-for-elderly/ or https://www.agingcarefl.org/uploads/1/3/6/5/136526411/2020-chapter-6-home-care-for-the-elderly-program.pdf[1]",
+      "official_source": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program",
       "gotchas": [
-        "Requires live-in adult caregiver (18+) who meets specific rules; not for those living alone",
-        "Must be at risk of nursing home placement via 701B assessment, not just general home care needs",
-        "Financial eligibility ties to ICP limits or automatic via SSI/QMB/SLMB; exceeding limits disqualifies unless automatic category",
-        "Caregiver must provide full-time family-type care in private home meeting dwelling rules[1]",
-        "Not Medicaid home health; distinct program with caregiver requirement[2]"
+        "Multi-agency process: DCF (financial), DOEA/CARES (medical/NFLOC), AHCA (enrollment in MCO plan); delays if any step fails",
+        "Services based on assessed need, not all available immediately (unlike some programs like Nursing Home Medicaid)",
+        "No coverage for room and board in community settings like assisted living",
+        "Must choose LTC MCO plan; integrates with other SMMC components (MMA, Dental) but LTC-specific",
+        "Consumer-directed options allow hiring family but require approval",
+        "Fair Hearing available if disagree with screening/eligibility",
+        "Different from MEDS-AD (benefits one at a time) or ICP/PACE"
       ],
-      "data_shape_notes": "Tied to ICP financial limits with automatic eligibility for SSI/QMB/SLMB; requires approved live-in caregiver and nursing home risk assessment; administered regionally via local AAAs/ADRCs[1]",
-      "_raw": "{\n  \"name\": \"Home Care for the Elderly (HCE) Program\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Income and assets must not exceed Institutional Care Program (ICP) limits established by Medicaid and DCF. Exact 2026 dollar amounts not specified in sources; SSI, QMB, or SLMB recipients automatically qualify without further financial test. ICP for single nursing home Medicaid applicant is under $2,982/month income[1][4].\",\n    \"asset_limits\": \"Assets must not exceed ICP limits (e.g., under $2,000 for single nursing home Medicaid applicant). Specific counts/exemptions not detailed; SSI/QMB/SLMB automatic eligibility bypasses detailed asset review[1][4].\",\n    \"other_requirements\": [\n      \"Florida resident with intent to remain in state\",\n      \"At risk of nursing home placement based on 701B assessment\",\n      \"Live in a private home with an approved adult caregiver (age 18+ who provides full-time family-type living arrangement and meets Rule 58H-1.006, F.A.C. requirements; dwelling meets Rule 58H-1.007, F.A.C.)[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home care services to prevent nursing home placement, provided through approved caregiver in private home. Specific services, hours, or dollar amounts not detailed in sources; focuses on social, physical, and emotional needs[1].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Aging and Disability Resource Center (ADRC) or Department of Elder Affairs case manager (specific phone/website not in results; statewide via elderaffairs.org or local offices)\",\n      \"In-person or phone assessment by case manager for functional, financial, and caregiver eligibility[1]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Not specified; potential regional waitlists implied but not detailed\",\n    \"forms\": [\"No specific form name/number listed; involves 701B assessment and case manager determination[1]\"],\n    \"documents\": [\n      \"Proof of income/assets (self-declared)\",\n      \"Proof of SSI/QMB/SLMB if claiming automatic eligibility\",\n      \"Caregiver documentation (age 18+, background check, willingness to provide care)\",\n      \"Proof of Florida residency and dwelling suitability[1]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide to eligible Florida residents\",\n    \"regional_variations\": \"Administered locally via Area Agencies on Aging (AAA) or ADRCs, potentially varying providers, wait times, or processing by region/county[1]\",\n    \"offices_or_providers\": [\"Local AAA, ADRC, or Department of Elder Affairs offices (specific locations via elderaffairs.org)[1]\"]\n  },\n  \"official_source\": \"https://elderaffairs.org/programs-services/home-care-for-elderly/ or https://www.agingcarefl.org/uploads/1/3/6/5/136526411/2020-chapter-6-home-care-for-the-elderly-program.pdf[1]\",\n  \"gotchas\": [\n    \"Requires live-in adult caregiver (18+) who meets specific rules; not for those living alone\",\n    \"Must be at risk of nursing home placement via 701B assessment, not just general home care needs\",\n    \"Financial eligibility ties to ICP limits or automatic via SSI/QMB/SLMB; exceeding limits disqualifies unless automatic category\",\n    \"Caregiver must provide full-time family-type care in private home meeting dwelling rules[1]\",\n    \"Not Medicaid home health; distinct program with caregiver requirement[2]\"\n  ],\n  \"data_shape_notes\": \"Tied to ICP financial limits with automatic eligibility for SSI/QMB/SLMB; requires approved live-in caregiver and nursing home risk assessment; administered regionally via local AAAs/ADRCs[1]\"\n}"
+      "data_shape_notes": "Managed care model via MCO plans; eligibility splits financial (DCF) and medical (DOEA CARES NFLOC); services vary by individual plan of care and medical necessity; statewide but regional MCOs and ADRCs",
+      "_raw": "{\n  \"name\": \"Statewide Medicaid Managed Care Long Term Care Program\",\n  \"eligibility\": {\n    \"age\": \"65 or older, or 18 and older if disabled\",\n    \"income_limits\": \"Determined by Department of Children and Families (DCF) for Medicaid eligibility; specific dollar amounts and household size variations follow standard Florida Medicaid thresholds (e.g., for Aged/Disabled: 88% of Federal Poverty Level for individual, higher for households; consult DCF for current table as not specified in sources)\",\n    \"asset_limits\": \"Standard Medicaid asset limits apply (typically $2,000 for individual; primary home, one vehicle, personal belongings, and certain prepaid funeral expenses often exempt; full details via DCF financial eligibility determination)\",\n    \"other_requirements\": [\n      \"Must be eligible for Medicaid financially via DCF\",\n      \"Must require Nursing Facility Level of Care (NFLOC) as determined by Comprehensive Assessment and Review for Long-Term Care Services (CARES) unit at Department of Elder Affairs (DOEA)\",\n      \"Meet one or more established clinical criteria via CARES assessment using AHCA Form 5000-3008\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home and Community-Based Services (HCBS) and institutional care including: Adult Day Care, Home-Delivered Meals, Hospice Care, Medical Supplies and Equipment, Medication Administration & Management, Nursing Home Care, Intermittent/Skilled Nursing Services, Nutritional Assessment & Risk Reduction, Personal Care Services (non-medical assistance with hygiene, toileting, meals, housework), Personal Emergency Response System (PERS), Respite Care (in-home/out-of-home), Therapies (occupational, physical, respiratory, speech), Non-Emergency Transportation; services based on medical necessity to delay/prevent nursing home placement; delivered via single Managed Care Organization (MCO) plan; some non-medical benefits like personal care can be consumer-directed (hire own providers including family)\",\n    \"varies_by\": \"individual_needs|medical_necessity\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Screening via Aging and Disability Resource Center (ADRC); find ADRCs on Florida DOEA website or call Elder Helpline 1-800-96-ELDER (1-800-963-5337)\",\n      \"Financial eligibility via Department of Children and Families (DCF)\",\n      \"Medical eligibility via DOEA CARES unit\",\n      \"Enrollment in LTC plan via AHCA and enrollment broker after eligibility\"\n    ],\n    \"processing_time\": \"Not specified; involves multi-step process with screening, assessment, and enrollment\",\n    \"waitlist\": \"Possible wait list release step prior to CARES assessment\",\n    \"forms\": [\n      \"AHCA 5000-3008 Form (Medical Certification for Medicaid Long-Term Care Services and Patient Transfer Form)\"\n    ],\n    \"documents\": [\n      \"Proof of income and assets for DCF financial eligibility\",\n      \"Medical records for CARES NFLOC assessment\",\n      \"Identification and residency proof\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide for eligible Florida residents\",\n    \"regional_variations\": \"Services delivered via regional Managed Care Organizations (MCOs) with plan choice; screenings via local ADRCs; potential regional differences in providers, wait times, or availability not detailed\",\n    \"offices_or_providers\": [\n      \"Local Aging and Disability Resource Centers (ADRCs)\",\n      \"Managed Care Plans selected via enrollment broker\"\n    ]\n  },\n  \"official_source\": \"https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program\",\n  \"gotchas\": [\n    \"Multi-agency process: DCF (financial), DOEA/CARES (medical/NFLOC), AHCA (enrollment in MCO plan); delays if any step fails\",\n    \"Services based on assessed need, not all available immediately (unlike some programs like Nursing Home Medicaid)\",\n    \"No coverage for room and board in community settings like assisted living\",\n    \"Must choose LTC MCO plan; integrates with other SMMC components (MMA, Dental) but LTC-specific\",\n    \"Consumer-directed options allow hiring family but require approval\",\n    \"Fair Hearing available if disagree with screening/eligibility\",\n    \"Different from MEDS-AD (benefits one at a time) or ICP/PACE\"\n  ],\n  \"data_shape_notes\": \"Managed care model via MCO plans; eligibility splits financial (DCF) and medical (DOEA CARES NFLOC); services vary by individual plan of care and medical necessity; statewide but regional MCOs and ADRCs\"\n}"
     },
     {
-      "name": "Community Care for the Elderly (CCE) Program",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
       "eligibility": {
-        "age": 60,
-        "income_limits": "No specific income or asset limits stated in program documents; eligibility based on age, functional impairment, and risk of institutionalization. General Florida Medicaid long-term care programs (for comparison) have 2026 limits of $2,982/month income and $2,000 assets for a single applicant, but CCE is state-funded via Department of Elder Affairs and does not explicitly reference these.",
-        "asset_limits": "No asset limits or exemptions detailed in CCE-specific sources.",
+        "age": 55,
+        "income_limits": "No specific income limits for PACE enrollment itself; however, Medicaid eligibility (often required) generally follows Florida long-term care rules: income under 300% of Federal Benefit Rate ($2,901/month in 2025 for most seniors). Medicaid planning can help qualify if over limits. Varies by household size per standard Medicaid rules, but no PACE-specific table provided[3][4].",
+        "asset_limits": "No asset limits for PACE enrollment determination. Medicaid eligibility typically limits countable assets to $2,000 (excluding primary home, one car, personal belongings, burial funds). Medicaid planning professionals can assist with exemptions and strategies[3][4].",
         "other_requirements": [
-          "Functional impairment: Physical or mental limitations restricting ability to perform normal activities of daily living (assessed via comprehensive assessment).",
-          "Risk of institutionalization without CCE services (priority given to those most at risk).",
-          "Not dually enrolled in CCE and a Medicaid capitated long-term care program.",
-          "Live in a community care service area served by a local CCE provider agency."
+          "At risk of institutionalization / certified by state as needing nursing home level of care (e.g., assistance with 3+ activities of daily living like bathing, dressing)[1][2][3][4][6]",
+          "Live in a designated PACE service area in Florida[1][2][6]",
+          "Able to live safely in the community with PACE services support[1][2][3][6]",
+          "Medicaid and/or Medicare eligible (dually eligible common; assistance available to enroll in Medicaid if needed)[1][2][4][5]",
+          "Not enrolled in Medicare Advantage, Medicare prepayment plan, prescription drug plan, or hospice[2]"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Community-based services including medical supplies, emergency alert response, therapeutic services, and a continuum of care such as homemaker services, personal care, adult day care, respite care, and home-delivered meals (exact services coordinated by local provider based on assessment; no fixed dollar amounts or hours specified).",
-        "varies_by": "priority_tier"
+        "value": "Comprehensive all-inclusive services at no additional cost to enrollees (covers all Medicare/Medicaid benefits plus extras): acute care, adult day health care, end-of-life care, home care, home-delivered/congregate meals, hospital care, lab tests/x-rays/diagnostics, medical specialty services, medical supplies/appliances, nursing facility care, nutritional counseling, personal care, prescription drugs, primary care (physician/nursing), recreational therapy, restorative therapies, social services, therapy services, transportation. Provided in home, community, nursing facility, or PACE center[1]. No specific dollar amounts or hours per week stated; customized care plan developed by interdisciplinary team[5].",
+        "varies_by": "region"
       },
       "application": {
         "methods": [
-          "Contact local Community Care for the Elderly (CCE) Lead Agency by phone or in-person for intake and screening (specific numbers vary by region; e.g., search for local provider via elderaffairs.org).",
-          "Preliminary eligibility determination at intake, followed by comprehensive assessment."
+          "Phone: Call enrollment specialists (e.g., Florida PACE Centers: 786.933.7223 or TTY 800.955.8771; Miami Jewish Health: 305.988.1364)[4][5]",
+          "In-person/in-home: Pre-screening, in-home visits for paperwork, nurse exam, state CARES assessment[4][5]",
+          "No specific online URL or mail mentioned; starts with phone pre-screening leading to in-home process[5]"
         ],
-        "processing_time": "Intake screening as soon as possible if preliminarily eligible; full assessment and approval based on funds availability and priority ranking.",
-        "waitlist": "Approval depends on availability of funds and priority ranking (higher risk individuals prioritized; waitlists likely in high-demand areas).",
+        "processing_time": "Typically 1-3 months due to coordination with Department of Children and Families (DCF) and Florida Department of Elder Affairs for Medicaid and assessments[4][5]",
+        "waitlist": "No waitlist in Florida PACE programs[4]",
         "forms": [
-          "No specific form name/number identified; uses client comprehensive assessment completed annually."
+          "Form 3008: Filled out by primary care physician to certify need for long-term care assistance[4]"
         ],
         "documents": [
-          "Documentation for preliminary intake (not detailed); prepare proof of age, functional needs description, and residency for screening."
+          "Picture ID",
+          "Proof of residency",
+          "Social Security card",
+          "Medicare card",
+          "Medical records",
+          "List of prescriptions",
+          "Income statements (e.g., Social Security benefits verification letter)",
+          "Three months of bank statements[4]"
         ]
       },
       "geography": {
-        "statewide": true,
-        "restrictions": "Services available through local CCE provider agencies in participating communities.",
-        "regional_variations": "Administered by local lead agencies with variations in providers, availability of funds, wait times, and specific services offered by region.",
+        "statewide": false,
+        "restrictions": "Limited to designated service areas (e.g., Miami-Dade, Broward Counties operational as of latest reports)[1][4][8]",
+        "regional_variations": "Operated by specific providers (e.g., Florida PACE Centers, Miami Jewish Health Systems in Miami-Dade/Broward). Enrollment contacts and processes vary by provider/location[4][5][8]",
         "offices_or_providers": [
-          "Local CCE Lead Agencies (contact via Florida Department of Elder Affairs for county-specific providers)."
+          "Florida PACE Centers (Miami-Dade area)",
+          "Miami Jewish Health Systems (Miami-Dade and Broward)"
         ]
       },
-      "official_source": "https://elderaffairs.org/programs-services/community-care-for-the-elderly/",
+      "official_source": "https://ahca.myflorida.com/medicaid/medicaid-policy-quality-and-operations/medicaid-policy-and-quality/medicaid-policy/federal-authorities/federal-waivers/program-of-all-inclusive-care-for-the-elderly",
       "gotchas": [
-        "No fixed income/asset limits, but funding is limited—eligibility also requires available funds and priority based on institutionalization risk.",
-        "Must complete comprehensive assessment for functional impairment; preliminary intake may lead to referral if clearly ineligible.",
-        "Cannot dual-enroll with Medicaid capitated long-term care programs.",
-        "Services vary by local provider; not all areas have immediate availability.",
-        "Annual reassessment required for ongoing eligibility."
+        "Not statewide—must live in specific service areas like Miami-Dade/Broward; check provider service area first[1][4]",
+        "Medicaid eligibility often key but not automatic; over-income/assets may need planning/attorney help, though PACE has no direct financial test[2][3][4]",
+        "Cannot be in Medicare Advantage, certain other plans, or hospice[2]",
+        "Requires nursing home level of care certification via physician form and state assessment, but must be community-capable with PACE help[1][3][4]",
+        "Enrollment voluntary but locks into PACE as sole provider for covered services—no opting out for other Medicare/Medicaid options while enrolled[2]"
       ],
-      "data_shape_notes": "State-funded (not Medicaid); eligibility prioritizes risk level with limited funds; administered regionally via local lead agencies with no statewide income/asset caps specified.",
-      "_raw": "{\n  \"name\": \"Community Care for the Elderly (CCE) Program\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No specific income or asset limits stated in program documents; eligibility based on age, functional impairment, and risk of institutionalization. General Florida Medicaid long-term care programs (for comparison) have 2026 limits of $2,982/month income and $2,000 assets for a single applicant, but CCE is state-funded via Department of Elder Affairs and does not explicitly reference these.\",\n    \"asset_limits\": \"No asset limits or exemptions detailed in CCE-specific sources.\",\n    \"other_requirements\": [\n      \"Functional impairment: Physical or mental limitations restricting ability to perform normal activities of daily living (assessed via comprehensive assessment).\",\n      \"Risk of institutionalization without CCE services (priority given to those most at risk).\",\n      \"Not dually enrolled in CCE and a Medicaid capitated long-term care program.\",\n      \"Live in a community care service area served by a local CCE provider agency.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Community-based services including medical supplies, emergency alert response, therapeutic services, and a continuum of care such as homemaker services, personal care, adult day care, respite care, and home-delivered meals (exact services coordinated by local provider based on assessment; no fixed dollar amounts or hours specified).\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Community Care for the Elderly (CCE) Lead Agency by phone or in-person for intake and screening (specific numbers vary by region; e.g., search for local provider via elderaffairs.org).\",\n      \"Preliminary eligibility determination at intake, followed by comprehensive assessment.\"\n    ],\n    \"processing_time\": \"Intake screening as soon as possible if preliminarily eligible; full assessment and approval based on funds availability and priority ranking.\",\n    \"waitlist\": \"Approval depends on availability of funds and priority ranking (higher risk individuals prioritized; waitlists likely in high-demand areas).\",\n    \"forms\": [\"No specific form name/number identified; uses client comprehensive assessment completed annually.\"],\n    \"documents\": [\"Documentation for preliminary intake (not detailed); prepare proof of age, functional needs description, and residency for screening.\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Services available through local CCE provider agencies in participating communities.\",\n    \"regional_variations\": \"Administered by local lead agencies with variations in providers, availability of funds, wait times, and specific services offered by region.\",\n    \"offices_or_providers\": [\"Local CCE Lead Agencies (contact via Florida Department of Elder Affairs for county-specific providers).\"]\n  },\n  \"official_source\": \"https://elderaffairs.org/programs-services/community-care-for-the-elderly/\",\n  \"gotchas\": [\n    \"No fixed income/asset limits, but funding is limited—eligibility also requires available funds and priority based on institutionalization risk.\",\n    \"Must complete comprehensive assessment for functional impairment; preliminary intake may lead to referral if clearly ineligible.\",\n    \"Cannot dual-enroll with Medicaid capitated long-term care programs.\",\n    \"Services vary by local provider; not all areas have immediate availability.\",\n    \"Annual reassessment required for ongoing eligibility.\"\n  ],\n  \"data_shape_notes\": \"State-funded (not Medicaid); eligibility prioritizes risk level with limited funds; administered regionally via local lead agencies with no statewide income/asset caps specified.\"\n}"
+      "data_shape_notes": "County-restricted (primarily Miami-Dade/Broward); no direct income/asset limits for PACE but tied to Medicaid financials; no waitlist but 1-3 month processing; provider-specific enrollment processes; customized interdisciplinary care plans rather than fixed hours/dollars",
+      "_raw": "{\n  \"name\": \"Program of All-Inclusive Care for the Elderly (PACE)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No specific income limits for PACE enrollment itself; however, Medicaid eligibility (often required) generally follows Florida long-term care rules: income under 300% of Federal Benefit Rate ($2,901/month in 2025 for most seniors). Medicaid planning can help qualify if over limits. Varies by household size per standard Medicaid rules, but no PACE-specific table provided[3][4].\",\n    \"asset_limits\": \"No asset limits for PACE enrollment determination. Medicaid eligibility typically limits countable assets to $2,000 (excluding primary home, one car, personal belongings, burial funds). Medicaid planning professionals can assist with exemptions and strategies[3][4].\",\n    \"other_requirements\": [\n      \"At risk of institutionalization / certified by state as needing nursing home level of care (e.g., assistance with 3+ activities of daily living like bathing, dressing)[1][2][3][4][6]\",\n      \"Live in a designated PACE service area in Florida[1][2][6]\",\n      \"Able to live safely in the community with PACE services support[1][2][3][6]\",\n      \"Medicaid and/or Medicare eligible (dually eligible common; assistance available to enroll in Medicaid if needed)[1][2][4][5]\",\n      \"Not enrolled in Medicare Advantage, Medicare prepayment plan, prescription drug plan, or hospice[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive all-inclusive services at no additional cost to enrollees (covers all Medicare/Medicaid benefits plus extras): acute care, adult day health care, end-of-life care, home care, home-delivered/congregate meals, hospital care, lab tests/x-rays/diagnostics, medical specialty services, medical supplies/appliances, nursing facility care, nutritional counseling, personal care, prescription drugs, primary care (physician/nursing), recreational therapy, restorative therapies, social services, therapy services, transportation. Provided in home, community, nursing facility, or PACE center[1]. No specific dollar amounts or hours per week stated; customized care plan developed by interdisciplinary team[5].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Call enrollment specialists (e.g., Florida PACE Centers: 786.933.7223 or TTY 800.955.8771; Miami Jewish Health: 305.988.1364)[4][5]\",\n      \"In-person/in-home: Pre-screening, in-home visits for paperwork, nurse exam, state CARES assessment[4][5]\",\n      \"No specific online URL or mail mentioned; starts with phone pre-screening leading to in-home process[5]\"\n    ],\n    \"processing_time\": \"Typically 1-3 months due to coordination with Department of Children and Families (DCF) and Florida Department of Elder Affairs for Medicaid and assessments[4][5]\",\n    \"waitlist\": \"No waitlist in Florida PACE programs[4]\",\n    \"forms\": [\n      \"Form 3008: Filled out by primary care physician to certify need for long-term care assistance[4]\"\n    ],\n    \"documents\": [\n      \"Picture ID\",\n      \"Proof of residency\",\n      \"Social Security card\",\n      \"Medicare card\",\n      \"Medical records\",\n      \"List of prescriptions\",\n      \"Income statements (e.g., Social Security benefits verification letter)\",\n      \"Three months of bank statements[4]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to designated service areas (e.g., Miami-Dade, Broward Counties operational as of latest reports)[1][4][8]\",\n    \"regional_variations\": \"Operated by specific providers (e.g., Florida PACE Centers, Miami Jewish Health Systems in Miami-Dade/Broward). Enrollment contacts and processes vary by provider/location[4][5][8]\",\n    \"offices_or_providers\": [\n      \"Florida PACE Centers (Miami-Dade area)\",\n      \"Miami Jewish Health Systems (Miami-Dade and Broward)\"\n    ]\n  },\n  \"official_source\": \"https://ahca.myflorida.com/medicaid/medicaid-policy-quality-and-operations/medicaid-policy-and-quality/medicaid-policy/federal-authorities/federal-waivers/program-of-all-inclusive-care-for-the-elderly\",\n  \"gotchas\": [\n    \"Not statewide—must live in specific service areas like Miami-Dade/Broward; check provider service area first[1][4]\",\n    \"Medicaid eligibility often key but not automatic; over-income/assets may need planning/attorney help, though PACE has no direct financial test[2][3][4]\",\n    \"Cannot be in Medicare Advantage, certain other plans, or hospice[2]\",\n    \"Requires nursing home level of care certification via physician form and state assessment, but must be community-capable with PACE help[1][3][4]\",\n    \"Enrollment voluntary but locks into PACE as sole provider for covered services—no opting out for other Medicare/Medicaid options while enrolled[2]\"\n  ],\n  \"data_shape_notes\": \"County-restricted (primarily Miami-Dade/Broward); no direct income/asset limits for PACE but tied to Medicaid financials; no waitlist but 1-3 month processing; provider-specific enrollment processes; customized interdisciplinary care plans rather than fixed hours/dollars\"\n}"
     },
     {
-      "name": "Respite for Elders Living in Everyday Families (RELIEF) Program",
+      "name": "Medicare Savings Programs (MSP)",
       "eligibility": {
         "age": null,
-        "income_limits": "No specific information found in search results for RELIEF program eligibility criteria, including income limits, asset limits, or age requirements.",
-        "asset_limits": "No specific information found.",
+        "income_limits": {
+          "description": "Income limits are based on the Federal Poverty Level (FPL) and vary by program type and household size. Limits are effective as of April 2026. A $20 general exclusion applies to unearned income in each program.",
+          "2026_federal_baseline": {
+            "QMB": {
+              "individual": "$1,350/month",
+              "couple": "$1,824/month",
+              "basis": "100% FPL + $20"
+            },
+            "SLMB": {
+              "individual": "$1,616/month",
+              "couple": "$2,184/month",
+              "basis": "120% FPL + $20"
+            },
+            "QI": {
+              "individual": "$1,816/month",
+              "couple": "$2,455/month",
+              "basis": "135% FPL + $20"
+            }
+          },
+          "florida_specific_note": "Florida recently changed how household size is calculated for MSP eligibility, now counting all household members rather than just the applicant and spouse. This significantly increases income limits for larger families. For example, a family of four has an income limit of $2,680 for QMB (compared to $1,704 under the old rule).[4] Income limits increase annually based on federal poverty level adjustments.[3]",
+          "important_caveat": "Certain types of income are not counted toward the limit, including some earned income and work expenses. You may still qualify even if your income appears to exceed the limit—applicants should apply regardless.[2][6]"
+        },
+        "asset_limits": {
+          "description": "Total resources (assets) must not exceed specified limits. The value of your home and personal belongings are NOT counted.[1]",
+          "2026_limits": {
+            "individual": "$9,950",
+            "couple": "$14,910"
+          },
+          "what_counts": "Money in bank accounts, retirement accounts (IRAs), and other liquid assets.[1]",
+          "what_does_not_count": "Your home, personal belongings, and household goods.[1]"
+        },
         "other_requirements": [
-          "No details available from provided search results."
+          "Must be enrolled in Medicare Part A or expect to enroll soon.[2]",
+          "Must be a Florida resident.",
+          "For QDWI program specifically: must have a disability, be working, and have lost Social Security disability benefits and premium-free Part A due to returning to work.[1]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "coverage_by_program": {
+          "QMB": "Pays for Medicare Part A premiums, Part B premiums, deductibles, coinsurance, and copayments for services and items Medicare covers.[1][2]",
+          "SLMB": "Covers Medicare Part B premium ($185/month in 2025).[2]",
+          "QI": "Covers Medicare Part B premium. Limited program available on first-come, first-served basis.[2]",
+          "QDWI": "Helps pay for Part A premiums only.[1]"
+        },
+        "value": "Varies by program. QMB provides the most comprehensive coverage (all premiums and cost-sharing). SLMB and QI cover Part B premium only. Specific dollar amounts depend on current Medicare premiums and individual cost-sharing amounts.[1][2]",
+        "varies_by": "program_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact Florida Department of Children & Families (DCF) — the state agency administering MSPs",
+          "Apply through your local county social services office (in-person)",
+          "Phone application available through DCF",
+          "Mail application to your county office"
+        ],
+        "processing_time": "Not specified in available sources. Contact DCF directly for current processing times.",
+        "waitlist": "QI program operates on a first-come, first-served basis and may have limited funding.[2] Other programs do not appear to have waitlists based on available information.",
+        "forms": [
+          "Application form available through Florida DCF (specific form number not provided in sources)"
+        ],
+        "documents": [
+          "Proof of income (recent pay stubs, tax returns, Social Security statements, pension statements)",
+          "Proof of assets (bank statements, retirement account statements)",
+          "Medicare card",
+          "Proof of residency",
+          "Social Security number"
+        ],
+        "contact_information": "Contact your local county Department of Children & Families office or visit myflfamilies.com for application assistance. Medicare.gov also provides general MSP information."
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must be a Florida resident. Program is administered statewide by Florida DCF.",
+        "regional_variations": "No specific regional variations in benefits or eligibility noted in available sources. However, processing times and application availability may vary by county office.",
+        "offices_or_providers": "Apply through your local county Department of Children & Families office. Specific office locations vary by county."
+      },
+      "official_source": "https://www.myflfamilies.com (Florida Department of Children & Families) and https://www.medicare.gov/basics/costs/help/medicare-savings-programs",
+      "gotchas": [
+        "Income limits appear higher than they are: Many types of income don't count toward the limit. Even if your income seems to exceed the limit, you should apply—you may still qualify.[2][6]",
+        "Household size calculation changed: Florida recently expanded how household size is counted, which can significantly increase your income limit. If you were previously denied, you may now qualify.[4]",
+        "Asset limits are strict but home doesn't count: You can own a home of any value and still qualify, but liquid assets are tightly limited ($9,950 individual/$14,910 couple as of 2026).[3]",
+        "QI program has limited funding: The Qualifying Individual program operates on a first-come, first-served basis and may run out of funding.[2]",
+        "Annual reapplication required: You must reapply each year to maintain benefits, particularly for the QI program.[5]",
+        "Income limits change annually: The limits are adjusted each January based on federal poverty level updates. What qualifies one year may not the next.[3][5]",
+        "Different programs have different coverage: QMB is the most comprehensive (covers premiums and cost-sharing), while SLMB and QI only cover the Part B premium. Choose the program that best fits your situation.[1][2]"
+      ],
+      "data_shape_notes": "This program's structure is complex because: (1) There are four distinct programs with different income/asset limits and benefits; (2) Income limits scale by household size and are recalculated annually; (3) Florida recently changed household size calculation rules, making the program more generous; (4) Certain income types are excluded from the calculation, requiring individual assessment; (5) The QI program has first-come, first-served funding limitations; (6) Benefits are purely financial (premium and cost-sharing assistance), not direct services. Families must understand which of the four programs they qualify for, as each has different coverage levels.",
+      "_raw": "```json\n{\n  \"name\": \"Medicare Savings Programs (MSP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": {\n      \"description\": \"Income limits are based on the Federal Poverty Level (FPL) and vary by program type and household size. Limits are effective as of April 2026. A $20 general exclusion applies to unearned income in each program.\",\n      \"2026_federal_baseline\": {\n        \"QMB\": {\n          \"individual\": \"$1,350/month\",\n          \"couple\": \"$1,824/month\",\n          \"basis\": \"100% FPL + $20\"\n        },\n        \"SLMB\": {\n          \"individual\": \"$1,616/month\",\n          \"couple\": \"$2,184/month\",\n          \"basis\": \"120% FPL + $20\"\n        },\n        \"QI\": {\n          \"individual\": \"$1,816/month\",\n          \"couple\": \"$2,455/month\",\n          \"basis\": \"135% FPL + $20\"\n        }\n      },\n      \"florida_specific_note\": \"Florida recently changed how household size is calculated for MSP eligibility, now counting all household members rather than just the applicant and spouse. This significantly increases income limits for larger families. For example, a family of four has an income limit of $2,680 for QMB (compared to $1,704 under the old rule).[4] Income limits increase annually based on federal poverty level adjustments.[3]\",\n      \"important_caveat\": \"Certain types of income are not counted toward the limit, including some earned income and work expenses. You may still qualify even if your income appears to exceed the limit—applicants should apply regardless.[2][6]\"\n    },\n    \"asset_limits\": {\n      \"description\": \"Total resources (assets) must not exceed specified limits. The value of your home and personal belongings are NOT counted.[1]\",\n      \"2026_limits\": {\n        \"individual\": \"$9,950\",\n        \"couple\": \"$14,910\"\n      },\n      \"what_counts\": \"Money in bank accounts, retirement accounts (IRAs), and other liquid assets.[1]\",\n      \"what_does_not_count\": \"Your home, personal belongings, and household goods.[1]\"\n    },\n    \"other_requirements\": [\n      \"Must be enrolled in Medicare Part A or expect to enroll soon.[2]\",\n      \"Must be a Florida resident.\",\n      \"For QDWI program specifically: must have a disability, be working, and have lost Social Security disability benefits and premium-free Part A due to returning to work.[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"coverage_by_program\": {\n      \"QMB\": \"Pays for Medicare Part A premiums, Part B premiums, deductibles, coinsurance, and copayments for services and items Medicare covers.[1][2]\",\n      \"SLMB\": \"Covers Medicare Part B premium ($185/month in 2025).[2]\",\n      \"QI\": \"Covers Medicare Part B premium. Limited program available on first-come, first-served basis.[2]\",\n      \"QDWI\": \"Helps pay for Part A premiums only.[1]\"\n    },\n    \"value\": \"Varies by program. QMB provides the most comprehensive coverage (all premiums and cost-sharing). SLMB and QI cover Part B premium only. Specific dollar amounts depend on current Medicare premiums and individual cost-sharing amounts.[1][2]\",\n    \"varies_by\": \"program_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact Florida Department of Children & Families (DCF) — the state agency administering MSPs\",\n      \"Apply through your local county social services office (in-person)\",\n      \"Phone application available through DCF\",\n      \"Mail application to your county office\"\n    ],\n    \"processing_time\": \"Not specified in available sources. Contact DCF directly for current processing times.\",\n    \"waitlist\": \"QI program operates on a first-come, first-served basis and may have limited funding.[2] Other programs do not appear to have waitlists based on available information.\",\n    \"forms\": [\n      \"Application form available through Florida DCF (specific form number not provided in sources)\"\n    ],\n    \"documents\": [\n      \"Proof of income (recent pay stubs, tax returns, Social Security statements, pension statements)\",\n      \"Proof of assets (bank statements, retirement account statements)\",\n      \"Medicare card\",\n      \"Proof of residency\",\n      \"Social Security number\"\n    ],\n    \"contact_information\": \"Contact your local county Department of Children & Families office or visit myflfamilies.com for application assistance. Medicare.gov also provides general MSP information.\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must be a Florida resident. Program is administered statewide by Florida DCF.\",\n    \"regional_variations\": \"No specific regional variations in benefits or eligibility noted in available sources. However, processing times and application availability may vary by county office.\",\n    \"offices_or_providers\": \"Apply through your local county Department of Children & Families office. Specific office locations vary by county.\"\n  },\n  \"official_source\": \"https://www.myflfamilies.com (Florida Department of Children & Families) and https://www.medicare.gov/basics/costs/help/medicare-savings-programs\",\n  \"gotchas\": [\n    \"Income limits appear higher than they are: Many types of income don't count toward the limit. Even if your income seems to exceed the limit, you should apply—you may still qualify.[2][6]\",\n    \"Household size calculation changed: Florida recently expanded how household size is counted, which can significantly increase your income limit. If you were previously denied, you may now qualify.[4]\",\n    \"Asset limits are strict but home doesn't count: You can own a home of any value and still qualify, but liquid assets are tightly limited ($9,950 individual/$14,910 couple as of 2026).[3]\",\n    \"QI program has limited funding: The Qualifying Individual program operates on a first-come, first-served basis and may run out of funding.[2]\",\n    \"Annual reapplication required: You must reapply each year to maintain benefits, particularly for the QI program.[5]\",\n    \"Income limits change annually: The limits are adjusted each January based on federal poverty level updates. What qualifies one year may not the next.[3][5]\",\n    \"Different programs have different coverage: QMB is the most comprehensive (covers premiums and cost-sharing), while SLMB and QI only cover the Part B premium. Choose the program that best fits your situation.[1][2]\"\n  ],\n  \"data_shape_notes\": \"This program's structure is complex because: (1) There are four distinct programs with different income/asset limits and benefits; (2) Income limits scale by household size and are recalculated annually; (3) Florida recently changed household size calculation rules, making the program more generous; (4) Certain income types are excluded from the calculation, requiring individual assessment; (5) The QI program has first-come, first-served funding limitations; (6) Benefits are purely financial (premium and cost-sharing assistance), not direct services. Families must understand which of the four programs they qualify for, as each has different coverage levels.\"\n}\n```\n\n## Key Takeaways for Families\n\n**Start here:** If your elderly loved one has Medicare and limited income, they likely qualify for some level of MSP assistance. The income limits are higher than they appear because certain income doesn't count.[2][6]\n\n**The biggest recent change:** Florida expanded how it counts household members for eligibility purposes, which means significantly more people now qualify, especially families with multiple members.[4]\n\n**Apply even if uncertain:** The only way to know for certain if you qualify is to apply. Income exclusions and the new household size rules mean many people who think they're ineligible actually qualify.[2]\n\n**Contact information:** Reach out to your local county Department of Children & Families office or visit myflfamilies.com to begin the application process. Medicare.gov also provides general information about MSPs nationwide.[6]"
+    },
+    {
+      "name": "SNAP Food Assistance",
+      "eligibility": {
+        "age": 60,
+        "age_note": "Seniors must be 60 or older to qualify for SNAP in Florida[1][2]",
+        "income_limits": {
+          "description": "Seniors (60+) only need to meet the NET income limit, not the gross income limit—a significant advantage over other applicants[2]. The net income limit is equal to or less than the Federal Poverty Line (FPL), which varies by household size and state[2]. Most other households must meet a gross income limit of 200% of FPL[6].",
+          "note": "The search results do not provide the specific dollar amounts for Florida's FPL-based net income limits for Oct. 1, 2025–Sept. 30, 2026. These amounts vary by household size and must be obtained from the Florida Department of Children and Families (DCF) or USDA FNS website."
+        },
+        "asset_limits": {
+          "seniors_60_plus": "$4,500 in countable resources[2][6]",
+          "what_counts": "Bank accounts and some vehicles[2]",
+          "what_does_not_count": "Homes, Social Security income, and most retirement or pension plans are not considered countable resources[2]"
+        },
+        "other_requirements": [
+          "Must be a U.S. citizen or certain lawfully present non-citizen[3][8]",
+          "Must apply in the state in which you currently live[3][8]",
+          "Must provide proof of identity[6]",
+          "Household composition: Your SNAP application must include everyone who lives with you and buys and prepares food with you[1]"
+        ]
+      },
+      "benefits": {
+        "type": "in_kind",
+        "value": "Monthly benefits provided on an EBT (Electronic Benefit Transfer) card, calculated as: maximum allotment for household size minus 30% of net income[2][7]. Example: A 2-person household with elderly members might receive $415/month ($546 maximum allotment minus $131, which is 30% of net income)[3]",
+        "what_can_purchase": "Fruits, vegetables, meat, dairy products, and grains[7]",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "Online: ACCESS Florida website (https://www.myflorida.com/accessflorida/)[7]",
+          "In-person: Florida Department of Children and Families (DCF) office in your county[9]",
+          "Phone: Contact your local DCF office (specific numbers vary by county)[9]",
+          "Mail: Submit application to your local DCF office (address varies by county)"
+        ],
+        "processing_time": "Standard processing time not specified in search results. However, expedited SNAP benefits are available: if approved, you can receive benefits within seven days if you meet expedited eligibility criteria[1]",
+        "expedited_eligibility": "You may qualify for expedited SNAP if: (1) Your monthly income and cash total less than your rent/mortgage and utilities combined; (2) Your monthly income is under $150 and you have less than $100 in cash/bank accounts; or (3) You're a farmworker with less than $100 in cash and no other resources[1]",
+        "waitlist": "No waitlist information provided in search results",
+        "forms": "Specific form names/numbers not provided in search results. Application is processed through ACCESS Florida portal[7]",
+        "documents": [
+          "Proof of identity[6]",
+          "Proof of income (Social Security statements, pension documents, etc.)",
+          "Proof of residency",
+          "Information about household members and their income",
+          "Asset documentation (bank statements, vehicle information)",
+          "Medical expense documentation (if applicable, as medical costs can affect eligibility calculations)[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Food Assistance Programs are available to all Floridians age 60 or older in each of Florida's 67 counties, though availability may vary locally[9]",
+        "regional_variations": "Availability may vary locally by county[9]. The search results do not specify how processing times, benefit amounts, or eligibility determinations differ by region.",
+        "offices_or_providers": "Applications processed through Florida Department of Children and Families (DCF) offices in each county. Specific office locations and contact information vary by county and should be obtained from the Florida DCF website or by calling your local office[9]"
+      },
+      "official_source": "https://www.myflfamilies.com/services/public-assistance/supplemental-nutrition-assistance-program-snap and https://elderaffairs.org/programs-and-services/food-assistance/",
+      "gotchas": [
+        "Only about half of eligible seniors apply: Approximately 4.8 million seniors receive SNAP, but that's only about half of all eligible seniors[1]. Many seniors don't realize they qualify.",
+        "Seniors have a major advantage: Unlike other applicants, seniors 60+ only need to meet the NET income limit, not the gross income limit[2]. This makes it easier for seniors to qualify than younger adults.",
+        "Higher asset limits for seniors: Seniors can have $4,500 in countable resources; other households with a disqualified member can only have $3,000[6].",
+        "30% income rule: You are expected to spend 30% of your own income on food; your benefit is calculated by subtracting this from the maximum allotment[2].",
+        "Household composition matters: Everyone who lives with you and buys/prepares food with you must be included in the application[1].",
+        "Medical costs can help: Medical costs are factored into eligibility calculations for seniors, which can lower the net income threshold[1].",
+        "Recent legislative changes: The One Big Beautiful Bill Act of 2025 changed certain SNAP eligibility factors, including work requirements and non-citizen eligibility[3]. Families should verify current rules with DCF.",
+        "Non-citizen restrictions: Undocumented non-citizens are not eligible; only U.S. citizens and certain lawfully present non-citizens qualify[3][8]."
+      ],
+      "data_shape_notes": "SNAP benefits scale by household size. Seniors 60+ have special eligibility rules that are more favorable than general SNAP rules (net income only, higher asset limits). The program is statewide but administered by county DCF offices with potential local variations. Benefits are provided via EBT card and calculated as a percentage of household income. The search results do not provide specific dollar amounts for income limits or maximum allotments for Florida; these must be obtained directly from Florida DCF or USDA FNS for the current benefit year (Oct. 1, 2025–Sept. 30, 2026).",
+      "_raw": "```json\n{\n  \"name\": \"SNAP Food Assistance\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"age_note\": \"Seniors must be 60 or older to qualify for SNAP in Florida[1][2]\",\n    \"income_limits\": {\n      \"description\": \"Seniors (60+) only need to meet the NET income limit, not the gross income limit—a significant advantage over other applicants[2]. The net income limit is equal to or less than the Federal Poverty Line (FPL), which varies by household size and state[2]. Most other households must meet a gross income limit of 200% of FPL[6].\",\n      \"note\": \"The search results do not provide the specific dollar amounts for Florida's FPL-based net income limits for Oct. 1, 2025–Sept. 30, 2026. These amounts vary by household size and must be obtained from the Florida Department of Children and Families (DCF) or USDA FNS website.\"\n    },\n    \"asset_limits\": {\n      \"seniors_60_plus\": \"$4,500 in countable resources[2][6]\",\n      \"what_counts\": \"Bank accounts and some vehicles[2]\",\n      \"what_does_not_count\": \"Homes, Social Security income, and most retirement or pension plans are not considered countable resources[2]\"\n    },\n    \"other_requirements\": [\n      \"Must be a U.S. citizen or certain lawfully present non-citizen[3][8]\",\n      \"Must apply in the state in which you currently live[3][8]\",\n      \"Must provide proof of identity[6]\",\n      \"Household composition: Your SNAP application must include everyone who lives with you and buys and prepares food with you[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Monthly benefits provided on an EBT (Electronic Benefit Transfer) card, calculated as: maximum allotment for household size minus 30% of net income[2][7]. Example: A 2-person household with elderly members might receive $415/month ($546 maximum allotment minus $131, which is 30% of net income)[3]\",\n    \"what_can_purchase\": \"Fruits, vegetables, meat, dairy products, and grains[7]\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: ACCESS Florida website (https://www.myflorida.com/accessflorida/)[7]\",\n      \"In-person: Florida Department of Children and Families (DCF) office in your county[9]\",\n      \"Phone: Contact your local DCF office (specific numbers vary by county)[9]\",\n      \"Mail: Submit application to your local DCF office (address varies by county)\"\n    ],\n    \"processing_time\": \"Standard processing time not specified in search results. However, expedited SNAP benefits are available: if approved, you can receive benefits within seven days if you meet expedited eligibility criteria[1]\",\n    \"expedited_eligibility\": \"You may qualify for expedited SNAP if: (1) Your monthly income and cash total less than your rent/mortgage and utilities combined; (2) Your monthly income is under $150 and you have less than $100 in cash/bank accounts; or (3) You're a farmworker with less than $100 in cash and no other resources[1]\",\n    \"waitlist\": \"No waitlist information provided in search results\",\n    \"forms\": \"Specific form names/numbers not provided in search results. Application is processed through ACCESS Florida portal[7]\",\n    \"documents\": [\n      \"Proof of identity[6]\",\n      \"Proof of income (Social Security statements, pension documents, etc.)\",\n      \"Proof of residency\",\n      \"Information about household members and their income\",\n      \"Asset documentation (bank statements, vehicle information)\",\n      \"Medical expense documentation (if applicable, as medical costs can affect eligibility calculations)[1]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Food Assistance Programs are available to all Floridians age 60 or older in each of Florida's 67 counties, though availability may vary locally[9]\",\n    \"regional_variations\": \"Availability may vary locally by county[9]. The search results do not specify how processing times, benefit amounts, or eligibility determinations differ by region.\",\n    \"offices_or_providers\": \"Applications processed through Florida Department of Children and Families (DCF) offices in each county. Specific office locations and contact information vary by county and should be obtained from the Florida DCF website or by calling your local office[9]\"\n  },\n  \"official_source\": \"https://www.myflfamilies.com/services/public-assistance/supplemental-nutrition-assistance-program-snap and https://elderaffairs.org/programs-and-services/food-assistance/\",\n  \"gotchas\": [\n    \"Only about half of eligible seniors apply: Approximately 4.8 million seniors receive SNAP, but that's only about half of all eligible seniors[1]. Many seniors don't realize they qualify.\",\n    \"Seniors have a major advantage: Unlike other applicants, seniors 60+ only need to meet the NET income limit, not the gross income limit[2]. This makes it easier for seniors to qualify than younger adults.\",\n    \"Higher asset limits for seniors: Seniors can have $4,500 in countable resources; other households with a disqualified member can only have $3,000[6].\",\n    \"30% income rule: You are expected to spend 30% of your own income on food; your benefit is calculated by subtracting this from the maximum allotment[2].\",\n    \"Household composition matters: Everyone who lives with you and buys/prepares food with you must be included in the application[1].\",\n    \"Medical costs can help: Medical costs are factored into eligibility calculations for seniors, which can lower the net income threshold[1].\",\n    \"Recent legislative changes: The One Big Beautiful Bill Act of 2025 changed certain SNAP eligibility factors, including work requirements and non-citizen eligibility[3]. Families should verify current rules with DCF.\",\n    \"Non-citizen restrictions: Undocumented non-citizens are not eligible; only U.S. citizens and certain lawfully present non-citizens qualify[3][8].\"\n  ],\n  \"data_shape_notes\": \"SNAP benefits scale by household size. Seniors 60+ have special eligibility rules that are more favorable than general SNAP rules (net income only, higher asset limits). The program is statewide but administered by county DCF offices with potential local variations. Benefits are provided via EBT card and calculated as a percentage of household income. The search results do not provide specific dollar amounts for income limits or maximum allotments for Florida; these must be obtained directly from Florida DCF or USDA FNS for the current benefit year (Oct. 1, 2025–Sept. 30, 2026).\"\n}\n```\n\n## Key Gaps in Available Information\n\nThe search results provide strong foundational information about SNAP eligibility and application for Florida seniors, but several critical details are missing for a truly comprehensive guide:\n\n**Income Limits (Dollar Amounts):** The search results confirm that seniors must meet the net income limit equal to the Federal Poverty Line, but do not provide the specific dollar amounts for different household sizes in Florida for the current benefit year[2][3]. These amounts are essential and must be obtained from the Florida DCF website or by calling your local DCF office.\n\n**Processing Times:** Standard processing timelines are not specified in the search results, though expedited processing (7 days) is available for qualifying applicants[1].\n\n**County-Specific Variations:** While the search results note that availability may vary locally by county[9], they do not detail how eligibility determinations, benefit amounts, or processing times differ across Florida's 67 counties.\n\n**Specific Contact Information:** Phone numbers and office addresses for local DCF offices are not provided; these must be obtained from the Florida DCF website or by searching for your county's office.\n\n**Form Numbers:** The specific form name or number for SNAP applications in Florida is not provided; applications are processed through the ACCESS Florida online portal[7].\n\nTo complete this guide, families should contact their local Florida DCF office or visit the official Florida DCF SNAP page for current income limits, processing times, and county-specific information."
+    },
+    {
+      "name": "Florida Emergency Home Energy Assistance Program (EHEAP)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Varies by region and source: 150% Federal Poverty Level (common, e.g., Hillsborough, Jacksonville[2][3]), 60% Florida State Median Income or 150% FPL (LIHEAP-related[1]), 100% Max Income Value (St. Johns[4]), or specific annual limits like for 2023: 1-person $27,735; 2 $36,269; 3 $44,803; 4 $53,337; 5 $61,870[8]. Automatic qualification if receiving SNAP/TANF/SSI[1][6]. Gross household income.",
+        "asset_limits": null,
+        "other_requirements": [
+          "At least one household member age 60+",
+          "Experiencing verifiable home energy crisis (e.g., disconnection notice, past due bill)",
+          "U.S. citizen, permanent resident, or qualified alien[1][2]",
+          "Florida resident (often county-specific)",
+          "Responsible for paying home heating/cooling bills",
+          "Recent energy bill required",
+          "Not in group living facility, subsidized housing, or dorm[4]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Payment directly to energy vendor/landlord for past due heating/cooling bills (electricity, natural gas, propane, wood/coal, refillable fuels[6]). Up to $400 per season in some areas (one summer cooling April-Sep, one winter heating Oct-Mar[7]). Multiple bills possible[6].",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "In-person at local offices/Community Resource Centers (e.g., Hillsborough[2], Jacksonville call 630-2489[3], St. Johns offices[4], Palm Beach multiple locations[7], Senior Resource Alliance for Central FL[6])",
+          "Phone for appointments (e.g., 630-CITY/630-2489 Jacksonville[3], 561-355-4746 Palm Beach[7])",
+          "No statewide online/mail specified; complete application with staff[2][4]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": "Prioritizes vulnerable (60+, disabled, school-age); appointments required[2]",
+        "forms": [
+          "EHEAP Application (complete with staff[2][4])",
+          "EHEAP Application Checklist (Hillsborough[2])"
+        ],
+        "documents": [
+          "IDs: Driver's license/state ID, passport, birth certificates (originals/certified, no copies for some[1][3][4])",
+          "Social Security cards/numbers for all household members (originals, no copies[3][4])",
+          "Proof of all household income last month/current year (pay stubs, award letters, bank statements separate from income proof[1][3][4])",
+          "Recent utility bill with disconnection/termination notice[1][3][4]",
+          "Citizenship/immigration docs if applicable[1]",
+          "Benefits letters (SNAP/TANF/SSI)[1][6]",
+          "Proof of residence/lease if Section 8[3]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "County-specific (e.g., Hillsborough[2], Jacksonville/Duval[3], St. Johns[4], Orange/Osceola/Brevard/Seminole[6], Palm Beach[7])",
+        "regional_variations": "Administered locally: income thresholds differ (150% FPL vs 100% MIV vs fixed tables[2][3][4][8]); benefit caps vary (e.g., $400/season Palm Beach[7]); providers/offices unique per area; past due only in some[4]",
+        "offices_or_providers": [
+          "Hillsborough County Community Resource Centers[2]",
+          "Jacksonville Parks & Rec Senior Services (630-2489)[3]",
+          "St. Johns County offices[4]",
+          "Senior Resource Alliance (Orange/Osceola/Brevard/Seminole)[6]",
+          "Palm Beach County DOSS (multiple offices, 561-355-4746)[7]"
+        ]
+      },
+      "official_source": "No single statewide .gov; local e.g., https://hcfl.gov/residents/seniors/senior-and-caregiver-services/emergency-home-energy-assistance-program[2]",
+      "gotchas": [
+        "Not statewide—must contact county-specific provider; no central application",
+        "Crisis required (disconnection/past due proof); not preventive",
+        "Original documents often needed (no copies for SS cards/ID[3][4])",
+        "Income proof for all adults, even non-workers; bank statements separate[3][4]",
+        "Excludes group homes/subsidized/dorms[4]; residency at time of bill[7]",
+        "Seasonal limits in some areas (one per summer/winter[7])"
+      ],
+      "data_shape_notes": "County-administered with varying income limits, providers, and document rules; requires energy crisis verification; elderly-focused subset of broader LIHEAP",
+      "_raw": "{\n  \"name\": \"Florida Emergency Home Energy Assistance Program (EHEAP)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Varies by region and source: 150% Federal Poverty Level (common, e.g., Hillsborough, Jacksonville[2][3]), 60% Florida State Median Income or 150% FPL (LIHEAP-related[1]), 100% Max Income Value (St. Johns[4]), or specific annual limits like for 2023: 1-person $27,735; 2 $36,269; 3 $44,803; 4 $53,337; 5 $61,870[8]. Automatic qualification if receiving SNAP/TANF/SSI[1][6]. Gross household income.\",\n    \"asset_limits\": null,\n    \"other_requirements\": [\n      \"At least one household member age 60+\",\n      \"Experiencing verifiable home energy crisis (e.g., disconnection notice, past due bill)\",\n      \"U.S. citizen, permanent resident, or qualified alien[1][2]\",\n      \"Florida resident (often county-specific)\",\n      \"Responsible for paying home heating/cooling bills\",\n      \"Recent energy bill required\",\n      \"Not in group living facility, subsidized housing, or dorm[4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Payment directly to energy vendor/landlord for past due heating/cooling bills (electricity, natural gas, propane, wood/coal, refillable fuels[6]). Up to $400 per season in some areas (one summer cooling April-Sep, one winter heating Oct-Mar[7]). Multiple bills possible[6].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"In-person at local offices/Community Resource Centers (e.g., Hillsborough[2], Jacksonville call 630-2489[3], St. Johns offices[4], Palm Beach multiple locations[7], Senior Resource Alliance for Central FL[6])\",\n      \"Phone for appointments (e.g., 630-CITY/630-2489 Jacksonville[3], 561-355-4746 Palm Beach[7])\",\n      \"No statewide online/mail specified; complete application with staff[2][4]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Prioritizes vulnerable (60+, disabled, school-age); appointments required[2]\",\n    \"forms\": [\n      \"EHEAP Application (complete with staff[2][4])\",\n      \"EHEAP Application Checklist (Hillsborough[2])\"\n    ],\n    \"documents\": [\n      \"IDs: Driver's license/state ID, passport, birth certificates (originals/certified, no copies for some[1][3][4])\",\n      \"Social Security cards/numbers for all household members (originals, no copies[3][4])\",\n      \"Proof of all household income last month/current year (pay stubs, award letters, bank statements separate from income proof[1][3][4])\",\n      \"Recent utility bill with disconnection/termination notice[1][3][4]\",\n      \"Citizenship/immigration docs if applicable[1]\",\n      \"Benefits letters (SNAP/TANF/SSI)[1][6]\",\n      \"Proof of residence/lease if Section 8[3]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"County-specific (e.g., Hillsborough[2], Jacksonville/Duval[3], St. Johns[4], Orange/Osceola/Brevard/Seminole[6], Palm Beach[7])\",\n    \"regional_variations\": \"Administered locally: income thresholds differ (150% FPL vs 100% MIV vs fixed tables[2][3][4][8]); benefit caps vary (e.g., $400/season Palm Beach[7]); providers/offices unique per area; past due only in some[4]\",\n    \"offices_or_providers\": [\n      \"Hillsborough County Community Resource Centers[2]\",\n      \"Jacksonville Parks & Rec Senior Services (630-2489)[3]\",\n      \"St. Johns County offices[4]\",\n      \"Senior Resource Alliance (Orange/Osceola/Brevard/Seminole)[6]\",\n      \"Palm Beach County DOSS (multiple offices, 561-355-4746)[7]\"\n    ]\n  },\n  \"official_source\": \"No single statewide .gov; local e.g., https://hcfl.gov/residents/seniors/senior-and-caregiver-services/emergency-home-energy-assistance-program[2]\",\n  \"gotchas\": [\n    \"Not statewide—must contact county-specific provider; no central application\",\n    \"Crisis required (disconnection/past due proof); not preventive\",\n    \"Original documents often needed (no copies for SS cards/ID[3][4])\",\n    \"Income proof for all adults, even non-workers; bank statements separate[3][4]\",\n    \"Excludes group homes/subsidized/dorms[4]; residency at time of bill[7]\",\n    \"Seasonal limits in some areas (one per summer/winter[7])\"\n  ],\n  \"data_shape_notes\": \"County-administered with varying income limits, providers, and document rules; requires energy crisis verification; elderly-focused subset of broader LIHEAP\"\n}"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "_parseError": true,
+      "_raw": "{\n  \"name\": \"Weatherization Assistance Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Varies by region and funding source; commonly at or below 200% of Federal Poverty Guidelines. Example statewide/DOE table (may not reflect all local adjustments): Household of 1: $27,180; 2: $36,620; 3: $46,060; 4: $55,500; 5: $64,940; 6: $74,380; 7: $83,820; 8: $93,260 (add $9,440 per additional person). Some areas use 120% Area Median Income (AMI) or 80% national poverty level.[1][2][3][4][5]\",\n    \"asset_limits\": \"No asset limits mentioned across sources.\",\n    \"other_requirements\": [\"Florida resident.\", \"Household income at or below specified limits (varies by provider).\", \"Often requires primary residence ownership (renters eligible in some regions with landlord agreement).\", \"Automatic eligibility if receiving SSI or TANF.\", \"No repeat services within 15 years per DOE rules.\", \"Preference/priority for elderly (age 55-60+), disabled, families with children under 12, high energy burden households.[1][2][3][4][5][6]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free energy-efficiency home improvements including: air infiltration fixes (weather stripping, caulking, door/window repairs/replacements), attic/floor insulation (floors in northern counties only), attic ventilation, solar screens/reflective coatings, heating/cooling/water heater repairs/replacements, roof repairs (some areas), low-flow showerheads, energy-efficient bulbs, ERV fans. Max grant ~$2,600 per household in some programs.[1][2][3][4][8]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact local provider (varies by county; e.g., Monroe County: 305-292-4405[3]; no central statewide phone listed).\", \"Complete local Client Intake Form (e.g., Central Florida Community Action Agency form[6]).\", \"Online quick applications via some providers (e.g., You Thrive Florida[4]).\", \"Mail/in-person to local community action agencies, non-profits, or county offices.\"],\n    \"processing_time\": \"Not specified; long waiting lists common due to high demand and limited funding.\",\n    \"waitlist\": \"Yes, priority-based ranking (not first-come-first-served); services postponed if funding limits reached or home unsafe.[3][5][6]\",\n    \"forms\": [\"Client Intake Form (common across providers, e.g., Central Florida[6], Monroe County[3]).\"],\n    \"documents\": [\"Proof of ALL household income (last 12 months: pay stubs, SS letters, tax returns, etc.; no bank statements/self-tax returns).\", \"Photo ID and SS cards for all members.\", \"Proof of disability if claimed.\", \"Proof of ownership (deed, tax receipt, title) or rental agreement + landlord permission.\", \"Most recent full electric/utility bill.\", \"Some require proof of residency duration (e.g., 3 years in Miami Gardens[2]).\"][3][4][6]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Administered locally; available in all counties but contact county-specific providers (e.g., You Thrive: Hillsborough, Hernando, Pasco, Polk, Sumter, Citrus, Volusia[4]; Capital Area: Franklin, Gulf, Gadsden, Jefferson, Leon, Wakulla[5]; Miami Gardens/Miami-Dade/Monroe have unique rules[2][3][8]).\",\n    \"regional_variations\": \"Eligibility % of poverty/AMI varies (80%-200%); services differ (e.g., roof repairs in Miami Gardens[2], floor insulation north only[1]); homeowner residency rules stricter in some cities (e.g., homesteaded, 3-year occupancy, no liens[2]); priority ages 55+ or 60+[1][2]; renters more/less emphasized by region.[1][2][3][4][5]\",\n    \"offices_or_providers\": [\"Local community action organizations, non-profits (e.g., You Thrive Florida[4], Central Florida Community Action[6], Capital Area Community Action[5]), county offices (e.g., Monroe Social Services[3], Miami-Dade[8]).\"]\n  },\n  \"official_source\": \"https://www.energy.gov/cmei/scep/wap/how-apply-weatherization-assistance (DOE; find Florida administrator via state map)\",\n  \"gotchas\": [\"Not first-come-first-served; priority ranking favors elderly/disabled/children/high-burden (points system in some areas).[3][5]\", \"No services if received WAP in last 15 years.[6]\", \"Renters need landlord agreement (no rent hikes, no sale without notice).[5]\", \"Must be primary residence; some require homestead, current payments, single mortgage.[2]\", \"Incomplete apps denied; all docs required upfront.[4][6]\", \"Local variations critical—check county provider, not statewide assumptions.\", \"Some via second mortgage.[2]\"],\n  \"data_shape_notes\": \"Highly fragmented by county/provider with varying income thresholds (80%-200% poverty/AMI), services, and homeowner rules; priority-based not FCFS; DOE-funded but locally run with sub-county restrictions.\"\n}"
+    },
+    {
+      "name": "SHINE (Serving Health Insurance Needs of Elders)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income or asset limits for SHINE counseling itself; open to all Florida Medicare beneficiaries, families, and caregivers. SHINE assists with programs like Extra Help (monthly income below $1,995 single; resources below $18,090) and Medicare Savings Programs (limits vary, apply even if slightly higher).[8]",
+        "asset_limits": "No asset limits for SHINE; for assisted programs like Extra Help, resources below $18,090 (exclusions not detailed in sources).[8]",
+        "other_requirements": [
+          "Florida resident",
+          "Typically Medicare beneficiary, family, or caregiver",
+          "No formal eligibility for free counseling services[9]"
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Free, unbiased, confidential one-on-one counseling on Medicare eligibility/enrollment/coverage, health plan choices, appeals, Medigap, long-term care insurance, prescription assistance, Extra Help/Low-Income Subsidy, Medicare Savings Programs, fraud prevention; educational presentations and community events.[3][5][6]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: Toll-free Elder Helpline 1-800-963-5337 (8am-5pm)[1][3][8]",
+          "Website: www.floridashine.org (find counseling sites, online volunteer app, virtual classes)[3]",
+          "Online orientation/training: http://training.floridashine.org/STL_Modules/Orientation/story.html[3]",
+          "In-person: Local Area Agency on Aging SHINE sites/events (locate via www.floridashine.org 'Counseling Sites')[6][8]",
+          "Email: chanslera@elderaffairs.org[1]"
+        ],
+        "processing_time": "No formal processing; counseling available year-round via phone/sites/events, virtual classes starting April 6, 2026[3]",
+        "waitlist": null,
+        "forms": [
+          "No specific SHINE enrollment form; applications for assisted programs (e.g., Extra Help, MSP) via SHINE counselor guidance[7][8]"
+        ],
+        "documents": [
+          "For counseling: Medicare card, insurance details recommended but not required; for assisted programs: income/resource proof as guided by counselor[5][8]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Florida only[1]",
+        "regional_variations": "Delivered via 11 local Area Agencies on Aging (e.g., Senior Connection Center Tampa, AAA Palm Beach/Treasure Coast, AAA SWFL); site availability, volunteer numbers, event schedules vary by region; ~400 volunteers statewide, e.g., 60 in one 5-county area[4][5][6][7]",
+        "offices_or_providers": [
+          "Florida Department of Elder Affairs, 4040 Esplanade Way, Suite 280-S, Tallahassee, FL 32399[1]",
+          "Local Area Agencies on Aging via www.floridashine.org[3]"
+        ]
+      },
+      "official_source": "https://www.floridashine.org",
+      "gotchas": [
+        "Not a direct benefit payer/provider—pure counseling/advocacy to navigate Medicare/options; volunteers not insurance agents, do not sell/recommend plans[3][5][6]",
+        "Many eligible for subsidies (e.g., 35,000+ in one region) unaware/unenrolled—requires consultation/application[7]",
+        "Assists with but does not determine eligibility for MSP/Extra Help—screens and applies[8]",
+        "Services free but demand high (e.g., 9,500 users/year in SWFL)[6]"
+      ],
+      "data_shape_notes": "no income test for counseling; volunteer-delivered via local Area Agencies on Aging; assists with tiered Medicare aid programs (e.g., Extra Help with specific income/resource caps); statewide but regionally variable sites/volunteers",
+      "_raw": "{\n  \"name\": \"SHINE (Serving Health Insurance Needs of Elders)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income or asset limits for SHINE counseling itself; open to all Florida Medicare beneficiaries, families, and caregivers. SHINE assists with programs like Extra Help (monthly income below $1,995 single; resources below $18,090) and Medicare Savings Programs (limits vary, apply even if slightly higher).[8]\",\n    \"asset_limits\": \"No asset limits for SHINE; for assisted programs like Extra Help, resources below $18,090 (exclusions not detailed in sources).[8]\",\n    \"other_requirements\": [\"Florida resident\", \"Typically Medicare beneficiary, family, or caregiver\", \"No formal eligibility for free counseling services[9]\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Free, unbiased, confidential one-on-one counseling on Medicare eligibility/enrollment/coverage, health plan choices, appeals, Medigap, long-term care insurance, prescription assistance, Extra Help/Low-Income Subsidy, Medicare Savings Programs, fraud prevention; educational presentations and community events.[3][5][6]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Toll-free Elder Helpline 1-800-963-5337 (8am-5pm)[1][3][8]\", \"Website: www.floridashine.org (find counseling sites, online volunteer app, virtual classes)[3]\", \"Online orientation/training: http://training.floridashine.org/STL_Modules/Orientation/story.html[3]\", \"In-person: Local Area Agency on Aging SHINE sites/events (locate via www.floridashine.org 'Counseling Sites')[6][8]\", \"Email: chanslera@elderaffairs.org[1]\"],\n    \"processing_time\": \"No formal processing; counseling available year-round via phone/sites/events, virtual classes starting April 6, 2026[3]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific SHINE enrollment form; applications for assisted programs (e.g., Extra Help, MSP) via SHINE counselor guidance[7][8]\"],\n    \"documents\": [\"For counseling: Medicare card, insurance details recommended but not required; for assisted programs: income/resource proof as guided by counselor[5][8]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Florida only[1]\",\n    \"regional_variations\": \"Delivered via 11 local Area Agencies on Aging (e.g., Senior Connection Center Tampa, AAA Palm Beach/Treasure Coast, AAA SWFL); site availability, volunteer numbers, event schedules vary by region; ~400 volunteers statewide, e.g., 60 in one 5-county area[4][5][6][7]\",\n    \"offices_or_providers\": [\"Florida Department of Elder Affairs, 4040 Esplanade Way, Suite 280-S, Tallahassee, FL 32399[1]\", \"Local Area Agencies on Aging via www.floridashine.org[3]\"]\n  },\n  \"official_source\": \"https://www.floridashine.org\",\n  \"gotchas\": [\"Not a direct benefit payer/provider—pure counseling/advocacy to navigate Medicare/options; volunteers not insurance agents, do not sell/recommend plans[3][5][6]\", \"Many eligible for subsidies (e.g., 35,000+ in one region) unaware/unenrolled—requires consultation/application[7]\", \"Assists with but does not determine eligibility for MSP/Extra Help—screens and applies[8]\", \"Services free but demand high (e.g., 9,500 users/year in SWFL)[6]\"],\n  \"data_shape_notes\": \"no income test for counseling; volunteer-delivered via local Area Agencies on Aging; assists with tiered Medicare aid programs (e.g., Extra Help with specific income/resource caps); statewide but regionally variable sites/volunteers\"\n}"
+    },
+    {
+      "name": "Home-Delivered Meals",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No statewide income limits specified; eligibility often prioritizes low-income but programs may serve above limits with contributions. Medicaid enrollment may impose federal poverty level limits (not detailed here). Varies by local provider or plan.",
+        "asset_limits": "No asset limits mentioned across sources.",
+        "other_requirements": [
+          "Homebound or difficulty shopping/preparing meals",
+          "Disabled (any age in some programs)",
+          "Residency in delivery zone/county",
+          "Medicaid or SMMC LTC enrollment for certain benefits",
+          "Medicare Advantage plan with meal benefit",
+          "Post-hospital discharge or specific conditions (e.g., temporary caregiver unavailability)",
+          "Working refrigerator, microwave/oven, ability to access door"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "No specific details on services, dollar amounts, hours, or tiers provided in search results.",
+        "value": "Nutritious home-delivered meals (e.g., 5-10 meals per authorization for Medicaid; medically tailored options; post-discharge unlimited with prior auth; disaster relief 1x/year). Meals priced at $9.49 or less if not qualifying for free/low-cost.",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: Elder Helpline 1-800-96-ELDER (800-963-5337) for local ADRC",
+          "Contact local Area Agency on Aging or SMMC LTC case manager",
+          "Contact Medicaid/Medicare Advantage health plan",
+          "Local program assessment (in-person or phone)"
+        ],
+        "processing_time": "Varies; some within a week, longer with waitlists.",
+        "waitlist": "Common in local programs; varies by region and demand.",
+        "forms": [
+          "No specific statewide form; local assessment or prior authorization via health plan"
+        ],
+        "documents": [
+          "Proof of age",
+          "Proof of residence",
+          "Medical information/dietary restrictions",
+          "Financial docs (sometimes)",
+          "Emergency contacts"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must reside in provider delivery zone; available in all 67 counties but local variation.",
+        "regional_variations": "Delivered by local providers (e.g., Meals on Wheels, Mom's Meals); different coverage areas, wait times, and operators by county (e.g., Manatee County specific).",
+        "offices_or_providers": [
+          "Local Aging and Disability Resource Centers (ADRCs)",
+          "Area Agencies on Aging",
+          "SMMC LTC Plans",
+          "Mom's Meals (Medicaid/Medicare partner)"
+        ]
+      },
+      "official_source": "https://elderaffairs.org/programs-and-services/food-assistance/",
+      "gotchas": [
+        "Not automatic; requires assessment and often waitlist",
+        "Car ownership or ability to leave home may disqualify",
+        "Must have functional kitchen appliances and door access",
+        "Separate from SNAP/TEFAP; contact health plan for Medicaid benefits",
+        "Local delivery zones exclude some addresses",
+        "Spouses/dependents sometimes eligible but verify locally"
+      ],
+      "data_shape_notes": "Decentralized by county/provider; tied to Medicaid SMMC LTC or local AAAs; no uniform income test; priority for homebound 60+ or disabled; varies heavily by region and health plan authorization.",
+      "_raw": "{\n  \"name\": \"Home-Delivered Meals\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No statewide income limits specified; eligibility often prioritizes low-income but programs may serve above limits with contributions. Medicaid enrollment may impose federal poverty level limits (not detailed here). Varies by local provider or plan.\",\n    \"asset_limits\": \"No asset limits mentioned across sources.\",\n    \"other_requirements\": [\"Homebound or difficulty shopping/preparing meals\", \"Disabled (any age in some programs)\", \"Residency in delivery zone/county\", \"Medicaid or SMMC LTC enrollment for certain benefits\", \"Medicare Advantage plan with meal benefit\", \"Post-hospital discharge or specific conditions (e.g., temporary caregiver unavailability)\", \"Working refrigerator, microwave/oven, ability to access door\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Nutritious home-delivered meals (e.g., 5-10 meals per authorization for Medicaid; medically tailored options; post-discharge unlimited with prior auth; disaster relief 1x/year). Meals priced at $9.49 or less if not qualifying for free/low-cost.\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Elder Helpline 1-800-96-ELDER (800-963-5337) for local ADRC\", \"Contact local Area Agency on Aging or SMMC LTC case manager\", \"Contact Medicaid/Medicare Advantage health plan\", \"Local program assessment (in-person or phone)\"],\n    \"processing_time\": \"Varies; some within a week, longer with waitlists.\",\n    \"waitlist\": \"Common in local programs; varies by region and demand.\",\n    \"forms\": [\"No specific statewide form; local assessment or prior authorization via health plan\"],\n    \"documents\": [\"Proof of age\", \"Proof of residence\", \"Medical information/dietary restrictions\", \"Financial docs (sometimes)\", \"Emergency contacts\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must reside in provider delivery zone; available in all 67 counties but local variation.\",\n    \"regional_variations\": \"Delivered by local providers (e.g., Meals on Wheels, Mom's Meals); different coverage areas, wait times, and operators by county (e.g., Manatee County specific).\",\n    \"offices_or_providers\": [\"Local Aging and Disability Resource Centers (ADRCs)\", \"Area Agencies on Aging\", \"SMMC LTC Plans\", \"Mom's Meals (Medicaid/Medicare partner)\"]\n  },\n  \"official_source\": \"https://elderaffairs.org/programs-and-services/food-assistance/\",\n  \"gotchas\": [\"Not automatic; requires assessment and often waitlist\", \"Car ownership or ability to leave home may disqualify\", \"Must have functional kitchen appliances and door access\", \"Separate from SNAP/TEFAP; contact health plan for Medicaid benefits\", \"Local delivery zones exclude some addresses\", \"Spouses/dependents sometimes eligible but verify locally\"],\n  \"data_shape_notes\": \"Decentralized by county/provider; tied to Medicaid SMMC LTC or local AAAs; no uniform income test; priority for homebound 60+ or disabled; varies heavily by region and health plan authorization.\"\n}"
+    },
+    {
+      "name": "Respite for Elders Living in Everyday Families (RELIEF)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No specific information found in search results for RELIEF program eligibility, including income limits by household size.",
+        "asset_limits": "No specific information found; general public assistance programs mention assets but not for this program.",
+        "other_requirements": [
+          "No matching program details in provided search results; results cover debt relief, TCA, SNAP, Medicaid, and disaster aid instead."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "No specific benefits described for RELIEF; search results do not reference this program.",
         "varies_by": "not_applicable"
       },
       "application": {
         "methods": [],
-        "processing_time": "No information available.",
+        "processing_time": "No information available",
         "waitlist": null,
         "forms": [],
         "documents": []
       },
       "geography": {
         "statewide": false,
-        "restrictions": "No confirmed details; search results do not reference this program.",
+        "restrictions": "No confirmed program details for Florida.",
         "regional_variations": null,
         "offices_or_providers": []
       },
-      "official_source": "No official .gov URL identified in search results for this program.",
+      "official_source": "No official .gov URL identified in search results for RELIEF.",
       "gotchas": [
-        "Search results do not contain any information on the RELIEF program; it may not exist under this exact name, be newly established post-search data, or be administered locally without statewide documentation. Families should verify with Florida Department of Elder Affairs (DOEA) directly."
+        "Search results do not contain any information on 'Respite for Elders Living in Everyday Families (RELIEF)' program; it may not exist under this exact name or be covered in available sources. Families should verify via Florida Department of Elder Affairs (DOEA) or Aging and Disability Resource Centers (ADRCs). Common similar programs like Alzheimer's Disease Initiative (ADI) Respite Services have separate eligibility."
       ],
-      "data_shape_notes": "No data available in search results; program not referenced across provided sources, which cover LIHEAP, cash assistance, debt relief, housing waivers, and housing repairs instead.",
-      "_raw": "{\n  \"name\": \"Respite for Elders Living in Everyday Families (RELIEF) Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No specific information found in search results for RELIEF program eligibility criteria, including income limits, asset limits, or age requirements.\",\n    \"asset_limits\": \"No specific information found.\",\n    \"other_requirements\": [\"No details available from provided search results.\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"No specific details on services, dollar amounts, hours, or tiers provided in search results.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [],\n    \"processing_time\": \"No information available.\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": []\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"No confirmed details; search results do not reference this program.\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": []\n  },\n  \"official_source\": \"No official .gov URL identified in search results for this program.\",\n  \"gotchas\": [\"Search results do not contain any information on the RELIEF program; it may not exist under this exact name, be newly established post-search data, or be administered locally without statewide documentation. Families should verify with Florida Department of Elder Affairs (DOEA) directly.\"],\n  \"data_shape_notes\": \"No data available in search results; program not referenced across provided sources, which cover LIHEAP, cash assistance, debt relief, housing waivers, and housing repairs instead.\"\n}"
+      "data_shape_notes": "No data available; program not found in Florida-specific search results which focus on DCF economic self-sufficiency programs (TCA, SNAP) rather than elder respite services.",
+      "_raw": "{\n  \"name\": \"Respite for Elders Living in Everyday Families (RELIEF)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No specific information found in search results for RELIEF program eligibility, including income limits by household size.\",\n    \"asset_limits\": \"No specific information found; general public assistance programs mention assets but not for this program.\",\n    \"other_requirements\": [\"No matching program details in provided search results; results cover debt relief, TCA, SNAP, Medicaid, and disaster aid instead.\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"No specific benefits described for RELIEF; search results do not reference this program.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [],\n    \"processing_time\": \"No information available\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": []\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"No confirmed program details for Florida.\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": []\n  },\n  \"official_source\": \"No official .gov URL identified in search results for RELIEF.\",\n  \"gotchas\": [\"Search results do not contain any information on 'Respite for Elders Living in Everyday Families (RELIEF)' program; it may not exist under this exact name or be covered in available sources. Families should verify via Florida Department of Elder Affairs (DOEA) or Aging and Disability Resource Centers (ADRCs). Common similar programs like Alzheimer's Disease Initiative (ADI) Respite Services have separate eligibility.\"],\n  \"data_shape_notes\": \"No data available; program not found in Florida-specific search results which focus on DCF economic self-sufficiency programs (TCA, SNAP) rather than elder respite services.\"\n}"
     },
     {
-      "name": "Optional State Supplementation (OSS) for SSI Recipients",
+      "name": "Senior Community Service Employment Program (SCSEP)",
       "eligibility": {
-        "age": 65,
-        "income_limits": "Income must meet SSI-related standards and not exceed specific limits based on living arrangement, such as up to $752.40 gross monthly countable income for community care programs. Exact limits vary by facility type and are calculated by subtracting countable income from the standard provider rate plus personal needs allowance (up to $78.40 state payment). Must be eligible for SSI or grandfathered (meet SSI criteria except income). Some sources note federal SSI limit of ~125% FPL, but Florida ties to facility-specific rates.",
-        "asset_limits": "Assets within SSA Title XVI SSI standards: $2,000 for individuals, $3,000 for couples. Counts standard SSI countable resources; exemptions include primary home (if applicable), one vehicle, household goods, etc., per federal SSI rules.",
+        "age": 55,
+        "income_limits": "Family income no more than 125% of the federal poverty level (HHS Poverty Guidelines, updated annually; contact local provider for current table by household size as exact dollar amounts not specified in sources; e.g., for 2025 guidelines effective Jan 15, 2025)",
+        "asset_limits": null,
         "other_requirements": [
-          "Must be 65+, blind, or disabled (18+ for blind/disabled per SSA Title XVI criteria).",
-          "Reside in specific licensed facilities: assisted living facilities (ALFs), adult family care homes (AFCs), or mental health residential treatment facilities.",
-          "Need assistance with activities of daily living (ADLs) due to physical/mental conditions.",
-          "Florida resident.",
-          "Apply for and pursue all other potential benefits (SSI, Medicaid, etc.).",
-          "Receiving SSI or grandfathered under prior SSI criteria."
+          "Unemployed",
+          "Poor employment prospects",
+          "Priority to veterans/qualified spouses, individuals over 65, with disabilities, low literacy/limited English proficiency, rural residents, homeless/at risk, or failed American Job Center services"
         ]
       },
       "benefits": {
-        "type": "financial",
-        "value": "Monthly cash payments paid directly to the facility (assisted living, adult family care home, or mental health residential facility) to supplement SSI for room/board costs. Amounts vary by facility type: e.g., $184.40–$345 individual, $386.80–$690 couple (recent figures); up to $78.40 state payment after income offset; includes personal needs allowance (e.g., $54 in some cases). Total SSI + OSS can reach $1,233.94 independent or higher in facilities (e.g., $1,626.07 max in some 2026 scenarios). Payments cover provider rate + personal needs.",
-        "varies_by": "living_arrangement"
+        "type": "employment",
+        "value": "Part-time community service work-based job training (average 20 hours/week); paid highest of federal, state, or local minimum wage; job skills training; placement assistance to unsubsidized employment; typically 6 months training",
+        "varies_by": "priority_tier"
       },
       "application": {
         "methods": [
-          "In-person or mail at local Florida Department of Children and Families (DCF) offices.",
-          "Apply via ACCESS Florida system (state-administered).",
-          "Phone: Local DCF office (e.g., North Broward Regional Service Center referenced; find via DCF directory)."
+          "Online: https://onlineapplication.scsep.org/OnlineApplication/",
+          "Phone: AARP Foundation Work Resources Helpline 1-855-850-2525 (Mon-Fri 9am-6pm ET; Spanish available); DOL toll-free 1-877-872-5627 (1-877-US2-JOBS)",
+          "Locator: https://my.aarpfoundation.org/locator/scsep/ (enter zip code)",
+          "In-person: Local providers (e.g., AARP Foundation offices like 3300 SW Archer Road Suite 210, Gainesville for certain counties)"
         ],
-        "processing_time": "Not specified in sources; standard DCF processing applies, potentially weeks.",
-        "waitlist": "Possible proportional reduction if funding insufficient, but no standard waitlist mentioned.",
+        "processing_time": null,
+        "waitlist": "Possible due to funding limits and transitions; varies by region/provider",
         "forms": [
-          "CF-ES 2202 (Adult Family Care Home Referral Notice, for AFC referrals).",
-          "Standard OSS/SSI application through DCF or SSA (SSI app may trigger in some cases)."
+          "SCSEP Online Application"
         ],
         "documents": [
-          "Proof of age/identity (birth certificate, ID).",
-          "SSI award letter or proof of SSI eligibility.",
-          "Income verification (pay stubs, benefits statements).",
-          "Asset documentation (bank statements, property deeds).",
-          "Proof of residency in qualifying Florida facility.",
-          "Medical evidence of disability/ADL needs if applicable.",
-          "Facility license/verification."
+          "Proof of age",
+          "Proof of income (to verify <=125% poverty level)",
+          "Proof of unemployment",
+          "Veteran/priority status if applicable"
         ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "Limited to residents of licensed assisted living facilities, adult family care homes, or mental health residential treatment facilities statewide.",
-        "regional_variations": "Administered via local DCF offices; potential variations in processing times or offices by region (e.g., North Broward Regional Service Center), but benefits standardized.",
+        "restrictions": "Available in many Florida counties (e.g., AARP covers Alachua, Lee, Leon, Levy, Manatee, Marion, Martin, Miami-Dade, Monroe, Okeechobee, Orange, Osceola, Palm Beach, Pinellas, Sarasota, Seminole, St. Johns, St. Lucie, Sumter, Taylor, Volusia)",
+        "regional_variations": "Administered by multiple grantees (Florida DOEA, AARP Foundation, NCBA, NUL); different providers, offices, and potential wait times/funding per region",
         "offices_or_providers": [
-          "Local DCF offices statewide; payments to licensed facilities."
+          "Florida Department of Elder Affairs (DOEA)",
+          "AARP Foundation (primary contractor)",
+          "National Caucus and Center on Black Aged (NCBA)",
+          "National Urban League (NUL)"
         ]
       },
-      "official_source": "https://www.myflfamilies.com/service-programs/access/florida-access/ (DCF ACCESS Florida); Fla. Admin. Code Ann. R. 65A-2.032",
+      "official_source": "https://elderaffairs.org/programs-and-services/senior-community-service-employment-program-scsep/",
       "gotchas": [
-        "Payments go directly to the facility, not the individual—facility acts as payee.",
-        "Strictly for specific residential facilities; not for independent living (lower or no supplement).",
-        "Must meet federal SSI asset/income rules exactly; grandfathering only if previously eligible.",
-        "Funding shortfalls can lead to proportional payment cuts.",
-        "Requires ADL assistance need and facility residency; not automatic with SSI alone.",
-        "Apply for other benefits first (SSI/Medicaid); denial impacts OSS.",
-        "Outdated data in some sources (e.g., 2010 SSA table); verify current rates with DCF."
+        "Must be unemployed and have poor employment prospects (not just low-income)",
+        "Priority tiers may limit access for non-priority applicants",
+        "Temporary bridge program (avg 6 months) aimed at unsubsidized jobs, not long-term employment",
+        "Funding transitions/delays may affect availability",
+        "Income based on family size at 125% poverty (check current HHS guidelines)",
+        "No asset limits specified, but prove income/unemployment"
       ],
-      "data_shape_notes": "Facility-specific payment rates with income offset; state-administered, direct-to-provider model; tied to SSI eligibility but only for licensed residential care settings, not independent living.",
-      "_raw": "{\n  \"name\": \"Optional State Supplementation (OSS) for SSI Recipients\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Income must meet SSI-related standards and not exceed specific limits based on living arrangement, such as up to $752.40 gross monthly countable income for community care programs. Exact limits vary by facility type and are calculated by subtracting countable income from the standard provider rate plus personal needs allowance (up to $78.40 state payment). Must be eligible for SSI or grandfathered (meet SSI criteria except income). Some sources note federal SSI limit of ~125% FPL, but Florida ties to facility-specific rates.\",\n    \"asset_limits\": \"Assets within SSA Title XVI SSI standards: $2,000 for individuals, $3,000 for couples. Counts standard SSI countable resources; exemptions include primary home (if applicable), one vehicle, household goods, etc., per federal SSI rules.\",\n    \"other_requirements\": [\n      \"Must be 65+, blind, or disabled (18+ for blind/disabled per SSA Title XVI criteria).\",\n      \"Reside in specific licensed facilities: assisted living facilities (ALFs), adult family care homes (AFCs), or mental health residential treatment facilities.\",\n      \"Need assistance with activities of daily living (ADLs) due to physical/mental conditions.\",\n      \"Florida resident.\",\n      \"Apply for and pursue all other potential benefits (SSI, Medicaid, etc.).\",\n      \"Receiving SSI or grandfathered under prior SSI criteria.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly cash payments paid directly to the facility (assisted living, adult family care home, or mental health residential facility) to supplement SSI for room/board costs. Amounts vary by facility type: e.g., $184.40–$345 individual, $386.80–$690 couple (recent figures); up to $78.40 state payment after income offset; includes personal needs allowance (e.g., $54 in some cases). Total SSI + OSS can reach $1,233.94 independent or higher in facilities (e.g., $1,626.07 max in some 2026 scenarios). Payments cover provider rate + personal needs.\",\n    \"varies_by\": \"living_arrangement\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"In-person or mail at local Florida Department of Children and Families (DCF) offices.\",\n      \"Apply via ACCESS Florida system (state-administered).\",\n      \"Phone: Local DCF office (e.g., North Broward Regional Service Center referenced; find via DCF directory).\"\n    ],\n    \"processing_time\": \"Not specified in sources; standard DCF processing applies, potentially weeks.\",\n    \"waitlist\": \"Possible proportional reduction if funding insufficient, but no standard waitlist mentioned.\",\n    \"forms\": [\n      \"CF-ES 2202 (Adult Family Care Home Referral Notice, for AFC referrals).\",\n      \"Standard OSS/SSI application through DCF or SSA (SSI app may trigger in some cases).\"\n    ],\n    \"documents\": [\n      \"Proof of age/identity (birth certificate, ID).\",\n      \"SSI award letter or proof of SSI eligibility.\",\n      \"Income verification (pay stubs, benefits statements).\",\n      \"Asset documentation (bank statements, property deeds).\",\n      \"Proof of residency in qualifying Florida facility.\",\n      \"Medical evidence of disability/ADL needs if applicable.\",\n      \"Facility license/verification.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Limited to residents of licensed assisted living facilities, adult family care homes, or mental health residential treatment facilities statewide.\",\n    \"regional_variations\": \"Administered via local DCF offices; potential variations in processing times or offices by region (e.g., North Broward Regional Service Center), but benefits standardized.\",\n    \"offices_or_providers\": [\"Local DCF offices statewide; payments to licensed facilities.\"]\n  },\n  \"official_source\": \"https://www.myflfamilies.com/service-programs/access/florida-access/ (DCF ACCESS Florida); Fla. Admin. Code Ann. R. 65A-2.032\",\n  \"gotchas\": [\n    \"Payments go directly to the facility, not the individual—facility acts as payee.\",\n    \"Strictly for specific residential facilities; not for independent living (lower or no supplement).\",\n    \"Must meet federal SSI asset/income rules exactly; grandfathering only if previously eligible.\",\n    \"Funding shortfalls can lead to proportional payment cuts.\",\n    \"Requires ADL assistance need and facility residency; not automatic with SSI alone.\",\n    \"Apply for other benefits first (SSI/Medicaid); denial impacts OSS.\",\n    \"Outdated data in some sources (e.g., 2010 SSA table); verify current rates with DCF.\"\n  ],\n  \"data_shape_notes\": \"Facility-specific payment rates with income offset; state-administered, direct-to-provider model; tied to SSI eligibility but only for licensed residential care settings, not independent living.\"\n}"
+      "data_shape_notes": "Multiple regional grantees/providers; priority enrollment tiers; income at 125% poverty scales by household size; no fixed asset test; part-time hours/wage tied to local minimums",
+      "_raw": "{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income no more than 125% of the federal poverty level (HHS Poverty Guidelines, updated annually; contact local provider for current table by household size as exact dollar amounts not specified in sources; e.g., for 2025 guidelines effective Jan 15, 2025)\",\n    \"asset_limits\": null,\n    \"other_requirements\": [\"Unemployed\", \"Poor employment prospects\", \"Priority to veterans/qualified spouses, individuals over 65, with disabilities, low literacy/limited English proficiency, rural residents, homeless/at risk, or failed American Job Center services\"]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Part-time community service work-based job training (average 20 hours/week); paid highest of federal, state, or local minimum wage; job skills training; placement assistance to unsubsidized employment; typically 6 months training\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Online: https://onlineapplication.scsep.org/OnlineApplication/\", \"Phone: AARP Foundation Work Resources Helpline 1-855-850-2525 (Mon-Fri 9am-6pm ET; Spanish available); DOL toll-free 1-877-872-5627 (1-877-US2-JOBS)\", \"Locator: https://my.aarpfoundation.org/locator/scsep/ (enter zip code)\", \"In-person: Local providers (e.g., AARP Foundation offices like 3300 SW Archer Road Suite 210, Gainesville for certain counties)\"],\n    \"processing_time\": null,\n    \"waitlist\": \"Possible due to funding limits and transitions; varies by region/provider\",\n    \"forms\": [\"SCSEP Online Application\"],\n    \"documents\": [\"Proof of age\", \"Proof of income (to verify <=125% poverty level)\", \"Proof of unemployment\", \"Veteran/priority status if applicable\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in many Florida counties (e.g., AARP covers Alachua, Lee, Leon, Levy, Manatee, Marion, Martin, Miami-Dade, Monroe, Okeechobee, Orange, Osceola, Palm Beach, Pinellas, Sarasota, Seminole, St. Johns, St. Lucie, Sumter, Taylor, Volusia)\",\n    \"regional_variations\": \"Administered by multiple grantees (Florida DOEA, AARP Foundation, NCBA, NUL); different providers, offices, and potential wait times/funding per region\",\n    \"offices_or_providers\": [\"Florida Department of Elder Affairs (DOEA)\", \"AARP Foundation (primary contractor)\", \"National Caucus and Center on Black Aged (NCBA)\", \"National Urban League (NUL)\"]\n  },\n  \"official_source\": \"https://elderaffairs.org/programs-and-services/senior-community-service-employment-program-scsep/\",\n  \"gotchas\": [\"Must be unemployed and have poor employment prospects (not just low-income)\", \"Priority tiers may limit access for non-priority applicants\", \"Temporary bridge program (avg 6 months) aimed at unsubsidized jobs, not long-term employment\", \"Funding transitions/delays may affect availability\", \"Income based on family size at 125% poverty (check current HHS guidelines)\", \"No asset limits specified, but prove income/unemployment\"],\n  \"data_shape_notes\": \"Multiple regional grantees/providers; priority enrollment tiers; income at 125% poverty scales by household size; no fixed asset test; part-time hours/wage tied to local minimums\"\n}"
     },
     {
-      "name": "Additional Homestead Exemption for Seniors (Florida)",
-      "eligibility": {
-        "age": 65,
-        "age_requirement_detail": "Must be 65 years of age or older as of January 1 of the year for which the exemption is claimed[2][7]",
-        "income_limits": {
-          "2026_limit": "$38,686",
-          "description": "Total adjusted gross household income for all persons residing in the homestead cannot exceed $38,686[3][7][8]. This limit is adjusted annually by the percentage change in the average cost-of-living index[2][4]",
-          "what_counts": "Adjusted gross income includes Social Security benefits, pension, VA retirement annuities, interest income, wages, and Veteran's Affairs benefits[2][7]",
-          "calculation_method": "Adjusted gross income is the amount reported on IRS Form 1040 or Form 1040A. If the applicant is not required to file income tax, total income minus Social Security benefits[7]"
-        },
-        "asset_limits": null,
-        "other_requirements": [
-          "Must already have or qualify for a regular Homestead Exemption (own and reside on the property as permanent residence as of January 1)[1][4][7]",
-          "Must be a permanent resident of Florida as of January 1 of the year of application[2][4]",
-          "For Long-term Residency Senior Exemption variant: must have maintained permanent residence on the property for at least 25 consecutive years[3][5][7]",
-          "For Long-term Residency variant: property must have a just value less than $250,000 in the first tax year of application[3][5][7]"
-        ]
-      },
-      "benefits": {
-        "type": "financial",
-        "value": "Up to $50,000 exemption off the assessed value for the limited-income senior exemption; full assessed value exemption for long-term residency senior exemption (25+ years residency)[5][8]",
-        "applies_to": "County and municipal millages (tax rates) only—does not apply to school district or other taxing unit millages[5][6]",
-        "varies_by": "residency_duration_and_property_value"
-      },
-      "application": {
-        "methods": [
-          "In-person: Contact your local county property appraiser office (varies by county)",
-          "Mail: Submit application to your county property appraiser",
-          "Phone: Contact your county property appraiser for guidance (specific numbers vary by county)"
-        ],
-        "processing_time": "Not specified in available sources",
-        "waitlist": null,
-        "forms": [
-          "Form DR-501SC (Household Income Sworn Statement and Return) — required for first-time applicants[1][8]"
-        ],
-        "documents": [
-          "Proof of age: Driver license, Florida ID, Voter ID, or Birth Certificate[1]",
-          "Proof of income: IRS Form 1040, Form 1040A, or Social Security Statement (SSA 1099)[7][8]",
-          "For all household members: adjusted gross income documentation[1]",
-          "Social Security number of applicant and spouse (even if spouse is not on title or does not live on property)[4]",
-          "For non-citizens: copy of Permanent Residence Card (Green Card)[4]",
-          "At least two (2) forms of Florida residency identification for each resident[4]"
-        ]
-      },
-      "geography": {
-        "statewide": false,
-        "restrictions": "Available only in counties or municipalities that have adopted local ordinances under Section 6(d) of Article VII of the Florida Constitution and Section 196.075, Florida Statutes[5]",
-        "regional_variations": "Some counties offer only the limited-income senior exemption ($50,000); others offer both the limited-income exemption and the long-term residency exemption (full assessed value). For example, in Hillsborough County, the long-term residency exemption applies only to residents within the City of Tampa and Unincorporated Hillsborough County[6]",
-        "offices_or_providers": [
-          "Lee County Property Appraiser[1]",
-          "Gulf County Property Appraiser[2]",
-          "Brevard County Property Appraiser[3]",
-          "Lake County Property Appraiser[4]",
-          "Hillsborough County Property Appraiser[6]",
-          "Duval County (Jacksonville) Property Appraiser[7]",
-          "Nassau County Property Appraiser[8]",
-          "Contact your local county property appraiser for availability in your specific county[5]"
-        ]
-      },
-      "official_source": "https://floridarevenue.com/property/Documents/AdditionalHomesteadExemptions.pdf",
-      "gotchas": [
-        "This exemption is NOT automatic—applicants must apply and meet all requirements[1][7]",
-        "The exemption applies ONLY to county and municipal tax millages, NOT to school district taxes or other taxing units[5][6]",
-        "Income limits are based on PRIOR YEAR income, not current year[7][8]",
-        "The income limit is adjusted annually in January—families must requalify each year if their income changes[2][4]",
-        "Applicants must already have or qualify for a regular Homestead Exemption first; this is an ADDITIONAL exemption, not a standalone benefit[1][2][4]",
-        "The long-term residency exemption (full assessed value) requires 25 consecutive years of permanent residence AND property value under $250,000—both conditions must be met[3][5][7]",
-        "Social Security benefits COUNT toward the income limit[2][7]",
-        "All household members' income counts, even if they are not on the property title[1][4]",
-        "Availability varies significantly by county—not all Florida counties have adopted these exemptions[5]",
-        "First-time applicants must submit a Household Income Sworn Statement (Form DR-501SC); renewal requirements may differ[1]"
-      ],
-      "data_shape_notes": "This program has two distinct tiers: (1) Limited-Income Senior Exemption ($50,000 off assessed value) available in most participating counties, and (2) Long-Term Residency Senior Exemption (full assessed value exemption) available only in select counties/municipalities with additional requirements (25-year residency, property value under $250,000). Availability is county-dependent, not statewide. Income limits are uniform statewide but adjusted annually. The exemption applies only to non-school tax millages, creating a significant limitation on benefit value. Application is decentralized through county property appraisers, with no centralized state application process.",
-      "_raw": "```json\n{\n  \"name\": \"Additional Homestead Exemption for Seniors (Florida)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"age_requirement_detail\": \"Must be 65 years of age or older as of January 1 of the year for which the exemption is claimed[2][7]\",\n    \"income_limits\": {\n      \"2026_limit\": \"$38,686\",\n      \"description\": \"Total adjusted gross household income for all persons residing in the homestead cannot exceed $38,686[3][7][8]. This limit is adjusted annually by the percentage change in the average cost-of-living index[2][4]\",\n      \"what_counts\": \"Adjusted gross income includes Social Security benefits, pension, VA retirement annuities, interest income, wages, and Veteran's Affairs benefits[2][7]\",\n      \"calculation_method\": \"Adjusted gross income is the amount reported on IRS Form 1040 or Form 1040A. If the applicant is not required to file income tax, total income minus Social Security benefits[7]\"\n    },\n    \"asset_limits\": null,\n    \"other_requirements\": [\n      \"Must already have or qualify for a regular Homestead Exemption (own and reside on the property as permanent residence as of January 1)[1][4][7]\",\n      \"Must be a permanent resident of Florida as of January 1 of the year of application[2][4]\",\n      \"For Long-term Residency Senior Exemption variant: must have maintained permanent residence on the property for at least 25 consecutive years[3][5][7]\",\n      \"For Long-term Residency variant: property must have a just value less than $250,000 in the first tax year of application[3][5][7]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Up to $50,000 exemption off the assessed value for the limited-income senior exemption; full assessed value exemption for long-term residency senior exemption (25+ years residency)[5][8]\",\n    \"applies_to\": \"County and municipal millages (tax rates) only—does not apply to school district or other taxing unit millages[5][6]\",\n    \"varies_by\": \"residency_duration_and_property_value\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"In-person: Contact your local county property appraiser office (varies by county)\",\n      \"Mail: Submit application to your county property appraiser\",\n      \"Phone: Contact your county property appraiser for guidance (specific numbers vary by county)\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"Form DR-501SC (Household Income Sworn Statement and Return) — required for first-time applicants[1][8]\"\n    ],\n    \"documents\": [\n      \"Proof of age: Driver license, Florida ID, Voter ID, or Birth Certificate[1]\",\n      \"Proof of income: IRS Form 1040, Form 1040A, or Social Security Statement (SSA 1099)[7][8]\",\n      \"For all household members: adjusted gross income documentation[1]\",\n      \"Social Security number of applicant and spouse (even if spouse is not on title or does not live on property)[4]\",\n      \"For non-citizens: copy of Permanent Residence Card (Green Card)[4]\",\n      \"At least two (2) forms of Florida residency identification for each resident[4]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Available only in counties or municipalities that have adopted local ordinances under Section 6(d) of Article VII of the Florida Constitution and Section 196.075, Florida Statutes[5]\",\n    \"regional_variations\": \"Some counties offer only the limited-income senior exemption ($50,000); others offer both the limited-income exemption and the long-term residency exemption (full assessed value). For example, in Hillsborough County, the long-term residency exemption applies only to residents within the City of Tampa and Unincorporated Hillsborough County[6]\",\n    \"offices_or_providers\": [\n      \"Lee County Property Appraiser[1]\",\n      \"Gulf County Property Appraiser[2]\",\n      \"Brevard County Property Appraiser[3]\",\n      \"Lake County Property Appraiser[4]\",\n      \"Hillsborough County Property Appraiser[6]\",\n      \"Duval County (Jacksonville) Property Appraiser[7]\",\n      \"Nassau County Property Appraiser[8]\",\n      \"Contact your local county property appraiser for availability in your specific county[5]\"\n    ]\n  },\n  \"official_source\": \"https://floridarevenue.com/property/Documents/AdditionalHomesteadExemptions.pdf\",\n  \"gotchas\": [\n    \"This exemption is NOT automatic—applicants must apply and meet all requirements[1][7]\",\n    \"The exemption applies ONLY to county and municipal tax millages, NOT to school district taxes or other taxing units[5][6]\",\n    \"Income limits are based on PRIOR YEAR income, not current year[7][8]\",\n    \"The income limit is adjusted annually in January—families must requalify each year if their income changes[2][4]\",\n    \"Applicants must already have or qualify for a regular Homestead Exemption first; this is an ADDITIONAL exemption, not a standalone benefit[1][2][4]\",\n    \"The long-term residency exemption (full assessed value) requires 25 consecutive years of permanent residence AND property value under $250,000—both conditions must be met[3][5][7]\",\n    \"Social Security benefits COUNT toward the income limit[2][7]\",\n    \"All household members' income counts, even if they are not on the property title[1][4]\",\n    \"Availability varies significantly by county—not all Florida counties have adopted these exemptions[5]\",\n    \"First-time applicants must submit a Household Income Sworn Statement (Form DR-501SC); renewal requirements may differ[1]\"\n  ],\n  \"data_shape_notes\": \"This program has two distinct tiers: (1) Limited-Income Senior Exemption ($50,000 off assessed value) available in most participating counties, and (2) Long-Term Residency Senior Exemption (full assessed value exemption) available only in select counties/municipalities with additional requirements (25-year residency, property value under $250,000). Availability is county-dependent, not statewide. Income limits are uniform statewide but adjusted annually. The exemption applies only to non-school tax millages, creating a significant limitation on benefit value. Application is decentralized through county property appraisers, with no centralized state application process.\"\n}\n```\n\n## Key Takeaways for Families\n\n**Before applying, verify your county participates.** Not all Florida counties have adopted these exemptions[5]. Contact your local county property appraiser to confirm availability.\n\n**Income is the primary barrier.** The $38,686 income limit for 2026 is strict and includes all household members' income plus Social Security benefits[7][8]. Families should calculate total household income carefully before applying.\n\n**This stacks on top of regular homestead exemption.** You must already qualify for and have a standard homestead exemption to be eligible for this additional exemption[1][4].\n\n**The long-term residency option is powerful but restrictive.** If your loved one has lived on the property for 25+ consecutive years and the property is worth under $250,000, they may qualify for a full assessed value exemption instead of just $50,000[5][7]. However, this requires both conditions to be met.\n\n**Tax savings apply only to county/municipal taxes, not school taxes.** This significantly limits the benefit in many areas where school taxes represent the largest portion of property tax bills[5][6]."
+      "name": "Legal Aid for Seniors",
+      "_parseError": true,
+      "_raw": "I cannot provide the comprehensive JSON response you've requested because the search results do not contain sufficient specific data to populate most of the fields accurately.\n\nHere's what the search results *do* provide:\n\n**What I can confirm:**\n- **Age requirement:** 60 years or older[4][5]\n- **Primary service model:** Free telephone legal advice and brief services[5]\n- **Income subject to guidelines:** Yes, but specific dollar amounts are not stated in these results[4]\n- **Asset limits:** Not subject to asset guidelines[4]\n- **Main helpline:** Florida Senior Legal Helpline at 1-888-895-7873[4][5]\n- **Service areas:** Consumer, housing, family law, probate, advance directives, Medicaid/Medicare, Social Security, elder abuse, relative caregiver issues[4][5]\n- **Geographic scope:** Statewide, but with multiple local providers[5][6]\n\n**Critical gaps in the search results:**\n\n1. **Exact income limits in dollars:** The results reference \"income guidelines\" but don't provide the actual threshold amounts or household-size tables[4]\n2. **Processing times:** Not specified\n3. **Waitlist information:** Not provided\n4. **Specific required documents:** Not detailed\n5. **Regional variations in wait times or service levels:** Not documented\n6. **Application forms:** No specific form names or numbers provided\n7. **Online application URLs:** Not included for the statewide helpline\n8. **Benefits structure/tiers:** Not detailed\n\n**What you need to do:**\n\nTo build an accurate guide, you should:\n- Call the Florida Senior Legal Helpline directly at 1-888-895-7873 to ask about current income thresholds and processing times\n- Visit the Florida Department of Elder Affairs website (law.elderaffairs.org) for official income guidelines\n- Contact individual regional providers listed in the search results for local variations and specific documentation requirements\n\nThe search results show that Florida has a *network* of providers rather than a single unified program, which means eligibility and processes may vary by county and provider."
     },
     {
-      "name": "SHINE (Serving Health Insurance Needs of Elders)",
+      "name": "Long-Term Care Ombudsman Program",
       "eligibility": {
         "age": null,
-        "income_limits": "No income or asset limits for SHINE counseling itself; open to all Medicare beneficiaries, families, and caregivers. SHINE assists with programs like Extra Help (monthly income below $1,995 single; resources below $18,090) and Medicare Savings Programs (limits vary, apply even if slightly higher).[8]",
-        "asset_limits": "No asset limits for SHINE access. For assisted programs like Extra Help, resources below $18,090 (excludes home, car, etc.; consult SHINE for details).[8]",
+        "income_limits": "No income limits; open to anyone regardless of financial status.",
+        "asset_limits": "No asset limits; no financial requirements apply.",
         "other_requirements": [
-          "Medicare beneficiary or prospective beneficiary (Parts A/B enrollment for some assisted benefits)",
-          "Florida resident",
-          "No affiliation requirement; services free to all regardless of income/age"
+          "Resident (or representative of resident) of a long-term care facility in Florida, including nursing homes, assisted living facilities, adult family-care homes, and continuing care retirement communities. Also available to relatives, friends, concerned facility staff, or any person/group concerned about residents' treatment."
         ]
       },
       "benefits": {
         "type": "advocacy",
-        "value": "Free, unbiased, confidential one-on-one counseling on Medicare eligibility/enrollment, health plan choices, appeals, Medigap, long-term care insurance, prescription assistance, fraud prevention, and financial aid programs like Extra Help/Medicare Savings Programs. Educational presentations and community outreach also available.[3][5][6]",
+        "value": "Free, confidential advocacy services including identifying, investigating, and resolving complaints on behalf of residents; visiting facilities to monitor conditions and support residents; providing information on nursing homes; assisting with issues like relocations, rights violations, and fair treatment; proactive problem prevention.",
         "varies_by": "not_applicable"
       },
       "application": {
         "methods": [
-          "Phone: Toll-free Elder Helpline 1-800-963-5337 (8am-5pm)",
-          "Website: www.floridashine.org (find counseling sites, online volunteer app, orientation)",
-          "In-person: Local Area Agency on Aging SHINE sites (locate via website)",
-          "Online training/orientation: http://training.floridashine.org/STL_Modules/Orientation/story.html (for volunteers)"
+          "Phone: toll-free 1-888-831-0404 (primary contact for residents, families, or concerns); Local: (850) 414-2323; Email: LTCOPInformer@elderaffairs.org; Mail: Long-Term Care Ombudsman Program, 4040 Esplanade Way, Suite 380, Tallahassee, FL 32399-7000"
         ],
-        "processing_time": "Immediate counseling availability via phone/sites; no formal processing for service access",
+        "processing_time": "Immediate response to complaints; no formal processing timeline specified as services are provided on-demand by volunteers and staff.",
         "waitlist": null,
         "forms": [
-          "No specific client application form; consultation-based. Volunteer application online or via phone"
+          "No specific application forms required for receiving services; volunteer application exists but not for residents seeking help."
         ],
         "documents": [
-          "Medicare card, income/resource details for assisted program applications (e.g., Extra Help), insurance documents for review"
+          "No documents needed to request assistance; provide details of the complaint or concern verbally or in writing."
         ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "Florida only",
-        "regional_variations": "Delivered through 11 local Area Agencies on Aging; volunteer networks, counseling sites, and events vary by region (e.g., Senior Connection Center in Tampa serves specific counties; SWFL AAA serves southwest).[4][6][7]",
+        "restrictions": "Services limited to residents of licensed long-term care facilities statewide.",
+        "regional_variations": "Delivered through 14 (or 13) district offices covering the entire state; local volunteers and district managers handle cases, but core services consistent statewide.",
         "offices_or_providers": [
-          "Florida Department of Elder Affairs, 4040 Esplanade Way, Suite 280-S, Tallahassee, FL 32399",
-          "Local Area Agencies on Aging (find via www.floridashine.org)"
+          "14 district offices coordinated by the Department of Elder Affairs; contact central toll-free number for local routing."
         ]
       },
-      "official_source": "www.floridashine.org",
+      "official_source": "https://elderaffairs.org/programs-and-services/long-term-care-ombudsman-program/",
       "gotchas": [
-        "SHINE does not provide direct financial aid or healthcare; it counsels on accessing Medicare-related benefits. Not affiliated with insurers—volunteers neither sell nor recommend specific plans.",
-        "Many eligible for savings programs (e.g., 35,000+ in some areas) remain unenrolled; must consult SHINE for application help.",
-        "Virtual/in-person events vary; check site for availability.",
-        "Assists with Extra Help/MSP but eligibility screened separately (e.g., DEERS for TRICARE)."
+        "Not a Medicaid or financial assistance program—purely advocacy for facility residents, not direct care or funding; requires no affiliation with facilities for ombudsman volunteers to maintain impartiality; services are complaint-driven, not automatic enrollment; distinct from Long-Term Care (LTC) Medicaid services which have strict age, Medicaid, and nursing home level-of-care requirements."
       ],
-      "data_shape_notes": "Counseling program with no client eligibility barriers; assists applying to tiered financial aid programs with income/resource tests; volunteer-driven via regional Area Agencies on Aging",
-      "_raw": "{\n  \"name\": \"SHINE (Serving Health Insurance Needs of Elders)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income or asset limits for SHINE counseling itself; open to all Medicare beneficiaries, families, and caregivers. SHINE assists with programs like Extra Help (monthly income below $1,995 single; resources below $18,090) and Medicare Savings Programs (limits vary, apply even if slightly higher).[8]\",\n    \"asset_limits\": \"No asset limits for SHINE access. For assisted programs like Extra Help, resources below $18,090 (excludes home, car, etc.; consult SHINE for details).[8]\",\n    \"other_requirements\": [\"Medicare beneficiary or prospective beneficiary (Parts A/B enrollment for some assisted benefits)\", \"Florida resident\", \"No affiliation requirement; services free to all regardless of income/age\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Free, unbiased, confidential one-on-one counseling on Medicare eligibility/enrollment, health plan choices, appeals, Medigap, long-term care insurance, prescription assistance, fraud prevention, and financial aid programs like Extra Help/Medicare Savings Programs. Educational presentations and community outreach also available.[3][5][6]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Toll-free Elder Helpline 1-800-963-5337 (8am-5pm)\", \"Website: www.floridashine.org (find counseling sites, online volunteer app, orientation)\", \"In-person: Local Area Agency on Aging SHINE sites (locate via website)\", \"Online training/orientation: http://training.floridashine.org/STL_Modules/Orientation/story.html (for volunteers)\"],\n    \"processing_time\": \"Immediate counseling availability via phone/sites; no formal processing for service access\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific client application form; consultation-based. Volunteer application online or via phone\"],\n    \"documents\": [\"Medicare card, income/resource details for assisted program applications (e.g., Extra Help), insurance documents for review\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Florida only\",\n    \"regional_variations\": \"Delivered through 11 local Area Agencies on Aging; volunteer networks, counseling sites, and events vary by region (e.g., Senior Connection Center in Tampa serves specific counties; SWFL AAA serves southwest).[4][6][7]\",\n    \"offices_or_providers\": [\"Florida Department of Elder Affairs, 4040 Esplanade Way, Suite 280-S, Tallahassee, FL 32399\", \"Local Area Agencies on Aging (find via www.floridashine.org)\"]\n  },\n  \"official_source\": \"www.floridashine.org\",\n  \"gotchas\": [\"SHINE does not provide direct financial aid or healthcare; it counsels on accessing Medicare-related benefits. Not affiliated with insurers—volunteers neither sell nor recommend specific plans.\", \"Many eligible for savings programs (e.g., 35,000+ in some areas) remain unenrolled; must consult SHINE for application help.\", \"Virtual/in-person events vary; check site for availability.\", \"Assists with Extra Help/MSP but eligibility screened separately (e.g., DEERS for TRICARE).\"],\n  \"data_shape_notes\": \"Counseling program with no client eligibility barriers; assists applying to tiered financial aid programs with income/resource tests; volunteer-driven via regional Area Agencies on Aging\"\n}"
+      "data_shape_notes": "no income test; open to any concerned party for facility residents; volunteer-based advocacy network across 14 districts; complaint-resolution focused, not service provision or financial aid.",
+      "_raw": "{\n  \"name\": \"Long-Term Care Ombudsman Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; open to anyone regardless of financial status.\",\n    \"asset_limits\": \"No asset limits; no financial requirements apply.\",\n    \"other_requirements\": [\"Resident (or representative of resident) of a long-term care facility in Florida, including nursing homes, assisted living facilities, adult family-care homes, and continuing care retirement communities. Also available to relatives, friends, concerned facility staff, or any person/group concerned about residents' treatment.\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Free, confidential advocacy services including identifying, investigating, and resolving complaints on behalf of residents; visiting facilities to monitor conditions and support residents; providing information on nursing homes; assisting with issues like relocations, rights violations, and fair treatment; proactive problem prevention.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: toll-free 1-888-831-0404 (primary contact for residents, families, or concerns); Local: (850) 414-2323; Email: LTCOPInformer@elderaffairs.org; Mail: Long-Term Care Ombudsman Program, 4040 Esplanade Way, Suite 380, Tallahassee, FL 32399-7000\"],\n    \"processing_time\": \"Immediate response to complaints; no formal processing timeline specified as services are provided on-demand by volunteers and staff.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific application forms required for receiving services; volunteer application exists but not for residents seeking help.\"],\n    \"documents\": [\"No documents needed to request assistance; provide details of the complaint or concern verbally or in writing.\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Services limited to residents of licensed long-term care facilities statewide.\",\n    \"regional_variations\": \"Delivered through 14 (or 13) district offices covering the entire state; local volunteers and district managers handle cases, but core services consistent statewide.\",\n    \"offices_or_providers\": [\"14 district offices coordinated by the Department of Elder Affairs; contact central toll-free number for local routing.\"]\n  },\n  \"official_source\": \"https://elderaffairs.org/programs-and-services/long-term-care-ombudsman-program/\",\n  \"gotchas\": [\"Not a Medicaid or financial assistance program—purely advocacy for facility residents, not direct care or funding; requires no affiliation with facilities for ombudsman volunteers to maintain impartiality; services are complaint-driven, not automatic enrollment; distinct from Long-Term Care (LTC) Medicaid services which have strict age, Medicaid, and nursing home level-of-care requirements.\"],\n  \"data_shape_notes\": \"no income test; open to any concerned party for facility residents; volunteer-based advocacy network across 14 districts; complaint-resolution focused, not service provision or financial aid.\"\n}"
+    },
+    {
+      "name": "Home Care for the Elderly",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Must have self-declared income and assets not exceeding Institutional Care Program (ICP) limits established by Medicaid and DCF. SSI, QMB, or SLMB recipients automatically meet financial criteria. Specific 2026 ICP limits: single applicant income under $2,982/month (varies by program pathway; no full household table provided in sources).[1][2][4]",
+        "asset_limits": "Assets must not exceed ICP limits (e.g., $2,000 for single nursing home Medicaid applicants in 2026). Counts toward countable assets per Medicaid rules; exemptions not detailed in sources but typically include primary home, one vehicle, personal belongings per standard Medicaid.[1][4]",
+        "other_requirements": [
+          "Florida resident with intent to remain in state.",
+          "At risk of nursing home placement based on 701B assessment.",
+          "Adult caregiver (18+ years old) living in private home, providing full-time family-type living arrangement, willing to accept responsibility for social, physical, and emotional needs."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home-based services to prevent nursing home placement, including personal care, homemaker services, and support via adult caregiver in private home. Specific hours/dollar amounts or service lists not detailed; focuses on enabling aging in place with caregiver support.[1][2]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local Aging and Disability Resource Center (ADRC) or Department of Elder Affairs (DOEA) office (specific phone/website not in results; statewide network via elderaffairs.org implied).",
+          "No specific online URL, phone number, mail, or in-person details provided in sources."
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": null,
+        "forms": [],
+        "documents": [
+          "Proof of income/assets (self-declared).",
+          "SSI/QMB/SLMB documentation if applicable.",
+          "701B assessment for nursing home risk.",
+          "Caregiver details (age, living arrangement, willingness statement)."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Administered locally via DOEA-contracted providers; potential differences in wait times, providers, or offices by region/county not detailed.[1]",
+        "offices_or_providers": [
+          "Local DOEA Aging and Disability Resource Centers (ADRCs)"
+        ]
+      },
+      "official_source": "https://www.agingcarefl.org/uploads/1/3/6/5/136526411/2020-chapter-6-home-care-for-the-elderly-program.pdf",
+      "gotchas": [
+        "Requires live-in adult caregiver (18+) committed full-time; not for those without family-type arrangement.",
+        "Financial eligibility tied to ICP/SSI/QMB/SLMB; self-declared but verified against Medicaid limits.",
+        "Must be at risk of nursing home placement via specific 701B assessment, not just general home care need.",
+        "Not standard Medicaid home health; caregiver-focused to avoid institutionalization."
+      ],
+      "data_shape_notes": "Tied to ICP Medicaid limits and requires dedicated live-in caregiver; functional eligibility via 701B nursing home risk assessment; statewide but locally administered.",
+      "_raw": "{\n  \"name\": \"Home Care for the Elderly\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Must have self-declared income and assets not exceeding Institutional Care Program (ICP) limits established by Medicaid and DCF. SSI, QMB, or SLMB recipients automatically meet financial criteria. Specific 2026 ICP limits: single applicant income under $2,982/month (varies by program pathway; no full household table provided in sources).[1][2][4]\",\n    \"asset_limits\": \"Assets must not exceed ICP limits (e.g., $2,000 for single nursing home Medicaid applicants in 2026). Counts toward countable assets per Medicaid rules; exemptions not detailed in sources but typically include primary home, one vehicle, personal belongings per standard Medicaid.[1][4]\",\n    \"other_requirements\": [\n      \"Florida resident with intent to remain in state.\",\n      \"At risk of nursing home placement based on 701B assessment.\",\n      \"Adult caregiver (18+ years old) living in private home, providing full-time family-type living arrangement, willing to accept responsibility for social, physical, and emotional needs.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home-based services to prevent nursing home placement, including personal care, homemaker services, and support via adult caregiver in private home. Specific hours/dollar amounts or service lists not detailed; focuses on enabling aging in place with caregiver support.[1][2]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Aging and Disability Resource Center (ADRC) or Department of Elder Affairs (DOEA) office (specific phone/website not in results; statewide network via elderaffairs.org implied).\",\n      \"No specific online URL, phone number, mail, or in-person details provided in sources.\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": [\n      \"Proof of income/assets (self-declared).\",\n      \"SSI/QMB/SLMB documentation if applicable.\",\n      \"701B assessment for nursing home risk.\",\n      \"Caregiver details (age, living arrangement, willingness statement).\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Administered locally via DOEA-contracted providers; potential differences in wait times, providers, or offices by region/county not detailed.[1]\",\n    \"offices_or_providers\": [\"Local DOEA Aging and Disability Resource Centers (ADRCs)\"]\n  },\n  \"official_source\": \"https://www.agingcarefl.org/uploads/1/3/6/5/136526411/2020-chapter-6-home-care-for-the-elderly-program.pdf\",\n  \"gotchas\": [\n    \"Requires live-in adult caregiver (18+) committed full-time; not for those without family-type arrangement.\",\n    \"Financial eligibility tied to ICP/SSI/QMB/SLMB; self-declared but verified against Medicaid limits.\",\n    \"Must be at risk of nursing home placement via specific 701B assessment, not just general home care need.\",\n    \"Not standard Medicaid home health; caregiver-focused to avoid institutionalization.\"\n  ],\n  \"data_shape_notes\": \"Tied to ICP Medicaid limits and requires dedicated live-in caregiver; functional eligibility via 701B nursing home risk assessment; statewide but locally administered.\"\n}"
+    },
+    {
+      "name": "Optional State Supplementation (OSS)",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "Income must be within standards in Fla. Admin. Code Ann. R. 65A-2.036(3). Specific limits include not exceeding $752.40 gross monthly countable income (2010 data); recent mentions suggest $828.40 for an individual in assisted living or $1,656.80 for a married couple. Exact current limits require checking with Department of Children and Families as they align with SSI standards but are state-set.",
+        "asset_limits": "Assets within SSA Title XVI SSI standards: $2,000 for an individual, $3,000 for a couple. Counts standard SSI countable assets; exemptions follow federal SSI rules (e.g., primary home if occupied, one vehicle, household goods).",
+        "other_requirements": [
+          "Age 65 or older, or 18+ and blind/disabled per SSA Title XVI (20 C.F.R. §§416 et seq.).",
+          "Florida resident with intent to remain.",
+          "U.S. citizen or qualified noncitizen (8 U.S.C. §1641(b)).",
+          "Apply for and pursue all other potential benefits (per 20 C.F.R. §416.210 and 42 C.F.R. §435.608).",
+          "Live in licensed Assisted Living Facility (per §429.02(5), F.S.), Adult Family Care Home (§429.65(2), F.S.), or Mental Health Residential Treatment Facility (§394.67(23), F.S.), meeting needs via medical/social evaluations (Ch. 59A-36, 59A-37, or 65E-4, F.A.C.).",
+          "Need assistance with activities of daily living due to physical/mental conditions."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Monthly cash payment: Gross countable income subtracted from standard provider rate + personal needs allowance (e.g., up to $78.40 difference as state optional payment; includes $54 personal needs allowance in some cases). Payment levels vary by facility type (e.g., Medicaid facility: $35 individual/$70 couple provider rate, $5/$10 personal needs). Supplements SSI or grandfathered eligibility to pay facility costs.",
+        "varies_by": "living_arrangement|facility_type"
+      },
+      "application": {
+        "methods": [
+          "In-person or mail: Local offices of Florida Department of Children and Families (DCF).",
+          "Phone: Contact local DCF office (e.g., North Broward Regional Service Center via navigateresources.net listing).",
+          "State-administered; SSI application may coordinate in some cases."
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": null,
+        "forms": [
+          "No specific form name/number listed; apply via DCF for OSS determination."
+        ],
+        "documents": [
+          "Proof of age/identity (e.g., birth certificate, ID).",
+          "Proof of residency and intent to remain in Florida.",
+          "Income documentation (e.g., SSI award, pay stubs).",
+          "Asset statements.",
+          "Proof of U.S. citizenship/qualified noncitizen status.",
+          "Medical/social evaluations confirming facility meets needs and ADL assistance required.",
+          "Proof of other benefits applied for/pursued."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Limited to licensed facilities statewide: assisted living, adult family care homes, mental health residential treatment facilities.",
+        "regional_variations": "Administered via local DCF offices; potential differences in processing or wait times by region (e.g., North Broward office), but no specific variations detailed.",
+        "offices_or_providers": [
+          "Local DCF offices (e.g., regional service centers)."
+        ]
+      },
+      "official_source": "https://www.flrules.org/gateway/RuleNo.asp?id=65A-2.032 (Fla. Admin. Code Ann. R. 65A-2.032); https://www.myflfamilies.com/service-programs/access/ (DCF ACCESS Florida)",
+      "gotchas": [
+        "Strictly for residents of specific licensed facilities only—not independent living or home.",
+        "Must meet facility 'needs-based' criteria via objective medical/social evaluations.",
+        "Income/assets tied to SSI standards but state supplements only if in qualifying arrangement and income below state limit (may differ from federal SSI).",
+        "Recipients must pursue all other benefits; losing SSI due to Title II increases may retain OSS if in specific arrangement and under income limit.",
+        "Payments go toward facility provider rate + personal needs; third-party supplements allowed but paid to facility, not recipient.",
+        "Grandfathered eligibility possible for those meeting SSI criteria except income."
+      ],
+      "data_shape_notes": "Facility-restricted to assisted living/adult family care/mental health residential; payment calculated as provider rate + personal needs allowance minus countable income; scales by facility type and couple status; state-funded supplement to SSI.",
+      "_raw": "{\n  \"name\": \"Optional State Supplementation (OSS)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Income must be within standards in Fla. Admin. Code Ann. R. 65A-2.036(3). Specific limits include not exceeding $752.40 gross monthly countable income (2010 data); recent mentions suggest $828.40 for an individual in assisted living or $1,656.80 for a married couple. Exact current limits require checking with Department of Children and Families as they align with SSI standards but are state-set.\",\n    \"asset_limits\": \"Assets within SSA Title XVI SSI standards: $2,000 for an individual, $3,000 for a couple. Counts standard SSI countable assets; exemptions follow federal SSI rules (e.g., primary home if occupied, one vehicle, household goods).\",\n    \"other_requirements\": [\n      \"Age 65 or older, or 18+ and blind/disabled per SSA Title XVI (20 C.F.R. §§416 et seq.).\",\n      \"Florida resident with intent to remain.\",\n      \"U.S. citizen or qualified noncitizen (8 U.S.C. §1641(b)).\",\n      \"Apply for and pursue all other potential benefits (per 20 C.F.R. §416.210 and 42 C.F.R. §435.608).\",\n      \"Live in licensed Assisted Living Facility (per §429.02(5), F.S.), Adult Family Care Home (§429.65(2), F.S.), or Mental Health Residential Treatment Facility (§394.67(23), F.S.), meeting needs via medical/social evaluations (Ch. 59A-36, 59A-37, or 65E-4, F.A.C.).\",\n      \"Need assistance with activities of daily living due to physical/mental conditions.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly cash payment: Gross countable income subtracted from standard provider rate + personal needs allowance (e.g., up to $78.40 difference as state optional payment; includes $54 personal needs allowance in some cases). Payment levels vary by facility type (e.g., Medicaid facility: $35 individual/$70 couple provider rate, $5/$10 personal needs). Supplements SSI or grandfathered eligibility to pay facility costs.\",\n    \"varies_by\": \"living_arrangement|facility_type\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"In-person or mail: Local offices of Florida Department of Children and Families (DCF).\",\n      \"Phone: Contact local DCF office (e.g., North Broward Regional Service Center via navigateresources.net listing).\",\n      \"State-administered; SSI application may coordinate in some cases.\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific form name/number listed; apply via DCF for OSS determination.\"],\n    \"documents\": [\n      \"Proof of age/identity (e.g., birth certificate, ID).\",\n      \"Proof of residency and intent to remain in Florida.\",\n      \"Income documentation (e.g., SSI award, pay stubs).\",\n      \"Asset statements.\",\n      \"Proof of U.S. citizenship/qualified noncitizen status.\",\n      \"Medical/social evaluations confirming facility meets needs and ADL assistance required.\",\n      \"Proof of other benefits applied for/pursued.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Limited to licensed facilities statewide: assisted living, adult family care homes, mental health residential treatment facilities.\",\n    \"regional_variations\": \"Administered via local DCF offices; potential differences in processing or wait times by region (e.g., North Broward office), but no specific variations detailed.\",\n    \"offices_or_providers\": [\"Local DCF offices (e.g., regional service centers).\"]\n  },\n  \"official_source\": \"https://www.flrules.org/gateway/RuleNo.asp?id=65A-2.032 (Fla. Admin. Code Ann. R. 65A-2.032); https://www.myflfamilies.com/service-programs/access/ (DCF ACCESS Florida)\",\n  \"gotchas\": [\n    \"Strictly for residents of specific licensed facilities only—not independent living or home.\",\n    \"Must meet facility 'needs-based' criteria via objective medical/social evaluations.\",\n    \"Income/assets tied to SSI standards but state supplements only if in qualifying arrangement and income below state limit (may differ from federal SSI).\",\n    \"Recipients must pursue all other benefits; losing SSI due to Title II increases may retain OSS if in specific arrangement and under income limit.\",\n    \"Payments go toward facility provider rate + personal needs; third-party supplements allowed but paid to facility, not recipient.\",\n    \"Grandfathered eligibility possible for those meeting SSI criteria except income.\"\n  ],\n  \"data_shape_notes\": \"Facility-restricted to assisted living/adult family care/mental health residential; payment calculated as provider rate + personal needs allowance minus countable income; scales by facility type and couple status; state-funded supplement to SSI.\"\n}"
+    },
+    {
+      "name": "Homestead Exemption for Seniors",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "Adjusted gross household income from prior year for all household members cannot exceed the annual limit set by Florida Department of Revenue, adjusted by cost-of-living index. For 2026: $38,686 statewide in most counties (e.g., Duval, Nassau, Lake); $31,100 in Gulf County. No variation by household size. Income includes Social Security, pensions, VA benefits, wages, interest; computed as IRS Form 1040 adjusted gross income, or total income minus Social Security if no tax return filed.[5][6][8][3]",
+        "asset_limits": "No asset limits; eligibility based on income, age, and homestead only.[1][2]",
+        "other_requirements": [
+          "Must qualify for and receive standard Florida Homestead Exemption (permanent Florida resident, own and reside in property as of January 1).[1][2][5]",
+          "At least one homeowner 65 or older as of January 1.[1][2][5]",
+          "Some counties require 25 years continuous residency (e.g., Monroe, Hillsborough, Duval for additional tier).[1][4][5]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Additional homestead exemption up to $50,000 off assessed value for non-school taxes (applies after standard $50,000 homestead exemption).[2][6][9]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local County Property Appraiser office (varies by county; e.g., online portals or in-person at appraiser offices)",
+          "Mail or in-person: Submit to county property appraiser"
+        ],
+        "processing_time": "Renewal automatic annually if no changes; new applications processed by March 1 deadline (income by June 1 if needed).[2]",
+        "waitlist": null,
+        "forms": [
+          "DR-501 (Homestead Exemption)",
+          "DR-501SC (Senior Citizen Exemption - Household Income Sworn Statement)"
+        ],
+        "documents": [
+          "Proof of age as of January 1: Driver's license, FL ID, passport, birth certificate.[1][2]",
+          "Proof of household income: Prior year IRS Form 1040/1040A, Social Security 1099, or equivalent.[1][2][6]",
+          "Proof of homestead residency (e.g., two forms of FL ID, SSN for applicant and spouse).[8]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Administered by each county property appraiser; optional municipal adoption in some areas (e.g., Hillsborough).[4][7]",
+        "regional_variations": "Income limits vary slightly by county (e.g., $38,686 in 2026 for most, $31,100 in Gulf); some counties add 25-year residency for extra tier or full $50k (e.g., Monroe, Duval, Hillsborough); applies to non-school taxes in some.[1][3][4][5]",
+        "offices_or_providers": [
+          "Local County Property Appraiser offices (e.g., Monroe: mcpafl.org, Lee: leepa.org, Duval: jacksonville.gov/departments/property-appraiser)"
+        ]
+      },
+      "official_source": "https://floridarevenue.com/property/Documents/pt110.pdf",
+      "gotchas": [
+        "Must already have standard homestead exemption; apply for both if new.[1][2][7]",
+        "Income is household total for prior year, includes all residents (not just owners).[1][5][8]",
+        "Annual renewal required or audit possible; mail instructions sent in January.[2]",
+        "Deadlines: March 1 for application, June 1 for income if delayed.[2]",
+        "Varies by county/municipality; not all areas offer full $50k or long-term tier.[4][7]",
+        "Only reduces non-school taxes in some counties.[5][6]"
+      ],
+      "data_shape_notes": "Income limit fixed per household (not scaled by size), set annually by FL DOR; county-specific variations in thresholds, residency tiers, and tax applicability; requires base homestead exemption",
+      "_raw": "{\n  \"name\": \"Homestead Exemption for Seniors\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Adjusted gross household income from prior year for all household members cannot exceed the annual limit set by Florida Department of Revenue, adjusted by cost-of-living index. For 2026: $38,686 statewide in most counties (e.g., Duval, Nassau, Lake); $31,100 in Gulf County. No variation by household size. Income includes Social Security, pensions, VA benefits, wages, interest; computed as IRS Form 1040 adjusted gross income, or total income minus Social Security if no tax return filed.[5][6][8][3]\",\n    \"asset_limits\": \"No asset limits; eligibility based on income, age, and homestead only.[1][2]\",\n    \"other_requirements\": [\n      \"Must qualify for and receive standard Florida Homestead Exemption (permanent Florida resident, own and reside in property as of January 1).[1][2][5]\",\n      \"At least one homeowner 65 or older as of January 1.[1][2][5]\",\n      \"Some counties require 25 years continuous residency (e.g., Monroe, Hillsborough, Duval for additional tier).[1][4][5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Additional homestead exemption up to $50,000 off assessed value for non-school taxes (applies after standard $50,000 homestead exemption).[2][6][9]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local County Property Appraiser office (varies by county; e.g., online portals or in-person at appraiser offices)\",\n      \"Mail or in-person: Submit to county property appraiser\"\n    ],\n    \"processing_time\": \"Renewal automatic annually if no changes; new applications processed by March 1 deadline (income by June 1 if needed).[2]\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"DR-501 (Homestead Exemption)\",\n      \"DR-501SC (Senior Citizen Exemption - Household Income Sworn Statement)\"\n    ],\n    \"documents\": [\n      \"Proof of age as of January 1: Driver's license, FL ID, passport, birth certificate.[1][2]\",\n      \"Proof of household income: Prior year IRS Form 1040/1040A, Social Security 1099, or equivalent.[1][2][6]\",\n      \"Proof of homestead residency (e.g., two forms of FL ID, SSN for applicant and spouse).[8]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Administered by each county property appraiser; optional municipal adoption in some areas (e.g., Hillsborough).[4][7]\",\n    \"regional_variations\": \"Income limits vary slightly by county (e.g., $38,686 in 2026 for most, $31,100 in Gulf); some counties add 25-year residency for extra tier or full $50k (e.g., Monroe, Duval, Hillsborough); applies to non-school taxes in some.[1][3][4][5]\",\n    \"offices_or_providers\": [\"Local County Property Appraiser offices (e.g., Monroe: mcpafl.org, Lee: leepa.org, Duval: jacksonville.gov/departments/property-appraiser)\"]\n  },\n  \"official_source\": \"https://floridarevenue.com/property/Documents/pt110.pdf\",\n  \"gotchas\": [\n    \"Must already have standard homestead exemption; apply for both if new.[1][2][7]\",\n    \"Income is household total for prior year, includes all residents (not just owners).[1][5][8]\",\n    \"Annual renewal required or audit possible; mail instructions sent in January.[2]\",\n    \"Deadlines: March 1 for application, June 1 for income if delayed.[2]\",\n    \"Varies by county/municipality; not all areas offer full $50k or long-term tier.[4][7]\",\n    \"Only reduces non-school taxes in some counties.[5][6]\"\n  ],\n  \"data_shape_notes\": \"Income limit fixed per household (not scaled by size), set annually by FL DOR; county-specific variations in thresholds, residency tiers, and tax applicability; requires base homestead exemption\"\n}"
+    },
+    {
+      "name": "Florida Discount Drug Card Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits or requirements. Open to all Florida residents regardless of income.[2][3][5]",
+        "asset_limits": "No asset limits or requirements.",
+        "other_requirements": [
+          "Florida resident. No prescription drug coverage required, but can supplement existing coverage, Medicare Part D gaps, or non-covered drugs.[2][3][5]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Discounts on prescriptions (average 30%, up to 75% on some drugs), diabetic supplies (test strips, syringes, glucose monitors), eyeglasses, hearing aids, nutritional supplements. Accepted at over 60,000 pharmacies nationwide, including all major chains. Brand and generic eligible; open formulary.[3][4][5][6]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Online: www.FloridaRxCard.com (print free card instantly, search pricing, locate pharmacies)[3]",
+          "Health centers, hospitals, clinics, card distribution sites[3]",
+          "Phone: 866-341-8894 (help desk for mail order) or 1-877-321-2652 (program info)[7][8]",
+          "No formal application; instant printable pre-activated card[2][3][6]"
+        ],
+        "processing_time": "Instant; pre-activated cards usable immediately[2][3][6]",
+        "waitlist": null,
+        "forms": [
+          "No forms required[2][3]"
+        ],
+        "documents": [
+          "None required[2][3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to all Florida residents",
+        "regional_variations": null,
+        "offices_or_providers": [
+          "Over 60,000 pharmacies statewide and nationwide[3][4]"
+        ]
+      },
+      "official_source": "https://www.floridashine.org/getattachment/Resources/ResourceLinks/BPrescripAsstOptions.pdf.aspx (SHINE program reference)[5]",
+      "gotchas": [
+        "One-time $1.50 activation fee may apply at first use for permanent card (not all sources confirm)[1][4][5]",
+        "Discount amount varies by drug, pharmacy, brand/generic, supply quantity[4][8]",
+        "Not insurance; cannot be used with insurance on same prescription at some pharmacies[2]",
+        "Older sources (2007) mention outdated income limits and eligibility for under-60; current program has none[1]",
+        "Class II narcotics no longer available via mail order[8]"
+      ],
+      "data_shape_notes": "no income test; completely open eligibility; instant no-form access; nationwide pharmacy network but Florida-focused",
+      "_raw": "{\n  \"name\": \"Florida Discount Drug Card Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits or requirements. Open to all Florida residents regardless of income.[2][3][5]\",\n    \"asset_limits\": \"No asset limits or requirements.\",\n    \"other_requirements\": [\"Florida resident. No prescription drug coverage required, but can supplement existing coverage, Medicare Part D gaps, or non-covered drugs.[2][3][5]\"]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Discounts on prescriptions (average 30%, up to 75% on some drugs), diabetic supplies (test strips, syringes, glucose monitors), eyeglasses, hearing aids, nutritional supplements. Accepted at over 60,000 pharmacies nationwide, including all major chains. Brand and generic eligible; open formulary.[3][4][5][6]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Online: www.FloridaRxCard.com (print free card instantly, search pricing, locate pharmacies)[3]\", \"Health centers, hospitals, clinics, card distribution sites[3]\", \"Phone: 866-341-8894 (help desk for mail order) or 1-877-321-2652 (program info)[7][8]\", \"No formal application; instant printable pre-activated card[2][3][6]\"],\n    \"processing_time\": \"Instant; pre-activated cards usable immediately[2][3][6]\",\n    \"waitlist\": null,\n    \"forms\": [\"No forms required[2][3]\"],\n    \"documents\": [\"None required[2][3]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to all Florida residents\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\"Over 60,000 pharmacies statewide and nationwide[3][4]\"]\n  },\n  \"official_source\": \"https://www.floridashine.org/getattachment/Resources/ResourceLinks/BPrescripAsstOptions.pdf.aspx (SHINE program reference)[5]\",\n  \"gotchas\": [\"One-time $1.50 activation fee may apply at first use for permanent card (not all sources confirm)[1][4][5]\", \"Discount amount varies by drug, pharmacy, brand/generic, supply quantity[4][8]\", \"Not insurance; cannot be used with insurance on same prescription at some pharmacies[2]\", \"Older sources (2007) mention outdated income limits and eligibility for under-60; current program has none[1]\", \"Class II narcotics no longer available via mail order[8]\"],\n  \"data_shape_notes\": \"no income test; completely open eligibility; instant no-form access; nationwide pharmacy network but Florida-focused\"\n}"
+    },
+    {
+      "name": "Alzheimer's Disease Initiative (ADI)",
+      "eligibility": {
+        "age": 18,
+        "income_limits": "No specific statewide income limits or tables mentioned; some local programs (e.g., Broward County) use sliding scale co-payments based on income, but exact dollar amounts not provided[1][4]",
+        "asset_limits": "No asset limits or exemptions specified in available information[1][2]",
+        "other_requirements": [
+          "Diagnosis of Alzheimer’s disease or a related memory disorder (ADRD), or suspected diagnosis",
+          "Documented diagnosis for certain services (e.g., from medical director of state-funded Memory Disorder Clinic, licensed neurologist, psychiatrist, or geriatric internist; requires medical records with exams, analyses, psychiatric assessments, hematological/biochemical studies, and CT/MRI brain scan)",
+          "Functionally impaired and at risk of premature nursing home placement (local variation, e.g., Broward for age 60+)",
+          "Availability of funding (noted as eligibility factor in some areas)"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Respite services (in-home, adult day care, emergency, extended up to 30 days); case management; counseling; consumable medical supplies; caregiver training; supportive services based on comprehensive assessment and unmet needs; stimulation and relief for caregivers; services through Memory Disorder Clinics (testing, education, referral, research, caregiver support); Brain Bank services",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: Elder Helpline at 1-800-96-Elder (1-800-963-5337) to contact local Area Agency on Aging (AAA)[3]",
+          "Local AAA or provider contacts (e.g., Broward: 954-745-9779 or 954-357-6622; Email: ElderlyandVeterans@broward.org)[4][7]",
+          "Through 11 Area Agencies on Aging (AAAs) statewide[3]"
+        ],
+        "processing_time": "Not specified",
+        "waitlist": "Availability of funding affects access; no specific waitlist details[4]",
+        "forms": [],
+        "documents": [
+          "Medical records documenting diagnosis (general/neurological exams, analyses, psychiatric assessments, hematological/biochemical studies, CT/MRI brain scan)",
+          "Proof of age and functional impairment (inferred from assessment process)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Administered through 11 Area Agencies on Aging (AAAs) and 17 Memory Disorder Clinics in 13 service areas[3]",
+        "regional_variations": "Services delivered locally by AAAs and providers; age threshold may vary locally (e.g., Broward specifies 60+); different helplines and offices by county/region; funding availability impacts access[1][3][4]",
+        "offices_or_providers": [
+          "11 Area Agencies on Aging (AAAs)",
+          "17 Memory Disorder Clinics across 13 service areas",
+          "Local examples: Broward County Elderly Services"
+        ]
+      },
+      "official_source": "https://elderaffairs.org/programs-services/alzheimers-disease-initiative/ (inferred from DOEA context; primary docs via agingcarefl.org or elderaffairs.org)[1]",
+      "gotchas": [
+        "No statewide income/asset limits specified, but local sliding scale co-pays and funding availability determine access—contact local AAA for details[4]",
+        "Strict diagnosis documentation required, especially for specialized services like adult day care or Brain Bank[1][2]",
+        "Services authorized post-comprehensive case management assessment, not automatic upon eligibility[6]",
+        "Regional delivery means eligibility/services vary by AAA/provider—must contact local office[3]",
+        "Created in 1985 as respite-focused but expanded; includes non-respite like clinics and training[5]"
+      ],
+      "data_shape_notes": "Administered regionally via 11 AAAs and 17 Memory Disorder Clinics in 13 areas; needs-based services authorized after assessment; no fixed income/asset tests statewide, diagnosis-driven with funding constraints",
+      "_raw": "{\n  \"name\": \"Alzheimer's Disease Initiative (ADI)\",\n  \"eligibility\": {\n    \"age\": 18,\n    \"income_limits\": \"No specific statewide income limits or tables mentioned; some local programs (e.g., Broward County) use sliding scale co-payments based on income, but exact dollar amounts not provided[1][4]\",\n    \"asset_limits\": \"No asset limits or exemptions specified in available information[1][2]\",\n    \"other_requirements\": [\n      \"Diagnosis of Alzheimer’s disease or a related memory disorder (ADRD), or suspected diagnosis\",\n      \"Documented diagnosis for certain services (e.g., from medical director of state-funded Memory Disorder Clinic, licensed neurologist, psychiatrist, or geriatric internist; requires medical records with exams, analyses, psychiatric assessments, hematological/biochemical studies, and CT/MRI brain scan)\",\n      \"Functionally impaired and at risk of premature nursing home placement (local variation, e.g., Broward for age 60+)\",\n      \"Availability of funding (noted as eligibility factor in some areas)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Respite services (in-home, adult day care, emergency, extended up to 30 days); case management; counseling; consumable medical supplies; caregiver training; supportive services based on comprehensive assessment and unmet needs; stimulation and relief for caregivers; services through Memory Disorder Clinics (testing, education, referral, research, caregiver support); Brain Bank services\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Elder Helpline at 1-800-96-Elder (1-800-963-5337) to contact local Area Agency on Aging (AAA)[3]\",\n      \"Local AAA or provider contacts (e.g., Broward: 954-745-9779 or 954-357-6622; Email: ElderlyandVeterans@broward.org)[4][7]\",\n      \"Through 11 Area Agencies on Aging (AAAs) statewide[3]\"\n    ],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": \"Availability of funding affects access; no specific waitlist details[4]\",\n    \"forms\": [],\n    \"documents\": [\n      \"Medical records documenting diagnosis (general/neurological exams, analyses, psychiatric assessments, hematological/biochemical studies, CT/MRI brain scan)\",\n      \"Proof of age and functional impairment (inferred from assessment process)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Administered through 11 Area Agencies on Aging (AAAs) and 17 Memory Disorder Clinics in 13 service areas[3]\",\n    \"regional_variations\": \"Services delivered locally by AAAs and providers; age threshold may vary locally (e.g., Broward specifies 60+); different helplines and offices by county/region; funding availability impacts access[1][3][4]\",\n    \"offices_or_providers\": [\n      \"11 Area Agencies on Aging (AAAs)\",\n      \"17 Memory Disorder Clinics across 13 service areas\",\n      \"Local examples: Broward County Elderly Services\"\n    ]\n  },\n  \"official_source\": \"https://elderaffairs.org/programs-services/alzheimers-disease-initiative/ (inferred from DOEA context; primary docs via agingcarefl.org or elderaffairs.org)[1]\",\n  \"gotchas\": [\n    \"No statewide income/asset limits specified, but local sliding scale co-pays and funding availability determine access—contact local AAA for details[4]\",\n    \"Strict diagnosis documentation required, especially for specialized services like adult day care or Brain Bank[1][2]\",\n    \"Services authorized post-comprehensive case management assessment, not automatic upon eligibility[6]\",\n    \"Regional delivery means eligibility/services vary by AAA/provider—must contact local office[3]\",\n    \"Created in 1985 as respite-focused but expanded; includes non-respite like clinics and training[5]\"\n  ],\n  \"data_shape_notes\": \"Administered regionally via 11 AAAs and 17 Memory Disorder Clinics in 13 areas; needs-based services authorized after assessment; no fixed income/asset tests statewide, diagnosis-driven with funding constraints\"\n}"
+    },
+    {
+      "name": "RELIEF Program (Respite for Elders Living in Everyday Families)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No specific income limits, asset limits, or dollar amounts detailed in available sources; targeted at families caring for frail, homebound elders, including those with Alzheimer’s and related disorders[5]",
+        "asset_limits": "Not specified; no information on what counts or exemptions[5]",
+        "other_requirements": [
+          "Caregiver must be family member or loved one providing constant care to a frail, homebound elderly individual[5]",
+          "Elder must be homebound[5]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "In-home respite care provided by screened volunteers for up to 4 hours at a time, including evenings and weekends; free to caregivers; companionship and relief to prevent caregiver illness[5]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: Elder Helpline at 1-800-963-5337[5]",
+          "In-person or contact: Local Aging and Disability Resource Center (ADRC) in your county[5]"
+        ],
+        "processing_time": "Not specified",
+        "waitlist": null,
+        "forms": [],
+        "documents": [
+          "Not specified; likely basic caregiver and elder information for matching volunteers[5]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available through 11 nonprofit area agencies on aging (AAA) serving all Florida regions as Aging and Disability Resource Centers (ADRCs)[6]",
+        "regional_variations": "Administered locally by county ADRCs/AAAs, which select services and providers; potential differences in availability or matching processes by planning and service area[5][6]",
+        "offices_or_providers": [
+          "Contact local Aging and Disability Resource Center (ADRC) or Elder Helpline[5]",
+          "11 area agencies on aging (AAA)[6]"
+        ]
+      },
+      "official_source": "https://elderaffairs.org/programs-and-services/respite-for-elders-living-in-everyday-families-relief/[5]",
+      "gotchas": [
+        "Program relies on volunteers, so availability depends on local volunteer corps and matching process[5]",
+        "Expansion of basic public respite programs, not a replacement; may not cover all needs[5]",
+        "No detailed eligibility financial thresholds provided, suggesting needs-based assessment via local ADRC rather than strict cutoffs[5]",
+        "Volunteers provide companionship up to 4 hours, not medical or skilled nursing care[5]"
+      ],
+      "data_shape_notes": "Volunteer-based with local administration through 11 AAAs/ADRCs; no published income/asset tables or fixed hours guarantee; free service focused on evenings/weekends expansion[5][6]",
+      "_raw": "{\n  \"name\": \"RELIEF Program (Respite for Elders Living in Everyday Families)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No specific income limits, asset limits, or dollar amounts detailed in available sources; targeted at families caring for frail, homebound elders, including those with Alzheimer’s and related disorders[5]\",\n    \"asset_limits\": \"Not specified; no information on what counts or exemptions[5]\",\n    \"other_requirements\": [\"Caregiver must be family member or loved one providing constant care to a frail, homebound elderly individual[5]\", \"Elder must be homebound[5]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"In-home respite care provided by screened volunteers for up to 4 hours at a time, including evenings and weekends; free to caregivers; companionship and relief to prevent caregiver illness[5]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Elder Helpline at 1-800-963-5337[5]\", \"In-person or contact: Local Aging and Disability Resource Center (ADRC) in your county[5]\"],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": [\"Not specified; likely basic caregiver and elder information for matching volunteers[5]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available through 11 nonprofit area agencies on aging (AAA) serving all Florida regions as Aging and Disability Resource Centers (ADRCs)[6]\",\n    \"regional_variations\": \"Administered locally by county ADRCs/AAAs, which select services and providers; potential differences in availability or matching processes by planning and service area[5][6]\",\n    \"offices_or_providers\": [\"Contact local Aging and Disability Resource Center (ADRC) or Elder Helpline[5]\", \"11 area agencies on aging (AAA)[6]\"]\n  },\n  \"official_source\": \"https://elderaffairs.org/programs-and-services/respite-for-elders-living-in-everyday-families-relief/[5]\",\n  \"gotchas\": [\"Program relies on volunteers, so availability depends on local volunteer corps and matching process[5]\", \"Expansion of basic public respite programs, not a replacement; may not cover all needs[5]\", \"No detailed eligibility financial thresholds provided, suggesting needs-based assessment via local ADRC rather than strict cutoffs[5]\", \"Volunteers provide companionship up to 4 hours, not medical or skilled nursing care[5]\"],\n  \"data_shape_notes\": \"Volunteer-based with local administration through 11 AAAs/ADRCs; no published income/asset tables or fixed hours guarantee; free service focused on evenings/weekends expansion[5][6]\"\n}"
     }
   ]
 }

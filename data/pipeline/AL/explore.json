@@ -4,24 +4,108 @@
   "state": "AL",
   "stateName": "Alabama",
   "isRegion": false,
-  "exploredAt": "2026-04-09T08:46:24.395Z",
-  "programCount": 2,
+  "exploredAt": "2026-04-09T09:26:45.527Z",
+  "programCount": 14,
   "programs": [
     {
-      "name": "Alabama Cares",
-      "what_it_does": "Alabama Cares provides support services to assist caregivers with the emotional, physical, and practical demands of caregiving for frail older adults or relatives. It offers respite care, counseling, training, and other resources to help caregivers maintain their own health and well-being.[1][2]",
-      "who_its_for": "Unpaid primary family caregivers of frail adults age 60+ needing help with at least three activities of daily living; caregivers of those with Alzheimer's/dementia regardless of age; older relative caregivers age 55+ caring for children 18 or younger or disabled adults 19-59.[2]",
-      "whats_unique": "State-funded program specifically administered through Alabama's Area Agencies on Aging and partners like United Way, targeting caregivers of seniors and relatives with tailored respite and support not solely reliant on federal Older Americans Act funding.[1][2][4]",
-      "official_url": "https://uwaaa.org/services/alabamacares/",
-      "benefit_value": "Varies; includes respite care, support groups, and training; limited funds available for specific relative caregivers (exact amounts not specified in sources)."
+      "name": "Alabama Medicaid Elderly and Disabled Waiver",
+      "what_it_does": "Provides home and community-based services to help seniors and disabled individuals avoid nursing home placement. Services include personal care, homemaker assistance, respite, adult day health, meal delivery, and companion care through person-centered care plans.[1]",
+      "who_its_for": "Seniors 65+ or disabled individuals who meet nursing facility level of care, are Medicaid eligible, and live in the community.[1]",
+      "official_url": "https://alabamaageline.gov",
+      "benefit_value": "Varies by individualized care plan; covers services to maintain independence at home.[1]"
+    },
+    {
+      "name": "Alabama PACE (Program of All-Inclusive Care for the Elderly)",
+      "what_it_does": "Delivers comprehensive medical and social services to frail seniors in community settings, including adult day health and home care, to avoid nursing homes. Administered through partnerships with ADSS, though specific AL sites limited.[1]",
+      "who_its_for": "Nursing facility-eligible seniors 55+ who can live safely in the community with services.[1]",
+      "official_url": "https://alabamaageline.gov",
+      "benefit_value": "Full capitation coverage of Medicare and Medicaid services; personalized care up to $50K+ annually equivalent.[1]"
+    },
+    {
+      "name": "Alabama Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "These programs pay Medicare premiums, deductibles, and copays for low-income seniors. QMB covers Part A/B premiums and costs; SLMB/QI cover Part B premiums.[1]",
+      "who_its_for": "Low-income Medicare beneficiaries: QMB (100-135% FPL), SLMB (120-140% FPL), QI (135-150% FPL, partial).[1]",
+      "official_url": "https://alabamaageline.gov",
+      "benefit_value": "QMB: Full Part A/B cost-sharing (~$5K+ savings/yr); SLMB/QI: Part B premium ($174.70/mo in 2024).[1]"
     },
     {
       "name": "Alabama Elderly Simplified Application Project (AESAP)",
-      "what_it_does": "AESAP simplifies the Food Assistance Program (SNAP/food stamps) application process for elderly households by using a shorter form and outreach efforts. It addresses barriers like mobility, transportation, and disability to increase access to food benefits.[1][6]",
-      "who_its_for": "Households where all members are age 60 or older and have no earned income; standard SNAP income/resource limits apply.[6]",
-      "whats_unique": "Alabama-specific adaptation of the federal SNAP program with a state-designed simplified application and targeted outreach for seniors, reducing administrative complexity unique to the state's implementation.[1][6]",
-      "official_url": "https://www.alabamalegalhelp.org/resource/food-stamp-application-for-seniors",
-      "benefit_value": "Standard SNAP/food assistance benefits; value based on household size/income (e.g., up to federal maximums, simplified process increases eligibility access)."
+      "what_it_does": "Simplifies SNAP/food assistance application for elderly households with no earned income, addressing barriers like mobility. Provides monthly EBT benefits for groceries.[3][7]",
+      "who_its_for": "Households where all members are 60+, no earned income, income ≤100% FPL.[3]",
+      "official_url": "https://onedoor.alabama.gov/Home/Services",
+      "benefit_value": "Average $200-300/month EBT per eligible household; max based on household size.[3]"
+    },
+    {
+      "name": "Alabama LIHEAP (Low-Income Home Energy Assistance Program)",
+      "what_it_does": "Offers help with heating/cooling bills and crisis assistance for low-income households. Administered through local agencies via ADSS.[1]",
+      "who_its_for": "Low-income seniors 60+ and disabled; priority for those at risk of disconnection.[1]",
+      "official_url": "https://alabamaageline.gov",
+      "benefit_value": "One-time grants $200-1,000+ depending on fuel type, income, household size.[1]"
+    },
+    {
+      "name": "Alabama Weatherization Assistance Program",
+      "what_it_does": "Provides free home energy efficiency upgrades like insulation, sealing, and furnace repair to reduce utility costs. Targets low-income homes including seniors.[7]",
+      "who_its_for": "Low-income households (≤200% FPL), priority for seniors 60+, disabled, families with children.[7]",
+      "official_url": "https://alabamaageline.gov",
+      "benefit_value": "Free improvements worth $3,000-8,000 per home; 20-30% utility savings.[7]"
+    },
+    {
+      "name": "Alabama SHIP (State Health Insurance Assistance Program)",
+      "what_it_does": "Offers free counseling on Medicare options, appeals, and extra help programs through trained counselors. Coordinated via Alabama Department of Senior Services.[1]",
+      "who_its_for": "All Medicare beneficiaries 65+, caregivers, family members seeking guidance.[1]",
+      "official_url": "https://alabamaageline.gov",
+      "benefit_value": "Free one-on-one counseling; helps access $2K+ annual savings via optimal plans.[1]"
+    },
+    {
+      "name": "Alabama Meals on Wheels (Elderly Nutrition Program)",
+      "what_it_does": "Delivers nutritious meals to homebound seniors and serves congregate meals at 300+ senior centers. Promotes health and social engagement.[1][8]",
+      "who_its_for": "Homebound/disabled 60+ unable to prepare meals; congregate for active 60+.[1]",
+      "official_url": "https://alabamaageline.gov",
+      "benefit_value": "5-7 meals/week delivery (suggested donation); 10M+ meals served annually statewide.[1][8]"
+    },
+    {
+      "name": "Alabama Lifespan Respite Program",
+      "what_it_does": "Provides planned/crisis respite care and training to relieve family caregivers of seniors/disabled. Builds sustainable support systems via ADSS partnerships.[4]",
+      "who_its_for": "Family caregivers of seniors 60+ or disabled adults needing temporary relief.[4]",
+      "official_url": "https://alabamaageline.gov",
+      "benefit_value": "Vouchers/services for 20-40 hours/month respite; caregiver training programs.[4]"
+    },
+    {
+      "name": "Alabama Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Offers part-time community service jobs with training to unemployed low-income seniors for skill-building and employment. Administered through ADSS.[1]",
+      "who_its_for": "Unemployed 55+ with income ≤125% FPL, limited work experience.[1]",
+      "official_url": "https://alabamaageline.gov",
+      "benefit_value": "20 hrs/wk at minimum wage (~$7.25/hr or $5,980/yr); job placement assistance.[1]"
+    },
+    {
+      "name": "Alabama Legal Services Corporation (Legal Aid for Seniors)",
+      "what_it_does": "Provides free civil legal assistance for issues like housing, benefits, abuse, wills. Senior-specific services through Area Agencies on Aging.[1]",
+      "who_its_for": "Low-income seniors 60+ facing civil legal problems.[1]",
+      "official_url": "https://alabamaageline.gov",
+      "benefit_value": "Free representation valued at $200-400/hr; representation in 1,000+ senior cases/year.[1]"
+    },
+    {
+      "name": "Alabama Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in nursing homes, assisted living; investigates complaints, ensures quality care. Operated statewide by ADSS.[1]",
+      "who_its_for": "Residents/family in 400+ AL long-term care facilities.[1]",
+      "official_url": "https://alabamaageline.gov",
+      "benefit_value": "24/7 advocacy resolving 85% complaints; protects 30K+ residents annually.[1]"
+    },
+    {
+      "name": "Alabama Cares",
+      "what_it_does": "Alabama Cares provides services to assist unpaid primary family caregivers with duties involved in caring for frail older adults or relatives. It offers support including respite care, training, and resources to help caregivers manage their responsibilities.[1][2]",
+      "who_its_for": "Unpaid primary family caregivers of frail adults age 60+ needing help with at least three activities of daily living; older relative caregivers (age 55+) caring for children 18 or younger or adults 19-59 with disabilities; caregivers of those with Alzheimer’s or dementia regardless of age.[2]",
+      "whats_unique": "State-funded program administered through Area Agencies on Aging, specifically tailored to Alabama's caregivers with recognition of older relative caregivers for children and disabled adults, beyond standard federal Older Americans Act caregiver supports.[1][2][4]",
+      "official_url": "https://uwaaa.org/services/alabamacares/",
+      "benefit_value": "Varies; provides caregiver support services like respite, training, and assistance; limited funds available for specific relative caregivers (exact amounts not specified in sources)."
+    },
+    {
+      "name": "Alabama Senior Farmers Market Nutrition Program (FMNP)",
+      "what_it_does": "Provides vouchers for seniors to purchase fresh produce at farmers markets. Supports nutrition and access to healthy foods through local agriculture.[7]",
+      "who_its_for": "Income-eligible seniors age 60 and above.[7]",
+      "whats_unique": "State-administered program unique to Alabama, partnering with Area Agencies on Aging to deliver fresh produce coupons specifically for seniors.[7]",
+      "official_url": "https://www.westalabamaaging.org/benefits-services",
+      "benefit_value": "Vouchers for fresh fruits and vegetables (specific value not detailed in sources; typically $20-$50 annually in similar state programs)."
     }
   ]
 }

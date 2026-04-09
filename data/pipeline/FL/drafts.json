@@ -1,15 +1,15 @@
 {
   "state": "FL",
   "stateName": "Florida",
-  "draftedAt": "2026-04-09T08:49:47.024Z",
-  "total": 6,
+  "draftedAt": "2026-04-09T09:30:51.583Z",
+  "total": 16,
   "successful": 3,
   "programs": [
     {
-      "id": "florida-home-care-elderly-program",
-      "name": "Home Care for the Elderly (HCE) Program",
-      "shortName": "HCE Program",
-      "tagline": "Free home care services for your parent if they're at risk of nursing home placement but have an adult caregiver to live with them.",
+      "id": "florida-medicaid-long-term-care",
+      "name": "Statewide Medicaid Managed Care Long Term Care Program",
+      "shortName": "Medicaid Long Term Care",
+      "tagline": "If your parent needs daily help with bathing, dressing, or medication management, this program covers home care, adult day care, and nursing home services through Medicaid.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -17,249 +17,101 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local AAA, ADRC, or Department of Elder Affairs offices",
+            "name": "Local Aging and Disability Resource Centers (ADRCs)",
+            "type": "service-area"
+          },
+          {
+            "name": "Managed Care Plans selected via enrollment broker",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent is 60+ and at risk of needing nursing home care, Florida's Home Care for the Elderly program provides free home care services to help them stay in a private home. The catch: your parent must live with an approved adult caregiver (age 18+) who provides full-time care — they cannot live alone.\n\nThis isn't regular home health care. Your parent must meet the same clinical criteria that would qualify them for nursing home placement, but choose to receive care at home instead. The program focuses on preventing nursing home placement by supporting the caregiver arrangement.\n\nIncome must be under $2,982/month and assets under $2,000 for a single person. If your parent receives SSI, QMB, or SLMB benefits, they automatically qualify without additional financial testing.",
+      "intro": "If your parent is 65+ and needs daily help with activities like bathing, dressing, or taking medications, Florida's Medicaid Long Term Care program can cover the full cost of these services at home or in a nursing facility. Because this program coordinates all long-term care through a single Managed Care Organization, your parent won't need to juggle multiple providers — one team manages everything from personal care to medical equipment.\n\nThe program covers home-delivered meals, personal care services, adult day care, respite care (giving you breaks), medical equipment, skilled nursing visits, and nursing home care when needed. Your parent can even hire family members as paid caregivers in some cases. However, your parent must meet strict income and asset limits (similar to regular Medicaid) and pass a clinical assessment proving they need Nursing Facility Level of Care.",
       "savingsRange": "",
       "savingsSource": "Free service",
-      "savingsVerified": false,
+      "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Age 60+",
-          "Income under $2,982/month",
-          "At risk of nursing home placement",
-          "Must live with approved adult caregiver",
-          "Florida resident"
+          "Age 65+ (or 18+ if disabled)",
+          "Meet Medicaid income limits (around 88% of Federal Poverty Level)",
+          "Need daily help with bathing, dressing, or medications",
+          "Assets under $2,000 for individual"
         ],
-        "ageRequirement": "60+",
+        "ageRequirement": "65+",
         "incomeTable": null,
         "assetLimits": {
           "individual": 2000,
           "couple": null,
-          "countedAssets": [],
-          "exemptAssets": [],
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Cash",
+            "Second vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings",
+            "Prepaid funeral expenses"
+          ],
           "homeEquityCap": null
         },
-        "functionalRequirement": "Must be at risk of nursing home placement based on 701B assessment (clinical evaluation of whether your parent needs daily help with activities like bathing, dressing, or medication management)",
+        "functionalRequirement": "Must require Nursing Facility Level of Care (a clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other basic activities)",
         "otherRequirements": [
-          "Florida resident with intent to remain",
-          "Live with approved adult caregiver (age 18+) in private home",
-          "Dwelling must meet state safety requirements"
+          "Must be eligible for Medicaid financially",
+          "Florida resident"
         ],
-        "povertyLevelReference": null
+        "povertyLevelReference": "88% FPL"
       },
       "applicationGuide": {
-        "method": "phone",
-        "summary": "Contact your local Aging and Disability Resource Center for an assessment — no forms to fill out first, but processing time varies by region.",
+        "method": "multiple",
+        "summary": "Start by calling the Elder Helpline at 1-800-963-5337 for screening, then complete separate financial and medical eligibility processes.",
+        "processingTime": "Processing time varies due to multi-step process involving screening, financial assessment, and clinical evaluation",
+        "waitlist": "Possible wait list before clinical assessment",
+        "tip": "Start the process early — you'll need to work with three different agencies (ADRC for screening, DCF for financial eligibility, and DOEA for medical assessment).",
         "steps": [
           {
             "step": 1,
-            "title": "Contact Local ADRC",
-            "description": "Call your local Aging and Disability Resource Center or Department of Elder Affairs office to request a Home Care for the Elderly assessment."
+            "title": "Initial screening",
+            "description": "Contact your local Aging and Disability Resource Center (ADRC) or call Elder Helpline 1-800-963-5337 to begin screening process."
           },
           {
             "step": 2,
-            "title": "Schedule Assessment",
-            "description": "A case manager will schedule an in-person or phone assessment to evaluate your parent's functional needs, financial situation, and caregiver arrangement."
+            "title": "Financial eligibility",
+            "description": "Apply for Medicaid financial eligibility through Department of Children and Families (DCF) with income and asset documentation."
           },
           {
             "step": 3,
-            "title": "Complete 701B Assessment",
-            "description": "The case manager conducts a clinical assessment to determine if your parent is at risk of nursing home placement."
+            "title": "Medical assessment",
+            "description": "Complete clinical assessment with DOEA CARES unit to determine if your parent meets Nursing Facility Level of Care using form AHCA 5000-3008."
           },
           {
             "step": 4,
-            "title": "Verify Caregiver Eligibility",
-            "description": "The adult caregiver must be verified as 18+, willing to provide full-time care, and the dwelling must meet safety requirements."
-          },
-          {
-            "step": 5,
-            "title": "Await Determination",
-            "description": "The case manager reviews all information and determines eligibility for home care services."
+            "title": "Plan enrollment",
+            "description": "Choose a Managed Care Organization (MCO) plan through the enrollment broker after approval."
           }
         ],
-        "processingTime": null,
-        "waitlist": null,
-        "tip": "Gather income/asset proof and identify your adult caregiver before calling — the assessment will cover both financial and caregiver eligibility.",
-        "urls": [
-          {
-            "label": "Find Local Office",
-            "url": "https://elderaffairs.org"
-          }
-        ]
+        "urls": []
       },
       "contentSections": [
         {
           "type": "what-counts",
-          "heading": "Financial Eligibility: Automatic vs. Asset Testing",
+          "heading": "Asset Limits: What Counts",
           "included": [
-            "Monthly income under $2,982 (single person)",
-            "Assets under $2,000 (single person)",
-            "Financial eligibility follows Institutional Care Program (ICP) limits"
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Cash on hand",
+            "Second vehicles",
+            "Real estate other than primary home"
           ],
           "excluded": [
-            "SSI recipients automatically qualify (no additional financial test)",
-            "QMB (Qualified Medicare Beneficiary) recipients automatically qualify",
-            "SLMB (Specified Low-Income Medicare Beneficiary) recipients automatically qualify"
+            "Primary home (where your parent lives)",
+            "One vehicle",
+            "Personal belongings and household items",
+            "Prepaid funeral expenses",
+            "Certain life insurance policies"
           ]
         },
-        {
-          "type": "documents",
-          "heading": "What to Bring for Assessment",
-          "categories": [
-            {
-              "name": "Identity & Residency",
-              "items": [
-                "Florida driver's license or state ID",
-                "Proof of Florida residency (utility bill, lease)"
-              ]
-            },
-            {
-              "name": "Financial (unless SSI/QMB/SLMB)",
-              "items": [
-                "Social Security award letter",
-                "Bank statements",
-                "Proof of any other income",
-                "Asset documentation"
-              ]
-            },
-            {
-              "name": "Caregiver Documentation",
-              "items": [
-                "Adult caregiver's ID (must be 18+)",
-                "Caregiver's agreement to provide full-time care",
-                "Dwelling address and contact information"
-              ]
-            },
-            {
-              "name": "Automatic Eligibility",
-              "items": [
-                "SSI award letter (bypasses financial testing)",
-                "QMB or SLMB enrollment documentation"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "This program requires your parent to live with an approved adult caregiver — they cannot live alone. The caregiver must provide full-time, family-type care and meet background check requirements."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "If your parent receives SSI, QMB, or SLMB benefits, they automatically meet the financial requirements — no need to gather detailed income and asset documentation."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "Can my parent live alone and still get these services?",
-          "answer": "No. Your parent must live with an approved adult caregiver (age 18+) who provides full-time care in a private home. This is not a program for people living independently."
-        },
-        {
-          "question": "What if my parent's income is just over $2,982/month?",
-          "answer": "They won't qualify unless they receive SSI, QMB, or SLMB benefits, which provide automatic eligibility regardless of other income. The income limits are strict for regular applicants."
-        },
-        {
-          "question": "Can I be the adult caregiver for my parent?",
-          "answer": "Yes, adult children can serve as the approved caregiver as long as you're 18+, can provide full-time care, and meet the background check and dwelling requirements."
-        },
-        {
-          "question": "How is this different from regular Medicaid home health?",
-          "answer": "HCE requires your parent to live with a full-time caregiver and focuses on preventing nursing home placement. Regular Medicaid home health provides visiting services to people living independently."
-        },
-        {
-          "question": "What happens if the caregiver arrangement doesn't work out?",
-          "answer": "Your parent would lose eligibility for HCE services since the live-in caregiver requirement is mandatory. You'd need to find a new approved caregiver or explore other care options."
-        },
-        {
-          "question": "Does my parent's house count against the $2,000 asset limit?",
-          "answer": "The research doesn't specify which assets are exempt, but this follows Institutional Care Program rules. Contact your local ADRC for details about how the home and other assets are counted."
-        }
-      ],
-      "phone": null,
-      "sourceUrl": "https://elderaffairs.org/programs-services/home-care-for-elderly/",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
-    },
-    {
-      "id": "florida-community-care-elderly-cce",
-      "name": "Community Care for the Elderly (CCE) Program",
-      "shortName": "CCE Program",
-      "tagline": "Get home care services for your 60+ parent in Florida — from personal care to meals — while they stay in their own home.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local CCE Lead Agencies (contact via Florida Department of Elder Affairs for county-specific providers).",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your parent is 60+ and needs help with daily activities like bathing, dressing, or managing medications, Florida's Community Care for the Elderly (CCE) Program provides home-based services to help them avoid nursing home placement. The program covers personal care, homemaker services, adult day care, respite care, home-delivered meals, medical supplies, and emergency alert systems — all coordinated by a local care team.\n\nUnlike Medicaid programs, CCE has no income or asset limits. Instead, eligibility depends on your parent's functional needs and risk of nursing home placement. Because CCE is state-funded with limited resources, those at highest risk of institutionalization get priority. Services vary by county based on local provider capacity.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Age 60+",
-          "Physical or mental limitations with daily activities",
-          "At risk of nursing home placement",
-          "No income or asset limits"
-        ],
-        "ageRequirement": "60+",
-        "incomeTable": null,
-        "assetLimits": null,
-        "functionalRequirement": "Must have physical or mental limitations that restrict ability to perform normal activities of daily living, assessed through comprehensive evaluation",
-        "otherRequirements": [
-          "Live in a community served by a local CCE provider",
-          "Cannot be enrolled in a Medicaid capitated long-term care program",
-          "Must complete annual reassessment"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "phone",
-        "summary": "Call your local CCE Lead Agency for intake screening — preliminary eligibility determined immediately, full assessment scheduled if qualified.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Contact your local CCE Lead Agency",
-            "description": "Call or visit in person for preliminary intake screening. They'll ask about your parent's age, functional needs, and living situation."
-          },
-          {
-            "step": 2,
-            "title": "Complete intake screening",
-            "description": "If preliminarily eligible, they'll schedule a comprehensive assessment. If clearly ineligible, they may refer you to other programs."
-          },
-          {
-            "step": 3,
-            "title": "Undergo comprehensive assessment",
-            "description": "Assessor evaluates your parent's functional impairment and risk of nursing home placement to determine priority ranking."
-          },
-          {
-            "step": 4,
-            "title": "Wait for approval based on priority",
-            "description": "Approval depends on available funding and where your parent ranks compared to others on the waiting list."
-          }
-        ],
-        "processingTime": "Intake screening as soon as possible if preliminarily eligible; full assessment and approval based on funds availability and priority ranking",
-        "waitlist": "Waitlists likely in high-demand areas — those at highest risk of nursing home placement get priority",
-        "tip": "Prepare specific examples of daily tasks your parent struggles with — this helps assessors understand their functional needs.",
-        "urls": [
-          {
-            "label": "Find your local CCE provider",
-            "url": "https://elderaffairs.org/programs-services/community-care-for-the-elderly/"
-          }
-        ]
-      },
-      "contentSections": [
         {
           "type": "documents",
           "heading": "What to Bring",
@@ -267,16 +119,28 @@
             {
               "name": "Identity",
               "items": [
-                "Birth certificate or government-issued ID showing age 60+",
+                "Driver's license or state ID",
+                "Social Security card",
                 "Proof of Florida residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements (last 3 months)",
+                "Social Security award letters",
+                "Pension or retirement income statements",
+                "Property deeds or mortgage statements",
+                "Vehicle titles"
               ]
             },
             {
               "name": "Medical",
               "items": [
-                "List of current medications",
-                "Description of daily activities your parent needs help with",
-                "Recent medical records showing functional limitations"
+                "Medical records documenting need for daily assistance",
+                "Current medication lists",
+                "Recent hospital or nursing home discharge summaries",
+                "Doctor's notes about functional limitations"
               ]
             }
           ]
@@ -284,147 +148,563 @@
         {
           "type": "callout",
           "tone": "warning",
-          "text": "CCE has limited funding — even if your parent qualifies, services may not be immediately available. Those at highest risk of nursing home placement get priority, so emphasize specific daily care needs during assessment."
+          "text": "This program involves three separate agencies: ADRC for screening, DCF for financial approval, and DOEA for medical assessment. Delays at any step can slow the entire process, and there may be a waitlist before the clinical assessment."
         },
         {
           "type": "callout",
           "tone": "tip",
-          "text": "Your parent cannot be enrolled in both CCE and a Medicaid managed long-term care plan at the same time. If they have Medicaid, ask which program offers better services for their specific needs."
+          "text": "The program doesn't cover room and board costs in assisted living facilities — only the care services themselves. If your parent lives in assisted living, they'll still need to pay rent and meals separately."
         }
       ],
       "faqs": [
         {
-          "question": "Can my parent qualify if they have money in the bank?",
-          "answer": "Yes. CCE has no asset or income limits. Eligibility is based only on age (60+), functional needs, and risk of nursing home placement."
+          "question": "Can Mom keep her house if she qualifies?",
+          "answer": "Yes. Your parent's primary home doesn't count toward the $2,000 asset limit as long as they live there or plan to return home."
         },
         {
-          "question": "What if Mom already gets Medicaid long-term care services?",
-          "answer": "She cannot be enrolled in both CCE and a Medicaid capitated long-term care program at the same time. You'll need to choose which program works better for her needs."
+          "question": "Can I get paid to take care of Dad through this program?",
+          "answer": "Yes, in some cases. The program offers consumer-directed options that allow your parent to hire family members as paid caregivers, but this requires approval from the Managed Care Organization."
         },
         {
-          "question": "How long is the waiting list in my area?",
-          "answer": "Wait times vary by county and depend on funding availability. Those at highest risk of nursing home placement get priority. Contact your local CCE Lead Agency for current wait times in your area."
+          "question": "What's the difference between this and regular nursing home Medicaid?",
+          "answer": "This program focuses on keeping your parent at home or in the community rather than in a nursing facility. It coordinates all long-term care services through one Managed Care Organization instead of separate providers."
         },
         {
-          "question": "What happens if Dad's condition changes after he's approved?",
-          "answer": "CCE requires annual reassessment to continue receiving services. If his needs increase or decrease significantly, contact your local provider — they may adjust his care plan or priority level."
+          "question": "What if her income is just over the Medicaid limit?",
+          "answer": "Income limits follow standard Florida Medicaid rules (around 88% of Federal Poverty Level). Contact DCF to determine exact limits for your parent's situation, as there may be deductions or special rules that apply."
         },
         {
-          "question": "Can CCE help if my parent lives in assisted living?",
-          "answer": "CCE is designed for people living in their own homes in the community. If your parent is in assisted living, they may not qualify — ask your local provider about eligibility in their specific living situation."
+          "question": "How long does the clinical assessment take?",
+          "answer": "The CARES unit assessment timing varies and there may be a waitlist. The assessment determines if your parent needs Nursing Facility Level of Care using specific clinical criteria."
         },
         {
-          "question": "What services are actually available in my county?",
-          "answer": "Services vary significantly by local provider and available funding. Common services include personal care, homemaker services, meals, and medical supplies, but your local CCE Lead Agency can tell you exactly what's offered in your area."
+          "question": "What happens if we disagree with the eligibility decision?",
+          "answer": "You can request a Fair Hearing if you disagree with any screening or eligibility determination. The program must provide information on how to request this appeal."
         }
       ],
-      "phone": null,
-      "sourceUrl": "https://elderaffairs.org/programs-services/community-care-for-the-elderly/",
+      "phone": "1-800-963-5337",
+      "sourceUrl": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-09"
     },
     {
-      "id": "florida-relief-respite-program",
-      "name": "Respite for Elders Living in Everyday Families (RELIEF) Program",
-      "shortName": "RELIEF Program",
-      "tagline": "Get temporary caregiver relief so you can take a break while someone else watches your parent",
+      "id": "florida-pace-elder-care",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "shortName": "PACE",
+      "tagline": "All medical care, adult day programs, home care, and transportation coordinated by one team if your parent needs nursing home level care but wants to stay home.",
       "programType": "benefit",
-      "complexity": "medium",
+      "complexity": "deep",
       "geographicScope": {
         "type": "local",
-        "stateVariation": false
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Florida PACE Centers (Miami-Dade area)",
+            "type": "service-area"
+          },
+          {
+            "name": "Miami Jewish Health Systems (Miami-Dade and Broward)",
+            "type": "service-area"
+          }
+        ]
       },
-      "intro": "If you're caring for an aging parent at home, respite care gives you time away while a trained caregiver steps in. The RELIEF program may offer these services to Florida families, but program details are not publicly documented. This could mean the program operates at the county level, is newly established, or may not currently exist under this exact name. Many Florida families instead access respite through Medicaid waiver programs or Area Agencies on Aging.",
+      "intro": "If your parent needs help with three or more daily activities like bathing, dressing, or managing medications — but you want them to stay at home — PACE provides everything under one roof. Because PACE covers all Medicare and Medicaid benefits plus extras like transportation and home-delivered meals, your parent gets one care team instead of juggling separate doctors, home health agencies, and adult day programs.\n\nYour parent must be 55+ and live in Miami-Dade or Broward counties. They need to qualify for nursing home level care but be able to live safely in the community with PACE support. Most PACE participants are eligible for both Medicare and Medicaid.\n\nPACE replaces your parent's existing Medicare and Medicaid coverage — they cannot keep Medicare Advantage or other plans while enrolled. The interdisciplinary team creates a customized care plan covering everything from prescription drugs to recreational therapy to emergency hospital care.",
       "savingsRange": "",
-      "savingsSource": "Program details not available",
-      "savingsVerified": false,
+      "savingsSource": "Free comprehensive care service",
+      "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Program details not confirmed",
-          "Contact Florida DOEA to verify"
+          "Age 55+",
+          "Needs nursing home level care",
+          "Lives in Miami-Dade or Broward counties",
+          "Medicare/Medicaid eligible",
+          "Can live safely at home with support"
         ],
-        "ageRequirement": null,
-        "incomeTable": null,
-        "assetLimits": null,
-        "functionalRequirement": null,
+        "ageRequirement": "55+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2901
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One car",
+            "Personal belongings",
+            "Burial funds"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need nursing home level care — typically requires help with 3+ activities of daily living like bathing, dressing, or medication management. Certified by physician and state assessment.",
         "otherRequirements": [
-          "Program eligibility requirements not documented"
+          "Live in PACE service area",
+          "Able to live safely in community with PACE services",
+          "Cannot be enrolled in Medicare Advantage, prescription drug plan, or hospice"
         ],
-        "povertyLevelReference": null
+        "povertyLevelReference": "300% Federal Benefit Rate"
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact Florida Department of Elder Affairs directly to verify if this program exists and how to apply.",
+        "summary": "Call for phone screening, then in-home visits complete paperwork and assessments — typically 1-3 months total.",
         "steps": [
           {
             "step": 1,
-            "title": "Call Florida DOEA",
-            "description": "Ask specifically about the RELIEF program and current respite services available in your county"
+            "title": "Call for pre-screening",
+            "description": "Phone screening determines if your parent meets basic PACE requirements and lives in service area."
           },
           {
             "step": 2,
-            "title": "Contact your local Area Agency on Aging",
-            "description": "They manage most respite programs and can tell you what's available locally"
+            "title": "Schedule in-home visit",
+            "description": "PACE staff visit your parent's home to complete enrollment paperwork and initial assessment."
           },
           {
             "step": 3,
-            "title": "Ask about alternatives",
-            "description": "If RELIEF doesn't exist, ask about Medicaid waivers or other respite options"
+            "title": "Medical certification",
+            "description": "Primary care physician completes Form 3008 certifying your parent needs long-term care assistance."
+          },
+          {
+            "step": 4,
+            "title": "State assessment",
+            "description": "Florida Department of Elder Affairs conducts CARES assessment to confirm nursing home level of care need."
+          },
+          {
+            "step": 5,
+            "title": "Medicaid coordination",
+            "description": "If not already enrolled, PACE helps coordinate Medicaid enrollment through Department of Children and Families."
           }
         ],
-        "processingTime": null,
+        "processingTime": "1-3 months",
         "waitlist": null,
-        "tip": "Ask for respite services by function, not program name — many agencies offer similar services under different names",
+        "tip": "Have your parent's primary care physician ready to complete Form 3008 — this medical certification is required and can slow the process if delayed.",
         "urls": []
       },
       "contentSections": [
         {
+          "type": "income-table",
+          "heading": "Income Limits for Medicaid Eligibility",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2901,
+              "note": "300% of Federal Benefit Rate"
+            }
+          ],
+          "footnote": "2025 limits. PACE has no direct income limits, but Medicaid eligibility often required. Medicaid planning can help if over limits."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts for Medicaid",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "excluded": [
+            "Primary home",
+            "One car",
+            "Personal belongings",
+            "Burial funds up to reasonable amount"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "PACE Providers",
+          "offices": [
+            {
+              "name": "Florida PACE Centers",
+              "type": "service-area",
+              "phone": "786-933-7223",
+              "address": "Miami-Dade area"
+            },
+            {
+              "name": "Miami Jewish Health Systems",
+              "type": "service-area",
+              "phone": "305-988-1364",
+              "address": "Miami-Dade and Broward counties"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Picture ID",
+                "Social Security card",
+                "Medicare card"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records",
+                "List of current prescriptions",
+                "Form 3008 from primary care physician"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Income statements (Social Security benefits verification letter)",
+                "Three months of bank statements",
+                "Proof of residency"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE is only available in Miami-Dade and Broward counties. Your parent must live in the designated service area to enroll."
+        },
+        {
           "type": "callout",
           "tone": "tip",
-          "text": "Search results show no documentation of this program. Before spending time looking for RELIEF specifically, call your Area Agency on Aging — they know all respite options in your area and can save you hours of research."
+          "text": "PACE becomes your parent's sole provider for all Medicare and Medicaid covered services. They cannot keep Medicare Advantage or use other providers while enrolled — but they get comprehensive care coordination instead."
         }
       ],
       "faqs": [
         {
-          "question": "Does the RELIEF program actually exist in Florida?",
-          "answer": "We cannot confirm this program exists under this name. Florida Department of Elder Affairs has no public documentation of RELIEF. It may be a local program, newly created, or may not currently operate."
+          "question": "Can Mom keep her house if she qualifies for PACE?",
+          "answer": "Yes. PACE is designed to help people stay in their homes and communities. The primary home is exempt from Medicaid asset limits, and PACE provides services to help your mom live safely at home."
         },
         {
-          "question": "What respite programs are definitely available in Florida?",
-          "answer": "Most counties offer respite through Medicaid waivers (HCBS, ADHC), Area Agencies on Aging, or the National Family Caregiver Support Program. Call 1-800-96-ELDER to find services in your area."
+          "question": "What if Mom's income is just over the Medicaid limit?",
+          "answer": "PACE itself has no income limits — only Medicaid does. A Medicaid planning attorney can help with strategies like qualified income trusts if your mom's income exceeds $2,901/month. PACE providers can also help coordinate this process."
         },
         {
-          "question": "How do I find respite care if RELIEF doesn't exist?",
-          "answer": "Start with your county's Area Agency on Aging. They coordinate most respite services and know waiting lists, costs, and eligibility for all local programs."
+          "question": "Can Mom keep her current doctors if she enrolls in PACE?",
+          "answer": "No. PACE becomes the sole provider for all covered services. Your mom will get a new primary care physician and specialist team through PACE, but this means one coordinated care team manages everything instead of juggling separate providers."
         },
         {
-          "question": "Could this be a brand new program I haven't heard about?",
-          "answer": "Possibly, but new state programs typically appear on official websites within months of launch. Check elderaffairs.org or call them directly at 850-414-2000."
+          "question": "What happens if we move to a different county in Florida?",
+          "answer": "PACE is only available in Miami-Dade and Broward counties. If your mom moves outside these areas, she would need to disenroll from PACE and return to regular Medicare/Medicaid coverage."
         },
         {
-          "question": "What if I heard about RELIEF from another caregiver?",
-          "answer": "They may be referring to a local program with a similar name, or mixing up program names. Ask them which agency runs it and get contact information to verify."
+          "question": "How is this different from regular home health care?",
+          "answer": "PACE provides comprehensive care including adult day programs, transportation, meals, all medical care, and emergency services — not just home visits. Because it covers everything under one program, there's no coordinating between different agencies or worrying about coverage gaps."
         },
         {
-          "question": "Should I keep looking for this program or focus on alternatives?",
-          "answer": "Focus on alternatives. One call to your Area Agency on Aging will tell you every respite option available locally — much faster than searching for a program that may not exist."
+          "question": "What if Mom needs nursing home care later?",
+          "answer": "PACE covers nursing facility care when needed. Because your mom is already enrolled and the team knows her care needs, transitions to higher levels of care are coordinated by the same PACE team rather than starting over with new providers."
         }
       ],
-      "phone": "850-414-2000",
-      "sourceUrl": "https://elderaffairs.org",
+      "phone": "786-933-7223",
+      "sourceUrl": "https://ahca.myflorida.com/medicaid/medicaid-policy-quality-and-operations/medicaid-policy-and-quality/medicaid-policy/federal-authorities/federal-waivers/program-of-all-inclusive-care-for-the-elderly",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-09"
     },
     {
-      "name": "Optional State Supplementation (OSS) for SSI Recipients",
+      "id": "florida-medicare-savings-programs",
+      "name": "Medicare Savings Programs (MSP)",
+      "shortName": "MSP",
+      "tagline": "Help paying Medicare premiums and out-of-pocket costs for parents on fixed incomes.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "intro": "If your parent struggles to afford Medicare premiums, deductibles, or copays, Medicare Savings Programs can help. These four programs pay some or all Medicare costs based on income — from covering just the $185/month Part B premium to paying all Medicare premiums and out-of-pocket costs. Florida recently expanded eligibility by counting all household members (not just the applicant and spouse), significantly raising income limits for families living together. Even if your parent's income seems too high, certain income types don't count toward the limit — you should apply regardless.",
+      "savingsRange": "$185 – $3,000+/year in 2026",
+      "savingsSource": "Medicare Part B premium plus potential deductibles and copayments",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Must have Medicare Part A",
+          "Income below $1,816/month (single)",
+          "Assets below $9,950 (single)",
+          "Florida resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1816
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2455
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 3094
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 3733
+          }
+        ],
+        "assetLimits": {
+          "individual": 9950,
+          "couple": 14910,
+          "countedAssets": [
+            "Bank accounts",
+            "IRAs and retirement accounts",
+            "Liquid investments"
+          ],
+          "exemptAssets": [
+            "Your home (any value)",
+            "Personal belongings",
+            "Household goods"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be enrolled in Medicare Part A",
+          "Must be Florida resident"
+        ],
+        "povertyLevelReference": "100-135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your local county Department of Children & Families office — processing time varies by county.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county DCF office",
+            "description": "Locate your local Department of Children & Families office at myflfamilies.com or call for the nearest location."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect recent bank statements, Medicare card, Social Security statements, and proof of any other income."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Apply in person, by phone, or by mail through your county office. Phone applications are accepted."
+          },
+          {
+            "step": 4,
+            "title": "Follow up on processing",
+            "description": "Contact your county office for processing timeline — this varies by location and current caseload."
+          }
+        ],
+        "processingTime": "Varies by county office",
+        "waitlist": "QI program operates first-come, first-served and may have limited funding",
+        "tip": "Apply even if income seems too high — many income types don't count toward the limit.",
+        "urls": [
+          {
+            "label": "Florida DCF Application Portal",
+            "url": "https://www.myflfamilies.com"
+          },
+          {
+            "label": "Medicare.gov MSP Information",
+            "url": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Four Programs, Different Coverage",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Most comprehensive coverage",
+              "incomeLimit": "$1,350/month (single), $1,824/month (couple)",
+              "coverage": "Pays all Medicare premiums, deductibles, coinsurance, and copayments"
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Premium help only",
+              "incomeLimit": "$1,616/month (single), $2,184/month (couple)",
+              "coverage": "Covers Medicare Part B premium ($185/month in 2025)"
+            },
+            {
+              "name": "QI (Qualifying Individual)",
+              "description": "Limited funding available",
+              "incomeLimit": "$1,816/month (single), $2,455/month (couple)",
+              "coverage": "Covers Medicare Part B premium, first-come first-served basis"
+            },
+            {
+              "name": "QDWI (Qualified Disabled Working Individual)",
+              "description": "For working disabled individuals",
+              "incomeLimit": "Higher limits for working disabled",
+              "coverage": "Helps pay Medicare Part A premiums only"
+            }
+          ]
+        },
+        {
+          "type": "income-table",
+          "heading": "QI Income Limits by Household Size (Highest Limits)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1816,
+              "yearlyLimit": 21792
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 2455,
+              "yearlyLimit": 29460
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 3094,
+              "yearlyLimit": 37128
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 3733,
+              "yearlyLimit": 44796
+            }
+          ],
+          "footnote": "2026 limits. QMB and SLMB have lower income limits but same household size scaling."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Money in checking and savings accounts",
+            "IRA and retirement account balances",
+            "Stocks, bonds, and other investments",
+            "Cash value of life insurance"
+          ],
+          "excluded": [
+            "Your home (any value)",
+            "Personal belongings and household goods",
+            "One vehicle of any value",
+            "Burial funds up to $1,500"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Medicare",
+              "items": [
+                "Medicare card",
+                "Social Security number",
+                "Proof of Florida residency"
+              ]
+            },
+            {
+              "name": "Income Verification",
+              "items": [
+                "Social Security benefit statements",
+                "Pension statements",
+                "Recent pay stubs (if working)",
+                "Tax returns from last year"
+              ]
+            },
+            {
+              "name": "Asset Documentation",
+              "items": [
+                "Bank statements (last 3 months)",
+                "Retirement account statements",
+                "Investment account statements"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI program funding is limited and operates first-come, first-served. Apply early in the year to secure coverage."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Florida recently changed how household size is calculated, making more families eligible. If you were previously denied, reapply — you may now qualify with the expanded household counting rules."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house and still qualify?",
+          "answer": "Yes. Your parent's home is completely exempt from asset limits, regardless of value. They can own a million-dollar home and still qualify if their liquid assets (bank accounts, investments) are under $9,950 for a single person or $14,910 for a couple."
+        },
+        {
+          "question": "What if Mom's Social Security is just over the income limit?",
+          "answer": "Apply anyway. A $20 general exclusion applies to unearned income, and certain other income types don't count toward the limit. Many people who appear over the limit actually qualify once exclusions are applied."
+        },
+        {
+          "question": "Which program should my parent apply for?",
+          "answer": "Apply for the highest tier your parent qualifies for based on income. QMB provides the most coverage (all Medicare costs), while SLMB and QI only cover the $185/month Part B premium. The county office will determine which program fits your parent's situation."
+        },
+        {
+          "question": "Does this affect my parent's other benefits?",
+          "answer": "MSP benefits generally don't count as income for other programs. In fact, having MSP can sometimes help qualify for or increase benefits from programs like SNAP (food assistance) through simplified eligibility rules."
+        },
+        {
+          "question": "How long does coverage last?",
+          "answer": "You must reapply annually to maintain benefits. QI program requires yearly reapplication particularly because of its limited funding. Set a calendar reminder to reapply each year before coverage expires."
+        },
+        {
+          "question": "What happens if we move to a different county in Florida?",
+          "answer": "Benefits continue, but you'll need to transfer your case to the new county's Department of Children & Families office. Contact the new county office as soon as possible after moving to avoid any gaps in coverage."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.myflfamilies.com",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "SNAP Food Assistance",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Additional Homestead Exemption for Seniors (Florida)",
+      "name": "Florida Emergency Home Energy Assistance Program (EHEAP)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
       "name": "SHINE (Serving Health Insurance Needs of Elders)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Home-Delivered Meals",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Respite for Elders Living in Everyday Families (RELIEF)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Home Care for the Elderly",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Optional State Supplementation (OSS)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Homestead Exemption for Seniors",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Florida Discount Drug Card Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Alzheimer's Disease Initiative (ADI)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "RELIEF Program (Respite for Elders Living in Everyday Families)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     }
   ],

@@ -1,31 +1,630 @@
 {
   "state": "WY",
   "stateName": "Wyoming",
-  "draftedAt": "2026-04-09T09:05:36.472Z",
-  "total": 15,
-  "successful": 3,
+  "draftedAt": "2026-04-09T09:46:57.725Z",
+  "total": 14,
+  "successful": 7,
   "programs": [
     {
-      "name": "Wyoming Medicaid",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "wyoming-medicaid-long-term-care",
+      "name": "Wyoming Medicaid Long-Term Care",
+      "shortName": "Wyoming Medicaid LTC",
+      "tagline": "If your parent needs nursing home care or daily help at home, Wyoming Medicaid can cover the full cost of care.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or medication management, Wyoming Medicaid Long-Term Care covers the full cost of nursing home care or in-home support services. This isn't regular health insurance—it's comprehensive care coverage for seniors who meet strict income and asset limits.\n\nWyoming offers three types of coverage: Nursing Home Medicaid (pays for full nursing home care), HCBS Waivers (pays for in-home personal care, meal delivery, adult day care, and home modifications to help your parent stay home), and ABD Medicaid (basic healthcare plus individualized long-term care services). Your parent must be 65+ with income under $2,982/month and assets under $2,000 for individuals.\n\nBecause Wyoming uses an income cap system, if your parent's income exceeds $2,982/month, they can still qualify by setting up a Qualified Income Trust (Miller Trust)—but this requires specific legal planning many families miss.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income below $2,982/month",
+          "Assets under $2,000",
+          "Wyoming resident",
+          "Medical assessment required"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 3000,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second vehicles",
+            "Real estate other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home (if equity under $602,000)",
+            "One vehicle for medical transport or employment",
+            "Household goods and personal effects",
+            "Irrevocable burial trusts up to $1,800"
+          ],
+          "homeEquityCap": 602000
+        },
+        "functionalRequirement": "Must demonstrate Nursing Facility Level of Care (clinical assessment showing your parent needs daily help with activities like bathing, dressing, or medication management)",
+        "otherRequirements": [
+          "Wyoming residency",
+          "U.S. citizenship or 5+ years as lawful permanent resident",
+          "Medical assessment using LT101 screening tool"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your county public health office, which handles the required medical assessment.",
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent's income exceeds $2,982/month, ask about setting up a Qualified Income Trust before applying—this legal tool can make them eligible.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your county public health office",
+            "description": "Each county handles medical assessments using the LT101 screening tool to evaluate your parent's need for daily care assistance."
+          },
+          {
+            "step": 2,
+            "title": "Complete the LT101 medical assessment",
+            "description": "A public health nurse will assess your parent's ability to perform activities of daily living like bathing, dressing, and taking medications."
+          },
+          {
+            "step": 3,
+            "title": "Submit financial documentation",
+            "description": "Provide proof of all income sources (Social Security, pensions, wages, rental income) and asset documentation (bank accounts, investments, property)."
+          },
+          {
+            "step": 4,
+            "title": "Choose your care option",
+            "description": "If approved, select from Nursing Home Medicaid, HCBS Waivers for in-home care, or ABD Medicaid for individualized services."
+          }
+        ],
+        "urls": [
+          {
+            "label": "Wyoming Department of Health Medicaid",
+            "url": "https://health.wyo.gov/healthcarefin/medicaid/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Real estate other than primary home",
+            "Second vehicles",
+            "Cash value of life insurance policies"
+          ],
+          "excluded": [
+            "Primary home (if equity under $602,000 and your parent intends to return or spouse/disabled child lives there)",
+            "One vehicle used for medical transport or employment",
+            "Household goods and personal effects",
+            "Irrevocable burial trusts up to $1,800",
+            "Wedding and engagement rings"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Birth certificate",
+                "Social Security card",
+                "Proof of Wyoming residency",
+                "Citizenship or immigration documents"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letters",
+                "Pension statements",
+                "Bank statements (3 months)",
+                "Investment account statements",
+                "Property deeds and mortgage statements",
+                "Life insurance policies",
+                "Records of any asset transfers in past 5 years"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Current medication list",
+                "Recent medical records",
+                "Doctor's assessment of care needs",
+                "Hospital discharge summaries if applicable"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Wyoming enforces a 60-month look-back period for asset transfers. If your parent gifted money or sold assets below market value in the past 5 years, it could create a penalty period that delays coverage."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent's income is over $2,982/month, don't assume they're ineligible. A Qualified Income Trust (Miller Trust) can redirect excess income to meet the limit—but this requires legal setup before applying."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for Wyoming Medicaid?",
+          "answer": "Yes, if the home equity is under $602,000 and she intends to return home, or if her spouse or a disabled/minor child lives there. The house won't count toward the $2,000 asset limit."
+        },
+        {
+          "question": "What if Dad's Social Security and pension total $3,200/month—over the $2,982 limit?",
+          "answer": "He can still qualify by setting up a Qualified Income Trust (Miller Trust) that redirects the excess $218/month to meet the income limit. This must be established before applying and requires legal documentation."
+        },
+        {
+          "question": "What's the difference between HCBS Waivers and Nursing Home Medicaid?",
+          "answer": "HCBS Waivers pay for in-home personal care, meal delivery, adult day care, and home modifications so your parent can stay home. Nursing Home Medicaid covers full nursing facility care. Both require the same medical assessment showing need for daily care assistance."
+        },
+        {
+          "question": "How long does the medical assessment take?",
+          "answer": "Your county public health office conducts the LT101 assessment, which evaluates your parent's ability to perform daily activities like bathing and dressing. Contact your local office for current scheduling—processing times aren't specified in state guidance."
+        },
+        {
+          "question": "Will ABD Medicaid cover all the services Mom needs right away?",
+          "answer": "No. ABD Medicaid benefits are evaluated individually and provided one service at a time, unlike Nursing Home Medicaid which covers comprehensive care. Each service request requires separate approval based on medical necessity."
+        },
+        {
+          "question": "What happens if Mom gave money to grandchildren last year?",
+          "answer": "Any gifts or below-market-value asset transfers in the past 60 months could create a penalty period that delays Medicaid coverage. The penalty length depends on the total amount transferred divided by Wyoming's average monthly nursing home cost."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://health.wyo.gov/healthcarefin/medicaid/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
+      "id": "wyoming-community-choices-waiver",
       "name": "Community Choices Waiver (CCW)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "shortName": "CCW",
+      "tagline": "Helps your parent stay home instead of moving to a nursing home by covering personal care, homemaker services, and adult day programs.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "County-specific Benefits & Eligibility Specialists",
+            "type": "service-area"
+          },
+          {
+            "name": "Case management agencies by county",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay home, Wyoming's Community Choices Waiver covers personal care services, homemaker help, adult day programs, and respite care. The program serves people 65+ or those 19-64 with disabilities who qualify for Medicaid and need daily help with activities like bathing, dressing, or medication management.\n\nThe waiver has a waiting list because Wyoming caps enrollment at approximately 3,669 people statewide. Your parent must first qualify for Medicaid (income up to about $2,901/month for individuals) and pass a nursing facility level of care assessment. Priority goes by the date you apply, so applying early matters even if your parent isn't ready for services yet.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or 19-64 with disability",
+          "Wyoming Medicaid eligible",
+          "Needs nursing home-level care",
+          "Wyoming resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (a clinical assessment using the LT-101 tool that evaluates if your parent needs daily help with activities like bathing, dressing, eating, or medication management)",
+        "otherRequirements": [
+          "Wyoming resident and U.S. citizen or qualified immigrant",
+          "Must be eligible for Wyoming Medicaid (income up to approximately $2,901/month for individuals)",
+          "Annual reassessment required to maintain services"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your county Benefits & Eligibility Specialist to start the process — they'll help with both Medicaid and CCW applications.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for Medicaid first",
+            "description": "Your parent must be Medicaid-eligible before applying for CCW. If not already enrolled, apply through your county specialist or online."
+          },
+          {
+            "step": 2,
+            "title": "Submit CCW application",
+            "description": "Complete CCW Form 01 (Program Application and Fact Sheet) with your county Benefits & Eligibility Specialist."
+          },
+          {
+            "step": 3,
+            "title": "Schedule nursing assessment",
+            "description": "A Public Health Nurse will use the LT-101 assessment tool to determine if your parent meets nursing facility level of care."
+          },
+          {
+            "step": 4,
+            "title": "Select case management agency",
+            "description": "Choose from approved agencies in your county — they'll coordinate all services once approved."
+          }
+        ],
+        "processingTime": "Processing time not specified in official sources",
+        "waitlist": "Yes — not an entitlement program. Capped at approximately 3,669 slots statewide with priority by eligibility determination date.",
+        "tip": "Apply even if your parent isn't ready for services yet — your place on the waiting list is determined by application date.",
+        "urls": [
+          {
+            "label": "Wyoming HCBS Information",
+            "url": "https://health.wyo.gov/healthcarefin/hcbs/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Social Security number",
+                "Proof of Wyoming residency",
+                "Citizenship or immigration status documents"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Income verification for Medicaid eligibility",
+                "Asset information for Medicaid eligibility"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Disability verification if age 19-64 (SSA determination)",
+                "Nursing facility discharge date if applicable"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "There is a waiting list. Wyoming caps enrollment at about 3,669 people, and priority goes by application date. Apply early even if your parent isn't ready for services."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "You must qualify for Medicaid first. If your parent's income or assets are over Medicaid limits, they cannot get CCW services. Apply for or renew Medicaid before starting the CCW application."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify for CCW?",
+          "answer": "Yes. The primary residence is typically exempt from Medicaid asset limits, which CCW follows. Your parent can receive CCW services while living in their own home — that's the whole point of the program."
+        },
+        {
+          "question": "What if my parent's income is just over the Medicaid limit?",
+          "answer": "They cannot qualify for CCW. The program requires Medicaid eligibility first, with income limits around $2,901/month for individuals. There may be special Medicaid waiver groups with higher limits — ask your county specialist about options."
+        },
+        {
+          "question": "How long is the waiting list for CCW services?",
+          "answer": "Wyoming doesn't publish current wait times. Priority goes by your application date, so apply as soon as your parent meets the requirements, even if they don't need services immediately."
+        },
+        {
+          "question": "What's the difference between participant-directed and agency-directed care?",
+          "answer": "Participant-directed means your parent (or you as their representative) hires and manages their own caregivers. Agency-directed means a home care agency provides and manages the workers. You choose the model that works best for your family."
+        },
+        {
+          "question": "Can my parent get CCW services in assisted living?",
+          "answer": "Yes. CCW allows your parent to live at home or in assisted living instead of a nursing facility. The services can follow them to different residential settings."
+        },
+        {
+          "question": "What happens if my parent no longer needs nursing home-level care?",
+          "answer": "They'll lose CCW eligibility. The program requires annual reassessment using the LT-101 tool. If your parent's care needs decrease below nursing facility level, they'll be discharged from CCW."
+        }
+      ],
+      "phone": "855-294-2127",
+      "sourceUrl": "https://health.wyo.gov/healthcarefin/hcbs/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "wyoming-pace-program",
+      "name": "PACE Wyoming",
+      "shortName": "PACE Wyoming",
+      "tagline": "All-in-one medical care for parents who need nursing home level care but want to stay home — but Wyoming's program closed in 2021.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Formerly WY PACE at Cheyenne Regional Medical Center (closed 2021)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "PACE would have provided complete medical care under one roof for your parent — primary care, specialists, medications, transportation, adult day care, and home services all coordinated by one team. If your parent was 55+ and needed nursing home level care (daily help with bathing, dressing, or medication management), they could have stayed home with PACE managing everything.\n\nWyoming's only PACE program closed in October 2021 due to state budget cuts. The program operated only in the Cheyenne area through Cheyenne Regional Medical Center. For dual-eligible Medicare/Medicaid recipients, PACE was free with no co-pays or deductibles.\n\nWhile PACE is unavailable in Wyoming, you can explore other home and community-based services through Wyoming Medicaid, or consider PACE programs in neighboring states if your parent is willing to relocate.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Program closed in 2021",
+          "Was limited to Cheyenne area",
+          "Required nursing home level care"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must require Nursing Facility Level of Care (a clinical assessment of whether your parent needs daily help with bathing, dressing, or medication management)",
+        "otherRequirements": [
+          "Live in the service area of a PACE organization",
+          "Able to live safely in the community with PACE support"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "PACE Wyoming is no longer available — the program closed in 2021.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact Wyoming Medicaid",
+            "description": "Call Wyoming Department of Health to explore alternative home and community-based services"
+          },
+          {
+            "step": 2,
+            "title": "Consider neighboring states",
+            "description": "If your parent is open to relocating, research PACE programs in Colorado, Montana, or other nearby states"
+          },
+          {
+            "step": 3,
+            "title": "Explore other options",
+            "description": "Ask about Wyoming's other Medicaid waiver programs for home care services"
+          }
+        ],
+        "processingTime": "Program unavailable",
+        "waitlist": null,
+        "tip": "Focus on Wyoming's other Medicaid home and community-based waiver programs as alternatives.",
+        "urls": [
+          {
+            "label": "Wyoming Department of Health",
+            "url": "https://health.wyo.gov/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Wyoming's only PACE program closed in October 2021 due to state budget cuts. If you're researching PACE for your parent, you'll need to look into alternative Wyoming Medicaid programs or consider PACE programs in neighboring states."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Even though PACE is unavailable, Wyoming offers other Medicaid waiver programs for home and community-based services. Contact Wyoming Medicaid to explore what's available for your parent's care needs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Why did Wyoming's PACE program close?",
+          "answer": "Wyoming's PACE program closed in October 2021 due to state budget cuts. The state could not continue funding the program."
+        },
+        {
+          "question": "Were there other PACE programs in Wyoming besides Cheyenne?",
+          "answer": "No. Wyoming had only one PACE program, operated through Cheyenne Regional Medical Center in the Cheyenne area."
+        },
+        {
+          "question": "Can my parent access PACE in a neighboring state?",
+          "answer": "Possibly, but your parent would need to move to that state and live in a PACE service area. Each PACE program serves specific geographic regions and requires participants to live within those boundaries."
+        },
+        {
+          "question": "What alternatives exist in Wyoming for comprehensive care?",
+          "answer": "Wyoming offers other Medicaid waiver programs for home and community-based services. Contact Wyoming Department of Health at health.wyo.gov to learn about current options for your parent's care needs."
+        },
+        {
+          "question": "Could PACE return to Wyoming in the future?",
+          "answer": "It's possible but uncertain. PACE programs require significant state investment and federal approval. There's no current timeline for reintroducing PACE in Wyoming."
+        },
+        {
+          "question": "What was covered when PACE Wyoming was operating?",
+          "answer": "PACE covered all medical care, medications, transportation to appointments, adult day health care, home care services, and hospital care with no co-pays or deductibles for participants."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://health.wyo.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
-      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+      "id": "wyoming-medicare-savings-programs",
+      "name": "Medicare Savings Programs (QMB, SLMB, QI) in Wyoming",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "Help your parent save $600–4,000+ annually on Medicare premiums, deductibles, and copayments if their income is under $1,816/month.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "intro": "If your parent struggles to afford Medicare costs, Wyoming's Medicare Savings Programs can cover their premiums, deductibles, and copayments. These programs work in three tiers: QMB (most comprehensive), SLMB (Part B premiums only), and QI (Part B premiums plus prescription drug help). Your parent must be enrolled in Medicare and meet income limits ranging from $1,350–1,816/month for a single person, depending on which tier they qualify for.\n\nBecause these programs are administered through Wyoming's Medicaid system, your parent gets automatic coverage without coordinating between multiple agencies. The QMB program provides the most value — it eliminates nearly all Medicare out-of-pocket costs for people with income under $1,350/month. Asset limits are relatively low at $9,090 for a single person, so families with modest savings should check eligibility carefully.",
+      "savingsRange": "$600 – $4,000+/year in 2026",
+      "savingsSource": "Medicare Part B premiums ($185/month) plus deductibles and copayments for QMB tier",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Must be enrolled in Medicare",
+          "Income under $1,816/month (single)",
+          "Assets under $9,090 (single)",
+          "Wyoming resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1350,
+            "tier": "QMB"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1824,
+            "tier": "QMB"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1616,
+            "tier": "SLMB"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2184,
+            "tier": "SLMB"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1816,
+            "tier": "QI"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2455,
+            "tier": "QI"
+          }
+        ],
+        "assetLimits": {
+          "individual": 9090,
+          "couple": 13630,
+          "countedAssets": [],
+          "exemptAssets": [],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be enrolled in Medicare Part A and/or Part B",
+          "Must apply annually to maintain benefits",
+          "QI Program: Cannot qualify for any other Medicaid coverage"
+        ],
+        "povertyLevelReference": "100-135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through Wyoming Department of Health or your county social services office — processing time not specified by the state.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact Wyoming Medicaid",
+            "description": "Call Wyoming Department of Health, Division of Healthcare Financing or visit your county Department of Social Services office for application forms."
+          },
+          {
+            "step": 2,
+            "title": "Gather financial documents",
+            "description": "Collect proof of income, assets, and Medicare enrollment. The $20 income disregard per household is automatically applied."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Mail completed application to your state Medicaid agency or apply in person at your local Medicaid office."
+          },
+          {
+            "step": 4,
+            "title": "Reapply annually",
+            "description": "QI Program operates first-come, first-served, so reapply early each year. Priority given to previous year recipients."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "QI Program operates on a first-come, first-served basis with priority given to people who received QI benefits in the previous year",
+        "tip": "Apply for QI Program early in the year since funding may be limited and it operates first-come, first-served.",
+        "urls": [
+          {
+            "label": "Wyoming Medicare Savings Programs",
+            "url": "https://ecom.wyo.gov/m1100-medicare-savings-programs"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Most comprehensive coverage",
+              "incomeLimit": "Single: $1,350/month | Couple: $1,824/month",
+              "coverage": "Pays Part A premiums, Part B premiums, deductibles, coinsurance, and copayments for all Medicare-covered services"
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Part B premium assistance only",
+              "incomeLimit": "Single: $1,616/month | Couple: $2,184/month",
+              "coverage": "Pays Medicare Part B premiums only (must have both Part A and Part B to qualify)"
+            },
+            {
+              "name": "QI (Qualifying Individual)",
+              "description": "Premium help plus prescription drug benefits",
+              "incomeLimit": "Single: $1,816/month | Couple: $2,455/month",
+              "coverage": "Pays Medicare Part B premiums and automatically qualifies for Extra Help prescription drug program with copayments capped at $12.65 per drug"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI Program funding is limited and operates first-come, first-served. Apply early each year, especially if your parent received benefits previously."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income limits include a $20 disregard per household, so your parent can earn $20 more than the stated limits and still qualify. Asset limits are strict — exceeding $9,090 (single) disqualifies regardless of income."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom's income is just over the QMB limit but under the SLMB limit?",
+          "answer": "She would qualify for SLMB, which covers Medicare Part B premiums (saving about $2,220/year) but not deductibles or copayments. The programs are designed as tiers — if you don't qualify for one level, you may qualify for the next."
+        },
+        {
+          "question": "Can Dad keep his house and still qualify?",
+          "answer": "The research doesn't specify which assets are exempt in Wyoming. Typically, a primary residence doesn't count toward the $9,090 asset limit, but you'll need to confirm with Wyoming's Medicaid agency which assets are excluded."
+        },
+        {
+          "question": "What happens if Mom qualifies for QMB but we miss the annual reapplication?",
+          "answer": "She'll lose benefits until you reapply. All three programs require annual reapplication. Set a calendar reminder to reapply early each year, especially for QI Program which operates first-come, first-served."
+        },
+        {
+          "question": "If Dad has other Medicaid coverage, can he still get QI benefits?",
+          "answer": "No. QI Program is only available for people who don't qualify for any other Medicaid coverage or benefits. If he qualifies for QMB or SLMB, he cannot use QI — but those programs provide more comprehensive coverage anyway."
+        },
+        {
+          "question": "How much will this actually save on Medicare costs?",
+          "answer": "QMB provides the most savings — eliminates Part B premiums ($185/month), deductibles, and all copayments for Medicare-covered services. SLMB and QI save $2,220/year on Part B premiums alone. Total savings depend on how much Medicare care your parent uses."
+        },
+        {
+          "question": "What if we can't find the Wyoming application forms online?",
+          "answer": "The state website doesn't provide direct links to application forms. You'll need to contact Wyoming Department of Health, Division of Healthcare Financing directly or visit your county Department of Social Services office to get the specific forms and local contact information."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://ecom.wyo.gov/m1100-medicare-savings-programs",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
     },
     {
       "id": "wyoming-snap-food-benefits",
       "name": "SNAP (Food Stamps)",
-      "shortName": "SNAP",
-      "tagline": "Monthly food assistance of $100-500+ for parents on limited income",
+      "shortName": "SNAP Benefits",
+      "tagline": "Up to $298-$1,789 monthly for groceries if your parent is on a fixed income",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -33,31 +632,55 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "County Department of Family Services offices (list at dfs.wyo.gov/field-offices)",
+            "name": "Local county Department of Family Services offices",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent is struggling to afford groceries on a fixed income, SNAP provides monthly food assistance loaded onto an EBT card. Your parent can use this card like a debit card at grocery stores and farmers markets. The amount depends on household size and income — a single person might receive $100-300+ per month, while couples could get up to $546 monthly.\n\nParents age 60+ get special advantages in Wyoming: no gross income limit (only net income matters after deductions), higher asset limits ($4,500 vs $3,000), and unlimited deductions for medical expenses over $35/month and shelter costs. Because medical and housing expenses can significantly reduce countable income, many seniors qualify even if their initial income seems too high.",
-      "savingsRange": "$1,200 – $6,500/year in 2026",
-      "savingsSource": "Monthly benefit amounts based on household size and net income calculations",
+      "intro": "If your parent struggles to afford groceries on a fixed income, SNAP (food stamps) provides monthly money loaded onto an EBT card for food purchases. Your parent can receive $298-$1,789 per month depending on household size and income — money that works like a debit card at grocery stores and farmers markets.\n\nSNAP has special rules that favor seniors. If your parent is 60+, there's no gross income limit (only net income after deductions matter), higher asset limits ($4,500 vs $3,000), and unlimited deductions for housing costs. Because these deductions can significantly lower countable income, many seniors qualify even if their initial income seems too high.\n\nIn Wyoming, you must apply through your county Department of Family Services office. Processing typically takes 30 days, and if approved, benefits start the month after application.",
+      "savingsRange": "$3,576 – $21,468/year in 2026",
+      "savingsSource": "Maximum monthly benefits: $298 (1 person) to $1,789 (8+ people) × 12 months",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Age 60+ = no gross income limit",
-          "Net income below $1,255/month (1 person)",
-          "Assets under $4,500 (age 60+)",
-          "Wyoming resident"
+          "Fixed or low income",
+          "Asset limit: $4,500 if 60+ ($3,000 otherwise)",
+          "Wyoming resident",
+          "U.S. citizen or qualified immigrant"
         ],
         "ageRequirement": null,
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 1255
+            "monthlyLimit": 1305
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 1704
+            "monthlyLimit": 1763
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 2221
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 2680
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 3138
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 3596
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 4055
+          },
+          {
+            "householdSize": 8,
+            "monthlyLimit": 4513
           }
         ],
         "assetLimits": {
@@ -66,79 +689,96 @@
           "countedAssets": [
             "Bank accounts",
             "Cash",
-            "Savings"
+            "Stocks and bonds"
           ],
           "exemptAssets": [
-            "Primary home",
+            "Home",
             "Vehicles",
-            "SSI recipients fully exempt"
+            "SSI recipients automatically exempt"
           ],
           "homeEquityCap": null
         },
         "functionalRequirement": null,
         "otherRequirements": [
-          "Must live in Wyoming",
-          "Apply in county of residence",
-          "U.S. citizen or qualified non-citizen"
+          "Must apply in county where you live",
+          "No work requirements if household is entirely 60+ or disabled"
         ],
         "povertyLevelReference": "100% FPL"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at dfs.wyo.gov or at your county office — typically processed within 30 days.",
+        "summary": "Apply online at dfs.wyo.gov or call your county DFS office — processing takes about 30 days.",
         "steps": [
           {
             "step": 1,
             "title": "Find your county office",
-            "description": "You must apply in the county where your parent lives. Find offices at dfs.wyo.gov/field-offices."
+            "description": "You must apply in the county where your parent lives. Find the local DFS office at dfs.wyo.gov."
           },
           {
             "step": 2,
-            "title": "Gather income and expense documents",
-            "description": "Collect Social Security letters, bank statements, rent receipts, and medical bills over $35/month (these reduce countable income)."
+            "title": "Gather financial documents",
+            "description": "Collect recent pay stubs or Social Security letters, bank statements, rent/mortgage receipts, utility bills, and medical expense receipts if your parent is 60+."
           },
           {
             "step": 3,
             "title": "Submit application",
-            "description": "Apply online through My Wyoming portal or visit/mail to your county Department of Family Services office."
+            "description": "Apply online at dfs.wyo.gov, call the county office, or visit in person. Phone and in-person applications may be processed faster."
           },
           {
             "step": 4,
             "title": "Complete interview",
-            "description": "County office will schedule phone or in-person interview to review application and documents."
+            "description": "A caseworker will schedule a phone interview to review the application and verify information."
           }
         ],
-        "processingTime": "Typically 30 days; expedited processing within 7 days if very low income",
+        "processingTime": "Typically 30 days",
         "waitlist": null,
-        "tip": "If your parent has high medical or housing costs, document everything over $35/month — these deductions can make the difference in qualifying.",
+        "tip": "Medical expenses over $35/month can be deducted from income for seniors, so bring all prescription and doctor receipts.",
         "urls": [
           {
-            "label": "Apply Online (My Wyoming Portal)",
-            "url": "https://dfs.wyo.gov/assistance-programs/food-assistance"
-          },
-          {
-            "label": "Find Your County Office",
-            "url": "https://dfs.wyo.gov/field-offices"
+            "label": "Apply online",
+            "url": "https://dfs.wyo.gov"
           }
         ]
       },
       "contentSections": [
         {
           "type": "income-table",
-          "heading": "Net Income Limits by Household Size (2026)",
+          "heading": "Net Income Limits (After Deductions)",
           "rows": [
             {
-              "householdSize": 1,
-              "monthlyLimit": 1255,
-              "notes": "After deductions for medical, shelter, etc."
+              "householdSize": "1 person",
+              "monthlyLimit": "$1,305"
             },
             {
-              "householdSize": 2,
-              "monthlyLimit": 1704,
-              "notes": "After deductions for medical, shelter, etc."
+              "householdSize": "2 people",
+              "monthlyLimit": "$1,763"
+            },
+            {
+              "householdSize": "3 people",
+              "monthlyLimit": "$2,221"
+            },
+            {
+              "householdSize": "4 people",
+              "monthlyLimit": "$2,680"
+            },
+            {
+              "householdSize": "5 people",
+              "monthlyLimit": "$3,138"
+            },
+            {
+              "householdSize": "6 people",
+              "monthlyLimit": "$3,596"
+            },
+            {
+              "householdSize": "7 people",
+              "monthlyLimit": "$4,055"
+            },
+            {
+              "householdSize": "8+ people",
+              "monthlyLimit": "$4,513"
             }
           ],
-          "footnote": "Age 60+ households have no gross income limit — only these net limits apply after deductions"
+          "footnote": "2026 limits. Seniors 60+ have no gross income limit — only these net limits after deductions."
         },
         {
           "type": "what-counts",
@@ -146,13 +786,13 @@
           "included": [
             "Bank accounts and savings",
             "Cash on hand",
-            "Stocks and bonds"
+            "Stocks, bonds, investments"
           ],
           "excluded": [
-            "Primary home (any value)",
-            "Vehicles",
-            "SSI recipients are fully exempt from asset limits",
-            "POWER or Tribal TANF households exempt"
+            "Your parent's home (any value)",
+            "Vehicles (any number, any value)",
+            "SSI recipients (automatically exempt from asset test)",
+            "Household goods and personal belongings"
           ]
         },
         {
@@ -163,25 +803,31 @@
               "name": "Identity & Residency",
               "items": [
                 "Driver's license or state ID",
-                "Proof of Wyoming residence"
+                "Utility bill or rent receipt showing Wyoming address"
               ]
             },
             {
               "name": "Income",
               "items": [
-                "Social Security award letters",
+                "Social Security award letter",
                 "Pension statements",
-                "Pay stubs if working",
-                "Bank statements"
+                "Recent pay stubs if still working"
               ]
             },
             {
-              "name": "Expenses (Critical for Seniors)",
+              "name": "Expenses (for deductions)",
               "items": [
-                "Medical bills over $35/month",
-                "Rent or mortgage receipts",
+                "Rent or mortgage payment receipts",
                 "Utility bills",
-                "Prescription receipts"
+                "Medical bills and prescription receipts (if 60+)",
+                "Dependent care costs"
+              ]
+            },
+            {
+              "name": "Assets",
+              "items": [
+                "Bank statements (last 3 months)",
+                "Investment account statements"
               ]
             }
           ]
@@ -189,33 +835,33 @@
         {
           "type": "callout",
           "tone": "tip",
-          "text": "Age 60+ households get unlimited deductions for medical expenses over $35/month and shelter costs. Even if your parent's Social Security seems too high, medical bills and housing costs often bring them under the net income limit."
+          "text": "Seniors 60+ get unlimited deductions for housing costs (rent, mortgage, utilities). If your parent pays more than half their income on housing, this deduction often makes them eligible even with higher incomes."
         }
       ],
       "faqs": [
         {
-          "question": "My mom gets $1,400/month in Social Security. Can she still qualify?",
-          "answer": "Possibly. Parents 60+ have no gross income limit in Wyoming — only net income matters after deductions. If she has medical expenses over $35/month or high housing costs, these deductions could bring her net income under $1,255/month. Medical deductions are unlimited for seniors."
+          "question": "My mom gets $1,800 from Social Security. Can she still qualify?",
+          "answer": "Possibly. Seniors 60+ have no gross income limit — only net income after deductions matters. If she pays high housing costs or medical expenses, deductions could bring her net income below $1,305/month for a single person household."
         },
         {
-          "question": "Does my parent's house count against the asset limit?",
-          "answer": "No. The primary home doesn't count regardless of value. Only countable assets like bank accounts matter — $4,500 limit for households with someone 60+ or disabled, vs $3,000 for younger households."
+          "question": "Will SNAP affect my dad's other benefits like Medicare or Social Security?",
+          "answer": "No. SNAP doesn't count as income for other programs and won't reduce Social Security, Medicare, or other benefits. It's designed to supplement, not replace, other assistance."
         },
         {
-          "question": "Can my parent use SNAP benefits at farmers markets?",
-          "answer": "Yes. SNAP EBT cards work at authorized grocery stores, supermarkets, and many farmers markets. They cannot be used for alcohol, tobacco, hot prepared foods, or non-food items."
+          "question": "Can my parent use SNAP benefits to buy groceries online?",
+          "answer": "Yes. SNAP EBT cards work for online grocery orders at participating stores like Amazon, Walmart, and many local grocers. This is especially helpful if your parent has mobility issues."
         },
         {
-          "question": "What if my parent lives in a different county than where I live?",
-          "answer": "Your parent must apply in the county where they live, not where you live. Each county has its own Department of Family Services office that processes applications for residents of that county."
+          "question": "What if my mom lives in Cheyenne but I want to help her apply from Casper?",
+          "answer": "She must apply through the Laramie County DFS office where she lives, not where you live. You can help her apply online or call her local office, but the application goes through her county."
         },
         {
-          "question": "How much would my parent actually receive each month?",
-          "answer": "It depends on net income after deductions. Maximum for a single person is around $291/month, but most people receive less based on their income. The formula subtracts 30% of net income from the maximum benefit amount."
+          "question": "My parent has $6,000 in savings. Does this disqualify them?",
+          "answer": "If your parent is 60+ or disabled, they can have up to $4,500 in countable assets. However, if they receive SSI, the asset test doesn't apply at all. The $6,000 would disqualify them unless they spend down to $4,500 or qualify for an exemption."
         },
         {
-          "question": "My parent gets SSI. Does that help with SNAP?",
-          "answer": "Yes, significantly. SSI recipients are completely exempt from asset limits — they don't need to worry about the $4,500 limit at all. SSI income still counts toward income limits, but the asset exemption makes qualification much easier."
+          "question": "How long do SNAP benefits last?",
+          "answer": "There's no time limit if your parent continues to qualify. They'll need to recertify periodically (usually every 12-24 months for seniors), but benefits continue as long as they meet income and asset requirements."
         }
       ],
       "phone": null,
@@ -227,7 +873,7 @@
       "id": "wyoming-energy-assistance-liheap",
       "name": "Wyoming Energy Assistance (LIHEAP)",
       "shortName": "Energy Assistance",
-      "tagline": "Help with heating bills for Wyoming families — up to $2,176 per heating season if your parent qualifies.",
+      "tagline": "Help your parent pay heating bills with up to $2,176 toward propane, heating oil, or utilities this winter.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -235,29 +881,33 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Community Action Agency",
+            "name": "Wyoming Department of Family Services",
             "type": "service-area"
           },
           {
-            "name": "Area Agency on Aging",
+            "name": "NOWCAP (eligibility contractor)",
             "type": "service-area"
           },
           {
-            "name": "Wyoming Department of Family Services LIEAP office",
+            "name": "Local Community Action Agencies",
+            "type": "service-area"
+          },
+          {
+            "name": "Area Agencies on Aging",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent struggles with heating bills in Wyoming, this federal program pays between $49 and $2,176 directly to their utility or fuel company each heating season. Because the program prioritizes households with someone 60 or older, your parent gets first access to applications before October 1st.\n\nThe program covers all heating fuel types — natural gas, propane, oil, electricity, wood, pellets, even coal. If your parent faces a utility shutoff or runs out of fuel, crisis assistance provides up to $550 for emergencies. Income limits are $2,985/month for a single person or $3,904/month for a couple.",
+      "intro": "If your parent struggles to pay heating bills during Wyoming winters, this program pays money directly to their utility company or fuel vendor. Because Wyoming uses 60% of state median income instead of federal poverty guidelines, more families qualify than in other states — a two-person household earning up to $46,000 annually can receive help.\n\nThe program covers primary heating costs like propane, heating oil, wood pellets, coal, and electric or gas utilities. Your parent can receive $49 to $2,176 per heating season depending on household size, income, and heating type. Parents age 60+ get priority processing, and emergency assistance up to $550 is available for shutoff notices or broken heating equipment.\n\nApplications for the 2025-2026 heating season are open through April 30, 2026. Because demand is high statewide, the phone system uses callbacks to hold your place in line rather than keeping you on hold.",
       "savingsRange": "$49 – $2,176/year in 2026",
-      "savingsSource": "Official Wyoming LIHEAP benefit amounts per heating season",
+      "savingsSource": "One-time seasonal payment directly to utility or fuel vendor",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Age 60+ gets priority",
-          "Income below $2,985/month (single)",
+          "Wyoming resident",
+          "Household income below 60% state median",
           "Responsible for home energy costs",
-          "All heating fuel types covered"
+          "Age 60+ gets priority"
         ],
         "ageRequirement": null,
         "incomeTable": [
@@ -289,40 +939,40 @@
         "assetLimits": null,
         "functionalRequirement": null,
         "otherRequirements": [
+          "Must be Wyoming resident",
           "Must be responsible for home energy costs (homeowners, renters, or permanently parked RVs)",
-          "U.S. citizen or eligible immigration status",
-          "All people sharing the utility bill count as one household"
+          "Household includes all people at address sharing utility bill"
         ],
         "povertyLevelReference": "60% Wyoming state median income"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at lieapwyo.org or call 1-800-246-4221 — payments begin October 1st for most cases.",
+        "summary": "Apply online at lieapwyo.org or call 1-800-246-4221 for callback — payments begin October 1st for priority cases.",
         "steps": [
           {
             "step": 1,
-            "title": "Choose your application method",
-            "description": "Apply online at lieapwyo.org, call 1-800-246-4221 for phone callback system, or visit your local Community Action Agency or Area Agency on Aging"
+            "title": "Choose application method",
+            "description": "Apply online at lieapwyo.org, call 1-800-246-4221 for callback, or contact local Community Action Agency or Area Agency on Aging for phone, mail, or in-person help."
           },
           {
             "step": 2,
             "title": "Gather required documents",
-            "description": "Collect proof of identity, 12 months of income for all household members, recent utility bill, Social Security numbers, and citizenship documentation"
+            "description": "You'll need proof of identity, recent utility bill, income proof for all household members, Social Security numbers, and proof of U.S. citizenship or eligible immigration status."
           },
           {
             "step": 3,
-            "title": "Submit during priority window if eligible",
-            "description": "If your parent is 60+, disabled, or has children under 6, apply before October 1st for priority processing"
+            "title": "Submit application",
+            "description": "NOWCAP contractor determines eligibility. Priority given to households with someone 60+, disabled, or children under 6 until October 1st."
           },
           {
             "step": 4,
-            "title": "Wait for direct payment",
-            "description": "Program pays utility or fuel vendor directly — your parent doesn't handle the money"
+            "title": "Payment processing",
+            "description": "If approved, payment goes directly to utility company or fuel vendor — not to your parent. Crisis assistance processes faster than regular heating assistance."
           }
         ],
-        "processingTime": "Payments start October 1st for crisis/disconnection cases; varies by application volume",
+        "processingTime": "Payments start October 1 for crisis cases; others after October 1",
         "waitlist": "Higher-than-normal applications reported; phone callback system manages demand",
-        "tip": "Use the phone callback system at 1-800-246-4221 to hold your place in line rather than waiting on hold",
+        "tip": "If your parent receives SSI or SNAP, they may automatically qualify for energy assistance.",
         "urls": [
           {
             "label": "Apply Online",
@@ -370,14 +1020,14 @@
               "annualLimit": 90948
             }
           ],
-          "footnote": "2026 limits based on 60% Wyoming state median income. SSI or SNAP recipients may qualify automatically."
+          "footnote": "2025-2026 season, 60% Wyoming state median income"
         },
         {
           "type": "documents",
           "heading": "What to Bring",
           "categories": [
             {
-              "name": "Identity & Status",
+              "name": "Identity & Residency",
               "items": [
                 "Photo ID for applicant",
                 "Social Security numbers for all household members",
@@ -387,9 +1037,9 @@
             {
               "name": "Financial",
               "items": [
-                "12 months of income documentation for all household members",
-                "Recent utility bill showing account information",
-                "For crisis cases: shutoff notice or proof of empty fuel tank"
+                "Proof of income for all household members",
+                "Recent utility bill showing account and balance",
+                "Documentation of heating fuel costs if not utility-based"
               ]
             }
           ]
@@ -397,38 +1047,38 @@
         {
           "type": "callout",
           "tone": "warning",
-          "text": "Applications are accepted October 1st through April 30th only. Priority window for people 60+ ends October 1st — apply early for faster processing."
+          "text": "Applications for regular heating assistance are only accepted October 1 through April 30. Crisis assistance (shutoff notices, broken heating equipment) is available year-round but processes faster after October 1st."
         },
         {
           "type": "callout",
           "tone": "tip",
-          "text": "If your parent and other people share a utility bill, they all count as one household for income calculation — this affects both eligibility and benefit amount."
+          "text": "If your parent is 60+, disabled, or has young children in the home, their application gets priority processing. Use the callback phone system (1-800-246-4221) instead of waiting on hold."
         }
       ],
       "faqs": [
         {
-          "question": "What if my parent's income is just over the limit?",
-          "answer": "If your parent receives SSI or SNAP benefits, they may qualify automatically regardless of the income chart. Otherwise, income must be at or below the monthly limits shown."
+          "question": "What if Mom heats with propane or wood instead of regular utilities?",
+          "answer": "The program covers all primary heating fuels including propane, heating oil, wood pellets, coal, and utilities. Payment goes directly to your fuel vendor or utility company, not to your parent."
         },
         {
-          "question": "Can my parent get help if they're facing a utility shutoff right now?",
-          "answer": "Yes, crisis assistance provides up to $550 for emergencies like utility disconnection or empty fuel tanks. You'll need the shutoff notice or proof of emergency when applying."
+          "question": "Can Dad apply if he lives in a mobile home or RV?",
+          "answer": "Yes, as long as the RV is permanently parked and he's responsible for the energy costs. Homeowners, renters, and RV residents all qualify if they meet income requirements."
         },
         {
-          "question": "Does this program help with air conditioning costs in summer?",
-          "answer": "No, Wyoming LIHEAP only covers heating costs during the October-April heating season. There is no routine cooling assistance available."
+          "question": "What counts as household size for the income limits?",
+          "answer": "Everyone living at the address who shares the utility bill, even if they're not related. This is different from SNAP — it's based on who lives there and shares energy costs."
         },
         {
-          "question": "What if my parent heats with wood or propane instead of natural gas?",
-          "answer": "The program covers all heating fuel types — natural gas, oil, propane, electricity, wood, pellets, and coal. Payment goes directly to the fuel vendor."
+          "question": "Will this cover Mom's entire heating bill for the winter?",
+          "answer": "No, this is partial assistance. The program provides one payment per heating season ranging from $49 to $2,176 depending on household size, income, and heating type. It helps reduce costs but doesn't cover the full bill."
         },
         {
-          "question": "Can my parent apply if they live in a mobile home or RV?",
-          "answer": "Yes, as long as the RV is permanently parked and your parent is responsible for the energy costs. Homeowners and renters also qualify."
+          "question": "What if Dad's income is just over the limit?",
+          "answer": "If he receives SSI or SNAP benefits, he may still automatically qualify regardless of the income limits. Otherwise, he won't qualify for regular assistance but may still be eligible for crisis assistance if there's a shutoff or emergency."
         },
         {
-          "question": "How long does it take to get help after applying?",
-          "answer": "Payments begin October 1st for most cases, but crisis situations may be processed faster. High application volume can cause delays — use the callback system at 1-800-246-4221."
+          "question": "How quickly can Mom get help if her heat gets shut off?",
+          "answer": "Crisis assistance up to $550 is available for emergencies like shutoffs or broken heating equipment. These cases process faster than regular applications, especially after October 1st."
         }
       ],
       "phone": "1-800-246-4221",
@@ -437,10 +1087,10 @@
       "draftedAt": "2026-04-09"
     },
     {
-      "id": "wyoming-wap-weatherization-assistance",
-      "name": "Weatherization Assistance Program (WAP)",
-      "shortName": "Wyoming WAP",
-      "tagline": "Free home weatherization services that can cut your parent's heating bills by 5-25%.",
+      "id": "wyoming-weatherization-assistance-program",
+      "name": "Weatherization Assistance Program",
+      "shortName": "Weatherization Assistance",
+      "tagline": "Free home insulation and energy improvements to cut your parent's heating bills by 5–25%.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -448,241 +1098,152 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Johnson County: 307-686-2730",
+            "name": "Wyoming Department of Family Services (DFS) oversees.",
             "type": "service-area"
           },
           {
-            "name": "Other regional offices available through 1-800-246-4221",
+            "name": "Local agencies e.g., Johnson County 307-686-2730.",
+            "type": "service-area"
+          },
+          {
+            "name": "Weatherization agencies contact post-approval.[1][3][5]",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent struggles with high heating bills, Wyoming's Weatherization Assistance Program provides free home improvements like insulation, window sealing, and heating system repairs. These services can reduce heating costs by 5-25% annually — meaning hundreds in savings for a typical Wyoming home.\n\nUp to $4,000 in weatherization work is available per household at no cost. Your parent must meet income limits (up to 200% of Federal Poverty Level in most cases) and live in the home year-round. Because this program uses a priority system favoring elderly residents, seniors often move faster through the waiting list than younger applicants.\n\nThe program combines with Wyoming's energy assistance (LIEAP) through one application, but approval doesn't guarantee immediate service. A professional energy audit determines what work your parent's home needs before any improvements begin.",
+      "intro": "If your parent struggles with high heating bills, Wyoming's Weatherization Assistance Program provides free home improvements that can cut energy costs by 5–25%. Licensed technicians will seal air leaks around doors and windows, add insulation, and perform basic health and safety checks at no cost to your family.\n\nYour parent qualifies if their household income is at or below 200% of the Federal Poverty Level, or if they already receive SNAP, SSI, TANF, or Wyoming's energy assistance (LIEAP). The program covers single-family homes, apartments, and mobile homes statewide. Because this uses a priority system that favors seniors, disabled adults, and families with young children, older parents often move up the waitlist faster.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
+          "Income at or below 200% Federal Poverty Level",
           "Wyoming resident",
-          "Income up to 200% FPL",
-          "Own home or have landlord permission",
-          "Live in home year-round"
+          "Home not for sale within 12 months",
+          "Renters need landlord permission"
         ],
         "ageRequirement": null,
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 2337
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 3162
-          },
-          {
-            "householdSize": 3,
-            "monthlyLimit": 3987
-          },
-          {
-            "householdSize": 4,
-            "monthlyLimit": 4812
-          }
-        ],
+        "incomeTable": null,
         "assetLimits": null,
         "functionalRequirement": null,
         "otherRequirements": [
-          "Must be Wyoming resident",
-          "Legal owner of residence OR renter with written landlord permission",
-          "Must live in residence during program year",
-          "Home cannot be listed for sale or rent within 12 months",
-          "Home cannot have received prior DOE weatherization assistance"
+          "Wyoming resident",
+          "Home not expected to be sold or rented within 12 months",
+          "Home not previously weatherized by DOE-related program",
+          "Renters need written landlord permission"
         ],
         "povertyLevelReference": "200% FPL"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online year-round at lieapwyo.org or call 1-800-246-4221 — processing begins October 1st annually.",
+        "summary": "Apply online year-round at lieapwyo.org or call 800-246-4221 — processing time varies but crisis cases get expedited.",
         "steps": [
           {
             "step": 1,
-            "title": "Submit joint LIEAP/WAP application",
-            "description": "Complete the combined application online at lieapwyo.org or by calling 1-800-246-4221. Include proof of income and residency."
+            "title": "Complete joint LIEAP/WAP application",
+            "description": "Use the combined Wyoming LIEAP, WAP & LIHWAP application form online or by phone. Weatherization is automatically considered when you apply."
           },
           {
             "step": 2,
-            "title": "Provide landlord documentation (renters only)",
-            "description": "Submit written landlord permission, signed rental agreement, and completed Weatherization Landlord Agreement form."
+            "title": "Submit required documents",
+            "description": "Provide proof of income and residency. Renters must also submit a completed Rental Verification form or Weatherization Landlord Agreement."
           },
           {
             "step": 3,
-            "title": "Wait for priority scoring",
-            "description": "Your application receives priority points based on factors like age, disability, and presence of young children. Elderly applicants get priority."
+            "title": "Wait for approval and priority assignment",
+            "description": "Your application is reviewed and assigned priority points. Elderly, disabled, and families with children under 5 get higher priority."
           },
           {
             "step": 4,
             "title": "Schedule energy audit",
-            "description": "If selected for services, a weatherization contractor will contact you to schedule a comprehensive home energy audit."
-          },
-          {
-            "step": 5,
-            "title": "Receive weatherization services",
-            "description": "Approved improvements (insulation, sealing, heating repairs) are completed at no cost up to $4,000 per home."
+            "description": "Once approved and prioritized, a local weatherization agency will contact you to schedule a home energy audit and begin work."
           }
         ],
-        "processingTime": "Application processing begins October 1st annually. Crisis applications (lost heat, insufficient fuel) are expedited.",
-        "waitlist": "Approval does not guarantee services will be received that year. Services based on priority point system with waiting list.",
-        "tip": "If your parent receives SNAP, SSI, or TANF, they automatically meet income requirements — no additional income documentation needed.",
+        "processingTime": "Varies; crisis applications (e.g., lost heat, low fuel) expedited. Once approved, weatherization agency contacts for energy audit.",
+        "waitlist": "Services based on priority point system (elderly, disabled, children under 5 prioritized); approval does not guarantee services same year",
+        "tip": "If your parent has a heating emergency or is nearly out of fuel, mention this when applying — crisis cases get expedited processing.",
         "urls": [
           {
             "label": "Apply online",
-            "url": "https://lieapwyo.org"
+            "url": "https://lieapwyo.org/weatherization.html"
           },
           {
-            "label": "Program information",
+            "label": "Official program page",
             "url": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/weatherization-assistance-program-wap-2/"
           }
         ]
       },
       "contentSections": [
         {
-          "type": "income-table",
-          "heading": "Income Limits by Household Size (200% Federal Poverty Level)",
-          "rows": [
-            {
-              "householdSize": 1,
-              "monthlyLimit": 2337,
-              "annualLimit": 28044
-            },
-            {
-              "householdSize": 2,
-              "monthlyLimit": 3162,
-              "annualLimit": 37944
-            },
-            {
-              "householdSize": 3,
-              "monthlyLimit": 3987,
-              "annualLimit": 47844
-            },
-            {
-              "householdSize": 4,
-              "monthlyLimit": 4812,
-              "annualLimit": 57744
-            }
-          ],
-          "footnote": "2026 Federal Poverty Guidelines. Automatic qualification if receiving SNAP, SSI, or TANF."
+          "type": "callout",
+          "tone": "warning",
+          "text": "Approval doesn't guarantee weatherization services the same year. The program uses a priority system and has funding limits, so there may be a waitlist even after you're approved."
         },
         {
-          "type": "tier-comparison",
-          "heading": "Priority System",
-          "tiers": [
-            {
-              "name": "High Priority",
-              "description": "Elderly residents, disabled individuals, homes with children under 5",
-              "incomeLimit": "Up to 200% FPL",
-              "coverage": "Move faster through waiting list"
-            },
-            {
-              "name": "Standard Priority",
-              "description": "All other eligible households",
-              "incomeLimit": "Up to 200% FPL",
-              "coverage": "Standard waiting list placement"
-            }
-          ]
-        },
-        {
-          "type": "county-directory",
-          "heading": "Regional Contacts",
-          "offices": [
-            {
-              "name": "Johnson County",
-              "type": "service-area",
-              "phone": "307-686-2730",
-              "address": null
-            },
-            {
-              "name": "Statewide Application Line",
-              "type": "service-area",
-              "phone": "1-800-246-4221",
-              "address": null
-            }
-          ]
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent rents, get landlord permission in writing before applying. The landlord must agree not to raise rent or evict tenants because of the improvements."
         },
         {
           "type": "documents",
           "heading": "What to Bring",
           "categories": [
             {
-              "name": "Residency",
+              "name": "Income Verification",
+              "items": [
+                "Proof of income (if not already receiving SNAP, SSI, TANF, or LIEAP)",
+                "Most recent pay stubs or Social Security statements"
+              ]
+            },
+            {
+              "name": "Housing Documentation",
               "items": [
                 "Proof of Wyoming residency",
-                "Proof of legal ownership OR landlord-signed rental verification form"
-              ]
-            },
-            {
-              "name": "Income (if not receiving SNAP/SSI/TANF)",
-              "items": [
-                "Pay stubs or benefit statements",
-                "Social Security statements",
-                "Pension documentation"
-              ]
-            },
-            {
-              "name": "For Renters Only",
-              "items": [
-                "Written landlord permission",
-                "Signed rental agreement",
-                "Completed Weatherization Landlord Agreement form"
+                "Proof of home ownership or rental agreement",
+                "Completed Rental Verification form (renters only)",
+                "Weatherization Landlord Agreement (renters only)"
               ]
             }
           ]
-        },
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "Approval doesn't guarantee service this year. Wyoming uses a priority point system, and elderly applicants get preference, but even approved applicants may wait on a list for actual weatherization work."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "If your parent's home has already received weatherization through any Department of Energy program, they're not eligible. Check with the program office if you're unsure about past weatherization history."
         }
       ],
       "faqs": [
         {
-          "question": "Can my parent apply if they're renting their home?",
-          "answer": "Yes, but they need written permission from their landlord and must submit a signed rental agreement. The landlord must also complete a Weatherization Landlord Agreement form."
+          "question": "What if my parent's landlord won't give permission?",
+          "answer": "Your parent cannot receive weatherization services without written landlord permission via the Rental Verification form or Landlord Agreement. Try explaining that the improvements increase property value at no cost to the landlord."
         },
         {
-          "question": "What if Mom's income is just over the limit?",
-          "answer": "Federal funds are restricted to 60% of statewide median income (about $33,600 for a family of four), but Wyoming offers a state supplement for those earning up to 185% of Federal Poverty Level. Call 1-800-246-4221 to discuss your parent's specific situation."
+          "question": "How long is the waitlist after approval?",
+          "answer": "It varies by funding and demand, but seniors and disabled adults get priority points that move them up faster. The program notes that approval doesn't guarantee services in the same year."
         },
         {
-          "question": "How long does the waiting list take?",
-          "answer": "There's no set timeline. The program uses a priority system where elderly residents, disabled individuals, and homes with children under 5 move faster. Even after approval, you may wait months or longer for actual weatherization work."
+          "question": "What if their home was weatherized years ago?",
+          "answer": "Homes previously weatherized through any DOE-related program are not eligible. However, if the work was done through a utility company or private contractor (not a government program), they may still qualify."
         },
         {
-          "question": "What happens if Dad wants to sell his house after weatherization?",
-          "answer": "The home cannot be listed for sale or rent within 12 months of receiving weatherization services. Make sure your parent plans to stay put for at least a year before applying."
+          "question": "Can mobile home owners get weatherization?",
+          "answer": "Yes, the program covers single-family homes, multi-family units, and mobile homes statewide. The same income limits and priority system apply regardless of housing type."
         },
         {
-          "question": "Can Mom get both energy bill help and weatherization?",
-          "answer": "Yes. The same application covers both LIEAP (energy bill assistance) and WAP (weatherization services). LIEAP provides immediate help with heating bills, while WAP provides long-term home improvements."
+          "question": "What happens if they need to sell their house soon?",
+          "answer": "Homes expected to be sold or rented within 12 months are not eligible. The program requires that your parent will continue living in the home to benefit from the energy savings."
         },
         {
-          "question": "What if the power company is threatening to shut off heat?",
-          "answer": "Apply immediately for crisis assistance. Crisis applications for lost heat, insufficient fuel, or impending disconnection are expedited. Crisis assistance is available until April 15, 2025, with possible extension for severe weather."
+          "question": "Do they automatically qualify if they get other benefits?",
+          "answer": "Yes, if your parent receives LIEAP (Wyoming's energy assistance), SNAP, SSI, or TANF, they automatically meet the income requirements. You'll still need to submit the application and meet other requirements like residency."
         }
       ],
-      "phone": "1-800-246-4221",
+      "phone": "800-246-4221",
       "sourceUrl": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/weatherization-assistance-program-wap-2/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-09"
     },
     {
-      "name": "Wyoming State Health Insurance Information Program (WSHIIP/SHIP)",
+      "name": "Wyoming State Health Insurance Information Program (WSHIIP)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Meals on Wheels (via Title III-B Support Services)",
+      "name": "Meals on Wheels (via Title III-C)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
@@ -694,7 +1255,7 @@
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Legal Assistance for Seniors (via Wyoming Senior Services Board)",
+      "name": "Legal Assistance for Seniors (via Wyoming Legal Services)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
@@ -702,13 +1263,67 @@
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Wyoming Home Services Program",
-      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
-    },
-    {
-      "name": "Wyoming Senior Companion Program",
+      "name": "Wyoming Home Services Program (WyHS)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     }
   ],
-  "stateOverview": null
+  "stateOverview": {
+    "intro": "Wyoming offers 7 key programs that can save your parent $2,000–10,000+ annually on medical care, groceries, and home energy costs. These range from Medicaid long-term care (covering the full cost of nursing home care or daily help at home) to smaller but immediate help like SNAP food benefits ($298–1,789/month) and energy assistance (up to $2,176 this winter). Most programs have income limits around $1,800–2,200/month for a single person, but some like Weatherization Assistance are available regardless of income. Start by checking if your parent qualifies for Wyoming Medicaid Long-Term Care or Medicare Savings Programs — these typically offer the largest financial impact and can be applied for immediately.",
+    "startHere": [
+      {
+        "name": "Wyoming Medicaid Long-Term Care",
+        "programId": "wyoming-medicaid-long-term-care",
+        "why": "Covers the full cost of nursing home care or daily help at home — potentially worth $50,000+ annually."
+      },
+      {
+        "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+        "programId": "medicare-savings-programs-wyoming",
+        "why": "Can save $600–4,000+ annually on Medicare costs if income is under $1,816/month."
+      },
+      {
+        "name": "SNAP (Food Stamps)",
+        "programId": "snap-wyoming",
+        "why": "Provides immediate monthly grocery assistance ($298–1,789) for parents on fixed incomes."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying for nursing home or home care",
+        "programs": [
+          "Wyoming Medicaid Long-Term Care",
+          "Community Choices Waiver (CCW)"
+        ],
+        "description": "These programs cover the cost of professional caregiving, whether at home or in a facility."
+      },
+      {
+        "need": "Lower medical and Medicare costs",
+        "programs": [
+          "Medicare Savings Programs (QMB, SLMB, QI)"
+        ],
+        "description": "Help your parent save hundreds or thousands on Medicare premiums, deductibles, and copayments."
+      },
+      {
+        "need": "Food and grocery assistance",
+        "programs": [
+          "SNAP (Food Stamps)"
+        ],
+        "description": "Monthly benefits to help cover grocery costs for parents on limited incomes."
+      },
+      {
+        "need": "Help with heating and utility bills",
+        "programs": [
+          "Wyoming Energy Assistance (LIHEAP)",
+          "Weatherization Assistance Program"
+        ],
+        "description": "Direct bill payment assistance plus free home improvements to permanently reduce energy costs."
+      }
+    ],
+    "quickFacts": [
+      "Most Wyoming benefit programs have income limits between $1,800–2,200/month for a single person",
+      "PACE Wyoming closed in 2021, so parents needing all-in-one medical care should explore Community Choices Waiver instead",
+      "Wyoming Energy Assistance provides up to $2,176 this winter — applications typically open in October",
+      "Weatherization Assistance Program offers free home improvements regardless of income in some cases"
+    ],
+    "resourcesVsBenefits": "All 7 programs Wyoming offers are qualification-based benefits that require meeting income or care need requirements. For example, SNAP requires low income, while Community Choices Waiver requires your parent to need nursing home level care. Wyoming doesn't appear to offer universal free resources like information hotlines — most assistance is tied to specific eligibility criteria around income, age, or medical need."
+  }
 }

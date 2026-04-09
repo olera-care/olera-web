@@ -1,161 +1,77 @@
 {
   "state": "NV",
   "stateName": "Nevada",
-  "comparedAt": "2026-04-09T08:55:50.967Z",
-  "total": 12,
-  "newPrograms": 5,
-  "withDiffs": 7,
-  "withNovelFields": 7,
+  "comparedAt": "2026-04-09T09:37:37.743Z",
+  "total": 5,
+  "newPrograms": 4,
+  "withDiffs": 1,
+  "withNovelFields": 1,
   "benefitTypes": {
-    "financial": 4,
-    "service": 3,
-    "in_kind": 1,
-    "service|advocacy": 1,
-    "employment": 1,
-    "advocacy": 2
+    "financial": 2,
+    "service": 2,
+    "in_kind": 1
   },
   "variationPatterns": {
-    "priority_tier": 1,
-    "not_applicable": 2,
-    "household_size": 2,
-    "household_size and fuel type; benefits calculated based on household income, household size, and type of fuel used for heating[3]": 1,
-    "not_applicable — all services are free regardless of beneficiary circumstances": 1,
-    "region": 2,
-    "fixed": 1,
-    "Individual needs for supportive services; assessments occur at least twice per 12-month period": 1,
-    "Individual assessment — services are tailored to each recipient's needs as determined by case manager[1]": 1
+    "Medicare Part D eligibility status (wrap-around coverage for Medicare-eligible vs. direct assistance for non-Medicare-eligible)": 1,
+    "not_applicable": 1,
+    "priority_tier": 2,
+    "living_arrangement": 1
   },
   "novelFieldSummary": {
     "asset_limits": {
-      "count": 7,
+      "count": 1,
       "programs": [
-        "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
-        "Home and Community Based Services Waiver for the Frail Elderly (HCBS FE Waiver)",
-        "SNAP (Supplemental Nutrition Assistance Program)",
-        "Low-Income Home Energy Assistance Program (LIHEAP)",
-        "Nevada State Health Insurance Assistance Program (SHIP)",
-        "Home Delivered Meals",
-        "Nevada Long-Term Care Ombudsman Program"
+        "Home and Community-Based Waiver for the Frail Elderly (HCBW-FE)"
       ],
       "note": "Our model has no asset limit fields"
     },
     "regional_variations": {
-      "count": 7,
+      "count": 1,
       "programs": [
-        "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
-        "Home and Community Based Services Waiver for the Frail Elderly (HCBS FE Waiver)",
-        "SNAP (Supplemental Nutrition Assistance Program)",
-        "Low-Income Home Energy Assistance Program (LIHEAP)",
-        "Nevada State Health Insurance Assistance Program (SHIP)",
-        "Home Delivered Meals",
-        "Nevada Long-Term Care Ombudsman Program"
+        "Home and Community-Based Waiver for the Frail Elderly (HCBW-FE)"
       ],
       "note": "Program varies by region — our model doesn't capture this"
     },
     "waitlist": {
-      "count": 5,
+      "count": 1,
       "programs": [
-        "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
-        "Home and Community Based Services Waiver for the Frail Elderly (HCBS FE Waiver)",
-        "Low-Income Home Energy Assistance Program (LIHEAP)",
-        "Nevada State Health Insurance Assistance Program (SHIP)",
-        "Home Delivered Meals"
+        "Home and Community-Based Waiver for the Frail Elderly (HCBW-FE)"
       ],
       "note": "Has waitlist info — our model has no wait time field"
     },
     "documents_required": {
-      "count": 7,
-      "programs": [
-        "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
-        "Home and Community Based Services Waiver for the Frail Elderly (HCBS FE Waiver)",
-        "SNAP (Supplemental Nutrition Assistance Program)",
-        "Low-Income Home Energy Assistance Program (LIHEAP)",
-        "Nevada State Health Insurance Assistance Program (SHIP)",
-        "Home Delivered Meals",
-        "Nevada Long-Term Care Ombudsman Program"
-      ],
-      "note": "Has document checklist — our model doesn't store per-program documents"
-    },
-    "household_size_table": {
       "count": 1,
       "programs": [
-        "SNAP (Supplemental Nutrition Assistance Program)"
+        "Home and Community-Based Waiver for the Frail Elderly (HCBW-FE)"
       ],
-      "note": "Benefits/eligibility vary by household size — we store a single number"
+      "note": "Has document checklist — our model doesn't store per-program documents"
     }
   },
   "comparisons": [
     {
-      "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
-      "isNew": false,
-      "existingId": "medicare-savings-programs-qmb-slmb-qi",
+      "name": "Nevada's Senior Rx Program",
+      "isNew": true,
+      "existingId": null,
       "existingVerified": null,
-      "diffsFound": 3,
-      "diffs": [
-        {
-          "field": "income_limit",
-          "ours": "$967",
-          "found": "$1,275",
-          "source": "https://www.dss.nv.gov/programs/medical/general-medical-information/2-general-information-4mb/"
-        },
-        {
-          "field": "benefit_value",
-          "ours": "$2,000 – $8,000/year",
-          "found": "**QMB:** Pays Medicare Part A premiums (if applicable), Part B premiums, deductibles, coinsurance/copayments for Medicare-covered services (providers cannot bill beneficiary); auto-qualifies for Extra Help (Part D low-income subsidy, ≤$12.65 copay/drug in 2026). **SLMB:** Pays Part B premium only. **QI:** Pays Part B premium only.[1][2][3][8]",
-          "source": "https://www.dss.nv.gov/programs/medical/general-medical-information/2-general-information-4mb/"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://www.dss.nv.gov/programs/medical/general-medical-information/2-general-information-4mb/"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "Federal limits apply statewide: $9,090 single, $13,630 married couple (some sources note $9,430/$14,130). Countable assets include bank accounts, stocks; exempt: home, one car, personal belongings, burial plots, life insurance up to $1,500 face value, irrevocable burial trusts.[1][2][5]",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Administered uniformly by DWSS, but apply via local Welfare District Offices; no noted differences in benefits, limits, or wait times by region (e.g., Las Vegas vs. rural).[4][7]",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "QI may end if federal funding exhausted (100% federally funded, state allocation limits); check availability.[8]",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Proof of income (SSI award, pay stubs, pension statements).",
-            "Proof of resources (bank statements).",
-            "Medicare card/award letter.",
-            "ID (birth certificate, Social Security card).",
-            "Proof of residency.",
-            "Household size verification."
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Tiered by income brackets (QMB/SLMB/QI) as % of FPL; federal asset limits fixed but occasionally discrepant in reporting; QI funding-limited; statewide uniform via DWSS local offices.",
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Program operated as wrap-around coverage for Medicare Part D beneficiaries while also serving non-Medicare-eligible seniors. Income and asset limits adjusted annually. Program was administered at state level through DHHS with regional phone support. Now defunct; families should contact Nevada Medicare Assistance Program for current prescription assistance options.",
       "gotchas": [
-        "QI has funding caps and may close enrollment if allocation exhausted.",
-        "Income/asset limits change April 1 annually; outdated figures common in sources.",
-        "QMB protects from provider billing for Medicare-covered services, but small Medicaid copays may apply.",
-        "Must already have Medicare; doesn't cover vision/dental/long-term care.",
-        "Conflicting income figures across sources—verify current FPL with DWSS.",
-        "No Medicaid card issued (premium-only for SLMB/QI)."
+        "Program is no longer active as of December 31, 2023[6]",
+        "Medicare-eligible applicants were required to use Medicare Part D and Extra Help first; Senior Rx was secondary coverage only[3]",
+        "Income limits changed annually on July 1st, making historical comparisons difficult[2]",
+        "Eligibility was redetermined annually with required notification letters[4]",
+        "As of May 2006, only 7.6% of Senior Rx members were non-Medicare-eligible, indicating the program primarily served Medicare beneficiaries[2]"
       ],
       "benefitType": "financial",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://www.dss.nv.gov/programs/medical/general-medical-information/2-general-information-4mb/"
+      "benefitVariesBy": "Medicare Part D eligibility status (wrap-around coverage for Medicare-eligible vs. direct assistance for non-Medicare-eligible)",
+      "officialSource": "https://adsd.nv.gov/programs/seniors/seniorrx/srrxprog/ (now shows program closure notice)[6]"
     },
     {
-      "name": "Home and Community Based Services Waiver for the Frail Elderly (HCBS FE Waiver)",
+      "name": "Home and Community-Based Waiver for the Frail Elderly (HCBW-FE)",
       "isNew": false,
-      "existingId": "centennial-care-home-and-community-based-services-waiver",
+      "existingId": "home-and-community-based-services-hcbs-frail-elderly-waiver",
       "existingVerified": null,
       "diffsFound": 3,
       "diffs": [
@@ -163,442 +79,55 @@
           "field": "income_limit",
           "ours": "$2901",
           "found": "$2,901",
-          "source": "https://adsd.nv.gov (Aging and Disability Services Division)"
+          "source": "https://dwss.nv.gov/ (DWSS) or https://adsd.nv.gov/ (ADSD); waiver details at https://www.medicaid.gov/medicaid/section-1115-demo/demonstration-and-waiver-list/Waiver-Descript-Factsheet/NV[4][6]"
         },
         {
           "field": "benefit_value",
           "ours": "$10,000 – $30,000/year",
-          "found": "Case management, homemaker services, personal emergency response systems, social adult day care, chore services, respite services, augmented personal care in residential settings, access to state plan personal care services. Requires at least one monthly service[5][8]. No specific dollar amounts or hours stated.",
-          "source": "https://adsd.nv.gov (Aging and Disability Services Division)"
+          "found": "Case management, homemaker, respite, adult companion, adult day care, augmented personal care, chore, home delivered meals, personal emergency response system. Must require at least one monthly service. No fixed dollar amounts or hours specified; services promote community living to avoid nursing home[5][6].",
+          "source": "https://dwss.nv.gov/ (DWSS) or https://adsd.nv.gov/ (ADSD); waiver details at https://www.medicaid.gov/medicaid/section-1115-demo/demonstration-and-waiver-list/Waiver-Descript-Factsheet/NV[4][6]"
         },
         {
           "field": "source_url",
           "ours": "MISSING",
-          "found": "https://adsd.nv.gov (Aging and Disability Services Division)"
+          "found": "https://dwss.nv.gov/ (DWSS) or https://adsd.nv.gov/ (ADSD); waiver details at https://www.medicaid.gov/medicaid/section-1115-demo/demonstration-and-waiver-list/Waiver-Descript-Factsheet/NV[4][6]"
         }
       ],
       "novelFields": [
         {
           "field": "asset_limits",
-          "value": "Individuals: $2,000 in countable resources. Home equity limit (2026): $752,000 if living in home or intent to return. Exemptions: Home if applicant, spouse, dependent child under 21, or blind/disabled child lives there[1][6].",
+          "value": "2025 limits: Individual: $2,000. Married spouses (both applying): $3,000. If only one spouse applies, both spouses' assets are considered jointly owned and limited to individual threshold. Exempt assets include primary home (if applicant lives there or intends to return with equity ≤$752,000 in 2026; spouse, dependent child under 21, or blind/disabled child living there), household furnishings, and one vehicle[1][2][3].",
           "note": "Our model has no asset limit fields"
         },
         {
           "field": "regional_variations",
-          "value": "No specific regional differences noted; potential waitlist variations not detailed by region[3].",
+          "value": "Administered via ADSD/DHCFP district offices; potential differences in providers/offices/wait times by region (e.g., Las Vegas-specific info noted), but core rules uniform[4][7]",
           "note": "Program varies by region — our model doesn't capture this"
         },
         {
           "field": "waitlist",
-          "value": "Waitlist exists when program is at capacity; approved applicants wait additional time[3][4].",
+          "value": "Not mentioned; may exist due to waiver caps (common for HCBS)[null]",
           "note": "Has waitlist info — our model has no wait time field"
         },
         {
           "field": "documents_required",
           "value": [
-            "Proof of income, assets, residency, citizenship; medical/functional assessment documentation[1][2][3]"
+            "Financial records (income/assets proof), medical/functional assessment via interview, proof of residency, home equity details if applicable[1][3]"
           ],
           "note": "Has document checklist — our model doesn't store per-program documents"
         }
       ],
-      "dataShapeNotes": "Strict NFLOC with numeric deficit scoring (min 3/13); statewide but waitlisted; income at 300% FBR with spousal disregards; asset cap $2,000 individual with home equity limit and exemptions",
+      "dataShapeNotes": "Financial limits provided for 2025 (income by marital status, assets joint for couples); NFLOC via scored functional assessment (min 3 deficits); services fixed list, statewide but agency-coordinated; sub-categories for living settings (home/group/assisted living)",
       "gotchas": [
-        "Dementia diagnosis does not automatically qualify; must meet NFLOC with 3+ functional deficits[1][3].",
-        "Must apply for and meet full Medicaid financial eligibility through DWSS[5][6].",
-        "Home equity limit applies ($752,000 in 2026) unless exemptions met[1].",
-        "Waiver services not a substitute for family/informal supports[4].",
-        "Waitlist common due to limited slots[3][4].",
-        "Spousal income rules: disregarded only if one applying[2]."
+        "Home exempt for eligibility but subject to Medicaid estate recovery without planning[2]",
+        "Dementia diagnosis does not automatically qualify; must meet NFLOC score of 3+ deficits[1][2]",
+        "Spousal assets jointly counted even if only one applies[3]",
+        "Must show home care costs less than nursing home[4]",
+        "2026 home equity limit $752,000; confirm current figure as limits adjust[1][2]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "not_applicable",
-      "officialSource": "https://adsd.nv.gov (Aging and Disability Services Division)"
-    },
-    {
-      "name": "SNAP (Supplemental Nutrition Assistance Program)",
-      "isNew": false,
-      "existingId": "supplemental-nutrition-assistance-program-snap",
-      "existingVerified": null,
-      "diffsFound": 4,
-      "diffs": [
-        {
-          "field": "min_age",
-          "ours": "65",
-          "found": "60",
-          "source": "https://www.dss.nv.gov/programs/snap/"
-        },
-        {
-          "field": "income_limit",
-          "ours": "$1952",
-          "found": "$2608",
-          "source": "https://www.dss.nv.gov/programs/snap/"
-        },
-        {
-          "field": "benefit_value",
-          "ours": "$1,500 – $3,600/year",
-          "found": "Monthly EBT card for food purchases (groceries, not hot food/alcohol/tobacco). Amount based on net income, household size (e.g., max allotment for 2-person elderly/disabled: ~$546/mo, minus 30% net income). Minimums/maximums apply; $100 more net income = ~$30 less benefits.[1][5]",
-          "source": "https://www.dss.nv.gov/programs/snap/"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://www.dss.nv.gov/programs/snap/"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "Households with elderly (60+) or disabled: $3,500 countable resources (higher than standard $2,250). Countable: cash, bank accounts. Exempt: home, household goods, 1 licensed vehicle (if used for work, medical transport, etc.), retirement savings, life insurance cash value (some states vary), income-producing property (varies).[2][3][4]",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "household_size_table",
-          "value": "For households with a member 60+ or disabled, Nevada uses expanded rules (Oct 1, 2025 - Sept 30, 2026). Gross income limit at 200% FPL: 1 person $2608/mo, 2 $3526, 3 $4442, 4 $5358, 5 $6276, 6 $7192, 7 $8108, +$916 each additional. If over gross, qualify via net income test (e.g., 2025: 1 person $15,060/yr or ~$1,255/mo, 2 $20,440/yr or ~$1,703/mo) and assets. Net income calculated after deductions like 20% earned income, shelter (capped for some), medical >$35/mo for elderly/disabled, utilities.[1][2][3]",
-          "note": "Benefits/eligibility vary by household size — we store a single number"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Administered uniformly by DWSS, but apply via local Social Services Offices; possible exemptions from work rules in high-unemployment counties/labor surplus areas. No major benefit differences.[6]",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Proof of ID/residency.",
-            "Income (pay stubs, SS awards, pension).",
-            "Assets (bank statements).",
-            "Expenses (rent/mortgage, utilities, medical >$35/mo for 60+/disabled).",
-            "Immigration status if applicable."
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Elderly/disabled special rules: gross income optional (net+asset only if over 200% FPL), higher asset limit ($3,500), medical/shelter deductions scale benefits by household size/net income.",
-      "gotchas": [
-        "Elderly households skip gross income test if meeting net/asset; Nevada expanded to 200% FPL gross.[1]",
-        "Medical expenses >$35/mo deductible for 60+/disabled boost eligibility/benefits.[1][2]",
-        "Own home/car often exempt; SSI recipients may auto-qualify.[2][3]",
-        "Household must include food-sharing members; Social Security counts as income.[2]",
-        "Work rules don't apply to 60+, but check county exemptions if others in household.[6]"
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "household_size",
-      "officialSource": "https://www.dss.nv.gov/programs/snap/"
-    },
-    {
-      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
-      "isNew": false,
-      "existingId": "low-income-home-energy-assistance-program-liheap",
-      "existingVerified": null,
-      "diffsFound": 3,
-      "diffs": [
-        {
-          "field": "income_limit",
-          "ours": "$2800",
-          "found": "$1,882",
-          "source": "https://www.dss.nv.gov/programs/energy/eligibility-criteria/"
-        },
-        {
-          "field": "benefit_value",
-          "ours": "$500 – $2,000/year",
-          "found": "Heating assistance: maximum benefit $3,136, minimum benefit $360. Crisis assistance: maximum benefit $3,136. Average assistance nationally is $622.[1][3] Nevada does not offer cooling assistance.[3]",
-          "source": "https://www.dss.nv.gov/programs/energy/eligibility-criteria/"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://www.dss.nv.gov/programs/energy/eligibility-criteria/"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "There is no asset limit for LIHEAP in Nevada.[3]",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Online portal availability varies by region (available in New Mexico and Arizona through Native American Disability Law Center; Nevada's specific online portal availability not detailed in sources). Processing times and application deadlines may vary by local agency.[3]",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "No waitlist mentioned in available sources. However, funding is limited and some local agencies may stop accepting applications if funds run out.[3]",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Proof of identity[1]",
-            "Proof of income (Social Security award letter, recent pay stubs, or other income documentation)[1]",
-            "Proof of heating/cooling or utility cost burden (current utility bill, lease showing utility responsibility)[1]",
-            "Current lease (if renting)[1]",
-            "Most recent utility bill[1]"
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "LIHEAP in Nevada is a statewide program with income-based eligibility that scales by household size. Benefits are financial and vary based on household income, size, and fuel type. The program prioritizes elderly and disabled households for expedited processing (30 days vs. 60 days). Heating assistance is seasonal (fall/winter only); cooling assistance is not available. Crisis assistance is available year-round but only for emergencies. No asset limit exists. Processing times and application methods may vary by local agency, and funding is limited, creating potential application cutoffs before official deadlines.",
-      "gotchas": [
-        "Heating assistance is typically available only in fall and winter; cooling assistance is NOT offered in Nevada.[3]",
-        "Crisis assistance is available only in emergencies (broken furnace, utility shutoff notice), not for routine heating needs.[3]",
-        "Roommates covered by the same utility bill are counted as part of the same LIHEAP household, which may affect eligibility.[3][4]",
-        "Funding is limited and local agencies may stop accepting applications before the official deadline if funds run out; apply as early as possible.[3]",
-        "Prior recipient households with elderly or disabled members receive priority and are mailed simplified re-determination applications 30 days before eligibility date, but must still apply.[5]",
-        "The applicant must be the person responsible for paying energy costs; exceptions require documented hardship.[5]",
-        "Income limits are based on gross monthly income (before taxes), not net income.[3][7]",
-        "There is a separate Senior Energy Assistance Expo program for NV Energy customers age 62+ with different eligibility criteria; do not confuse with LIHEAP.[6]"
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "household_size and fuel type; benefits calculated based on household income, household size, and type of fuel used for heating[3]",
-      "officialSource": "https://www.dss.nv.gov/programs/energy/eligibility-criteria/"
-    },
-    {
-      "name": "Weatherization Assistance Program (WAP)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "This program's benefits scale by household size and energy audit results rather than fixed dollar amounts. Income eligibility thresholds vary by provider (150% vs. 200% of federal poverty level). The program is statewide but delivered through regional nonprofit Subgrantees, creating geographic variation in application processes, contact information, and potentially processing times. No specific processing timeline is published, suggesting variable wait times. The program prioritizes certain household types (elderly, disabled, young children) but does not guarantee approval based on priority alone. All services are provided at no cost to eligible households, making this a fully subsidized program rather than a loan or partial-assistance model.",
-      "gotchas": [
-        "Income limits vary by provider: most use 200% of federal poverty level, but some use 150%[4][6]. Verify with your specific regional provider.",
-        "Renters need landlord/owner approval to participate[3]",
-        "Owners of rental properties may be responsible for 50% of capital improvement costs, not 100% covered[4]",
-        "Social Security Card copies are acceptable, but benefit letters from Social Security are NOT acceptable[3]",
-        "All pages of utility bills must be submitted; partial bills may result in application rejection[3]",
-        "No online applications available at most providers; must apply by phone, mail, or in-person[8]",
-        "Applications reviewed in order received; no guaranteed timeline for processing[8]",
-        "Priority given to households with elderly, disabled, or young children — but this doesn't guarantee approval, only prioritization[1]",
-        "Energy conservation measures must meet DOE cost-effectiveness criteria; not all requested upgrades may be approved[1]",
-        "Program operates under federal DOE regulations (10 CFR Part 440) and state regulations (NRS and NAC 702); requirements are strict[1]"
-      ],
-      "benefitType": "in_kind",
-      "benefitVariesBy": "household_size",
-      "officialSource": "https://housing.nv.gov/programs/weatherization/"
-    },
-    {
-      "name": "Nevada State Health Insurance Assistance Program (SHIP)",
-      "isNew": false,
-      "existingId": "new-mexico-senior-health-insurance-assistance-program-ship",
-      "existingVerified": null,
-      "diffsFound": 2,
-      "diffs": [
-        {
-          "field": "benefit_value",
-          "ours": "$3,000 – $10,000/year",
-          "found": "Free, unbiased counseling and education on Medicare coverage options (Parts A, B, C, D), Medigap supplemental insurance, Medicare Advantage plans, Medicaid eligibility, Medicare Savings Programs, Extra Help/Low Income Subsidy, long-term care insurance, and fraud/abuse detection[2][4][5]",
-          "source": "https://adsd.nv.gov/Programs/Seniors/Medicare_Assistance_Program_(MAP)/MAP_Prog/"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://adsd.nv.gov/Programs/Seniors/Medicare_Assistance_Program_(MAP)/MAP_Prog/"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "Not specified in available sources.",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Not specified. However, search results indicate that SHIP structure enables locally focused counseling reflecting regional Medicare coverage options, hospitals, and physician groups[4]. Nevada-specific regional variations are not detailed in available sources.",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Not specified in available sources.",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": "Not specified in available sources. Callers should contact the program directly to determine what information to prepare.",
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Nevada SHIP is a counseling and advocacy program with no documented income limits, asset limits, or application processing timelines in available sources. Eligibility appears to be based on Medicare beneficiary status rather than financial need. The program is statewide with no geographic restrictions. All services are provided free of charge. Specific application procedures, required documents, and processing times are not detailed in publicly available sources and should be obtained by contacting the program directly at 1-800-307-4444.",
-      "gotchas": [
-        "SHIP is a counseling and education program, not a direct financial assistance program. It helps beneficiaries understand and enroll in coverage options but does not directly pay medical bills[1][2].",
-        "Nevada SHIP is part of the broader Medicare Assistance Program (MAP), which also includes Senior Medicare Patrol (SMP) and MIPPA programs[6]. Callers may be directed to these related services.",
-        "SHIP services are free and unbiased, but the program itself does not determine eligibility for Medicaid, Medicare Savings Programs, or Extra Help — it assists with applications to those programs[2][5].",
-        "No income or asset limits are documented in available sources for Nevada SHIP eligibility, suggesting the program may serve all Medicare beneficiaries regardless of financial status, but this should be confirmed by contacting the program directly."
-      ],
-      "benefitType": "service|advocacy",
-      "benefitVariesBy": "not_applicable — all services are free regardless of beneficiary circumstances",
-      "officialSource": "https://adsd.nv.gov/Programs/Seniors/Medicare_Assistance_Program_(MAP)/MAP_Prog/"
-    },
-    {
-      "name": "Home Delivered Meals",
-      "isNew": false,
-      "existingId": "home-delivered-meals",
-      "existingVerified": null,
-      "diffsFound": 2,
-      "diffs": [
-        {
-          "field": "benefit_value",
-          "ours": "$1,500 – $3,600/year",
-          "found": "Home-delivered nutritionally balanced meals complying with Dietary Guidelines for Americans and providing at least 33 1/3% of daily Recommended Dietary Allowances (RDA); typically 5-7 meals per week including one hot meal on delivery day plus frozen meals; up to 7 additional meals via Second Home Delivered Meal Program; 2 shelf-stable meals annually for emergencies[3][5][6][7]",
-          "source": "https://adsd.nv.gov (Aging and Disability Services Division); https://www.medicaid.nv.gov"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://adsd.nv.gov (Aging and Disability Services Division); https://www.medicaid.nv.gov"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "Not applicable or not specified in available sources.",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Different local providers and area agencies (e.g., Washoe County: up to 7+7 meals/week; Las Vegas: Catholic Charities for homebound seniors 60+); Medicaid waivers via enrolled providers statewide but access varies[1][4][6]",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Not mentioned in sources",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Proof of age/residency may be needed; for Medicaid: referral from case manager with ID, address, meal needs[2][8]; certification notation on refrigerator/freezer/microwave availability[7]"
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "Multiple programs under 'Home Delivered Meals' umbrella (OAA-funded via ADSD/local agencies, Medicaid HCBS waivers); eligibility need-based not income-based for main senior programs; regionally administered with varying providers/meals per week; requires home assessment",
-      "gotchas": [
-        "Not a single statewide program—must identify local provider or Medicaid waiver eligibility; geographic isolation or specific service area limits access[4][6]",
-        "Medicaid version requires prior enrollment in HCBS waiver (e.g., Frail Elderly) and case manager referral—families often miss this[1][2]",
-        "Certification requires home visit to confirm need and appliances; service limited to 12 months max per certification[7]",
-        "Non-Medicaid programs (e.g., OAA-funded) are free but priority to frailest; no income test but waitlists possible in high-demand areas",
-        "Meals must be agency-prepared; no self-prep reimbursement[3]"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "region",
-      "officialSource": "https://adsd.nv.gov (Aging and Disability Services Division); https://www.medicaid.nv.gov"
-    },
-    {
-      "name": "Respite Care Vouchers / Senior Respite Care",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Regionally restricted to Northern Nevada via specific provider (Seniors in Service); no income/asset test; live-in caregiver requirement; grant-funded with selection process.",
-      "gotchas": [
-        "Not for dementia/Alzheimer’s (refer to Alzheimer’s Association).",
-        "Caregiver must live at same address as care receiver.",
-        "Community living only (no facilities).",
-        "Funds contingent on availability; selection-based notification.",
-        "Separate from broader Lifespan Respite or emergency programs.",
-        "No duplication of other funding sources."
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "fixed",
-      "officialSource": "https://adsd.nv.gov (Aging and Disability Services Division); https://seniorsinservicenevada.org/respite-voucher-program/"
-    },
-    {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "SCSEP is a federally funded program (Title V of the Older Americans Act, administered by U.S. Department of Labor) with statewide presence in Nevada but limited documented office locations in search results. Benefits are individualized based on participant needs and assessments rather than fixed by tier. Income eligibility is strict (125% federal poverty level) but specific dollar thresholds are not provided and must be obtained from local offices. The program emphasizes employment outcomes and supportive services tailored to barriers, making it more flexible than a fixed-benefit program but requiring direct contact with local providers for precise details.",
-      "gotchas": [
-        "Income limit is 125% of federal poverty level—this is a strict threshold. Families should verify exact dollar amounts with their local office, as thresholds vary by household size and are updated annually.",
-        "Participants must be unemployed; those with any current employment may not qualify.",
-        "County residency requirement: applicants must live in the county served by the office where they apply. This may limit options in rural Nevada.",
-        "No asset limits are mentioned in search results, but this does not confirm assets are unlimited—clarify with local office.",
-        "Waitlists may exist; enrollment is not guaranteed even if eligible.",
-        "The program is designed as a bridge to unsubsidized employment, not permanent subsidized work. Training typically lasts six months.",
-        "Supportive services (food, housing, transportation, medical) are provided 'as needed' based on individual assessment—not guaranteed to all participants.",
-        "Search results do not specify whether the program operates in all Nevada counties or only select regions."
-      ],
-      "benefitType": "employment",
-      "benefitVariesBy": "Individual needs for supportive services; assessments occur at least twice per 12-month period",
-      "officialSource": "https://adsd.nv.gov/About/Reports/SrCommSvcEmplyProg/Home/ (Nevada ADSD SCSEP State Plan); https://www.dol.gov/agencies/eta/seniors (U.S. Department of Labor)"
-    },
-    {
-      "name": "Nevada Advocates for Seniors",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Decentralized network of legal aid and community advocacy providers; no uniform income/asset tests; regional focus in Southern Nevada with statewide options; prioritizes legal help over direct services",
-      "gotchas": [
-        "Not a Medicaid or financial aid program—focuses on free legal/advocacy services, not direct cash or healthcare[1][3][8]",
-        "No income qualification for some (e.g., SNLP serves fixed-income beyond poverty lines)[6]",
-        "Court referrals required for some cases like guardianship[7]",
-        "Limited resources prioritize frail/low-income/minority seniors[8]",
-        "Volunteer-based elements may involve training/background checks[4]"
-      ],
-      "benefitType": "advocacy",
-      "benefitVariesBy": "region",
-      "officialSource": "https://adsd.nv.gov/Programs/Seniors/AdvocateElders/AdvocateforElders/[5]"
-    },
-    {
-      "name": "Nevada Long-Term Care Ombudsman Program",
-      "isNew": false,
-      "existingId": "long-term-care-ombudsman-program",
-      "existingVerified": null,
-      "diffsFound": 2,
-      "diffs": [
-        {
-          "field": "benefit_value",
-          "ours": "$10,000 – $30,000/year",
-          "found": "Investigation and resolution of complaints related to care, rights, dignity, respect, admissions/discharges, quality of care, privacy/confidentiality, dietary issues, activities, and environmental concerns; unannounced quarterly facility visits; education on resident rights, aging, and LTC services; person-centered advocacy; in-service training for facility staff; all services confidential and at no cost.",
-          "source": "https://adsd.nv.gov/programs/seniors/ltcombudsman/ltcombudsprog/"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://adsd.nv.gov/programs/seniors/ltcombudsman/ltcombudsprog/"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "No asset limits or tests apply.",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Regional offices handle local facilities (e.g., Las Vegas office for southern NV, Carson City for northern); no specified differences in services, wait times, or eligibility.",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "No specific documents required to file a complaint; provide details of the concern. Consent from resident or responsible party may be needed for investigation."
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "no income/asset/age test; consent-driven advocacy only for LTC facility residents; free statewide service via regional offices; complaint-based, not ongoing benefits.",
-      "gotchas": [
-        "Not a healthcare or financial benefits program—provides advocacy and complaint resolution only, not direct services like medical care or payments.",
-        "Requires resident consent for action; ombudsmen cannot proceed without it unless no responsible party and in resident's best interest.",
-        "Confidentiality is strict—names of complainants are not shared.",
-        "Does not handle abuse/neglect for community elders 60+ or vulnerable adults 18-59 (refer to Adult Protective Services).",
-        "Separate from Community Ombudsman Program for non-LTC elders.",
-        "Primarily for facility residents; public or families can contact but focus is resident advocacy."
-      ],
-      "benefitType": "advocacy",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "https://adsd.nv.gov/programs/seniors/ltcombudsman/ltcombudsprog/"
+      "officialSource": "https://dwss.nv.gov/ (DWSS) or https://adsd.nv.gov/ (ADSD); waiver details at https://www.medicaid.gov/medicaid/section-1115-demo/demonstration-and-waiver-list/Waiver-Descript-Factsheet/NV[4][6]"
     },
     {
       "name": "Community Options Program for the Elderly (COPE)",
@@ -608,19 +137,58 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "COPE's data structure is highly individualized: eligibility determination requires a face-to-face LOC screening and financial assessment, and services are tailored to each recipient's needs rather than following a fixed tier or benefit schedule. Income and asset limits are not published in standard materials and must be obtained directly from ADSD. The program operates with a waitlist system. Regional offices handle applications, but specific regional variations in processing time or service availability are not documented in available materials.",
+      "dataShapeNotes": "Statewide with regional offices; financial eligibility via changing guidelines (no fixed table in sources); waitlist common as non-Medicaid alternative to HCBS FE Waiver; NFLOC required with imminent risk focus.",
       "gotchas": [
-        "COPE is a non-Medicaid program, but applicants must still meet financial eligibility criteria — not everyone qualifies regardless of income[1][6]",
-        "The program is designed for people at imminent risk of nursing home placement. Simply being elderly and needing help is not sufficient; applicants must meet a specific Level of Care (LOC) threshold for nursing facility placement[1][2]",
-        "COPE is similar to the HCBS FE Waiver but operates separately. Some individuals use COPE while waiting for HCBS FE Waiver placement[1][6]",
-        "Specific income and asset limits are not published online — families must call their regional ADSD office to learn current thresholds[1]",
-        "Processing timelines are not specified. Families should expect contact from an intake case manager after application submission, but no guaranteed timeline is provided[1]",
-        "Waitlist status is possible. If placed on a waitlist, only a screening (not full assessment) is completed initially[2]",
-        "Services are provided only while the recipient resides at home. If the person moves to a facility, COPE services end[2]"
+        "Non-Medicaid program serving as bridge for HCBS FE Waiver waitlist—may transition if Medicaid-eligible.[1][6]",
+        "Must meet strict NFLOC (risk of nursing home within 30 days); not for general aging support.[3]",
+        "Income/asset limits change (e.g., 2025 limits referenced)—always call for current figures.[1]",
+        "Services only while residing at home in Nevada; family paid caregivers excluded if spouses/guardians.[5]",
+        "Priority given (varies by tier, not detailed).[3]"
       ],
       "benefitType": "service",
-      "benefitVariesBy": "Individual assessment — services are tailored to each recipient's needs as determined by case manager[1]",
+      "benefitVariesBy": "priority_tier",
       "officialSource": "https://adsd.nv.gov/Programs/Seniors/COPE/COPE_Prog/"
+    },
+    {
+      "name": "Social Security Domiciliary Rate",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Tied to SSI with Nevada Optional State Supplementation (OSS C) for specific licensed domiciliary care facilities; no standalone income table, scales with SSI living arrangement; statewide but facility-licensing required.",
+      "gotchas": [
+        "Not a standalone program—requires existing SSI eligibility and move to licensed RFG/ALF.[2][6]",
+        "Facility must be state-licensed private non-medical providing personal care to unrelated adults; public institutions serving >16 may not qualify.[6]",
+        "Income/assets assessed under strict SSI rules; home equity cap at $595,000.[1]",
+        "Must apply for other benefits; SSA administers but state rules apply.[3][6]",
+        "People miss that it's an SSI supplement increase, not separate aid."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "living_arrangement",
+      "officialSource": "https://secure.ssa.gov/apps10/poms.nsf/lnx/0501415300SF"
+    },
+    {
+      "name": "Taxi Assistance Program (TAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Clark County-restricted; tiered categories (1-5) for eligibility/benefits; income test at 125% FPG with proof from all sources including spouse; currently closed to new funded enrollments",
+      "gotchas": [
+        "Currently at funding capacity; new applicants approved but no coupons issued until funding available[1]",
+        "Clark County residents only—not statewide[1][4]",
+        "Appointments required for in-person; no drop-ins. Cash/check/money order only[1]",
+        "Income at 125% FPG (recent) vs. older 300% references—use latest[1][2][3]",
+        "Must prove permanent disability with specific docs if under 60[2]",
+        "Coupons expire and rides may need advance scheduling[5][6]"
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://adsd.nv.gov/programs/seniors/tap/tap_prog/[1]"
     }
   ]
 }

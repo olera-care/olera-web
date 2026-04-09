@@ -1,460 +1,139 @@
 {
   "state": "NE",
   "stateName": "Nebraska",
-  "draftedAt": "2026-04-09T08:56:03.788Z",
-  "total": 4,
-  "successful": 4,
+  "draftedAt": "2026-04-09T09:37:37.850Z",
+  "total": 15,
+  "successful": 3,
   "programs": [
     {
-      "id": "nebraska-community-aging-services-act",
-      "name": "Nebraska Community Aging Services Act",
-      "shortName": "Aging Services",
-      "tagline": "Free meals, transportation, and home care services to help your parent stay independent in their own home.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false
-      },
-      "intro": "If your parent is 60+ and wants to stay in their home instead of moving to a facility, Nebraska's Community Aging Services Act provides free services like delivered meals, transportation to doctor appointments, adult day care, and homemaker services. Because this program focuses on keeping people independent in their communities, your parent won't face strict income limits like Medicaid — instead, they'll get an individual assessment based on their specific needs. Priority goes to those in greatest need, but people with disabilities of any age and family caregivers can also qualify for support services.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": true,
-      "structuredEligibility": {
-        "summary": [
-          "Age 60+ (or any age with disability)",
-          "No strict income limits",
-          "Individual needs assessment required",
-          "Priority to those in greatest need"
-        ],
-        "ageRequirement": "60+",
-        "incomeTable": null,
-        "assetLimits": null,
-        "functionalRequirement": "Individual assessment of circumstances and need for services to remain independent in the community",
-        "otherRequirements": [
-          "People with disabilities of any age also qualify",
-          "Family caregivers and advocates can access some services"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "phone",
-        "summary": "Call your local Area Agency on Aging for an individual assessment — no standard application form required.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Find your Area Agency on Aging",
-            "description": "Nebraska divides the state into planning areas, each served by a different Area Agency on Aging (AAA). You'll need to contact the specific AAA that covers your parent's address."
-          },
-          {
-            "step": 2,
-            "title": "Call for assessment",
-            "description": "Contact your AAA by phone or visit in person. They'll assess your parent's individual circumstances and needs rather than using a standard application."
-          },
-          {
-            "step": 3,
-            "title": "Develop service plan",
-            "description": "If eligible, the AAA will work with you to create a service plan based on what's available in your area and your parent's priority level."
-          }
-        ],
-        "processingTime": null,
-        "waitlist": null,
-        "tip": "Because each Area Agency on Aging operates differently, ask specifically what services are available in your parent's area — options vary significantly by region.",
-        "urls": [
-          {
-            "label": "Find your local Area Agency on Aging",
-            "url": "https://dhhs.ne.gov/pages/aging.aspx"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "callout",
-          "tone": "warning",
-          "text": "This is NOT Medicaid nursing home coverage. This program specifically helps people stay in their homes and communities, not move to facilities. If your parent needs nursing home care, that's a separate Medicaid program with different rules."
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Available services depend entirely on your Area Agency on Aging's resources and local plan. What's offered in Omaha may be completely different from what's available in rural Nebraska — always ask your specific AAA what they currently provide."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "What if my parent's income is too high for Medicaid — can they still get help?",
-          "answer": "Yes. Unlike Medicaid, this program has no published income limits. Eligibility is based on individual need assessment, so your parent may qualify for services even if their income exceeds other program thresholds."
-        },
-        {
-          "question": "Can Mom keep her house and savings if she gets these services?",
-          "answer": "Yes. There are no asset limits for this program. Your parent can own their home, have savings, and still receive community services like meals or transportation."
-        },
-        {
-          "question": "What services will actually be available in my parent's area?",
-          "answer": "This varies completely by region. Each Area Agency on Aging creates its own service plan based on local resources. Services might include delivered meals, transportation, homemaker help, adult day care, or other support — but you must contact your specific AAA to learn what they currently offer."
-        },
-        {
-          "question": "How long does it take to start getting services?",
-          "answer": "Processing time isn't published and varies by Area Agency on Aging. When you call, ask about current wait times and whether they have a waitlist for the specific services your parent needs."
-        },
-        {
-          "question": "What if my parent needs help but isn't the 'highest priority'?",
-          "answer": "Priority goes to those in greatest need, but this doesn't mean others can't get services. It may affect what services are available or how quickly your parent can access them. Ask your AAA about all options, including services with no financial eligibility requirements."
-        },
-        {
-          "question": "Can I get help as a family caregiver even if I don't live in Nebraska?",
-          "answer": "The program serves family caregivers, but services are delivered through local Area Agencies on Aging in Nebraska. Contact the AAA in your parent's area to discuss what caregiver support might be available."
-        }
-      ],
-      "phone": null,
-      "sourceUrl": "https://dhhs.ne.gov/pages/aging.aspx",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
-    },
-    {
-      "id": "nebraska-adrc-navigation-services",
-      "name": "Aging and Disability Resource Center (ADRC)",
-      "shortName": "ADRC",
-      "tagline": "Free help navigating Medicaid, Social Security, and dozens of other programs for your aging parent.",
-      "programType": "navigator",
-      "complexity": "simple",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "State Unit on Aging: (402) 471-2307",
-            "type": "service-area"
-          },
-          {
-            "name": "Douglas County ADRC mentioned as example",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If you're overwhelmed trying to figure out which programs your parent qualifies for, Nebraska's ADRC provides free navigation help. Because you're dealing with multiple programs like Medicaid, SNAP, and Social Security that each have different rules, ADRC staff can map out what your parent is eligible for and help with applications.\n\nADRC serves Nebraska residents age 60+ or any age with disabilities. Family caregivers also qualify for help. Because ADRC doesn't provide benefits directly, there are no income or asset limits to worry about — this is purely an information and application assistance service.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Age 60+ or any age with disability",
-          "Nebraska resident",
-          "Family caregivers qualify",
-          "No income limits"
-        ],
-        "ageRequirement": "60+",
-        "incomeTable": null,
-        "assetLimits": null,
-        "functionalRequirement": null,
-        "otherRequirements": [
-          "Nebraska residency",
-          "Caregivers and advocates of eligible persons also qualify"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "phone",
-        "summary": "Call (844) 843-6364 and speak with staff immediately during business hours.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Call the ADRC hotline",
-            "description": "Call (844) 843-6364 or (308) 535-8195 Monday-Friday 8 AM-5 PM. No application needed."
-          },
-          {
-            "step": 2,
-            "title": "Describe your parent's situation",
-            "description": "ADRC staff will assess what programs your parent might qualify for based on age, income, health needs, and living situation."
-          },
-          {
-            "step": 3,
-            "title": "Get referrals and application help",
-            "description": "Staff will connect you to specific programs and can help with applications for Medicaid, Social Security, SNAP, and other benefits."
-          }
-        ],
-        "processingTime": "Immediate phone consultation",
-        "waitlist": null,
-        "tip": "Have your parent's income information ready when you call — it helps staff identify the right programs faster.",
-        "urls": []
-      },
-      "contentSections": [
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "ADRC doesn't provide benefits directly — they're navigators who help you access other programs like Medicaid and SNAP. Think of them as your free benefits consultant."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "What's the difference between ADRC and Medicaid?",
-          "answer": "ADRC helps you figure out if your parent qualifies for Medicaid and assists with the application. Medicaid is the actual program that pays for healthcare and long-term care. ADRC is the navigation service."
-        },
-        {
-          "question": "Can ADRC help if my parent already has Medicare?",
-          "answer": "Yes. ADRC can help your parent apply for additional programs like Medicaid (which works alongside Medicare), SNAP food benefits, utility assistance, and other programs that Medicare doesn't cover."
-        },
-        {
-          "question": "Do I need to live in Nebraska to get help for my parent?",
-          "answer": "No. As long as your parent lives in Nebraska, you can call ADRC for help even if you live in another state. Family caregivers qualify for assistance regardless of where they live."
-        },
-        {
-          "question": "Will ADRC share my parent's information with other agencies?",
-          "answer": "ADRC will only share information when you authorize them to help with specific applications. They won't share your parent's information without permission."
-        },
-        {
-          "question": "What if my parent's income is too high for some programs?",
-          "answer": "ADRC staff know about programs with different income limits. Even if your parent doesn't qualify for Medicaid, they might qualify for Medicare Savings Programs, utility assistance, or other benefits with higher income limits."
-        },
-        {
-          "question": "Can ADRC help with nursing home placement?",
-          "answer": "Yes. ADRC provides person-centered transition support and can help you understand long-term care options, including nursing homes, assisted living, and home-based care programs."
-        }
-      ],
-      "phone": "(844) 843-6364",
-      "sourceUrl": "https://dhhs.ne.gov/Pages/Aging-and-Disability-Resource-Center.aspx",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
-    },
-    {
-      "id": "nebraska-aabd-assistance",
-      "name": "Assistance to Aged, Blind or Disabled (AABD)",
-      "shortName": "AABD",
-      "tagline": "Monthly cash payments plus medical coverage for Nebraska seniors 65+ or adults denied federal disability due to short-term conditions.",
+      "id": "nebraska-aged-disabled-hcbs-waiver",
+      "name": "Aged and Disabled (AD) HCBS Waiver",
+      "shortName": "AD HCBS Waiver",
+      "tagline": "Helps your parent stay home with services like personal care, home modifications, and meal delivery instead of nursing home care.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Statewide via DHHS; regional phone lines for Omaha and Lincoln",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": false
       },
-      "intro": "If your parent is 65+ in Nebraska or was denied federal disability benefits because their condition is expected to last less than 12 months, they may qualify for monthly cash payments plus medical coverage through AABD. This state program specifically helps people who fall through the cracks of federal assistance — either because they're waiting to turn 65 for other benefits or because their disability is considered \"short-term\" by federal standards.\n\nAABD provides both financial support and medical coverage, but you must be a Nebraska resident and meet income and asset limits. Because this program often serves as a bridge for people denied federal SSI, the application process involves coordination between state and federal disability determinations.",
+      "intro": "If your parent needs significant daily help with bathing, dressing, or other basic activities, the AD HCBS Waiver can provide home-based services to keep them out of a nursing home. The program covers personal care, home modifications, meal delivery, adult day health, and respite care — all at no cost to families who qualify.\n\nTo qualify, your parent must be 65+ (or any age with a disability), meet Nebraska Medicaid income limits, and pass a clinical assessment showing they need nursing home-level care. Because the assessment is detailed and strict, most applicants need help with at least 3 activities of daily living plus additional health or cognitive issues.\n\nThe Level of Care assessment gets scheduled within 14 days of applying. Home equity cannot exceed $752,000, though your parent can keep their home if they live there or plan to return.",
       "savingsRange": "",
-      "savingsSource": "Amount not specified in state materials",
+      "savingsSource": "Free service",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Age 65+ OR denied SSI for short-term disability",
-          "Nebraska resident",
-          "Meet income limits",
-          "Meet asset limits",
-          "Cooperate with medical payment recovery"
+          "Age 65+ or any age with disability",
+          "Nebraska Medicaid eligible",
+          "Need nursing home-level care",
+          "Home equity under $752,000"
         ],
-        "ageRequirement": "65+ OR under 65 with qualifying disability",
+        "ageRequirement": "65+",
         "incomeTable": null,
-        "assetLimits": null,
-        "functionalRequirement": "For disability cases: Condition must be expected to last 12+ months (federal determination) OR under 12 months but severe enough to prevent work (state determination for those denied federal SSI)",
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second homes or property"
+          ],
+          "exemptAssets": [
+            "Primary home (if equity under $752,000)",
+            "One vehicle",
+            "Personal belongings",
+            "Life insurance under $1,500"
+          ],
+          "homeEquityCap": 752000
+        },
+        "functionalRequirement": "Must need nursing home-level care — typically requires significant limitations with at least 3 activities of daily living (bathing, dressing, toileting, eating, transferring, mobility) plus health conditions or cognitive issues",
         "otherRequirements": [
           "Nebraska resident",
-          "Cooperate in obtaining third-party medical payments",
-          "Cannot receive both AABD and State Disability Program payments in same family"
+          "U.S. citizen or qualified alien",
+          "Currently receive Nebraska Medicaid"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through the Nebraska DHHS website or call for phone application — processing time not specified.",
+        "summary": "Apply online through iServe Nebraska or call 877-667-6266 — Level of Care assessment scheduled within 14 days.",
         "steps": [
           {
             "step": 1,
-            "title": "Determine your pathway",
-            "description": "If your parent was denied federal SSI due to a disability expected to last less than 12 months, they may qualify for the State Disability Program under AABD. If they're 65+, they apply for the aged category."
+            "title": "Confirm Medicaid eligibility",
+            "description": "Your parent must already receive Nebraska Medicaid. If not, apply for Medicaid first at iServe Nebraska or call 877-667-6266."
           },
           {
             "step": 2,
-            "title": "Gather disability documentation",
-            "description": "For disability cases, you'll need the SSI denial letter or medical documentation. Federal disability determinations are handled by SSA; short-term disability cases are reviewed by the State Review Team."
+            "title": "Submit waiver application",
+            "description": "Apply online at iServe Nebraska, call 877-667-6266, or email DHHS.HCBSWaiverApp@nebraska.gov. Include medical records showing care needs."
           },
           {
             "step": 3,
-            "title": "Submit application",
-            "description": "Apply online at dhhs.ne.gov or call your regional number. The state will coordinate with federal agencies for disability determinations if needed."
+            "title": "Complete Level of Care assessment",
+            "description": "A clinical assessor will evaluate your parent's daily living limitations using the interRAI Home Care tool. This determines if they need nursing home-level care."
           },
           {
             "step": 4,
-            "title": "Complete eligibility review",
-            "description": "The state will verify Nebraska residency, income, assets, and coordinate any required medical evaluations for disability cases."
+            "title": "Receive service plan",
+            "description": "If approved, DHHS creates an individualized service plan based on assessed needs and available waiver services."
           }
         ],
-        "processingTime": null,
+        "processingTime": "Level of Care assessment scheduled within 14 days of application submission",
         "waitlist": null,
-        "tip": "If your parent was recently denied federal SSI, keep the denial letter — it's often required for AABD eligibility and can speed up the application process.",
+        "tip": "Gather detailed medical records before applying — the assessment focuses on specific daily living limitations, not general health status.",
         "urls": [
           {
-            "label": "Apply online at Nebraska DHHS",
-            "url": "https://dhhs.ne.gov"
+            "label": "Nebraska DHHS Waiver Page",
+            "url": "https://dhhs.ne.gov/Pages/Medicaid-Aged-and-Disabled-Waiver.aspx"
           }
         ]
       },
       "contentSections": [
         {
-          "type": "county-directory",
-          "heading": "Contact Numbers",
-          "offices": [
-            {
-              "name": "Statewide General Line",
-              "type": "service-area",
-              "phone": "402-471-3121",
-              "address": "Nebraska Department of Health and Human Services"
-            },
-            {
-              "name": "Omaha Area",
-              "type": "service-area",
-              "phone": "402-595-1258",
-              "address": "Regional DHHS Office"
-            },
-            {
-              "name": "Lincoln Area",
-              "type": "service-area",
-              "phone": "402-323-3900",
-              "address": "Regional DHHS Office"
-            },
-            {
-              "name": "Toll-Free Customer Service",
-              "type": "service-area",
-              "phone": "800-383-4278",
-              "address": "Statewide support line"
-            }
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and retirement accounts (if accessible)",
+            "Second homes or rental property",
+            "Home equity above $752,000"
+          ],
+          "excluded": [
+            "Primary home (if equity under $752,000)",
+            "One vehicle of any value",
+            "Personal belongings and household items",
+            "Life insurance with face value under $1,500",
+            "Home if spouse, minor child, or disabled child lives there"
           ]
         },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "AABD is primarily for people denied federal SSI because their disability is expected to last less than 12 months. If your parent has a long-term disability that would qualify for regular SSI, apply for federal benefits first."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "What if my parent was denied federal disability but their condition is getting worse?",
-          "answer": "They can still apply for AABD while appealing the federal decision. The State Review Team evaluates short-term disabilities that federal SSI doesn't cover, and conditions can be re-evaluated if they worsen or last longer than initially expected."
-        },
-        {
-          "question": "Can my parent get AABD if they live in assisted living?",
-          "answer": "Yes. AABD is available for people living in their own home, apartment, assisted living facilities, licensed mental health facilities, or centers for developmentally disabled individuals."
-        },
-        {
-          "question": "What's the difference between AABD and Nebraska's Medicaid waiver programs?",
-          "answer": "AABD provides cash payments plus medical coverage and doesn't require nursing facility level of care. Medicaid waivers like the AD Waiver have different criteria including functional assessments for activities of daily living."
-        },
-        {
-          "question": "How does blindness qualification work for AABD?",
-          "answer": "Blindness is defined as central visual acuity of 20/200 or less in the better eye with correction. Adults under 65 who meet this definition can qualify for AABD even without other disabilities."
-        },
-        {
-          "question": "What if multiple family members might qualify for different disability programs?",
-          "answer": "No family unit can receive both AABD payments and State Disability Program assistance at the same time, but family members may qualify for different programs. Call to discuss your specific situation."
-        },
-        {
-          "question": "Do I need to help my parent cooperate with medical payment recovery?",
-          "answer": "Yes, AABD requires cooperation in obtaining third-party medical payments, which means working with the state to recover costs from insurance, Medicare, or other sources that should pay for medical care first."
-        }
-      ],
-      "phone": "402-471-3121",
-      "sourceUrl": "https://dhhs.ne.gov/Pages/Aged-Blind-or-Disabled.aspx",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
-    },
-    {
-      "id": "nebraska-ssad-aging-disability-services",
-      "name": "Social Services for the Aged and Disabled (SSAD)",
-      "shortName": "SSAD Services",
-      "tagline": "When your parent doesn't qualify for other programs, SSAD provides housekeeping, transportation, and adult day care as a safety net.",
-      "programType": "benefit",
-      "complexity": "medium",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Administered by Nebraska DHHS; specific local office locations not provided in available documentation",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your aging parent is ineligible for other assistance programs but still needs help with daily tasks, Nebraska's Social Services for the Aged and Disabled (SSAD) serves as a safety net. The program provides practical services like light housekeeping, meal preparation, transportation to medical appointments, and adult day care for those who are aged, blind, or disabled.\n\nSSAD fills gaps when your parent's income is too high for some programs but too low to afford private help. Because this is Nebraska's program of last resort, you must first be denied or unable to receive help from other programs like Medicaid waivers. Eligibility depends on both income limits and demonstrating actual need for the specific service you're requesting.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Aged, blind, or disabled",
-          "Income-based (limits not published)",
-          "Ineligible for other programs",
-          "Must demonstrate need for service"
-        ],
-        "ageRequirement": null,
-        "incomeTable": null,
-        "assetLimits": null,
-        "functionalRequirement": null,
-        "otherRequirements": [
-          "Must be aged, blind, or disabled",
-          "Must demonstrate need for the requested service",
-          "Must be ineligible or unable to receive assistance from other programs"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "phone",
-        "summary": "Contact Nebraska DHHS directly by phone — processing time not specified in available documentation.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Contact Nebraska DHHS",
-            "description": "Call to discuss your parent's specific needs and get current income limits, which are not published online."
-          },
-          {
-            "step": 2,
-            "title": "Gather income documentation",
-            "description": "Collect proof of your parent's income and any documentation showing they've been denied other assistance programs."
-          },
-          {
-            "step": 3,
-            "title": "Document service need",
-            "description": "Prepare to explain specifically why your parent needs the service (housekeeping, transportation, adult day care) and how it would help them."
-          },
-          {
-            "step": 4,
-            "title": "Submit application",
-            "description": "Complete the application process with DHHS — specific forms and processing timeline will be provided when you call."
-          }
-        ],
-        "processingTime": null,
-        "waitlist": null,
-        "tip": "Call DHHS first before gathering documents — they can tell you current income limits and whether your parent's situation fits the program.",
-        "urls": []
-      },
-      "contentSections": [
         {
           "type": "documents",
           "heading": "What to Bring",
           "categories": [
             {
-              "name": "Income Verification",
-              "items": [
-                "Social Security award letters",
-                "Pension statements",
-                "Bank statements for the past 3 months",
-                "Any other income documentation"
-              ]
-            },
-            {
-              "name": "Service Need Documentation",
-              "items": [
-                "Medical records showing disability or health conditions",
-                "Documentation of denied applications from other programs",
-                "Specific explanation of why you need each service requested"
-              ]
-            },
-            {
               "name": "Identity",
               "items": [
-                "Driver's license or state ID",
-                "Proof of age if claiming aged status",
-                "Disability determination if claiming disabled status"
+                "Valid photo ID",
+                "Social Security card",
+                "Proof of Nebraska residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Recent bank statements",
+                "Income statements (Social Security, pensions)",
+                "Property deeds or mortgage statements",
+                "Current Medicaid eligibility documentation"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records showing functional limitations",
+                "Physician documentation of care needs",
+                "Current medication list",
+                "Records of falls or emergency incidents"
               ]
             }
           ]
@@ -462,44 +141,488 @@
         {
           "type": "callout",
           "tone": "warning",
-          "text": "SSAD only helps if your parent has been denied or cannot access other programs. If they qualify for Medicaid waivers or other assistance, they must use those first."
+          "text": "This waiver expires July 31, 2026. Verify current status with DHHS at 877-667-6266 as renewal may be pending."
         },
         {
           "type": "callout",
           "tone": "tip",
-          "text": "Adult day care through SSAD requires a minimum of 3 hours per day — shorter visits aren't available through this program."
+          "text": "The Level of Care assessment is strict — your parent must demonstrate significant limitations with multiple daily activities, not just general health problems. Be specific about what help they need with bathing, dressing, toileting, and mobility."
         }
       ],
       "faqs": [
         {
-          "question": "What if my parent was denied Medicaid waiver services — can they still get SSAD help?",
-          "answer": "Yes, this is exactly what SSAD is designed for. Being denied other programs often makes your parent eligible for SSAD services as a safety net. Keep your denial letters as documentation."
+          "question": "Can Mom keep her house if she qualifies for the waiver?",
+          "answer": "Yes, as long as her home equity is under $752,000. Home equity is the current value minus what she owes on the mortgage. The limit doesn't apply if you or another family member lives in the home."
         },
         {
-          "question": "How much income is too much to qualify for SSAD?",
-          "answer": "DHHS doesn't publish current income limits online. You'll need to call them directly with your parent's specific income to find out if they qualify. Income limits can change annually."
+          "question": "What if Dad needs help with only one or two daily activities?",
+          "answer": "He likely won't qualify. The Level of Care assessment typically requires significant limitations with at least 3 activities of daily living (bathing, dressing, toileting, eating, transferring, mobility) plus additional health conditions or cognitive issues."
         },
         {
-          "question": "Can my parent get just transportation help, or do they need multiple services?",
-          "answer": "Your parent can request just transportation or any single service they need. Each service is evaluated separately based on demonstrated need — you don't have to take a package of services."
+          "question": "How much personal care will the waiver cover each week?",
+          "answer": "Hours vary based on individual assessment and need. DHHS creates a personalized service plan after the Level of Care evaluation. Contact 877-667-6266 for details about typical service levels."
         },
         {
-          "question": "What's the difference between chore services and homemaker services in this program?",
-          "answer": "Chore services cover light housekeeping, shopping, food preparation, and laundry. Homemaker services are instruction-based — teaching your parent how to manage tasks rather than doing them. DHHS will help determine which fits your parent's situation."
+          "question": "What happens if Mom's income is slightly too high for Medicaid?",
+          "answer": "She won't qualify for the waiver since Nebraska Medicaid eligibility is required first. However, medical expenses can sometimes reduce countable income. Call 877-667-6266 to discuss her specific situation."
         },
         {
-          "question": "How long does it take to start receiving SSAD services once approved?",
-          "answer": "Processing timelines aren't published. When you call DHHS to apply, ask for current wait times for the specific services your parent needs, as this can vary by service type and local availability."
+          "question": "Can we choose which services Dad receives from the waiver?",
+          "answer": "Services are based on assessed need, not preference. The evaluation determines what level of personal care, home modifications, meal delivery, or other services are medically necessary for his specific limitations."
         },
         {
-          "question": "If my parent's income increases slightly, will they lose SSAD services immediately?",
-          "answer": "Income changes need to be reported to DHHS, and they'll reassess eligibility. Since income limits aren't published, contact them immediately when your parent's income changes to understand the impact."
+          "question": "Is there a waiting list for waiver services in Nebraska?",
+          "answer": "The research doesn't specify current waitlist status. Call DHHS at 877-667-6266 for up-to-date information about service availability in your area."
+        }
+      ],
+      "phone": "877-667-6266",
+      "sourceUrl": "https://dhhs.ne.gov/Pages/Medicaid-Aged-and-Disabled-Waiver.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "nebraska-pace-elder-care",
+      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
+      "shortName": "PACE",
+      "tagline": "All medical care, medications, and home services under one program for parents who need nursing home-level care but want to stay home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Immanuel Pathways, Omaha (serving Eastern Nebraska counties)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay at home, PACE provides everything under one roof: all medical care, medications, transportation to appointments, home care services, and adult day programs. Because PACE coordinates all care through one team, your parent won't juggle multiple doctors, insurance claims, or copays — the program covers it all.\n\nPACE is only available in eastern Nebraska counties (Douglas, Sarpy, and select areas of Cass, Dodge, Saunders, and Washington). Your parent must be 55+ and pass a state assessment proving they need nursing facility-level care (daily help with bathing, dressing, medication management, or mobility). There are no income or asset limits to join, but Medicaid eligibility determines whether it's free or requires monthly premiums.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Needs nursing facility-level care",
+          "Lives in eastern Nebraska service area",
+          "Not in Medicare Advantage"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2901
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "CDs"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must be certified by Nebraska as needing nursing facility level of care (requires assessment showing need for daily help with activities like bathing, dressing, or medication management)",
+        "otherRequirements": [
+          "Lives in Douglas, Sarpy, or select zip codes in Cass, Dodge, Saunders, or Washington Counties",
+          "Able to live safely in community with PACE services",
+          "Cannot be enrolled in Medicare Advantage"
+        ],
+        "povertyLevelReference": "300% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact Immanuel Pathways directly for eligibility screening and enrollment — they handle the entire process including state assessments.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call Immanuel Pathways",
+            "description": "Contact the only PACE provider in Nebraska to schedule an eligibility assessment"
+          },
+          {
+            "step": 2,
+            "title": "Complete nursing facility assessment",
+            "description": "State assessor evaluates whether your parent needs nursing home-level care"
+          },
+          {
+            "step": 3,
+            "title": "Verify safe community living",
+            "description": "PACE team determines if your parent can live safely at home with their services"
+          },
+          {
+            "step": 4,
+            "title": "Submit required documents",
+            "description": "Provide ID, medical records, residency proof, and Medicare/Medicaid information"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent has Medicare Advantage, they must disenroll before joining PACE — PACE becomes their sole Medicare and Medicaid provider.",
+        "urls": [
+          {
+            "label": "Nebraska DHHS PACE Information",
+            "url": "https://dhhs.ne.gov/Pages/Medicaid-Provider-All-Inclusive-Care-for-the-Elderly.aspx"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Medicaid Coverage Income Limits",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2901,
+              "annualLimit": 34812
+            }
+          ],
+          "footnote": "2025 limits for free PACE coverage. Higher incomes can still join but pay monthly premiums."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits for Free Coverage",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Certificates of deposit",
+            "Second homes or rental properties"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "One vehicle",
+            "Personal belongings and household items",
+            "Burial funds up to $1,500"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Service Area",
+          "offices": [
+            {
+              "name": "Immanuel Pathways Eastern Nebraska",
+              "type": "service-area",
+              "phone": null,
+              "address": "Omaha area serving Douglas, Sarpy, and select zip codes in Cass, Dodge, Saunders, Washington Counties"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "Required Documents",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Birth certificate",
+                "Proof of address in service area"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Recent medical records",
+                "Current medication list",
+                "Medicare card",
+                "Medicaid card (if applicable)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements (if applying for Medicaid coverage)",
+                "Income documentation",
+                "Asset information"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE is only available in eastern Nebraska counties around Omaha. If your parent lives elsewhere in Nebraska, they cannot access this program."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Private pay for PACE can cost $7,000+ per month if your parent doesn't qualify for Medicaid. Get the Medicaid assessment first to determine actual costs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she joins PACE?",
+          "answer": "Yes. PACE is designed to help people stay in their homes instead of moving to nursing facilities. The primary home doesn't count toward asset limits for Medicaid coverage."
+        },
+        {
+          "question": "What if Dad's income is too high for free PACE?",
+          "answer": "He can still join PACE but will pay monthly premiums. About 90% of PACE participants qualify for Medicaid coverage, but private pay is available for those with higher incomes."
+        },
+        {
+          "question": "Does PACE replace Dad's current Medicare plan?",
+          "answer": "Yes. PACE becomes your parent's sole Medicare and Medicaid provider. They cannot have Medicare Advantage or other Medicare plans while enrolled. However, they can leave PACE anytime and return to original Medicare."
+        },
+        {
+          "question": "How do I know if Mom needs 'nursing facility level of care'?",
+          "answer": "Nebraska will assess whether she needs daily help with bathing, dressing, eating, mobility, or medication management. If she would qualify for nursing home admission based on these needs, she likely meets the requirement."
+        },
+        {
+          "question": "What happens if we move outside the service area?",
+          "answer": "Your parent must live in Douglas, Sarpy, or select areas of Cass, Dodge, Saunders, or Washington Counties. Moving outside this area means losing PACE eligibility."
+        },
+        {
+          "question": "Can Mom still see her current doctors with PACE?",
+          "answer": "PACE uses its own care team and providers. Your parent will get new doctors through the PACE program, but the team coordinates all care to avoid the confusion of multiple providers."
         }
       ],
       "phone": null,
-      "sourceUrl": "https://dhhs.ne.gov/Pages/Social-Services-Aged-and-Disabled-Adults.aspx",
+      "sourceUrl": "https://dhhs.ne.gov/Pages/Medicaid-Provider-All-Inclusive-Care-for-the-Elderly.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "nebraska-medicare-savings-program",
+      "name": "Medicare Savings Program (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings Program",
+      "tagline": "Help paying Medicare premiums, deductibles, and copays for parents with limited income.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Administered statewide by ACCESSNebraska",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to afford Medicare costs, Nebraska's Medicare Savings Program can pay their Medicare Part B premiums ($185/month in 2026), plus deductibles and copays depending on which tier they qualify for. The program has three levels: QMB covers the most costs, while SLMB and QI focus on premium assistance.\n\nYour parent must have Medicare Part A eligibility and meet income limits ranging from $1,350/month (QMB) to $1,660/month (QI) for single individuals. Because this is administered through Nebraska's Medicaid system, asset limits also apply — from $9,090 to $9,950 for individuals depending on the program tier.\n\nQualifying for the QI tier automatically enrolls your parent in Extra Help for prescription drug costs, which many families don't realize is an additional benefit.",
+      "savingsRange": "$2,220 – $4,000+/year",
+      "savingsSource": "Medicare Part B premiums ($2,220/year) plus deductibles and copays for QMB tier",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare Part A eligible",
+          "Income $1,350-$1,660/month (single)",
+          "Assets under $9,090-$9,950",
+          "Nebraska resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1350
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1824
+          }
+        ],
+        "assetLimits": {
+          "individual": 9950,
+          "couple": 14910,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Other liquid assets"
+          ],
+          "exemptAssets": [
+            "Primary residence",
+            "One vehicle"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be eligible for Medicare Part A (even if not enrolled)",
+          "Must be Nebraska resident",
+          "Must be US citizen or qualified non-citizen"
+        ],
+        "povertyLevelReference": "100-135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through ACCESSNebraska (Nebraska's Medicaid agency) with processing within 45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact ACCESSNebraska",
+            "description": "Call or visit ACCESSNebraska to request a Medicare Savings Program application form."
+          },
+          {
+            "step": 2,
+            "title": "Gather financial documents",
+            "description": "Collect recent pay stubs or Social Security statements, bank statements, and proof of Medicare eligibility."
+          },
+          {
+            "step": 3,
+            "title": "Submit completed application",
+            "description": "Return the application with all required documentation to ACCESSNebraska."
+          },
+          {
+            "step": 4,
+            "title": "Wait for determination",
+            "description": "QMB eligibility starts the first day of the month after approval. SLMB and QI can be retroactive up to three months."
+          }
+        ],
+        "processingTime": "Within 45 days for QMB; SLMB and QI may be retroactive up to three months",
+        "waitlist": null,
+        "tip": "Apply early in the year since income limits change every April — last year's qualification doesn't guarantee this year's.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Program Tier (2026)",
+          "rows": [
+            {
+              "tier": "QMB",
+              "individual": 1350,
+              "couple": 1824,
+              "description": "Pays Part B premiums, deductibles, copays"
+            },
+            {
+              "tier": "SLMB",
+              "individual": 1478,
+              "couple": 1992,
+              "description": "Pays Part B premiums only"
+            },
+            {
+              "tier": "QI",
+              "individual": 1660,
+              "couple": 2239,
+              "description": "Pays Part B premiums + Extra Help for prescriptions"
+            }
+          ],
+          "footnote": "2026 limits, effective April 2026"
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Other liquid assets"
+          ],
+          "excluded": [
+            "Primary residence (your parent's home)",
+            "One vehicle"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Proof of Nebraska residency",
+                "Proof of US citizenship or qualified non-citizen status",
+                "Medicare card or proof of Medicare eligibility"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Recent pay stubs or Social Security statements",
+                "Bank statements for all accounts",
+                "Investment statements (stocks, bonds, CDs)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income limits change every April. If your parent was denied last year, they may qualify this year with the updated thresholds."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies?",
+          "answer": "Yes. Your parent's primary residence and one vehicle are exempt from the asset limits and won't count against qualification."
+        },
+        {
+          "question": "What if her income is just over the QMB limit?",
+          "answer": "She may still qualify for SLMB (up to $1,478/month) or QI (up to $1,660/month). These programs still cover Medicare Part B premiums, saving $2,220/year."
+        },
+        {
+          "question": "Does this affect her other benefits?",
+          "answer": "No, Medicare Savings Programs don't reduce Social Security or other benefits. If she qualifies for QI, she automatically gets Extra Help with prescription drug costs too."
+        },
+        {
+          "question": "When do the benefits start?",
+          "answer": "For QMB, benefits start the first day of the month after approval. SLMB and QI can be retroactive up to three months before the application date if she was eligible."
+        },
+        {
+          "question": "What happens if she needs nursing home care later?",
+          "answer": "The Medicare Savings Program only covers Medicare costs. For nursing home care, you'd need to explore Medicaid separately, though some of the financial information may transfer."
+        },
+        {
+          "question": "Do we need to reapply every year?",
+          "answer": "The program requires periodic renewals, but you don't need to reapply annually. However, income limits change each April, so it's worth checking if she becomes eligible in a new year."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://public-dhhs.ne.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Nebraska SHIP (State Health Insurance Assistance Program)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Home-Delivered Meals (via AAAs)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Lifespan Respite Services",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Legal Services for Seniors (via AAAs/OAA)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Nebraska Community Aging Services Act",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Aging and Disability Resource Center Act",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Social Services for the Aged and Disabled (SSAD)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Assistance to Aged, Blind or Disabled (AABD)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     }
   ],
   "stateOverview": null

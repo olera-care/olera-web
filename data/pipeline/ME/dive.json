@@ -1,624 +1,448 @@
 {
   "state": "ME",
   "stateName": "Maine",
-  "diveAt": "2026-04-09T08:52:58.041Z",
-  "total": 11,
-  "parsed": 11,
+  "diveAt": "2026-04-09T09:34:46.932Z",
+  "total": 10,
+  "parsed": 8,
   "programs": [
     {
-      "name": "MaineCare Elderly and Adults with Disabilities Waiver",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Maine PACE",
       "eligibility": {
-        "age": "65+ or 18+ with physical disabilities",
-        "income_limits": "Determined by Office of Family Independence (OFI) under MaineCare financial eligibility rules; specific dollar amounts or household size tables not detailed in sources—use MaineCare Eligibility Test for seniors via American Council on Aging[1]",
-        "asset_limits": "Not specified in sources; follows standard MaineCare long-term care rules—consult OFI for details[1]",
+        "age": 55,
+        "income_limits": "No income limits; no financial criteria considered for eligibility[1][2][3]",
+        "asset_limits": "No asset limits; no financial criteria considered for eligibility[1][2][3]",
         "other_requirements": [
-          "Maine resident",
-          "Nursing Facility Level of Care (NFLOC) determined by in-person functional needs assessment using Medical Eligibility Determination (MED) tool by a registered nurse[1]",
-          "At risk of institutionalization (nursing home admission)[1]"
+          "Live in the service area of a PACE organization (no programs currently operating in Maine)[1][3]",
+          "Certified by the state of Maine as requiring nursing home level of care[1][2]",
+          "Able to live safely in the community with PACE services[1][2]",
+          "Not enrolled in Medicare Advantage, Medicare prepayment plan, Medicare prescription drug plan, or hospice[1]"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Care coordination, personal care, respite, financial management services, skills training, assistive technology, attendant care services, environmental modifications, home delivered meals, home health services, living well for better health (chronic disease self-management), matter of balance (falls prevention), non-medical transportation, personal emergency response system, non-traditional communication consultation/assessments, occupational/physical/speech therapy (maintenance), shared living (adult foster care), specialized medical equipment and supplies[2]",
-        "varies_by": "priority_tier"
+        "value": "Comprehensive medical and social services including primary care, hospital and emergency care, prescription drugs, social services, restorative therapies, personal care, respite care, and all other services determined necessary by the interdisciplinary team to keep participants in the community; no deductibles or copays for covered services; person-centered care plan coordinated with primary care physician[1][2][3][8]",
+        "varies_by": "not_applicable"
       },
       "application": {
-        "methods": [
-          "Online: My Maine Connection[1]",
-          "Phone: Office for Family Independence at 855-797-4357[1]",
-          "In-person: District Department of Health and Human Services office[1]",
-          "Mail: Download and print Application for Long Term Care MaineCare[1]"
-        ],
-        "processing_time": "Up to 90 days for determination[5]",
-        "waitlist": "Exists; average wait time varies by needs and can range from no time to several years[5]",
-        "forms": [
-          "Application for Long Term Care MaineCare[1]"
-        ],
-        "documents": [
-          "Documents for financial and medical eligibility (specifics determined by OFI and Assessing Services Agency; may require additional after initial application)[5]"
-        ]
+        "methods": [],
+        "processing_time": "Not applicable; no operational programs in Maine",
+        "waitlist": null,
+        "forms": [],
+        "documents": []
       },
       "geography": {
-        "statewide": true,
-        "restrictions": "None",
-        "regional_variations": "Administered statewide by DHHS Office of Aging and Disability Services (OADS); functional eligibility by Assessing Services Agency; possible regional wait time differences not detailed[1][4]",
-        "offices_or_providers": [
-          "District DHHS offices for in-person[1]"
-        ]
+        "statewide": false,
+        "restrictions": "No PACE programs operating anywhere in Maine; state is not a PACE state[2][3]",
+        "regional_variations": null,
+        "offices_or_providers": []
       },
-      "official_source": "https://www.maine.gov/dhhs/oms/mainecare-options/older-adults-and-adults-with-disabilities[4]",
+      "official_source": "No official Maine PACE program website; general info at https://www.npaonline.org/ or https://www.cms.gov/medicare/medicaid-coordination/about/pace[1][8]",
       "gotchas": [
-        "Must meet both financial (OFI) and functional (Assessing Services Agency) eligibility separately[1]",
-        "Requires Nursing Facility Level of Care (NFLOC)—not just disability[1]",
-        "Waitlists can be several years depending on needs[5]",
-        "Estate recovery possible if received services age 55+ and no surviving spouse or qualifying children[4]",
-        "Only one waiver at a time; distinguish from other waivers like those for intellectual disabilities[2][5]"
+        "Maine does not currently have any operational PACE programs or providers[2][3][9]",
+        "State certification for nursing home level of care required, but no programs available to enroll in[1][3]",
+        "While no programs exist now, past RFI indicates potential future development; check Maine DHHS for updates[9]",
+        "Private pay possible if programs launch, but Medicaid covers fully for eligible; Medicare-only pay Medicaid portion[3]",
+        "Confused with other Maine programs like Elderly and Adults with Disabilities Waiver, which has financial limits and different criteria[4]"
       ],
-      "data_shape_notes": "Statewide with waitlist; benefits detailed by service type with tiered/priority access; dual eligibility determination (financial + functional); monthly/annual service caps updated periodically[1][2][3]",
-      "_raw": "{\n  \"name\": \"MaineCare Elderly and Adults with Disabilities Waiver\",\n  \"eligibility\": {\n    \"age\": \"65+ or 18+ with physical disabilities\",\n    \"income_limits\": \"Determined by Office of Family Independence (OFI) under MaineCare financial eligibility rules; specific dollar amounts or household size tables not detailed in sources—use MaineCare Eligibility Test for seniors via American Council on Aging[1]\",\n    \"asset_limits\": \"Not specified in sources; follows standard MaineCare long-term care rules—consult OFI for details[1]\",\n    \"other_requirements\": [\n      \"Maine resident\",\n      \"Nursing Facility Level of Care (NFLOC) determined by in-person functional needs assessment using Medical Eligibility Determination (MED) tool by a registered nurse[1]\",\n      \"At risk of institutionalization (nursing home admission)[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Care coordination, personal care, respite, financial management services, skills training, assistive technology, attendant care services, environmental modifications, home delivered meals, home health services, living well for better health (chronic disease self-management), matter of balance (falls prevention), non-medical transportation, personal emergency response system, non-traditional communication consultation/assessments, occupational/physical/speech therapy (maintenance), shared living (adult foster care), specialized medical equipment and supplies[2]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: My Maine Connection[1]\",\n      \"Phone: Office for Family Independence at 855-797-4357[1]\",\n      \"In-person: District Department of Health and Human Services office[1]\",\n      \"Mail: Download and print Application for Long Term Care MaineCare[1]\"\n    ],\n    \"processing_time\": \"Up to 90 days for determination[5]\",\n    \"waitlist\": \"Exists; average wait time varies by needs and can range from no time to several years[5]\",\n    \"forms\": [\n      \"Application for Long Term Care MaineCare[1]\"\n    ],\n    \"documents\": [\n      \"Documents for financial and medical eligibility (specifics determined by OFI and Assessing Services Agency; may require additional after initial application)[5]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None\",\n    \"regional_variations\": \"Administered statewide by DHHS Office of Aging and Disability Services (OADS); functional eligibility by Assessing Services Agency; possible regional wait time differences not detailed[1][4]\",\n    \"offices_or_providers\": [\n      \"District DHHS offices for in-person[1]\"\n    ]\n  },\n  \"official_source\": \"https://www.maine.gov/dhhs/oms/mainecare-options/older-adults-and-adults-with-disabilities[4]\",\n  \"gotchas\": [\n    \"Must meet both financial (OFI) and functional (Assessing Services Agency) eligibility separately[1]\",\n    \"Requires Nursing Facility Level of Care (NFLOC)—not just disability[1]\",\n    \"Waitlists can be several years depending on needs[5]\",\n    \"Estate recovery possible if received services age 55+ and no surviving spouse or qualifying children[4]\",\n    \"Only one waiver at a time; distinguish from other waivers like those for intellectual disabilities[2][5]\"\n  ],\n  \"data_shape_notes\": \"Statewide with waitlist; benefits detailed by service type with tiered/priority access; dual eligibility determination (financial + functional); monthly/annual service caps updated periodically[1][2][3]\"\n}"
+      "data_shape_notes": "No operational programs in Maine; eligibility mirrors national PACE but no service areas or providers; not available statewide or regionally",
+      "_raw": "{\n  \"name\": \"Program of All-Inclusive Care for the Elderly (PACE) - Maine PACE\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No income limits; no financial criteria considered for eligibility[1][2][3]\",\n    \"asset_limits\": \"No asset limits; no financial criteria considered for eligibility[1][2][3]\",\n    \"other_requirements\": [\n      \"Live in the service area of a PACE organization (no programs currently operating in Maine)[1][3]\",\n      \"Certified by the state of Maine as requiring nursing home level of care[1][2]\",\n      \"Able to live safely in the community with PACE services[1][2]\",\n      \"Not enrolled in Medicare Advantage, Medicare prepayment plan, Medicare prescription drug plan, or hospice[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive medical and social services including primary care, hospital and emergency care, prescription drugs, social services, restorative therapies, personal care, respite care, and all other services determined necessary by the interdisciplinary team to keep participants in the community; no deductibles or copays for covered services; person-centered care plan coordinated with primary care physician[1][2][3][8]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [],\n    \"processing_time\": \"Not applicable; no operational programs in Maine\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": []\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"No PACE programs operating anywhere in Maine; state is not a PACE state[2][3]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": []\n  },\n  \"official_source\": \"No official Maine PACE program website; general info at https://www.npaonline.org/ or https://www.cms.gov/medicare/medicaid-coordination/about/pace[1][8]\",\n  \"gotchas\": [\n    \"Maine does not currently have any operational PACE programs or providers[2][3][9]\",\n    \"State certification for nursing home level of care required, but no programs available to enroll in[1][3]\",\n    \"While no programs exist now, past RFI indicates potential future development; check Maine DHHS for updates[9]\",\n    \"Private pay possible if programs launch, but Medicaid covers fully for eligible; Medicare-only pay Medicaid portion[3]\",\n    \"Confused with other Maine programs like Elderly and Adults with Disabilities Waiver, which has financial limits and different criteria[4]\"\n  ],\n  \"data_shape_notes\": \"No operational programs in Maine; eligibility mirrors national PACE but no service areas or providers; not available statewide or regionally\"\n}"
     },
     {
-      "name": "Home and Community-Based Services (HCBS) Waivers (e.g., MaineCare In-Home Services)",
+      "name": "Home and Community-Based Services Waiver Programs (MaineCare Sections 21 and 29)",
       "eligibility": {
-        "age": 65,
-        "income_limits": "For Long Term Care MaineCare programs including HCBS waivers, income limits vary by program and household size. Waiver programs have a limit of $2,742/month (2023 data; updated annually). Nursing Home Medicaid (related): single applicant under $2,982/month (2026). General MaineCare: up to 138% FPL or specific tables like Adults (21-64): 1-person $1,836/month, 2-person $2,490/month. Must meet Long Term Care financial eligibility with 60-month lookback.[2][5][7]",
-        "asset_limits": "Assets under $10,000 for single Nursing Home Medicaid applicant ($2,000 base + $8,000 exemption); $13,000 for couple ($3,000 base + $10,000? note: sources vary slightly on couple exemption to $12,000-$13,000). Counts all assets; exemptions not detailed but standard Medicaid rules apply (e.g., primary home may be exempt under conditions). 60-month lookback for transfers.[2][5]",
+        "age": "18 or older for Section 21 and 29; Section 19 (elderly/disabled waiver) requires age 18+",
+        "income_limits": "Income limits vary by program and household composition. For Long-Term Care MaineCare (waiver programs), the income standard is $2,742 for individuals in waiver settings[2]. Applicants with income above the limit may qualify through a 'spend-down' process, where they reduce monthly income to the MaineCare standard; once the deductible is met, coverage is granted for a limited time period (usually 6 months or less)[2]. Asset limits: up to $8,000 of savings for an individual, $12,000 for a couple may be excluded; any amount over the excluded amount is counted toward the asset limit[2]. A 60-month financial lookback is completed for applicants seeking Long Term Care MaineCare to determine if the individual engaged in improper asset transfers[2].",
+        "asset_limits": "Up to $8,000 for an individual or $12,000 for a couple excluded from asset calculation; amounts exceeding these thresholds count toward the asset limit[2].",
         "other_requirements": [
-          "Maine resident with intent to remain.",
-          "MaineCare enrollment or eligibility.",
-          "Nursing Home Level of Care (NHLOC): require extensive/total assistance with 3+ ADLs (bed mobility, transfer, locomotion, eating, toilet use).",
-          "Medical/functional need assessed by Goold Health Systems (GHS).",
-          "Age 65+, blind, or disabled.",
-          "US citizen or qualified immigrant."
+          "Must be enrolled in MaineCare[3]",
+          "Must meet medical eligibility requirements (medical level of care)[1][3]",
+          "For Section 21: Must have intellectual disability (ID) or autism spectrum disorder (ASD) and would otherwise qualify for care in an Intermediate Care Facility for Individuals with Intellectual Disabilities (ICF/IID)[1]",
+          "For Section 29: Similar medical eligibility requirements for individuals with developmental disabilities[1]",
+          "Personal plan must identify needs for habilitative, therapeutic, and intervention services with the overall goal of community inclusion[1]",
+          "A funded opening must be available (program is capped)[1][3]",
+          "Can only be enrolled in one waiver at a time[3]"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Home and community-based long-term care services equivalent to nursing facility or ICF/IID level, including in-home personal care, assistance with ADLs (bathing, dressing, eating, mobility), Consumer Directed Attendant Services, Private Duty Nursing, Independent Support/Homemaker Services, potential home modifications. Hours/services based on assessment; Personal Needs Allowance $2,430 (waiver) or $50/$70 (facility). No fixed dollar/hour cap specified; individualized.[1][3][5][6]",
-        "varies_by": "priority_tier"
+        "value": "Section 21 and 29 provide a comprehensive mix of services including: home support (support to live alone or in group home settings), community support, work support, career planning, assistive technology, durable medical equipment, therapy services, transportation, and respite care[1][3]. Personal Needs Allowance for waiver recipients: $2,430[2].",
+        "varies_by": "program_section_and_individual_plan"
       },
       "application": {
         "methods": [
-          "Apply for MaineCare via Long-Term Care application through local Aging and Disability Resource Center (ADRC) or DHHS district office.",
-          "Contact PineView Care at 207-707-3004 for eligibility screening and assistance.",
-          "Functional assessment by Goold Health Systems (state-contracted).",
-          "No specific online URL or form number listed; use CoverME.gov for general MaineCare info."
+          "Contact a Case Manager who can help applicants apply for MaineCare and waiver services[3]",
+          "Apply through the Office for Family Independence for MaineCare eligibility determination[3]",
+          "In-person, phone, or mail through local MaineCare offices (specific contact information not provided in search results)"
         ],
-        "processing_time": "OFI processes MaineCare eligibility within 45 days.[7]",
-        "waitlist": "Not specified in sources; may exist based on priority and funding.",
+        "processing_time": "Not specified in search results",
+        "waitlist": "Yes — there are waitlists for Section 21 and Section 29 waivers. As of 2026, current waitlist members will receive priority consideration for enrollment in Maine's new Lifespan Waiver[7].",
         "forms": [
-          "Long-Term Care application (no specific form number)"
+          "MaineCare application form (specific form number not provided in search results)",
+          "Personal plan documentation (required to identify needs for habilitative, therapeutic, and intervention services)[1]"
         ],
         "documents": [
-          "Proof of income, assets, residency, citizenship/immigration status.",
-          "Medical records or documentation of ADL needs for assessment."
+          "Proof of income (for financial eligibility determination)",
+          "Proof of assets (for asset limit verification)",
+          "Medical documentation establishing level of care requirements",
+          "Social Security Number (required for MaineCare, though some applicants may be exempt from this requirement)[2]",
+          "Proof of Maine residency"
         ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "None; must receive care in Maine home.",
-        "regional_variations": "Assessments via local ADRC or DHHS district offices; potential waitlist/provider differences by region not detailed.",
-        "offices_or_providers": [
-          "Local Aging and Disability Resource Centers (ADRC)",
-          "DHHS district offices",
-          "Goold Health Systems for assessments",
-          "PineView Care (207-707-3004)"
-        ]
+        "restrictions": "Must be a Maine resident[5]",
+        "regional_variations": "Not specified in search results; however, Case Managers are assigned to help individuals apply and may vary by region",
+        "offices_or_providers": "Specific office locations not provided in search results; contact through local MaineCare offices or Case Managers"
       },
-      "official_source": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/home-care",
+      "official_source": "https://www.maine.gov/dhhs/oads/get-support/adults-intellectual-disability-and-autism/waiver-services",
       "gotchas": [
-        "Must meet NHLOC, not just general ADL needs; assessed by GHS.[3]",
-        "60-month financial lookback for asset transfers.[5]",
-        "All income (minus PNA, Medicare premiums) may be patient liability.[2]",
-        "Income/asset limits updated annually; contact for current figures.[1][2]",
-        "Enrollment in MaineCare required first; separate functional assessment.[6]",
-        "Not automatic; needs care coordinator assessment for specific hours/services.[1]"
+        "Only one waiver enrollment at a time — applicants must choose between Section 21 and Section 29[3]",
+        "Funded openings are limited and capped; availability is not guaranteed even if medically and financially eligible[1][3]",
+        "MaineCare enrollment is a prerequisite; applicants must qualify for MaineCare before accessing waiver services[3]",
+        "60-month financial lookback applies to Long Term Care MaineCare applications, which can disqualify applicants who transferred assets within the past 5 years[2]",
+        "Income spend-down may be required; applicants with income above the limit must reduce income to the MaineCare standard to qualify[2]",
+        "Section 21 is specifically for individuals with ID or ASD; other developmental disabilities may fall under Section 29 or other waivers[1]",
+        "Personal Needs Allowance ($2,430 for waiver recipients) is separate from service benefits and represents the amount individuals can retain for personal expenses[2]",
+        "Two-thirds of Section 21 waitlist members already receive Section 29 services, suggesting some waitlist placements may be precautionary rather than reflecting immediate need[7]"
       ],
-      "data_shape_notes": "Requires NHLOC equivalent to nursing facility; benefits individualized by assessment tier; statewide but local offices/ADRCs handle intake; strict financial lookback and patient liability.",
-      "_raw": "{\n  \"name\": \"Home and Community-Based Services (HCBS) Waivers (e.g., MaineCare In-Home Services)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"For Long Term Care MaineCare programs including HCBS waivers, income limits vary by program and household size. Waiver programs have a limit of $2,742/month (2023 data; updated annually). Nursing Home Medicaid (related): single applicant under $2,982/month (2026). General MaineCare: up to 138% FPL or specific tables like Adults (21-64): 1-person $1,836/month, 2-person $2,490/month. Must meet Long Term Care financial eligibility with 60-month lookback.[2][5][7]\",\n    \"asset_limits\": \"Assets under $10,000 for single Nursing Home Medicaid applicant ($2,000 base + $8,000 exemption); $13,000 for couple ($3,000 base + $10,000? note: sources vary slightly on couple exemption to $12,000-$13,000). Counts all assets; exemptions not detailed but standard Medicaid rules apply (e.g., primary home may be exempt under conditions). 60-month lookback for transfers.[2][5]\",\n    \"other_requirements\": [\n      \"Maine resident with intent to remain.\",\n      \"MaineCare enrollment or eligibility.\",\n      \"Nursing Home Level of Care (NHLOC): require extensive/total assistance with 3+ ADLs (bed mobility, transfer, locomotion, eating, toilet use).\",\n      \"Medical/functional need assessed by Goold Health Systems (GHS).\",\n      \"Age 65+, blind, or disabled.\",\n      \"US citizen or qualified immigrant.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home and community-based long-term care services equivalent to nursing facility or ICF/IID level, including in-home personal care, assistance with ADLs (bathing, dressing, eating, mobility), Consumer Directed Attendant Services, Private Duty Nursing, Independent Support/Homemaker Services, potential home modifications. Hours/services based on assessment; Personal Needs Allowance $2,430 (waiver) or $50/$70 (facility). No fixed dollar/hour cap specified; individualized.[1][3][5][6]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Apply for MaineCare via Long-Term Care application through local Aging and Disability Resource Center (ADRC) or DHHS district office.\",\n      \"Contact PineView Care at 207-707-3004 for eligibility screening and assistance.\",\n      \"Functional assessment by Goold Health Systems (state-contracted).\",\n      \"No specific online URL or form number listed; use CoverME.gov for general MaineCare info.\"\n    ],\n    \"processing_time\": \"OFI processes MaineCare eligibility within 45 days.[7]\",\n    \"waitlist\": \"Not specified in sources; may exist based on priority and funding.\",\n    \"forms\": [\"Long-Term Care application (no specific form number)\"],\n    \"documents\": [\n      \"Proof of income, assets, residency, citizenship/immigration status.\",\n      \"Medical records or documentation of ADL needs for assessment.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; must receive care in Maine home.\",\n    \"regional_variations\": \"Assessments via local ADRC or DHHS district offices; potential waitlist/provider differences by region not detailed.\",\n    \"offices_or_providers\": [\"Local Aging and Disability Resource Centers (ADRC)\", \"DHHS district offices\", \"Goold Health Systems for assessments\", \"PineView Care (207-707-3004)\"]\n  },\n  \"official_source\": \"https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/home-care\",\n  \"gotchas\": [\n    \"Must meet NHLOC, not just general ADL needs; assessed by GHS.[3]\",\n    \"60-month financial lookback for asset transfers.[5]\",\n    \"All income (minus PNA, Medicare premiums) may be patient liability.[2]\",\n    \"Income/asset limits updated annually; contact for current figures.[1][2]\",\n    \"Enrollment in MaineCare required first; separate functional assessment.[6]\",\n    \"Not automatic; needs care coordinator assessment for specific hours/services.[1]\"\n  ],\n  \"data_shape_notes\": \"Requires NHLOC equivalent to nursing facility; benefits individualized by assessment tier; statewide but local offices/ADRCs handle intake; strict financial lookback and patient liability.\"\n}"
+      "data_shape_notes": "This program has two distinct sections (21 and 29) with different eligibility criteria and service focuses. Section 21 targets individuals with ID/ASD who would otherwise need institutional care; Section 29 serves adults with developmental disabilities more broadly. Both are capped programs with waitlists. Income and asset limits are standardized statewide but may vary by household composition. The program is transitioning to a new 'Lifespan Waiver' structure as of 2026, which may consolidate or restructure current Section 21 and 29 services. Case Managers play a critical role in application and service planning. Financial eligibility is determined by the Office for Family Independence, while medical eligibility is determined separately.",
+      "_raw": "```json\n{\n  \"name\": \"Home and Community-Based Services Waiver Programs (MaineCare Sections 21 and 29)\",\n  \"eligibility\": {\n    \"age\": \"18 or older for Section 21 and 29; Section 19 (elderly/disabled waiver) requires age 18+\",\n    \"income_limits\": \"Income limits vary by program and household composition. For Long-Term Care MaineCare (waiver programs), the income standard is $2,742 for individuals in waiver settings[2]. Applicants with income above the limit may qualify through a 'spend-down' process, where they reduce monthly income to the MaineCare standard; once the deductible is met, coverage is granted for a limited time period (usually 6 months or less)[2]. Asset limits: up to $8,000 of savings for an individual, $12,000 for a couple may be excluded; any amount over the excluded amount is counted toward the asset limit[2]. A 60-month financial lookback is completed for applicants seeking Long Term Care MaineCare to determine if the individual engaged in improper asset transfers[2].\",\n    \"asset_limits\": \"Up to $8,000 for an individual or $12,000 for a couple excluded from asset calculation; amounts exceeding these thresholds count toward the asset limit[2].\",\n    \"other_requirements\": [\n      \"Must be enrolled in MaineCare[3]\",\n      \"Must meet medical eligibility requirements (medical level of care)[1][3]\",\n      \"For Section 21: Must have intellectual disability (ID) or autism spectrum disorder (ASD) and would otherwise qualify for care in an Intermediate Care Facility for Individuals with Intellectual Disabilities (ICF/IID)[1]\",\n      \"For Section 29: Similar medical eligibility requirements for individuals with developmental disabilities[1]\",\n      \"Personal plan must identify needs for habilitative, therapeutic, and intervention services with the overall goal of community inclusion[1]\",\n      \"A funded opening must be available (program is capped)[1][3]\",\n      \"Can only be enrolled in one waiver at a time[3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Section 21 and 29 provide a comprehensive mix of services including: home support (support to live alone or in group home settings), community support, work support, career planning, assistive technology, durable medical equipment, therapy services, transportation, and respite care[1][3]. Personal Needs Allowance for waiver recipients: $2,430[2].\",\n    \"varies_by\": \"program_section_and_individual_plan\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact a Case Manager who can help applicants apply for MaineCare and waiver services[3]\",\n      \"Apply through the Office for Family Independence for MaineCare eligibility determination[3]\",\n      \"In-person, phone, or mail through local MaineCare offices (specific contact information not provided in search results)\"\n    ],\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": \"Yes — there are waitlists for Section 21 and Section 29 waivers. As of 2026, current waitlist members will receive priority consideration for enrollment in Maine's new Lifespan Waiver[7].\",\n    \"forms\": [\n      \"MaineCare application form (specific form number not provided in search results)\",\n      \"Personal plan documentation (required to identify needs for habilitative, therapeutic, and intervention services)[1]\"\n    ],\n    \"documents\": [\n      \"Proof of income (for financial eligibility determination)\",\n      \"Proof of assets (for asset limit verification)\",\n      \"Medical documentation establishing level of care requirements\",\n      \"Social Security Number (required for MaineCare, though some applicants may be exempt from this requirement)[2]\",\n      \"Proof of Maine residency\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must be a Maine resident[5]\",\n    \"regional_variations\": \"Not specified in search results; however, Case Managers are assigned to help individuals apply and may vary by region\",\n    \"offices_or_providers\": \"Specific office locations not provided in search results; contact through local MaineCare offices or Case Managers\"\n  },\n  \"official_source\": \"https://www.maine.gov/dhhs/oads/get-support/adults-intellectual-disability-and-autism/waiver-services\",\n  \"gotchas\": [\n    \"Only one waiver enrollment at a time — applicants must choose between Section 21 and Section 29[3]\",\n    \"Funded openings are limited and capped; availability is not guaranteed even if medically and financially eligible[1][3]\",\n    \"MaineCare enrollment is a prerequisite; applicants must qualify for MaineCare before accessing waiver services[3]\",\n    \"60-month financial lookback applies to Long Term Care MaineCare applications, which can disqualify applicants who transferred assets within the past 5 years[2]\",\n    \"Income spend-down may be required; applicants with income above the limit must reduce income to the MaineCare standard to qualify[2]\",\n    \"Section 21 is specifically for individuals with ID or ASD; other developmental disabilities may fall under Section 29 or other waivers[1]\",\n    \"Personal Needs Allowance ($2,430 for waiver recipients) is separate from service benefits and represents the amount individuals can retain for personal expenses[2]\",\n    \"Two-thirds of Section 21 waitlist members already receive Section 29 services, suggesting some waitlist placements may be precautionary rather than reflecting immediate need[7]\"\n  ],\n  \"data_shape_notes\": \"This program has two distinct sections (21 and 29) with different eligibility criteria and service focuses. Section 21 targets individuals with ID/ASD who would otherwise need institutional care; Section 29 serves adults with developmental disabilities more broadly. Both are capped programs with waitlists. Income and asset limits are standardized statewide but may vary by household composition. The program is transitioning to a new 'Lifespan Waiver' structure as of 2026, which may consolidate or restructure current Section 21 and 29 services. Case Managers play a critical role in application and service planning. Financial eligibility is determined by the Office for Family Independence, while medical eligibility is determined separately.\"\n}\n```\n\n**Critical gaps in available information:**\n\nThe search results do not provide:\n- Specific phone numbers or mailing addresses for MaineCare offices or the Office for Family Independence[3]\n- Exact processing timelines for applications or waitlist wait times\n- Specific form names or numbers for waiver applications\n- Regional variations in wait times or service availability\n- Details on how Section 29 differs from Section 21 beyond general descriptions\n- Information on the new Lifespan Waiver's specific eligibility or service structure (only that it launches in 2026 and will prioritize current waitlist members)[7]\n\n**Recommendation for families:** Contact a Case Manager directly through your local MaineCare office or the Maine Department of Health and Human Services Office of Adult Disability Services to obtain current waitlist status, processing times, and region-specific information. The Office for Family Independence can provide detailed income and asset limit tables for your specific household composition."
     },
     {
       "name": "SNAP (Supplemental Nutrition Assistance Program)",
       "eligibility": {
-        "age": "No minimum age requirement for the household; however, seniors 60+ qualify for special income rules (see other_requirements)",
-        "income_limits": {
-          "standard_households": "200% of Federal Poverty Level (FPL). Gross monthly income limits by household size (Oct. 1, 2025 - Sept. 30, 2026): 1 person: $2,609 | 2 people: $3,525 | 3 people: $4,442 | 4 people: $5,359 | 5 people: $6,275 | 6 people: $7,192 | 7 people: $8,109 | 8 people: $9,025 | Each additional person: +$917[1][4]",
-          "elderly_or_disabled_households": "Only must meet net income limit of 100% FPL (gross income limit does not apply). Net income = gross income minus allowable deductions[1][5][6]"
-        },
-        "asset_limits": {
-          "maine_expanded_rule": "No asset limit in Maine as of January 1, 2022[1][7]",
-          "what_counts": "Countable resources include funds in bank accounts[1]",
-          "what_is_exempt": "Home is not counted. One household vehicle and any income-producing vehicles are not counted. For all other vehicles, count only the value exceeding $4,650[1]",
-          "federal_alternative": "Households with elderly or disabled members who do not meet the Gross Income test can alternatively qualify under federal program rules, which have an asset limit of $4,500 but no Gross Income limit[1]"
-        },
+        "age": null,
+        "income_limits": "Maine uses a gross income limit of 200% of the Federal Poverty Level (FPL) for Oct. 1, 2025 through Sept. 30, 2026. Households with a member 60+ or disabled can qualify by meeting net income (100% FPL) and asset tests if over gross limit. Gross monthly income limits by household size: 1: $2,608-$2,609; 2: $3,526-$3,525; 3: $4,442; 4: $5,358-$5,359; 5: $6,276-$6,275; 6: $7,192; 7: $8,108-$8,109; 8: $9,025; each additional: +$916-$917.[1][4][5]",
+        "asset_limits": "No asset limit in Maine for most households (broad-based categorical eligibility). For households with member 60+ or disabled over gross income limit, federal asset limit of $4,500 applies if qualifying under net income test. Exempt: primary home, one household vehicle (plus income-producing vehicles), vehicles valued under $4,650. Countable: bank accounts, other resources.[1][8]",
         "other_requirements": [
-          "Must be a Maine resident[5]",
-          "Must be a U.S. citizen or lawfully present non-citizen[5]",
-          "All applicants must have a Social Security number or proof of application for one[5]",
-          "Able-bodied adults ages 18-54 without dependents (ABAWD) must meet work requirements: can only receive benefits for 3 months during a 36-month period (current period: Oct. 1, 2023 - Sept. 30, 2026) unless exempted[2]",
-          "ABAWD exemptions include: pregnant individuals, caregivers for children under 6 or certain disabled people, households with someone under 18, physically/mentally unable to work, in alcohol/drug treatment, eligible college students (half-time or more), meeting work requirements for TANF or unemployment, experiencing homelessness, veterans of any age/discharge status, or former foster youth under 25[2]",
-          "Work requirement waiver applies through Sept. 30, 2024 in certain Maine territories, towns, and cities (check full list)[2]"
+          "Maine resident.",
+          "U.S. citizen or lawfully present non-citizen.",
+          "Social Security number (or proof applied).",
+          "Able-bodied adults without dependents (ABAWD) aged 18-54 face 3-month limit in 36 months unless exempt (e.g., caring for child under 6/disabled, pregnant, homeless, veteran, former foster youth under 25, student exemptions, physically/mentally unable to work); waivers in some Maine areas through Sept. 30, 2024.",
+          "Household includes those who buy/prepare food together; report medical costs over $35/month for 60+/disabled to increase benefits.",
+          "Register for work if able-bodied (exceptions for elderly/disabled)."
         ]
       },
       "benefits": {
         "type": "financial",
-        "value": "Monthly SNAP benefit amounts by household size (Oct. 1, 2025 - Sept. 30, 2026): 1 person: $298 | 2 people: $546 | 3 people: $785 | 4 people: $994 | 5 people: $1,183 | 6 people: $1,421 | 7 people: $1,571 | 8 people: $1,789 | Each additional member: +$218. Actual benefit amount depends on household income, composition, and certain expenses (medical bills over $35 for elderly/disabled households)[4][5]",
-        "varies_by": "household_size and income"
+        "value": "Monthly EBT card benefits for food purchases (groceries, not hot food/alcohol/tobacco). Maximum monthly amounts (Oct. 1, 2025-Sept. 30, 2026): 1: $298; 2: $546; 3: $785; 4: $994; 5: $1,183; 6: $1,421; 7: $1,571; 8: $1,789; each additional: +$218. Actual amount based on income, expenses (e.g., higher for medical costs in elderly/disabled households).[4]",
+        "varies_by": "household_size"
       },
       "application": {
         "methods": [
-          "Online: My Maine Connection (www.mymaineconnection.gov)[7]",
-          "Mail: Office for Family Independence, 114 Corn Shop Lane, Farmington, ME 04938[7]",
-          "Paper application available for printing and mailing[7]"
+          "Online: My Maine Connection at https://www.mymaineconnection.gov[8]",
+          "Mail paper application to: Office for Family Independence, 114 Corn Shop Lane, Farmington, ME 04938[8]",
+          "Phone: Contact local DHHS Office for Family Independence (numbers vary by region; find via https://www.maine.gov/dhhs/ofi/contact-us.html)",
+          "In-person: Local DHHS Office for Family Independence offices statewide"
         ],
-        "processing_time": "Not specified in available sources",
-        "waitlist": "Not specified in available sources",
+        "processing_time": "Typically 30 days; expedited if very low income (7 days).[1]",
+        "waitlist": null,
         "forms": [
-          "Paper application available through My Maine Connection or by mail request"
+          "Paper application (print from My Maine Connection or DHHS site)"
         ],
         "documents": [
-          "Social Security number or proof of application for one[5]",
-          "Proof of Maine residency[5]",
-          "Proof of citizenship or lawful presence[5]",
-          "Income documentation (pay stubs, Social Security statements, pension statements)[6]",
-          "Medical bills documentation (for elderly/disabled households claiming deductions over $35)[5]",
-          "Household composition documentation"
+          "Proof of income (pay stubs, Social Security statements).",
+          "Proof of expenses (rent/mortgage, utilities, medical bills over $35/month for 60+/disabled).",
+          "ID (driver's license, birth certificate).",
+          "Social Security numbers for household.",
+          "Proof of residency (utility bill).",
+          "Disability verification if applicable."
         ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "ABAWD work requirement waiver applies to certain territories, towns, and cities through Sept. 30, 2024 (check full list for your location)[2]",
-        "regional_variations": "Work requirement rules vary by specific town/city/territory; otherwise program is statewide[2]",
+        "restrictions": null,
+        "regional_variations": "ABAWD work requirement waivers in some territories/towns/cities through Sept. 30, 2024; processing may vary slightly by local DHHS office.[2]",
         "offices_or_providers": [
-          "Office for Family Independence, 114 Corn Shop Lane, Farmington, ME 04938 (mail address for applications)[7]"
+          "Local DHHS Office for Family Independence offices across Maine"
         ]
       },
-      "official_source": "https://www.maine.gov/dhhs/ofi/programs-services/food-supplement",
+      "official_source": "https://www.maine.gov/dhhs/ofi/programs-services/food-supplement[4]",
       "gotchas": [
-        "Maine has expanded SNAP eligibility beyond federal requirements — other websites may show stricter limits than Maine actually enforces[1]",
-        "Elderly (60+) and disabled households have dramatically different income rules: they only need to meet net income (not gross income), making them eligible at higher income levels[1][5][6]",
-        "No asset limit in Maine means seniors can own homes, vehicles, and savings and still qualify — this is more generous than federal rules[1][7]",
-        "Elderly/disabled households can deduct medical expenses over $35/month from gross income when calculating net income eligibility[5]",
-        "Work requirements (ABAWD) apply to able-bodied adults 18-54 without dependents — but many exemptions exist (homelessness, veteran status, former foster youth, caregiving, disability, school enrollment)[2]",
-        "The current 36-month ABAWD period runs Oct. 1, 2023 - Sept. 30, 2026; benefits limited to 3 months unless exempted[2]",
-        "Household definition matters: must include everyone who lives with you AND buys and prepares food with you[3]",
-        "Students may have additional eligibility requirements; check if you're under 17, over 50, disabled, or responsible for dependent care[4]"
+        "Elderly/disabled households over gross limit can still qualify via net income test (100% FPL) + federal asset limit ($4,500); many miss this.[1][5]",
+        "Report out-of-pocket medical expenses >$35/month to boost benefits for 60+/disabled.[5][8]",
+        "Household defined by who buys/prepares food together, not just who lives together.[3]",
+        "No asset test for most, but federal rules apply if bypassing gross income.[1]",
+        "ABAWD limits for 18-54 unless exempt/waived; check local waivers.[2]",
+        "Maine expanded beyond federal rules (200% FPL gross vs. stricter elsewhere).[1]"
       ],
-      "data_shape_notes": "Benefits scale by household size with a per-person increment. Income limits are 200% FPL for standard households but only 100% FPL (net) for elderly/disabled households, creating a significant eligibility advantage for seniors. Maine's elimination of asset limits (as of 2022) is a major expansion beyond federal rules. Work requirements create a complex eligibility matrix based on age, household composition, and exemption status, with geographic variation in waiver applicability.",
-      "_raw": "```json\n{\n  \"name\": \"SNAP (Supplemental Nutrition Assistance Program)\",\n  \"eligibility\": {\n    \"age\": \"No minimum age requirement for the household; however, seniors 60+ qualify for special income rules (see other_requirements)\",\n    \"income_limits\": {\n      \"standard_households\": \"200% of Federal Poverty Level (FPL). Gross monthly income limits by household size (Oct. 1, 2025 - Sept. 30, 2026): 1 person: $2,609 | 2 people: $3,525 | 3 people: $4,442 | 4 people: $5,359 | 5 people: $6,275 | 6 people: $7,192 | 7 people: $8,109 | 8 people: $9,025 | Each additional person: +$917[1][4]\",\n      \"elderly_or_disabled_households\": \"Only must meet net income limit of 100% FPL (gross income limit does not apply). Net income = gross income minus allowable deductions[1][5][6]\"\n    },\n    \"asset_limits\": {\n      \"maine_expanded_rule\": \"No asset limit in Maine as of January 1, 2022[1][7]\",\n      \"what_counts\": \"Countable resources include funds in bank accounts[1]\",\n      \"what_is_exempt\": \"Home is not counted. One household vehicle and any income-producing vehicles are not counted. For all other vehicles, count only the value exceeding $4,650[1]\",\n      \"federal_alternative\": \"Households with elderly or disabled members who do not meet the Gross Income test can alternatively qualify under federal program rules, which have an asset limit of $4,500 but no Gross Income limit[1]\"\n    },\n    \"other_requirements\": [\n      \"Must be a Maine resident[5]\",\n      \"Must be a U.S. citizen or lawfully present non-citizen[5]\",\n      \"All applicants must have a Social Security number or proof of application for one[5]\",\n      \"Able-bodied adults ages 18-54 without dependents (ABAWD) must meet work requirements: can only receive benefits for 3 months during a 36-month period (current period: Oct. 1, 2023 - Sept. 30, 2026) unless exempted[2]\",\n      \"ABAWD exemptions include: pregnant individuals, caregivers for children under 6 or certain disabled people, households with someone under 18, physically/mentally unable to work, in alcohol/drug treatment, eligible college students (half-time or more), meeting work requirements for TANF or unemployment, experiencing homelessness, veterans of any age/discharge status, or former foster youth under 25[2]\",\n      \"Work requirement waiver applies through Sept. 30, 2024 in certain Maine territories, towns, and cities (check full list)[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly SNAP benefit amounts by household size (Oct. 1, 2025 - Sept. 30, 2026): 1 person: $298 | 2 people: $546 | 3 people: $785 | 4 people: $994 | 5 people: $1,183 | 6 people: $1,421 | 7 people: $1,571 | 8 people: $1,789 | Each additional member: +$218. Actual benefit amount depends on household income, composition, and certain expenses (medical bills over $35 for elderly/disabled households)[4][5]\",\n    \"varies_by\": \"household_size and income\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: My Maine Connection (www.mymaineconnection.gov)[7]\",\n      \"Mail: Office for Family Independence, 114 Corn Shop Lane, Farmington, ME 04938[7]\",\n      \"Paper application available for printing and mailing[7]\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not specified in available sources\",\n    \"forms\": [\n      \"Paper application available through My Maine Connection or by mail request\"\n    ],\n    \"documents\": [\n      \"Social Security number or proof of application for one[5]\",\n      \"Proof of Maine residency[5]\",\n      \"Proof of citizenship or lawful presence[5]\",\n      \"Income documentation (pay stubs, Social Security statements, pension statements)[6]\",\n      \"Medical bills documentation (for elderly/disabled households claiming deductions over $35)[5]\",\n      \"Household composition documentation\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"ABAWD work requirement waiver applies to certain territories, towns, and cities through Sept. 30, 2024 (check full list for your location)[2]\",\n    \"regional_variations\": \"Work requirement rules vary by specific town/city/territory; otherwise program is statewide[2]\",\n    \"offices_or_providers\": [\n      \"Office for Family Independence, 114 Corn Shop Lane, Farmington, ME 04938 (mail address for applications)[7]\"\n    ]\n  },\n  \"official_source\": \"https://www.maine.gov/dhhs/ofi/programs-services/food-supplement\",\n  \"gotchas\": [\n    \"Maine has expanded SNAP eligibility beyond federal requirements — other websites may show stricter limits than Maine actually enforces[1]\",\n    \"Elderly (60+) and disabled households have dramatically different income rules: they only need to meet net income (not gross income), making them eligible at higher income levels[1][5][6]\",\n    \"No asset limit in Maine means seniors can own homes, vehicles, and savings and still qualify — this is more generous than federal rules[1][7]\",\n    \"Elderly/disabled households can deduct medical expenses over $35/month from gross income when calculating net income eligibility[5]\",\n    \"Work requirements (ABAWD) apply to able-bodied adults 18-54 without dependents — but many exemptions exist (homelessness, veteran status, former foster youth, caregiving, disability, school enrollment)[2]\",\n    \"The current 36-month ABAWD period runs Oct. 1, 2023 - Sept. 30, 2026; benefits limited to 3 months unless exempted[2]\",\n    \"Household definition matters: must include everyone who lives with you AND buys and prepares food with you[3]\",\n    \"Students may have additional eligibility requirements; check if you're under 17, over 50, disabled, or responsible for dependent care[4]\"\n  ],\n  \"data_shape_notes\": \"Benefits scale by household size with a per-person increment. Income limits are 200% FPL for standard households but only 100% FPL (net) for elderly/disabled households, creating a significant eligibility advantage for seniors. Maine's elimination of asset limits (as of 2022) is a major expansion beyond federal rules. Work requirements create a complex eligibility matrix based on age, household composition, and exemption status, with geographic variation in waiver applicability.\"\n}\n```\n\n## Key Takeaways for Families with Elderly Loved Ones\n\n**The biggest advantage for seniors:** If your elderly relative is 60 or older, they qualify under much more generous rules than other households[1][5][6]. They only need to meet a **net income limit** (not gross income), and Maine has **no asset limit**, meaning they can own their home, have savings, and still qualify[1][7]. Medical expenses over $35/month can be deducted, further reducing their countable income[5].\n\n**Income limits for elderly households:** A single senior with $2,609/month gross income might still qualify if deductions bring their net income below the 100% FPL threshold[1][6].\n\n**Application is online or by mail** through My Maine Connection or the Office for Family Independence[7]. Processing time is not publicly specified in available sources.\n\n**Work requirements don't apply to seniors** — the ABAWD rule only affects able-bodied adults 18-54 without dependents[2]."
+      "data_shape_notes": "Elderly/disabled special rules: optional net income path bypassing gross limit; no asset limit except federal fallback; benefits enhanced by medical deductions; scales by household size; statewide with minor regional ABAWD waivers.",
+      "_raw": "{\n  \"name\": \"SNAP (Supplemental Nutrition Assistance Program)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Maine uses a gross income limit of 200% of the Federal Poverty Level (FPL) for Oct. 1, 2025 through Sept. 30, 2026. Households with a member 60+ or disabled can qualify by meeting net income (100% FPL) and asset tests if over gross limit. Gross monthly income limits by household size: 1: $2,608-$2,609; 2: $3,526-$3,525; 3: $4,442; 4: $5,358-$5,359; 5: $6,276-$6,275; 6: $7,192; 7: $8,108-$8,109; 8: $9,025; each additional: +$916-$917.[1][4][5]\",\n    \"asset_limits\": \"No asset limit in Maine for most households (broad-based categorical eligibility). For households with member 60+ or disabled over gross income limit, federal asset limit of $4,500 applies if qualifying under net income test. Exempt: primary home, one household vehicle (plus income-producing vehicles), vehicles valued under $4,650. Countable: bank accounts, other resources.[1][8]\",\n    \"other_requirements\": [\n      \"Maine resident.\",\n      \"U.S. citizen or lawfully present non-citizen.\",\n      \"Social Security number (or proof applied).\",\n      \"Able-bodied adults without dependents (ABAWD) aged 18-54 face 3-month limit in 36 months unless exempt (e.g., caring for child under 6/disabled, pregnant, homeless, veteran, former foster youth under 25, student exemptions, physically/mentally unable to work); waivers in some Maine areas through Sept. 30, 2024.\",\n      \"Household includes those who buy/prepare food together; report medical costs over $35/month for 60+/disabled to increase benefits.\",\n      \"Register for work if able-bodied (exceptions for elderly/disabled).\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly EBT card benefits for food purchases (groceries, not hot food/alcohol/tobacco). Maximum monthly amounts (Oct. 1, 2025-Sept. 30, 2026): 1: $298; 2: $546; 3: $785; 4: $994; 5: $1,183; 6: $1,421; 7: $1,571; 8: $1,789; each additional: +$218. Actual amount based on income, expenses (e.g., higher for medical costs in elderly/disabled households).[4]\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: My Maine Connection at https://www.mymaineconnection.gov[8]\",\n      \"Mail paper application to: Office for Family Independence, 114 Corn Shop Lane, Farmington, ME 04938[8]\",\n      \"Phone: Contact local DHHS Office for Family Independence (numbers vary by region; find via https://www.maine.gov/dhhs/ofi/contact-us.html)\",\n      \"In-person: Local DHHS Office for Family Independence offices statewide\"\n    ],\n    \"processing_time\": \"Typically 30 days; expedited if very low income (7 days).[1]\",\n    \"waitlist\": null,\n    \"forms\": [\"Paper application (print from My Maine Connection or DHHS site)\"],\n    \"documents\": [\n      \"Proof of income (pay stubs, Social Security statements).\",\n      \"Proof of expenses (rent/mortgage, utilities, medical bills over $35/month for 60+/disabled).\",\n      \"ID (driver's license, birth certificate).\",\n      \"Social Security numbers for household.\",\n      \"Proof of residency (utility bill).\",\n      \"Disability verification if applicable.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"ABAWD work requirement waivers in some territories/towns/cities through Sept. 30, 2024; processing may vary slightly by local DHHS office.[2]\",\n    \"offices_or_providers\": [\"Local DHHS Office for Family Independence offices across Maine\"]\n  },\n  \"official_source\": \"https://www.maine.gov/dhhs/ofi/programs-services/food-supplement[4]\",\n  \"gotchas\": [\n    \"Elderly/disabled households over gross limit can still qualify via net income test (100% FPL) + federal asset limit ($4,500); many miss this.[1][5]\",\n    \"Report out-of-pocket medical expenses >$35/month to boost benefits for 60+/disabled.[5][8]\",\n    \"Household defined by who buys/prepares food together, not just who lives together.[3]\",\n    \"No asset test for most, but federal rules apply if bypassing gross income.[1]\",\n    \"ABAWD limits for 18-54 unless exempt/waived; check local waivers.[2]\",\n    \"Maine expanded beyond federal rules (200% FPL gross vs. stricter elsewhere).[1]\"\n  ],\n  \"data_shape_notes\": \"Elderly/disabled special rules: optional net income path bypassing gross limit; no asset limit except federal fallback; benefits enhanced by medical deductions; scales by household size; statewide with minor regional ABAWD waivers.\"\n}"
     },
     {
-      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
-      "eligibility": {
-        "age": null,
-        "income_limits": "For the 2025-2026 season, maximum gross household income limits are: 1 person - $3,070/month, $9,209/3 months, $36,836/12 months; 2 - $4,014/$12,043/$48,170; 3 - $4,959/$14,876/$59,504; 4 - $5,903/$17,710/$70,839; 5 - $6,848/$20,543/$82,173. For 6+ up to 10: 6-$89,700 (annual implied), 7-$91,739, 8-$93,777, 9-$95,816, 10-$97,855. Households >10 contact local CAA. TANF recipients automatically eligible at highest benefit level. Medical expenses may be deducted; apply even if over limits. Proof required for last 30 days or 12 months gross income (wages, SS, unemployment, pension, disability).[2][4][5]",
-        "asset_limits": "No asset limits mentioned in available sources.",
-        "other_requirements": [
-          "U.S. citizen, qualified alien, refugee, asylee, paroled >=1 year, deportation withheld, or conditional entry. Undocumented ineligible; mixed-status households eligible for qualifying members.",
-          "Household includes all at address sharing utility/fuel, even non-expense sharers.",
-          "Proof of citizenship/residency, SSN/DOB for all household members."
-        ]
-      },
-      "benefits": {
-        "type": "financial",
-        "value": "One-time payment to utility/fuel provider for heating costs (oil, firewood, electricity, gas). Amount based on household size, income, fuel type, and factors like medical deductions. TANF recipients get highest benefit for size. Crisis: for emergencies (shutoff, broken heater, out of fuel). Max/min benefits vary but not specified numerically here; regular heating fall/winter, crisis year-round as needed. Cooling not offered.[1][2][5]",
-        "varies_by": "household_size|priority_tier"
-      },
-      "application": {
-        "methods": [
-          "Online via My Maine Connection (starting 2024; upload docs).",
-          "In-person or phone appointment at local Community Action Agency (CAA)/CAP (many start July 1; contact for scheduling).",
-          "Phone examples: Community Concepts 800-866-5588; statewide help 1-800-452-4668."
-        ],
-        "processing_time": "Not specified; first-come first-served, funds limited.",
-        "waitlist": "No waitlist mentioned; apply early as funding may run out and demand up 20%. Respond immediately to doc requests.",
-        "forms": [
-          "No specific form name/number; application via CAA or online portal."
-        ],
-        "documents": [
-          "Names, DOB, SSN, proof of citizenship for all household members.",
-          "Unexpired photo ID of applicant.",
-          "Proof of gross income last 30 days (or 12 months if requested): pay stubs, W2, 1099, SS/unemployment/pension/disability statements, employer letter, tax filings.",
-          "SNAP/TANF Notice of Decision if applicable.",
-          "Proof of address: lease, rent receipt, deed, property tax, rent recertification.",
-          "IRS 1040, profit/loss for self-employed."
-        ]
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "None; available statewide to eligible households.",
-        "regional_variations": "Administered by local Community Action Agencies (CAAs/CAPs) with potential differences in appointment scheduling, wait times, contacts; contact local agency for details. No specific benefit or eligibility variations noted.",
-        "offices_or_providers": [
-          "Local Community Action Agencies (CAAs); e.g., Community Concepts, Inc. Various others via mainehousing.org."
-        ]
-      },
-      "official_source": "https://www.mainehousing.org/programs-services/energy/energydetails/liheap",
-      "gotchas": [
-        "Funding first-come first-served; apply ASAP, especially post-20% demand increase; agencies may close early.",
-        "Household counts all at address on utility bill, unlike SNAP.",
-        "Crisis only for true emergencies; regular seasonal (fall/winter heating).",
-        "Even over income? Apply—deductions (medical, etc.) may qualify you.",
-        "TANF auto-eligible at max benefit; use Notice of Decision as proof.",
-        "Mixed immigration status: eligible members only.",
-        "Apps incomplete without docs; upload/respond fast."
-      ],
-      "data_shape_notes": "Income table provided in 1/3/12-month formats; benefits scale by household size, income, fuel type, deductions; administered via local CAAs statewide with apply-early funding constraint; TANF auto-max benefit; no cooling aid.",
-      "_raw": "{\n  \"name\": \"Low-Income Home Energy Assistance Program (LIHEAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"For the 2025-2026 season, maximum gross household income limits are: 1 person - $3,070/month, $9,209/3 months, $36,836/12 months; 2 - $4,014/$12,043/$48,170; 3 - $4,959/$14,876/$59,504; 4 - $5,903/$17,710/$70,839; 5 - $6,848/$20,543/$82,173. For 6+ up to 10: 6-$89,700 (annual implied), 7-$91,739, 8-$93,777, 9-$95,816, 10-$97,855. Households >10 contact local CAA. TANF recipients automatically eligible at highest benefit level. Medical expenses may be deducted; apply even if over limits. Proof required for last 30 days or 12 months gross income (wages, SS, unemployment, pension, disability).[2][4][5]\",\n    \"asset_limits\": \"No asset limits mentioned in available sources.\",\n    \"other_requirements\": [\n      \"U.S. citizen, qualified alien, refugee, asylee, paroled >=1 year, deportation withheld, or conditional entry. Undocumented ineligible; mixed-status households eligible for qualifying members.\",\n      \"Household includes all at address sharing utility/fuel, even non-expense sharers.\",\n      \"Proof of citizenship/residency, SSN/DOB for all household members.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"One-time payment to utility/fuel provider for heating costs (oil, firewood, electricity, gas). Amount based on household size, income, fuel type, and factors like medical deductions. TANF recipients get highest benefit for size. Crisis: for emergencies (shutoff, broken heater, out of fuel). Max/min benefits vary but not specified numerically here; regular heating fall/winter, crisis year-round as needed. Cooling not offered.[1][2][5]\",\n    \"varies_by\": \"household_size|priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online via My Maine Connection (starting 2024; upload docs).\",\n      \"In-person or phone appointment at local Community Action Agency (CAA)/CAP (many start July 1; contact for scheduling).\",\n      \"Phone examples: Community Concepts 800-866-5588; statewide help 1-800-452-4668.\"\n    ],\n    \"processing_time\": \"Not specified; first-come first-served, funds limited.\",\n    \"waitlist\": \"No waitlist mentioned; apply early as funding may run out and demand up 20%. Respond immediately to doc requests.\",\n    \"forms\": [\"No specific form name/number; application via CAA or online portal.\"],\n    \"documents\": [\n      \"Names, DOB, SSN, proof of citizenship for all household members.\",\n      \"Unexpired photo ID of applicant.\",\n      \"Proof of gross income last 30 days (or 12 months if requested): pay stubs, W2, 1099, SS/unemployment/pension/disability statements, employer letter, tax filings.\",\n      \"SNAP/TANF Notice of Decision if applicable.\",\n      \"Proof of address: lease, rent receipt, deed, property tax, rent recertification.\",\n      \"IRS 1040, profit/loss for self-employed.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide to eligible households.\",\n    \"regional_variations\": \"Administered by local Community Action Agencies (CAAs/CAPs) with potential differences in appointment scheduling, wait times, contacts; contact local agency for details. No specific benefit or eligibility variations noted.\",\n    \"offices_or_providers\": [\"Local Community Action Agencies (CAAs); e.g., Community Concepts, Inc. Various others via mainehousing.org.\"]\n  },\n  \"official_source\": \"https://www.mainehousing.org/programs-services/energy/energydetails/liheap\",\n  \"gotchas\": [\n    \"Funding first-come first-served; apply ASAP, especially post-20% demand increase; agencies may close early.\",\n    \"Household counts all at address on utility bill, unlike SNAP.\",\n    \"Crisis only for true emergencies; regular seasonal (fall/winter heating).\",\n    \"Even over income? Apply—deductions (medical, etc.) may qualify you.\",\n    \"TANF auto-eligible at max benefit; use Notice of Decision as proof.\",\n    \"Mixed immigration status: eligible members only.\",\n    \"Apps incomplete without docs; upload/respond fast.\"\n  ],\n  \"data_shape_notes\": \"Income table provided in 1/3/12-month formats; benefits scale by household size, income, fuel type, deductions; administered via local CAAs statewide with apply-early funding constraint; TANF auto-max benefit; no cooling aid.\"\n}"
+      "name": "Low-Income Heating Assistance Program (LIHEAP)",
+      "_parseError": true,
+      "_raw": "{\n  \"name\": \"Low-Income Heating Assistance Program (LIHEAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Maximum gross household income for 2025-2026 season (1 month / 3 months / 12 months): 1: $3,070/$9,209/$36,836; 2: $4,014/$12,043/$48,170; 3: $4,959/$14,876/$59,504; 4: $5,903/$17,710/$70,839; 5: $6,848/$20,543/$82,173; 6: $7,792/$23,377/$93,507; 7: $7,969/$23,908/$95,632; 8: $8,146/$24,439/$97,757; 9: $8,324/$24,971/$99,882; 10: $8,501/$25,502/$102,008. For >10 persons, contact Community Action Agency (CAA). Medical expenses may be deducted; TANF recipients automatically eligible at highest benefit level.[2][3][6]\",\n    \"asset_limits\": \"No asset limits mentioned.[1][2]\",\n    \"other_requirements\": [\"U.S. citizen, qualified alien, refugee, asylee, parolee for 1+ year, deportation withheld, or conditional entry (not asylum seekers or undocumented); mixed-status households eligible for eligible members.\", \"Proof of citizenship/residency.\", \"Household includes all at address sharing utility (even roommates).\", \"Proof of gross income (wages, SS, unemployment, pension, disability).\"][2][4][6]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"One-time payment to utility/fuel provider based on household size, income, fuel type, and factors like emergencies. Regular HEAP for heating costs; Crisis HEAP for emergencies (e.g., shutoff, broken heater). Exact max/min amounts not specified in sources; TANF recipients get highest benefit for size. Weatherization separate.[1][5][6]\",\n    \"varies_by\": \"household_size|priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Online via MaineHousing portal (starting 2024).\", \"In-person or phone at local CAP/CAA agency (many start July 1; contact for appointment).\", \"Phone examples: Community Concepts 800-866-5588; statewide help 1-800-452-4668.\", \"Mail not specified.\"],\n    \"processing_time\": \"Not specified; first-come first-served, funds limited.\",\n    \"waitlist\": \"No waitlist mentioned; apply early as funding runs out and demand up 20%.[4]\",\n    \"forms\": [\"No specific form name/number; applications via CAA or online.\"],\n    \"documents\": [\"Names, DOB, SSN, proof of citizenship for all household members.\", \"Unexpired photo ID of applicant.\", \"Proof of gross income last 30 days (or 12 months if requested): pay stubs, W2, 1099, SS statements, unemployment docs, etc.\", \"Proof of address (rent receipt, lease).\"][2][4][5]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None\",\n    \"regional_variations\": \"Administered by local Community Action Agencies (CAAs/CAPs) with potential differences in offices, appointment scheduling, wait times; contact local CAA.[2][4][5]\",\n    \"offices_or_providers\": [\"Local CAAs/CAPs (e.g., Community Concepts); find via mainehousing.org or 1-800-452-4668.\"]\n  },\n  \"official_source\": \"https://www.mainehousing.org/programs-services/energy/energydetails/liheap\",\n  \"gotchas\": [\"Funding first-come first-served; apply early (fall/winter for heating, not year-round; many CAPs start July 1).\", \"Crisis only for emergencies (shutoff, broken heater).\", \"No cooling assistance in Maine.\", \"Household counts all at address on utility bill.\", \"Medical deductions possible if over income; TANF auto-eligible at max benefit.\", \"Apps incomplete without docs; respond fast to requests.\", \"Even if heat in rent, may apply.[1][4][5][6]\"],\n  \"data_shape_notes\": \"Income table by household size and period (1/3/12 months); administered via regional CAAs with early application critical due to limited funds; medical deductions and TANF auto-max benefit unique qualifiers.\"\n}"
     },
     {
-      "name": "Weatherization Assistance Program (WAP)",
+      "name": "Community Aging in Place Grant Program",
       "eligibility": {
-        "age": null,
-        "income_limits": "Household income at or below 200% of the federal poverty level. Income thresholds change annually; contact your local Community Action Agency for current dollar amounts specific to your household size.[1][3] Households receiving HEAP (Home Energy Assistance Program) benefits are often automatically eligible and have 'Categorical Income Eligibility.'[1][3]",
-        "asset_limits": "Not specified in available sources.",
+        "age": 55,
+        "income_limits": "Household income at or below 100% of Area Median Income (AMI) for State CAIP; 80% AMI for owner-occupied primary residences in some contexts. Specific dollar amounts vary by location and household size (e.g., median income of recipients ~$18,000-$19,000; one source mentions < $40,000 but not confirmed as official limit). No full table provided in sources—check current AMI via MaineHousing.[1][2][5]",
+        "asset_limits": "Not specified in program guidance; one non-official source mentions liquid assets below $50,000 (or $75,000 for couples) but this is unconfirmed for CAIP.[8]",
         "other_requirements": [
-          "Home must be in good structural condition.[2]",
-          "Household must be eligible for HEAP or have income verified within the previous 12 months to be at or below 200% poverty level.[3]",
-          "For rental units: landlord/building owner written authorization required, and at least 66% of units in the building must be occupied by income-eligible households.[3]",
-          "Applicants must provide all required documentation to determine eligibility.[3]",
-          "Some regional providers (e.g., Penquis) prioritize households with adults over 60, children 6 years and younger, and individuals with disabilities, and require that homes have not been weatherized in the past 15 years.[6]"
-        ]
-      },
-      "benefits": {
-        "type": "in_kind",
-        "value": "Free energy efficiency improvements with no cost to qualifying homeowners and renters. Typical projects include: blown-in cellulose insulation for attics, walls, and basements; air sealing (closing gaps and cracks); heating system repair or replacement; health and safety measures (ventilation, carbon monoxide detection, moisture control); weather-stripping; caulking; and some safety-related repairs. Central Heating Improvement Program (CHIP) grants may be used to repair or replace central heating systems.[1][2]",
-        "varies_by": "household_size (income eligibility thresholds vary by household size, though specific dollar amounts are not provided in search results)"
-      },
-      "application": {
-        "methods": [
-          "Contact your local Community Action Agency directly. In the Greater Portland area, contact The Opportunity Alliance.[1]",
-          "For York County: York County Community Action Corporation (YCCAC) — contact Junelle Soucy, Energy Services Coordinator at 207-206-1261.[5]",
-          "For Penquis service area: call (207) 974-2407.[6]",
-          "General inquiries: MaineHousing administers the program; visit mainehousing.org or contact your regional Community Action Agency."
-        ],
-        "processing_time": "Not specified in available sources.",
-        "waitlist": "Not specified in available sources.",
-        "forms": "Not specified in available sources. Applicants must provide documentation to determine eligibility, including proof of household income (SSI letter, MaineCare, tax bill, or confirmation from a municipal official).[3][8]",
-        "documents": [
-          "Proof of household income (SSI letter, MaineCare documentation, current tax bill, or confirmation from a municipal official).[3][8]",
-          "Documentation of HEAP eligibility or income verification within the previous 12 months.[3]",
-          "For rental units: written authorization from landlord/building owner.[3]"
-        ]
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "Program is administered statewide through MaineHousing but delivered by regional Community Action Agencies and local providers.[1][5][6]",
-        "regional_variations": "Different Community Action Agencies and local providers administer the program in different regions. For example: The Opportunity Alliance serves the Greater Portland area; York County Community Action Corporation (YCCAC) serves York County; Penquis serves its service area. Each may have slightly different application processes and priority criteria.[1][5][6]",
-        "offices_or_providers": [
-          "The Opportunity Alliance (Greater Portland area)[1]",
-          "York County Community Action Corporation (YCCAC) — York County[5]",
-          "Penquis — serves multiple counties in central/eastern Maine[6]",
-          "Other regional Community Action Agencies throughout Maine (contact MaineHousing for your local provider)"
-        ]
-      },
-      "official_source": "https://www.mainehousing.org/programs-services/HomeImprovement/homeimprovementdetail/weatherization",
-      "gotchas": [
-        "Income thresholds change annually — you must contact your local Community Action Agency to get current dollar amounts for your household size; the 200% poverty level figure alone is insufficient for determining eligibility.[1][3]",
-        "HEAP eligibility often simplifies qualification, but it is not required — you can qualify based on income verification alone if your income is at or below 200% poverty level.[1][3]",
-        "Both homeowners and renters qualify; you do not need to be on public assistance, though receiving HEAP or other benefits can streamline the process.[1]",
-        "Homes must be in 'good structural condition' — severely damaged homes may not qualify.[2]",
-        "For rental properties, landlord authorization is required, and at least 66% of units in the building must be income-eligible.[3]",
-        "Some regional providers (e.g., Penquis) have a 15-year re-weatherization restriction — homes weatherized in the past 15 years may not qualify again.[6]",
-        "Priority may be given to vulnerable populations (elderly, young children, individuals with disabilities) depending on your regional provider.[6]",
-        "Processing time and waitlist status are not publicly specified — contact your local provider directly for current timelines.",
-        "This is a grant program (free service), not a loan or rebate you apply for after work is completed.[1]"
-      ],
-      "data_shape_notes": "WAP is a decentralized program administered by MaineHousing but delivered through regional Community Action Agencies, each with its own application process and contact information. Income eligibility is based on 200% of federal poverty level, which varies by household size and changes annually — specific dollar amounts must be obtained from your local provider. Benefits are fixed (free improvements) but the scope of work varies by individual home assessment. Priority criteria and re-weatherization restrictions vary by regional provider. No processing time, waitlist, or specific form information is publicly available in standard sources.",
-      "_raw": "```json\n{\n  \"name\": \"Weatherization Assistance Program (WAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Household income at or below 200% of the federal poverty level. Income thresholds change annually; contact your local Community Action Agency for current dollar amounts specific to your household size.[1][3] Households receiving HEAP (Home Energy Assistance Program) benefits are often automatically eligible and have 'Categorical Income Eligibility.'[1][3]\",\n    \"asset_limits\": \"Not specified in available sources.\",\n    \"other_requirements\": [\n      \"Home must be in good structural condition.[2]\",\n      \"Household must be eligible for HEAP or have income verified within the previous 12 months to be at or below 200% poverty level.[3]\",\n      \"For rental units: landlord/building owner written authorization required, and at least 66% of units in the building must be occupied by income-eligible households.[3]\",\n      \"Applicants must provide all required documentation to determine eligibility.[3]\",\n      \"Some regional providers (e.g., Penquis) prioritize households with adults over 60, children 6 years and younger, and individuals with disabilities, and require that homes have not been weatherized in the past 15 years.[6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Free energy efficiency improvements with no cost to qualifying homeowners and renters. Typical projects include: blown-in cellulose insulation for attics, walls, and basements; air sealing (closing gaps and cracks); heating system repair or replacement; health and safety measures (ventilation, carbon monoxide detection, moisture control); weather-stripping; caulking; and some safety-related repairs. Central Heating Improvement Program (CHIP) grants may be used to repair or replace central heating systems.[1][2]\",\n    \"varies_by\": \"household_size (income eligibility thresholds vary by household size, though specific dollar amounts are not provided in search results)\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact your local Community Action Agency directly. In the Greater Portland area, contact The Opportunity Alliance.[1]\",\n      \"For York County: York County Community Action Corporation (YCCAC) — contact Junelle Soucy, Energy Services Coordinator at 207-206-1261.[5]\",\n      \"For Penquis service area: call (207) 974-2407.[6]\",\n      \"General inquiries: MaineHousing administers the program; visit mainehousing.org or contact your regional Community Action Agency.\"\n    ],\n    \"processing_time\": \"Not specified in available sources.\",\n    \"waitlist\": \"Not specified in available sources.\",\n    \"forms\": \"Not specified in available sources. Applicants must provide documentation to determine eligibility, including proof of household income (SSI letter, MaineCare, tax bill, or confirmation from a municipal official).[3][8]\",\n    \"documents\": [\n      \"Proof of household income (SSI letter, MaineCare documentation, current tax bill, or confirmation from a municipal official).[3][8]\",\n      \"Documentation of HEAP eligibility or income verification within the previous 12 months.[3]\",\n      \"For rental units: written authorization from landlord/building owner.[3]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Program is administered statewide through MaineHousing but delivered by regional Community Action Agencies and local providers.[1][5][6]\",\n    \"regional_variations\": \"Different Community Action Agencies and local providers administer the program in different regions. For example: The Opportunity Alliance serves the Greater Portland area; York County Community Action Corporation (YCCAC) serves York County; Penquis serves its service area. Each may have slightly different application processes and priority criteria.[1][5][6]\",\n    \"offices_or_providers\": [\n      \"The Opportunity Alliance (Greater Portland area)[1]\",\n      \"York County Community Action Corporation (YCCAC) — York County[5]\",\n      \"Penquis — serves multiple counties in central/eastern Maine[6]\",\n      \"Other regional Community Action Agencies throughout Maine (contact MaineHousing for your local provider)\"\n    ]\n  },\n  \"official_source\": \"https://www.mainehousing.org/programs-services/HomeImprovement/homeimprovementdetail/weatherization\",\n  \"gotchas\": [\n    \"Income thresholds change annually — you must contact your local Community Action Agency to get current dollar amounts for your household size; the 200% poverty level figure alone is insufficient for determining eligibility.[1][3]\",\n    \"HEAP eligibility often simplifies qualification, but it is not required — you can qualify based on income verification alone if your income is at or below 200% poverty level.[1][3]\",\n    \"Both homeowners and renters qualify; you do not need to be on public assistance, though receiving HEAP or other benefits can streamline the process.[1]\",\n    \"Homes must be in 'good structural condition' — severely damaged homes may not qualify.[2]\",\n    \"For rental properties, landlord authorization is required, and at least 66% of units in the building must be income-eligible.[3]\",\n    \"Some regional providers (e.g., Penquis) have a 15-year re-weatherization restriction — homes weatherized in the past 15 years may not qualify again.[6]\",\n    \"Priority may be given to vulnerable populations (elderly, young children, individuals with disabilities) depending on your regional provider.[6]\",\n    \"Processing time and waitlist status are not publicly specified — contact your local provider directly for current timelines.\",\n    \"This is a grant program (free service), not a loan or rebate you apply for after work is completed.[1]\"\n  ],\n  \"data_shape_notes\": \"WAP is a decentralized program administered by MaineHousing but delivered through regional Community Action Agencies, each with its own application process and contact information. Income eligibility is based on 200% of federal poverty level, which varies by household size and changes annually — specific dollar amounts must be obtained from your local provider. Benefits are fixed (free improvements) but the scope of work varies by individual home assessment. Priority criteria and re-weatherization restrictions vary by regional provider. No processing time, waitlist, or specific form information is publicly available in standard sources.\"\n}\n```\n\n## Key Takeaways for Families with Elderly Loved Ones\n\n**Income is the primary barrier.** Your household income must be at or below 200% of the federal poverty level.[1][3] This threshold varies significantly by household size and changes annually, so you must contact your local Community Action Agency to determine if you qualify — do not rely on the percentage alone.\n\n**This is completely free.** WAP provides improvements at no cost to qualifying households; it is not a loan, rebate, or program you pay into.[1] The program covers insulation, air sealing, heating system repairs/replacement, and safety measures like carbon monoxide detection.[1][2]\n\n**HEAP eligibility is a shortcut.** If your elderly loved one already receives Home Energy Assistance Program (HEAP) benefits, they are often automatically eligible for WAP.[1][3] If not, you can still qualify based on income alone.\n\n**Application is regional.** You must contact your local Community Action Agency — there is no single statewide application portal. In Greater Portland, contact The Opportunity Alliance; in York County, contact YCCAC at 207-206-1261; elsewhere, ask MaineHousing for your regional provider.[1][5][6]\n\n**Elderly households may receive priority.** Some regional providers prioritize households with adults over 60, so your elderly loved one may move up the queue depending on location.[6]\n\n**Bring proof of income.** You will need documentation such as an SSI letter, MaineCare card, recent tax bill, or municipal confirmation of income.[3][8]"
-    },
-    {
-      "name": "State Health Insurance Assistance Program (SHIP) - Maine Senior Health Insurance Assistance Program",
-      "eligibility": {
-        "age": null,
-        "income_limits": "No income limits or asset limits. Open to all Maine residents with Medicare or expecting Medicare, including those 65+ and people with Medicare due to disability.",
-        "asset_limits": "No asset limits or test.",
-        "other_requirements": [
-          "Must be a Maine resident",
-          "Must have Medicare or expect to have Medicare soon (includes older adults and those with Medicare due to disability)"
+          "Homeowners or living in a home owned by a family member",
+          "Primary residence with confirmed health and safety hazards",
+          "Age 55+ or person with a disability resides there",
+          "Live within service area of partner agency",
+          "Owner-occupied for principal residence units[1][2][4][5]"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Free, confidential counseling services including: information on Medicare, Medicare Advantage, MaineCare, Medigap, and supplemental programs; preventive health benefits; Medicare Part D options; help with medical bills, claims, and notices. Counselors do not sell insurance or recommend policies.",
+        "value": "No-cost home safety checks, minor maintenance repairs, and accessibility modifications (e.g., smoke/CO detectors, dryer vents, furnace filters). Average grant limit $2,500-$3,000 per unit (State: ~$2,500-$3,000; Federal variant: $3,000).[1][2][4][5]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local partner agency (e.g., KVCAP for Kennebec/Somerset: (207) 859-1524, homeservices@kvcap.org)",
+          "Application process via partner organizations administering the program for MaineHousing",
+          "No central statewide phone/website/form specified; varies by partner[4][5]"
+        ],
+        "processing_time": "Not specified",
+        "waitlist": null,
+        "forms": [
+          "Application process used by partners to determine eligibility (no specific form name/number listed)[1][4]"
+        ],
+        "documents": [
+          "Proof of income",
+          "Proof of age/disability",
+          "Proof of homeownership/occupancy",
+          "Evidence of health/safety hazards (inferred from eligibility)[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must live within service area of partner agencies (e.g., Kennebec/Somerset via KVCAP); expanding to statewide but partner-dependent[2][5]",
+        "regional_variations": "Administered by local non-profit partner organizations; different providers, service areas, and potentially wait times by region (e.g., 6 partners in 2018 serving 104 communities, 10 in 2019 serving 210)[2][4][5]",
+        "offices_or_providers": [
+          "KVCAP (Kennebec/Somerset Counties)",
+          "Other MaineHousing partner agencies (list via MaineHousing RFQ process)[2][4][5]"
+        ]
+      },
+      "official_source": "https://mainehousing.org/docs/default-source/ehs-partners-library/elderly-home-modification-programs/program-guidance-brochures/program-guidance/community-aging-in-place-programs-guidance-01012023.pdf?sfvrsn=742d8115_2",
+      "gotchas": [
+        "Not directly available statewide—must contact specific partner agency for service area",
+        "Distinguish State CAIP (age 55+, 100% AMI) from Federal variant (62+, 80% AMI, stricter owner rules)",
+        "Funds only for homes with confirmed health/safety hazards",
+        "Administered via local partners, not central MaineHousing intake",
+        "Income based on AMI, which varies by county/household size—no fixed dollar table in sources[1][2][4][5]"
+      ],
+      "data_shape_notes": "Administered regionally by partner non-profits with varying service areas; AMI-based income (varies by location/household); two variants (State/Federal) with age/income differences; no central application—partner dependent",
+      "_raw": "{\n  \"name\": \"Community Aging in Place Grant Program\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Household income at or below 100% of Area Median Income (AMI) for State CAIP; 80% AMI for owner-occupied primary residences in some contexts. Specific dollar amounts vary by location and household size (e.g., median income of recipients ~$18,000-$19,000; one source mentions < $40,000 but not confirmed as official limit). No full table provided in sources—check current AMI via MaineHousing.[1][2][5]\",\n    \"asset_limits\": \"Not specified in program guidance; one non-official source mentions liquid assets below $50,000 (or $75,000 for couples) but this is unconfirmed for CAIP.[8]\",\n    \"other_requirements\": [\"Homeowners or living in a home owned by a family member\", \"Primary residence with confirmed health and safety hazards\", \"Age 55+ or person with a disability resides there\", \"Live within service area of partner agency\", \"Owner-occupied for principal residence units[1][2][4][5]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"No-cost home safety checks, minor maintenance repairs, and accessibility modifications (e.g., smoke/CO detectors, dryer vents, furnace filters). Average grant limit $2,500-$3,000 per unit (State: ~$2,500-$3,000; Federal variant: $3,000).[1][2][4][5]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact local partner agency (e.g., KVCAP for Kennebec/Somerset: (207) 859-1524, homeservices@kvcap.org)\", \"Application process via partner organizations administering the program for MaineHousing\", \"No central statewide phone/website/form specified; varies by partner[4][5]\"],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": null,\n    \"forms\": [\"Application process used by partners to determine eligibility (no specific form name/number listed)[1][4]\"],\n    \"documents\": [\"Proof of income\", \"Proof of age/disability\", \"Proof of homeownership/occupancy\", \"Evidence of health/safety hazards (inferred from eligibility)[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must live within service area of partner agencies (e.g., Kennebec/Somerset via KVCAP); expanding to statewide but partner-dependent[2][5]\",\n    \"regional_variations\": \"Administered by local non-profit partner organizations; different providers, service areas, and potentially wait times by region (e.g., 6 partners in 2018 serving 104 communities, 10 in 2019 serving 210)[2][4][5]\",\n    \"offices_or_providers\": [\"KVCAP (Kennebec/Somerset Counties)\", \"Other MaineHousing partner agencies (list via MaineHousing RFQ process)[2][4][5]\"]\n  },\n  \"official_source\": \"https://mainehousing.org/docs/default-source/ehs-partners-library/elderly-home-modification-programs/program-guidance-brochures/program-guidance/community-aging-in-place-programs-guidance-01012023.pdf?sfvrsn=742d8115_2\",\n  \"gotchas\": [\"Not directly available statewide—must contact specific partner agency for service area\", \"Distinguish State CAIP (age 55+, 100% AMI) from Federal variant (62+, 80% AMI, stricter owner rules)\", \"Funds only for homes with confirmed health/safety hazards\", \"Administered via local partners, not central MaineHousing intake\", \"Income based on AMI, which varies by county/household size—no fixed dollar table in sources[1][2][4][5]\"],\n  \"data_shape_notes\": \"Administered regionally by partner non-profits with varying service areas; AMI-based income (varies by location/household); two variants (State/Federal) with age/income differences; no central application—partner dependent\"\n}"
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP) - Maine SHIP",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits. Services are free and available to all Medicare beneficiaries, older adults, and people with Medicare due to disability[4][3][6].",
+        "asset_limits": "No asset limits or tests apply[4][6].",
+        "other_requirements": [
+          "Must be a Medicare beneficiary or expect to have Medicare soon; available to older people and those with Medicare due to disability; Maine resident implied by program scope[4][3]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free, confidential, one-on-one counseling including: information on Medicare (Parts A, B, Advantage, Part D), Medigap, MaineCare, preventive benefits, prescription drug coverage/options, Medicare Savings Programs enrollment help, medical bills/claims follow-up, supplemental policy comparisons, referrals to agencies (e.g., CMS, SSA, DHHS), programs to reduce out-of-pocket costs; provided by trained counselors who do not sell or recommend policies; delivered via phone, in-person, or Zoom[4][6][3][8]. No specific dollar amounts, hours per week, or tiers.",
         "varies_by": "not_applicable"
       },
       "application": {
         "methods": [
-          "Phone: 1-800-262-2232",
-          "Website: https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/ship-medicare-assistance",
-          "In-person or local: Contact via phone for local counselors through Maine's five Area Agencies on Aging"
+          "Phone: Toll-free 1-800-262-2232 (statewide, hours 9AM-5PM Mon-Thu, 9AM-4PM Fri)[5][7][3]",
+          "Website: https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/ship-medicare-assistance[4][5]",
+          "In-person or Zoom: Through local Area Agencies on Aging, e.g., Southern Maine Agency on Aging at 207-396-6524[8]",
+          "Regional providers: Five Area Agencies on Aging and Legal Services for Maine Elders[4]"
         ],
-        "processing_time": "No formal application or processing time; services available immediately upon contact.",
+        "processing_time": "No formal application or processing; services available immediately upon contact for counseling appointments[4][8].",
         "waitlist": null,
         "forms": [
-          "No specific forms required"
+          "No specific forms for SHIP counseling; for related Medicare Savings Programs, apply online via Maine DHHS or get assistance (no form number specified)[8][9]"
         ],
         "documents": [
-          "No documents needed to start; may request Medicare info or bills for specific help"
+          "No documents required for counseling; for Medicare Savings Programs assistance, prepare income/asset details if pursuing enrollment[9][8]"
         ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "None; available throughout Maine",
-        "regional_variations": "Services delivered through five regional Area Agencies on Aging and local counselors, but core services uniform statewide; no noted differences in wait times or offerings.",
+        "restrictions": null,
+        "regional_variations": "Delivered statewide through Office of Aging and Disability Services, five Area Agencies on Aging (e.g., Southern Maine Agency on Aging, Eastern Agency on Aging), and Legal Services for Maine Elders; local offices offer phone/Zoom/in-person with potentially varying contact numbers but same core services[4][8][9]. No noted differences in wait times or offerings by region.",
         "offices_or_providers": [
-          "Sponsored by Office of Aging and Disability Services, Maine's five Area Agencies on Aging, and Legal Services for Maine Elders, Inc.",
-          "Main office: Office of Aging and Disability Services, 11 State House Station, 41 Anthony Ave., Augusta, ME 04333"
+          "State office: 11 State House Station, Augusta ME 04333[5]",
+          "Southern Maine Agency on Aging: 207-396-6524[8]",
+          "Eastern Agency on Aging (implied contact via Medicare counseling)[9]"
         ]
       },
-      "official_source": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/ship-medicare-assistance",
+      "official_source": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/ship-medicare-assistance[4]",
       "gotchas": [
-        "Not an insurance or financial aid program—provides counseling only, no direct payments or coverage.",
-        "Counselors do not sell or recommend specific policies.",
-        "Not limited to seniors; includes younger people with Medicare due to disability.",
-        "Separate from MaineCare/Medicaid eligibility which has income/asset rules.",
-        "No online application form; contact by phone or website to connect with counselor."
+        "Counselors do not sell insurance or recommend specific policies—purely informational and unbiased[4][8]",
+        "Not a financial aid program itself; helps enroll in Medicare Savings Programs (MSP) or MaineCare which have income/asset limits (e.g., MSP: $1,183/month single, $10,000 assets; varies and separate application)[3][9]",
+        "People may confuse with Medicaid/MaineCare or MSP—SHIP is counseling only, not direct benefits[4][6]",
+        "For Medicare Savings Programs it assists with, eligibility finalized by DHHS with asset limits and no estate recovery[9]"
       ],
-      "data_shape_notes": "no income test; open to all Medicare beneficiaries; service-based counseling only; delivered via regional Area Agencies on Aging but uniform benefits statewide",
-      "_raw": "{\n  \"name\": \"State Health Insurance Assistance Program (SHIP) - Maine Senior Health Insurance Assistance Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits or asset limits. Open to all Maine residents with Medicare or expecting Medicare, including those 65+ and people with Medicare due to disability.\",\n    \"asset_limits\": \"No asset limits or test.\",\n    \"other_requirements\": [\"Must be a Maine resident\", \"Must have Medicare or expect to have Medicare soon (includes older adults and those with Medicare due to disability)\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free, confidential counseling services including: information on Medicare, Medicare Advantage, MaineCare, Medigap, and supplemental programs; preventive health benefits; Medicare Part D options; help with medical bills, claims, and notices. Counselors do not sell insurance or recommend policies.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 1-800-262-2232\", \"Website: https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/ship-medicare-assistance\", \"In-person or local: Contact via phone for local counselors through Maine's five Area Agencies on Aging\"],\n    \"processing_time\": \"No formal application or processing time; services available immediately upon contact.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required\"],\n    \"documents\": [\"No documents needed to start; may request Medicare info or bills for specific help\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available throughout Maine\",\n    \"regional_variations\": \"Services delivered through five regional Area Agencies on Aging and local counselors, but core services uniform statewide; no noted differences in wait times or offerings.\",\n    \"offices_or_providers\": [\"Sponsored by Office of Aging and Disability Services, Maine's five Area Agencies on Aging, and Legal Services for Maine Elders, Inc.\", \"Main office: Office of Aging and Disability Services, 11 State House Station, 41 Anthony Ave., Augusta, ME 04333\"]\n  },\n  \"official_source\": \"https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/ship-medicare-assistance\",\n  \"gotchas\": [\"Not an insurance or financial aid program—provides counseling only, no direct payments or coverage.\", \"Counselors do not sell or recommend specific policies.\", \"Not limited to seniors; includes younger people with Medicare due to disability.\", \"Separate from MaineCare/Medicaid eligibility which has income/asset rules.\", \"No online application form; contact by phone or website to connect with counselor.\"],\n  \"data_shape_notes\": \"no income test; open to all Medicare beneficiaries; service-based counseling only; delivered via regional Area Agencies on Aging but uniform benefits statewide\"\n}"
+      "data_shape_notes": "no income/asset test for counseling; free service for all Medicare-eligible; delivered via network of 5 Area Agencies on Aging; distinguishes from financial programs like MSP by providing enrollment assistance only",
+      "_raw": "{\n  \"name\": \"State Health Insurance Assistance Program (SHIP) - Maine SHIP\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits. Services are free and available to all Medicare beneficiaries, older adults, and people with Medicare due to disability[4][3][6].\",\n    \"asset_limits\": \"No asset limits or tests apply[4][6].\",\n    \"other_requirements\": [\"Must be a Medicare beneficiary or expect to have Medicare soon; available to older people and those with Medicare due to disability; Maine resident implied by program scope[4][3]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free, confidential, one-on-one counseling including: information on Medicare (Parts A, B, Advantage, Part D), Medigap, MaineCare, preventive benefits, prescription drug coverage/options, Medicare Savings Programs enrollment help, medical bills/claims follow-up, supplemental policy comparisons, referrals to agencies (e.g., CMS, SSA, DHHS), programs to reduce out-of-pocket costs; provided by trained counselors who do not sell or recommend policies; delivered via phone, in-person, or Zoom[4][6][3][8]. No specific dollar amounts, hours per week, or tiers.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Toll-free 1-800-262-2232 (statewide, hours 9AM-5PM Mon-Thu, 9AM-4PM Fri)[5][7][3]\", \"Website: https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/ship-medicare-assistance[4][5]\", \"In-person or Zoom: Through local Area Agencies on Aging, e.g., Southern Maine Agency on Aging at 207-396-6524[8]\", \"Regional providers: Five Area Agencies on Aging and Legal Services for Maine Elders[4]\"],\n    \"processing_time\": \"No formal application or processing; services available immediately upon contact for counseling appointments[4][8].\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms for SHIP counseling; for related Medicare Savings Programs, apply online via Maine DHHS or get assistance (no form number specified)[8][9]\"],\n    \"documents\": [\"No documents required for counseling; for Medicare Savings Programs assistance, prepare income/asset details if pursuing enrollment[9][8]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Delivered statewide through Office of Aging and Disability Services, five Area Agencies on Aging (e.g., Southern Maine Agency on Aging, Eastern Agency on Aging), and Legal Services for Maine Elders; local offices offer phone/Zoom/in-person with potentially varying contact numbers but same core services[4][8][9]. No noted differences in wait times or offerings by region.\",\n    \"offices_or_providers\": [\"State office: 11 State House Station, Augusta ME 04333[5]\", \"Southern Maine Agency on Aging: 207-396-6524[8]\", \"Eastern Agency on Aging (implied contact via Medicare counseling)[9]\"]\n  },\n  \"official_source\": \"https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/ship-medicare-assistance[4]\",\n  \"gotchas\": [\"Counselors do not sell insurance or recommend specific policies—purely informational and unbiased[4][8]\", \"Not a financial aid program itself; helps enroll in Medicare Savings Programs (MSP) or MaineCare which have income/asset limits (e.g., MSP: $1,183/month single, $10,000 assets; varies and separate application)[3][9]\", \"People may confuse with Medicaid/MaineCare or MSP—SHIP is counseling only, not direct benefits[4][6]\", \"For Medicare Savings Programs it assists with, eligibility finalized by DHHS with asset limits and no estate recovery[9]\"],\n  \"data_shape_notes\": \"no income/asset test for counseling; free service for all Medicare-eligible; delivered via network of 5 Area Agencies on Aging; distinguishes from financial programs like MSP by providing enrollment assistance only\"\n}"
     },
     {
-      "name": "Home Delivered Meals (Maine Nutrition Services Program)",
+      "name": "Home Delivered Meals",
       "eligibility": {
-        "age": "60 years or older, OR under 60 if on SSDI (Social Security Disability Insurance)[2][5]",
-        "income_limits": "Not specified in available sources. Contact your local Area Agency on Aging for income eligibility thresholds.[6]",
-        "asset_limits": "Not specified in available sources.",
+        "age": 60,
+        "income_limits": "No specific income or asset limits mentioned in state program sources; prioritization for low-income older adults, but not a strict cutoff. Some private programs like Simply Delivered for ME target age 60+ or under 60 on SSDI without income details.[2][5][6]",
+        "asset_limits": "No asset limits or details on what counts/exempts specified in available sources.[1][6]",
         "other_requirements": [
-          "Must be homebound and unable to leave home without assistance[2]",
-          "Must be unable to prepare a meal and have no one available to prepare a meal[2]",
-          "Must be unable to prepare a nutritionally balanced meal due to physical or cognitive limitations[6]",
-          "Maine resident[5]",
-          "Must be home at time of delivery to receive meals[5]"
+          "Homebound and unable to leave home without assistance",
+          "Unable to prepare a nutritionally balanced meal themselves and no one available to do so",
+          "Physical or cognitive limitations preventing meal preparation",
+          "Maine resident",
+          "In-person assessment within 10 business days of referral for some providers[1][2][5][6]"
         ]
       },
       "benefits": {
-        "type": "in_kind",
-        "value": "Home-delivered meals up to 5 days per week; meals are nutritionally balanced and prepared in USDA and FDA inspected kitchens[6]. Includes access to registered dietitians for private nutrition counseling, wellness information, and safety check-ins during delivery[6]",
-        "varies_by": "frequency (up to 5 days/week) and meal type (standard or pureed)"
+        "type": "service",
+        "value": "Nutritionally balanced meals delivered to the home (up to 5 days a week via state program; up to 7 meals/week in some regional programs like Simply Delivered for ME). Includes wellness info, access to nutritionists, chronic disease counseling (e.g., diabetes), and safety check-ins by volunteers/staff. Meals meet low-sodium, low-fat, nutrient-rich guidelines.[1][5][6]",
+        "varies_by": "region"
       },
       "application": {
         "methods": [
-          "Contact your local Area Agency on Aging (Maine has five regional AAAs)[6]",
-          "Contact your local Aging & Disability Resource Center[6]",
-          "Phone or in-person at your regional Area Agency on Aging office"
+          "Contact local Aging & Disability Resource Center (ADRC) or Area Agency on Aging (AAA) for intake and referral (statewide via 5 AAAs)",
+          "Eastern Agency on Aging for Meals on Wheels (criteria-based assessment)",
+          "Southern Maine Agency on Aging for Simply Delivered for ME (York/Cumberland counties)",
+          "Health plan referral for Mom's Meals if covered by Medicaid/Medicare Advantage (not state program)"
         ],
-        "processing_time": "Providers must conduct an in-person assessment within 10 business days of referral to determine eligibility[1]",
-        "waitlist": "Not specified in available sources",
-        "forms": "Not specified in available sources",
+        "processing_time": "In-person assessment within 10 business days of referral; overall approval varies by program (weeks to months for providers, but client intake faster via AAAs).[1]",
+        "waitlist": "Not specified; may vary regionally due to provider capacity.",
+        "forms": [
+          "No specific form names/numbers listed; applications involve referral and assessment via OADS-approved AAAs."
+        ],
         "documents": [
-          "Proof of age (60+) or SSDI status[5]",
-          "Proof of Maine residency[5]",
-          "Documentation of homebound status and inability to prepare meals",
-          "Specific delivery address within service area"
+          "Proof of age and residency",
+          "Medical or disability documentation if under 60 (e.g., SSDI)",
+          "Health plan info for covered benefits (Mom's Meals)"
         ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "Delivery availability varies by provider and region. Simply Delivered for ME (Southern Maine Agency on Aging) serves York and Cumberland counties only, with no delivery to Brunswick area[5]. Other regional AAAs may have different service areas.",
-        "regional_variations": "Maine's five Area Agencies on Aging operate regionally. Service areas, meal costs, delivery schedules, and available meal options may differ by region[6]",
+        "restrictions": "Available statewide through 5 Area Agencies on Aging; some programs county-specific (e.g., Simply Delivered for ME: York and Cumberland counties only, no Brunswick).[5][6]",
+        "regional_variations": "Delivered by local AAAs (e.g., Eastern Agency on Aging, Southern Maine Agency on Aging) with potential differences in meal frequency (5 vs 7/week), cost ($9-11/meal for some purchased options), providers, and delivery schedules. Rural prioritization.[1][2][5]",
         "offices_or_providers": [
-          "Southern Maine Agency on Aging (Simply Delivered for ME) — York and Cumberland counties[5]",
-          "Eastern Agency on Aging — serves eastern Maine[2]",
-          "Three additional regional Area Agencies on Aging (specific names and service areas not detailed in sources)"
+          "Office of Aging and Disability Services (OADS), DHHS",
+          "Five Area Agencies on Aging (e.g., Eastern Agency on Aging, Southern Maine Agency on Aging)",
+          "Local Aging & Disability Resource Centers (ADRCs)"
         ]
       },
-      "official_source": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/food-and-nutrition[6]",
+      "official_source": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/food-and-nutrition",
       "gotchas": [
-        "Income limits are NOT specified in public materials — families must contact their local Area Agency on Aging directly to learn if they qualify financially[1][6]",
-        "Delivery is NOT statewide for all providers. Some regional AAAs have county or geographic restrictions (e.g., Simply Delivered for ME excludes Brunswick)[5]",
-        "Recipient MUST be home at delivery time; meals cannot be left unattended[5]",
-        "Minimum order requirements may apply (e.g., Simply Delivered for ME requires minimum 3 meals)[5]",
-        "This is distinct from private meal delivery services like Mom's Meals, which may be available at lower cost through health insurance but are separate programs[3][4]",
-        "Processing includes a mandatory in-person assessment within 10 business days — this is not a phone-only application[1]",
-        "Meals are typically purchased in advance at nominal cost ($9.00–$11.00 per meal depending on type), not free[5]",
-        "Specific income thresholds, asset limits, and priority tier systems are not publicly detailed — these must be obtained directly from your regional AAA"
+        "Not free for all; some regional programs like Simply Delivered for ME charge $9-11/meal (accepts SNAP), while state AAA programs may be low/no cost based on need but require assessment.",
+        "Must be home for delivery; no one else can accept in some cases.",
+        "Short- or long-term only if truly unable to prepare meals—no casual use.",
+        "Private options like Mom's Meals require health plan coverage or out-of-pocket purchase, not state-funded.",
+        "Prioritization for low-income/rural/vulnerable; waitlists possible in high-demand areas.",
+        "Confused with free Meals on Wheels—state program is via AAAs with specific homebound criteria."
       ],
-      "data_shape_notes": "This program is regionally fragmented across five Area Agencies on Aging with different service areas, costs, and eligibility criteria. No statewide income or asset limits are published; families must contact their local AAA. Eligibility is based on functional need (homebound, unable to prepare meals) rather than income alone, but income may be a factor. The program includes both meals and supportive services (nutrition counseling, safety check-ins). Costs are nominal but not free. Geographic restrictions are significant — not all regions serve all counties.",
-      "_raw": "```json\n{\n  \"name\": \"Home Delivered Meals (Maine Nutrition Services Program)\",\n  \"eligibility\": {\n    \"age\": \"60 years or older, OR under 60 if on SSDI (Social Security Disability Insurance)[2][5]\",\n    \"income_limits\": \"Not specified in available sources. Contact your local Area Agency on Aging for income eligibility thresholds.[6]\",\n    \"asset_limits\": \"Not specified in available sources.\",\n    \"other_requirements\": [\n      \"Must be homebound and unable to leave home without assistance[2]\",\n      \"Must be unable to prepare a meal and have no one available to prepare a meal[2]\",\n      \"Must be unable to prepare a nutritionally balanced meal due to physical or cognitive limitations[6]\",\n      \"Maine resident[5]\",\n      \"Must be home at time of delivery to receive meals[5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"in_kind\",\n    \"value\": \"Home-delivered meals up to 5 days per week; meals are nutritionally balanced and prepared in USDA and FDA inspected kitchens[6]. Includes access to registered dietitians for private nutrition counseling, wellness information, and safety check-ins during delivery[6]\",\n    \"varies_by\": \"frequency (up to 5 days/week) and meal type (standard or pureed)\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact your local Area Agency on Aging (Maine has five regional AAAs)[6]\",\n      \"Contact your local Aging & Disability Resource Center[6]\",\n      \"Phone or in-person at your regional Area Agency on Aging office\"\n    ],\n    \"processing_time\": \"Providers must conduct an in-person assessment within 10 business days of referral to determine eligibility[1]\",\n    \"waitlist\": \"Not specified in available sources\",\n    \"forms\": \"Not specified in available sources\",\n    \"documents\": [\n      \"Proof of age (60+) or SSDI status[5]\",\n      \"Proof of Maine residency[5]\",\n      \"Documentation of homebound status and inability to prepare meals\",\n      \"Specific delivery address within service area\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Delivery availability varies by provider and region. Simply Delivered for ME (Southern Maine Agency on Aging) serves York and Cumberland counties only, with no delivery to Brunswick area[5]. Other regional AAAs may have different service areas.\",\n    \"regional_variations\": \"Maine's five Area Agencies on Aging operate regionally. Service areas, meal costs, delivery schedules, and available meal options may differ by region[6]\",\n    \"offices_or_providers\": [\n      \"Southern Maine Agency on Aging (Simply Delivered for ME) — York and Cumberland counties[5]\",\n      \"Eastern Agency on Aging — serves eastern Maine[2]\",\n      \"Three additional regional Area Agencies on Aging (specific names and service areas not detailed in sources)\"\n    ]\n  },\n  \"official_source\": \"https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/food-and-nutrition[6]\",\n  \"gotchas\": [\n    \"Income limits are NOT specified in public materials — families must contact their local Area Agency on Aging directly to learn if they qualify financially[1][6]\",\n    \"Delivery is NOT statewide for all providers. Some regional AAAs have county or geographic restrictions (e.g., Simply Delivered for ME excludes Brunswick)[5]\",\n    \"Recipient MUST be home at delivery time; meals cannot be left unattended[5]\",\n    \"Minimum order requirements may apply (e.g., Simply Delivered for ME requires minimum 3 meals)[5]\",\n    \"This is distinct from private meal delivery services like Mom's Meals, which may be available at lower cost through health insurance but are separate programs[3][4]\",\n    \"Processing includes a mandatory in-person assessment within 10 business days — this is not a phone-only application[1]\",\n    \"Meals are typically purchased in advance at nominal cost ($9.00–$11.00 per meal depending on type), not free[5]\",\n    \"Specific income thresholds, asset limits, and priority tier systems are not publicly detailed — these must be obtained directly from your regional AAA\"\n  ],\n  \"data_shape_notes\": \"This program is regionally fragmented across five Area Agencies on Aging with different service areas, costs, and eligibility criteria. No statewide income or asset limits are published; families must contact their local AAA. Eligibility is based on functional need (homebound, unable to prepare meals) rather than income alone, but income may be a factor. The program includes both meals and supportive services (nutrition counseling, safety check-ins). Costs are nominal but not free. Geographic restrictions are significant — not all regions serve all counties.\"\n}\n```\n\n## Key Takeaways for Families\n\n**Start here:** Contact your local Area Agency on Aging or Aging & Disability Resource Center to learn your specific income eligibility and service area.[6] The five regional AAAs operate independently, so eligibility rules and costs may differ where you live.\n\n**The core requirement:** Your loved one must be 60+ (or under 60 on SSDI), homebound, unable to prepare meals, and have no one to help them.[2][6] This is a functional eligibility test, not primarily an income test—though income likely matters.\n\n**What you actually get:** Nutritionally balanced meals delivered up to 5 days per week, plus access to a registered dietitian for counseling on chronic disease management (diabetes, weight management, etc.) and wellness information.[6] Delivery also serves as a safety check-in.\n\n**Cost:** Meals are inexpensive ($9.00–$11.00 per meal depending on type), but not free.[5] Payment methods include check, credit/debit card, cash, and SNAP/food stamps.\n\n**The gotcha:** Income limits and asset limits are not publicly posted. You must call your local AAA to learn if your household qualifies financially. Additionally, some regions have geographic restrictions—for example, Simply Delivered for ME (Southern Maine) only serves York and Cumberland counties.[5]\n\n**Processing:** Once you apply, an in-person assessment must occur within 10 business days to confirm eligibility.[1]"
+      "data_shape_notes": "Delivered via 5 regional Area Agencies on Aging with provider variations; no strict income/asset tests but functional eligibility via assessment; some paid tiers alongside subsidized options; county restrictions in private variants.",
+      "_raw": "{\n  \"name\": \"Home Delivered Meals\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No specific income or asset limits mentioned in state program sources; prioritization for low-income older adults, but not a strict cutoff. Some private programs like Simply Delivered for ME target age 60+ or under 60 on SSDI without income details.[2][5][6]\",\n    \"asset_limits\": \"No asset limits or details on what counts/exempts specified in available sources.[1][6]\",\n    \"other_requirements\": [\n      \"Homebound and unable to leave home without assistance\",\n      \"Unable to prepare a nutritionally balanced meal themselves and no one available to do so\",\n      \"Physical or cognitive limitations preventing meal preparation\",\n      \"Maine resident\",\n      \"In-person assessment within 10 business days of referral for some providers[1][2][5][6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Nutritionally balanced meals delivered to the home (up to 5 days a week via state program; up to 7 meals/week in some regional programs like Simply Delivered for ME). Includes wellness info, access to nutritionists, chronic disease counseling (e.g., diabetes), and safety check-ins by volunteers/staff. Meals meet low-sodium, low-fat, nutrient-rich guidelines.[1][5][6]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Aging & Disability Resource Center (ADRC) or Area Agency on Aging (AAA) for intake and referral (statewide via 5 AAAs)\",\n      \"Eastern Agency on Aging for Meals on Wheels (criteria-based assessment)\",\n      \"Southern Maine Agency on Aging for Simply Delivered for ME (York/Cumberland counties)\",\n      \"Health plan referral for Mom's Meals if covered by Medicaid/Medicare Advantage (not state program)\"\n    ],\n    \"processing_time\": \"In-person assessment within 10 business days of referral; overall approval varies by program (weeks to months for providers, but client intake faster via AAAs).[1]\",\n    \"waitlist\": \"Not specified; may vary regionally due to provider capacity.\",\n    \"forms\": [\"No specific form names/numbers listed; applications involve referral and assessment via OADS-approved AAAs.\"],\n    \"documents\": [\n      \"Proof of age and residency\",\n      \"Medical or disability documentation if under 60 (e.g., SSDI)\",\n      \"Health plan info for covered benefits (Mom's Meals)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide through 5 Area Agencies on Aging; some programs county-specific (e.g., Simply Delivered for ME: York and Cumberland counties only, no Brunswick).[5][6]\",\n    \"regional_variations\": \"Delivered by local AAAs (e.g., Eastern Agency on Aging, Southern Maine Agency on Aging) with potential differences in meal frequency (5 vs 7/week), cost ($9-11/meal for some purchased options), providers, and delivery schedules. Rural prioritization.[1][2][5]\",\n    \"offices_or_providers\": [\n      \"Office of Aging and Disability Services (OADS), DHHS\",\n      \"Five Area Agencies on Aging (e.g., Eastern Agency on Aging, Southern Maine Agency on Aging)\",\n      \"Local Aging & Disability Resource Centers (ADRCs)\"\n    ]\n  },\n  \"official_source\": \"https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/food-and-nutrition\",\n  \"gotchas\": [\n    \"Not free for all; some regional programs like Simply Delivered for ME charge $9-11/meal (accepts SNAP), while state AAA programs may be low/no cost based on need but require assessment.\",\n    \"Must be home for delivery; no one else can accept in some cases.\",\n    \"Short- or long-term only if truly unable to prepare meals—no casual use.\",\n    \"Private options like Mom's Meals require health plan coverage or out-of-pocket purchase, not state-funded.\",\n    \"Prioritization for low-income/rural/vulnerable; waitlists possible in high-demand areas.\",\n    \"Confused with free Meals on Wheels—state program is via AAAs with specific homebound criteria.\"\n  ],\n  \"data_shape_notes\": \"Delivered via 5 regional Area Agencies on Aging with provider variations; no strict income/asset tests but functional eligibility via assessment; some paid tiers alongside subsidized options; county restrictions in private variants.\"\n}"
     },
     {
       "name": "Senior Community Service Employment Program (SCSEP)",
-      "eligibility": {
-        "age": 55,
-        "income_limits": "Household income at or below 125% of the federal poverty level. Exact dollar amounts vary annually by household size and are not specified in current sources; families must verify current federal poverty guidelines via official channels[2][5].",
-        "asset_limits": "No asset limits mentioned in sources.",
-        "other_requirements": [
-          "Unemployed",
-          "Looking for work",
-          "U.S. citizen or authorized to work",
-          "Enrollment priority: veterans and qualified spouses first, then individuals over 65, with disabilities, low literacy, limited English proficiency, rural residents, homeless/at risk, low employment prospects, or prior American Job Center users[5]"
-        ]
-      },
-      "benefits": {
-        "type": "employment",
-        "value": "Part-time paid training (average 20 hours/week) at highest applicable minimum wage (federal, state, or local), placed at nonprofits or public agencies (e.g., schools, hospitals, senior centers) for hands-on experience in fields like healthcare, administration, food prep, customer service; includes on-site training, workshops, CareerCenter services, and supportive services (e.g., assistance with qualifying expenses for training/employment success)[1][3][5][6]. Positions are temporary/transitional to unsubsidized jobs.",
-        "varies_by": "priority_tier"
-      },
-      "application": {
-        "methods": [
-          "Online: Maine Department of Labor's Work Source Maine Virtual CareerCenter (https://www.myworksourcemaine.gov/resources/senior-community-service-employment-program-scsep-associates-training-development)[1][2]",
-          "Phone: (800) 439-3307 (A4TD provider)[4]",
-          "Online orientation webinars via Zoom (e.g., https://zoom.us/j/95908370915, Meeting ID: 959 0837 0915; check for current sessions)[4]",
-          "In-person: Maine CareerCenters statewide; contact Area Agencies on Aging (AAAs) for information/referral[2]",
-          "Mail/in-person: Via AAAs or providers like A4TD (https://www.a4td.org)[2][4]"
-        ],
-        "processing_time": "Not specified in sources.",
-        "waitlist": "Capacity limited to ~122 participants statewide; new enrollees enter as others transition to employment[3]",
-        "forms": [
-          "No specific form names/numbers listed; apply via CareerCenter orientation/process"
-        ],
-        "documents": [
-          "Not explicitly listed; prepare income verification (to prove ≤125% FPL), proof of age, unemployment status, work authorization; contact provider for exact list"
-        ]
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "Serves all counties: State Grant (Cumberland, Lincoln, part of York Counties); National Grant (remaining 13.5 counties, part of York); via AAAs and CareerCenters[1][3]",
-        "regional_variations": "Administered via state/national grants with different providers (e.g., A4TD for national grant); all five AAAs provide info/referral and some training; no specific wait time or service differences noted[2][3]",
-        "offices_or_providers": [
-          "Maine CareerCenters (statewide)",
-          "Area Agencies on Aging (5 AAAs statewide)",
-          "A4TD (national grant provider, https://www.a4td.org)"
-        ]
-      },
-      "official_source": "https://www.myworksourcemaine.gov/resources/senior-community-service-employment-program-scsep-associates-training-development or https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/scsep[1][2]",
-      "gotchas": [
-        "Temporary training only (not permanent jobs); must actively seek unsubsidized employment[6]",
-        "Strict priority tiers may delay entry for non-priority applicants[5]",
-        "Income test at 125% FPL (lower than some programs); verify current FPL amounts as they change yearly",
-        "Limited slots (~122 statewide); waitlist likely when full[3]",
-        "Must attend training/workshops and use CareerCenter services[1]"
-      ],
-      "data_shape_notes": "Dual state/national grants split by counties (state: Cumberland/Lincoln/part York; national: rest); priority enrollment tiers; capacity-capped with rolling entry on transitions; income-based at 125% FPL without asset test",
-      "_raw": "{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Household income at or below 125% of the federal poverty level. Exact dollar amounts vary annually by household size and are not specified in current sources; families must verify current federal poverty guidelines via official channels[2][5].\",\n    \"asset_limits\": \"No asset limits mentioned in sources.\",\n    \"other_requirements\": [\n      \"Unemployed\",\n      \"Looking for work\",\n      \"U.S. citizen or authorized to work\",\n      \"Enrollment priority: veterans and qualified spouses first, then individuals over 65, with disabilities, low literacy, limited English proficiency, rural residents, homeless/at risk, low employment prospects, or prior American Job Center users[5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Part-time paid training (average 20 hours/week) at highest applicable minimum wage (federal, state, or local), placed at nonprofits or public agencies (e.g., schools, hospitals, senior centers) for hands-on experience in fields like healthcare, administration, food prep, customer service; includes on-site training, workshops, CareerCenter services, and supportive services (e.g., assistance with qualifying expenses for training/employment success)[1][3][5][6]. Positions are temporary/transitional to unsubsidized jobs.\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: Maine Department of Labor's Work Source Maine Virtual CareerCenter (https://www.myworksourcemaine.gov/resources/senior-community-service-employment-program-scsep-associates-training-development)[1][2]\",\n      \"Phone: (800) 439-3307 (A4TD provider)[4]\",\n      \"Online orientation webinars via Zoom (e.g., https://zoom.us/j/95908370915, Meeting ID: 959 0837 0915; check for current sessions)[4]\",\n      \"In-person: Maine CareerCenters statewide; contact Area Agencies on Aging (AAAs) for information/referral[2]\",\n      \"Mail/in-person: Via AAAs or providers like A4TD (https://www.a4td.org)[2][4]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Capacity limited to ~122 participants statewide; new enrollees enter as others transition to employment[3]\",\n    \"forms\": [\"No specific form names/numbers listed; apply via CareerCenter orientation/process\"],\n    \"documents\": [\"Not explicitly listed; prepare income verification (to prove ≤125% FPL), proof of age, unemployment status, work authorization; contact provider for exact list\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Serves all counties: State Grant (Cumberland, Lincoln, part of York Counties); National Grant (remaining 13.5 counties, part of York); via AAAs and CareerCenters[1][3]\",\n    \"regional_variations\": \"Administered via state/national grants with different providers (e.g., A4TD for national grant); all five AAAs provide info/referral and some training; no specific wait time or service differences noted[2][3]\",\n    \"offices_or_providers\": [\n      \"Maine CareerCenters (statewide)\",\n      \"Area Agencies on Aging (5 AAAs statewide)\",\n      \"A4TD (national grant provider, https://www.a4td.org)\"\n    ]\n  },\n  \"official_source\": \"https://www.myworksourcemaine.gov/resources/senior-community-service-employment-program-scsep-associates-training-development or https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/scsep[1][2]\",\n  \"gotchas\": [\n    \"Temporary training only (not permanent jobs); must actively seek unsubsidized employment[6]\",\n    \"Strict priority tiers may delay entry for non-priority applicants[5]\",\n    \"Income test at 125% FPL (lower than some programs); verify current FPL amounts as they change yearly\",\n    \"Limited slots (~122 statewide); waitlist likely when full[3]\",\n    \"Must attend training/workshops and use CareerCenter services[1]\"\n  ],\n  \"data_shape_notes\": \"Dual state/national grants split by counties (state: Cumberland/Lincoln/part York; national: rest); priority enrollment tiers; capacity-capped with rolling entry on transitions; income-based at 125% FPL without asset test\"\n}"
+      "_parseError": true,
+      "_raw": "{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Household income at or below 125% of the federal poverty level. Exact dollar amounts vary annually by household size and are not specified in current sources; families must check current federal poverty guidelines via Maine Department of Labor or CareerCenter for precise figures (e.g., for 2026, consult official FPL tables).[2][4]\",\n    \"asset_limits\": \"No asset limits mentioned in sources.\",\n    \"other_requirements\": [\"Unemployed\", \"Actively looking for work\", \"Priority given to veterans and qualified spouses, individuals over 65, those with disabilities, low literacy or limited English proficiency, rural residents, homeless or at-risk, low employment prospects, or prior American Job Center users\"][2][4]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Part-time community service work-based training (average 20 hours per week) at nonprofits or public agencies (e.g., healthcare, office admin, food prep, customer service); paid at the highest of federal, state, or local minimum wage on a bi-weekly basis; training classes/workshops; access to CareerCenter employment services; transitional to unsubsidized jobs (positions are temporary).[1][4][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Visit Maine Department of Labor's Work Source Maine Virtual CareerCenter (https://www.myworksourcemaine.gov/resources/senior-community-service-employment-program-scsep-associates-training-development)\", \"Contact Area Agencies on Aging (AAAs) for information and referral (all five AAAs statewide)\", \"Call A4TD at (800) 439-3307 or visit https://www.a4td.org for orientations\", \"Attend online orientation webinars (e.g., via Zoom as scheduled)\", \"Maine DHHS OADS page: https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/scsep\"][1][2][3],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Not mentioned; may vary by provider or demand.\",\n    \"forms\": [\"OADS SCSEP Participant Application (available via AAAs or providers like Allied Community Resources)\"][8],\n    \"documents\": [\"Proof of age (e.g., ID)\", \"Proof of income (to verify ≤125% FPL)\", \"Proof of unemployment status\", \"Possibly Social Security number, residency proof; prepare household size details for income calculation (exact list confirmed during intake)\"][2]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; applicable statewide.\",\n    \"regional_variations\": \"Administered via five Area Agencies on Aging (AAAs), some providing training through community service assignments; providers like A4TD and possibly Allied Community Resources handle orientations and placements; wait times or host sites may differ by AAA region but no specific differences detailed.\",\n    \"offices_or_providers\": [\"All five AAAs\", \"A4TD (https://www.a4td.org)\", \"Maine CareerCenters\", \"Work Source Maine Virtual CareerCenter\"][1][2][3]\n  },\n  \"official_source\": \"https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/scsep\",\n  \"gotchas\": [\"Transitional/temporary positions only—not permanent jobs; must actively use CareerCenter services and seek unsubsidized employment; income limit is strict at 125% FPL (check current guidelines as they update yearly); priority tiers may delay non-priority applicants; no asset test but must prove unemployment and job search intent; funded partly by state/federal grants with limited slots (e.g., past funding ~$578k for Maine).\"],\n  \"data_shape_notes\": \"Statewide via AAAs with priority enrollment tiers; income test at 125% FPL (varies by household size per federal guidelines); no fixed asset limits; temporary part-time training slots limited by grantee funding/providers.\"\n}"
     },
     {
       "name": "Maine Legal Services for the Elderly",
       "eligibility": {
         "age": 60,
-        "income_limits": "Specific dollar amounts or tables not detailed in sources; services targeted to 'socially and economically needy' elderly, often at or below 200% of federal poverty guidelines based on similar programs, but exact limits determined case-by-case for priority[2][4][7].",
-        "asset_limits": "No asset limits specified in sources.",
+        "income_limits": "Specific dollar amounts or tables not detailed in sources; prioritizes 'socially and economically needy' Maine residents age 60+, often at or below 200% of federal poverty guidelines based on similar programs, but determined case-by-case for legal services[2][5][6]",
+        "asset_limits": "No asset limits specified; focus is on economic need rather than strict financial cutoffs[2][6]",
         "other_requirements": [
           "Maine resident",
           "Basic human needs at stake (e.g., MaineCare/Medicare issues, elder abuse, housing, public benefits)",
-          "Priority for those with income-related barriers; referrals if ineligible[2][4][9]"
-        ]
-      },
-      "benefits": {
-        "type": "service",
-        "value": "Free legal services including information, advice, and representation on: Medicare/MaineCare disputes, health coverage, elder abuse/protection orders, housing (eviction/foreclosure), consumer debt, public assistance benefits, guardianship, discharges from care, powers of attorney, health care advance directives, Medicare Part D prescription drug assistance[2][4][9].",
-        "varies_by": "priority_tier"
-      },
-      "application": {
-        "methods": [
-          "Phone: Helpline 1-800-750-5353 (in-state) or 207-623-1797[2][4][6][9]",
-          "Website: https://mainelse.org for information and Elder Rights Handbook[2][9]",
-          "In-person: Attorneys in offices across the state for representation cases[4]"
-        ],
-        "processing_time": "Not specified.",
-        "waitlist": null,
-        "forms": [
-          "No specific application form required; contact helpline for intake[2]"
-        ],
-        "documents": [
-          "Not explicitly listed; prepare proof of age, residency, income details, and documents related to legal issue (e.g., MaineCare notices, eviction papers)[2]"
-        ]
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "None; available to Maine residents age 60+[2][4][6][9]",
-        "regional_variations": "Attorneys located in offices across the state; funded through Bureau of Elder and Adult Services and Area Agencies on Aging (AAA), potential minor differences in local providers[4][5].",
-        "offices_or_providers": [
-          "Offices across Maine; coordinated with AAAs[4][5]"
-        ]
-      },
-      "official_source": "https://mainelse.org[9]",
-      "gotchas": [
-        "Not a general entitlement; services prioritized for those with basic needs at stake and economic need—may get advice/referral only[2][4]",
-        "Avoid pre-printed powers of attorney forms from stores/internet as some are invalid in Maine; consult LSE attorney[2]",
-        "If ineligible, referred to private attorneys possibly at reduced fees[4]",
-        "Focuses on non-criminal civil legal issues, not broad healthcare/financial aid[4]"
-      ],
-      "data_shape_notes": "No fixed income/asset tables; eligibility prioritizes 'socially and economically needy' with case-by-case review; statewide helpline with regional attorney offices; services are legal advocacy, not direct financial or in-kind aid",
-      "_raw": "{\n  \"name\": \"Maine Legal Services for the Elderly\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Specific dollar amounts or tables not detailed in sources; services targeted to 'socially and economically needy' elderly, often at or below 200% of federal poverty guidelines based on similar programs, but exact limits determined case-by-case for priority[2][4][7].\",\n    \"asset_limits\": \"No asset limits specified in sources.\",\n    \"other_requirements\": [\"Maine resident\", \"Basic human needs at stake (e.g., MaineCare/Medicare issues, elder abuse, housing, public benefits)\", \"Priority for those with income-related barriers; referrals if ineligible[2][4][9]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free legal services including information, advice, and representation on: Medicare/MaineCare disputes, health coverage, elder abuse/protection orders, housing (eviction/foreclosure), consumer debt, public assistance benefits, guardianship, discharges from care, powers of attorney, health care advance directives, Medicare Part D prescription drug assistance[2][4][9].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Helpline 1-800-750-5353 (in-state) or 207-623-1797[2][4][6][9]\", \"Website: https://mainelse.org for information and Elder Rights Handbook[2][9]\", \"In-person: Attorneys in offices across the state for representation cases[4]\"],\n    \"processing_time\": \"Not specified.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific application form required; contact helpline for intake[2]\"],\n    \"documents\": [\"Not explicitly listed; prepare proof of age, residency, income details, and documents related to legal issue (e.g., MaineCare notices, eviction papers)[2]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to Maine residents age 60+[2][4][6][9]\",\n    \"regional_variations\": \"Attorneys located in offices across the state; funded through Bureau of Elder and Adult Services and Area Agencies on Aging (AAA), potential minor differences in local providers[4][5].\",\n    \"offices_or_providers\": [\"Offices across Maine; coordinated with AAAs[4][5]\"]\n  },\n  \"official_source\": \"https://mainelse.org[9]\",\n  \"gotchas\": [\"Not a general entitlement; services prioritized for those with basic needs at stake and economic need—may get advice/referral only[2][4]\", \"Avoid pre-printed powers of attorney forms from stores/internet as some are invalid in Maine; consult LSE attorney[2]\", \"If ineligible, referred to private attorneys possibly at reduced fees[4]\", \"Focuses on non-criminal civil legal issues, not broad healthcare/financial aid[4]\"],\n  \"data_shape_notes\": \"No fixed income/asset tables; eligibility prioritizes 'socially and economically needy' with case-by-case review; statewide helpline with regional attorney offices; services are legal advocacy, not direct financial or in-kind aid\"\n}"
-    },
-    {
-      "name": "Maine SHIP (State Health Insurance Assistance Program)",
-      "eligibility": {
-        "age": null,
-        "income_limits": "No income limits for SHIP eligibility. SHIP is available to all older people and people who have Medicare because of a disability, regardless of income.[4]",
-        "asset_limits": null,
-        "other_requirements": [
-          "Must be an older adult OR have Medicare because of a disability[4]",
-          "No citizenship or residency requirements stated for SHIP itself (distinct from Medicaid)"
-        ]
-      },
-      "benefits": {
-        "type": "advocacy|counseling|referral",
-        "value": "Free, confidential one-on-one health insurance counseling and information. Specific services include: information about Medicare Part A and B, Medicare Prescription Drug Coverage (Part D), Medicare Supplement Insurance (Medigap), Medicare Advantage Plans, long-term care insurance, Medicare Savings Programs (QMB, SLMB, QI), prescription drug assistance programs, Medicaid, and other insurance programs. Counselors help beneficiaries enroll in Medicare, compare and change Medicare Advantage and Part D plans, answer questions about state Medigap protections, and provide information about local agencies offering home care and long-term care services.[3][4][6]",
-        "varies_by": "not_applicable"
-      },
-      "application": {
-        "methods": [
-          "Phone: 1-800-262-2232 (toll-free)[5][7]",
-          "In-person: Office of Aging and Disability Services, 11 State House Station, 41 Anthony Ave., Augusta, ME 04333[5]",
-          "Email: Anna.Fox@maine.gov[5]",
-          "Regional appointments available through Area Agencies on Aging (e.g., Southern Maine Agency on Aging: 207-396-6524 for phone, Zoom, or in-person appointments)[8]"
-        ],
-        "processing_time": "Not specified in search results. Counseling is typically provided by appointment.[8]",
-        "waitlist": "Not mentioned in search results.",
-        "forms": "No specific form names or numbers provided in search results.",
-        "documents": "Not specified in search results. Counselors can review coverage and help with applications for related programs like Medicare Savings Programs.[8]"
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "Available statewide in Maine[4]",
-        "regional_variations": "SHIP services are sponsored by the Office of Aging and Disability Services, Maine's five Area Agencies on Aging, and Legal Services for Maine Elders, Inc.[4] Regional offices include Southern Maine Agency on Aging (207-396-6524) and Eastern Agency on Aging.[8][9] Different regional agencies may offer different appointment formats (phone, Zoom, in-person).[8]",
-        "offices_or_providers": [
-          "Office of Aging and Disability Services (main office): 11 State House Station, 41 Anthony Ave., Augusta, ME 04333[5]",
-          "Southern Maine Agency on Aging: 207-396-6524[8]",
-          "Eastern Agency on Aging[9]",
-          "Maine's five Area Agencies on Aging (specific locations not detailed in search results)"
-        ]
-      },
-      "official_source": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/ship-medicare-assistance",
-      "gotchas": [
-        "SHIP is NOT a financial assistance program itself — it is a counseling and referral service. Families often confuse SHIP with Medicare Savings Programs (MSP), which DO provide financial assistance for premiums and costs. SHIP counselors help you determine if you qualify for MSP or other assistance programs.[3][4][9]",
-        "SHIP counselors do not sell insurance or recommend specific policies — they provide unbiased information to help you make your own decisions.[4][8]",
-        "SHIP can help you apply for related programs like Medicare Savings Programs (QMB, SLMB, QI) and MaineCare, which have their own income and asset limits.[3][6][9]",
-        "If seeking financial assistance for Medicare costs, you need to separately apply for Medicare Savings Programs (MSP), which have specific income limits ($1,183/month for singles, $1,637/month for couples) and asset limits ($10,000 for singles, $15,000 for couples).[3]",
-        "SHIP services are free and confidential — there is no cost for counseling.[4][8]",
-        "Hours of operation: 9:00 AM–5:00 PM Monday–Thursday, 9:00 AM–4:00 PM Friday[5]"
-      ],
-      "data_shape_notes": "SHIP is a counseling and advocacy program, not a direct financial assistance program. It serves as a gateway to other programs (Medicare Savings Programs, MaineCare, prescription drug assistance). Eligibility is universal for Medicare beneficiaries and older adults — there are no income, asset, or other restrictive requirements. The program's value lies in personalized guidance rather than direct benefits. Regional variations exist in how appointments are offered (phone, Zoom, in-person) and which Area Agencies on Aging serve different parts of the state, but the core services and eligibility are statewide and uniform.",
-      "_raw": "```json\n{\n  \"name\": \"Maine SHIP (State Health Insurance Assistance Program)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits for SHIP eligibility. SHIP is available to all older people and people who have Medicare because of a disability, regardless of income.[4]\",\n    \"asset_limits\": null,\n    \"other_requirements\": [\n      \"Must be an older adult OR have Medicare because of a disability[4]\",\n      \"No citizenship or residency requirements stated for SHIP itself (distinct from Medicaid)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy|counseling|referral\",\n    \"value\": \"Free, confidential one-on-one health insurance counseling and information. Specific services include: information about Medicare Part A and B, Medicare Prescription Drug Coverage (Part D), Medicare Supplement Insurance (Medigap), Medicare Advantage Plans, long-term care insurance, Medicare Savings Programs (QMB, SLMB, QI), prescription drug assistance programs, Medicaid, and other insurance programs. Counselors help beneficiaries enroll in Medicare, compare and change Medicare Advantage and Part D plans, answer questions about state Medigap protections, and provide information about local agencies offering home care and long-term care services.[3][4][6]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 1-800-262-2232 (toll-free)[5][7]\",\n      \"In-person: Office of Aging and Disability Services, 11 State House Station, 41 Anthony Ave., Augusta, ME 04333[5]\",\n      \"Email: Anna.Fox@maine.gov[5]\",\n      \"Regional appointments available through Area Agencies on Aging (e.g., Southern Maine Agency on Aging: 207-396-6524 for phone, Zoom, or in-person appointments)[8]\"\n    ],\n    \"processing_time\": \"Not specified in search results. Counseling is typically provided by appointment.[8]\",\n    \"waitlist\": \"Not mentioned in search results.\",\n    \"forms\": \"No specific form names or numbers provided in search results.\",\n    \"documents\": \"Not specified in search results. Counselors can review coverage and help with applications for related programs like Medicare Savings Programs.[8]\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide in Maine[4]\",\n    \"regional_variations\": \"SHIP services are sponsored by the Office of Aging and Disability Services, Maine's five Area Agencies on Aging, and Legal Services for Maine Elders, Inc.[4] Regional offices include Southern Maine Agency on Aging (207-396-6524) and Eastern Agency on Aging.[8][9] Different regional agencies may offer different appointment formats (phone, Zoom, in-person).[8]\",\n    \"offices_or_providers\": [\n      \"Office of Aging and Disability Services (main office): 11 State House Station, 41 Anthony Ave., Augusta, ME 04333[5]\",\n      \"Southern Maine Agency on Aging: 207-396-6524[8]\",\n      \"Eastern Agency on Aging[9]\",\n      \"Maine's five Area Agencies on Aging (specific locations not detailed in search results)\"\n    ]\n  },\n  \"official_source\": \"https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/ship-medicare-assistance\",\n  \"gotchas\": [\n    \"SHIP is NOT a financial assistance program itself — it is a counseling and referral service. Families often confuse SHIP with Medicare Savings Programs (MSP), which DO provide financial assistance for premiums and costs. SHIP counselors help you determine if you qualify for MSP or other assistance programs.[3][4][9]\",\n    \"SHIP counselors do not sell insurance or recommend specific policies — they provide unbiased information to help you make your own decisions.[4][8]\",\n    \"SHIP can help you apply for related programs like Medicare Savings Programs (QMB, SLMB, QI) and MaineCare, which have their own income and asset limits.[3][6][9]\",\n    \"If seeking financial assistance for Medicare costs, you need to separately apply for Medicare Savings Programs (MSP), which have specific income limits ($1,183/month for singles, $1,637/month for couples) and asset limits ($10,000 for singles, $15,000 for couples).[3]\",\n    \"SHIP services are free and confidential — there is no cost for counseling.[4][8]\",\n    \"Hours of operation: 9:00 AM–5:00 PM Monday–Thursday, 9:00 AM–4:00 PM Friday[5]\"\n  ],\n  \"data_shape_notes\": \"SHIP is a counseling and advocacy program, not a direct financial assistance program. It serves as a gateway to other programs (Medicare Savings Programs, MaineCare, prescription drug assistance). Eligibility is universal for Medicare beneficiaries and older adults — there are no income, asset, or other restrictive requirements. The program's value lies in personalized guidance rather than direct benefits. Regional variations exist in how appointments are offered (phone, Zoom, in-person) and which Area Agencies on Aging serve different parts of the state, but the core services and eligibility are statewide and uniform.\"\n}\n```\n\n**Critical Context for Families:**\n\nSHIP is fundamentally different from what many families expect. It is **not a financial assistance program**—it is a **free counseling service** that helps Medicare beneficiaries and older adults understand their options and connect to programs that *do* provide financial help.[4]\n\nIf your elderly loved one needs help paying for Medicare premiums or costs, SHIP counselors will help determine if they qualify for **Medicare Savings Programs (MSP)**, which have specific income limits: $1,183/month for singles or $1,637/month for couples, with asset limits of $10,000 (singles) or $15,000 (couples).[3] These are separate programs with their own applications.\n\n**The practical next step:** Call 1-800-262-2232 to schedule a free appointment with a SHIP counselor. They will review your loved one's Medicare coverage, income, and situation to identify which assistance programs they may qualify for—whether that's MSP, MaineCare, prescription drug assistance, or other state and federal programs.[4][8]"
-    },
-    {
-      "name": "Legal Services for Maine Elders (LSE)",
-      "eligibility": {
-        "age": 60,
-        "income_limits": "No specific dollar amounts or tables provided in sources; eligibility based on being 'socially and/or economically needy' for persons age 60 and over. Other legal aid programs reference up to 200% of federal poverty guidelines, but not explicitly confirmed for LSE[2][4].",
-        "asset_limits": "No asset limits or details on what counts/exempts mentioned in sources.",
-        "other_requirements": [
-          "Maine resident",
-          "Age 60 and over",
-          "Basic human needs at stake (e.g., health care, housing, abuse)",
           "Non-criminal legal problems"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Free legal advice, information, and in some cases representation on: health care, health insurance, Medicare (including Part D), MaineCare (Medicaid), Social Security/public benefits, pension/retirement benefits, powers of attorney, consumer matters (creditor/debt/bankruptcy), physical/financial abuse, guardianship defense, housing (eviction/foreclosure), elder abuse/protection orders, discharges, health care advance directives. Medicare Part D Unit for prescription drug issues[2][3][7].",
+        "value": "Free confidential legal information, advice, and representation on issues including Medicare/MaineCare disputes, health coverage, elder abuse/protection orders, housing (eviction/foreclosure), consumer debt, public assistance benefits, guardianship, discharges, powers of attorney, health care advance directives, and Medicare Part D prescription drug assistance; attorneys in offices across the state for select representation cases[2][4][8]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: Helpline 1-800-750-5353 (in-state) or 207-623-1797[2][4][5][8]",
+          "Website: https://mainelse.org for information and Elder Rights Handbook[2][8]",
+          "In-person: Attorneys located in offices across the state[4]"
+        ],
+        "processing_time": "Not specified",
+        "waitlist": null,
+        "forms": [
+          "No specific application form required; call helpline for intake[2]"
+        ],
+        "documents": [
+          "Not explicitly listed; prepare details on legal issue, income, assets, and residency for case assessment"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to Maine residents age 60+",
+        "regional_variations": "Attorneys in offices across the state, but no specific wait time or service differences noted[4]",
+        "offices_or_providers": [
+          "Offices across Maine (specific locations not listed in sources)[4]"
+        ]
+      },
+      "official_source": "https://mainelse.org[8]",
+      "gotchas": [
+        "Not a general entitlement; services for when 'basic human needs are at stake' with priority triage—may get advice/referral only, not full representation[2][4]",
+        "Avoid pre-printed powers of attorney forms from stores/internet as they may not be legal in Maine; consult LSE attorney instead[2]",
+        "If ineligible, referrals to private attorneys at reduced fees[4]",
+        "Focuses on non-criminal matters; not for all legal needs"
+      ],
+      "data_shape_notes": "No strict income/asset tables or fixed benefits; eligibility based on age 60+, residency, economic/social need, and priority legal issues affecting basic needs; services tiered by case urgency with statewide helpline access but representation varies by office availability",
+      "_raw": "{\n  \"name\": \"Maine Legal Services for the Elderly\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Specific dollar amounts or tables not detailed in sources; prioritizes 'socially and economically needy' Maine residents age 60+, often at or below 200% of federal poverty guidelines based on similar programs, but determined case-by-case for legal services[2][5][6]\",\n    \"asset_limits\": \"No asset limits specified; focus is on economic need rather than strict financial cutoffs[2][6]\",\n    \"other_requirements\": [\"Maine resident\", \"Basic human needs at stake (e.g., MaineCare/Medicare issues, elder abuse, housing, public benefits)\", \"Non-criminal legal problems\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free confidential legal information, advice, and representation on issues including Medicare/MaineCare disputes, health coverage, elder abuse/protection orders, housing (eviction/foreclosure), consumer debt, public assistance benefits, guardianship, discharges, powers of attorney, health care advance directives, and Medicare Part D prescription drug assistance; attorneys in offices across the state for select representation cases[2][4][8]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Helpline 1-800-750-5353 (in-state) or 207-623-1797[2][4][5][8]\", \"Website: https://mainelse.org for information and Elder Rights Handbook[2][8]\", \"In-person: Attorneys located in offices across the state[4]\"],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific application form required; call helpline for intake[2]\"],\n    \"documents\": [\"Not explicitly listed; prepare details on legal issue, income, assets, and residency for case assessment\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to Maine residents age 60+\",\n    \"regional_variations\": \"Attorneys in offices across the state, but no specific wait time or service differences noted[4]\",\n    \"offices_or_providers\": [\"Offices across Maine (specific locations not listed in sources)[4]\"]\n  },\n  \"official_source\": \"https://mainelse.org[8]\",\n  \"gotchas\": [\"Not a general entitlement; services for when 'basic human needs are at stake' with priority triage—may get advice/referral only, not full representation[2][4]\", \"Avoid pre-printed powers of attorney forms from stores/internet as they may not be legal in Maine; consult LSE attorney instead[2]\", \"If ineligible, referrals to private attorneys at reduced fees[4]\", \"Focuses on non-criminal matters; not for all legal needs\"],\n  \"data_shape_notes\": \"No strict income/asset tables or fixed benefits; eligibility based on age 60+, residency, economic/social need, and priority legal issues affecting basic needs; services tiered by case urgency with statewide helpline access but representation varies by office availability\"\n}"
+    },
+    {
+      "name": "Legal Services for Maine Elders (LSE)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Not specified in available sources. LSE serves 'socially and/or economically needy' Maine residents age 60 and over, but exact income thresholds are not provided in search results.",
+        "asset_limits": "Not specified in available sources.",
+        "other_requirements": [
+          "Must be age 60 or older[2][7]",
+          "Must have 'basic human needs at stake'[7]",
+          "Socially and/or economically needy[6]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free legal advice and representation on: Medicare/MaineCare, health care coverage disputes, elder abuse and protection orders, housing issues (eviction, foreclosure), consumer debt, public assistance benefits, guardianship, discharges, powers of attorney, health care advance directives. Specialized Medicare Part D unit for prescription drug assistance.[2][3]",
         "varies_by": "not_applicable"
       },
       "application": {
         "methods": [
-          "Phone: Helpline 1-800-750-5353 (in-state) or 207-623-1797; Medicare Part D Unit: 1-877-774-7772",
-          "Website: www.mainelse.org",
-          "In-person: Attorneys in offices across the state for representation cases"
+          "Phone: 1-800-750-5353 (in-state) or 207-623-1797[7]",
+          "Phone: 1-877-774-7772 (Medicare Part D Unit)[3]",
+          "Website: www.mainelse.org[2][7]",
+          "In-person: Attorneys located in offices across the state[3]"
         ],
-        "processing_time": "Not specified in sources.",
-        "waitlist": "Limited resources mean not all demands can be met; referrals to private attorneys if unable to help[3][4].",
-        "forms": [],
-        "documents": "Not specified; prepare details on legal issue for helpline consultation."
+        "processing_time": "Not specified in available sources.",
+        "waitlist": "Not specified in available sources. Search results note that 'because of limited resources, none of these agencies is able to meet the demand for services'[4], suggesting potential delays.",
+        "forms": "Not specified in available sources.",
+        "documents": "Not specified in available sources."
       },
       "geography": {
         "statewide": true,
-        "restrictions": "None; available to Maine residents age 60+.",
-        "regional_variations": "Attorneys located in offices across the state; no specific differences in services, wait times, or providers by region noted[3].",
-        "offices_or_providers": [
-          "Offices across the state (specific locations not listed)"
-        ]
+        "restrictions": "None specified.",
+        "regional_variations": "LSE has 'attorneys located in offices across the state'[3] in partnership with five Area Agencies on Aging[2], but specific regional variations in services or wait times are not detailed in available sources.",
+        "offices_or_providers": "Offices across Maine in partnership with five Area Agencies on Aging[2], but specific office locations are not listed in search results."
       },
-      "official_source": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/legal-assistance and https://mainelse.org[2][7]",
+      "official_source": "https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/legal-assistance",
       "gotchas": [
-        "Limited resources; may not take all cases and provide referrals instead[3][4]",
-        "Helpline hours: 9am-12pm and 1pm-4pm[3]",
-        "Focus on non-criminal matters; separate Medicare Part D unit with different phone[2][3]",
-        "Partnership with Area Agencies on Aging, but contact LSE directly[2]"
+        "Income and asset limits are not publicly specified in available sources—families must call to determine eligibility[2][3]",
+        "Limited resources mean the agency cannot meet all demand for services[4]",
+        "LSE provides legal advice and representation 'in some situations'[3]—not all cases qualify for full representation",
+        "If LSE cannot help, they offer referrals to private attorneys, potentially at reduced fees[3]",
+        "Hours of operation are limited: 9am-12pm and 1pm-4pm[3]",
+        "Medicare Part D assistance has a separate phone line (1-877-774-7772) with the same limited hours[3]",
+        "This is a legal services program, not a financial assistance program—it provides advice and representation, not direct payment for services"
       ],
-      "data_shape_notes": "No fixed income/asset tables or strict financial tests detailed; eligibility emphasizes 'socially/economically needy' age 60+ Maine residents; statewide with offices but resource-limited; helpline primary access with potential representation.",
-      "_raw": "{\n  \"name\": \"Legal Services for Maine Elders (LSE)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No specific dollar amounts or tables provided in sources; eligibility based on being 'socially and/or economically needy' for persons age 60 and over. Other legal aid programs reference up to 200% of federal poverty guidelines, but not explicitly confirmed for LSE[2][4].\",\n    \"asset_limits\": \"No asset limits or details on what counts/exempts mentioned in sources.\",\n    \"other_requirements\": [\"Maine resident\", \"Age 60 and over\", \"Basic human needs at stake (e.g., health care, housing, abuse)\", \"Non-criminal legal problems\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free legal advice, information, and in some cases representation on: health care, health insurance, Medicare (including Part D), MaineCare (Medicaid), Social Security/public benefits, pension/retirement benefits, powers of attorney, consumer matters (creditor/debt/bankruptcy), physical/financial abuse, guardianship defense, housing (eviction/foreclosure), elder abuse/protection orders, discharges, health care advance directives. Medicare Part D Unit for prescription drug issues[2][3][7].\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Helpline 1-800-750-5353 (in-state) or 207-623-1797; Medicare Part D Unit: 1-877-774-7772\", \"Website: www.mainelse.org\", \"In-person: Attorneys in offices across the state for representation cases\"],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Limited resources mean not all demands can be met; referrals to private attorneys if unable to help[3][4].\",\n    \"forms\": [],\n    \"documents\": \"Not specified; prepare details on legal issue for helpline consultation.\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to Maine residents age 60+.\",\n    \"regional_variations\": \"Attorneys located in offices across the state; no specific differences in services, wait times, or providers by region noted[3].\",\n    \"offices_or_providers\": [\"Offices across the state (specific locations not listed)\"]\n  },\n  \"official_source\": \"https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/legal-assistance and https://mainelse.org[2][7]\",\n  \"gotchas\": [\"Limited resources; may not take all cases and provide referrals instead[3][4]\", \"Helpline hours: 9am-12pm and 1pm-4pm[3]\", \"Focus on non-criminal matters; separate Medicare Part D unit with different phone[2][3]\", \"Partnership with Area Agencies on Aging, but contact LSE directly[2]\"],\n  \"data_shape_notes\": \"No fixed income/asset tables or strict financial tests detailed; eligibility emphasizes 'socially/economically needy' age 60+ Maine residents; statewide with offices but resource-limited; helpline primary access with potential representation.\"\n}"
+      "data_shape_notes": "LSE's eligibility criteria emphasize 'socially and/or economically needy' status rather than specific income/asset thresholds, requiring direct contact for determination. The program is statewide with regional offices but specific locations and regional service variations are not documented in available sources. Benefits are service-based (legal advice and representation) rather than financial. The program has documented resource constraints affecting availability.",
+      "_raw": "```json\n{\n  \"name\": \"Legal Services for Maine Elders (LSE)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Not specified in available sources. LSE serves 'socially and/or economically needy' Maine residents age 60 and over, but exact income thresholds are not provided in search results.\",\n    \"asset_limits\": \"Not specified in available sources.\",\n    \"other_requirements\": [\n      \"Must be age 60 or older[2][7]\",\n      \"Must have 'basic human needs at stake'[7]\",\n      \"Socially and/or economically needy[6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free legal advice and representation on: Medicare/MaineCare, health care coverage disputes, elder abuse and protection orders, housing issues (eviction, foreclosure), consumer debt, public assistance benefits, guardianship, discharges, powers of attorney, health care advance directives. Specialized Medicare Part D unit for prescription drug assistance.[2][3]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 1-800-750-5353 (in-state) or 207-623-1797[7]\",\n      \"Phone: 1-877-774-7772 (Medicare Part D Unit)[3]\",\n      \"Website: www.mainelse.org[2][7]\",\n      \"In-person: Attorneys located in offices across the state[3]\"\n    ],\n    \"processing_time\": \"Not specified in available sources.\",\n    \"waitlist\": \"Not specified in available sources. Search results note that 'because of limited resources, none of these agencies is able to meet the demand for services'[4], suggesting potential delays.\",\n    \"forms\": \"Not specified in available sources.\",\n    \"documents\": \"Not specified in available sources.\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None specified.\",\n    \"regional_variations\": \"LSE has 'attorneys located in offices across the state'[3] in partnership with five Area Agencies on Aging[2], but specific regional variations in services or wait times are not detailed in available sources.\",\n    \"offices_or_providers\": \"Offices across Maine in partnership with five Area Agencies on Aging[2], but specific office locations are not listed in search results.\"\n  },\n  \"official_source\": \"https://www.maine.gov/dhhs/oads/get-support/older-adults-disabilities/older-adult-services/legal-assistance\",\n  \"gotchas\": [\n    \"Income and asset limits are not publicly specified in available sources—families must call to determine eligibility[2][3]\",\n    \"Limited resources mean the agency cannot meet all demand for services[4]\",\n    \"LSE provides legal advice and representation 'in some situations'[3]—not all cases qualify for full representation\",\n    \"If LSE cannot help, they offer referrals to private attorneys, potentially at reduced fees[3]\",\n    \"Hours of operation are limited: 9am-12pm and 1pm-4pm[3]\",\n    \"Medicare Part D assistance has a separate phone line (1-877-774-7772) with the same limited hours[3]\",\n    \"This is a legal services program, not a financial assistance program—it provides advice and representation, not direct payment for services\"\n  ],\n  \"data_shape_notes\": \"LSE's eligibility criteria emphasize 'socially and/or economically needy' status rather than specific income/asset thresholds, requiring direct contact for determination. The program is statewide with regional offices but specific locations and regional service variations are not documented in available sources. Benefits are service-based (legal advice and representation) rather than financial. The program has documented resource constraints affecting availability.\"\n}\n```\n\n## Important Limitations\n\nThe search results provide **incomplete information** for several critical fields. Here's what families should know:\n\n**Missing Specifics:**\n- **Exact income limits** are not published in available sources[2][3]. Eligibility determination requires calling 1-800-750-5353[7].\n- **Asset limits** are not specified.\n- **Processing times and waitlist information** are not documented, though one source notes that legal aid agencies generally cannot meet demand due to limited resources[4].\n- **Required documents** for application are not listed.\n- **Specific office locations** across Maine are not provided; families must contact the helpline for their regional office.\n\n**What is Clear:**\n- **Age requirement:** 60 or older[2][7]\n- **Service areas:** Medicare, MaineCare (Medicaid), health care disputes, elder abuse, housing, consumer debt, guardianship, powers of attorney, and health care directives[2][3]\n- **Contact methods:** Phone (1-800-750-5353 or 207-623-1797), website (www.mainelse.org), or in-person at regional offices[7]\n- **Hours:** 9am-12pm and 1pm-4pm[3]\n\n**Recommendation:** Families should call the helpline directly to confirm eligibility, discuss their specific situation, and learn about current wait times in their region."
     }
   ]
 }

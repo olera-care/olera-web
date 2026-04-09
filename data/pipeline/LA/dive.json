@@ -1,771 +1,169 @@
 {
   "state": "LA",
   "stateName": "Louisiana",
-  "diveAt": "2026-04-09T08:53:10.260Z",
-  "total": 15,
-  "parsed": 14,
+  "diveAt": "2026-04-09T09:34:24.582Z",
+  "total": 3,
+  "parsed": 3,
   "programs": [
-    {
-      "name": "Louisiana Medicaid Home and Community-Based Services (HCBS) Waivers",
-      "eligibility": {
-        "age": 21,
-        "income_limits": "Must meet Louisiana Long-Term Care (LTC) Medicaid financial eligibility, which follows SSI-related income limits (typically around $943/month for an individual in 2023, subject to annual updates; exact current amounts require checking LDH Medicaid eligibility charts as they vary by household size and are not specified in fixed tables here). Couples use shared limits per Medicaid policy[1][2][4].",
-        "asset_limits": "Countable assets limited to SSI resource limit ($2,000 for individual, $3,000 for couple). Countable: cash, bank accounts, investments, secondary property. Exempt: primary home, household furnishings, appliances, personal effects, one vehicle. 60-month Look-Back Rule applies; transfers below fair market value result in penalty period[1][2].",
-        "other_requirements": [
-          "Louisiana resident",
-          "Meet Nursing Facility Level of Care (NFLOC): inability to perform Activities of Daily Living (ADLs) independently, unstable medical conditions, need for therapies, or cognitive impairments (e.g., dementia-related); diagnosis alone insufficient[1][4]",
-          "At risk of nursing home placement",
-          "Priority groups get first access: 1) Abuse/neglect referrals, 2) ALS diagnosis, 3) Permanent Supportive Housing residents, 4) Nursing home residents (Medicaid sole payer), 5) Expedited needs with 32 hours LT-PCS approval, 6) Not receiving PACE, LT-PCS, or other HCBS waivers[1][4]"
-        ]
-      },
-      "benefits": {
-        "type": "service",
-        "value": "Adult day health care, caregiver temporary support (respite), support coordination, financial management, personal care attendant, monitored in-home care, and other HCBS like adult day care, family support, substitute family care, supervised independent living, supported employment. Specific hours/dollars not fixed; based on assessed needs and NFLOC[1][7][8].",
-        "varies_by": "priority_tier"
-      },
-      "application": {
-        "methods": [
-          "Contact Louisiana Department of Health (LDH) Office of Aging and Adult Services for CCW: visit https://ldh.la.gov/office-of-aging-and-adult-services/community-choices-waiver-ccw[4]",
-          "Call local Medicaid office or Healthy Louisiana helpline (1-855-618-2229 inferred from general Medicaid contacts; confirm via LDH)",
-          "Physician completes medical evaluation report; apply via Medicaid eligibility worker, support coordinator[2][4]",
-          "In-person at regional offices or nursing homes for priority referrals[1][4]"
-        ],
-        "processing_time": "Not specified; medical certification via Level I/II assessment, eligibility from later of financial date or OBH/OCDD approval[2].",
-        "waitlist": "Yes, limited slots; priority groups offered opportunities first, others waitlisted[1][2][4].",
-        "forms": [
-          "BHSF Form 142 (for Level II assessment)",
-          "Physician's medical report/evaluation",
-          "OCDD Statement of Approval (for related waivers like Supports)[2][3]"
-        ],
-        "documents": [
-          "Proof of income/assets (bank statements, pay stubs)",
-          "Medical records, physician evaluation for NFLOC",
-          "ID/residency proof",
-          "Financial documents for Medicaid LTC eligibility[1][2][5]"
-        ]
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "Statewide but slots limited geographically; some waivers may have service area limits[2].",
-        "regional_variations": "Processing via regional OBH/OCDD offices; wait times/providers may vary by region (e.g., different support coordinators)[2].",
-        "offices_or_providers": [
-          "Office of Aging and Adult Services (CCW): https://ldh.la.gov/office-of-aging-and-adult-services[4]",
-          "Local Medicaid field offices",
-          "Licensed HCBS providers statewide[7]"
-        ]
-      },
-      "official_source": "https://ldh.la.gov/office-of-aging-and-adult-services/community-choices-waiver-ccw",
-      "gotchas": [
-        "Multiple HCBS waivers exist (e.g., CCW for elderly/disabled 21+, Supports for developmental disabilities 18+); CCW is primary for elderly but excludes those in other programs like PACE or LT-PCS[1][3][4]",
-        "Must meet NFLOC, not just diagnosis; dementia alone insufficient[1]",
-        "Priority tiers mean non-priority face long waitlists[4]",
-        "60-month Look-Back penalizes asset transfers[1]",
-        "Limited enrollment; not guaranteed even if eligible[2]"
-      ],
-      "data_shape_notes": "Multiple waivers under HCBS umbrella (e.g., CCW primary for elderly NFLOC); priority-based access with waitlists; financials tie to LTC Medicaid/SSI limits; services via licensed providers, varies by assessed needs and region",
-      "_raw": "{\n  \"name\": \"Louisiana Medicaid Home and Community-Based Services (HCBS) Waivers\",\n  \"eligibility\": {\n    \"age\": 21,\n    \"income_limits\": \"Must meet Louisiana Long-Term Care (LTC) Medicaid financial eligibility, which follows SSI-related income limits (typically around $943/month for an individual in 2023, subject to annual updates; exact current amounts require checking LDH Medicaid eligibility charts as they vary by household size and are not specified in fixed tables here). Couples use shared limits per Medicaid policy[1][2][4].\",\n    \"asset_limits\": \"Countable assets limited to SSI resource limit ($2,000 for individual, $3,000 for couple). Countable: cash, bank accounts, investments, secondary property. Exempt: primary home, household furnishings, appliances, personal effects, one vehicle. 60-month Look-Back Rule applies; transfers below fair market value result in penalty period[1][2].\",\n    \"other_requirements\": [\n      \"Louisiana resident\",\n      \"Meet Nursing Facility Level of Care (NFLOC): inability to perform Activities of Daily Living (ADLs) independently, unstable medical conditions, need for therapies, or cognitive impairments (e.g., dementia-related); diagnosis alone insufficient[1][4]\",\n      \"At risk of nursing home placement\",\n      \"Priority groups get first access: 1) Abuse/neglect referrals, 2) ALS diagnosis, 3) Permanent Supportive Housing residents, 4) Nursing home residents (Medicaid sole payer), 5) Expedited needs with 32 hours LT-PCS approval, 6) Not receiving PACE, LT-PCS, or other HCBS waivers[1][4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Adult day health care, caregiver temporary support (respite), support coordination, financial management, personal care attendant, monitored in-home care, and other HCBS like adult day care, family support, substitute family care, supervised independent living, supported employment. Specific hours/dollars not fixed; based on assessed needs and NFLOC[1][7][8].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact Louisiana Department of Health (LDH) Office of Aging and Adult Services for CCW: visit https://ldh.la.gov/office-of-aging-and-adult-services/community-choices-waiver-ccw[4]\",\n      \"Call local Medicaid office or Healthy Louisiana helpline (1-855-618-2229 inferred from general Medicaid contacts; confirm via LDH)\",\n      \"Physician completes medical evaluation report; apply via Medicaid eligibility worker, support coordinator[2][4]\",\n      \"In-person at regional offices or nursing homes for priority referrals[1][4]\"\n    ],\n    \"processing_time\": \"Not specified; medical certification via Level I/II assessment, eligibility from later of financial date or OBH/OCDD approval[2].\",\n    \"waitlist\": \"Yes, limited slots; priority groups offered opportunities first, others waitlisted[1][2][4].\",\n    \"forms\": [\n      \"BHSF Form 142 (for Level II assessment)\",\n      \"Physician's medical report/evaluation\",\n      \"OCDD Statement of Approval (for related waivers like Supports)[2][3]\"\n    ],\n    \"documents\": [\n      \"Proof of income/assets (bank statements, pay stubs)\",\n      \"Medical records, physician evaluation for NFLOC\",\n      \"ID/residency proof\",\n      \"Financial documents for Medicaid LTC eligibility[1][2][5]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Statewide but slots limited geographically; some waivers may have service area limits[2].\",\n    \"regional_variations\": \"Processing via regional OBH/OCDD offices; wait times/providers may vary by region (e.g., different support coordinators)[2].\",\n    \"offices_or_providers\": [\n      \"Office of Aging and Adult Services (CCW): https://ldh.la.gov/office-of-aging-and-adult-services[4]\",\n      \"Local Medicaid field offices\",\n      \"Licensed HCBS providers statewide[7]\"\n    ]\n  },\n  \"official_source\": \"https://ldh.la.gov/office-of-aging-and-adult-services/community-choices-waiver-ccw\",\n  \"gotchas\": [\n    \"Multiple HCBS waivers exist (e.g., CCW for elderly/disabled 21+, Supports for developmental disabilities 18+); CCW is primary for elderly but excludes those in other programs like PACE or LT-PCS[1][3][4]\",\n    \"Must meet NFLOC, not just diagnosis; dementia alone insufficient[1]\",\n    \"Priority tiers mean non-priority face long waitlists[4]\",\n    \"60-month Look-Back penalizes asset transfers[1]\",\n    \"Limited enrollment; not guaranteed even if eligible[2]\"\n  ],\n  \"data_shape_notes\": \"Multiple waivers under HCBS umbrella (e.g., CCW primary for elderly NFLOC); priority-based access with waitlists; financials tie to LTC Medicaid/SSI limits; services via licensed providers, varies by assessed needs and region\"\n}"
-    },
-    {
-      "name": "Louisiana Program of All-Inclusive Care for the Elderly (PACE)",
-      "eligibility": {
-        "age": 55,
-        "income_limits": "Medicaid financial eligibility required: Individual income no more than $2,163 per month; married couples (both receiving services) no more than $4,326 per month. General Medicaid long-term care threshold is 300% of Federal Benefit Rate ($2,901/month in 2025). Limits may vary; pathways exist to qualify via spend-down[1][3][5].",
-        "asset_limits": "Individual: less than $2,000 in resources; married couples (both receiving services): less than $3,000. Primary home typically excluded[3][5].",
-        "other_requirements": [
-          "Live in a PACE provider service area (specific zip codes in Greater New Orleans, Baton Rouge/East-West Baton Rouge, Lafayette, Alexandria/Rapides/Avoyelles)[1][2][6]",
-          "Nursing Facility Level of Care (NFLOC) certified via LOCET screening and iHC assessment[1]",
-          "Able to live safely in community with PACE services (no 24/7 skilled care need, ability to call for help, non-condemned residence)[1]",
-          "Not enrolled in Medicare Advantage, hospice, or certain other programs[4]"
-        ]
-      },
-      "benefits": {
-        "type": "service",
-        "value": "Comprehensive, individualized services including primary care, hospital/inpatient, emergency, short-term respite, home care (personal care, homemaker, nursing), therapies (OT/PT/ST), social services, adult day health, meals, transportation, prescription drugs, dental, vision, assistive devices; all Medicare/Medicaid-covered plus additional as needed per plan of care, at no extra cost beyond premiums/cost-sharing[1][2][4][5].",
-        "varies_by": "region"
-      },
-      "application": {
-        "methods": [
-          "Phone: Baton Rouge – 225-490-0604; Greater New Orleans – 504-945-1531; Alexandria – 337-470-4500; Lafayette – 318-206-1020[2]",
-          "Contact local PACE provider for assessment; no specific online URL or form named in sources[1][2]"
-        ],
-        "processing_time": "Not specified; involves LOCET screening, iHC assessment, and plan of care development[1]",
-        "waitlist": "Not mentioned; potential regional variation[2]",
-        "forms": [
-          "LOCET (Level of Care Evaluation Tool), iHC assessment, Level I PASRR (Preadmission Screening and Resident Review) if needed[1]"
-        ],
-        "documents": [
-          "Proof of age, residency in service area, income/assets for Medicaid, medical history; physician documentation if applicable[1][3]"
-        ]
-      },
-      "geography": {
-        "statewide": false,
-        "restrictions": "Limited to select zip codes/service areas: Greater New Orleans (select zips), Baton Rouge (East/West Baton Rouge), Lafayette (select zips), Alexandria (Rapides/Avoyelles)[1][2][6]",
-        "regional_variations": "Different providers and offices by region (e.g., New Orleans, Baton Rouge, Lafayette, Alexandria); service areas per OAAS-RC-09-006 fact sheet; potential wait time differences[1][2]",
-        "offices_or_providers": [
-          "Baton Rouge, Greater New Orleans, Alexandria, Lafayette[2]"
-        ]
-      },
-      "official_source": "https://ldh.la.gov/assets/docs/OAAS/Manuals/PACE-Manual.pdf",
-      "gotchas": [
-        "Not statewide—must live in specific service areas/zips; check exact coverage[1][2]",
-        "Medicaid eligibility required (financial criteria apply, though spend-down possible); ~90% dual Medicare/Medicaid[3][4][5]",
-        "NFLOC confirmed only after full iHC assessment, not just initial screening[1]",
-        "Must be able to live safely in community at enrollment; no 24/7 care needs[1]",
-        "Voluntary enrollment; can disenroll but process involves assessments[1][4]"
-      ],
-      "data_shape_notes": "Limited to 4 regional providers/service areas; Medicaid financial test with specific LA income/asset caps; NFLOC via multi-step assessment (LOCET + iHC); benefits per individualized plan, not fixed hours/dollars",
-      "_raw": "{\n  \"name\": \"Louisiana Program of All-Inclusive Care for the Elderly (PACE)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Medicaid financial eligibility required: Individual income no more than $2,163 per month; married couples (both receiving services) no more than $4,326 per month. General Medicaid long-term care threshold is 300% of Federal Benefit Rate ($2,901/month in 2025). Limits may vary; pathways exist to qualify via spend-down[1][3][5].\",\n    \"asset_limits\": \"Individual: less than $2,000 in resources; married couples (both receiving services): less than $3,000. Primary home typically excluded[3][5].\",\n    \"other_requirements\": [\n      \"Live in a PACE provider service area (specific zip codes in Greater New Orleans, Baton Rouge/East-West Baton Rouge, Lafayette, Alexandria/Rapides/Avoyelles)[1][2][6]\",\n      \"Nursing Facility Level of Care (NFLOC) certified via LOCET screening and iHC assessment[1]\",\n      \"Able to live safely in community with PACE services (no 24/7 skilled care need, ability to call for help, non-condemned residence)[1]\",\n      \"Not enrolled in Medicare Advantage, hospice, or certain other programs[4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive, individualized services including primary care, hospital/inpatient, emergency, short-term respite, home care (personal care, homemaker, nursing), therapies (OT/PT/ST), social services, adult day health, meals, transportation, prescription drugs, dental, vision, assistive devices; all Medicare/Medicaid-covered plus additional as needed per plan of care, at no extra cost beyond premiums/cost-sharing[1][2][4][5].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Baton Rouge – 225-490-0604; Greater New Orleans – 504-945-1531; Alexandria – 337-470-4500; Lafayette – 318-206-1020[2]\",\n      \"Contact local PACE provider for assessment; no specific online URL or form named in sources[1][2]\"\n    ],\n    \"processing_time\": \"Not specified; involves LOCET screening, iHC assessment, and plan of care development[1]\",\n    \"waitlist\": \"Not mentioned; potential regional variation[2]\",\n    \"forms\": [\"LOCET (Level of Care Evaluation Tool), iHC assessment, Level I PASRR (Preadmission Screening and Resident Review) if needed[1]\"],\n    \"documents\": [\"Proof of age, residency in service area, income/assets for Medicaid, medical history; physician documentation if applicable[1][3]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to select zip codes/service areas: Greater New Orleans (select zips), Baton Rouge (East/West Baton Rouge), Lafayette (select zips), Alexandria (Rapides/Avoyelles)[1][2][6]\",\n    \"regional_variations\": \"Different providers and offices by region (e.g., New Orleans, Baton Rouge, Lafayette, Alexandria); service areas per OAAS-RC-09-006 fact sheet; potential wait time differences[1][2]\",\n    \"offices_or_providers\": [\"Baton Rouge, Greater New Orleans, Alexandria, Lafayette[2]\"]\n  },\n  \"official_source\": \"https://ldh.la.gov/assets/docs/OAAS/Manuals/PACE-Manual.pdf\",\n  \"gotchas\": [\n    \"Not statewide—must live in specific service areas/zips; check exact coverage[1][2]\",\n    \"Medicaid eligibility required (financial criteria apply, though spend-down possible); ~90% dual Medicare/Medicaid[3][4][5]\",\n    \"NFLOC confirmed only after full iHC assessment, not just initial screening[1]\",\n    \"Must be able to live safely in community at enrollment; no 24/7 care needs[1]\",\n    \"Voluntary enrollment; can disenroll but process involves assessments[1][4]\"\n  ],\n  \"data_shape_notes\": \"Limited to 4 regional providers/service areas; Medicaid financial test with specific LA income/asset caps; NFLOC via multi-step assessment (LOCET + iHC); benefits per individualized plan, not fixed hours/dollars\"\n}"
-    },
-    {
-      "name": "SNAP (Supplemental Nutrition Assistance Program)",
-      "eligibility": {
-        "age": "No minimum age requirement for household members, but special rules apply to households with members 60 or older[1][7]",
-        "income_limits": {
-          "standard_households": "Gross income must not exceed 130% of Federal Poverty Level (approximately $3,250/month for household of four as of 2025)[5]",
-          "bbce_households": "Broad-Based Categorically Eligible (BBCE) households: gross income up to 200% FPL[7]",
-          "elderly_or_disabled_households": "Only must meet net income limit of 100% FPL; no gross income limit[1][7]. Specific monthly gross income limits for elderly/disabled households: 1 person $2,608/month, 2 people $3,526/month, 3 people $4,442/month, 4 people $5,358/month, 5 people $6,276/month, 6 people $7,192/month, 7 people $8,108/month, each additional person +$916/month[1]",
-          "note": "Louisiana has expanded eligibility beyond federal requirements[1]"
-        },
-        "asset_limits": {
-          "louisiana_standard": "No asset limit in Louisiana for most households[1]",
-          "federal_alternative": "Households with member 60+ or disabled who exceed gross income limit can qualify under federal rules with $4,500 asset limit[1]",
-          "what_counts": "Countable resources like funds in bank accounts[1]",
-          "what_is_exempt": "Home and vehicles are not counted as resources[1]"
-        },
-        "other_requirements": [
-          "Must be a resident of Louisiana[7]",
-          "Must be a U.S. citizen or lawfully present non-citizen[7]",
-          "Must have a Social Security number or proof of application for one[7]",
-          "Able-bodied adults aged 18-49 without dependents must work or participate in training for at least 20 hours per week, or limited to 3 months of benefits in 36-month period (work requirements apply statewide as of October 1, 2024)[5]",
-          "For Elderly Simplified Application Project (ESAP): must be 60+ or disabled AND have no earned income[6]"
-        ]
-      },
-      "benefits": {
-        "type": "financial",
-        "value": "Monthly SNAP benefits that help eligible low-income households buy food[9]. Specific benefit amounts vary by household size and income. Example: 2-person elderly/disabled household with $1,200 gross income receives $415/month SNAP allotment[8]. Beginning October 1, 2025, more than 400,000 Louisiana households received a modest increase in monthly SNAP benefits due to annual cost-of-living adjustment[5]",
-        "varies_by": "household_size"
-      },
-      "application": {
-        "methods": [
-          "Online application (specific URL not provided in search results; contact Louisiana Department of Children & Family Services)",
-          "Phone: Contact your parish Council on Aging for assistance[4]",
-          "In-person: Parish Council on Aging offices[4]",
-          "Mail: (specific address not provided in search results)"
-        ],
-        "processing_time": "Not specified in search results",
-        "waitlist": "Not mentioned in search results",
-        "forms": [
-          "Standard SNAP application form (specific form number not provided)",
-          "ESAP application (for Elderly Simplified Application Project, if eligible)"
-        ],
-        "documents": [
-          "Proof of residency in Louisiana",
-          "Social Security number or proof of application",
-          "Proof of citizenship or lawful presence",
-          "Income documentation (Social Security statements, pension statements, disability payment documentation)",
-          "Medical cost documentation (if applicable, for net income calculation)"
-        ]
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "Must be a Louisiana resident[7]",
-        "regional_variations": "Application assistance available through parish Councils on Aging[4]; no other regional variations mentioned in search results",
-        "offices_or_providers": [
-          "Louisiana Department of Children & Family Services (DCFS)",
-          "Parish Councils on Aging (for application assistance and SFMNP)"
-        ]
-      },
-      "official_source": "https://dcfs.louisiana.gov/page/524 and https://ldh.la.gov/page/esap",
-      "gotchas": [
-        "Louisiana has expanded eligibility beyond federal requirements — income limits are higher than standard federal SNAP[1]",
-        "Households with elderly (60+) or disabled members have dramatically different eligibility rules: they only need to meet net income limits, not gross income limits, making qualification much easier[1][7]",
-        "For ESAP (Elderly Simplified Application Project): eligible seniors are certified for up to 36 months instead of typical shorter periods, and recertification interviews are waived — but this only applies to households with ONLY elderly members and NO earned income[2][6]",
-        "Seniors must reapply every year for Senior Farmers Market Nutrition Program (SFMNP) — they do not automatically renew[4]",
-        "Work requirements apply to able-bodied adults 18-49 without dependents statewide as of October 1, 2024; failure to meet work requirements limits benefits to 3 months in a 36-month period[5]",
-        "Income counts include Social Security, veterans' benefits, and disability payments — not just wages[3]",
-        "The household must include everyone who lives with you AND buys and prepares food with you for SNAP purposes[3]",
-        "Asset limits vary depending on which eligibility pathway is used: no limit under Louisiana rules, but $4,500 under federal alternative rules for elderly/disabled[1]"
-      ],
-      "data_shape_notes": "SNAP in Louisiana has a bifurcated eligibility structure: standard households follow federal 130% FPL gross income rules, but households with elderly (60+) or disabled members follow different rules (net income only, no gross income limit). This creates two distinct pathways to qualification. Additionally, Louisiana offers ESAP, a simplified application process specifically for elderly households with no earned income, which extends certification to 36 months and waives recertification interviews. Benefits scale by household size and income. The program is statewide but application assistance is distributed through parish Councils on Aging.",
-      "_raw": "```json\n{\n  \"name\": \"SNAP (Supplemental Nutrition Assistance Program)\",\n  \"eligibility\": {\n    \"age\": \"No minimum age requirement for household members, but special rules apply to households with members 60 or older[1][7]\",\n    \"income_limits\": {\n      \"standard_households\": \"Gross income must not exceed 130% of Federal Poverty Level (approximately $3,250/month for household of four as of 2025)[5]\",\n      \"bbce_households\": \"Broad-Based Categorically Eligible (BBCE) households: gross income up to 200% FPL[7]\",\n      \"elderly_or_disabled_households\": \"Only must meet net income limit of 100% FPL; no gross income limit[1][7]. Specific monthly gross income limits for elderly/disabled households: 1 person $2,608/month, 2 people $3,526/month, 3 people $4,442/month, 4 people $5,358/month, 5 people $6,276/month, 6 people $7,192/month, 7 people $8,108/month, each additional person +$916/month[1]\",\n      \"note\": \"Louisiana has expanded eligibility beyond federal requirements[1]\"\n    },\n    \"asset_limits\": {\n      \"louisiana_standard\": \"No asset limit in Louisiana for most households[1]\",\n      \"federal_alternative\": \"Households with member 60+ or disabled who exceed gross income limit can qualify under federal rules with $4,500 asset limit[1]\",\n      \"what_counts\": \"Countable resources like funds in bank accounts[1]\",\n      \"what_is_exempt\": \"Home and vehicles are not counted as resources[1]\"\n    },\n    \"other_requirements\": [\n      \"Must be a resident of Louisiana[7]\",\n      \"Must be a U.S. citizen or lawfully present non-citizen[7]\",\n      \"Must have a Social Security number or proof of application for one[7]\",\n      \"Able-bodied adults aged 18-49 without dependents must work or participate in training for at least 20 hours per week, or limited to 3 months of benefits in 36-month period (work requirements apply statewide as of October 1, 2024)[5]\",\n      \"For Elderly Simplified Application Project (ESAP): must be 60+ or disabled AND have no earned income[6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly SNAP benefits that help eligible low-income households buy food[9]. Specific benefit amounts vary by household size and income. Example: 2-person elderly/disabled household with $1,200 gross income receives $415/month SNAP allotment[8]. Beginning October 1, 2025, more than 400,000 Louisiana households received a modest increase in monthly SNAP benefits due to annual cost-of-living adjustment[5]\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online application (specific URL not provided in search results; contact Louisiana Department of Children & Family Services)\",\n      \"Phone: Contact your parish Council on Aging for assistance[4]\",\n      \"In-person: Parish Council on Aging offices[4]\",\n      \"Mail: (specific address not provided in search results)\"\n    ],\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": \"Not mentioned in search results\",\n    \"forms\": [\n      \"Standard SNAP application form (specific form number not provided)\",\n      \"ESAP application (for Elderly Simplified Application Project, if eligible)\"\n    ],\n    \"documents\": [\n      \"Proof of residency in Louisiana\",\n      \"Social Security number or proof of application\",\n      \"Proof of citizenship or lawful presence\",\n      \"Income documentation (Social Security statements, pension statements, disability payment documentation)\",\n      \"Medical cost documentation (if applicable, for net income calculation)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must be a Louisiana resident[7]\",\n    \"regional_variations\": \"Application assistance available through parish Councils on Aging[4]; no other regional variations mentioned in search results\",\n    \"offices_or_providers\": [\n      \"Louisiana Department of Children & Family Services (DCFS)\",\n      \"Parish Councils on Aging (for application assistance and SFMNP)\"\n    ]\n  },\n  \"official_source\": \"https://dcfs.louisiana.gov/page/524 and https://ldh.la.gov/page/esap\",\n  \"gotchas\": [\n    \"Louisiana has expanded eligibility beyond federal requirements — income limits are higher than standard federal SNAP[1]\",\n    \"Households with elderly (60+) or disabled members have dramatically different eligibility rules: they only need to meet net income limits, not gross income limits, making qualification much easier[1][7]\",\n    \"For ESAP (Elderly Simplified Application Project): eligible seniors are certified for up to 36 months instead of typical shorter periods, and recertification interviews are waived — but this only applies to households with ONLY elderly members and NO earned income[2][6]\",\n    \"Seniors must reapply every year for Senior Farmers Market Nutrition Program (SFMNP) — they do not automatically renew[4]\",\n    \"Work requirements apply to able-bodied adults 18-49 without dependents statewide as of October 1, 2024; failure to meet work requirements limits benefits to 3 months in a 36-month period[5]\",\n    \"Income counts include Social Security, veterans' benefits, and disability payments — not just wages[3]\",\n    \"The household must include everyone who lives with you AND buys and prepares food with you for SNAP purposes[3]\",\n    \"Asset limits vary depending on which eligibility pathway is used: no limit under Louisiana rules, but $4,500 under federal alternative rules for elderly/disabled[1]\"\n  ],\n  \"data_shape_notes\": \"SNAP in Louisiana has a bifurcated eligibility structure: standard households follow federal 130% FPL gross income rules, but households with elderly (60+) or disabled members follow different rules (net income only, no gross income limit). This creates two distinct pathways to qualification. Additionally, Louisiana offers ESAP, a simplified application process specifically for elderly households with no earned income, which extends certification to 36 months and waives recertification interviews. Benefits scale by household size and income. The program is statewide but application assistance is distributed through parish Councils on Aging.\"\n}\n```\n\n## Key Takeaways for Families\n\n**The biggest advantage for elderly applicants:** If your loved one is 60 or older, they may qualify for SNAP even if their income seems too high under standard rules. Louisiana only requires elderly households to meet a *net income* limit (100% FPL), not a gross income limit[1][7]. This is a major difference from standard SNAP rules.\n\n**ESAP is a game-changer for eligible seniors:** If your elderly loved one has no earned income (only Social Security, pensions, or disability), they may qualify for the Elderly Simplified Application Project (ESAP). This means they get certified for up to 3 years instead of shorter periods, and they don't have to do recertification interviews — a huge barrier for many seniors[2][6].\n\n**Louisiana is more generous than federal baseline:** The state has expanded eligibility beyond federal requirements, so income limits are higher than you'd find in other states[1].\n\n**What's missing from these search results:** Specific phone numbers, website URLs for online applications, exact processing timelines, and regional office locations are not detailed in the available sources. Families should contact the Louisiana Department of Children & Family Services directly or their local parish Council on Aging for application specifics."
-    },
-    {
-      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
-      "eligibility": {
-        "age": null,
-        "income_limits": "Household gross monthly income must be at or below 60% of Louisiana's estimated state median income. Income limits by household size: 1 person: $2,551/month | 2 people: $3,336/month | 3 people: $4,121/month | 4 people: $4,906/month | 5 people: $5,691/month | 6 people: $6,477/month | 7+ people: add $110 per additional member over 6[2][3]. Note: Some parishes provide annual income limits in addition to monthly limits (e.g., Jefferson Parish lists annual limits ranging from $30,612 for 1 person to $68,851 for 6 people)[3].",
-        "asset_limits": "Not specified in available search results. Contact your local parish agency for asset limit information.",
-        "other_requirements": [
-          "Applicant must be responsible for the household energy bill[4][5]",
-          "Applicant must have an active heating/cooling utility account[4][5]",
-          "Applicant may only receive one LIHEAP benefit each season[4][5]",
-          "Households must contain at least one individual who is: 0 to 5 years old, disabled, or 60 years or older (priority targeting, though not explicitly stated as absolute requirement)[3]",
-          "Must be a Louisiana resident; some programs require residency in specific parishes (e.g., Jefferson Parish residents for that office)[3]"
-        ]
-      },
-      "benefits": {
-        "type": "financial",
-        "value": "Regular LIHEAP: $200–$800 per season (heating or cooling). Crisis LIHEAP: up to $1,000 for emergency situations (broken furnace, utility shutoff notice, running out of fuel)[2]. Benefits are one-time payments made directly to utility companies[2].",
-        "varies_by": "household_size and fuel_type_and_season"
-      },
-      "application": {
-        "methods": [
-          "Online portal: Available April 1–April 12, 2026 for cooling season (specific dates vary by year)[5]",
-          "In-person at local parish agencies: April 13–September 30, 2026 (normal local intake procedures)[5]",
-          "Phone: Contact your local parish Community Center or agency (appointments first-come, first-serve)[3]",
-          "Mail: Mail applications to your local parish LIHEAP office (specific addresses vary by parish)"
-        ],
-        "processing_time": "Applications completed through online portal processed for payment between May 1–July 15, 2026. Local agencies will contact applicants if information is missing or incomplete between April–July 2026[5]. Crisis assistance typically processed faster due to emergency nature.",
-        "waitlist": "No formal waitlist mentioned, but assistance is contingent upon availability of funding. Applications taken on first-come, first-serve basis[3][4][5].",
-        "forms": [
-          "Louisiana LIHEAP Online Application (accessed through statewide online portal)[5]",
-          "Local parish application forms (specific form names/numbers not provided in search results; contact local agency)"
-        ],
-        "documents": [
-          "Government-issued photo ID for applicant and all household members 18 years or older[3]",
-          "Social Security card for each household member[3]",
-          "Current utility bills for heating and cooling (no older than 30 days)[3][5]",
-          "All check stubs from previous 30 days for all household employment[3][5]",
-          "Proof of unearned income (Social Security award letters, unemployment insurance, retirement, pension, disability, rental income, regular contributions)[3][5]",
-          "For crisis assistance: disconnect or pending disconnection notice from energy company[3]",
-          "Proof of present address if government ID address does not match service address (rent receipt, lease, deed, vehicle registration)[3]",
-          "Proof of household responsibility for energy bill"
-        ]
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "Program is statewide but administered through local parish agencies. Applicants must apply through their local parish office. Some parishes may have specific residency requirements (e.g., Jefferson Parish requires applicants to be Jefferson Parish residents)[3].",
-        "regional_variations": "Income limits and benefit amounts appear consistent statewide, but processing timelines and availability may vary by parish. Local agencies continue intake procedures April 13–September 30 or until funds exhausted[5]. Crisis assistance availability and procedures may differ by parish.",
-        "offices_or_providers": "Administered by Louisiana Housing Corporation (LHC) statewide[1]. Applications processed through local parish Community Centers and Social Services offices. Specific office locations and contact information available through LHC's list of local agencies[5]."
-      },
-      "official_source": "https://www.lhc.la.gov/energy-assistance",
-      "gotchas": [
-        "Program is NOT available year-round. Heating assistance: November 15–March 31 (or December 15–March 31 depending on source). Cooling assistance: April 1–September 30 (or April 13–September 30 depending on source). Crisis assistance: October 1–September 30[2][4][5]. Verify exact dates with your local agency.",
-        "One benefit per season maximum—applicants cannot receive both heating and cooling assistance in the same year[4][5].",
-        "Funding is not guaranteed. Assistance is contingent upon availability of funding, and applications are processed on first-come, first-serve basis[3][4][5].",
-        "Online applications only available during specific windows (e.g., April 1–12, 2026 for cooling season). Outside these windows, applicants must apply in-person or by other local methods[5].",
-        "LHC and local agencies will NEVER ask for account logins, passwords, or bank/credit card information. Beware of scams[5].",
-        "Utility bills must be current (no older than 30 days). Outdated bills will delay processing[3][5].",
-        "Applicant must be responsible for the household energy bill—renters may qualify if they pay utilities directly, but this must be verified[4][5].",
-        "Households with roommates covered by the same utility bill are counted as a single LIHEAP household, which may affect income limits[2].",
-        "Priority targeting includes households with members 0–5 years old, disabled, or 60+ years old, but this is not explicitly stated as an absolute requirement in all sources[3].",
-        "Crisis assistance limited to once per year[4]."
-      ],
-      "data_shape_notes": "LIHEAP benefits are highly seasonal and funding-dependent. Income limits scale by household size with a base amount plus per-person increments. Benefits are fixed dollar amounts ($200–$800 regular, $1,000 crisis) rather than percentage-based. The program operates on a fiscal-year cycle with distinct heating and cooling seasons. Application windows are time-limited, particularly for online applications. Regional variation exists in implementation through local parish agencies, but eligibility criteria and benefit amounts appear standardized statewide. The program prioritizes but does not exclusively serve households with elderly members, children, or disabled individuals.",
-      "_raw": "```json\n{\n  \"name\": \"LIHEAP (Low-Income Home Energy Assistance Program)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Household gross monthly income must be at or below 60% of Louisiana's estimated state median income. Income limits by household size: 1 person: $2,551/month | 2 people: $3,336/month | 3 people: $4,121/month | 4 people: $4,906/month | 5 people: $5,691/month | 6 people: $6,477/month | 7+ people: add $110 per additional member over 6[2][3]. Note: Some parishes provide annual income limits in addition to monthly limits (e.g., Jefferson Parish lists annual limits ranging from $30,612 for 1 person to $68,851 for 6 people)[3].\",\n    \"asset_limits\": \"Not specified in available search results. Contact your local parish agency for asset limit information.\",\n    \"other_requirements\": [\n      \"Applicant must be responsible for the household energy bill[4][5]\",\n      \"Applicant must have an active heating/cooling utility account[4][5]\",\n      \"Applicant may only receive one LIHEAP benefit each season[4][5]\",\n      \"Households must contain at least one individual who is: 0 to 5 years old, disabled, or 60 years or older (priority targeting, though not explicitly stated as absolute requirement)[3]\",\n      \"Must be a Louisiana resident; some programs require residency in specific parishes (e.g., Jefferson Parish residents for that office)[3]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Regular LIHEAP: $200–$800 per season (heating or cooling). Crisis LIHEAP: up to $1,000 for emergency situations (broken furnace, utility shutoff notice, running out of fuel)[2]. Benefits are one-time payments made directly to utility companies[2].\",\n    \"varies_by\": \"household_size and fuel_type_and_season\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online portal: Available April 1–April 12, 2026 for cooling season (specific dates vary by year)[5]\",\n      \"In-person at local parish agencies: April 13–September 30, 2026 (normal local intake procedures)[5]\",\n      \"Phone: Contact your local parish Community Center or agency (appointments first-come, first-serve)[3]\",\n      \"Mail: Mail applications to your local parish LIHEAP office (specific addresses vary by parish)\"\n    ],\n    \"processing_time\": \"Applications completed through online portal processed for payment between May 1–July 15, 2026. Local agencies will contact applicants if information is missing or incomplete between April–July 2026[5]. Crisis assistance typically processed faster due to emergency nature.\",\n    \"waitlist\": \"No formal waitlist mentioned, but assistance is contingent upon availability of funding. Applications taken on first-come, first-serve basis[3][4][5].\",\n    \"forms\": [\n      \"Louisiana LIHEAP Online Application (accessed through statewide online portal)[5]\",\n      \"Local parish application forms (specific form names/numbers not provided in search results; contact local agency)\"\n    ],\n    \"documents\": [\n      \"Government-issued photo ID for applicant and all household members 18 years or older[3]\",\n      \"Social Security card for each household member[3]\",\n      \"Current utility bills for heating and cooling (no older than 30 days)[3][5]\",\n      \"All check stubs from previous 30 days for all household employment[3][5]\",\n      \"Proof of unearned income (Social Security award letters, unemployment insurance, retirement, pension, disability, rental income, regular contributions)[3][5]\",\n      \"For crisis assistance: disconnect or pending disconnection notice from energy company[3]\",\n      \"Proof of present address if government ID address does not match service address (rent receipt, lease, deed, vehicle registration)[3]\",\n      \"Proof of household responsibility for energy bill\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Program is statewide but administered through local parish agencies. Applicants must apply through their local parish office. Some parishes may have specific residency requirements (e.g., Jefferson Parish requires applicants to be Jefferson Parish residents)[3].\",\n    \"regional_variations\": \"Income limits and benefit amounts appear consistent statewide, but processing timelines and availability may vary by parish. Local agencies continue intake procedures April 13–September 30 or until funds exhausted[5]. Crisis assistance availability and procedures may differ by parish.\",\n    \"offices_or_providers\": \"Administered by Louisiana Housing Corporation (LHC) statewide[1]. Applications processed through local parish Community Centers and Social Services offices. Specific office locations and contact information available through LHC's list of local agencies[5].\"\n  },\n  \"official_source\": \"https://www.lhc.la.gov/energy-assistance\",\n  \"gotchas\": [\n    \"Program is NOT available year-round. Heating assistance: November 15–March 31 (or December 15–March 31 depending on source). Cooling assistance: April 1–September 30 (or April 13–September 30 depending on source). Crisis assistance: October 1–September 30[2][4][5]. Verify exact dates with your local agency.\",\n    \"One benefit per season maximum—applicants cannot receive both heating and cooling assistance in the same year[4][5].\",\n    \"Funding is not guaranteed. Assistance is contingent upon availability of funding, and applications are processed on first-come, first-serve basis[3][4][5].\",\n    \"Online applications only available during specific windows (e.g., April 1–12, 2026 for cooling season). Outside these windows, applicants must apply in-person or by other local methods[5].\",\n    \"LHC and local agencies will NEVER ask for account logins, passwords, or bank/credit card information. Beware of scams[5].\",\n    \"Utility bills must be current (no older than 30 days). Outdated bills will delay processing[3][5].\",\n    \"Applicant must be responsible for the household energy bill—renters may qualify if they pay utilities directly, but this must be verified[4][5].\",\n    \"Households with roommates covered by the same utility bill are counted as a single LIHEAP household, which may affect income limits[2].\",\n    \"Priority targeting includes households with members 0–5 years old, disabled, or 60+ years old, but this is not explicitly stated as an absolute requirement in all sources[3].\",\n    \"Crisis assistance limited to once per year[4].\"\n  ],\n  \"data_shape_notes\": \"LIHEAP benefits are highly seasonal and funding-dependent. Income limits scale by household size with a base amount plus per-person increments. Benefits are fixed dollar amounts ($200–$800 regular, $1,000 crisis) rather than percentage-based. The program operates on a fiscal-year cycle with distinct heating and cooling seasons. Application windows are time-limited, particularly for online applications. Regional variation exists in implementation through local parish agencies, but eligibility criteria and benefit amounts appear standardized statewide. The program prioritizes but does not exclusively serve households with elderly members, children, or disabled individuals.\"\n}\n```\n\n---\n\n## Additional Context for Families\n\n**For elderly loved ones specifically:** While LIHEAP does not have an explicit age requirement, the program prioritizes households containing members 60 years or older[3]. This means elderly households are targeted for assistance, but eligibility is primarily determined by income, not age alone.\n\n**Critical timing note:** As of April 9, 2026, the cooling season application window through the online portal has just closed (April 1–12, 2026)[5]. Families should contact their local parish agency immediately to apply through normal local intake procedures, which continue through September 30, 2026 or until funds are exhausted[5].\n\n**Weatherization Assistance Program:** LIHEAP is often paired with a separate Weatherization Assistance Program that helps improve home energy efficiency through upgrades like insulation and heating system repairs[2]. Ask your local agency if your household qualifies for both programs.\n\n**To find your local agency:** Visit the Louisiana Housing Corporation website and click the link to access the list of local agencies by parish[5]. This is essential because all applications, documentation, and inquiries go through your specific parish office."
-    },
-    {
-      "name": "Weatherization Assistance Program (WAP)",
-      "_parseError": true,
-      "_raw": "{\n  \"name\": \"Weatherization Assistance Program (WAP)\",\n  \"eligibility\": {\n    \"age\": 18,\n    \"income_limits\": \"Based on 200% of the federal poverty level for PY2025 (7/1/2025-6/30/2026). Exact table not fully listed in sources, but older 2016 example: 1-person household $1,962/month; 2-person $2,655; 3-person $3,348; 4-person $4,042; 5-person $4,735. Current PY2025 limits issued 9/23/2025 via Notice WAP-2025-01; contact LHC for full table as limits change 6/30/2026[1][2][6]\",\n    \"asset_limits\": \"No asset limits mentioned in sources[1][2]\",\n    \"other_requirements\": [\"Household income at or below 200% poverty level\", \"Priority for elderly (60+), families with children under 18, disabled (SSI-established)\", \"Homeowners or renters (renters need landlord permission)\", \"At least one household member 18+\", \"Property not scheduled for government acquisition/clearance\", \"Valid photo ID and SS cards for members 18+\"][1][2][3][4][6]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"No-cost energy efficiency services including insulation improvements, air sealing, HVAC repairs/upgrades, energy-efficient lighting/appliances, heating/cooling system improvements, blower door audits, basic health/safety checks. No specific dollar amounts or hours; services based on computerized energy audits[1][4][5][6]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact local WAP provider or LHC Energy Assistance Department (phone not listed; use lhc.la.gov/weatherization)\", \"Mail/fax/email to local providers e.g. Quad Area (45300 N. Baptist Rd., specific address varies)\", \"In-person at local offices e.g. LaSalle Community Action Association, St. Mary Community Action Agency, Quad Area[1][3][4][6][7]\"],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Availability not guaranteed; waiting lists used with priority points for elderly, families, disabled[1]\",\n    \"forms\": [\"WAP Application (includes Zero Income Statement if applicable, Lessor/Owner Agreement for renters)\", \"Completed with all signatures[3]\"],\n    \"documents\": [\"Last 4 consecutive pay stubs or 30-day proof of income for all 18+\", \"Proof of unearned income (SS, pension, disability, unemployment)\", \"Proof of address (lease, deed, rent receipt)\", \"Current gas/electric/propane bill\", \"Photo ID for all 18+\", \"SS cards for all household members\", \"For renters: Lessor/Owner Agreement and lease\", \"For owners: Proof of ownership\", \"Disability/SS award letters if applicable[1][3][4][8]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Services in every parish, but administered by local providers[1][4][6]\",\n    \"regional_variations\": \"Administered by regional subgrantees e.g. LaSalle Community Action (North/Central incl. Rapides, Caddo, etc.), Quad Area, St. Mary CAA; potential waitlist/availability differences by region/provider[1][4][6][7]\",\n    \"offices_or_providers\": [\"Louisiana Housing Corporation (LHC) oversees\", \"LaSalle Community Action Association (North/Central)\", \"Quad Area Weatherization\", \"St. Mary Community Action Agency\", \"Others per parish; contact LHC for local[1][4][6][7]\"]\n  },\n  \"official_source\": \"https://www.lhc.la.gov/weatherization\",\n  \"gotchas\": [\"Availability not guaranteed; waiting lists with priority points (elderly 60+, kids <18, SSI-disabled get extras)\", \"Renters need landlord written approval\", \"Income proof strict (last 4 stubs or 30 days; zero income needs form)\", \"PY2025 income limits change 6/30/2026; verify current via LHC\", \"Must be 18+ to apply, priority for 60+\", \"Additional docs may be required[1][2][3][6]\"],\n  \"data_shape_notes\": \"Statewide via LHC with local subgrantees; priority tiers for elderly/families/disabled; income at 200% poverty (table via annual notice); waitlists common; no fixed processing times listed\"\n}"
-    },
-    {
-      "name": "Louisiana Senior Health Insurance Information Program (SHIP)",
-      "eligibility": {
-        "age": null,
-        "income_limits": "No income limits; open to all Medicare beneficiaries, including those with limited incomes, under age 65 with disabilities, and dually eligible for Medicare and Medicaid[2][4].",
-        "asset_limits": "No asset limits or tests apply[2].",
-        "other_requirements": [
-          "Must be a Medicare beneficiary (Part A, Part B, Medicare Advantage, or Part D enrollees); families and caregivers also eligible for assistance[1][2][4]"
-        ]
-      },
-      "benefits": {
-        "type": "service",
-        "value": "Free, unbiased, personalized one-on-one health insurance counseling and guidance on Medicare coverage options, benefits, enrollment, appeals, prescription drug plans, and applying for low-income assistance programs like Medicaid, Medicare Savings Program, and Extra Help/Low Income Subsidy; provided via telephone or face-to-face sessions; also includes outreach presentations, enrollment events, and fraud prevention education through Senior Medicare Patrol[1][2][4][5].",
-        "varies_by": "not_applicable"
-      },
-      "application": {
-        "methods": [
-          "Phone: 1-800-259-5300 or (225) 342-5301[1][3][4][7]",
-          "Website: https://www.ldi.la.gov/consumers/senior-health-shiip (for information, updates signup, and find local counselor)[1][3][4][7]",
-          "In-person or face-to-face: Local counselors available throughout Louisiana (find via website or phone)[4][6]"
-        ],
-        "processing_time": "Immediate assistance via phone or sessions; no formal application processing[4].",
-        "waitlist": null,
-        "forms": [
-          "No specific forms required for counseling; may assist with Medicare-related forms during sessions[2]."
-        ],
-        "documents": [
-          "Medicare card, current plan details, prescription list recommended for counseling sessions but not mandatory[2][4]"
-        ]
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": null,
-        "regional_variations": "Counselors available throughout Louisiana with local assistance; no specified differences in services, wait times, or providers by region[1][4][6].",
-        "offices_or_providers": [
-          "State of Louisiana Department of Insurance, P.O. Box 94214, Baton Rouge LA 70804-9214; local counselors statewide[1][4]"
-        ]
-      },
-      "official_source": "https://www.ldi.la.gov/consumers/senior-health-shiip[4]",
-      "gotchas": [
-        "Not a healthcare or financial aid program—provides counseling only, does not pay premiums or provide direct benefits; during Medicare Open Enrollment (Oct 15-Dec 7), high demand may require scheduling; must be Medicare beneficiary for core services[2][4][5]",
-        "People miss that it helps with applications for other programs like Extra Help but does not guarantee approval[2]"
-      ],
-      "data_shape_notes": "no income or asset test; counseling-only service for Medicare beneficiaries statewide via phone/local counselors",
-      "_raw": "{\n  \"name\": \"Louisiana Senior Health Insurance Information Program (SHIP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; open to all Medicare beneficiaries, including those with limited incomes, under age 65 with disabilities, and dually eligible for Medicare and Medicaid[2][4].\",\n    \"asset_limits\": \"No asset limits or tests apply[2].\",\n    \"other_requirements\": [\"Must be a Medicare beneficiary (Part A, Part B, Medicare Advantage, or Part D enrollees); families and caregivers also eligible for assistance[1][2][4]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free, unbiased, personalized one-on-one health insurance counseling and guidance on Medicare coverage options, benefits, enrollment, appeals, prescription drug plans, and applying for low-income assistance programs like Medicaid, Medicare Savings Program, and Extra Help/Low Income Subsidy; provided via telephone or face-to-face sessions; also includes outreach presentations, enrollment events, and fraud prevention education through Senior Medicare Patrol[1][2][4][5].\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 1-800-259-5300 or (225) 342-5301[1][3][4][7]\", \"Website: https://www.ldi.la.gov/consumers/senior-health-shiip (for information, updates signup, and find local counselor)[1][3][4][7]\", \"In-person or face-to-face: Local counselors available throughout Louisiana (find via website or phone)[4][6]\"],\n    \"processing_time\": \"Immediate assistance via phone or sessions; no formal application processing[4].\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required for counseling; may assist with Medicare-related forms during sessions[2].\"],\n    \"documents\": [\"Medicare card, current plan details, prescription list recommended for counseling sessions but not mandatory[2][4]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Counselors available throughout Louisiana with local assistance; no specified differences in services, wait times, or providers by region[1][4][6].\",\n    \"offices_or_providers\": [\"State of Louisiana Department of Insurance, P.O. Box 94214, Baton Rouge LA 70804-9214; local counselors statewide[1][4]\"]\n  },\n  \"official_source\": \"https://www.ldi.la.gov/consumers/senior-health-shiip[4]\",\n  \"gotchas\": [\"Not a healthcare or financial aid program—provides counseling only, does not pay premiums or provide direct benefits; during Medicare Open Enrollment (Oct 15-Dec 7), high demand may require scheduling; must be Medicare beneficiary for core services[2][4][5]\", \"People miss that it helps with applications for other programs like Extra Help but does not guarantee approval[2]\"],\n  \"data_shape_notes\": \"no income or asset test; counseling-only service for Medicare beneficiaries statewide via phone/local counselors\"\n}"
-    },
-    {
-      "name": "Meals on Wheels - Louisiana Council on Aging",
-      "eligibility": {
-        "age": 60,
-        "income_limits": "No strict income limits statewide; priority given to those with greatest economic/social need, including low-income minority/Native American individuals. Some programs encourage donations ($1-$3/meal) but no one denied for inability to pay. Vary by parish; follows federal poverty guidelines in some cases[1][3].",
-        "asset_limits": "No asset limits mentioned across sources.",
-        "other_requirements": [
-          "Homebound and unable to shop/cook/prepare meals due to physical disability or mobility issues[1][2][3][4][5][6]",
-          "Live in the service parish/region[3][4]",
-          "Pre-qualified via Governor’s Office of Elderly Affairs assessment tool in some parishes (e.g., Terrebonne)[3]",
-          "No daily family/friend support for meals[4]",
-          "Annual assessments required for ongoing eligibility[4]"
-        ]
-      },
-      "benefits": {
-        "type": "service",
-        "value": "Home-delivered nutritious meals (1/3 daily nutrition for 60+), low/no salt, customizable for dietary needs; typically 5 meals/week (Mon-Thu hot/fresh + Thu frozen for Fri); may extend to spouse/eligible caregiver[3][4][5].",
-        "varies_by": "region"
-      },
-      "application": {
-        "methods": [
-          "Contact local parish Council on Aging (e.g., Terrebonne: terrebonnecoa.org[3]; Caddo: caddocoa.org[4]; Lafayette: laf-coa.org[6]; DeSoto: desotocouncilonaging.com[5])",
-          "Phone national directory: 1-888-998-6325[1]",
-          "In-person or mail via local provider",
-          "Phone/paper/online via local agency; referrals accepted for others[1][2]"
-        ],
-        "processing_time": "Varies by provider; urgent cases faster[1].",
-        "waitlist": "Yes in some parishes (e.g., very long in Caddo Parish)[4]; regional variation.",
-        "forms": [
-          "Local application (basic details: name, address, health status); Governor’s Office of Elderly Affairs pre-qualification assessment tool (e.g., Terrebonne)[1][3]"
-        ],
-        "documents": [
-          "Proof of age (driver’s license/birth certificate)",
-          "Proof of disability (doctor’s note/medical records)",
-          "Proof of income (if requested, not always required)",
-          "Needs assessment/referral from doctor/social worker (some providers)[1][2]"
-        ]
-      },
-      "geography": {
-        "statewide": false,
-        "restrictions": "Parish-specific; must reside in service area of local Council on Aging.",
-        "regional_variations": "Administered by local Councils on Aging (e.g., Terrebonne: pre-qual tool, $1 donation[3]; Caddo: 5 meals/week, long waitlist, no charge[4]; DeSoto: $3 suggested donation, Mon-Thu + Fri frozen[5]; Lafayette: health/physical need focus[6]). Meals, donations, waitlists vary.",
-        "offices_or_providers": [
-          "Terrebonne Council on Aging (terrebonnecoa.org)[3]",
-          "Caddo Council on Aging (caddocoa.org, 1700 Buckner St., Shreveport)[4]",
-          "DeSoto Council on Aging (desotocouncilonaging.com, Mansfield)[5]",
-          "Lafayette Council on Aging (laf-coa.org)[6]"
-        ]
-      },
-      "official_source": "No single statewide .gov; local parish Councils on Aging sites (e.g., terrebonnecoa.org, caddocoa.org); Governor’s Office of Elderly Affairs assessment tool referenced[3].",
-      "gotchas": [
-        "Not emergency service; deliveries require someone home, eat upon delivery[4]",
-        "Long waitlists in high-demand parishes like Caddo[4]",
-        "Must report changes in condition; annual reassessments[4]",
-        "Parish-restricted—not statewide uniform program",
-        "Younger disabled may qualify in some areas but primarily 60+[1]",
-        "Donations encouraged but voluntary; no denial for non-payment[3][4][5]"
-      ],
-      "data_shape_notes": "Parish-administered by local Councils on Aging with varying providers, wait times, donation amounts, and exact delivery schedules; requires local contact; pre-qual assessment in some areas; priority to greatest need.",
-      "_raw": "{\n  \"name\": \"Meals on Wheels - Louisiana Council on Aging\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No strict income limits statewide; priority given to those with greatest economic/social need, including low-income minority/Native American individuals. Some programs encourage donations ($1-$3/meal) but no one denied for inability to pay. Vary by parish; follows federal poverty guidelines in some cases[1][3].\",\n    \"asset_limits\": \"No asset limits mentioned across sources.\",\n    \"other_requirements\": [\"Homebound and unable to shop/cook/prepare meals due to physical disability or mobility issues[1][2][3][4][5][6]\", \"Live in the service parish/region[3][4]\", \"Pre-qualified via Governor’s Office of Elderly Affairs assessment tool in some parishes (e.g., Terrebonne)[3]\", \"No daily family/friend support for meals[4]\", \"Annual assessments required for ongoing eligibility[4]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home-delivered nutritious meals (1/3 daily nutrition for 60+), low/no salt, customizable for dietary needs; typically 5 meals/week (Mon-Thu hot/fresh + Thu frozen for Fri); may extend to spouse/eligible caregiver[3][4][5].\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact local parish Council on Aging (e.g., Terrebonne: terrebonnecoa.org[3]; Caddo: caddocoa.org[4]; Lafayette: laf-coa.org[6]; DeSoto: desotocouncilonaging.com[5])\", \"Phone national directory: 1-888-998-6325[1]\", \"In-person or mail via local provider\", \"Phone/paper/online via local agency; referrals accepted for others[1][2]\"],\n    \"processing_time\": \"Varies by provider; urgent cases faster[1].\",\n    \"waitlist\": \"Yes in some parishes (e.g., very long in Caddo Parish)[4]; regional variation.\",\n    \"forms\": [\"Local application (basic details: name, address, health status); Governor’s Office of Elderly Affairs pre-qualification assessment tool (e.g., Terrebonne)[1][3]\"],\n    \"documents\": [\"Proof of age (driver’s license/birth certificate)\", \"Proof of disability (doctor’s note/medical records)\", \"Proof of income (if requested, not always required)\", \"Needs assessment/referral from doctor/social worker (some providers)[1][2]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Parish-specific; must reside in service area of local Council on Aging.\",\n    \"regional_variations\": \"Administered by local Councils on Aging (e.g., Terrebonne: pre-qual tool, $1 donation[3]; Caddo: 5 meals/week, long waitlist, no charge[4]; DeSoto: $3 suggested donation, Mon-Thu + Fri frozen[5]; Lafayette: health/physical need focus[6]). Meals, donations, waitlists vary.\",\n    \"offices_or_providers\": [\"Terrebonne Council on Aging (terrebonnecoa.org)[3]\", \"Caddo Council on Aging (caddocoa.org, 1700 Buckner St., Shreveport)[4]\", \"DeSoto Council on Aging (desotocouncilonaging.com, Mansfield)[5]\", \"Lafayette Council on Aging (laf-coa.org)[6]\"]\n  },\n  \"official_source\": \"No single statewide .gov; local parish Councils on Aging sites (e.g., terrebonnecoa.org, caddocoa.org); Governor’s Office of Elderly Affairs assessment tool referenced[3].\",\n  \"gotchas\": [\"Not emergency service; deliveries require someone home, eat upon delivery[4]\", \"Long waitlists in high-demand parishes like Caddo[4]\", \"Must report changes in condition; annual reassessments[4]\", \"Parish-restricted—not statewide uniform program\", \"Younger disabled may qualify in some areas but primarily 60+[1]\", \"Donations encouraged but voluntary; no denial for non-payment[3][4][5]\"],\n  \"data_shape_notes\": \"Parish-administered by local Councils on Aging with varying providers, wait times, donation amounts, and exact delivery schedules; requires local contact; pre-qual assessment in some areas; priority to greatest need.\"\n}"
-    },
-    {
-      "name": "Louisiana Respite Care Program",
-      "eligibility": {
-        "age": null,
-        "income_limits": "No specific income limits detailed for a singular 'Louisiana Respite Care Program'; varies by related programs like LT-PCS (Medicaid, income/asset rules apply but exact 2026 figures not listed beyond home equity ≤$752,000) or dementia credit (strict Medicare recipients only, no income test specified).[1][4]",
-        "asset_limits": "For LT-PCS (related Medicaid program): Home exempt if applicant lives there/intends to return (equity ≤$752,000 in 2026), spouse/minor child/disabled child lives there. Other assets follow standard Medicaid rules (not detailed here).[1]",
-        "other_requirements": [
-          "Varies by sub-program: LT-PCS requires age 65+ or disabled 21+, Nursing Facility Level of Care (NFLOC via LOCET), ability to direct care; OCDD respite for developmental disabilities (age 3+/18+, ICF/IID level); dementia credit requires documented dementia diagnosis and strict Medicare; CSOC for children with special needs; general respite for adults/children with disabilities, special needs, or aging conditions. Caregiver relief need common across.[1][2][4][6][7][9]"
-        ]
-      },
-      "benefits": {
-        "type": "service",
-        "value": "Short-term relief care: out-of-home center-based respite up to 720 hours per plan of care (POC) year (excess requires approval); includes companion care, host home, shared living (not personal residence); room/board if in approved center; specific examples like dementia credit $2,563 for day programs/in-home sitters up to 4 hours.[4][6]",
-        "varies_by": "priority_tier"
-      },
-      "application": {
-        "methods": [
-          "OCDD as single point for developmental disabilities respite (contact OCDD); Healthy Louisiana Plan referral for child/youth; general: contact Louisiana Department of Health (LDH) or licensed providers; no central phone/URL listed for unified program.[2][3][7]"
-        ],
-        "processing_time": "Several weeks to months for provider licensing (not consumer application); unspecified for enrollment.[3]",
-        "waitlist": "Enrollment limits indicate potential waitlists (e.g., 2400 for some OCDD by 06/30/2024, 1025 by 06/30/2023).[2]",
-        "forms": [
-          "HCBS licensure application (for providers); LOCET for LT-PCS level of care; no specific consumer form named.[1][3]"
-        ],
-        "documents": [
-          "For providers: financial proof ($50k line of credit, insurance), background checks, policies, business registration. For consumers: diagnosis documentation (e.g., dementia), Medicare confirmation, POC. Criminal background recommended for individual providers.[3][4][7]"
-        ]
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "None specified; available statewide via LDH/OCDD waivers.",
-        "regional_variations": "Enrollment limits and wait times may vary (e.g., by OCDD region); provider availability differs, check local licensing.[2][3]",
-        "offices_or_providers": [
-          "Office for Citizens with Developmental Disabilities (OCDD); licensed HCBS providers per LAC 48:I.Chapter 50; Healthy Louisiana Plans.[2][3][6]"
-        ]
-      },
-      "official_source": "https://ldh.la.gov/faq/category/94 (LDH Respite FAQ); https://archrespite.org/wp-content/uploads/2022/09/louisiana.pdf (ARCH overview).[2][7]",
-      "gotchas": [
-        "Not a single unified program—respite embedded in waivers (LT-PCS, OCDD, CSOC) or credits (dementia); 720-hour cap per POC year; no respite by legally responsible person/relative in some (varies); must meet specific level of care (NFLOC/ICF/IID); provider licensing strict; check good standing/backgrounds; home equity limits if Medicaid-linked.[1][2][6][7]"
-      ],
-      "data_shape_notes": "Fragmented across waivers/populations (elderly via LT-PCS/Medicare, DD via OCDD, children via CSOC); hour caps and enrollment limits; provider-focused regs heavy; no central eligibility table—income/assets via Medicaid where applicable.",
-      "_raw": "{\n  \"name\": \"Louisiana Respite Care Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No specific income limits detailed for a singular 'Louisiana Respite Care Program'; varies by related programs like LT-PCS (Medicaid, income/asset rules apply but exact 2026 figures not listed beyond home equity ≤$752,000) or dementia credit (strict Medicare recipients only, no income test specified).[1][4]\",\n    \"asset_limits\": \"For LT-PCS (related Medicaid program): Home exempt if applicant lives there/intends to return (equity ≤$752,000 in 2026), spouse/minor child/disabled child lives there. Other assets follow standard Medicaid rules (not detailed here).[1]\",\n    \"other_requirements\": [\"Varies by sub-program: LT-PCS requires age 65+ or disabled 21+, Nursing Facility Level of Care (NFLOC via LOCET), ability to direct care; OCDD respite for developmental disabilities (age 3+/18+, ICF/IID level); dementia credit requires documented dementia diagnosis and strict Medicare; CSOC for children with special needs; general respite for adults/children with disabilities, special needs, or aging conditions. Caregiver relief need common across.[1][2][4][6][7][9]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Short-term relief care: out-of-home center-based respite up to 720 hours per plan of care (POC) year (excess requires approval); includes companion care, host home, shared living (not personal residence); room/board if in approved center; specific examples like dementia credit $2,563 for day programs/in-home sitters up to 4 hours.[4][6]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"OCDD as single point for developmental disabilities respite (contact OCDD); Healthy Louisiana Plan referral for child/youth; general: contact Louisiana Department of Health (LDH) or licensed providers; no central phone/URL listed for unified program.[2][3][7]\"],\n    \"processing_time\": \"Several weeks to months for provider licensing (not consumer application); unspecified for enrollment.[3]\",\n    \"waitlist\": \"Enrollment limits indicate potential waitlists (e.g., 2400 for some OCDD by 06/30/2024, 1025 by 06/30/2023).[2]\",\n    \"forms\": [\"HCBS licensure application (for providers); LOCET for LT-PCS level of care; no specific consumer form named.[1][3]\"],\n    \"documents\": [\"For providers: financial proof ($50k line of credit, insurance), background checks, policies, business registration. For consumers: diagnosis documentation (e.g., dementia), Medicare confirmation, POC. Criminal background recommended for individual providers.[3][4][7]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None specified; available statewide via LDH/OCDD waivers.\",\n    \"regional_variations\": \"Enrollment limits and wait times may vary (e.g., by OCDD region); provider availability differs, check local licensing.[2][3]\",\n    \"offices_or_providers\": [\"Office for Citizens with Developmental Disabilities (OCDD); licensed HCBS providers per LAC 48:I.Chapter 50; Healthy Louisiana Plans.[2][3][6]\"]\n  },\n  \"official_source\": \"https://ldh.la.gov/faq/category/94 (LDH Respite FAQ); https://archrespite.org/wp-content/uploads/2022/09/louisiana.pdf (ARCH overview).[2][7]\",\n  \"gotchas\": [\"Not a single unified program—respite embedded in waivers (LT-PCS, OCDD, CSOC) or credits (dementia); 720-hour cap per POC year; no respite by legally responsible person/relative in some (varies); must meet specific level of care (NFLOC/ICF/IID); provider licensing strict; check good standing/backgrounds; home equity limits if Medicaid-linked.[1][2][6][7]\"],\n  \"data_shape_notes\": \"Fragmented across waivers/populations (elderly via LT-PCS/Medicare, DD via OCDD, children via CSOC); hour caps and enrollment limits; provider-focused regs heavy; no central eligibility table—income/assets via Medicaid where applicable.\"\n}"
-    },
-    {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "eligibility": {
-        "age": 55,
-        "income_limits": "Family income no more than 125% of the federal poverty level. Exact dollar amounts vary by household size and are updated annually by the U.S. Department of Health and Human Services; some income excluded such as disability benefits and unemployment benefits. Contact local SCSEP Director for current table specific to family size[1].",
-        "asset_limits": "No asset limits mentioned in program guidelines[1][2].",
-        "other_requirements": [
-          "Unemployed or earning limited income",
-          "Eligible to work in the U.S.",
-          "Poor employment prospects (implied by program focus)",
-          "Priority to veterans/qualified spouses (first), then those 65+, with disabilities, limited English/low literacy, rural residents, needing extra training, homeless/at risk, or failed prior workforce services[1][2][5]"
-        ]
-      },
-      "benefits": {
-        "type": "employment",
-        "value": "Part-time work-based training (average 20 hours/week) at community service sites (e.g., day-care, senior centers, schools, libraries, museums, hospitals); paid highest of federal/state/local minimum wage; supportive services (physical exams, transportation, uniforms, safety equipment); skills assessment, individualized training plan (IEP), annual free health check-up; bridge to unsubsidized jobs[1][2][7].",
-        "varies_by": "priority_tier"
-      },
-      "application": {
-        "methods": [
-          "Contact SCSEP Director in parish of residency (no specific statewide phone listed; local offices handle intake)[1]",
-          "In-person or phone via local parish SCSEP Director[1]"
-        ],
-        "processing_time": "Not specified; enrollment if eligible and no waitlist[2].",
-        "waitlist": "Possible waitlist if program full; enrollment as positions open (varies by location)[1][3].",
-        "forms": [
-          "No specific form name/number listed; complete application at local SCSEP office[2]"
-        ],
-        "documents": [
-          "Proof of age, income (last 6-12 months, excluding certain benefits like disability/unemployment), U.S. work eligibility, employment status; prepare family size and residence details[1][4]"
-        ]
-      },
-      "geography": {
-        "statewide": true,
-        "restrictions": "Available in all Louisiana parishes via local directors[1].",
-        "regional_variations": "Administered by parish SCSEP Directors; potential differences in wait times, availability, host sites by parish; contact director in parish of residency[1].",
-        "offices_or_providers": [
-          "SCSEP Director in parish of residency (specific contacts via goea.louisiana.gov)[1]"
-        ]
-      },
-      "official_source": "https://goea.louisiana.gov/services/senior-community-service-employment-program-scsep/",
-      "gotchas": [
-        "Income exclusions (e.g., disability, unemployment benefits) often missed—still may qualify[1]",
-        "Must be unemployed; limited income if employed[1][2]",
-        "Priority tiers affect enrollment speed—not first-come[1][5]",
-        "Temporary training (up to 48 months max in some areas) aimed at unsubsidized jobs, not permanent[3]",
-        "Local parish variations in waitlists/positions; call specific director[1]"
-      ],
-      "data_shape_notes": "Income at 125% FPL (varies by household size, annual updates); parish-specific directors create regional variations; priority enrollment tiers; no fixed asset test",
-      "_raw": "{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income no more than 125% of the federal poverty level. Exact dollar amounts vary by household size and are updated annually by the U.S. Department of Health and Human Services; some income excluded such as disability benefits and unemployment benefits. Contact local SCSEP Director for current table specific to family size[1].\",\n    \"asset_limits\": \"No asset limits mentioned in program guidelines[1][2].\",\n    \"other_requirements\": [\n      \"Unemployed or earning limited income\",\n      \"Eligible to work in the U.S.\",\n      \"Poor employment prospects (implied by program focus)\",\n      \"Priority to veterans/qualified spouses (first), then those 65+, with disabilities, limited English/low literacy, rural residents, needing extra training, homeless/at risk, or failed prior workforce services[1][2][5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Part-time work-based training (average 20 hours/week) at community service sites (e.g., day-care, senior centers, schools, libraries, museums, hospitals); paid highest of federal/state/local minimum wage; supportive services (physical exams, transportation, uniforms, safety equipment); skills assessment, individualized training plan (IEP), annual free health check-up; bridge to unsubsidized jobs[1][2][7].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact SCSEP Director in parish of residency (no specific statewide phone listed; local offices handle intake)[1]\",\n      \"In-person or phone via local parish SCSEP Director[1]\"\n    ],\n    \"processing_time\": \"Not specified; enrollment if eligible and no waitlist[2].\",\n    \"waitlist\": \"Possible waitlist if program full; enrollment as positions open (varies by location)[1][3].\",\n    \"forms\": [\"No specific form name/number listed; complete application at local SCSEP office[2]\"],\n    \"documents\": [\"Proof of age, income (last 6-12 months, excluding certain benefits like disability/unemployment), U.S. work eligibility, employment status; prepare family size and residence details[1][4]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available in all Louisiana parishes via local directors[1].\",\n    \"regional_variations\": \"Administered by parish SCSEP Directors; potential differences in wait times, availability, host sites by parish; contact director in parish of residency[1].\",\n    \"offices_or_providers\": [\"SCSEP Director in parish of residency (specific contacts via goea.louisiana.gov)[1]\"]\n  },\n  \"official_source\": \"https://goea.louisiana.gov/services/senior-community-service-employment-program-scsep/\",\n  \"gotchas\": [\n    \"Income exclusions (e.g., disability, unemployment benefits) often missed—still may qualify[1]\",\n    \"Must be unemployed; limited income if employed[1][2]\",\n    \"Priority tiers affect enrollment speed—not first-come[1][5]\",\n    \"Temporary training (up to 48 months max in some areas) aimed at unsubsidized jobs, not permanent[3]\",\n    \"Local parish variations in waitlists/positions; call specific director[1]\"\n  ],\n  \"data_shape_notes\": \"Income at 125% FPL (varies by household size, annual updates); parish-specific directors create regional variations; priority enrollment tiers; no fixed asset test\"\n}"
-    },
-    {
-      "name": "Louisiana Senior Legal Helpline",
-      "eligibility": {
-        "age": 60,
-        "income_limits": "Family income below 200% of federal poverty guidelines; guidelines may be higher specifically for seniors age 60+. Exact dollar amounts not specified in sources and vary by household size per standard poverty tables (contact provider for current figures).[1]",
-        "asset_limits": "No asset limits mentioned.",
-        "other_requirements": [
-          "Low-income status",
-          "Resident of served parishes in Southeast Louisiana (e.g., Assumption, Ascension, East Baton Rouge, etc.)[1]"
-        ]
-      },
-      "benefits": {
-        "type": "service",
-        "value": "Free legal representation, advocacy, and legal education for low-income seniors on civil legal issues.[1]",
-        "varies_by": "region"
-      },
-      "application": {
-        "methods": [
-          "Phone contacts by parish/region: (985) 851-5687 (Assumption Parish, Houma office); (225) 448-0080 or 1-855-512-3980 (Ascension, East Baton Rouge, etc., Baton Rouge office); (985) 345-2130 or 1-800-349-0886 (St. Helena, Tangipahoa, Washington, Hammond office)[1]",
-          "Website: www.lawhelp.org/la[1]"
-        ],
-        "processing_time": "Not specified.",
-        "waitlist": null,
-        "forms": [],
-        "documents": [
-          "Proof of income, proof of age/residency (inferred; contact provider to confirm)[1]"
-        ]
-      },
-      "geography": {
-        "statewide": false,
-        "restrictions": "Limited to 22 parishes in Southeast Louisiana (e.g., Assumption, Ascension, East Baton Rouge, East Feliciana, Iberville, Pointe Coupee, West Baton Rouge, West Feliciana, St. Helena, Tangipahoa, Washington)[1]",
-        "regional_variations": "Different regional offices and phone numbers by parish group; services delivered through Southeast Louisiana Legal Services (SLLS) offices in Houma, Baton Rouge, Hammond.[1]",
-        "offices_or_providers": [
-          "Southeast Louisiana Legal Services Corporation, 521 Roussell St, Houma, LA 70360[1]",
-          "Southeast Louisiana Legal Services Corporation, 715 St. Ferdinand St., Baton Rouge, LA 70802[1]",
-          "Southeast Louisiana Legal Services Corporation, 200 Guidry Dr, Hammond, LA 70403[1]"
-        ]
-      },
-      "official_source": "https://www.capitalaaa.org/programs/legal-services/ (via Capital Area Agency on Aging, referencing SLLS)[1]",
-      "gotchas": [
-        "Not statewide—only 22 Southeast parishes; check specific parish coverage.[1]",
-        "Income guidelines vary and may be higher for seniors, but exact amounts require direct inquiry as not listed.[1]",
-        "Free services but limited to certain civil legal issues; contact to confirm qualification.[1]",
-        "No centralized 'Senior Legal Helpline' phone; region-specific contacts via SLLS.[1]"
-      ],
-      "data_shape_notes": "Regionally administered by Southeast Louisiana Legal Services (SLLS) through parish-specific offices; eligibility tied to varying income guidelines without fixed dollar tables in sources; not a single helpline but targeted legal aid for seniors 60+ in select areas.",
-      "_raw": "{\n  \"name\": \"Louisiana Senior Legal Helpline\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Family income below 200% of federal poverty guidelines; guidelines may be higher specifically for seniors age 60+. Exact dollar amounts not specified in sources and vary by household size per standard poverty tables (contact provider for current figures).[1]\",\n    \"asset_limits\": \"No asset limits mentioned.\",\n    \"other_requirements\": [\"Low-income status\", \"Resident of served parishes in Southeast Louisiana (e.g., Assumption, Ascension, East Baton Rouge, etc.)[1]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free legal representation, advocacy, and legal education for low-income seniors on civil legal issues.[1]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone contacts by parish/region: (985) 851-5687 (Assumption Parish, Houma office); (225) 448-0080 or 1-855-512-3980 (Ascension, East Baton Rouge, etc., Baton Rouge office); (985) 345-2130 or 1-800-349-0886 (St. Helena, Tangipahoa, Washington, Hammond office)[1]\",\n      \"Website: www.lawhelp.org/la[1]\"\n    ],\n    \"processing_time\": \"Not specified.\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": [\"Proof of income, proof of age/residency (inferred; contact provider to confirm)[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Limited to 22 parishes in Southeast Louisiana (e.g., Assumption, Ascension, East Baton Rouge, East Feliciana, Iberville, Pointe Coupee, West Baton Rouge, West Feliciana, St. Helena, Tangipahoa, Washington)[1]\",\n    \"regional_variations\": \"Different regional offices and phone numbers by parish group; services delivered through Southeast Louisiana Legal Services (SLLS) offices in Houma, Baton Rouge, Hammond.[1]\",\n    \"offices_or_providers\": [\n      \"Southeast Louisiana Legal Services Corporation, 521 Roussell St, Houma, LA 70360[1]\",\n      \"Southeast Louisiana Legal Services Corporation, 715 St. Ferdinand St., Baton Rouge, LA 70802[1]\",\n      \"Southeast Louisiana Legal Services Corporation, 200 Guidry Dr, Hammond, LA 70403[1]\"\n    ]\n  },\n  \"official_source\": \"https://www.capitalaaa.org/programs/legal-services/ (via Capital Area Agency on Aging, referencing SLLS)[1]\",\n  \"gotchas\": [\n    \"Not statewide—only 22 Southeast parishes; check specific parish coverage.[1]\",\n    \"Income guidelines vary and may be higher for seniors, but exact amounts require direct inquiry as not listed.[1]\",\n    \"Free services but limited to certain civil legal issues; contact to confirm qualification.[1]\",\n    \"No centralized 'Senior Legal Helpline' phone; region-specific contacts via SLLS.[1]\"\n  ],\n  \"data_shape_notes\": \"Regionally administered by Southeast Louisiana Legal Services (SLLS) through parish-specific offices; eligibility tied to varying income guidelines without fixed dollar tables in sources; not a single helpline but targeted legal aid for seniors 60+ in select areas.\"\n}"
-    },
-    {
-      "name": "Louisiana Long-Term Care Ombudsman Program",
-      "program_type": "ADVOCACY & COMPLAINT RESOLUTION (not a benefits program)",
-      "clarification": "This program does NOT provide financial assistance, healthcare services, or personal care services. It investigates complaints and advocates for residents' rights in long-term care facilities.",
-      "eligibility": {
-        "age": null,
-        "income_limits": "Not applicable — this is not a benefits program",
-        "asset_limits": "Not applicable — this is not a benefits program",
-        "who_can_use_it": "Any current or prospective resident of a long-term care facility (nursing homes, assisted living facilities, personal care homes) or their family members"
-      },
-      "services_provided": {
-        "type": "advocacy",
-        "specific_services": [
-          "Investigate and resolve complaints made by or on behalf of residents",
-          "Provide information about long-term care services and facilities",
-          "Assist consumers in choosing appropriate facilities",
-          "Advocate for resident rights and improvements in care",
-          "Represent residents' interests before governmental agencies",
-          "Analyze and recommend changes to laws and regulations"
-        ],
-        "cost": "Free"
-      },
-      "application": {
-        "methods": [
-          "Phone: (866) 632-0922 (toll-free) or (225) 342-7100 (local)",
-          "Phone: (225) 342-9723 (State Ombudsman Office)",
-          "Website: https://goea.louisiana.gov/services/louisiana-ombudsman-program/",
-          "Mail: State Long-Term Care Ombudsman Office, Governor's Office of Elderly Affairs, P.O. Box 61, Baton Rouge, LA 70821-0061",
-          "Email: [email protected]"
-        ],
-        "processing_time": "Not specified in search results",
-        "waitlist": "Not applicable — this is a complaint/advocacy service, not a benefits program",
-        "forms": "Volunteer Ombudsman Application (if interested in volunteering, not using services)",
-        "documents_needed": "None specified — contact the office with your complaint or concern"
-      },
-      "geography": {
-        "statewide": true,
-        "coverage": "All of Louisiana",
-        "regional_offices": "Multiple regional offices operate through Area Agencies on Aging (e.g., Cajun Area Agency on Aging, Capital Area Agency on Aging)",
-        "example_region": "Baton Rouge Region covers: Ascension, Assumption, East Baton Rouge, East Feliciana, Iberville, Lafourche, Livingston, Pointe Coupee, St Helena, St James, Tangipahoa, Terrebonne, Washington, West Baton Rouge, West Feliciana"
-      },
-      "hours_of_operation": "7:30 AM - 4:00 PM",
-      "official_source": "https://goea.louisiana.gov/services/louisiana-ombudsman-program/",
-      "gotchas": [
-        "This is NOT a program that provides services or financial assistance to elderly individuals",
-        "This is an ADVOCACY program — it helps resolve complaints and protect rights, but does not provide personal care, healthcare, or financial benefits",
-        "If you're looking for actual services (personal care, nursing home coverage, etc.), you may be interested in the LT-PCS (Long-Term Personal Care Services) program instead, which is Medicaid-based",
-        "Ombudsmen may conduct unannounced visits to facilities to investigate concerns",
-        "Federal law requires every state to operate this program"
-      ],
-      "data_shape_notes": "This program's structure is fundamentally different from typical benefits programs — it has no eligibility requirements, income/asset limits, or application process for residents seeking help. Instead, residents or families contact the office with complaints or concerns. The program is federally mandated under the Older Americans Act (OAA), Title VII, Chapter 2, Sections 711/712.",
-      "_raw": "I need to clarify an important distinction: based on the search results, the **Louisiana Long-Term Care Ombudsman Program is not a benefits or services program for elderly individuals**—it's an **advocacy and complaint resolution program** that protects residents' rights in long-term care facilities.\n\nThe search results describe two different programs:\n\n1. **Long-Term Personal Care Services (LT-PCS)** — a Medicaid-funded service program for eligible individuals\n2. **Long-Term Care Ombudsman Program** — an advocacy office that investigates complaints and protects residents' rights\n\nYour query appears to conflate these. Here's what I can provide based on the search results:\n\n```json\n{\n  \"name\": \"Louisiana Long-Term Care Ombudsman Program\",\n  \"program_type\": \"ADVOCACY & COMPLAINT RESOLUTION (not a benefits program)\",\n  \"clarification\": \"This program does NOT provide financial assistance, healthcare services, or personal care services. It investigates complaints and advocates for residents' rights in long-term care facilities.\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Not applicable — this is not a benefits program\",\n    \"asset_limits\": \"Not applicable — this is not a benefits program\",\n    \"who_can_use_it\": \"Any current or prospective resident of a long-term care facility (nursing homes, assisted living facilities, personal care homes) or their family members\"\n  },\n  \"services_provided\": {\n    \"type\": \"advocacy\",\n    \"specific_services\": [\n      \"Investigate and resolve complaints made by or on behalf of residents\",\n      \"Provide information about long-term care services and facilities\",\n      \"Assist consumers in choosing appropriate facilities\",\n      \"Advocate for resident rights and improvements in care\",\n      \"Represent residents' interests before governmental agencies\",\n      \"Analyze and recommend changes to laws and regulations\"\n    ],\n    \"cost\": \"Free\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: (866) 632-0922 (toll-free) or (225) 342-7100 (local)\",\n      \"Phone: (225) 342-9723 (State Ombudsman Office)\",\n      \"Website: https://goea.louisiana.gov/services/louisiana-ombudsman-program/\",\n      \"Mail: State Long-Term Care Ombudsman Office, Governor's Office of Elderly Affairs, P.O. Box 61, Baton Rouge, LA 70821-0061\",\n      \"Email: [email protected]\"\n    ],\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": \"Not applicable — this is a complaint/advocacy service, not a benefits program\",\n    \"forms\": \"Volunteer Ombudsman Application (if interested in volunteering, not using services)\",\n    \"documents_needed\": \"None specified — contact the office with your complaint or concern\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"coverage\": \"All of Louisiana\",\n    \"regional_offices\": \"Multiple regional offices operate through Area Agencies on Aging (e.g., Cajun Area Agency on Aging, Capital Area Agency on Aging)\",\n    \"example_region\": \"Baton Rouge Region covers: Ascension, Assumption, East Baton Rouge, East Feliciana, Iberville, Lafourche, Livingston, Pointe Coupee, St Helena, St James, Tangipahoa, Terrebonne, Washington, West Baton Rouge, West Feliciana\"\n  },\n  \"hours_of_operation\": \"7:30 AM - 4:00 PM\",\n  \"official_source\": \"https://goea.louisiana.gov/services/louisiana-ombudsman-program/\",\n  \"gotchas\": [\n    \"This is NOT a program that provides services or financial assistance to elderly individuals\",\n    \"This is an ADVOCACY program — it helps resolve complaints and protect rights, but does not provide personal care, healthcare, or financial benefits\",\n    \"If you're looking for actual services (personal care, nursing home coverage, etc.), you may be interested in the LT-PCS (Long-Term Personal Care Services) program instead, which is Medicaid-based\",\n    \"Ombudsmen may conduct unannounced visits to facilities to investigate concerns\",\n    \"Federal law requires every state to operate this program\"\n  ],\n  \"data_shape_notes\": \"This program's structure is fundamentally different from typical benefits programs — it has no eligibility requirements, income/asset limits, or application process for residents seeking help. Instead, residents or families contact the office with complaints or concerns. The program is federally mandated under the Older Americans Act (OAA), Title VII, Chapter 2, Sections 711/712.\"\n}\n```\n\n**If your guide is intended to help families access services for elderly loved ones**, you likely need information about the **LT-PCS (Long-Term Personal Care Services) program** instead, which does have eligibility requirements and provides actual services.[1] The search results include eligibility criteria for that program if you'd like me to reformat the guide accordingly."
-    },
     {
       "name": "Community Choices Waiver",
       "eligibility": {
         "age": 21,
-        "income_limits": "Income must meet Louisiana Medicaid long-term care limits, approximately $2,742/month for an individual and $5,484/month for a couple (both needing long-term care) as of recent data; older sources cite $2,199 individual/$4,398 couple. Limits subject to annual adjustment. Waiver spend-down option available if over limits. Varies by Medicaid rules, not explicitly by household size beyond couples.[2][4][5]",
-        "asset_limits": "Single: $2,000 max resources. Couples (both in long-term care): $3,000. Couples (one spouse at home): up to $117,240. Exempt assets include primary home (equity ≤$752,000 in 2026 if intent to return, spouse/minor/disabled child lives there), one vehicle, household furnishings/appliances, personal effects. 60-month look-back rule applies; transfers below fair market value cause penalty period.[2][3]",
+        "income_limits": "Income limits vary by source and year; recent figures include $2,742/month for an individual and $5,484/month for a couple (both needing long-term care) per [4]; older 2015 limits were $2,199 individual/$4,398 couple per [5]. Waiver spend-down option allows eligibility if over limits. No household size table beyond couples specified; must meet Medicaid long-term care income rules.[1][2][4][5]",
+        "asset_limits": "Single: $2,000 max resources. Couples (both in long-term care): $3,000. Couples (one spouse at home): up to $117,240. Exempt: primary home (equity ≤$752,000 in 2026 if intent to return, spouse/minor/disabled child lives there), one vehicle, household furnishings/appliances, personal effects. 60-month look-back rule penalizes asset transfers below fair market value.[2][3]",
         "other_requirements": [
           "Louisiana resident",
-          "Medicaid long-term care eligible",
-          "Nursing Facility Level of Care (NFLOC): inability to perform ADLs (e.g., transferring, mobility, eating, toileting), unstable medical conditions, cognitive issues like dementia (diagnosis alone insufficient)",
-          "At risk of nursing home placement; elderly 65+ or 21-64 if physically disabled (can continue post-65 if enrolled earlier)"
+          "Meet Medicaid long-term care eligibility",
+          "Nursing Facility Level of Care (NFLOC): assessed via ADLs (e.g., mobility, eating, toileting), medical conditions, cognitive issues; dementia diagnosis alone insufficient[1][2][3][5][6]",
+          "At risk of nursing home placement; elderly (65+) or 21-64 if physically disabled (continues post-65 if enrolled early)[2]"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Specific services: Nursing Services, Home Delivered Meals, Caregiver Temporary Support (respite), Housing Stabilization, Housing Transition/Crisis Intervention. Promotes home-based care to avoid nursing homes. No 24/7 care provided; alternative arrangements required. No fixed dollar amounts or hours specified; individualized based on need.[1][3]",
+        "value": "Specific services: Nursing Services, Home Delivered Meals, Caregiver Temporary Support (respite), Housing Stabilization, Housing Transition/Crisis Intervention. Promotes home-based health/well-being; no 24/7 care (alternative arrangements required). No fixed dollar amounts or hours specified; individualized based on need.[1][3][4]",
         "varies_by": "priority_tier"
       },
       "application": {
         "methods": [
-          "Phone: Call Louisiana Options in Long-Term Care at 1-877-456-1146 to add name to Request for Services Registry",
-          "No specific online URL, mail, or in-person detailed; phone is primary route"
+          "Phone: Call Louisiana Options in Long-Term Care at 1-877-456-1146 to add name to Request for Services Registry[1][3][4][5]",
+          "No online, mail, or in-person specifics listed; phone is primary route"
         ],
         "processing_time": "Not specified; offers based on priority and first-come-first-served after registry date",
-        "waitlist": "Yes; prioritized by need (e.g., APS/EPS abuse/neglect referrals, ALS, permanent supportive housing, nursing facility >90 days, non-dual waiver recipients). Expedited for qualified LT-PCS. Others first-come-first-served; apply immediately",
+        "waitlist": "Yes; prioritized groups first (e.g., APS/EPS abuse/neglect referrals, ALS, permanent supportive housing, nursing facility >90 days, non-dual waiver recipients), then first-come-first-served. Expedited for some LT-PCS recipients. Apply immediately to join list[1][3][4][5]",
         "forms": [
           "Request for Services Registry (via phone)"
         ],
         "documents": [
-          "Not explicitly listed; prepare proof of income/resources, Medicaid eligibility, medical records for NFLOC assessment, residency"
+          "Not explicitly listed; prepare for Medicaid/NFLOC assessment (e.g., income proof, assets, medical records for ADLs/cognitive evaluation)"
         ]
       },
       "geography": {
         "statewide": true,
         "restrictions": "None; Louisiana residents",
-        "regional_variations": "No regional differences noted in services, providers, or wait times; statewide via OAAS",
-        "offices_or_providers": [
-          "Administered statewide by LA Dept. of Health Office of Aging and Adult Services (OAAS)"
-        ]
+        "regional_variations": "No regional differences, providers, or wait time variations specified[1][2][3][4][5][6]",
+        "offices_or_providers": []
       },
-      "official_source": "https://ldh.la.gov/page/community-choices-waiver (based on LDH OAAS PDFs)[5][6]",
+      "official_source": "https://ldh.la.gov/page/community-choices-waiver (inferred from LDH OAAS PDFs [5][6])",
       "gotchas": [
         "No 24/7 care; must arrange separately[1][4]",
-        "Strict priority tiers cause waits for non-priority; apply ASAP even if wait expected[1][4][5]",
-        "NFLOC required (not just age/diagnosis); comprehensive ADL/medical assessment needed[2]",
-        "60-month look-back on asset transfers; penalties apply[2]",
-        "Cannot receive with other HCBS waivers (e.g., PACE, NOW, LT-PCS unless expedited)[4][5]",
-        "Income/asset limits outdated in some sources; verify current with LDH"
+        "Priority waitlist means non-priority face delays; apply ASAP[1][3][4][5]",
+        "60-month look-back on asset transfers causes penalty periods[2]",
+        "NFLOC requires specific ADL/medical deficits, not just age/diagnosis[2]",
+        "Income/asset limits have spend-down but still strict; couples rules complex[2][3][4][5]"
       ],
-      "data_shape_notes": "Priority-based waitlist with 5+ tiers; no 24/7 services; spend-down and asset exemptions allow higher-income qualification; NFLOC assessment drives everything; statewide but phone-registry only application noted",
-      "_raw": "{\n  \"name\": \"Community Choices Waiver\",\n  \"eligibility\": {\n    \"age\": 21,\n    \"income_limits\": \"Income must meet Louisiana Medicaid long-term care limits, approximately $2,742/month for an individual and $5,484/month for a couple (both needing long-term care) as of recent data; older sources cite $2,199 individual/$4,398 couple. Limits subject to annual adjustment. Waiver spend-down option available if over limits. Varies by Medicaid rules, not explicitly by household size beyond couples.[2][4][5]\",\n    \"asset_limits\": \"Single: $2,000 max resources. Couples (both in long-term care): $3,000. Couples (one spouse at home): up to $117,240. Exempt assets include primary home (equity ≤$752,000 in 2026 if intent to return, spouse/minor/disabled child lives there), one vehicle, household furnishings/appliances, personal effects. 60-month look-back rule applies; transfers below fair market value cause penalty period.[2][3]\",\n    \"other_requirements\": [\n      \"Louisiana resident\",\n      \"Medicaid long-term care eligible\",\n      \"Nursing Facility Level of Care (NFLOC): inability to perform ADLs (e.g., transferring, mobility, eating, toileting), unstable medical conditions, cognitive issues like dementia (diagnosis alone insufficient)\",\n      \"At risk of nursing home placement; elderly 65+ or 21-64 if physically disabled (can continue post-65 if enrolled earlier)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Specific services: Nursing Services, Home Delivered Meals, Caregiver Temporary Support (respite), Housing Stabilization, Housing Transition/Crisis Intervention. Promotes home-based care to avoid nursing homes. No 24/7 care provided; alternative arrangements required. No fixed dollar amounts or hours specified; individualized based on need.[1][3]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Call Louisiana Options in Long-Term Care at 1-877-456-1146 to add name to Request for Services Registry\",\n      \"No specific online URL, mail, or in-person detailed; phone is primary route\"\n    ],\n    \"processing_time\": \"Not specified; offers based on priority and first-come-first-served after registry date\",\n    \"waitlist\": \"Yes; prioritized by need (e.g., APS/EPS abuse/neglect referrals, ALS, permanent supportive housing, nursing facility >90 days, non-dual waiver recipients). Expedited for qualified LT-PCS. Others first-come-first-served; apply immediately\",\n    \"forms\": [\"Request for Services Registry (via phone)\"],\n    \"documents\": [\"Not explicitly listed; prepare proof of income/resources, Medicaid eligibility, medical records for NFLOC assessment, residency\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; Louisiana residents\",\n    \"regional_variations\": \"No regional differences noted in services, providers, or wait times; statewide via OAAS\",\n    \"offices_or_providers\": [\"Administered statewide by LA Dept. of Health Office of Aging and Adult Services (OAAS)\"]\n  },\n  \"official_source\": \"https://ldh.la.gov/page/community-choices-waiver (based on LDH OAAS PDFs)[5][6]\",\n  \"gotchas\": [\n    \"No 24/7 care; must arrange separately[1][4]\",\n    \"Strict priority tiers cause waits for non-priority; apply ASAP even if wait expected[1][4][5]\",\n    \"NFLOC required (not just age/diagnosis); comprehensive ADL/medical assessment needed[2]\",\n    \"60-month look-back on asset transfers; penalties apply[2]\",\n    \"Cannot receive with other HCBS waivers (e.g., PACE, NOW, LT-PCS unless expedited)[4][5]\",\n    \"Income/asset limits outdated in some sources; verify current with LDH\"\n  ],\n  \"data_shape_notes\": \"Priority-based waitlist with 5+ tiers; no 24/7 services; spend-down and asset exemptions allow higher-income qualification; NFLOC assessment drives everything; statewide but phone-registry only application noted\"\n}"
+      "data_shape_notes": "Priority-tiered waitlist with 5+ groups; no 24/7 services; Medicaid/NFLOC dual gate; asset exemptions home-focused with 2026 equity cap; income via spend-down",
+      "_raw": "{\n  \"name\": \"Community Choices Waiver\",\n  \"eligibility\": {\n    \"age\": 21,\n    \"income_limits\": \"Income limits vary by source and year; recent figures include $2,742/month for an individual and $5,484/month for a couple (both needing long-term care) per [4]; older 2015 limits were $2,199 individual/$4,398 couple per [5]. Waiver spend-down option allows eligibility if over limits. No household size table beyond couples specified; must meet Medicaid long-term care income rules.[1][2][4][5]\",\n    \"asset_limits\": \"Single: $2,000 max resources. Couples (both in long-term care): $3,000. Couples (one spouse at home): up to $117,240. Exempt: primary home (equity ≤$752,000 in 2026 if intent to return, spouse/minor/disabled child lives there), one vehicle, household furnishings/appliances, personal effects. 60-month look-back rule penalizes asset transfers below fair market value.[2][3]\",\n    \"other_requirements\": [\n      \"Louisiana resident\",\n      \"Meet Medicaid long-term care eligibility\",\n      \"Nursing Facility Level of Care (NFLOC): assessed via ADLs (e.g., mobility, eating, toileting), medical conditions, cognitive issues; dementia diagnosis alone insufficient[1][2][3][5][6]\",\n      \"At risk of nursing home placement; elderly (65+) or 21-64 if physically disabled (continues post-65 if enrolled early)[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Specific services: Nursing Services, Home Delivered Meals, Caregiver Temporary Support (respite), Housing Stabilization, Housing Transition/Crisis Intervention. Promotes home-based health/well-being; no 24/7 care (alternative arrangements required). No fixed dollar amounts or hours specified; individualized based on need.[1][3][4]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Call Louisiana Options in Long-Term Care at 1-877-456-1146 to add name to Request for Services Registry[1][3][4][5]\",\n      \"No online, mail, or in-person specifics listed; phone is primary route\"\n    ],\n    \"processing_time\": \"Not specified; offers based on priority and first-come-first-served after registry date\",\n    \"waitlist\": \"Yes; prioritized groups first (e.g., APS/EPS abuse/neglect referrals, ALS, permanent supportive housing, nursing facility >90 days, non-dual waiver recipients), then first-come-first-served. Expedited for some LT-PCS recipients. Apply immediately to join list[1][3][4][5]\",\n    \"forms\": [\"Request for Services Registry (via phone)\"],\n    \"documents\": [\"Not explicitly listed; prepare for Medicaid/NFLOC assessment (e.g., income proof, assets, medical records for ADLs/cognitive evaluation)\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; Louisiana residents\",\n    \"regional_variations\": \"No regional differences, providers, or wait time variations specified[1][2][3][4][5][6]\",\n    \"offices_or_providers\": []\n  },\n  \"official_source\": \"https://ldh.la.gov/page/community-choices-waiver (inferred from LDH OAAS PDFs [5][6])\",\n  \"gotchas\": [\n    \"No 24/7 care; must arrange separately[1][4]\",\n    \"Priority waitlist means non-priority face delays; apply ASAP[1][3][4][5]\",\n    \"60-month look-back on asset transfers causes penalty periods[2]\",\n    \"NFLOC requires specific ADL/medical deficits, not just age/diagnosis[2]\",\n    \"Income/asset limits have spend-down but still strict; couples rules complex[2][3][4][5]\"\n  ],\n  \"data_shape_notes\": \"Priority-tiered waitlist with 5+ groups; no 24/7 services; Medicaid/NFLOC dual gate; asset exemptions home-focused with 2026 equity cap; income via spend-down\"\n}"
     },
     {
-      "name": "Louisiana Long Term–Personal Care Services (LT-PCS)",
+      "name": "Louisiana Long Term–Personal Care Services (LT-PCS) Program",
       "eligibility": {
-        "age": "21 years or older[2]",
-        "income_limits": "Louisiana is a non-income-cap state. Income eligibility is determined by whether the applicant's income exceeds the cost of nursing home care each month. There is no fixed income limit; rather, if monthly income does not exceed the cost of care, the applicant is income-eligible[6]. Specific dollar amounts vary based on current nursing home costs in Louisiana.",
-        "asset_limits": "Single applicant resource limit: $2,000 in countable assets[6]. For married applicants, spousal impoverishment rules apply with different thresholds[6]. Home equity exemption (2026): up to $752,000 if applicant lives in home or has intent to return home[1]. Additional non-countable assets include: primary vehicle, personal items (non-investment grade), cash value life insurance (up to $10,000), funeral/burial plans, and individual countable resource allowance (up to $2,000)[6]. Home is exempt if: applicant or spouse lives there, applicant has minor child (under 21) living there, or applicant has blind or disabled child (any age) living there[1].",
+        "age": "65+ for elderly or 21+ for disabled[1][5]",
+        "income_limits": "Must meet Louisiana Medicaid ABD financial eligibility (income and asset limits vary by marital status and program; for single Nursing Home Medicaid applicant in 2026: income limit not specified in sources, asset limit $2,000 in countable assets)[3]",
+        "asset_limits": "Countable assets limited to $2,000 for single applicant (includes bank accounts, retirement accounts, stocks, bonds, CDs, cash, and other easily convertible assets); home exempt if applicant lives there or intends to return with home equity ≤$752,000 in 2026, or if spouse/minor child (under 21)/blind or disabled child lives there[1][3]",
         "other_requirements": [
-          "Must be a Louisiana resident[3]",
-          "Must receive Medicaid benefits (ABD Medicaid)[2][4]",
-          "Must qualify for Nursing Facility Level of Care (NFLOC) as determined by Level of Care Eligibility Tool (LOCET)[1][2][5]",
-          "Must require at least limited assistance with one Activity of Daily Living (ADL)[2]",
-          "Must be able to direct their care independently or through a responsible representative[2]",
-          "Must meet ONE of: (1) currently in nursing facility and able to be discharged with community services, OR (2) likely to require nursing facility admission within 120 days, OR (3) have primary caregiver who is disabled or at least 70 years old[2]"
+          "Louisiana resident",
+          "Enrolled in Medicaid (ABD category)",
+          "Require Nursing Facility Level of Care (NFLOC), determined by Level of Care Eligibility Tool (LOCET) assessing needs in Activities of Daily Living (ADLs) like transferring, mobility, eating, toileting, hygiene, bathing[1][2][3]",
+          "Meet one of: reside in nursing home and able to relocate to community with assistance; anticipated to need nursing home within 120 days; main caregiver disabled or aged 70+[1]",
+          "Able to direct own care or have representative (no support coordination provided)[1]"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "In-home personal care assistance including: bathing, dressing, grooming, eating, toileting, mobility, transferring in/out of beds or chairs, light housekeeping, meal preparation, medication reminders, laundry, shopping, and help arranging transportation for medical appointments[7]. Program does NOT provide 24-hour supervision or skilled nursing care[7].",
-        "varies_by": "Individual need (determined through assessment); specific hours and services are individualized based on ADL assessment scores and functional need[5]"
+        "value": "Long-term personal care services and supports in own home or loved one's home to assist with daily living activities (ADLs) for those requiring Nursing Facility Level of Care; provided per approved service plan via uniform interRAI home care assessment determining resource allocation and ADL support needs[1][2][3]",
+        "varies_by": "priority_tier"
       },
       "application": {
-        "methods": "Search results do not provide specific application methods (online URL, phone number, mail address, or in-person office locations). Contact Louisiana Department of Health, Office of Aging and Adult Services (OAAS) for application procedures[2][5].",
-        "processing_time": "Not specified in search results",
-        "waitlist": "Not specified in search results",
-        "forms": [
-          "Level of Care Eligibility Tool (LOCET) — functional eligibility screening[5]",
-          "Inter RAI Home Care Assessment Tool — uniform assessment to verify eligibility and determine resource allocation[5]"
+        "methods": [
+          "Requests accepted from Medicaid participant, legally responsible individual, or designated representative[2]"
         ],
-        "documents": "Search results do not specify required documentation. Applicants should prepare: proof of Louisiana residency, Medicaid eligibility documentation, medical records supporting need for nursing facility level of care, financial records (income and asset documentation), and identification[3]"
+        "processing_time": "Not specified in sources",
+        "waitlist": null,
+        "forms": [
+          "Level of Care Eligibility Tool (LOCET) for functional screening[1][2]",
+          "Uniform interRAI home care assessment tool for full assessment[2]"
+        ],
+        "documents": [
+          "Documentation for Medicaid enrollment",
+          "Proof of residency, age/disability, financials (assets/income), NFLOC via LOCET and interRAI assessment[1][2][3]"
+        ]
       },
       "geography": {
         "statewide": true,
-        "restrictions": "Must be Louisiana resident[3]",
-        "regional_variations": "Not specified in search results",
-        "offices_or_providers": "Administered by Louisiana Department of Health, Office of Aging and Adult Services (OAAS)[5]. Specific regional offices not identified in search results."
-      },
-      "official_source": "https://ldh.la.gov/office-of-aging-and-adult-services/LTPCS",
-      "gotchas": [
-        "LT-PCS does NOT provide support coordination — applicant must be able to direct their own care or have a representative do so[1]. This is a critical requirement that disqualifies those unable to manage care direction.",
-        "Program requires Nursing Facility Level of Care determination via LOCET assessment — simply needing help with daily living is insufficient; applicant must meet the specific threshold for nursing home-level care[1][2].",
-        "Income eligibility is NOT based on a fixed dollar amount but on whether income exceeds actual nursing home care costs — this requires individual calculation and may change as care costs fluctuate[6].",
-        "Home equity exemption has a specific dollar cap ($752,000 in 2026) — homes exceeding this value may disqualify applicants[1].",
-        "Applicant must meet ONE of three situational criteria (currently institutionalized, anticipated admission within 120 days, or have elderly/disabled caregiver) — simply needing care is insufficient[2].",
-        "Program is designed for community-based care, not 24-hour supervision or skilled nursing — applicants expecting round-the-clock care may be disappointed[7].",
-        "Must already be receiving Medicaid benefits to qualify — Medicaid eligibility is a prerequisite, not determined through LT-PCS application[2]."
-      ],
-      "data_shape_notes": "LT-PCS eligibility is highly individualized and multi-layered: it requires simultaneous qualification across financial criteria (income/assets), functional criteria (NFLOC via LOCET), situational criteria (one of three specific circumstances), and administrative criteria (Medicaid enrollment, care direction ability). Benefits are not fixed dollar amounts or hours but are determined through individual assessment. Income limits are dynamic (based on care costs, not fixed thresholds). Search results lack specific application procedures, processing timelines, waitlist information, and regional office details — families will need to contact OAAS directly for operational details.",
-      "_raw": "```json\n{\n  \"name\": \"Louisiana Long Term–Personal Care Services (LT-PCS)\",\n  \"eligibility\": {\n    \"age\": \"21 years or older[2]\",\n    \"income_limits\": \"Louisiana is a non-income-cap state. Income eligibility is determined by whether the applicant's income exceeds the cost of nursing home care each month. There is no fixed income limit; rather, if monthly income does not exceed the cost of care, the applicant is income-eligible[6]. Specific dollar amounts vary based on current nursing home costs in Louisiana.\",\n    \"asset_limits\": \"Single applicant resource limit: $2,000 in countable assets[6]. For married applicants, spousal impoverishment rules apply with different thresholds[6]. Home equity exemption (2026): up to $752,000 if applicant lives in home or has intent to return home[1]. Additional non-countable assets include: primary vehicle, personal items (non-investment grade), cash value life insurance (up to $10,000), funeral/burial plans, and individual countable resource allowance (up to $2,000)[6]. Home is exempt if: applicant or spouse lives there, applicant has minor child (under 21) living there, or applicant has blind or disabled child (any age) living there[1].\",\n    \"other_requirements\": [\n      \"Must be a Louisiana resident[3]\",\n      \"Must receive Medicaid benefits (ABD Medicaid)[2][4]\",\n      \"Must qualify for Nursing Facility Level of Care (NFLOC) as determined by Level of Care Eligibility Tool (LOCET)[1][2][5]\",\n      \"Must require at least limited assistance with one Activity of Daily Living (ADL)[2]\",\n      \"Must be able to direct their care independently or through a responsible representative[2]\",\n      \"Must meet ONE of: (1) currently in nursing facility and able to be discharged with community services, OR (2) likely to require nursing facility admission within 120 days, OR (3) have primary caregiver who is disabled or at least 70 years old[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"In-home personal care assistance including: bathing, dressing, grooming, eating, toileting, mobility, transferring in/out of beds or chairs, light housekeeping, meal preparation, medication reminders, laundry, shopping, and help arranging transportation for medical appointments[7]. Program does NOT provide 24-hour supervision or skilled nursing care[7].\",\n    \"varies_by\": \"Individual need (determined through assessment); specific hours and services are individualized based on ADL assessment scores and functional need[5]\"\n  },\n  \"application\": {\n    \"methods\": \"Search results do not provide specific application methods (online URL, phone number, mail address, or in-person office locations). Contact Louisiana Department of Health, Office of Aging and Adult Services (OAAS) for application procedures[2][5].\",\n    \"processing_time\": \"Not specified in search results\",\n    \"waitlist\": \"Not specified in search results\",\n    \"forms\": [\n      \"Level of Care Eligibility Tool (LOCET) — functional eligibility screening[5]\",\n      \"Inter RAI Home Care Assessment Tool — uniform assessment to verify eligibility and determine resource allocation[5]\"\n    ],\n    \"documents\": \"Search results do not specify required documentation. Applicants should prepare: proof of Louisiana residency, Medicaid eligibility documentation, medical records supporting need for nursing facility level of care, financial records (income and asset documentation), and identification[3]\"\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must be Louisiana resident[3]\",\n    \"regional_variations\": \"Not specified in search results\",\n    \"offices_or_providers\": \"Administered by Louisiana Department of Health, Office of Aging and Adult Services (OAAS)[5]. Specific regional offices not identified in search results.\"\n  },\n  \"official_source\": \"https://ldh.la.gov/office-of-aging-and-adult-services/LTPCS\",\n  \"gotchas\": [\n    \"LT-PCS does NOT provide support coordination — applicant must be able to direct their own care or have a representative do so[1]. This is a critical requirement that disqualifies those unable to manage care direction.\",\n    \"Program requires Nursing Facility Level of Care determination via LOCET assessment — simply needing help with daily living is insufficient; applicant must meet the specific threshold for nursing home-level care[1][2].\",\n    \"Income eligibility is NOT based on a fixed dollar amount but on whether income exceeds actual nursing home care costs — this requires individual calculation and may change as care costs fluctuate[6].\",\n    \"Home equity exemption has a specific dollar cap ($752,000 in 2026) — homes exceeding this value may disqualify applicants[1].\",\n    \"Applicant must meet ONE of three situational criteria (currently institutionalized, anticipated admission within 120 days, or have elderly/disabled caregiver) — simply needing care is insufficient[2].\",\n    \"Program is designed for community-based care, not 24-hour supervision or skilled nursing — applicants expecting round-the-clock care may be disappointed[7].\",\n    \"Must already be receiving Medicaid benefits to qualify — Medicaid eligibility is a prerequisite, not determined through LT-PCS application[2].\"\n  ],\n  \"data_shape_notes\": \"LT-PCS eligibility is highly individualized and multi-layered: it requires simultaneous qualification across financial criteria (income/assets), functional criteria (NFLOC via LOCET), situational criteria (one of three specific circumstances), and administrative criteria (Medicaid enrollment, care direction ability). Benefits are not fixed dollar amounts or hours but are determined through individual assessment. Income limits are dynamic (based on care costs, not fixed thresholds). Search results lack specific application procedures, processing timelines, waitlist information, and regional office details — families will need to contact OAAS directly for operational details.\"\n}\n```\n\n## Critical Information for Families\n\n**Before applying, understand these key points:**\n\n**Functional Eligibility is the Gatekeeper:** The most common reason for denial is not meeting the Nursing Facility Level of Care standard[1][2]. This requires assessment through LOCET, which evaluates whether the applicant needs the kind of full-time care normally provided in a nursing home — not just help with some daily activities[4]. Needing assistance with Activities of Daily Living (bathing, dressing, eating, toileting, mobility) is the common pathway to qualification[1].\n\n**Care Direction Requirement:** Unlike some programs, LT-PCS requires applicants to either independently direct their care or designate a responsible representative to do so[1][2]. Applicants with significant cognitive impairment who cannot manage this may be ineligible.\n\n**The 120-Day Window:** If your loved one is not currently in a nursing facility, they must be anticipated to require admission within 120 days to qualify under the second criterion[2]. This creates urgency and requires medical documentation of anticipated need.\n\n**Medicaid is Prerequisite:** LT-PCS is only available to those already enrolled in Louisiana Medicaid (specifically ABD Medicaid)[2][4]. Medicaid eligibility must be established separately before LT-PCS can be considered.\n\n**Search Results Limitations:** The provided sources do not include specific phone numbers, online application portals, processing timelines, waitlist information, or regional office locations. Families should contact the Louisiana Department of Health, Office of Aging and Adult Services directly to obtain these operational details."
-    },
-    {
-      "name": "COAHELPS (East Baton Rouge Council on Aging)",
-      "eligibility": {
-        "age": 60,
-        "income_limits": "No specific income limits or tables provided in sources; proof of income required for certain services like utility assistance, but open to all over 60 in parish[1][5]",
-        "asset_limits": "No asset limits mentioned; no details on what counts or exemptions[1]",
-        "other_requirements": [
-          "Must live in East Baton Rouge Parish[1][3]",
-          "For utility assistance (Entergy Power to Care): at least 60 or disabled, with proof of income, ID, Entergy bill in name, all household bills[1]"
-        ]
-      },
-      "benefits": {
-        "type": "service",
-        "value": "Information & Assistance (assessments, Medicaid apps, care management, utility bill assistance-Entergy/Demco/water/rent, legal aid, insurance counseling, fans/AC/blankets, donated supplies); Meals on Wheels; Congregate hot meals at senior centers; Food Pantry; Senior Activity Centers; Housing referrals (Lotus Village, Dumas House); Home repair referrals; Material aid (wheelchairs, walkers, etc., subject to availability); Incontinence supplies/nutritional supplements (subject to availability); Transportation (Lotus Rides for 60+ or disabled); Disaster preparedness[1][2][5][6][7]",
-        "varies_by": "service|availability"
-      },
-      "application": {
-        "methods": [
-          "Online form: ebrcoa.org/services-application/[5][7]",
-          "Phone: 225.923.8000 (general), ext. 227 for Entergy Power to Care[1][5]",
-          "Email questions: info@ebrcoa.org[3]",
-          "In-person: appointments for assessments/utility aid, senior centers (e.g., Lotus Center)[1][6]"
-        ],
-        "processing_time": "Not specified",
-        "waitlist": null,
-        "forms": [
-          "Services Application form on ebrcoa.org/services-application/[7]",
-          "Ask The Council form on ebrcoa.org/ask-the-council/[3]"
-        ],
-        "documents": [
-          "Proof of Income",
-          "Identification",
-          "Most current Entergy bill (in name)",
-          "All household bills (for utility aid)",
-          "Proof of East Baton Rouge Parish residency[1]"
-        ]
-      },
-      "geography": {
-        "statewide": false,
-        "restrictions": "East Baton Rouge Parish only",
+        "restrictions": null,
         "regional_variations": null,
-        "offices_or_providers": [
-          "East Baton Rouge Parish locations including senior centers (e.g., Karen Crockett – The Lotus Center), Lotus Village, Dumas House[2][6]"
-        ]
+        "offices_or_providers": null
       },
-      "official_source": "https://ebrcoa.org/",
+      "official_source": "https://ldh.la.gov/assets/docs/OAAS/publications/FactSheets/LTPCS-Fact-Sheet.pdf[5]",
       "gotchas": [
-        "Services like material aid/incontinence supplies subject to availability[1]",
-        "Must reside in East Baton Rouge Parish—no statewide access[1][3]",
-        "Utility assistance focused on Entergy (Power to Care) with specific docs; also covers Demco/water/rent but details vary[1][5]",
-        "No income/asset dollar limits stated, but proof of income required for aid[1]",
-        "Open to all 60+ in parish, even short-term needs[5]"
+        "Must already receive Medicaid benefits (ABD); not a standalone program[1][3][5]",
+        "No support coordination included—applicant must self-direct care or have representative[1]",
+        "Home equity limit $752,000 in 2026 applies even if exempt[1]",
+        "Specific NFLOC pathways required via LOCET (e.g., ADL assistance needs)[1][2][3]",
+        "Requests only from participant, legal responsible party, or designated rep[2]"
       ],
-      "data_shape_notes": "Parish-restricted to East Baton Rouge; no fixed income/asset tables; benefits are service-based with availability limits; multiple one-off aids vs. ongoing entitlements",
-      "_raw": "{\n  \"name\": \"COAHELPS (East Baton Rouge Council on Aging)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No specific income limits or tables provided in sources; proof of income required for certain services like utility assistance, but open to all over 60 in parish[1][5]\",\n    \"asset_limits\": \"No asset limits mentioned; no details on what counts or exemptions[1]\",\n    \"other_requirements\": [\"Must live in East Baton Rouge Parish[1][3]\", \"For utility assistance (Entergy Power to Care): at least 60 or disabled, with proof of income, ID, Entergy bill in name, all household bills[1]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Information & Assistance (assessments, Medicaid apps, care management, utility bill assistance-Entergy/Demco/water/rent, legal aid, insurance counseling, fans/AC/blankets, donated supplies); Meals on Wheels; Congregate hot meals at senior centers; Food Pantry; Senior Activity Centers; Housing referrals (Lotus Village, Dumas House); Home repair referrals; Material aid (wheelchairs, walkers, etc., subject to availability); Incontinence supplies/nutritional supplements (subject to availability); Transportation (Lotus Rides for 60+ or disabled); Disaster preparedness[1][2][5][6][7]\",\n    \"varies_by\": \"service|availability\"\n  },\n  \"application\": {\n    \"methods\": [\"Online form: ebrcoa.org/services-application/[5][7]\", \"Phone: 225.923.8000 (general), ext. 227 for Entergy Power to Care[1][5]\", \"Email questions: info@ebrcoa.org[3]\", \"In-person: appointments for assessments/utility aid, senior centers (e.g., Lotus Center)[1][6]\"],\n    \"processing_time\": \"Not specified\",\n    \"waitlist\": null,\n    \"forms\": [\"Services Application form on ebrcoa.org/services-application/[7]\", \"Ask The Council form on ebrcoa.org/ask-the-council/[3]\"],\n    \"documents\": [\"Proof of Income\", \"Identification\", \"Most current Entergy bill (in name)\", \"All household bills (for utility aid)\", \"Proof of East Baton Rouge Parish residency[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"East Baton Rouge Parish only\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\"East Baton Rouge Parish locations including senior centers (e.g., Karen Crockett – The Lotus Center), Lotus Village, Dumas House[2][6]\"]\n  },\n  \"official_source\": \"https://ebrcoa.org/\",\n  \"gotchas\": [\"Services like material aid/incontinence supplies subject to availability[1]\", \"Must reside in East Baton Rouge Parish—no statewide access[1][3]\", \"Utility assistance focused on Entergy (Power to Care) with specific docs; also covers Demco/water/rent but details vary[1][5]\", \"No income/asset dollar limits stated, but proof of income required for aid[1]\", \"Open to all 60+ in parish, even short-term needs[5]\"],\n  \"data_shape_notes\": \"Parish-restricted to East Baton Rouge; no fixed income/asset tables; benefits are service-based with availability limits; multiple one-off aids vs. ongoing entitlements\"\n}"
+      "data_shape_notes": "Tied to Medicaid ABD enrollment with NFLOC via LOCET/interRAI tools; services per individualized plan based on ADL score; multiple eligibility pathways (nursing home transition, imminent need, elderly/disabled caregiver)",
+      "_raw": "{\n  \"name\": \"Louisiana Long Term–Personal Care Services (LT-PCS) Program\",\n  \"eligibility\": {\n    \"age\": \"65+ for elderly or 21+ for disabled[1][5]\",\n    \"income_limits\": \"Must meet Louisiana Medicaid ABD financial eligibility (income and asset limits vary by marital status and program; for single Nursing Home Medicaid applicant in 2026: income limit not specified in sources, asset limit $2,000 in countable assets)[3]\",\n    \"asset_limits\": \"Countable assets limited to $2,000 for single applicant (includes bank accounts, retirement accounts, stocks, bonds, CDs, cash, and other easily convertible assets); home exempt if applicant lives there or intends to return with home equity ≤$752,000 in 2026, or if spouse/minor child (under 21)/blind or disabled child lives there[1][3]\",\n    \"other_requirements\": [\n      \"Louisiana resident\",\n      \"Enrolled in Medicaid (ABD category)\",\n      \"Require Nursing Facility Level of Care (NFLOC), determined by Level of Care Eligibility Tool (LOCET) assessing needs in Activities of Daily Living (ADLs) like transferring, mobility, eating, toileting, hygiene, bathing[1][2][3]\",\n      \"Meet one of: reside in nursing home and able to relocate to community with assistance; anticipated to need nursing home within 120 days; main caregiver disabled or aged 70+[1]\",\n      \"Able to direct own care or have representative (no support coordination provided)[1]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Long-term personal care services and supports in own home or loved one's home to assist with daily living activities (ADLs) for those requiring Nursing Facility Level of Care; provided per approved service plan via uniform interRAI home care assessment determining resource allocation and ADL support needs[1][2][3]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Requests accepted from Medicaid participant, legally responsible individual, or designated representative[2]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"Level of Care Eligibility Tool (LOCET) for functional screening[1][2]\",\n      \"Uniform interRAI home care assessment tool for full assessment[2]\"\n    ],\n    \"documents\": [\n      \"Documentation for Medicaid enrollment\",\n      \"Proof of residency, age/disability, financials (assets/income), NFLOC via LOCET and interRAI assessment[1][2][3]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": null,\n    \"offices_or_providers\": null\n  },\n  \"official_source\": \"https://ldh.la.gov/assets/docs/OAAS/publications/FactSheets/LTPCS-Fact-Sheet.pdf[5]\",\n  \"gotchas\": [\n    \"Must already receive Medicaid benefits (ABD); not a standalone program[1][3][5]\",\n    \"No support coordination included—applicant must self-direct care or have representative[1]\",\n    \"Home equity limit $752,000 in 2026 applies even if exempt[1]\",\n    \"Specific NFLOC pathways required via LOCET (e.g., ADL assistance needs)[1][2][3]\",\n    \"Requests only from participant, legal responsible party, or designated rep[2]\"\n  ],\n  \"data_shape_notes\": \"Tied to Medicaid ABD enrollment with NFLOC via LOCET/interRAI tools; services per individualized plan based on ADL score; multiple eligibility pathways (nursing home transition, imminent need, elderly/disabled caregiver)\"\n}"
     },
     {
-      "name": "Lotus Rides (EBRCOA Transportation)",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE) - Louisiana",
       "eligibility": {
-        "age": 60,
-        "income_limits": "No income limits specified.",
-        "asset_limits": "No asset limits specified.",
+        "age": 55,
+        "income_limits": "Single: $2,163/month; Married couples (both receiving services): $4,326/month[5]",
+        "asset_limits": "Single: less than $2,000; Married couples (both receiving services): less than $3,000. Primary home is excluded from asset calculation[5]",
         "other_requirements": [
-          "Do not have access to their own transportation.",
-          "Currently use public transportation to travel to and from senior centers.",
-          "Facing difficulty in finding reliable transportation due to financial difficulties or disability."
+          "Must live in a PACE provider service area[1][2]",
+          "Must be certified by the State as needing nursing home level of care (NFLOC)[1][4]",
+          "Must be able to live safely in the community with PACE services without jeopardizing health or safety[1][4]",
+          "Cannot be enrolled in Medicare Advantage (Part C) plan, Medicare prepayment plan, or Medicare prescription drug plan[4]",
+          "Cannot be enrolled in hospice services or certain other programs[4]"
         ]
       },
       "benefits": {
         "type": "service",
-        "value": "Free demand-response transportation services to and from senior centers (primarily), medical appointments, and agency events. Available Monday-Friday, 8:00 a.m. to 4:30 p.m. Rides must be scheduled at least 2 business days in advance on a first-come, first-served basis.",
-        "varies_by": "not_applicable"
+        "value": "Comprehensive services determined by individualized assessment and plan of care. Services are provided according to level of need and may include medical care, social services, and long-term care services[2]",
+        "varies_by": "individual_need_assessment"
       },
       "application": {
         "methods": [
-          "Complete transportation application in person at the senior center they attend.",
-          "Phone: (225) 361-0299 (Lotus Ride Line for ride reservations; contact for questions).",
-          "Email: transport@ebrcoa.org (for questions)."
+          "Phone: Baton Rouge – 225-490-0604[2]",
+          "Phone: Greater New Orleans – 504-945-1531[2]",
+          "Phone: Alexandria – 337-470-4500[2]",
+          "Phone: Lafayette – 318-206-1020[2]"
         ],
-        "processing_time": "Not specified.",
-        "waitlist": "Rides scheduled first-come, first-served according to availability; no formal waitlist mentioned.",
+        "processing_time": "Not specified in available sources",
+        "waitlist": "Not specified in available sources",
         "forms": [
-          "Transportation application (completed at senior center)"
+          "LOCET (Level of Care Evaluation Tool) - completed before iHC assessment[1]",
+          "iHC assessment (Integrated Health Care assessment) - confirms NFLOC eligibility[1]",
+          "Level I Preadmission Screening and Resident Review (PASRR) - required before enrollment[1]"
         ],
-        "documents": "Not specified; application completed at senior center."
+        "documents": "Not specified in available sources. Contact local PACE office for specific documentation requirements."
       },
       "geography": {
         "statewide": false,
-        "restrictions": "East Baton Rouge Parish only.",
-        "regional_variations": "No regional variations within East Baton Rouge Parish mentioned.",
+        "restrictions": "PACE is only available in four service areas in Louisiana[2]",
+        "regional_variations": "Program is available only in: Greater New Orleans (select zip codes), Baton Rouge (East and West Baton Rouge), Lafayette (select zip codes), and Alexandria (Rapides and Avoyelles)[2]",
         "offices_or_providers": [
-          "Senior centers in East Baton Rouge Parish (e.g., Antioch Senior Center referenced for related services)"
+          "Baton Rouge office (East and West Baton Rouge parishes)",
+          "Greater New Orleans office (select zip codes)",
+          "Lafayette office (select zip codes)",
+          "Alexandria office (Rapides and Avoyelles parishes)"
         ]
       },
-      "official_source": "https://ebrcoa.org/transportation/",
+      "official_source": "https://ldh.la.gov/assets/docs/OAAS/Manuals/PACE-Manual.pdf and https://ldh.la.gov/assets/docs/OAAS/publications/FactSheets/PACE-Fact-Sheet.pdf",
       "gotchas": [
-        "Limited to East Baton Rouge Parish, not statewide.",
-        "Primarily to/from senior centers; expansion to other destinations planned but current focus is senior centers and agency events.",
-        "Rides require 2 business days advance scheduling and are availability-based.",
-        "Application must be completed at a senior center—no online or mail option specified.",
-        "No mention of costs, but described as free service."
+        "PACE is NOT statewide — availability is limited to four specific geographic areas. Families must first verify their zip code is in a service area before proceeding[2]",
+        "Income and asset limits are strict and lower than many other programs. The $2,163/month income limit for singles is significantly below the federal poverty line for many states[5]",
+        "Applicants must be certified by the State as needing nursing home level of care — this is not self-determined and requires formal assessment[1][4]",
+        "Enrollment is voluntary but requires meeting ALL four core conditions simultaneously; failing any one disqualifies applicants[4][6]",
+        "Medicare/Medicaid enrollment is not required for eligibility, but approximately 90% of participants are dually eligible, suggesting most applicants will need to coordinate with both programs[4]",
+        "Private pay option exists for those not Medicaid-eligible, averaging $4,000–$5,000/month with no co-payments or deductibles, but this is a significant out-of-pocket cost[3]",
+        "Applicants cannot be enrolled in certain other programs (Medicare Advantage, hospice, etc.) — existing coverage must be reviewed before applying[4]",
+        "The program requires an individualized assessment to determine services — there is no standard benefit package, making it difficult to predict exact services without enrollment[2]"
       ],
-      "data_shape_notes": "Restricted to East Baton Rouge Parish seniors attending EBRCOA senior centers; no income/asset tests; application in-person only at senior centers; demand-response with advance booking required.",
-      "_raw": "{\n  \"name\": \"Lotus Rides (EBRCOA Transportation)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No income limits specified.\",\n    \"asset_limits\": \"No asset limits specified.\",\n    \"other_requirements\": [\n      \"Do not have access to their own transportation.\",\n      \"Currently use public transportation to travel to and from senior centers.\",\n      \"Facing difficulty in finding reliable transportation due to financial difficulties or disability.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free demand-response transportation services to and from senior centers (primarily), medical appointments, and agency events. Available Monday-Friday, 8:00 a.m. to 4:30 p.m. Rides must be scheduled at least 2 business days in advance on a first-come, first-served basis.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Complete transportation application in person at the senior center they attend.\",\n      \"Phone: (225) 361-0299 (Lotus Ride Line for ride reservations; contact for questions).\",\n      \"Email: transport@ebrcoa.org (for questions).\"\n    ],\n    \"processing_time\": \"Not specified.\",\n    \"waitlist\": \"Rides scheduled first-come, first-served according to availability; no formal waitlist mentioned.\",\n    \"forms\": [\n      \"Transportation application (completed at senior center)\"\n    ],\n    \"documents\": \"Not specified; application completed at senior center.\"\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"East Baton Rouge Parish only.\",\n    \"regional_variations\": \"No regional variations within East Baton Rouge Parish mentioned.\",\n    \"offices_or_providers\": [\n      \"Senior centers in East Baton Rouge Parish (e.g., Antioch Senior Center referenced for related services)\"\n    ]\n  },\n  \"official_source\": \"https://ebrcoa.org/transportation/\",\n  \"gotchas\": [\n    \"Limited to East Baton Rouge Parish, not statewide.\",\n    \"Primarily to/from senior centers; expansion to other destinations planned but current focus is senior centers and agency events.\",\n    \"Rides require 2 business days advance scheduling and are availability-based.\",\n    \"Application must be completed at a senior center—no online or mail option specified.\",\n    \"No mention of costs, but described as free service.\"\n  ],\n  \"data_shape_notes\": \"Restricted to East Baton Rouge Parish seniors attending EBRCOA senior centers; no income/asset tests; application in-person only at senior centers; demand-response with advance booking required.\"\n}"
+      "data_shape_notes": "PACE in Louisiana is geographically restricted to four service areas with separate phone numbers for each region. Eligibility is binary (meet all requirements or ineligible) rather than tiered. Income and asset limits are fixed by household composition (single vs. married couple). Benefits are individualized by assessment rather than standardized. The program serves a specific population: average participant is 76 years old with multiple complex medical conditions[4]. Processing timelines and waitlist information are not publicly documented in available sources.",
+      "_raw": "```json\n{\n  \"name\": \"Program of All-Inclusive Care for the Elderly (PACE) - Louisiana\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Single: $2,163/month; Married couples (both receiving services): $4,326/month[5]\",\n    \"asset_limits\": \"Single: less than $2,000; Married couples (both receiving services): less than $3,000. Primary home is excluded from asset calculation[5]\",\n    \"other_requirements\": [\n      \"Must live in a PACE provider service area[1][2]\",\n      \"Must be certified by the State as needing nursing home level of care (NFLOC)[1][4]\",\n      \"Must be able to live safely in the community with PACE services without jeopardizing health or safety[1][4]\",\n      \"Cannot be enrolled in Medicare Advantage (Part C) plan, Medicare prepayment plan, or Medicare prescription drug plan[4]\",\n      \"Cannot be enrolled in hospice services or certain other programs[4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive services determined by individualized assessment and plan of care. Services are provided according to level of need and may include medical care, social services, and long-term care services[2]\",\n    \"varies_by\": \"individual_need_assessment\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Baton Rouge – 225-490-0604[2]\",\n      \"Phone: Greater New Orleans – 504-945-1531[2]\",\n      \"Phone: Alexandria – 337-470-4500[2]\",\n      \"Phone: Lafayette – 318-206-1020[2]\"\n    ],\n    \"processing_time\": \"Not specified in available sources\",\n    \"waitlist\": \"Not specified in available sources\",\n    \"forms\": [\n      \"LOCET (Level of Care Evaluation Tool) - completed before iHC assessment[1]\",\n      \"iHC assessment (Integrated Health Care assessment) - confirms NFLOC eligibility[1]\",\n      \"Level I Preadmission Screening and Resident Review (PASRR) - required before enrollment[1]\"\n    ],\n    \"documents\": \"Not specified in available sources. Contact local PACE office for specific documentation requirements.\"\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"PACE is only available in four service areas in Louisiana[2]\",\n    \"regional_variations\": \"Program is available only in: Greater New Orleans (select zip codes), Baton Rouge (East and West Baton Rouge), Lafayette (select zip codes), and Alexandria (Rapides and Avoyelles)[2]\",\n    \"offices_or_providers\": [\n      \"Baton Rouge office (East and West Baton Rouge parishes)\",\n      \"Greater New Orleans office (select zip codes)\",\n      \"Lafayette office (select zip codes)\",\n      \"Alexandria office (Rapides and Avoyelles parishes)\"\n    ]\n  },\n  \"official_source\": \"https://ldh.la.gov/assets/docs/OAAS/Manuals/PACE-Manual.pdf and https://ldh.la.gov/assets/docs/OAAS/publications/FactSheets/PACE-Fact-Sheet.pdf\",\n  \"gotchas\": [\n    \"PACE is NOT statewide — availability is limited to four specific geographic areas. Families must first verify their zip code is in a service area before proceeding[2]\",\n    \"Income and asset limits are strict and lower than many other programs. The $2,163/month income limit for singles is significantly below the federal poverty line for many states[5]\",\n    \"Applicants must be certified by the State as needing nursing home level of care — this is not self-determined and requires formal assessment[1][4]\",\n    \"Enrollment is voluntary but requires meeting ALL four core conditions simultaneously; failing any one disqualifies applicants[4][6]\",\n    \"Medicare/Medicaid enrollment is not required for eligibility, but approximately 90% of participants are dually eligible, suggesting most applicants will need to coordinate with both programs[4]\",\n    \"Private pay option exists for those not Medicaid-eligible, averaging $4,000–$5,000/month with no co-payments or deductibles, but this is a significant out-of-pocket cost[3]\",\n    \"Applicants cannot be enrolled in certain other programs (Medicare Advantage, hospice, etc.) — existing coverage must be reviewed before applying[4]\",\n    \"The program requires an individualized assessment to determine services — there is no standard benefit package, making it difficult to predict exact services without enrollment[2]\"\n  ],\n  \"data_shape_notes\": \"PACE in Louisiana is geographically restricted to four service areas with separate phone numbers for each region. Eligibility is binary (meet all requirements or ineligible) rather than tiered. Income and asset limits are fixed by household composition (single vs. married couple). Benefits are individualized by assessment rather than standardized. The program serves a specific population: average participant is 76 years old with multiple complex medical conditions[4]. Processing timelines and waitlist information are not publicly documented in available sources.\"\n}\n```\n\n## Key Takeaways for Families\n\n**Start with geography:** Before exploring eligibility, confirm your loved one lives in one of the four service areas (Greater New Orleans, Baton Rouge, Lafayette, or Alexandria). If not, PACE is unavailable regardless of other qualifications[2].\n\n**Income and assets are restrictive:** The $2,163/month income limit for singles is substantially lower than many assistance programs[5]. Families should calculate total household income and liquid assets (excluding the primary home) before calling.\n\n**The nursing home level of care requirement is non-negotiable:** This isn't determined by the applicant or family — the State must certify it through formal assessment[1][4]. Applicants typically need extensive assistance with Activities of Daily Living (bathing, grooming, toileting, walking, transferring, eating)[3].\n\n**Community safety is assessed:** Even if someone meets all other criteria, they must be able to live safely in the community with PACE support. Conditions like inability to call for emergency assistance or need for 24/7 skilled care may disqualify applicants[1].\n\n**Call your regional office first:** Application begins with a phone call to the local PACE office for your area[2]. They will guide you through assessments (LOCET, iHC, and PASRR) and determine eligibility.\n\n**Processing timeline is unclear:** Available sources do not specify how long eligibility determination takes or whether waitlists exist[1][2]. Contact your regional office for this critical information."
     }
   ]
 }

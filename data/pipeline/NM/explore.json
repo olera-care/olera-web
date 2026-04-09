@@ -4,32 +4,46 @@
   "state": "NM",
   "stateName": "New Mexico",
   "isRegion": false,
-  "exploredAt": "2026-04-09T08:56:45.226Z",
-  "programCount": 3,
+  "exploredAt": "2026-04-09T09:37:49.681Z",
+  "programCount": 5,
   "programs": [
     {
+      "name": "Centennial Care Community Benefit Program",
+      "what_it_does": "Provides in-home and community-based long-term services and supports to help individuals live at home or in community settings rather than in long-term care facilities. Services range from personal care assistance to employment supports and home modifications.[5]",
+      "who_its_for": "ABD Medicaid recipients and full-coverage Medicaid members enrolled with a Medicaid Managed Care Organization (MCO) who require assistance with at least two Activities of Daily Living.[1][5]",
+      "official_url": "hca.nm.gov/community-benefit-program/",
+      "benefit_value": "Services based on individual needs, including personal care, bathing, dressing, employment supports, and home safety modifications.[5]"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "Provides comprehensive long-term care services and supports through an integrated program model. Available to ABD Medicaid beneficiaries who demonstrate medical need for long-term care.[1]",
+      "who_its_for": "ABD Medicaid recipients with demonstrated medical need for long-term care services.[1]",
+      "official_url": "Not provided in search results",
+      "benefit_value": "Comprehensive long-term care services (specific benefits not detailed in available results)"
+    },
+    {
       "name": "Community Benefit Program",
-      "what_it_does": "This program pays for long-term services and supports to help seniors remain in their homes rather than moving to nursing homes or institutional settings. Covered services include home health and personal care for those needing nursing facility level assistance.[1]",
-      "who_its_for": "New Mexico residents aged 60+ requiring nursing facility level of care (help with at least two activities of daily living) and meeting Medicaid financial eligibility.[1]",
-      "whats_unique": "New Mexico consolidated several previous waiver programs into this single state-specific initiative focused on community-based long-term care as an alternative to institutionalization.[1]",
-      "official_url": "https://assets.ctfassets.net/61iwodu7d9u0/7FW8Xx97i2bt9ViUdhNBjJ/bddf4eac534605352d3940ad6d82316c/MC-3398191-state-resource-pages--new-mexico.pdf",
-      "benefit_value": "Varies; covers long-term services like home health based on assessed needs (call (855) 637-432-2080 for waiting list).[1]"
+      "what_it_does": "This New Mexico Medicaid program provides long-term services and supports to help members live at home or in community settings rather than in long-term care facilities. Covered services include personal care assistance with daily activities like bathing and dressing, employment supports, and home modifications for safety and accessibility, tailored to individual needs.[1][6]",
+      "who_its_for": "New Mexico residents enrolled in full-coverage Medicaid who require a nursing facility level of care; those not yet qualifying can join a waiting list via the Aging and Disability Resource Center.[1][6]",
+      "whats_unique": "New Mexico consolidated several previous waiver programs into this single program specifically aimed at enabling seniors to stay in their homes instead of institutional settings, distinguishing it from standard federal Medicaid waivers.[1][6]",
+      "official_url": "https://www.hca.nm.gov/community-benefit-program/",
+      "benefit_value": "Varies by individual needs; covers costs of approved long-term services and supports without fixed dollar amount specified."
     },
     {
       "name": "New Mexico Senior Farmers' Market Nutrition Program (SFMNP)",
-      "what_it_does": "Provides low-income seniors with electronic cards or a mobile app to purchase fresh, locally grown fruits, vegetables, herbs, and honey at farmers' markets and roadside stands. It supports senior nutrition while boosting local farmers through direct sales and produce delivery.[3]",
-      "who_its_for": "Income-eligible seniors/elders (typically 60+) participating in or qualifying under USDA and state income guidelines.[3]",
-      "whats_unique": "Combines federal USDA SFMNP with additional state-funded benefits up to $100 per season (upon availability), exceeding standard federal allotments.[3]",
+      "what_it_does": "This program provides low-income seniors with electronic cards or a mobile app pre-loaded with benefits to purchase fresh, locally grown fruits, vegetables, herbs, and honey at farmers' markets, roadside stands, or food hubs. It promotes seniors' health and nutrition while supporting local farmers through direct sales.[3]",
+      "who_its_for": "Income-eligible seniors/elders (typically 60+) who are New Mexico residents; exact income thresholds align with USDA low-income guidelines.[3]",
+      "whats_unique": "NM supplements the federal USDA SFMNP with additional state-funded benefits on top of the federal allotment, offered upon availability, which not all states provide.[3]",
       "official_url": "https://www.nmwic.org/fmnp/",
-      "benefit_value": "Federal: up to $50; State: up to $100 per farmers market season (upon availability).[3]"
+      "benefit_value": "Federal: Up to $50 per eligible senior per farmers market season; State: Up to $100 additional (upon availability)."
     },
     {
-      "name": "PNM Good Neighbor Fund",
-      "what_it_does": "Offers assistance with essential utility bills to help income-qualified households manage energy costs. It targets vulnerable groups including seniors to prevent service disconnections.[9]",
-      "who_its_for": "Income-qualified customers of PNM (Public Service Company of New Mexico), including seniors.[9]",
-      "whats_unique": "State-specific utility fund administered by New Mexico's largest electric provider, providing targeted energy relief beyond federal LIHEAP programs.[9]",
-      "official_url": "https://www.pnm.com/goodneighborfund",
-      "benefit_value": "Varies based on income and bill amount; provides direct utility bill payments.[9]"
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "This program offers paid part-time work experience to eligible seniors at minimum wage for 20 hours per week in community service roles. It helps unemployed low-income seniors gain skills and employment opportunities.[4]",
+      "who_its_for": "New Mexico residents aged 55+, unemployed, with income at or below 125% of the federal poverty level.[4]",
+      "whats_unique": "While federally funded under the Older Americans Act, it is administered through New Mexico's aging network with state-specific implementation and emphasis on local residency and poverty thresholds.[4]",
+      "official_url": "https://www.aging.nm.gov/aging-network/senior-centers/",
+      "benefit_value": "Minimum wage pay for 20 hours per week."
     }
   ]
 }

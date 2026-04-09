@@ -1,23 +1,22 @@
 {
   "state": "HI",
   "stateName": "Hawaii",
-  "classifiedAt": "2026-04-09T08:51:01.051Z",
-  "total": 14,
+  "classifiedAt": "2026-04-09T09:31:47.397Z",
+  "total": 13,
   "typeSummary": {
     "benefit": 9,
-    "navigator": 1,
-    "resource": 3,
-    "employment": 1
+    "employment": 1,
+    "resource": 3
   },
   "scopeSummary": {
-    "state": 6,
-    "local": 1,
-    "federal": 7
+    "state": 4,
+    "local": 3,
+    "federal": 6
   },
   "complexitySummary": {
-    "deep": 8,
-    "medium": 2,
-    "simple": 4
+    "deep": 9,
+    "simple": 3,
+    "medium": 1
   },
   "programs": [
     {
@@ -28,15 +27,11 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Med-QUEST Division, Department of Human Services.",
+            "name": "Med-QUEST Division (Department of Human Services).",
             "type": "service-area"
           },
           {
-            "name": "Developmental Disabilities Division (DDD), Department of Health[2].",
-            "type": "service-area"
-          },
-          {
-            "name": "HDOH Non-Discrimination Coordinator: (808) 586-4400[2].",
+            "name": "Developmental Disabilities Division (DOH)[2][4].",
             "type": "service-area"
           }
         ]
@@ -62,19 +57,25 @@
       }
     },
     {
-      "name": "Hawai'i PACE (Program of All-Inclusive Care for the Elderly)",
+      "name": "Hawai‘i PACE (Program of All-Inclusive Care for the Elderly)",
       "programType": "benefit",
       "geographicScope": {
         "type": "local",
-        "stateVariation": false
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Limited to PACE provider locations in Hawaii (exact sites not listed in results)",
+            "type": "service-area"
+          }
+        ]
       },
       "complexity": "deep",
       "recommendedSections": [
         "prose",
         "what-counts",
+        "tier-comparison",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "service",
@@ -82,7 +83,7 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
+        "hasMultipleTiers": true,
         "isStatewide": false
       }
     },
@@ -94,43 +95,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Hawaii Medicaid (MedQuest) administers these programs[10]",
-            "type": "service-area"
-          },
-          {
-            "name": "Specific office locations not provided in search results",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "unknown",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "SNAP (Supplemental Nutrition Assistance Program)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local DHS Benefit, Employment & Support Services Division (BESSD) offices on Oahu, Maui, Hawaii Island, Kauai.",
+            "name": "MedQUEST district offices on Oahu (Kapolei), Maui, Big Island, Kauai.",
             "type": "service-area"
           }
         ]
@@ -140,8 +105,10 @@
         "prose",
         "income-table",
         "what-counts",
+        "tier-comparison",
         "documents",
-        "county-directory"
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "financial",
@@ -149,95 +116,23 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
     {
-      "name": "Hawaii Home Energy Assistance Program (H-HEAP, formerly LIHEAP)",
-      "programType": "navigator",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Oahu: Honolulu Community Action Program (HCAP) - Central (808) 488-6834, Kalihi/Palama (808) 847-0804, Leahi (808) 732-7755, Leeward (808) 696-4261, Windward (808) 239-5754[2]",
-            "type": "service-area"
-          },
-          {
-            "name": "Maui County: Maui Economic Opportunity (MEO)[2]",
-            "type": "service-area"
-          },
-          {
-            "name": "Hawaii Island: Hawaii County Economic Opportunity Council (HCEOC)[2]",
-            "type": "service-area"
-          },
-          {
-            "name": "Kauai: Kauai Economic Opportunity, Inc.[4]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "provider-list"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Sage PLUS (SHIP - State Health Insurance Assistance Program)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Administered statewide by Hawaii Department of Health, Executive Office on Aging; volunteer-based with local certified counselors",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Home-Delivered Meals (Meals on Wheels)",
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Hawaii Meals on Wheels: Oahu, (808) 988-6747, hmow.org.[1][6]",
+            "name": "Hawaii Department of Human Services (primary state agency)[7]",
             "type": "service-area"
           },
           {
-            "name": "Lanakila Pacific: Oahu island-wide.[4]",
-            "type": "service-area"
-          },
-          {
-            "name": "Hale Mahaolu Kitchen (Maui?): (808) 872-4170.[6]",
+            "name": "Lanakila Pacific (SNAP Outreach organization offering application assistance)[7]",
             "type": "service-area"
           }
         ]
@@ -252,32 +147,36 @@
         "callout"
       ],
       "signals": {
-        "benefitType": "service",
+        "benefitType": "financial",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
+        "hasFunctionalReq": false,
         "hasMultipleTiers": false,
-        "isStatewide": false
+        "isStatewide": true
       }
     },
     {
-      "name": "Executive Office on Aging Family Caregiver Support Program",
+      "name": "Low Income Home Energy Assistance Program (LIHEAP)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
+        "type": "federal",
+        "stateVariation": true,
         "localEntities": [
           {
-            "name": "Honolulu: Elderly Affairs Division (808-768-7700, elderlyaffairs.com)[6]",
+            "name": "Oahu: Honolulu Community Action Program (HCAP)",
             "type": "service-area"
           },
           {
-            "name": "Neighbor Islands: 1-800-570-1101[1]",
+            "name": "Maui County: Maui Economic Opportunity (MEO)",
             "type": "service-area"
           },
           {
-            "name": "Statewide ADRC via EOA[4]",
+            "name": "Hawaii Island: Hawaii County Economic Opportunity Council (HCEOC)",
+            "type": "service-area"
+          },
+          {
+            "name": "Kauai: Kauai Economic Opportunity, Inc.",
             "type": "service-area"
           }
         ]
@@ -285,6 +184,39 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "HCAP (Oahu), HCEOC (47 Rainbow Dr, Hilo), KEO (Kauai), state OCS.[1][3][5][6]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
         "what-counts",
         "tier-comparison",
         "documents",
@@ -293,7 +225,44 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": true,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Family Caregiver Support Program",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "ALU LIKE, Inc. for Native Hawaiian Caregiver Support Program[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Kupuna Caregivers Program (state-funded, call 808-768-7700)[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "tier-comparison",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
@@ -309,7 +278,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Statewide: DLIR Workforce Development Division",
+            "name": "Statewide: DLIR Workforce Development Division, Honolulu",
             "type": "service-area"
           },
           {
@@ -331,7 +300,7 @@
       "signals": {
         "benefitType": "employment",
         "hasIncomeTiers": true,
-        "hasAssetLimits": false,
+        "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": true,
@@ -339,30 +308,23 @@
       }
     },
     {
-      "name": "Legal Aid Society of Hawaii Elder Law Program",
+      "name": "Legal Assistance for Seniors in Hawaii",
       "programType": "resource",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Main office: 924 Bethel Street, Honolulu, HI 96813-4304 (not open for walk-ins)[5][7]",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": false
       },
       "complexity": "simple",
       "recommendedSections": [
-        "prose",
-        "county-directory"
+        "prose"
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
@@ -374,7 +336,11 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Executive Office on Aging (EOA), Department of Health, Honolulu; statewide certified ombudsmen volunteers.",
+            "name": "Primary office: Executive Office on Aging, Department of Health, 250 S. Hotel St., Ste. 406, Honolulu, HI 96813[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "State Long-Term Care Ombudsman: John G. McDermott[4]",
             "type": "service-area"
           }
         ]
@@ -395,14 +361,14 @@
       }
     },
     {
-      "name": "Kūpuna Aging in Place (KAP)",
+      "name": "Kupuna Caregivers Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Hawaiʻi Community Foundation-funded 501(c)(3) nonprofits statewide",
+            "name": "Contact local AAA via ADRC for county-specific offices (e.g., Honolulu Elderly Affairs Division).[1][7]",
             "type": "service-area"
           }
         ]
@@ -428,13 +394,19 @@
       }
     },
     {
-      "name": "Kūpuna Care Program",
+      "name": "Kumu Kahi – Ke Ola Pono No Nā Kūpuna Program",
       "programType": "benefit",
       "geographicScope": {
-        "type": "state",
-        "stateVariation": false
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Administered by ALU LIKE, Inc. Kumu Kahi Department; sites on Hawaii, Kauai, Maui, Molokai, Oahu[1][4]",
+            "type": "service-area"
+          }
+        ]
       },
-      "complexity": "deep",
+      "complexity": "medium",
       "recommendedSections": [
         "prose",
         "what-counts",
@@ -447,44 +419,37 @@
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
+        "hasFunctionalReq": false,
         "hasMultipleTiers": false,
-        "isStatewide": true
+        "isStatewide": false
       }
     },
     {
-      "name": "Senior Food Box Program (CSFP)",
-      "programType": "benefit",
+      "name": "Kumu Kahi – Native American Caregivers Support Program",
+      "programType": "resource",
       "geographicScope": {
-        "type": "state",
+        "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Hawaii Foodbank (primary provider for Oahu): 2611 Kilihau St., Honolulu, HI 96819[1]",
-            "type": "service-area"
-          },
-          {
-            "name": "Services available statewide through Hawaii Department of Labor and Industrial Relations[3]",
+            "name": "ALU LIKE, Inc., 550 Paiea St., Suite 226, Honolulu, HI 96819",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "medium",
+      "complexity": "simple",
       "recommendedSections": [
         "prose",
-        "income-table",
-        "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
-        "benefitType": "in_kind",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": false,
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
+        "hasMultipleTiers": true,
+        "isStatewide": false
       }
     }
   ]

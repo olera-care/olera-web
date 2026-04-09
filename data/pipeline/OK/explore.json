@@ -1,4 +1,111 @@
 {
-  "programs": [],
-  "raw": "Based on the search results provided, I can only partially address your request, as the results contain limited information about Oklahoma's senior benefit programs. Here is what I can confirm from the search results:\n\n**Programs with Oklahoma-specific information:**\n\n```json\n[\n  {\n    \"name\": \"SoonerCare\",\n    \"what_it_does\": \"Oklahoma's Medicaid program that provides health care coverage. Serves children under 19, adults with children under 18, pregnant women, and people over 65 or with blindness or disabilities.[7]\",\n    \"who_its_for\": \"People over 65, individuals with disabilities, and other qualifying populations[7]\",\n    \"official_url\": \"okdhs.org\",\n    \"benefit_value\": \"Health care coverage (specific benefit amounts not detailed in search results)\"\n  },\n  {\n    \"name\": \"ADvantage Services\",\n    \"what_it_does\": \"A home-and community-based services Medicaid waiver program that helps people stay at home and in the community instead of nursing homes. Services include case management, personal care, home-delivered meals, skilled nursing, and adult day health.[1]\",\n    \"who_its_for\": \"People age 65+ or adults age 21-64 with physical or other disabilities who qualify financially for SoonerCare Medicaid and meet medical Level of Care criteria[1]\",\n    \"official_url\": \"oklahoma.gov/okdhs/services/aging/pas.html\",\n    \"benefit_value\": \"Varies by service type (specific amounts not detailed)\"\n  },\n  {\n    \"name\": \"State Health Insurance Counseling Program (SHIP)\",\n    \"what_it_does\": \"Provides free counseling and assistance with Medicare questions and enrollment. Part of Oklahoma's Medicare Assistance Program funded by the Administration for Community Living.[2]\",\n    \"who_its_for\": \"Medicare beneficiaries and seniors with Medicare questions[2]\",\n    \"official_url\": \"oid.ok.gov/consumers/information-for-seniors/\",\n    \"benefit_value\": \"Free counseling services (contact: 800-763-2828)\"\n  },\n  {\n    \"name\": \"Older Americans Act (Title III) Programs\",\n    \"what_it_does\": \"Provides congregate and home-delivered meals, health promotion, nutrition education, in-home assistance, transportation, and caregiver support through Area Agencies on Aging.[4]\",\n    \"who_its_for\": \"Seniors 60 and over, individuals with disabilities, and low-income individuals[4]\",\n    \"official_url\": \"oklahoma.gov/okdhs/services/aging/titleiii.html\",\n    \"benefit_value\": \"Meals meet one-third of recommended daily nutritional requirements; specific service amounts vary\"\n  },\n  {\n    \"name\": \"Respite Voucher Program\",\n    \"what_it_does\": \"Provides voucher payments to family caregivers so they can pay another person to care for their loved one and take a break from caregiving duties.[7]\",\n    \"who_its_for\": \"Family caregivers of seniors and disabled individuals[7]\",\n    \"official_url\": \"okdhs.org/services/dd/Pages/RVPp.aspx\",\n    \"benefit_value\": \"Voucher amounts not specified in search results\"\n  },\n  {\n    \"name\": \"Supplemental Nutrition Assistance Program (SNAP)\",\n    \"what_it_does\": \"Federal program providing monthly benefits to purchase food. Available to eligible low-income seniors.[7]\",\n    \"who_its_for\": \"Low-income seniors and other qualifying individuals[7]\",\n    \"official_url\": \"Not provided in search results\",\n    \"benefit_value\": \"Monthly benefit amount (specific amounts not detailed)\"\n  },\n  {\n    \"name\": \"Commodity Supplemental Food Program (CSFP)\",\n    \"what_it_does\": \"Provides commodity food boxes to low-income seniors monthly, containing 16-20 items such as pasta, canned meats, fruits, vegetables, cheese, milk, and cereal.[7]\",\n    \"who_its_for\": \"Low-income seniors[7]\",\n    \"official_url\": \"regionalfoodbank.org/get-help/csfp-program\",\n    \"benefit_value\": \"One box monthly with 16-20 food items\"\n  }\n]\n```\n\n**Programs not covered in search results:** The search results do not contain specific information about PACE, Medicare Savings programs (QMB, SLMB, QI), LIHEAP, Weatherization, Senior Medicare Patrol fraud prevention details, Senior Community Service Employment Program (SCSEP), legal aid for seniors, or the long-term care ombudsman program as administered in Oklahoma. To obtain complete information on all requested programs, contact the **Senior Info Line at 1-800-211-2116** or visit your local Area Agency on Aging.[7]"
+  "entity": "Oklahoma",
+  "entitySlug": "oklahoma",
+  "state": "OK",
+  "stateName": "Oklahoma",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T09:39:10.181Z",
+  "programCount": 14,
+  "programs": [
+    {
+      "name": "SoonerCare",
+      "what_it_does": "SoonerCare is Oklahoma's Medicaid program providing health care coverage. It serves seniors, disabled individuals, children, pregnant women, and adults with children.[7]",
+      "who_its_for": "People older than 65, those with blindness or disabilities, low-income children under 19, pregnant women, and adults with children under 18.[7]",
+      "official_url": "http://www.okdhs.org/services/health/Pages/soonercare.aspx",
+      "benefit_value": "Varies by eligibility; covers medical services for qualified low-income individuals."
+    },
+    {
+      "name": "ADvantage Waiver Program",
+      "what_it_does": "Provides home and community-based services (HCBS) such as personal care assistance, assisted living, adult day health care, home modifications, and meals for elderly or disabled individuals at risk of nursing home placement. Services allow participants to live in their own home, a family member's home, or approved assisted living rather than institutional settings.[2]",
+      "who_its_for": "Oklahoma residents aged 65+ or disabled adults aged 21-64 at risk of nursing home placement; excludes those with developmental disabilities involving cognitive or intellectual impairment.[2]",
+      "whats_unique": "Oklahoma's state-specific Medicaid waiver program tailored to prevent institutionalization with customizable HCBS, including transition services from nursing homes; not a standard federal program but a state-administered waiver.[2]",
+      "official_url": "https://www.medicaidplanningassistance.org/oklahoma-advantage-waiver/",
+      "benefit_value": "Varies by need; includes personal care hours, home modifications (e.g., ramps, grab bars), meals, and assistive technology; no fixed dollar amount as services are in-kind.[2]"
+    },
+    {
+      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
+      "what_it_does": "No specific Oklahoma program details found in search results.",
+      "who_its_for": "Not specified; limited information available.",
+      "official_url": "",
+      "benefit_value": "Insufficient data from sources."
+    },
+    {
+      "name": "Medicare Savings Program",
+      "what_it_does": "Oklahoma's Medicare Savings Program (includes QMB, SLMB, QI) helps pay Medicare premiums, deductibles, and cost-sharing. It provides low-income subsidy or 'Extra Help' for prescription drugs.[6]",
+      "who_its_for": "Low-income seniors eligible for Medicare.[6]",
+      "official_url": "",
+      "benefit_value": "Covers Medicare Part A/B premiums, deductibles, coinsurance, and copayments; Extra Help for Part D."
+    },
+    {
+      "name": "SNAP",
+      "what_it_does": "The federal Supplemental Nutrition Assistance Program (SNAP) provides a monthly benefit to buy food. It is administered through Oklahoma DHS.[7]",
+      "who_its_for": "Low-income individuals, including seniors.[7]",
+      "official_url": "",
+      "benefit_value": "Monthly EBT benefits for eligible food purchases."
+    },
+    {
+      "name": "LIHEAP",
+      "what_it_does": "No specific Oklahoma details found in search results.",
+      "who_its_for": "Not specified; limited information available.",
+      "official_url": "",
+      "benefit_value": "Insufficient data from sources."
+    },
+    {
+      "name": "Weatherization",
+      "what_it_does": "No specific Oklahoma senior program details found in search results.",
+      "who_its_for": "Not specified; limited information available.",
+      "official_url": "",
+      "benefit_value": "Insufficient data from sources."
+    },
+    {
+      "name": "State Health Insurance Counseling Program (SHIP)",
+      "what_it_does": "SHIP provides free counseling on Medicare options, including Medicare Advantage, Part D, and supplemental plans. It is part of the Medicare Assistance Program funded by ACL grants.[2]",
+      "who_its_for": "Oklahoma Medicare beneficiaries, especially seniors.[2]",
+      "official_url": "https://www.oid.ok.gov/consumers/information-for-seniors/",
+      "benefit_value": "Free one-on-one counseling; contact 800-763-2828."
+    },
+    {
+      "name": "Home Delivered Meals (under Title III)",
+      "what_it_does": "Home Delivered Meals provide nutritious meals to homebound seniors meeting one-third of daily nutritional requirements. Meals are planned by registered dietitians.[4]",
+      "who_its_for": "Seniors 60+, caregivers, individuals with disabilities, low-income persons.[4]",
+      "official_url": "https://oklahoma.gov/okdhs/services/aging/titleiii.html",
+      "benefit_value": "Home-delivered nutritionally balanced meals."
+    },
+    {
+      "name": "Respite Voucher Program",
+      "what_it_does": "The Respite Voucher Program funds vouchers for caregivers to pay others for temporary care, providing breaks from caregiving duties. It supports family caregivers.[7][4]",
+      "who_its_for": "Family caregivers of older adults or those with disabilities.[7]",
+      "official_url": "http://www.okdhs.org/services/dd/Pages/RVPp.aspx",
+      "benefit_value": "Voucher payments for respite care services."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "No specific Oklahoma details found in search results.",
+      "who_its_for": "Not specified; limited information available.",
+      "official_url": "",
+      "benefit_value": "Insufficient data from sources."
+    },
+    {
+      "name": "Legal aid for seniors",
+      "what_it_does": "No specific Oklahoma program name or details found in search results.",
+      "who_its_for": "Not specified; limited information available.",
+      "official_url": "",
+      "benefit_value": "Insufficient data from sources."
+    },
+    {
+      "name": "Long-term care ombudsman",
+      "what_it_does": "No specific Oklahoma program details found in search results.",
+      "who_its_for": "Not specified; limited information available.",
+      "official_url": "",
+      "benefit_value": "Insufficient data from sources."
+    },
+    {
+      "name": "Senior Farmers’ Market Nutrition Program (SFMNP)",
+      "what_it_does": "Offers financial support in the form of vouchers for low-income seniors to purchase fresh produce from local farmers’ markets. Promotes nutrition and access to healthy foods through state-coordinated incentives.[1]",
+      "who_its_for": "Low-income seniors in Oklahoma, typically those eligible for similar federal nutrition programs.[1]",
+      "whats_unique": "Oklahoma's state-implemented version provides targeted financial assistance for fresh produce at local markets, supplementing federal efforts with state-specific administration and focus.[1]",
+      "official_url": "https://myeasywireless.com/senior-benefits-in-oklahoma/",
+      "benefit_value": "Financial vouchers for fresh produce purchases; exact amount varies by program funding and eligibility (typically $20-$50 annually per participant based on similar state programs).[1]"
+    }
+  ]
 }

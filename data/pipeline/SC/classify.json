@@ -1,57 +1,54 @@
 {
   "state": "SC",
   "stateName": "South Carolina",
-  "classifiedAt": "2026-04-09T09:00:42.912Z",
-  "total": 13,
+  "classifiedAt": "2026-04-09T09:41:20.985Z",
+  "total": 15,
   "typeSummary": {
-    "benefit": 9,
+    "navigator": 1,
+    "benefit": 10,
     "resource": 3,
     "employment": 1
   },
   "scopeSummary": {
-    "state": 5,
-    "local": 2,
-    "federal": 6
+    "state": 6,
+    "local": 1,
+    "federal": 8
   },
   "complexitySummary": {
-    "deep": 6,
-    "simple": 3,
+    "simple": 4,
+    "deep": 7,
     "medium": 4
   },
   "programs": [
     {
       "name": "Healthy Connections Medicaid",
-      "programType": "benefit",
+      "programType": "navigator",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local county offices",
+            "name": "Administered statewide by South Carolina Department of Health and Human Services (SCDHHS)[2]",
             "type": "service-area"
           },
           {
-            "name": "Family Health Centers (e.g., 803-531-6900)",
+            "name": "Local county offices available for in-person applications[6]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "deep",
+      "complexity": "simple",
       "recommendedSections": [
         "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory"
+        "provider-list"
       ],
       "signals": {
-        "benefitType": "service",
+        "benefitType": "financial",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
@@ -63,11 +60,11 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local county SCDHHS offices",
+            "name": "Local county Health and Human Services offices",
             "type": "service-area"
           },
           {
-            "name": "Community Long Term Care (CLTC) Offices[5]",
+            "name": "Community Long Term Care (CLTC) Offices",
             "type": "service-area"
           }
         ]
@@ -93,14 +90,14 @@
       }
     },
     {
-      "name": "South Carolina PACE",
+      "name": "South Carolina PACE (Program of All-Inclusive Care for the Elderly)",
       "programType": "benefit",
       "geographicScope": {
         "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Service areas noted on SCDHHS site; specific counties not listed in results.",
+            "name": "SCDHHS-managed; contact via https://www.scdhhs.gov/partners/managed-care/program-all-inclusive-care-elderly-pace for local providers[8]",
             "type": "service-area"
           }
         ]
@@ -128,10 +125,119 @@
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
+        "stateVariation": true
+      },
+      "complexity": "medium",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": false,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "SCDHHS county offices across South Carolina",
+            "name": "Local DSS county offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "GLEAMNS Human Resources Commission, Inc.: 301 N. Hospital Street, Greenwood, SC 29646; Phone: 864.229.8862; serves Abbeville, Edgefield, Greenwood, Laurens, McCormick, Newberry, and Saluda counties[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "SHARE: serves specific South Carolina regions (exact service area not fully detailed in sources)[8]",
+            "type": "service-area"
+          },
+          {
+            "name": "Additional Community Action Agencies serve other South Carolina counties (contact Governor's Office of Economic Opportunity for county-specific referral)[4]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Carolina Community Actions (specific counties).",
+            "type": "service-area"
+          },
+          {
+            "name": "ABCCAA (specific counties).",
+            "type": "service-area"
+          },
+          {
+            "name": "Palmetto Community Action Partnership (Charleston, Berkeley, Dorchester, Beaufort, Jasper).",
+            "type": "service-area"
+          },
+          {
+            "name": "Other agencies listed in SC State Plan via OEO.",
             "type": "service-area"
           }
         ]
@@ -147,7 +253,7 @@
         "callout"
       ],
       "signals": {
-        "benefitType": "financial",
+        "benefitType": "service",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
@@ -157,50 +263,14 @@
       }
     },
     {
-      "name": "LIHEAP (Home Energy Assistance)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local Community Action Agencies (full map: oeo.sc.gov).[4][5]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "SHIP (I-Care) — State Health Insurance Assistance Program",
+      "name": "I-Care (SHIP)",
       "programType": "resource",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Primary office: Lt. Governor's Office on Aging, 1301 Gervais Street, Suite 350, Columbia, SC 29201",
-            "type": "service-area"
-          },
-          {
-            "name": "Counseling available statewide via phone",
+            "name": "Lt. Governor’s Office on Aging (central office), local Area Agencies on Aging.[3][5][8]",
             "type": "service-area"
           }
         ]
@@ -214,37 +284,37 @@
         "benefitType": "advocacy",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
-        "hasRegionalVariation": false,
+        "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "Meals on Wheels",
+      "name": "SC Meals on Wheels",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Meals on Wheels Summerville (mowsummerville.org)[3]",
+            "name": "Meals on Wheels of Summerville (mowsummerville.org)[3]",
             "type": "service-area"
           },
           {
-            "name": "Meals on Wheels Horry County (mowhc.org)[5]",
+            "name": "Pickens County Meals on Wheels (pcmow.org)[6]",
             "type": "service-area"
           },
           {
-            "name": "Meals on Wheels Palmetto (mealsonwheelspalmetto.com, all counties)[6]",
+            "name": "Meals on Wheels of Horry County (mowhc.org)[5]",
             "type": "service-area"
           },
           {
-            "name": "Meals on Wheels Upstate SC (upstatemow.org, Seneca/Anderson pickup)[9]",
+            "name": "Berkeley Seniors / Trident AAA (berkeleyseniors.org, 843-554-2275)[9]",
             "type": "service-area"
           },
           {
-            "name": "Local Area Agencies on Aging[1]",
+            "name": "Upstate Meals on Wheels (upstatemow.org, 1-888-516-4788)[8]",
             "type": "service-area"
           }
         ]
@@ -268,65 +338,18 @@
       }
     },
     {
-      "name": "South Carolina Family Caregiver Support Program & Respite Care Services",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local Area Agencies on Aging (for Family Caregiver Support Program)[1]",
-            "type": "service-area"
-          },
-          {
-            "name": "Local DHHS Community Long-term Care Offices[2]",
-            "type": "service-area"
-          },
-          {
-            "name": "Licensed Community Residential Care Facilities (CRCF) contracted with SCDHHS[3]",
-            "type": "service-area"
-          },
-          {
-            "name": "SC Respite Coalition (coordinates voucher program and lifespan respite)[1][6]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "in_kind + service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "SCSEP (Senior Community Service Employment Program)",
+      "name": "SC Senior Community Service Employment Program (SCSEP)",
       "programType": "employment",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "SC Department on Aging (aging.sc.gov)[1]",
+            "name": "Palmetto Goodwill (SC-specific)",
             "type": "service-area"
           },
           {
-            "name": "Palmetto Goodwill (palmettogoodwill.org, (843) 408-6030)[3]",
-            "type": "service-area"
-          },
-          {
-            "name": "Goodwill Industries of Upstate/Midlands SC (goodwillsc.org)[6]",
+            "name": "Other national grantees like AARP Foundation may operate in SC[3][6]",
             "type": "service-area"
           }
         ]
@@ -348,22 +371,18 @@
       }
     },
     {
-      "name": "Legal Aid for Seniors",
+      "name": "SC Legal Help for Seniors",
       "programType": "resource",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local Councils on Aging/Area Agencies on Aging (10 statewide).",
+            "name": "Area Agencies on Aging throughout SC",
             "type": "service-area"
           },
           {
-            "name": "SC Legal Services regional offices.",
-            "type": "service-area"
-          },
-          {
-            "name": "SC Bar statewide referral.",
+            "name": "South Carolina Legal Services local offices",
             "type": "service-area"
           }
         ]
@@ -375,7 +394,7 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": false,
+        "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
@@ -391,7 +410,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "10 regional offices via SC Department on Aging; state office at 1301 Gervais Street, Suite 350, Columbia, SC 29201[5]",
+            "name": "10 regional offices via SC Department on Aging; state office at 1301 Gervais Street, Suite 350, Columbia, SC 29201.",
             "type": "service-area"
           }
         ]
@@ -412,22 +431,14 @@
       }
     },
     {
-      "name": "State Property Tax Assistance (Homestead Exemption)",
+      "name": "Homestead Exemption",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "County Auditor's Office (primary jurisdiction)[2]",
-            "type": "service-area"
-          },
-          {
-            "name": "County Assessor's Office (in some counties)",
-            "type": "service-area"
-          },
-          {
-            "name": "County Real Property Services (in some counties like Greenville)",
+            "name": "County-specific: e.g., Greenville County Real Property Services[2], Oconee County Auditor[3], Georgetown County[4], Charleston County (843) 958-4220[8], York County[7]",
             "type": "service-area"
           }
         ]
@@ -435,13 +446,14 @@
       "complexity": "medium",
       "recommendedSections": [
         "prose",
+        "what-counts",
         "documents",
         "county-directory"
       ],
       "signals": {
         "benefitType": "financial",
-        "hasIncomeTiers": null,
-        "hasAssetLimits": false,
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
@@ -449,22 +461,49 @@
       }
     },
     {
-      "name": "Senior Farmers Market Nutrition Program",
+      "name": "Elderly Simplified Application Project (ESAP)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "local",
+        "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local senior-serving organizations and events by county",
+            "name": "South Carolina Department of Social Services (central mailing: PO Box 100203, Columbia, SC 29202)",
             "type": "service-area"
           },
           {
-            "name": "SC DSS: 1535 Confederate Avenue, Columbia, SC 29201",
+            "name": "Partners like SC Thrive and Benefits Data Trust (BDT) for application assistance",
             "type": "service-area"
-          },
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Eldercare Trust Fund",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
           {
-            "name": "SCDA: P.O. Box 11280, Columbia, SC 29211",
+            "name": "Administered statewide by South Carolina Department on Aging[3][4]",
             "type": "service-area"
           }
         ]
@@ -472,19 +511,18 @@
       "complexity": "medium",
       "recommendedSections": [
         "prose",
-        "income-table",
+        "what-counts",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
-        "benefitType": "in_kind",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": false,
+        "benefitType": "financial",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,
-        "isStatewide": false
+        "isStatewide": true
       }
     }
   ]

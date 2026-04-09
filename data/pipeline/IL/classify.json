@@ -1,34 +1,65 @@
 {
   "state": "IL",
   "stateName": "Illinois",
-  "classifiedAt": "2026-04-09T09:06:47.657Z",
-  "total": 15,
+  "classifiedAt": "2026-04-09T09:32:38.706Z",
+  "total": 13,
   "typeSummary": {
     "benefit": 9,
-    "resource": 4,
+    "navigator": 1,
     "employment": 1,
-    "navigator": 1
+    "resource": 2
   },
   "scopeSummary": {
-    "state": 8,
+    "state": 5,
     "local": 1,
-    "federal": 6
+    "federal": 7
   },
   "complexitySummary": {
-    "deep": 9,
-    "medium": 1,
-    "simple": 5
+    "deep": 10,
+    "simple": 3
   },
   "programs": [
     {
-      "name": "Medical Assistance/Medicaid",
+      "name": "Illinois Medicaid (AABD Medical for seniors/disabled)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Illinois Department of Human Services Family Community Resource Centers (FCRCs)",
+            "name": "Local Illinois Department of Human Services (IDHS) Family Community Resource Centers statewide.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Home Services Program (HSP) Waiver / Home and Community-Based Services Waiver for the Elderly",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Community Care Units contracted by state; managed by MCOs like Aetna Better Health of Illinois[1][3][8]",
             "type": "service-area"
           }
         ]
@@ -54,39 +85,14 @@
       }
     },
     {
-      "name": "Home Services Program (HSP) Waiver",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false
-      },
-      "complexity": "medium",
-      "recommendedSections": [
-        "prose",
-        "what-counts",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "in_kind services",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Illinois PACE (Program of All-Inclusive Care for the Elderly)",
+      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
       "programType": "benefit",
       "geographicScope": {
         "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "West Chicago, South Chicago, Southern Cook County, Peoria (e.g., OSF PACE), East St. Louis.",
+            "name": "West Chicago, South Chicago, Southern Cook County, Peoria, East St. Louis PACE organizations (full list via HFS)[7].",
             "type": "service-area"
           }
         ]
@@ -94,7 +100,6 @@
       "complexity": "deep",
       "recommendedSections": [
         "prose",
-        "income-table",
         "what-counts",
         "documents",
         "county-directory",
@@ -102,7 +107,7 @@
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
@@ -111,14 +116,14 @@
       }
     },
     {
-      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "name": "Benefit Access Program (includes QMB, SLMB, QI Medicare Savings Programs)",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local DHS Family Community Resource Centers statewide[8]",
+            "name": "Local DHS Family Community Resource Centers (statewide; locator at dhs.state.il.us)",
             "type": "service-area"
           }
         ]
@@ -175,14 +180,44 @@
       }
     },
     {
-      "name": "Illinois Home Weatherization Assistance Program (IHWAP)",
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory",
+        "callout"
+      ],
+      "signals": {
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    },
+    {
+      "name": "Illinois Home Weatherization Assistance Program",
       "programType": "benefit",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local Community Action Agencies (contact via 1-877-411-WARM)[2]",
+            "name": "Local Community Action Agencies (call 1-877-411-9276 to locate)",
+            "type": "service-area"
+          },
+          {
+            "name": "Examples: CEDA, TRRC (Quincy), CCI (Kane/DeKalb), WCCC (Will County)",
             "type": "service-area"
           }
         ]
@@ -209,17 +244,17 @@
     },
     {
       "name": "Senior Health Insurance Program (SHIP)",
-      "programType": "resource",
+      "programType": "navigator",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "State office: One Natural Resources Way, Suite 100, Springfield IL 62702",
+            "name": "Administered by Illinois Department on Aging (IDoA), One Natural Resources Way Suite 100, Springfield, IL 62702[2]",
             "type": "service-area"
           },
           {
-            "name": "Local examples: Ford County PHD, CEFS Economic Opportunity Corporation, Skokie Human Services",
+            "name": "Services provided through Area Agency on Aging (AAA) network — specific office locations not listed in search results but referenced as available through SHIP offices directory[2]",
             "type": "service-area"
           }
         ]
@@ -227,10 +262,10 @@
       "complexity": "simple",
       "recommendedSections": [
         "prose",
-        "county-directory"
+        "provider-list"
       ],
       "signals": {
-        "benefitType": "advocacy",
+        "benefitType": "service|advocacy",
         "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
@@ -244,7 +279,21 @@
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
-        "stateVariation": false
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging (AAAs)",
+            "type": "service-area"
+          },
+          {
+            "name": "Care Coordination Units",
+            "type": "service-area"
+          },
+          {
+            "name": "Nutrition providers contracted by AAAs",
+            "type": "service-area"
+          }
+        ]
       },
       "complexity": "deep",
       "recommendedSections": [
@@ -256,7 +305,7 @@
         "callout"
       ],
       "signals": {
-        "benefitType": "in_kind",
+        "benefitType": "service",
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
@@ -266,18 +315,14 @@
       }
     },
     {
-      "name": "Illinois Caregiver Support Program",
+      "name": "Illinois Caregiver Support Program (includes respite)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local agencies via Illinois Department on Aging",
-            "type": "service-area"
-          },
-          {
-            "name": "AgeGuide at (800) 528-2000 for specific counties",
+            "name": "Local AAAs/Care Coordination Units; IDHS-funded providers statewide; Illinois Respite Coalition[2][3][4].",
             "type": "service-area"
           }
         ]
@@ -287,9 +332,9 @@
         "prose",
         "income-table",
         "what-counts",
-        "tier-comparison",
         "documents",
-        "county-directory"
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "service",
@@ -297,7 +342,7 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
@@ -306,21 +351,7 @@
       "programType": "employment",
       "geographicScope": {
         "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local Area Agencies on Aging",
-            "type": "service-area"
-          },
-          {
-            "name": "Illinois Department on Aging",
-            "type": "service-area"
-          },
-          {
-            "name": "Sub-grantees like CWI Works, Goodwill, National Able",
-            "type": "service-area"
-          }
-        ]
+        "stateVariation": true
       },
       "complexity": "deep",
       "recommendedSections": [
@@ -334,27 +365,31 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
+        "hasMultipleTiers": false,
         "isStatewide": true
       }
     },
     {
-      "name": "Illinois Legal Aid Online / Senior Legal Helpline",
-      "programType": "navigator",
+      "name": "Illinois Legal Assistance for Seniors",
+      "programType": "resource",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local Area Agencies on Aging (AAA) throughout Illinois — use map tool at ilaging.illinois.gov to find your local AAA[7]",
+            "name": "Local AAAs (find via https://ilaging.illinois.gov map)",
             "type": "service-area"
           },
           {
-            "name": "Legal Aid Chicago (Cook County and Chicago area)[2]",
+            "name": "Prairie State Legal Services (northern IL)",
             "type": "service-area"
           },
           {
-            "name": "Cook County Legal Self-Help Center and Resource Center for People without Lawyers (both in Daley Center, Chicago)[9]",
+            "name": "Legal Aid Chicago (Cook County)",
+            "type": "service-area"
+          },
+          {
+            "name": "Land of Lincoln Legal Assistance (southern IL)[3][4][6][7]",
             "type": "service-area"
           }
         ]
@@ -362,11 +397,11 @@
       "complexity": "simple",
       "recommendedSections": [
         "prose",
-        "provider-list"
+        "county-directory"
       ],
       "signals": {
         "benefitType": "service",
-        "hasIncomeTiers": true,
+        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
@@ -382,7 +417,15 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Regional Long-Term Care Ombudsman Programs designated by state office; contact Senior HelpLine for local office[2][3][6]",
+            "name": "State Office of Long-Term Care Ombudsman (Springfield headquarters)",
+            "type": "service-area"
+          },
+          {
+            "name": "Multiple regional long-term care ombudsman programs designated throughout Illinois",
+            "type": "service-area"
+          },
+          {
+            "name": "Example: DuPage County Long-Term Care Ombudsman Program",
             "type": "service-area"
           }
         ]
@@ -394,92 +437,8 @@
       ],
       "signals": {
         "benefitType": "advocacy",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Illinois Senior Citizens and Persons with Disabilities Property Tax Relief",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "County collector/treasurer offices statewide (e.g., Cook County Treasurer, Sangamon County Treasurer, Will County Treasurer)[2][3][5]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Benefit Access Program (Seniors Ride Free & License Plate Discount)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local transit authority for Ride Free details",
-            "type": "service-area"
-          },
-          {
-            "name": "Secretary of State's office for license plate discount (1-800-252-8980)[3][4]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "in_kind",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Health Benefits for Immigrant Seniors (HBIS)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
+        "hasIncomeTiers": null,
+        "hasAssetLimits": false,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
         "hasMultipleTiers": false,

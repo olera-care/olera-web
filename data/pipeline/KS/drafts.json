@@ -1,142 +1,151 @@
 {
   "state": "KS",
   "stateName": "Kansas",
-  "draftedAt": "2026-04-09T09:07:04.561Z",
-  "total": 8,
+  "draftedAt": "2026-04-09T09:34:08.735Z",
+  "total": 10,
   "successful": 3,
   "programs": [
     {
-      "id": "kansas-kancare-medicare-savings-programs",
-      "name": "KanCare Medicare Savings Programs (QMB, SLMB, QI)",
-      "shortName": "Medicare Savings Programs",
-      "tagline": "If your parent has Medicare and monthly income under $1,801, Kansas will pay their Medicare premiums and possibly deductibles — saving up to $2,096/year.",
+      "id": "kancare-medicaid",
+      "name": "KanCare Medicaid",
+      "shortName": "KanCare Medicaid",
+      "tagline": "Comprehensive healthcare and long-term care coverage for Kansas seniors who qualify for Medicaid.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
+        "type": "state",
+        "stateVariation": false,
         "localEntities": [
           {
-            "name": "KDHE KanCare offices statewide; call 1-800-792-4884 for local",
+            "name": "KDHE offices statewide",
+            "type": "service-area"
+          },
+          {
+            "name": "KDADS for aging/disability services",
+            "type": "service-area"
+          },
+          {
+            "name": "MCOs: Healthy Blue Kansas, Sunflower Health Plan, etc.",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your parent struggles to afford Medicare premiums, deductibles, or copays, Kansas's Medicare Savings Programs can eliminate these costs. The state pays Medicare Part B premiums ($174.70/month in 2024) for everyone who qualifies, plus deductibles and copays for those with the lowest incomes. Three programs serve different income levels: QMB covers the most costs for incomes up to $1,350/month, while SLMB and QI cover premiums only for incomes up to $1,801/month. All three programs automatically qualify your parent for Extra Help with prescription drug costs, potentially saving thousands more per year. Your parent must already have Medicare Part A to qualify, and asset limits apply ($9,950 for individuals in 2026).",
-      "savingsRange": "$2,096 – $7,127/year in 2026",
-      "savingsSource": "Medicare Part B premiums ($2,096/year) plus potential Extra Help savings (up to $5,030/year)",
+      "intro": "If your parent is 65+ with limited income and assets, KanCare Medicaid covers all medical care plus long-term care services. This includes doctor visits, hospital stays, prescriptions, dental, vision, and either nursing home care or home-based services to help with daily activities like bathing and medication management.\n\nThe program has strict financial limits: single applicants can have only $2,000 in countable assets and must meet low-income thresholds. For nursing home care, nearly all of your parent's income goes toward care costs, but they can keep up to $2,901/month in income (2026). Because Kansas didn't expand Medicaid, this program primarily serves seniors 65+, people with disabilities, and families with children — not low-income adults under 65.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Age 65+ with Medicare Part A",
-          "Income below $1,801/month (individual)",
-          "Assets under $9,950 (individual)",
-          "Kansas resident"
+          "Age 65+ or disabled",
+          "Income varies by program tier",
+          "$2,000 asset limit for singles",
+          "Kansas resident and U.S. citizen"
         ],
         "ageRequirement": "65+",
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 1801
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 2433
-          }
-        ],
+        "incomeTable": null,
         "assetLimits": {
-          "individual": 9950,
-          "couple": 14910,
+          "individual": 2000,
+          "couple": null,
           "countedAssets": [
+            "Cash",
             "Bank accounts",
             "Stocks and bonds",
-            "Savings accounts"
+            "Secondary vehicles",
+            "Secondary property"
           ],
           "exemptAssets": [
-            "Home",
-            "One car",
-            "Burial plots",
-            "Life insurance up to $1,500 face value",
-            "Personal belongings"
+            "Primary home (if equity under $713,000)",
+            "One vehicle",
+            "Personal belongings",
+            "Burial plots and funds up to $1,500",
+            "Life insurance with face value $1,500 or less"
           ],
-          "homeEquityCap": null
+          "homeEquityCap": 713000
         },
-        "functionalRequirement": null,
+        "functionalRequirement": "For long-term care services, your parent must need daily help with activities like bathing, dressing, eating, toileting, or managing medications (called Nursing Facility Level of Care or NFLOC)",
         "otherRequirements": [
-          "Must be enrolled in Medicare Part A",
-          "U.S. citizen or qualified immigrant"
+          "Kansas resident",
+          "U.S. citizen or qualified immigrant",
+          "Must use other health insurance first before KanCare"
         ],
-        "povertyLevelReference": "Up to 135% FPL"
+        "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at KanCare website or call 1-800-792-4884 — eligible the month you apply with possible retroactive coverage.",
+        "summary": "Apply online at kancare.ks.gov or call 1-800-792-4884; processing takes 45-90 days.",
         "steps": [
           {
             "step": 1,
             "title": "Gather required documents",
-            "description": "Collect proof of income (Social Security statements, pension), bank statements, Medicare card, and ID"
+            "description": "Collect 60 days of bank statements, income proof, citizenship documents, and medical records"
           },
           {
             "step": 2,
             "title": "Submit application",
-            "description": "Apply online at kancare.ks.gov or call 1-800-792-4884 for paper application"
+            "description": "Apply online at kancare.ks.gov, call 1-800-792-4884, or visit your local KDHE office"
           },
           {
             "step": 3,
-            "title": "Await determination",
-            "description": "Coverage begins the month you apply if approved, with possible retroactive coverage for previous months"
+            "title": "Complete assessment if applying for long-term care",
+            "description": "A clinical assessor will evaluate your parent's need for daily care assistance"
+          },
+          {
+            "step": 4,
+            "title": "Wait for decision",
+            "description": "Processing typically takes 45-90 days; you'll receive written notice of approval or denial"
           }
         ],
-        "processingTime": "Coverage begins the month of application if approved",
-        "waitlist": null,
-        "tip": "Income and asset limits change every May — call 1-800-792-4884 to confirm current limits before applying",
+        "processingTime": "45-90 days typical; varies by program complexity",
+        "waitlist": "Possible for Home and Community-Based Services waivers due to limited slots; nursing home coverage generally available if eligible",
+        "tip": "Apply as soon as your parent might need long-term care — even if they're not ready yet, getting on HCBS waiver waitlists early is crucial.",
         "urls": [
           {
-            "label": "Apply online at KanCare",
-            "url": "https://kancare.ks.gov/apply-now/eligibility"
+            "label": "Apply online",
+            "url": "https://www.kancare.ks.gov/apply-now"
           }
         ]
       },
       "contentSections": [
         {
-          "type": "tier-comparison",
-          "heading": "Three Programs, Different Coverage Levels",
-          "tiers": [
-            {
-              "name": "QMB (Qualified Medicare Beneficiary)",
-              "description": "Most comprehensive coverage for lowest incomes",
-              "incomeLimit": "$1,350/month (individual), $1,824/month (couple)",
-              "coverage": "Pays Medicare Part B premiums, deductibles ($240 in 2024), coinsurance, and copayments"
-            },
-            {
-              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
-              "description": "Premium help for moderate incomes",
-              "incomeLimit": "$1,601/month (individual), $2,161/month (couple)",
-              "coverage": "Pays Medicare Part B premiums only"
-            },
-            {
-              "name": "QI (Qualifying Individual)",
-              "description": "Premium help for highest qualifying incomes",
-              "incomeLimit": "$1,801/month (individual), $2,433/month (couple)",
-              "coverage": "Pays Medicare Part B premiums only"
-            }
-          ]
-        },
-        {
           "type": "what-counts",
           "heading": "Asset Limits: What Counts",
           "included": [
-            "Bank accounts and savings",
-            "Stocks and bonds",
-            "Investment accounts"
+            "Cash and bank accounts",
+            "Stocks, bonds, and investments",
+            "Secondary vehicles (beyond the first car)",
+            "Secondary property or vacation homes",
+            "Life insurance with face value over $1,500"
           ],
           "excluded": [
-            "Your parent's home (any value)",
-            "One car",
-            "Burial plots",
-            "Life insurance with face value up to $1,500",
-            "Personal belongings and household items"
+            "Primary home (if equity under $713,000)",
+            "One vehicle of any value",
+            "Personal belongings and household items",
+            "Burial plots and burial funds up to $1,500",
+            "Life insurance with face value $1,500 or less"
+          ]
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "Basic Aged, Blind, and Disabled (ABD)",
+              "description": "Standard healthcare coverage",
+              "incomeLimit": "Low-income thresholds apply (exact limits vary)",
+              "coverage": "Doctor visits, hospital, prescriptions, dental, vision"
+            },
+            {
+              "name": "Nursing Home Medicaid",
+              "description": "Full nursing home care",
+              "incomeLimit": "Up to $2,901/month (nearly all goes toward care costs)",
+              "coverage": "All medical care plus nursing facility room, board, and care"
+            },
+            {
+              "name": "HCBS Waivers",
+              "description": "Home and community-based services",
+              "incomeLimit": "Similar to nursing home limits",
+              "coverage": "Personal care, adult day care, home modifications, respite care"
+            }
           ]
         },
         {
@@ -146,463 +155,28 @@
             {
               "name": "Identity",
               "items": [
-                "Medicare card",
-                "Social Security number",
-                "Birth certificate",
+                "Birth certificate or passport",
+                "Social Security card",
                 "Proof of Kansas residency"
               ]
             },
             {
               "name": "Financial",
               "items": [
-                "Social Security award letter",
-                "Pension statements",
-                "Bank statements (all accounts)",
-                "Investment account statements"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "All three programs automatically qualify your parent for Extra Help with prescription drug costs — potentially saving up to $5,030 per year even if they only get premium help."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "What if Mom's income is just over the limit?",
-          "answer": "Kansas uses a $20 income disregard, meaning they subtract $20 from her monthly income when calculating eligibility. If she's still over, check if any income sources don't count (like certain veteran benefits) by calling 1-800-792-4884."
-        },
-        {
-          "question": "Can Dad keep his house and car if he qualifies?",
-          "answer": "Yes. The home where he lives (any value) and one car don't count toward the $9,950 asset limit. Neither do burial plots, personal belongings, or life insurance policies worth $1,500 or less."
-        },
-        {
-          "question": "Does this cover all of Mom's medical expenses?",
-          "answer": "No. These programs only pay specific Medicare costs (premiums, deductibles, copays). They don't cover non-Medicare services like long-term care, dental, or vision. For broader Medicaid coverage, ask about other KanCare programs."
-        },
-        {
-          "question": "What happens if Dad's income changes after he's approved?",
-          "answer": "He must report changes within 10 days to avoid overpayments. If his income drops, he might qualify for a higher tier of coverage. If it rises above limits, he'll lose coverage but keep Extra Help for the rest of the year."
-        },
-        {
-          "question": "Does Mom need to be on Medicare first before applying?",
-          "answer": "Yes. She must already have Medicare Part A. For SLMB and QI programs, she also needs Medicare Part B. If she's not enrolled in Medicare yet, do that first through Social Security at 1-800-772-1213."
-        },
-        {
-          "question": "Will this affect any other benefits Dad receives?",
-          "answer": "This won't reduce Social Security, pensions, or SNAP benefits. It actually helps — the automatic Extra Help for prescription drugs can save thousands, and providers can't balance bill him for Medicare-covered services."
-        }
-      ],
-      "phone": "1-800-792-4884",
-      "sourceUrl": "https://kancare.ks.gov/apply-now/eligibility",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
-    },
-    {
-      "id": "kansas-snap-food-benefits",
-      "name": "SNAP (Food Assistance)",
-      "shortName": "SNAP Food Benefits",
-      "tagline": "Monthly grocery money for aging parents on fixed incomes — no gross income limit if they're 60+.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local Kansas Department of Children and Families (DCF) offices",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded on an EBT card. Most seniors qualify for $100-300/month, though the exact amount depends on income and household size. Because Kansas has no gross income limit for households where everyone is 60+ or disabled, many aging parents qualify even if they think they earn too much.\n\nThe program covers food purchases at authorized stores but not prepared meals or non-food items. Your parent will need to complete an application through their local Department of Children and Families (DCF) office, which can arrange phone or home interviews for seniors who can't visit in person.",
-      "savingsRange": "$1,200 – $3,600/year",
-      "savingsSource": "Monthly benefits of $100-300 estimated from maximum benefit amounts",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Age 60+ (no gross income limit)",
-          "Net income below poverty level after deductions",
-          "No asset limits for seniors",
-          "U.S. citizen or qualified non-citizen"
-        ],
-        "ageRequirement": "60+",
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 1695
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 2291
-          },
-          {
-            "householdSize": 3,
-            "monthlyLimit": 2887
-          },
-          {
-            "householdSize": 4,
-            "monthlyLimit": 3482
-          },
-          {
-            "householdSize": 5,
-            "monthlyLimit": 4079
-          },
-          {
-            "householdSize": 6,
-            "monthlyLimit": 4674
-          },
-          {
-            "householdSize": 7,
-            "monthlyLimit": 5270
-          }
-        ],
-        "assetLimits": {
-          "individual": null,
-          "couple": null,
-          "countedAssets": [
-            "Cash",
-            "Bank accounts"
-          ],
-          "exemptAssets": [
-            "Primary home",
-            "Retirement savings",
-            "Household goods",
-            "Most vehicles"
-          ],
-          "homeEquityCap": null
-        },
-        "functionalRequirement": null,
-        "otherRequirements": [
-          "Must live together and share food purchases with other household members",
-          "No work requirements for seniors 60+"
-        ],
-        "povertyLevelReference": "130% FPL (gross), 100% FPL (net)"
-      },
-      "applicationGuide": {
-        "method": "multiple",
-        "summary": "Apply online, by phone, or in person at your local DCF office — phone interviews available for seniors.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Contact your local DCF office",
-            "description": "Call or visit to start your application. They can arrange a phone interview if you can't visit in person."
-          },
-          {
-            "step": 2,
-            "title": "Complete the Kansas Food Assistance application",
-            "description": "Provide information about income, expenses, and household members who share food."
-          },
-          {
-            "step": 3,
-            "title": "Attend your eligibility interview",
-            "description": "DCF will schedule a phone or in-person interview to review your application and documents."
-          },
-          {
-            "step": 4,
-            "title": "Receive your EBT card",
-            "description": "If approved, benefits are loaded monthly on an Electronic Benefits Transfer card for grocery purchases."
-          }
-        ],
-        "processingTime": "Typically 30 days, expedited processing available for urgent need",
-        "waitlist": null,
-        "tip": "Emphasize medical expenses over $35/month and high shelter costs — these deductions often make the difference for seniors who think they earn too much.",
-        "urls": [
-          {
-            "label": "Kansas DCF Food Assistance",
-            "url": "https://www.dcf.ks.gov/services/ees/Pages/Food/FoodAssistance.aspx"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "income-table",
-          "heading": "Gross Income Limits by Household Size (Under 60)",
-          "rows": [
-            {
-              "householdSize": 1,
-              "monthlyLimit": "$1,695"
-            },
-            {
-              "householdSize": 2,
-              "monthlyLimit": "$2,291"
-            },
-            {
-              "householdSize": 3,
-              "monthlyLimit": "$2,887"
-            },
-            {
-              "householdSize": 4,
-              "monthlyLimit": "$3,482"
-            },
-            {
-              "householdSize": 5,
-              "monthlyLimit": "$4,079"
-            },
-            {
-              "householdSize": 6,
-              "monthlyLimit": "$4,674"
-            },
-            {
-              "householdSize": 7,
-              "monthlyLimit": "$5,270"
-            }
-          ],
-          "footnote": "October 2025 - September 2026. No gross income limit for households where everyone is 60+ or disabled."
-        },
-        {
-          "type": "what-counts",
-          "heading": "Asset Limits: What Counts",
-          "included": [
-            "Cash on hand",
-            "Checking and savings accounts"
-          ],
-          "excluded": [
-            "Primary home (any value)",
-            "Retirement accounts (401k, IRA, pensions)",
-            "Household goods and personal belongings",
-            "Most vehicles",
-            "Life insurance policies"
-          ]
-        },
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Identity",
-              "items": [
-                "Photo ID (driver's license, state ID)",
-                "Proof of Kansas residency (utility bill, lease)"
+                "60 days of bank statements",
+                "Pay stubs or pension statements",
+                "SSI/SSDI award letters",
+                "Vehicle titles and property deeds",
+                "Insurance policies"
               ]
             },
             {
-              "name": "Financial",
+              "name": "Medical",
               "items": [
-                "Social Security award letters",
-                "Bank statements (last 3 months)",
-                "Rent/mortgage statements",
-                "Utility bills",
-                "Medical expense receipts (over $35/month for seniors)",
-                "Proof of any other income (pensions, VA benefits)"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "callout",
-          "tone": "tip",
-          "text": "Many seniors who receive SSI are automatically eligible for SNAP. Even if your parent thinks their income is too high, households where everyone is 60+ have no gross income limit in Kansas — only net income matters after deductions."
-        }
-      ],
-      "faqs": [
-        {
-          "question": "My mom gets Social Security — does that make her ineligible?",
-          "answer": "No. Social Security counts as income, but households where everyone is 60+ have no gross income limit in Kansas. Her net income after deductions for medical expenses and shelter costs must be at or below the poverty level. Many seniors qualify even with Social Security."
-        },
-        {
-          "question": "Can she use SNAP benefits for prepared meals or restaurant food?",
-          "answer": "Generally no. SNAP benefits work like a debit card for groceries at authorized stores, but cannot be used for hot prepared foods, alcohol, tobacco, or non-food items. Some exceptions exist for seniors in certain meal programs."
-        },
-        {
-          "question": "What if Dad lives with my sister but they don't share groceries?",
-          "answer": "If they buy and prepare food separately, they count as separate households for SNAP. But if they share meals or grocery shopping, they must apply together as one household, which could affect eligibility and benefit amounts."
-        },
-        {
-          "question": "My parents own their home — will that disqualify them?",
-          "answer": "No. The primary home doesn't count toward asset limits regardless of value. Kansas also has no asset limits for households where everyone is 60+ or disabled, so bank accounts and savings generally won't disqualify seniors."
-        },
-        {
-          "question": "How much will my parent actually receive in benefits?",
-          "answer": "It depends on income, deductions, and household size. Maximum is about $291 for one person, $535 for two people, but most seniors get less. Medical expenses over $35/month and high shelter costs increase the benefit amount."
-        },
-        {
-          "question": "What counts as medical expenses for the deduction?",
-          "answer": "Any unreimbursed medical costs over $35/month for seniors 60+: Medicare premiums, prescription drugs, doctor visits, medical supplies, and transportation to medical appointments. Keep all receipts — this deduction often makes seniors eligible."
-        }
-      ],
-      "phone": null,
-      "sourceUrl": "https://www.dcf.ks.gov/services/ees/Pages/Food/FoodAssistance.aspx",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-09"
-    },
-    {
-      "id": "kansas-liheap-energy-assistance",
-      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
-      "shortName": "Energy Assistance",
-      "tagline": "One-time payment toward your parent's heating or cooling bills if they're on a fixed income.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Local DCF Service Centers; Evergy Wichita Connect for events",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your parent's monthly income is below $1,956 for a single person ($2,644 for a couple), they may qualify for a one-time payment toward their heating or cooling bills through Kansas LIHEAP. The payment amount depends on their income, household size, type of home, and fuel type — but it goes directly to their utility company or fuel vendor to reduce what they owe.\n\nThis is seasonal assistance with limited funding. Applications typically open January through March each year, and once funding runs out, the program closes until the next year. Your parent must be personally responsible for paying their heating costs — if heat is fully included in subsidized rent, they won't qualify.",
-      "savingsRange": "",
-      "savingsSource": "Amount varies by household income, size, dwelling type, and fuel costs",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Combined household income below 150% federal poverty level",
-          "Must pay heating costs directly (not included in rent)",
-          "Kansas resident",
-          "U.S. citizen or qualified alien in household"
-        ],
-        "ageRequirement": null,
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 1956
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 2644
-          },
-          {
-            "householdSize": 3,
-            "monthlyLimit": 3331
-          },
-          {
-            "householdSize": 4,
-            "monthlyLimit": 4019
-          },
-          {
-            "householdSize": 5,
-            "monthlyLimit": 4706
-          },
-          {
-            "householdSize": 6,
-            "monthlyLimit": 5394
-          },
-          {
-            "householdSize": 7,
-            "monthlyLimit": 6081
-          },
-          {
-            "householdSize": 8,
-            "monthlyLimit": 6769
-          }
-        ],
-        "assetLimits": null,
-        "functionalRequirement": null,
-        "otherRequirements": [
-          "Must be personally responsible for heating costs",
-          "One application per household per program year",
-          "Cannot receive both state and tribal LIHEAP benefits in same year",
-          "College students must live at home full-time to be counted in household"
-        ],
-        "povertyLevelReference": "150% FPL"
-      },
-      "applicationGuide": {
-        "method": "multiple",
-        "summary": "Apply online through the DCF portal or at local offices during the application period (typically January-March).",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Gather required documents",
-            "description": "Collect income proof for all household members, recent fuel bills, and rental agreement if applicable."
-          },
-          {
-            "step": 2,
-            "title": "Complete LIHEAP-specific application",
-            "description": "This is separate from other benefit applications and includes heating/cooling details. All adults in the household must sign."
-          },
-          {
-            "step": 3,
-            "title": "Submit during application period",
-            "description": "Applications are only accepted during designated periods (typically January 20 - March 31). Submit online, by mail, or in-person."
-          },
-          {
-            "step": 4,
-            "title": "Payment goes directly to utility",
-            "description": "If approved, the payment goes directly to your parent's utility company or fuel vendor, not to them personally."
-          }
-        ],
-        "processingTime": "Processing begins after submission during the application period",
-        "waitlist": "No waitlist - once federal funding is exhausted, applications close until next year",
-        "tip": "Apply early in the application period. This is first-come, first-served until funding runs out.",
-        "urls": [
-          {
-            "label": "Apply Online - DCF Self-Service Portal",
-            "url": "https://www.dcf.ks.gov"
-          }
-        ]
-      },
-      "contentSections": [
-        {
-          "type": "income-table",
-          "heading": "Income Limits by Household Size (2026)",
-          "rows": [
-            {
-              "householdSize": 1,
-              "monthlyLimit": 1956
-            },
-            {
-              "householdSize": 2,
-              "monthlyLimit": 2644
-            },
-            {
-              "householdSize": 3,
-              "monthlyLimit": 3331
-            },
-            {
-              "householdSize": 4,
-              "monthlyLimit": 4019
-            },
-            {
-              "householdSize": 5,
-              "monthlyLimit": 4706
-            },
-            {
-              "householdSize": 6,
-              "monthlyLimit": 5394
-            },
-            {
-              "householdSize": 7,
-              "monthlyLimit": 6081
-            },
-            {
-              "householdSize": 8,
-              "monthlyLimit": 6769
-            }
-          ],
-          "footnote": "For households larger than 8, add $688 per additional person. Based on 150% of federal poverty level."
-        },
-        {
-          "type": "documents",
-          "heading": "What to Bring",
-          "categories": [
-            {
-              "name": "Income Proof (for everyone in household)",
-              "items": [
-                "Pay stubs",
-                "Social Security/SSI award letters",
-                "VA benefits letters",
-                "Pension statements",
-                "Self-employment tax return"
-              ]
-            },
-            {
-              "name": "Utility Information",
-              "items": [
-                "Recent gas and electric bills",
-                "Propane bills if applicable",
-                "Rental/lease agreement if heat included in rent"
-              ]
-            },
-            {
-              "name": "Other Documents",
-              "items": [
-                "Proof of citizenship/legal status if not receiving other assistance",
-                "Child support documentation if applicable"
+                "Medicare card",
+                "Doctor's notes about daily care needs",
+                "Current medication list",
+                "Functional assessments if available"
               ]
             }
           ]
@@ -610,51 +184,393 @@
         {
           "type": "callout",
           "tone": "warning",
-          "text": "Applications are only accepted during limited periods (typically January-March) and funding runs out each year. Apply as early as possible once applications open."
+          "text": "HCBS waiver slots are limited and have waitlists. Apply early even if your parent doesn't need services immediately — nursing home coverage is generally available, but home-based services may require waiting."
         },
         {
           "type": "callout",
-          "tone": "tip",
-          "text": "Everyone living at the address counts toward the income limit, even adult children or other relatives not applying for benefits. College students living in dorms don't count as household members."
+          "tone": "warning",
+          "text": "Kansas has a 5-year look-back period for asset transfers. If your parent gave away money or property in the past 5 years, it could create penalties that delay Medicaid coverage."
         }
       ],
       "faqs": [
         {
-          "question": "What if my parent's heat is included in their rent?",
-          "answer": "If heat is fully included in subsidized rent, they won't qualify. But if they pay rent plus utilities separately, or pay the landlord directly for heating costs, they may still be eligible."
+          "question": "Can my parent keep their house if they qualify for KanCare Medicaid?",
+          "answer": "Yes, if the home equity is under $713,000 and your parent intends to return home, or if a spouse or disabled child lives there. For nursing home residents, the home is protected if there's intent to return or certain family members live there."
         },
         {
-          "question": "Does my parent's savings account count against the income limit?",
-          "answer": "No, Kansas LIHEAP has no asset limits. Only monthly income matters for eligibility, not savings or property value."
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "Kansas has a 'Medically Needy' program where your parent can 'spend down' excess income by paying medical bills. Once they've paid enough medical expenses, they can qualify for coverage."
         },
         {
-          "question": "Can my parent apply if I live with them and work full-time?",
-          "answer": "Your income would count toward the household total since you live there. The combined income of everyone in the home must be below the limit for your household size."
+          "question": "My parent gave money to grandchildren last year. Will this affect eligibility?",
+          "answer": "Possibly. Kansas looks back 5 years at all asset transfers. Gifts or below-market sales can create penalty periods that delay Medicaid coverage. You should disclose all transfers when applying."
         },
         {
-          "question": "What if my parent already gets help from the tribal energy program?",
-          "answer": "They cannot receive both state LIHEAP and tribal LIHEAP benefits in the same year. Tribal members are typically referred to their tribe's program instead."
+          "question": "What's the difference between nursing home coverage and home-based services?",
+          "answer": "Both require the same level of care need (Nursing Facility Level of Care), but nursing home coverage is generally available immediately if eligible. Home-based services (HCBS waivers) have limited slots and waitlists, but allow your parent to stay home."
         },
         {
-          "question": "How much money will my parent actually receive?",
-          "answer": "The payment amount varies based on income level, household size, type of dwelling, heating fuel type, and current utility rates. The payment goes directly to the utility company, not to your parent."
+          "question": "My parent has Medicare. Do they still need KanCare Medicaid?",
+          "answer": "If your parent qualifies for both, KanCare works with Medicare to cover what Medicare doesn't — like long-term care, some prescriptions, and services Medicare limits. Your parent must use Medicare first, then KanCare covers additional costs."
         },
         {
-          "question": "What if we miss the application deadline?",
-          "answer": "You'll have to wait until the next program year. Applications are only accepted during designated periods, typically January through March, and the program closes once funding is exhausted."
+          "question": "How does this work if my parents are married?",
+          "answer": "Special spousal impoverishment rules protect the community spouse (the one not needing care). The healthy spouse can keep more assets (around $154,140 in 2026) and income, so they're not left destitute while the other spouse gets Medicaid."
         }
       ],
-      "phone": null,
-      "sourceUrl": "https://www.dcf.ks.gov/services/ees/Pages/EnergyAssistance.aspx",
+      "phone": "1-800-792-4884",
+      "sourceUrl": "https://www.kancare.ks.gov/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-09"
     },
     {
-      "name": "Weatherization Assistance Program (WAP)",
+      "id": "kansas-kancare-frail-elderly-waiver",
+      "name": "KanCare Frail Elderly Waiver (FE Waiver)",
+      "shortName": "FE Waiver",
+      "tagline": "If your parent needs daily help but wants to avoid a nursing home, this Kansas program pays for home care services.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Managed by Kansas Department for Aging and Disability Services (KDADS); providers enroll via fiscal agent (KMAP); delivered through Managed Care Organizations (MCOs) like Sunflower Health Plan",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and needs nursing home-level care but wants to stay home, the KanCare Frail Elderly Waiver pays for home and community-based services as an alternative to nursing home placement. The program covers services like personal care, home modifications, and care coordination — but not room and board.\n\nYour parent must first qualify for KanCare (Kansas Medicaid) and pass a functional assessment proving they need nursing facility-level care. Because slots are limited, there's often a waitlist. Your parent can keep $2,982 per month of their income (2026 amount), with the program covering authorized services through a personalized Plan of Care.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Kansas resident",
+          "KanCare Medicaid eligible",
+          "Needs nursing home-level care",
+          "Limited slots available"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home (if equity ≤ $752,000)",
+            "Household furnishings and appliances",
+            "Personal effects",
+            "One vehicle"
+          ],
+          "homeEquityCap": 752000
+        },
+        "functionalRequirement": "Must need nursing facility-level care based on Activities of Daily Living (bathing, dressing, toileting, transferring, mobility, eating) and cognitive/behavioral issues assessed through Functional Assessment Instrument",
+        "otherRequirements": [
+          "Must qualify for KanCare Medicaid first",
+          "60-month look-back rule applies to asset transfers"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply for KanCare Medicaid first, then contact KDADS for the waiver functional assessment — processing time varies due to waitlists.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for KanCare Medicaid",
+            "description": "Your parent must be eligible for Kansas Medicaid before applying for the waiver. Complete the KanCare application first."
+          },
+          {
+            "step": 2,
+            "title": "Contact KDADS for waiver screening",
+            "description": "Contact Kansas Department for Aging and Disability Services or your local waiver program manager to file a preliminary functional eligibility application."
+          },
+          {
+            "step": 3,
+            "title": "Complete functional assessment",
+            "description": "KDADS will conduct a Functional Assessment Instrument (FAI) to determine if your parent needs nursing facility-level care."
+          },
+          {
+            "step": 4,
+            "title": "Join waitlist if needed",
+            "description": "If no slots are available, your parent will be placed on the proposed recipient list until an opening occurs."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Waitlist maintained when no openings exist due to limited slots",
+        "tip": "Start the KanCare Medicaid application immediately — you cannot get the waiver without qualifying for Medicaid first.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Property other than primary home",
+            "Assets transferred for less than fair market value in past 60 months"
+          ],
+          "excluded": [
+            "Primary home (if equity is $752,000 or less and parent lives there or intends to return)",
+            "Household furnishings and appliances",
+            "Personal effects and clothing",
+            "One vehicle"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "KanCare Medicaid Application",
+              "items": [
+                "Proof of Kansas residency",
+                "Social Security card",
+                "Income records (Social Security, pensions, wages)",
+                "Bank statements and asset documentation"
+              ]
+            },
+            {
+              "name": "Functional Assessment",
+              "items": [
+                "Medical records showing need for daily assistance",
+                "Documentation of Activities of Daily Living limitations",
+                "Cognitive or behavioral assessment records if applicable",
+                "Current medication list"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Limited slots mean waitlists are common. Even if your parent qualifies, they may not receive services immediately."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "The 60-month look-back rule penalizes asset transfers below fair market value. Don't transfer assets without consulting an elder law attorney first."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for the waiver?",
+          "answer": "Yes, as long as the home equity is $752,000 or less (2026 limit) and she lives there or intends to return. The house won't count toward asset limits."
+        },
+        {
+          "question": "What if Dad has too much income for regular Medicaid?",
+          "answer": "The waiver allows your parent to keep $2,982 per month (2026 amount). Income above this goes toward the cost of care, but they may still qualify through other KanCare categories or spend-down provisions."
+        },
+        {
+          "question": "How long is the waitlist for services?",
+          "answer": "Waitlist times vary by region and aren't specified in official sources. Contact your local waiver program manager for current wait times in your area."
+        },
+        {
+          "question": "What happens if Mom gave away money to family in the past 5 years?",
+          "answer": "The 60-month look-back rule creates penalty periods for asset transfers below fair market value. This could delay eligibility, so gather documentation of any transfers or gifts."
+        },
+        {
+          "question": "Does the waiver pay for Mom's apartment rent?",
+          "answer": "No, the waiver doesn't cover room and board or living expenses like rent, mortgage, or groceries. It only pays for authorized home and community-based services."
+        },
+        {
+          "question": "What if Dad doesn't qualify for the functional assessment?",
+          "answer": "If the Functional Assessment Instrument shows your parent doesn't need nursing facility-level care, they won't qualify for the waiver. However, they may be eligible for other KanCare services or community programs."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://khap.kdhe.ks.gov/KEESM/Oct_2020_Output/keesm8210.htm",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "kansas-kancare-pace",
+      "name": "KanCare PACE",
+      "shortName": "PACE",
+      "tagline": "Complete medical care coordination for parents 55+ who need nursing-home-level help but want to stay at home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Via Christi HOPE: Sedgwick County",
+            "type": "service-area"
+          },
+          {
+            "name": "Unnamed provider: Marion, McPherson, Ottawa, Reno, Rice, Saline counties",
+            "type": "service-area"
+          },
+          {
+            "name": "Midland Care PACE: Wyandotte, Leavenworth, Shawnee, Douglas, Jackson, Jefferson, Osage, Pottawatomie counties",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and needs significant daily help but wants to avoid a nursing home, PACE provides all their medical care under one coordinated team. Your parent gets primary care, specialists, physical therapy, transportation to appointments, meals, social activities, and home support services — all managed by a single provider instead of juggling multiple doctors and services.\n\nPACE is only available in specific Kansas counties, and your parent must qualify for nursing-home-level care (meaning they need daily help with things like bathing, dressing, or medication management). If your parent has Medicare and Medicaid, or income under about $3,000/month, there's typically no cost. Private pay options exist for those with higher incomes.\n\nBecause PACE covers everything from routine checkups to emergency care, your parent won't need to coordinate between separate providers — one team manages their complete care plan and adjusts services as their needs change.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Needs nursing-home-level care",
+          "Lives in specific counties only",
+          "Must be able to live safely at home"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be certified by Kansas as needing nursing facility level of care (a clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other activities of daily living)",
+        "otherRequirements": [
+          "Must live in a PACE service area",
+          "Cannot be enrolled in Medicare Advantage or hospice",
+          "Must be able to live safely in the community at enrollment"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your local PACE provider directly — they'll handle the application and nursing facility assessment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your PACE provider",
+            "description": "Check if your parent lives in a covered county and get the contact for that area's PACE organization."
+          },
+          {
+            "step": 2,
+            "title": "Call the provider",
+            "description": "They'll schedule an assessment to determine if your parent qualifies for nursing facility level of care."
+          },
+          {
+            "step": 3,
+            "title": "Complete KDADS assessment",
+            "description": "Kansas Department for Aging and Disability Services must certify your parent needs nursing-home-level care."
+          },
+          {
+            "step": 4,
+            "title": "Enrollment decision",
+            "description": "If approved, the PACE team creates your parent's individualized care plan and begins services."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Start with your PACE provider first — they'll guide you through the state assessment process and help gather required documents.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "PACE Service Areas",
+          "offices": [
+            {
+              "name": "Midland Care PACE",
+              "type": "service-area",
+              "phone": "1-800-726-7450",
+              "address": "Wyandotte, Leavenworth, Shawnee, Douglas, Jackson, Jefferson, Osage, Pottawatomie counties"
+            },
+            {
+              "name": "Via Christi HOPE",
+              "type": "service-area",
+              "phone": null,
+              "address": "Sedgwick County"
+            },
+            {
+              "name": "Kansas Department for Aging and Disability Services",
+              "type": "state-office",
+              "phone": "785-296-4986",
+              "address": "For nursing facility level of care assessment"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Proof of Kansas residency",
+                "Photo ID or birth certificate",
+                "Citizenship or immigration status documents"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medicare card (if enrolled)",
+                "Medicaid card (if enrolled)",
+                "Current medication list",
+                "Recent medical records or doctor assessments"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE is only available in specific counties. Most of Kansas is not covered — check your county before starting the application."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent cannot be enrolled in Medicare Advantage (Part C) to qualify for PACE. They'll need to switch to Original Medicare first."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is too high for Medicaid but they can't afford private insurance?",
+          "answer": "PACE has private pay options for people who don't qualify for Medicaid. About 10% of PACE participants pay privately. Contact your local PACE provider for current premium rates."
+        },
+        {
+          "question": "Can my parent keep their current doctors?",
+          "answer": "No. PACE provides all medical care through their own team of doctors, nurses, and specialists. Your parent will get new primary care providers, but PACE coordinates all their care in one place."
+        },
+        {
+          "question": "What if my parent needs to go to the nursing home later?",
+          "answer": "PACE covers nursing facility care when needed. Because they already manage your parent's care, the transition is coordinated by the same team rather than starting over with new providers."
+        },
+        {
+          "question": "How much help does my parent need to qualify for 'nursing facility level of care'?",
+          "answer": "Generally, your parent needs daily help with activities like bathing, dressing, medication management, or mobility. Kansas will do a clinical assessment to determine if they meet this level of need."
+        },
+        {
+          "question": "What happens if we move to a county without PACE?",
+          "answer": "Your parent would lose PACE coverage if they move outside the service area. They'd need to find new Medicare and Medicaid providers in their new location."
+        },
+        {
+          "question": "Does PACE provide transportation to appointments?",
+          "answer": "Yes. PACE includes medical transportation as part of their services, so your parent gets rides to appointments, the day center, and other PACE activities."
+        }
+      ],
+      "phone": "1-800-726-7450",
+      "sourceUrl": "https://portal.kmap-state-ks.us/Documents/Provider/Provider%20Manuals/Pace_08032017_17163.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "name": "Food Assistance Program (SNAP)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Kansas Senior Nutrition Program (Meals on Wheels)",
+      "name": "Low-Income Energy Assistance Program (LIEAP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Kansas Weatherization Assistance Program (K-WAP)",
+      "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
+    },
+    {
+      "name": "Senior Health Insurance Counseling for Kansas (SHICK)",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
@@ -662,11 +578,11 @@
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Senior Community Service Employment Program (SCSEP)",
+      "name": "Legal Services for Seniors",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     },
     {
-      "name": "Legal Assistance for Older Kansans",
+      "name": "Long-Term Care Ombudsman Program",
       "_error": "Claude 429: {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed your organization's rate limit of 8,000 output tokens per minute (org: c1f2e01d-229f-453d-a6e8-ae32a3d00755, mod"
     }
   ],

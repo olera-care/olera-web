@@ -1,13 +1,14 @@
 {
   "state": "KY",
   "stateName": "Kentucky",
-  "classifiedAt": "2026-04-09T08:52:12.640Z",
+  "classifiedAt": "2026-04-09T09:33:08.648Z",
   "total": 2,
   "typeSummary": {
     "benefit": 2
   },
   "scopeSummary": {
-    "local": 2
+    "local": 1,
+    "state": 1
   },
   "complexitySummary": {
     "deep": 2
@@ -21,11 +22,11 @@
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Senior CommUnity Care of Kentucky PACE (central KY): seniorcommunitycareky.org, (502) 314-2059[1][6]",
+            "name": "Louisville: 960 S 4th St, Louisville KY 40203; (502) 676-7515",
             "type": "service-area"
           },
           {
-            "name": "Senior CommUnity Care of Northern Kentucky: (859) 970-2450[7]",
+            "name": "Northern KY: 47 Cavalier Blvd., Suite 140, Florence, KY 41042; (859) 970-2450",
             "type": "service-area"
           }
         ]
@@ -48,14 +49,14 @@
       }
     },
     {
-      "name": "Senior CommUnity Care of Northern Kentucky (PACE)",
+      "name": "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)",
       "programType": "benefit",
       "geographicScope": {
-        "type": "local",
+        "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "47 Cavalier Blvd, Ste 140, Florence, KY 41042[8]",
+            "name": "Local Area Agencies on Aging and Independent Living (contact via chfs.ky.gov[9])",
             "type": "service-area"
           }
         ]
@@ -73,9 +74,9 @@
         "hasIncomeTiers": true,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
+        "hasFunctionalReq": false,
         "hasMultipleTiers": false,
-        "isStatewide": false
+        "isStatewide": true
       }
     }
   ]

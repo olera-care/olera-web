@@ -1,7 +1,7 @@
 {
   "state": "MI",
   "stateName": "Michigan",
-  "comparedAt": "2026-04-07T01:01:45.639Z",
+  "comparedAt": "2026-04-09T09:35:04.260Z",
   "total": 16,
   "newPrograms": 12,
   "withDiffs": 4,
@@ -469,8 +469,8 @@
       "name": "MI Choice Waiver Program",
       "isNew": false,
       "existingId": "mi-choice-waiver-program",
-      "existingVerified": null,
-      "diffsFound": 3,
+      "existingVerified": "2026-04-08",
+      "diffsFound": 2,
       "diffs": [
         {
           "field": "min_age",
@@ -483,11 +483,6 @@
           "ours": "$10,000 – $30,000/year",
           "found": "Home and community-based services equivalent to nursing home care, including: Nursing Services (Preventative), Private Duty Nursing/Respiratory Care, Respite Care, Specialized Medical Equipment and Supplies, Supports Coordination, Training, and Personal Emergency Response Systems (PERS)",
           "source": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver"
         }
       ],
       "novelFields": [

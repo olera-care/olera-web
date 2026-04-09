@@ -1,110 +1,65 @@
 {
   "state": "WI",
   "stateName": "Wisconsin",
-  "classifiedAt": "2026-04-09T09:04:51.554Z",
-  "total": 14,
+  "classifiedAt": "2026-04-09T09:44:32.021Z",
+  "total": 5,
   "typeSummary": {
-    "benefit": 9,
-    "resource": 4,
+    "benefit": 4,
     "employment": 1
   },
   "scopeSummary": {
-    "state": 10,
-    "local": 1,
-    "federal": 3
+    "state": 4,
+    "local": 1
   },
   "complexitySummary": {
-    "deep": 9,
-    "simple": 4,
-    "medium": 1
+    "medium": 1,
+    "deep": 4
   },
   "programs": [
     {
-      "name": "Family Caregiver Support Program",
+      "name": "SeniorCare",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Every county/Tribal aging unit and ADRC[2][3][5].",
+            "name": "Centralized enrollment via phone and online; most pharmacies in Wisconsin accept SeniorCare card[4]",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "deep",
+      "complexity": "medium",
       "recommendedSections": [
         "prose",
-        "what-counts",
+        "income-table",
         "tier-comparison",
         "documents",
-        "county-directory",
-        "callout"
+        "county-directory"
       ],
       "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
+        "benefitType": "financial",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": false,
+        "hasRegionalVariation": false,
         "hasFunctionalReq": false,
         "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
     {
-      "name": "IRIS (Include, Respect, I Self-Direct)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local ADRCs (directory at dhs.wisconsin.gov/adrc/directory.htm)",
-            "type": "service-area"
-          },
-          {
-            "name": "Tribal ADRS",
-            "type": "service-area"
-          },
-          {
-            "name": "IRIS Consultant Agencies (ICAs)",
-            "type": "service-area"
-          },
-          {
-            "name": "Fiscal Employer Agents (FEAs)",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": true,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "PACE (Program of All-Inclusive Care for the Elderly)",
+      "name": "Family Care",
       "programType": "benefit",
       "geographicScope": {
         "type": "local",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Community Care Inc. (Milwaukee, Racine, Waukesha, Kenosha)",
+            "name": "Local ADRCs (county-based)",
+            "type": "service-area"
+          },
+          {
+            "name": "Managed care organizations (e.g., Community Care Inc., Anthem)",
             "type": "service-area"
           }
         ]
@@ -129,14 +84,14 @@
       }
     },
     {
-      "name": "Medical Assistance (QMB, SLMB, QI)",
+      "name": "IRIS (Include, Respect, I Self-Direct)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local Economic Support (find via https://www.dhs.wisconsin.gov/counties.htm), ADRCs (https://www.dhs.wisconsin.gov/adrc/index.htm)",
+            "name": "Local ADRCs (county-specific), Tribal ADRS",
             "type": "service-area"
           }
         ]
@@ -147,177 +102,6 @@
         "income-table",
         "what-counts",
         "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "FoodShare",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "12 county agencies (local FoodShare office)[2]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Wisconsin Home Energy Assistance Program (WHEAP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local WHEAP agencies; examples: UMOS, Partners for Community Development, Inc., Waupaca County Economic Assistance",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "documents",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "financial",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Weatherization Assistance Program (WAP)",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Project Home (Dane/Green Counties): 608-246-3737[3]",
-            "type": "service-area"
-          },
-          {
-            "name": "CAP Services[2]",
-            "type": "service-area"
-          },
-          {
-            "name": "Community Action (Rock/Walworth): 608-363-9200 / 262-427-8505[4]",
-            "type": "service-area"
-          },
-          {
-            "name": "Energy Services Inc. for Energy Assistance referrals[3][4]",
-            "type": "service-area"
-          },
-          {
-            "name": "Partners for Community Development[7]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
-        "tier-comparison",
-        "documents",
-        "county-directory",
-        "callout"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "State Health Insurance Assistance Program (SHIP)",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Bureau of Aging and Disability Resources, 1 West Wilson Street, Rm. 551, P.O. Box 7851, Madison, WI 53707-7851[4]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Elderly Nutrition Program",
-      "programType": "benefit",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local ADRCs, county human services, senior dining sites; e.g., Dane County, Walworth County, Jackson County",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "deep",
-      "recommendedSections": [
-        "prose",
-        "income-table",
-        "what-counts",
         "documents",
         "county-directory",
         "callout"
@@ -328,27 +112,35 @@
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": true,
-        "hasMultipleTiers": false,
+        "hasMultipleTiers": true,
         "isStatewide": true
       }
     },
     {
-      "name": "Wisconsin Senior Employment Program (WSEP)",
+      "name": "Wisconsin Senior Employment Program (WISE)",
       "programType": "employment",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "WISE: Fox Valley region, phone (920) 229-5557[2]",
+            "name": "Fox Valley Workforce Development Board: (920) 229-5557[1]",
             "type": "service-area"
           },
           {
-            "name": "CWI Works (covers Wisconsin)[3]",
+            "name": "Employ Milwaukee (Milwaukee area)[4]",
             "type": "service-area"
           },
           {
-            "name": "SER National (covers parts of Wisconsin, e.g., La Crosse region)[6][7]",
+            "name": "Greater Wisconsin Agency on Aging Resources: 1414 MacArthur Road, Suite A, Madison; (608) 243-5670[6]",
+            "type": "service-area"
+          },
+          {
+            "name": "CWI Works subgrantee network across Wisconsin[2]",
+            "type": "service-area"
+          },
+          {
+            "name": "Job Center of Wisconsin / DWD contacts[3]",
             "type": "service-area"
           }
         ]
@@ -362,46 +154,6 @@
       "signals": {
         "benefitType": "employment",
         "hasIncomeTiers": true,
-        "hasAssetLimits": false,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": true,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Elder Law Legal Assistance",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Legal Action of Wisconsin (multiple offices)",
-            "type": "service-area"
-          },
-          {
-            "name": "State Bar of Wisconsin referrals",
-            "type": "service-area"
-          },
-          {
-            "name": "Disability Rights Wisconsin",
-            "type": "service-area"
-          },
-          {
-            "name": "County/Tribal veteran service officers",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "service",
-        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,
@@ -410,85 +162,30 @@
       }
     },
     {
-      "name": "Long-Term Care Ombudsman Program",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "federal",
-        "stateVariation": true,
-        "localEntities": [
-          {
-            "name": "Administered statewide by Board on Aging and Long Term Care (BOALTC)[2][3]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "advocacy",
-        "hasIncomeTiers": false,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": true,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "SeniorCare",
+      "name": "Wisconsin Home Energy Assistance Program (WHEAP)",
       "programType": "benefit",
       "geographicScope": {
         "type": "state",
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Administered statewide by Wisconsin DHS; most Wisconsin pharmacies participate[7]",
+            "name": "Local WHEAP agencies; find via https://energybenefit.wi.gov/ or Customer Care Center.",
             "type": "service-area"
           }
         ]
       },
-      "complexity": "medium",
+      "complexity": "deep",
       "recommendedSections": [
         "prose",
         "income-table",
         "what-counts",
         "documents",
-        "county-directory"
+        "county-directory",
+        "callout"
       ],
       "signals": {
         "benefitType": "financial",
         "hasIncomeTiers": true,
-        "hasAssetLimits": true,
-        "hasRegionalVariation": false,
-        "hasFunctionalReq": false,
-        "hasMultipleTiers": false,
-        "isStatewide": true
-      }
-    },
-    {
-      "name": "Elder Benefit Specialist (EBS) Program",
-      "programType": "resource",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "County aging offices/ADRCs statewide; examples: Walworth County, Crawford County, Chippewa County, Columbia County, Price County; tribal via GLITC[3][4][5][6][8][9]",
-            "type": "service-area"
-          }
-        ]
-      },
-      "complexity": "simple",
-      "recommendedSections": [
-        "prose",
-        "county-directory"
-      ],
-      "signals": {
-        "benefitType": "advocacy",
-        "hasIncomeTiers": false,
         "hasAssetLimits": true,
         "hasRegionalVariation": true,
         "hasFunctionalReq": false,

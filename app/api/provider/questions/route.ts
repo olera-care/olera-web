@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
+import { sendSlackAlert, slackQuestionAnswered } from "@/lib/slack";
+import { sendEmail } from "@/lib/email";
+import { questionAnsweredEmail } from "@/lib/email-templates";
 
 /**
  * GET /api/provider/questions
@@ -142,7 +145,7 @@ export async function PATCH(request: NextRequest) {
 
     const { data: profile } = await supabase
       .from("business_profiles")
-      .select("id, slug, source_provider_id")
+      .select("id, slug, display_name, source_provider_id")
       .eq("account_id", account.id)
       .in("type", ["organization", "caregiver"])
       .single();
@@ -157,7 +160,7 @@ export async function PATCH(request: NextRequest) {
     // Verify the question belongs to this provider
     const { data: question, error: questionError } = await db
       .from("provider_questions")
-      .select("id, provider_id, question, answer, asker_name")
+      .select("id, provider_id, question, answer, asker_name, asker_email")
       .eq("id", id)
       .single();
 
@@ -219,6 +222,39 @@ export async function PATCH(request: NextRequest) {
     }).then(({ error: actErr }: { error: { message: string } | null }) => {
       if (actErr) console.error("[provider_activity] question_responded insert failed:", actErr);
     });
+
+    const providerName = profile.display_name || "A provider";
+
+    // Slack notification (fire-and-forget)
+    const slack = slackQuestionAnswered({
+      providerName,
+      providerSlug: profile.slug,
+      askerName: question.asker_name || "Someone",
+      question: question.question || "",
+      answer: answer.trim(),
+    });
+    sendSlackAlert(slack.text, slack.blocks).catch(() => {});
+
+    // Email the asker that their question was answered (fire-and-forget)
+    if (question.asker_email) {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+      sendEmail({
+        to: question.asker_email,
+        subject: `${providerName} answered your question on Olera`,
+        html: questionAnsweredEmail({
+          askerName: question.asker_name || "there",
+          providerName,
+          question: question.question || "",
+          answer: answer.trim(),
+          providerUrl: `${siteUrl}/provider/${profile.slug}`,
+        }),
+        emailType: "question_answered",
+        recipientType: "family",
+        providerId: profile.slug,
+      }).catch((err: unknown) => {
+        console.error("Answer notification email failed:", err);
+      });
+    }
 
     return NextResponse.json({ question: updated });
   } catch (err) {

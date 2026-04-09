@@ -7,20 +7,13 @@
 
 ## Current Focus
 
-- **Admin Panel 2.0 QA Fixes** (branch: `noble-yalow`) — IN PROGRESS
-  - From Apr 7 meeting with Graize & Cecille
-  - **Bug fixes**:
-    - [x] Fix "Needs Email" counter — added status=pending filter to exclude non-actionable leads
-    - [x] Restore delete-reason modal — required free-text reason field, logged in audit
-  - **Claims page enhancements**:
-    - [x] CSV export for provider claims — new /api/admin/providers/export endpoint + Export CSV button
-    - [x] Multi-select + bulk approve/reject/delete on claims — checkboxes, bulk action bar
-  - **Provider portal UX**:
-    - [x] Fix auto-sign-in from lead notification emails — deferred send now uses `generateNotificationUrl` with `otk` token
-    - [x] Provider engagement tracking — added `contact_revealed` event type, tracks email/phone copy clicks
-    - [x] Provider unsubscribe/opt-out — `/unsubscribe/[slug]` page, API endpoint, email off-ramp link, send gating
-  - **Manual (non-code)**:
-    - [ ] Purchase Perplexity AI premium subscription for ops team
+- **Admin Panel 2.0 QA Fixes** (branch: `noble-yalow`) — DONE (PRs #504-509 merged)
+
+- **City Expansion Batch — Apr 8** (branch: `wise-shaw`) — DONE
+  - 141 cities, 2,658 new providers uploaded to Supabase
+  - Discovery: 15,635 candidates found (quick mode, 50 min, ~$166)
+  - Processing: clean → load → enrich → finalize (3h31m, $246)
+  - Fixed `parseBatchMd` bug: plain CSV fallback when no code block or "Machine-Readable" header
 
 - **Senior Benefits Pipeline** (branch: `noble-pare`) — MERGED (PR #502)
 
@@ -50,8 +43,7 @@
 
 ## Next Up
 
-1. **Admin Panel 2.0 QA** — work through all 7 action items (current session)
-2. Run benefits pipeline on FL + CA → compare patterns across 3 states
+1. Run benefits pipeline on FL + CA → compare patterns across 3 states
 3. Seed TX: `/api/admin/seed-sbf-programs?state=TX&confirm=true`
 4. Rob Arnold YouTube ID (due Apr 7)
 5. MedJobs candidates detail page taste pass
@@ -92,6 +84,21 @@
 ---
 
 ## Session Log
+
+### 2026-04-08 (Session 70) — City Expansion Batch (141 Cities)
+
+**Branch:** `wise-shaw`
+
+**Discovery:** Ran `discovery-batch.py` in quick mode for 141 cities from map.olera.care batch.
+- 15,635 provider candidates discovered (50 min)
+- 3 cities already had data, 138 newly discovered
+
+**Processing:** Ran `pipeline-batch.js` end-to-end (clean → load → enrich → finalize).
+- 4,022 providers after classification, 2,658 after dedup — uploaded to Supabase
+- Descriptions, reviews, trust signals, and images enriched
+- Total cost: ~$246 | Total time: 3h31m
+
+**Bug Fix:** `parseBatchMd()` in `pipeline-batch.js` failed on plain CSV files (no code block, no "Machine-Readable" header). `content.indexOf()` returned -1, `slice(-1)` gave single char. Fixed with explicit fallback to full content.
 
 ### 2026-04-07 (Session 69) — Admin Panel 2.0 QA Fixes
 

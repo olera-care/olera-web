@@ -1351,7 +1351,7 @@ export default function AdminBenefitsPage() {
               <StateCard
                 key={state.abbreviation}
                 state={state}
-                onClick={() => setSelectedState(state.abbreviation)}
+                onClick={() => { setSelectedState(state.abbreviation); setSelectedRegion(null); }}
               />
             ))}
           </div>

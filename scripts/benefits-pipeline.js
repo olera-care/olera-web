@@ -1286,7 +1286,7 @@ CRITICAL: Use only information from the researched programs. Do not invent progr
 // ═══════════════════════════════════════════════════════════════════════════
 
 function phaseReport(entity, exploreData, diveData, compareData, classifyData, draftData) {
-  const stateCode = entity.stateCode || entity.dirName;
+  const dirName = entity.dirName;
   const stateName = entity.name;
   console.log(`\n  ━━━ REPORT: Generating markdown report ━━━\n`);
 
@@ -1481,7 +1481,7 @@ function phaseReport(entity, exploreData, diveData, compareData, classifyData, d
     const successful = draftData.programs.filter((p) => !p._parseError && !p._error);
     ln(`## Content Drafts`);
     ln();
-    ln(`Generated ${successful.length} page drafts. Review in admin dashboard or \`data/pipeline/${stateCode}/drafts.json\`.`);
+    ln(`Generated ${successful.length} page drafts. Review in admin dashboard or \`data/pipeline/${dirName}/drafts.json\`.`);
     ln();
     for (const p of successful) {
       ln(`- **${p.name}** (${p.programType}) — ${p.contentSections?.length || 0} content sections, ${p.faqs?.length || 0} FAQs`);
@@ -1522,7 +1522,7 @@ function phaseReport(entity, exploreData, diveData, compareData, classifyData, d
   ln();
 
   const report = lines.join("\n");
-  writeFile(stateCode, "exploration_report.md", report);
+  writeFile(dirName, "exploration_report.md", report);
 
   console.log(`  Report: ${lines.length} lines`);
   return report;

@@ -31,8 +31,8 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 
 ### What's shipped
 - 6-phase pipeline: explore → dive → compare → classify → draft → report
-- **Concurrent pipeline**: explore queries parallel, dive 5x concurrent, draft 3x concurrent. Per-state ~1.5min (was ~4min).
-- **Batch runner** (`scripts/benefits-batch.js`): runs all 50 states with 3 concurrent processes. Auto-skips states with existing drafts. Resumable.
+- **Concurrent pipeline**: explore queries parallel, dive 5x concurrent, draft sequential (rate-limited). Per-state ~8min with 100% success.
+- **Batch runner** (`scripts/benefits-batch.js`): runs all states sequentially (Claude API rate limit is shared). Auto-skips states with existing drafts. Resumable. 429 retry with exponential backoff.
 - **Region-flexible pipeline**: `--region "Miami-Dade County, FL" --parent-state FL` works alongside `--state MI`. All 4 layers: pipeline, data model, `/benefits/{slug}` route, admin regions section.
 - Data model: programType, geographicScope, complexity, structuredEligibility, applicationGuide, contentSections, contentStatus. Regions add regionName, parentState, slug, isRegion.
 - Admin dashboard: streamlined for content production (readiness filters, content metrics, lifted API calls, remembered reviewer name, programType badges, review status on rows, regions section)
@@ -41,17 +41,20 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - StatePageV2: hand-drawn SVG illustrations, organic blobs, wavy dividers, dark stat band, horizontal start-here cards, need-based groupings with custom SVG icons, grouped program list by type
 - Save program: auth-gated bookmark, Supabase persistence, /saved page
 - Michigan: 16 programs drafted + state overview generated. MI Choice applied as live v2 test.
-- **All 50 states + DC processed**: 568 programs discovered, 28 states with full draft content + state overviews. 19.4 min batch time. Raw pipeline data (explore, dive, compare, classify, drafts, reports) committed for all states.
+- **All 50 states + DC explored and researched**. Raw pipeline data committed for all states.
+- **5 states at 100% draft rate**: AL(16), AK(13), AZ(13), AR(13), FL(16) — every program drafted successfully after rate limit fix
+- **46 states re-running** in background via `nohup` (PID 59012, log: `data/pipeline/batch-run.log`). ~8 min/state sequential, ~6 hours total. All programs should draft at 100% with retry logic.
 - **Admin dashboard taste pass**: active/backlog split, compressed scaffolding grid (8-col), single status line replaces 3 metric boxes, clean StateCards (3 fields instead of 7), serif title
-- **Post-mortem**: entity refactor variable rename pattern documented in `docs/POSTMORTEMS.md` + memory saved
+- **Browser back button** fixed in admin: `history.pushState` on state/region selection
+- **Post-mortems**: (1) entity refactor variable rename, (2) 85% draft failure from API rate limiting — both documented in `docs/POSTMORTEMS.md` + memories saved
 
 ### What's next
-1. Review v2 state pages across a few states — spot-check content quality
-2. Apply approved MI drafts to waiver-library.ts (batch via `/benefits-pipeline`)
-3. Run pipeline on a region (e.g., "Miami-Dade County, FL") — prove region system end-to-end
-4. Re-run batch with `--force` to get remaining 22 states to full draft status (they have explore+dive but drafts failed)
-5. Review draft quality with Chantel
-6. Admin dashboard: further refinements based on TJ review of live data
+1. **Wait for 46-state batch to finish** (~6 hours, running in background). Check: `tail -5 data/pipeline/batch-run.log`
+2. Commit the results, rebuild, push — all 50 states with all programs
+3. Review v2 state pages across a few states — spot-check content quality
+4. Apply approved MI drafts to waiver-library.ts (batch via `/benefits-pipeline`)
+5. Run pipeline on a region (e.g., "Miami-Dade County, FL") — prove region system end-to-end
+6. Review draft quality with Chantel
 
 ### Other active work (different branches)
 - Homepage de-jank + mega menu (`gifted-rosalind`) — ready for QA
@@ -81,6 +84,7 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 | 2026-04-09 | Ship breadth first, iterate depth | Don't perfect one state before touching the next. Run pipeline on all 50 states with v1 drafts, then iteratively improve. Review workflow supports this — nothing goes live without approval. A decent draft across 50 > a perfect draft for 1. |
 | 2026-04-09 | Parallelize pipeline: 5x dive, 3x draft, parallel explore | Per-state drops from ~4min to ~1.5min. Separate rate limiters per API. 50 states × 3 concurrent ≈ 25min total. |
 | 2026-04-09 | Admin dashboard needs active/backlog split | UI critique: 48 identical gray "Template only" cards drown the 2 states with real data. Promote active states, compress scaffolding. Single status line beats 3 metric boxes. |
+| 2026-04-09 | Draft phase must be sequential — Claude API rate limit | 8K output tokens/min on Tier 1 key. Concurrency of 3 caused 85% failure (429s). Sequential + retry = 100% success at ~8 min/state. Speed < reliability. |
 |------|----------|-----------|
 | 2026-04-08 | Pipeline evolves from research tool → content production system | Pipeline already "understands" programs after dive phase but throws understanding away by outputting a report. Content generation and research are one skill, not two separate steps. |
 | 2026-04-08 | Four program types: benefit, resource, navigator, employment | Derived from 28 real programs across TX (Chantel audit) and MI (pipeline). Chantel flagged resource vs benefit distinction explicitly. Navigator is meta-programs like MiCAFE. |
@@ -183,7 +187,7 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 
 - Project is a TypeScript/Next.js 16 web app for senior care discovery
 - Benefits data: 1,145 programs across 50 states in `data/waiver-library.ts` (~11,740 lines). Only 15 (1.3%, all TX) have real content. 28 states now have pipeline-drafted content in `pipeline-drafts.ts` (19,500 lines).
-- Pipeline cost: ~$0.40/state. 50-state batch: ~$20, 19.4 min with concurrency (3 states × 5 dive workers × 3 draft workers)
+- Pipeline cost: ~$0.40/state. 50-state batch: ~$20. Time: ~8 min/state sequential (rate-limited by 8K output tokens/min on Anthropic Tier 1). Dive is parallelized (5x), draft is sequential with 429 retry.
 - Chantel Research files: `~/Desktop/olera-hq/Senior Benefits/Chantel Research/` — TX audit CSV + accuracy docx
 - Notion docs: "Benefits Pipeline v2 — Content Production System" (spec), "Benefits Hub Next Steps" (Apr 7 meeting)
 - Waiver library pages auto-generate via `generateStaticParams` — adding programs = pages on deploy
@@ -290,9 +294,22 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 - Documented entity refactor pattern: 5 bugs from incomplete variable rename
 - Root cause: renaming function params without grepping for all downstream references in return objects, template literals, console.log
 - Memory saved: `feedback_grep_after_refactor.md`
+- Memory saved: `feedback_grep_after_refactor.md`
 - Slash commands reviewed — no updates needed, existing coverage is sufficient
 
-**Commits:** `86530f8e` → `643d70bb` → `4f10a0f7` → `f1cfed6b` → `33b767fa` → `2c690789` → `ff26b594` → `c852b379` → `2e11a804` → `ec460d15` → `f423eced` → `67516447` → `4eae7868`
+**Rate limit fix** (`scripts/benefits-pipeline.js`):
+- Root cause: 85% draft failure was Claude API 429 rate limiting (8K output tokens/min), NOT parse errors. Never read the actual error messages across 3 batch runs.
+- Fix: 429 retry with exponential backoff (up to 5 retries, 15-60s waits), Claude rate limiter 300ms → 8s, draft concurrency 3 → 1, batch concurrency 3 → 1
+- FL test: 16/16 drafted (was 3/16). AL/AK/AZ/AR also 100%.
+- Post-mortem #2 documented + memory saved: `feedback_api_rate_limits_first.md`
+
+**Browser back button** (`app/admin/benefits/page.tsx`):
+- `history.pushState` on state/region selection, `popstate` listener clears selection
+- "All states" back button uses `history.back()`
+
+**46-state batch running** in background via `nohup` (PID 59012). ~6 hours to complete all programs for all states at 100% rate.
+
+**Commits:** `86530f8e` → `643d70bb` → `4f10a0f7` → `f1cfed6b` → `33b767fa` → `2c690789` → `ff26b594` → `c852b379` → `2e11a804` → `ec460d15` → `f423eced` → `67516447` → `4eae7868` → `8c0e92d7` → `a87503fa` → `91b44e73` → `51e2792b` → `460eec1e`
 
 ---
 

@@ -49,7 +49,13 @@ export default function ProfileOverviewCard({
     .filter(Boolean)
     .join(", ");
   const initials = getInitials(profile.display_name);
-  const isVerified = profile.verification_state === "verified";
+
+  // Badge logic:
+  // - "Verified" = admin approved their verification submission (badge_approved === true)
+  // - "Claimed" = claimed via email but not yet verified
+  const meta = profile.metadata as { badge_approved?: boolean } | null;
+  const isVerified = meta?.badge_approved === true;
+  const isClaimed = profile.claim_state === "claimed" && !isVerified;
 
   return (
     <DashboardSectionCard
@@ -112,6 +118,7 @@ export default function ProfileOverviewCard({
                   {profile.display_name}
                 </h2>
                 {isVerified && <Badge variant="verified">Verified</Badge>}
+                {isClaimed && <Badge variant="claimed">Claimed</Badge>}
               </div>
               {location && (
                 <p className="text-[15px] text-gray-500 mt-1">{location}</p>
@@ -150,6 +157,7 @@ export default function ProfileOverviewCard({
                   {profile.display_name}
                 </h2>
                 {isVerified && <Badge variant="verified">Verified</Badge>}
+                {isClaimed && <Badge variant="claimed">Claimed</Badge>}
               </div>
               {location && (
                 <p className="text-[15px] text-gray-500 mt-0.5">{location}</p>

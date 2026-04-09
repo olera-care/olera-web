@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 
 const STORAGE_KEY = "olera-doc-checklist";
 
-const CHECKLIST_CATEGORIES = [
+interface ChecklistCategory {
+  name: string;
+  icon: string;
+  items: string[];
+}
+
+const DEFAULT_CHECKLIST_CATEGORIES: ChecklistCategory[] = [
   {
     name: "Identity & Personal",
     icon: "M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0",
@@ -38,7 +44,7 @@ const CHECKLIST_CATEGORIES = [
   },
   {
     name: "Residency & Housing",
-    icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
+    icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 011-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
     items: [
       "Proof of state residency (utility bill, lease)",
       "Current living arrangement documentation",
@@ -51,11 +57,14 @@ export function ChecklistClient({
   programName,
   programShortName,
   stateName,
+  categories,
 }: {
   programName: string;
   programShortName: string;
   stateName: string;
+  categories?: ChecklistCategory[];
 }) {
+  const CHECKLIST_CATEGORIES = categories ?? DEFAULT_CHECKLIST_CATEGORIES;
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
   const [email, setEmail] = useState("");

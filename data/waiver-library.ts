@@ -9156,8 +9156,8 @@ const tennesseePrograms: WaiverProgram[] = [
 const texasPrograms: WaiverProgram[] = [
   {
     id: "star-plus-home-and-community-based-services",
-    name: "Texas STAR+PLUS Waiver",
-    shortName: "STAR+PLUS Waiver",
+    name: "STAR+PLUS Home and Community-Based Services (HCBS)",
+    shortName: "STAR+PLUS HCBS",
     tagline: "Medicaid managed care program for adults 65+ or disabled. Covers personal attendant services and community-based care.",
     savingsRange: "$20,000 – $50,000/year in 2026",
     description: "Medicaid managed care program for adults 65+ or disabled. Covers personal attendant services and community-based care.",
@@ -9272,9 +9272,7 @@ const texasPrograms: WaiverProgram[] = [
       { step: 3, title: "Download forms", description: "Download the Texas SNAP Application or apply directly online at YourTexasBenefits.com." },
       { step: 4, title: "Submit your application", description: "Submit online, by mail, or in person. Complete a phone interview within 30 days to receive your Lone Star Card." },
     ],
-    forms: [
-      { id: "texas-snap-application", name: "Texas SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://www.yourtexasbenefits.com" },
-    ],
+    forms: [],
     faqs: [
       {
         question: "What is the income limit for Texas SNAP benefits for seniors over 60?",
@@ -9395,40 +9393,40 @@ const texasPrograms: WaiverProgram[] = [
     id: "texas-comprehensive-energy-assistance-program-ceap-liheap",
     name: "Texas Comprehensive Energy Assistance Program (CEAP/LIHEAP)",
     shortName: "CEAP/LIHEAP",
-    tagline: "Helps pay heating and cooling bills. One-time payment sent directly to your utility company.",
-    savingsRange: "$300 – $1,500/year in 2026",
-    description: "Helps pay heating and cooling bills. One-time payment sent directly to your utility company.",
-    intro: "The Texas Comprehensive Energy Assistance Program (CEAP), funded through the federal LIHEAP program, helps low-income Texas households pay their heating and cooling bills. Eligible families receive a one-time payment sent directly to their utility company, providing critical relief during extreme weather months. With Texas summers and winters putting strain on energy costs, this program helps vulnerable households keep the lights and air conditioning on.",
+    tagline: "Helps pay electric, gas, and propane bills — plus emergency HVAC repairs — with payments sent directly to your utility company.",
+    savingsRange: "$300 – $1,500 per household (plus up to $5,000 for HVAC repairs)",
+    description: "Helps pay electric, gas, and propane bills — plus emergency HVAC repairs — with payments sent directly to your utility company.",
+    intro: "The Texas Comprehensive Energy Assistance Program (CEAP) — funded through the federal Low Income Home Energy Assistance Program (LIHEAP) — helps low-income Texas households pay their electric, natural gas, and propane bills. The program also covers emergency repairs or replacement of broken heating and cooling systems and provides energy education to help families lower their monthly costs year-round. Payments are sent directly to your utility company, and priority is given to seniors, people with disabilities, and families with young children. Funds are limited and distributed first-come, first-served, so applying as early as possible is strongly recommended.",
     eligibilityHighlights: [
-      "Income below $1,995/month",
+      "Income at or below 150% of the federal poverty level",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Confirm your household income is below $1,995/month (150% FPL). Priority goes to seniors 60+ and disabled households." },
-      { step: 2, title: "Gather required documents", description: "Collect your most recent utility bill, proof of income for all household members, and a Texas photo ID." },
-      { step: 3, title: "Download forms", description: "Download the Texas Energy Assistance Application from your local Community Action Agency or TDHCA website." },
-      { step: 4, title: "Submit your application", description: "Apply through your local Community Action Agency. Funds are first-come, first-served, so apply early when the window opens." },
+      { step: 1, title: "Find your local agency", description: "Texas does not accept CEAP applications directly at the state level. Visit the TDHCA Help for Texans page, select \"Utility Bill Payment Help,\" and enter your county — or call 2-1-1 or 1-877-399-8939 to be connected." },
+      { step: 2, title: "Check your eligibility", description: "Confirm your household income is at or below 150% of the federal poverty level. Priority is given to seniors 60+, people with disabilities, and families with young children." },
+      { step: 3, title: "Gather required documents", description: "Collect a government-issued photo ID, proof of citizenship or legal residency for all household members, proof of income for the last 30 days, and your most recent electric and gas bills." },
+      { step: 4, title: "Submit your application", description: "Apply through your local Community Action Agency online, by mail, or in person. Funds are first-come, first-served, so submit as soon as your agency's application window opens." },
     ],
     forms: [
-      { id: "texas-energy-application", name: "Texas Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.tdhca.state.tx.us/community-affairs/ceap/" },
+      { id: "texas-energy-application", name: "Texas Energy Assistance Application", description: "Apply for help paying electric, gas, and propane bills through CEAP/LIHEAP.", url: "https://www.tdhca.state.tx.us/community-affairs/ceap/" },
     ],
     faqs: [
       {
-        question: "What are the income limits to qualify for Texas CEAP energy assistance in 2026?",
-        answer: "For a single-person household, the income limit for CEAP is $1,995 per month, which is 150% of the federal poverty level. The limit increases with each additional household member. Priority is given to households that include elderly members age 60 and older, people with disabilities, or families with children under the age of 6. All household members' income is counted when determining eligibility.",
+        question: "What bills does Texas CEAP help pay?",
+        answer: "Texas CEAP helps cover your electric, natural gas, and propane bills, with a specific focus on preventing disconnections, assisting with reconnection fees, and repairing or replacing broken heating and cooling units. You can also request water and wastewater assistance in the same application — qualifying households can receive up to $600 toward past-due and current water and wastewater bills. Typical energy bill assistance ranges from $300 to $1,500 per household, and emergency HVAC repairs can be covered up to $3,000–$5,000. Funds are sent directly to your utility company, not to you personally.",
       },
       {
-        question: "When can I apply for Texas CEAP and how long does it take to get help?",
-        answer: "Application periods vary by region because CEAP is administered through local Community Action Agencies across Texas, so you need to contact your local agency to find out when they are accepting applications. Funds are limited and distributed on a first-come, first-served basis, meaning the program often runs out of money before everyone who qualifies can be served. It is best to apply as early as possible when your local agency opens its application window. Processing times also vary by agency, but once approved, payment is sent directly to your utility company.",
+        question: "Who qualifies for Texas CEAP in 2026?",
+        answer: "To qualify, your household income must be at or below 150% of the Federal Poverty Income Guidelines, and at least one occupant must be a U.S. citizen or a qualified non-citizen. Priority is given to households that include seniors age 60 and older, people with disabilities, and families with young children. All household members' income is counted when determining eligibility, so be ready to provide pay stubs, SSI or disability letters, or tax returns from the last 30 days when you apply.",
       },
       {
-        question: "Does Texas CEAP pay my electric bill directly or give me cash for energy costs?",
-        answer: "CEAP provides a one-time payment that is sent directly to your utility company, not to you personally. The program covers both heating and cooling costs, which is especially important in Texas where summer electricity bills can spike due to extreme heat. It is not an ongoing monthly benefit, so the single payment is meant to help you get caught up or get ahead on your energy bills. The program generally cannot be used for propane tank purchases or to cover utility security deposits.",
+        question: "How do I find my local CEAP agency in Texas?",
+        answer: "Texas does not take CEAP applications at the state level — every application goes through your local Community Action Agency. To find yours, visit the TDHCA Help for Texans page and enter your county under \"Utility Bill Payment Help,\" call 2-1-1 (free, 24/7), or dial 1-877-399-8939. Some larger counties have dedicated CEAP lines — Dallas County residents can call 214-819-1848, Houston residents can reach BakerRipley at 713-590-2327, and Travis County residents can call Health & Human Services at 512-854-4120. Funds are limited and distributed first-come, first-served, so apply as early as possible when your agency's window opens.",
       },
     ],
     sourceUrl: "https://www.tdhca.texas.gov/comprehensive-energy-assistance-program-ceap",
     lastVerifiedDate: "2026-04-04",
     verifiedBy: "chantel",
-    savingsSource: "TDHCA: typically $300-$1,500/year; HVAC emergency repairs $3,000-$5,000",
+    savingsSource: "TDHCA: typical energy bill assistance $300–$1,500; emergency HVAC repairs $3,000–$5,000; water/wastewater up to $600",
     savingsVerified: true,
   },
   {
@@ -9603,8 +9601,8 @@ const texasPrograms: WaiverProgram[] = [
   },
   {
     id: "texas-pace-programs",
-    name: "Texas PACE Programs",
-    shortName: "Texas PACE Programs",
+    name: "Texas PACE: Program of All-Inclusive Care for the Elderly",
+    shortName: "Texas PACE",
     tagline: "All-inclusive care centers in select Texas cities providing comprehensive medical and social services.",
     savingsRange: "$15,000 – $35,000/year in 2026",
     description: "All-inclusive care centers in select Texas cities providing comprehensive medical and social services.",
@@ -9713,16 +9711,16 @@ const texasPrograms: WaiverProgram[] = [
     ],
     faqs: [
       {
-        question: "What are the income limits for Texas Weatherization Assistance Program in 2026?",
-        answer: "To qualify for the Texas Weatherization Assistance Program in 2026, your household income must be at or below 200% of the federal poverty level. For a single person, that means earning no more than $2,660 per month. The program gives priority to elderly residents age 60 and older, people with disabilities, and families with children under 6. You can apply through your local subrecipient agency, which is assigned by the Texas Department of Housing and Community Affairs (TDHCA).",
+        question: "Can renters apply for Texas Weatherization Assistance?",
+        answer: "Yes — renters can absolutely apply for the Texas Weatherization Assistance Program. You will need your landlord's written permission before any work can begin, because weatherization involves making permanent improvements to the home (insulation, sealing, HVAC repairs). Your landlord must sign the official Landlord Permission Form agreeing to the work and committing not to raise your rent as a direct result of the improvements. Once that form is signed and submitted with your application, you will be evaluated on the same income and priority criteria as homeowners. Seniors, people with disabilities, and families with young children are given priority regardless of whether they rent or own.",
       },
       {
-        question: "How long is the waitlist for Texas Weatherization Assistance?",
-        answer: "Wait times for the Texas Weatherization Assistance Program vary significantly by location, ranging from 6 months to over 2 years in some areas. Once you reach the top of the list, a certified energy auditor will evaluate your home to determine which improvements will have the greatest impact on your energy use. The actual weatherization work typically includes things like adding insulation, sealing air leaks, and repairing or replacing heating and cooling systems. The average value of the work performed is between $4,000 and $7,000 per home, all provided at no cost to qualifying households.",
+        question: "What repairs does the Texas Weatherization program cover?",
+        answer: "The Texas Weatherization Assistance Program covers a wide range of energy-efficiency improvements, all provided free of charge to qualifying households. Typical work includes adding attic, wall, and floor insulation; sealing air leaks around windows, doors, ductwork, and electrical outlets; weather stripping and caulking; installing or repairing storm windows; and repairing or replacing inefficient heating and cooling systems such as furnaces, water heaters, and air conditioners. A certified energy auditor evaluates your home first to identify which upgrades will have the biggest impact on your energy use. The average value of the work performed is between $5,000 and $8,000 per home.",
       },
       {
-        question: "What does Texas Weatherization Assistance do and how is it different from CEAP energy bill help?",
-        answer: "The Texas Weatherization Assistance Program provides free physical improvements to your home, such as insulation, weather stripping, caulking, window repairs, and furnace or AC repair or replacement, all aimed at making your home more energy efficient. This is different from CEAP (the Comprehensive Energy Assistance Program), which helps pay your current utility bills but does not fix the underlying problems causing high energy costs. Weatherization addresses the root cause by reducing how much energy your home wastes, which lowers your bills long term. Both homeowners and renters can qualify, though renters will need their landlord's written permission before work can begin.",
+        question: "How do I find my local Weatherization agency in Texas?",
+        answer: "The Texas Weatherization Assistance Program is delivered through 22 local subrecipient agencies that cover all 254 Texas counties. You apply directly through the agency assigned to your county — not through the state. To find your agency, use the Find Your Local Agency map on the How to Apply page, where you can search by city or zip code and see every provider in Texas. You can also call 2-1-1 (free, 24/7) and a referral specialist will connect you to the right office, or visit tdhca.texas.gov to see the full list. The five most popular regional providers are Dallas County HHS, CCSCT (Central/South/West Texas), TCOG (Texoma Region), Travis County HHS (Austin), and AACOG (San Antonio).",
       },
     ],
     sourceUrl: "https://www.tdhca.texas.gov/ca/wap",

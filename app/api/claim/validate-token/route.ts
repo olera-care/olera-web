@@ -284,7 +284,7 @@ export async function POST(request: Request) {
         } else if (action === "interview") {
           const { data: interview } = await db
             .from("interviews")
-            .select("id, type, proposed_time, notes, status, created_at, student:business_profiles!interviews_student_profile_id_fkey(display_name, image_url)")
+            .select("id, type, proposed_time, notes, status, created_at, proposed_by, provider_profile_id, student:business_profiles!interviews_student_profile_id_fkey(display_name, image_url)")
             .eq("id", actionId)
             .single();
           if (interview) {
@@ -298,6 +298,8 @@ export async function POST(request: Request) {
               interview_format: interview.type,
               proposed_time: interview.proposed_time,
               notes: interview.notes,
+              proposed_by: interview.proposed_by,
+              provider_profile_id: interview.provider_profile_id,
             };
           }
         }

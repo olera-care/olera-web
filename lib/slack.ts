@@ -279,6 +279,44 @@ export function slackQuestionMissingEmail(opts: {
   };
 }
 
+export function slackQuestionAnswered(opts: {
+  providerName: string;
+  providerSlug: string;
+  askerName: string;
+  question: string;
+  answer: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const truncQ = opts.question.length > 100 ? opts.question.slice(0, 97) + "..." : opts.question;
+  const truncA = opts.answer.length > 150 ? opts.answer.slice(0, 147) + "..." : opts.answer;
+  return {
+    text: `${opts.providerName} answered a question from ${opts.askerName}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "💬 Provider Answered a Question", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Asked by:*\n${opts.askerName}` },
+        ],
+      },
+      {
+        type: "section",
+        text: { type: "mrkdwn", text: `*Q:* ${truncQ}\n*A:* ${truncA}` },
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View provider page>` },
+        ],
+      },
+    ],
+  };
+}
+
 // ── One-click access alerts ───────────────────────────────────
 
 export function slackOneClickAccess(opts: {

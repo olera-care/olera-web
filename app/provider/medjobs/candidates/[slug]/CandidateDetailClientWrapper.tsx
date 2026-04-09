@@ -84,7 +84,6 @@ export default function CandidateDetailClientWrapper({
         studentPhone={studentPhone}
         studentSlug={studentSlug}
         variant={variant}
-        onVerifyClick={() => setShowVerificationModal(true)}
         initialScheduled={hasExistingInterview}
       />
       <VerificationFormModal

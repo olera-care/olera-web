@@ -1,52 +1,52 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useClickOutside } from "@/hooks/use-click-outside";
-import { useCitySearch } from "@/hooks/use-city-search";
+import OrganizationSearch, { type SelectedOrg } from "@/components/shared/OrganizationSearch";
 
 const PREFILL_KEY = "olera_provider_search_prefill";
 
 export default function SetUpProfileSection() {
   const { user, profiles } = useAuth();
   const router = useRouter();
-  const [businessName, setBusinessName] = useState("");
-  const [cityInput, setCityInput] = useState("");
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [showCityDropdown, setShowCityDropdown] = useState(false);
-  const cityDropdownRef = useRef<HTMLDivElement>(null);
-
-  const { results: cityResults, preload: preloadCities } = useCitySearch(cityInput);
-  useClickOutside(cityDropdownRef, () => setShowCityDropdown(false));
-
-  const handleSelectCity = (cityFull: string) => {
-    setCityInput(cityFull);
-    setSelectedCity(cityFull);
-    setShowCityDropdown(false);
-  };
+  const [searchInput, setSearchInput] = useState("");
+  const [selectedOrg, setSelectedOrg] = useState<SelectedOrg | null>(null);
 
   // Check if user already has a provider profile
   const hasProviderProfile = (profiles || []).some(
     (p) => p.type === "organization" || p.type === "caregiver"
   );
 
+  const handleOrgSelect = useCallback((org: SelectedOrg | null) => {
+    setSelectedOrg(org);
+  }, []);
+
   const handleGetStarted = () => {
-    const name = businessName.trim();
-    const city = selectedCity || cityInput.trim();
-    if (name || city) {
-      try {
+    // Store search data for onboarding page to read
+    try {
+      if (selectedOrg) {
+        // User selected an existing org from autocomplete
         sessionStorage.setItem(
           PREFILL_KEY,
           JSON.stringify({
-            searchQuery: name,
-            locationQuery: city,
+            selectedOrg: selectedOrg,
+            searchQuery: "",
           }),
         );
-      } catch {
-        /* sessionStorage unavailable */
+      } else if (searchInput.trim()) {
+        // User typed but didn't select - treat as org name search
+        sessionStorage.setItem(
+          PREFILL_KEY,
+          JSON.stringify({
+            searchQuery: searchInput.trim(),
+            selectedOrg: null,
+          }),
+        );
       }
+    } catch {
+      /* sessionStorage unavailable */
     }
 
     // Navigate directly to onboarding (auth handled there)
@@ -57,7 +57,13 @@ export default function SetUpProfileSection() {
     router.push(targetUrl);
   };
 
-  const showCitySuggestions = showCityDropdown && cityResults.length > 0;
+  // Handle Enter key in search input
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !selectedOrg && searchInput.trim()) {
+      e.preventDefault();
+      handleGetStarted();
+    }
+  };
 
   return (
     <section className="py-16 md:py-24 bg-white">
@@ -71,104 +77,65 @@ export default function SetUpProfileSection() {
             {/* Left — Form */}
             <div className="p-8 lg:p-10">
               <h3 className="text-lg font-semibold text-gray-900">
-                Add your business detail
+                Find your organization
               </h3>
 
               <div className="mt-6 space-y-4">
-                <div>
+                {/* Organization search with autocomplete */}
+                <div onKeyDown={handleKeyDown}>
                   <label
-                    htmlFor="business-name"
+                    htmlFor="org-search"
                     className="block text-sm font-medium text-gray-700 mb-1.5"
                   >
-                    Business name
+                    Organization name
                   </label>
-                  <input
-                    id="business-name"
-                    type="text"
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleGetStarted();
+                  <OrganizationSearch
+                    value={searchInput}
+                    onChange={(value) => {
+                      setSearchInput(value);
+                      // Clear selected org when user types something different
+                      if (selectedOrg && value !== selectedOrg.name) {
+                        setSelectedOrg(null);
+                      }
                     }}
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    onSelect={handleOrgSelect}
+                    placeholder="Search for your organization"
                   />
                 </div>
 
-                <div ref={cityDropdownRef} className="relative">
-                  <label
-                    htmlFor="city-input"
-                    className="block text-sm font-medium text-gray-700 mb-1.5"
-                  >
-                    City
-                  </label>
-                  <input
-                    id="city-input"
-                    type="text"
-                    value={cityInput}
-                    onChange={(e) => {
-                      setCityInput(e.target.value);
-                      setSelectedCity(null);
-                      setShowCityDropdown(true);
-                    }}
-                    onFocus={() => {
-                      setShowCityDropdown(true);
-                      preloadCities();
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        if (showCitySuggestions && cityResults.length > 0) {
-                          handleSelectCity(cityResults[0].full);
-                        } else {
-                          handleGetStarted();
-                        }
-                      }
-                      if (e.key === "Escape") {
-                        setShowCityDropdown(false);
-                      }
-                    }}
-                    placeholder="e.g. Houston, TX"
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
-
-                  {/* City dropdown — opens DOWN */}
-                  {showCitySuggestions && (
-                    <div className="absolute left-0 top-[calc(100%+4px)] w-full bg-white rounded-lg shadow-lg border border-gray-200 py-1.5 z-50 max-h-[200px] overflow-y-auto">
-                      {cityResults.slice(0, 5).map((city, index) => (
-                        <button
-                          key={city.full}
-                          type="button"
-                          onClick={() => handleSelectCity(city.full)}
-                          className={`flex items-center gap-2 w-full px-3 py-2 text-left text-sm transition-colors ${
-                            index === 0
-                              ? "bg-gray-50 text-gray-900"
-                              : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                        >
-                          <svg
-                            className="w-4 h-4 text-gray-400 shrink-0"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1.5}
-                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1.5}
-                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                          </svg>
-                          <span>{city.full}</span>
-                        </button>
-                      ))}
+                {/* City (auto-filled when org is selected) */}
+                {selectedOrg && (selectedOrg.city || selectedOrg.state) && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Location
+                    </label>
+                    <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-gray-100 border border-gray-200 text-gray-700">
+                      <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span className="text-base">
+                        {[selectedOrg.city, selectedOrg.state].filter(Boolean).join(", ")}
+                      </span>
+                      <svg className="w-4 h-4 text-primary-500 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+
+                {/* Selected org confirmation */}
+                {selectedOrg && (
+                  <p className="text-sm text-primary-600 flex items-center gap-1.5">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Selected: {selectedOrg.name}
+                    {selectedOrg.claimState === "claimed" && (
+                      <span className="text-amber-600 font-medium">(Claimed)</span>
+                    )}
+                  </p>
+                )}
               </div>
 
               <button

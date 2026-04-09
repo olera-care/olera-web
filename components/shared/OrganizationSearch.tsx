@@ -21,6 +21,10 @@ interface OrganizationSearchProps {
   onSelect: (org: SelectedOrg | null) => void; // null = create new
   placeholder?: string;
   disabled?: boolean;
+  /** "light" for light backgrounds (default), "dark" for dark backgrounds (solid white input) */
+  variant?: "light" | "dark";
+  /** Show "completed" styling (green border, checkmark) when an org is selected */
+  selected?: boolean;
 }
 
 interface SearchResult extends SelectedOrg {
@@ -33,6 +37,8 @@ export default function OrganizationSearch({
   onSelect,
   placeholder = "Search for your organization...",
   disabled = false,
+  variant = "light",
+  selected = false,
 }: OrganizationSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -54,21 +60,21 @@ export default function OrganizationSearch({
       const supabase = createClient();
       const searchPattern = `%${query}%`;
 
-      // Search business_profiles
+      // Search business_profiles (by name OR city)
       const { data: bpResults } = await supabase
         .from("business_profiles")
         .select("id, display_name, slug, city, state, email, claim_state, source_provider_id, image_url")
         .in("type", ["organization", "caregiver"])
-        .ilike("display_name", searchPattern)
-        .limit(10);
+        .or(`display_name.ilike.${searchPattern},city.ilike.${searchPattern}`)
+        .limit(25);
 
-      // Search olera-providers
+      // Search olera-providers (by name OR city)
       const { data: opResults } = await supabase
         .from("olera-providers")
         .select("provider_id, provider_name, slug, city, state, email, hero_image_url, provider_images")
         .not("deleted", "is", true)
-        .ilike("provider_name", searchPattern)
-        .limit(10);
+        .or(`provider_name.ilike.${searchPattern},city.ilike.${searchPattern}`)
+        .limit(25);
 
       // Get claim states for olera-providers by checking if they have linked business_profiles
       const opProviderIds = opResults?.map((op) => op.provider_id) || [];
@@ -245,6 +251,15 @@ export default function OrganizationSearch({
 
   const showDropdown = isOpen && value.length >= 2;
 
+  // Compute input classes based on state
+  const inputClasses = selected
+    ? "w-full px-4 py-3 rounded-xl border-2 border-primary-500 bg-primary-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-300 transition-all min-h-[48px] pr-10"
+    : `w-full px-4 py-3 rounded-xl border text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 transition-all min-h-[48px] pr-10 ${
+        variant === "dark"
+          ? "border-gray-200 bg-white text-gray-900"
+          : "border-gray-200 bg-gray-50/50 focus:bg-white"
+      }`;
+
   return (
     <div ref={containerRef} className="relative">
       <div className="relative">
@@ -261,9 +276,17 @@ export default function OrganizationSearch({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px] pr-10"
+          className={inputClasses}
           autoComplete="off"
         />
+        {/* Checkmark for selected state */}
+        {selected && !loading && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        )}
         {loading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
             <div className="w-5 h-5 border-2 border-primary-200 border-t-primary-600 rounded-full animate-spin" />

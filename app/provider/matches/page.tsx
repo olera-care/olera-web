@@ -2275,9 +2275,6 @@ export default function ProviderMatchesPage() {
         providerPaymentMethods={providerPaymentMethods}
         sending={sending}
         sendError={sendError}
-        isVerified={isVerified}
-        verificationState={providerProfile?.verification_state}
-        onVerifyClick={() => setShowVerificationModal(true)}
       />
 
       {/* ── Verification Modal ── */}

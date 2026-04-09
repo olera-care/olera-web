@@ -307,16 +307,6 @@ export default function ContactSection({
           {scheduled ? "Schedule Another" : "Schedule Interview"}
         </button>
 
-        {/* Verification nudge for unverified providers */}
-        {user && hasProviderProfile && activeProfile?.verification_state !== "verified" && !scheduled && (
-          <p className="text-xs text-gray-500 text-center">
-            <Link href="/provider/verification" className="text-primary-600 hover:text-primary-700 font-medium">
-              Verify your business
-            </Link>
-            {" "}to see contact info
-          </p>
-        )}
-
         {/* Takes less than a minute helper text for non-users */}
         {!user && !isInline && (
           <p className="text-center text-xs text-gray-400">

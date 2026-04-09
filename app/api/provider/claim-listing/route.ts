@@ -173,6 +173,7 @@ export async function POST(request: Request) {
         }
       }
 
+      // Everyone who completes email verification gets full access
       const shouldAutoVerify = emailMatches || domainMatches;
 
       // Update existing profile to link to this source provider
@@ -181,7 +182,7 @@ export async function POST(request: Request) {
         .update({
           source_provider_id: providerId,
           claim_state: "claimed",
-          verification_state: shouldAutoVerify ? "verified" : "unverified",
+          verification_state: "verified",
         })
         .eq("id", existingProfile.id);
 
@@ -195,7 +196,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         profileId: existingProfile.id,
-        verificationState: shouldAutoVerify ? "verified" : "unverified",
+        verificationState: "verified",
       });
     }
 
@@ -227,6 +228,7 @@ export async function POST(request: Request) {
       }
     }
 
+    // Everyone who completes email verification gets full access
     const shouldAutoVerify = emailMatches || domainMatches;
 
     // Generate unique slug for the new profile (don't use providerSlug to avoid collisions)
@@ -245,7 +247,7 @@ export async function POST(request: Request) {
         city: city || null,
         state: state || null,
         claim_state: "claimed",
-        verification_state: shouldAutoVerify ? "verified" : "unverified",
+        verification_state: "verified",
         source: "claimed_from_directory",
         is_active: true,
         metadata: {},
@@ -287,7 +289,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       profileId: newProfile.id,
-      verificationState: shouldAutoVerify ? "verified" : "unverified",
+      verificationState: "verified",
     });
   } catch (err) {
     console.error("Claim listing error:", err);

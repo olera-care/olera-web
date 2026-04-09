@@ -245,6 +245,38 @@ The re-hydration loop re-set the same `rating` and `review_count` values that we
 
 ---
 
+### 2026-04-09: Five bugs from entity refactor — variable renaming without full grep
+
+**Symptom**: Pipeline batch run failed on 49 out of 50 states. `ReferenceError: stateCode is not defined` in phaseDive. Separately, phaseReport would have written files to the wrong directory for regions. Admin dashboard had a state/region selection collision. And `searchParams` silently converted 50+ static pages to dynamic rendering.
+
+**Root Cause**: All 5 bugs shared one pattern: **renaming a variable or changing a function signature without grepping for all downstream references.**
+
+The entity refactor changed pipeline functions from `(stateCode, stateName)` to `(entity)` and set local vars like `const stateName = entity.name`. But:
+
+1. **phaseDive return object** still had `state: stateCode` — `stateCode` was no longer defined. This one bug crashed all 49 batch states.
+2. **phaseReport** set `const stateCode = entity.stateCode || entity.dirName` but used `stateCode` for `writeFile()`. For regions, `entity.stateCode` = parent state ("FL"), so the report would write to `data/pipeline/FL/` instead of `data/pipeline/miami-dade-county-fl/`.
+3. **phaseReport line 1484** referenced `stateCode` in a template literal after the variable was renamed to `dirName`. Would throw ReferenceError.
+4. **Admin dashboard** added `selectedRegion` state but the state card `onClick` didn't clear it. Both could be selected simultaneously.
+5. **State page searchParams** — `await searchParams` in a server component opts the page out of static generation. Added `?v=1` toggle, didn't realize it made ALL state pages dynamic (`ƒ` instead of `●` in build output).
+
+**Fix**: Bugs 1-4 were caught in self-review after TJ asked for a thorough audit. Bug 5 was caught in the second audit. All fixed: `stateCode` → `entity.stateCode`, `writeFile(stateCode,...)` → `writeFile(dirName,...)`, added `setSelectedRegion(null)`, replaced `?v=1` with `/current` sub-route.
+
+**Time to Resolution**: Bugs 1-3: ~10 minutes in first self-review. Bug 4: ~2 minutes. Bug 5: ~15 minutes (required build verification to spot the SSG→dynamic change).
+
+**Why I didn't catch these earlier**:
+- **Rushed the refactor.** Changed function signatures across 6 functions and their call sites in one pass without running `grep stateCode` on each function body after the change. The return objects and console.log strings retained old variable names.
+- **Didn't verify build output changed.** After adding `searchParams`, I ran `next build` and checked it passed — but didn't compare the route markers (`●` vs `ƒ`) against the previous build.
+- **Self-review was prompted, not proactive.** TJ had to ask "think critically about what we just built" before I caught these. Should have done a `grep stateCode` sweep after the refactor as a matter of course.
+
+**Prevention**:
+- **After ANY function signature refactor**: grep for the old parameter name in the entire function body, including return statements and string templates. `sed -n 'START,ENDp' file | grep oldVar` takes 5 seconds.
+- **After changing a server component's props**: compare build output route markers (`●` static vs `ƒ` dynamic) before and after. Reading `searchParams` or `cookies()` silently opts out of static generation.
+- **After adding parallel state (e.g., `selectedRegion` alongside `selectedState`)**: check all `setState` calls clear the other selection.
+
+**Lesson**: When you rename a variable across a large function, the compiler catches type errors but NOT runtime references in string templates, return object literals, or console.log calls. JavaScript's loose typing means `stateCode` in `{ state: stateCode }` compiles fine — it just throws at runtime. Grep is your friend after every refactor, not just when something breaks.
+
+---
+
 ### 2026-04-06: `/erase` slash command missing across instances
 
 **Symptom**: TJ couldn't find the `/erase` command in a new Claude Code session, despite the erase script being merged to staging (PR #485).

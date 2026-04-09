@@ -1,0 +1,388 @@
+{
+  "state": "OR",
+  "stateName": "Oregon",
+  "draftedAt": "2026-04-09T16:06:27.912Z",
+  "total": 15,
+  "successful": 2,
+  "programs": [
+    {
+      "name": "OPI-M (Medicaid-funded)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUnZkNsAHXSdtzKDRGn\"}"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUo9qygh3YuN9p9pDaQ\"}"
+    },
+    {
+      "name": "Medicare Savings Programs (MSP)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUok42crtzMVQsydJz8\"}"
+    },
+    {
+      "name": "SNAP Food Benefits (Oregon)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUpLCc8gtpYaK9vhPCM\"}"
+    },
+    {
+      "name": "Low Income Home Energy Assistance Program (LIHEAP) / Oregon Energy Assistance Program (OEAP)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUpvWMj6JzsJiz4CyCJ\"}"
+    },
+    {
+      "name": "Low Income Weatherization Assistance Program (WAP)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUqWevnB8dqoZXf9XGk\"}"
+    },
+    {
+      "name": "Senior Health Insurance Benefits Assistance (SHIBA)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUr6sixg9oAd151khdW\"}"
+    },
+    {
+      "name": "Meals on Wheels",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUrhfVVsXjunkSk3Rg5\"}"
+    },
+    {
+      "name": "Family Caregiver Assistance Program (FCAP) / Family Caregiver Support Program (FCSP)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUsHNmowG7NhXqZtJnz\"}"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUssT8cSjCWnKKf27gN\"}"
+    },
+    {
+      "name": "Legal Aid Services of Oregon (LASO)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUtTdT1g5pvvCd1dEpc\"}"
+    },
+    {
+      "name": "Long-term Care Ombudsman",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUu3sESLoWPGg3qXUxz\"}"
+    },
+    {
+      "name": "Elderly Rental Assistance Program (ERA)",
+      "_error": "Claude 529: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"},\"request_id\":\"req_011CZtUue6GdCSdFoKt8jJ7P\"}"
+    },
+    {
+      "id": "oregon-senior-free-tuition-audit",
+      "name": "Oregon Senior Free Tuition Audit Program",
+      "shortName": "Senior Audit Program",
+      "tagline": "Your parent can audit college courses for free at 65+ — no income limits, just pay for books and fees.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Community colleges (e.g., Oregon Coast CC, Clatsop CC, Portland CC)",
+            "type": "service-area"
+          },
+          {
+            "name": "Public universities (e.g., Oregon State University, University of Oregon)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and lives in Oregon, they can audit college courses at any Oregon community college or public university for free — no income limits or financial tests required. Because tuition is completely waived, they only pay course fees (typically $50-200 per class for things like lab materials or technology access). Your parent won't earn grades or credit, but they can take up to 8 credits per term purely for personal enrichment and learning.\n\nThis program works on a space-available basis after paying students register, and requires instructor approval. Your parent must be an Oregon resident and can only audit lower-division courses (excludes competitive programs like nursing).",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Oregon resident",
+          "No income or asset limits",
+          "Space available after paying students"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be Oregon resident",
+          "Space available after tuition-paying students register",
+          "Instructor approval required",
+          "Lower-division courses only",
+          "Maximum 8 credits per term"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact the specific college directly — each has its own process and you'll register after the first day of class if space is available.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply to the college",
+            "description": "If your parent is new to the school, they must first apply for admission (separate from the senior audit program)."
+          },
+          {
+            "step": 2,
+            "title": "Find courses in the schedule",
+            "description": "Look up available lower-division courses (excludes limited-entry programs like nursing or aquarium science)."
+          },
+          {
+            "step": 3,
+            "title": "Get instructor permission",
+            "description": "Email the instructor directly to request permission to audit — approval is required before registration."
+          },
+          {
+            "step": 4,
+            "title": "Submit senior waiver form",
+            "description": "Complete the college's specific senior audit form (varies by institution) with proof of age and Oregon residency."
+          },
+          {
+            "step": 5,
+            "title": "Register after first day",
+            "description": "If approved and space is available, your parent registers after paying students — typically within the first week of the term."
+          }
+        ],
+        "processingTime": "Registration occurs after first day of class if approved — typically within first week of term",
+        "waitlist": null,
+        "tip": "Email instructors before the term starts to increase chances of approval — they appreciate advance notice.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Photo ID showing age 65+",
+                "Proof of Oregon residency (utility bill, lease, etc.)"
+              ]
+            },
+            {
+              "name": "Application Materials",
+              "items": [
+                "College admission application (if new student)",
+                "Senior waiver/audit form (specific to each college)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Your parent cannot register until after the first day of class, and space isn't guaranteed. Contact instructors early to improve chances of approval."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Some colleges offer partial discounts starting at age 62. Check with the specific school — you might qualify for savings before 65."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom wants to take a nursing or other competitive program course?",
+          "answer": "She cannot audit limited-entry programs like nursing, aquarium science, or other competitive programs. The benefit only applies to regular lower-division collegiate courses where space is available."
+        },
+        {
+          "question": "Will Dad still have to pay fees even though tuition is free?",
+          "answer": "Yes. The program only waives tuition — your dad must still pay course fees, technology fees, lab fees, and other charges. These typically range from $50-200 per class depending on the course."
+        },
+        {
+          "question": "Can Mom get credit or grades for the classes she audits?",
+          "answer": "No. This is audit-only for personal enrichment. Your mom won't receive grades, credit, or any transcript notation. If she wants credit, she'd need to pay full tuition like other students."
+        },
+        {
+          "question": "What happens if the class fills up with paying students?",
+          "answer": "Your parent cannot register. Because paying students have priority, there's no guarantee of space. The instructor will let you know after the first day of class if audit spots are available."
+        },
+        {
+          "question": "How many classes can Dad take each term?",
+          "answer": "Maximum 8 credits per term. Most college courses are 3-4 credits each, so he could typically take 2-3 classes per term depending on their credit values."
+        },
+        {
+          "question": "Does our family income affect Mom's eligibility?",
+          "answer": "No. There are no income limits, asset limits, or financial tests of any kind. The only requirements are age 65+, Oregon residency, and space availability."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.oregonlegislature.gov/bills_laws/ors/ors341.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "oregon-hrsn-health-related-social-needs",
+      "name": "Health Related Social Needs Benefits (HSRN)",
+      "shortName": "HSRN Benefits",
+      "tagline": "If your parent has Oregon Health Plan and faces housing or nutrition challenges during major life transitions, they may qualify for rent assistance up to 6 months or medically tailored meals.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Regional CCOs (e.g., PacificSource, Health Share of Oregon, AllCare Health, Advanced Health, IHN-CCO); local OHP partners; 211info for some; Community Action Agencies for emergencies",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Oregon Health Plan (OHP) and is going through a major life change — like being released from prison, discharged from a mental health facility, becoming homeless, or transitioning to Medicare — they may qualify for help with housing and nutrition costs. Because HSRN addresses the social factors that affect health, your parent could receive up to 6 months of rent and utility assistance, medically tailored meals, or home modifications like wheelchair ramps.\n\nThis isn't available to all OHP members. Your parent must be in one of the qualifying life transitions and have clinical risk factors like complex health conditions, difficulty with daily activities, or being age 65+. The program also cannot duplicate benefits they're already receiving from other programs.\n\nHSRN is administered through your parent's CCO (Coordinated Care Organization), so the application process and wait times vary by region. Some areas like Lane County are experiencing backlogs, while others may have shorter processing times.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Must have Oregon Health Plan (OHP)",
+          "In qualifying life transition (prison release, homelessness, etc.)",
+          "Clinical risk factors (age 65+, complex health conditions)",
+          "For housing: income ≤30% of local median"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must have clinical risk factors like complex physical or behavioral health conditions, developmental or intellectual disability, difficulty with self-care or daily activities, experiencing abuse or neglect, age 65+, pregnancy, or high crisis service use",
+        "otherRequirements": [
+          "Must be enrolled in Oregon Health Plan (OHP) Medicaid",
+          "Must be in qualifying life transition: released from prison (past 12 months), discharged from mental health facility (past 12 months), involved with Oregon child welfare, transitioning to Medicare (next 3 months or past 9 months), homeless or at risk of homelessness, or youth 19-26 with special health care needs",
+          "For housing benefits: household income must be 30% or less of Area Median Income where you live, plus lack resources to prevent homelessness",
+          "Cannot receive same or similar benefits from other programs"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your parent's healthcare provider or CCO directly — there's no single statewide application form, and processing times vary by region due to high demand.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Confirm OHP enrollment",
+            "description": "Call 1-800-273-0557 to verify your parent has active Oregon Health Plan coverage. If not enrolled, apply separately first."
+          },
+          {
+            "step": 2,
+            "title": "Contact healthcare provider or CCO",
+            "description": "Reach out to your parent's primary care provider or their CCO (like PacificSource, Health Share, AllCare, Advanced Health, or IHN-CCO) to request HRSN services."
+          },
+          {
+            "step": 3,
+            "title": "Complete assessment",
+            "description": "Provider will assess whether your parent meets the life transition and clinical risk requirements for specific services like housing or nutrition support."
+          },
+          {
+            "step": 4,
+            "title": "Submit documentation",
+            "description": "Provide proof of OHP enrollment, income verification (for housing), lease agreement (for rent assistance), and medical documentation of clinical risk factors."
+          }
+        ],
+        "processingTime": "Varies by service and provider; some regions like Lane County are experiencing backlogs causing longer wait times",
+        "waitlist": "Possible due to high volume and provider capacity; processing times vary by region",
+        "tip": "Work with your parent's existing healthcare provider first — they can assess eligibility and submit requests more efficiently than navigating CCOs directly.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Health Coverage",
+              "items": [
+                "Proof of Oregon Health Plan (OHP) enrollment",
+                "Medical documentation of clinical risk factors (provided by healthcare provider)"
+              ]
+            },
+            {
+              "name": "Housing (if requesting rent/utility assistance)",
+              "items": [
+                "Current lease or written landlord agreement",
+                "Income verification showing household income ≤30% of Area Median Income",
+                "Documentation of risk of homelessness or lack of resources"
+              ]
+            },
+            {
+              "name": "Nutrition (if requesting meal support)",
+              "items": [
+                "Food security assessment completed by dietitian or primary care provider"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This program has strict eligibility requirements and isn't for all OHP members. Your parent must be in one of the specific life transitions AND have clinical risk factors. For emergencies, contact Community Action Agencies instead."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Don't submit applications to multiple CCOs — work with your parent's assigned CCO based on their current OHP coverage. Duplicate submissions can slow processing."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent has OHP but doesn't qualify for the life transitions?",
+          "answer": "HSRN is only available during specific life transitions like prison release, mental health facility discharge, homelessness, or transitioning to Medicare. If your parent doesn't meet these requirements, they won't qualify regardless of their health conditions or income."
+        },
+        {
+          "question": "Can my parent get housing help if they're currently homeless?",
+          "answer": "For housing benefits, your parent needs a current lease or written landlord agreement. If they're unhoused without a path to housing, HSRN housing assistance won't apply. Contact Community Action Agencies for emergency housing support instead."
+        },
+        {
+          "question": "How long does it take to get approved?",
+          "answer": "Processing times vary significantly by CCO and region. Some areas like Lane County are experiencing backlogs due to high demand, while others may process requests more quickly. Applications are reviewed in the order received."
+        },
+        {
+          "question": "What if my parent is already getting food stamps — can they still get meal delivery?",
+          "answer": "No. HSRN cannot duplicate benefits from other programs. If your parent receives SNAP benefits, they won't qualify for HSRN nutrition services. The programs are designed to complement, not overlap with existing benefits."
+        },
+        {
+          "question": "My parent is transitioning to Medicare — do they need to reapply for everything?",
+          "answer": "Transitioning to dual Medicaid/Medicare eligibility (within the next 3 months or past 9 months) is actually one of the qualifying life transitions for HSRN. This transition period may make them eligible for additional support services."
+        },
+        {
+          "question": "What counts as 30% of Area Median Income for housing benefits?",
+          "answer": "The income limit varies by county based on local Area Median Income tables. You'll need to check with your parent's CCO for the specific dollar amount in their area, as this changes annually and differs significantly between urban and rural counties."
+        }
+      ],
+      "phone": "1-800-273-0557",
+      "sourceUrl": "https://www.oregon.gov/oha/hsd/medicaid-policy/pages/hrsn.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "If your parent lives in Oregon, 2 specialized programs can provide targeted support beyond standard Medicare and Social Security. Oregon offers unique benefits including free college course auditing for lifelong learners 65+ and housing/nutrition assistance for Oregon Health Plan members facing major life changes. These programs don't require complex applications or long waiting lists — most have straightforward eligibility and quick enrollment. Start by checking if your parent has Oregon Health Plan coverage, as this unlocks additional support during transitions like hospital discharge or housing instability.",
+    "startHere": [
+      {
+        "name": "Health Related Social Needs Benefits (HSRN)",
+        "programId": "oregon-hsrn",
+        "why": "Provides immediate rent assistance up to 6 months or medically tailored meals for Oregon Health Plan members facing housing or nutrition challenges."
+      },
+      {
+        "name": "Oregon Senior Free Tuition Audit Program",
+        "programId": "oregon-senior-audit",
+        "why": "No income limits and immediate enrollment for any parent 65+ who wants to continue learning."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Housing assistance during transitions",
+        "programs": [
+          "Health Related Social Needs Benefits (HSRN)"
+        ],
+        "description": "Rent assistance for Oregon Health Plan members facing housing challenges during major life changes."
+      },
+      {
+        "need": "Nutrition support during illness",
+        "programs": [
+          "Health Related Social Needs Benefits (HSRN)"
+        ],
+        "description": "Medically tailored meals for Oregon Health Plan members with nutrition challenges during transitions."
+      },
+      {
+        "need": "Educational opportunities and social engagement",
+        "programs": [
+          "Oregon Senior Free Tuition Audit Program"
+        ],
+        "description": "Free college course auditing for lifelong learning and social connection."
+      }
+    ],
+    "quickFacts": [
+      "Oregon Health Plan membership unlocks additional transition support beyond basic medical coverage",
+      "No income limits apply to Oregon's senior education benefits",
+      "HSRN benefits activate during major life transitions like hospital discharge or housing instability"
+    ],
+    "resourcesVsBenefits": "Both programs in Oregon are qualification-based benefits rather than universal resources. Health Related Social Needs Benefits requires Oregon Health Plan coverage and documented housing/nutrition challenges during transitions. Oregon Senior Free Tuition Audit Program requires age 65+ but has no income restrictions — your parent pays only for books and fees while auditing courses for free."
+  }
+}

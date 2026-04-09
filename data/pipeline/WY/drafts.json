@@ -1,0 +1,513 @@
+{
+  "state": "WY",
+  "stateName": "Wyoming",
+  "draftedAt": "2026-04-09T17:42:36.674Z",
+  "total": 3,
+  "successful": 3,
+  "programs": [
+    {
+      "id": "wyoming-state-parks-senior-discounts",
+      "name": "Wyoming State Parks Senior Discounts",
+      "shortName": "State Parks Discounts",
+      "tagline": "If your parent is 62+ and lives in Wyoming, they get reduced fees at all state parks and historic sites.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "All Wyoming State Parks, Historic Sites, & Trails locations.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 62 or older and lives in Wyoming, they qualify for reduced fees at every Wyoming state park and historic site. This covers day-use fees, camping, cabin rentals, and admission to historic sites — no income limits or applications required.\n\nThe discounts apply automatically when your parent shows their Wyoming ID and proof of age at park entrances. Because Wyoming doesn't issue a formal senior pass, your parent needs to request the discount and show documentation each visit. This is separate from the federal Senior Pass that covers national parks like Yellowstone.",
+      "savingsRange": "",
+      "savingsSource": "Free discount program",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 62+",
+          "Wyoming resident",
+          "No income limits",
+          "No asset limits"
+        ],
+        "ageRequirement": "62+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be Wyoming resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "in-person",
+        "summary": "No application needed — show Wyoming ID and proof of age 62+ at any park entrance for immediate discount.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather documents",
+            "description": "Your parent needs Wyoming driver's license or ID showing they're 62+ and a Wyoming resident."
+          },
+          {
+            "step": 2,
+            "title": "Visit any Wyoming state park",
+            "description": "At the entrance, ask for the senior discount and show Wyoming ID proving age 62+."
+          },
+          {
+            "step": 3,
+            "title": "Pay reduced fees",
+            "description": "Park staff will apply the discount immediately — no forms to fill out."
+          }
+        ],
+        "processingTime": "Immediate at point of entry",
+        "waitlist": null,
+        "tip": "Make online reservations at reserve.wyoming.gov but bring ID to the park to get the senior discount applied on-site.",
+        "urls": [
+          {
+            "label": "Make park reservations",
+            "url": "https://reserve.wyoming.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Required",
+              "items": [
+                "Wyoming driver's license or state ID showing age 62+",
+                "If ID doesn't show Wyoming residency clearly, bring additional proof like utility bill or lease"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent must request the discount each visit — it's not automatic. Park staff won't know they qualify unless they ask and show their Wyoming ID."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Does Dad need to buy a senior pass or apply in advance?",
+          "answer": "No. Wyoming doesn't issue senior passes. Your dad just shows his Wyoming ID at any park entrance and asks for the senior discount. It's applied immediately."
+        },
+        {
+          "question": "Will this work at Yellowstone and Grand Teton?",
+          "answer": "No. Those are national parks, not Wyoming state parks. Your parent needs a separate federal Senior Pass ($80 lifetime) for national parks."
+        },
+        {
+          "question": "What if Mom made online reservations — can she still get the discount?",
+          "answer": "Yes. She pays the full price online at reserve.wyoming.gov, then gets the senior discount applied when she arrives and shows her Wyoming ID at the park."
+        },
+        {
+          "question": "Does this cover camping and cabins or just day-use fees?",
+          "answer": "It covers all state park fees: day-use, camping, cabin rentals, and historic site admissions. The exact discount amount varies by park and activity."
+        },
+        {
+          "question": "What if Dad's Wyoming license expired but he still lives here?",
+          "answer": "He needs current proof of Wyoming residency. If his license expired, bring a utility bill, lease, or other document showing he still lives in Wyoming, plus another photo ID for age verification."
+        }
+      ],
+      "phone": "877-996-7275",
+      "sourceUrl": "https://wyoparks.wyo.gov/index.php/permits-reservations/permits-fees",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "wyoming-liheap-heating-assistance",
+      "name": "Low Income Energy Assistance Program (LIHEAP)",
+      "shortName": "LIHEAP Energy Assistance",
+      "tagline": "Get up to $2,176/year toward your parent's heating bills if their income is under $2,985/month.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Statewide contractors (e.g., NOWCAP); contact (800) 246-4221 for local",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to pay heating bills, Wyoming's LIHEAP program provides one-time payments directly to their utility company. Your parent can receive $49-$2,176 toward heating costs from November through May, plus up to $550 in crisis assistance if they face a shut-off or heating failure.\n\nYour parent automatically qualifies if they receive SNAP, SSI, or veterans benefits. Otherwise, they need income below $2,985/month for a single person or $3,904/month for a couple. Because funding is limited, applications may close early — the program typically runs October 1 through April 30.\n\nThe payment goes directly to the utility company, so your parent won't handle cash. Crisis assistance requires completing the regular application first, then applying for emergency help.",
+      "savingsRange": "$49 – $2,176/year in 2026",
+      "savingsSource": "Regular heating assistance payment range",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Wyoming resident",
+          "Income below $2,985/month (single)",
+          "Need help paying heating bills",
+          "Auto-qualify with SNAP/SSI/veterans benefits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2985
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3904
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4823
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5741
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6660
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 7579
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Wyoming resident",
+          "Need financial assistance for home energy costs",
+          "For crisis assistance: face immediate threat like shut-off or heating failure"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call (800) 246-4221 to apply — processing time not specified but funding may run out early.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call (800) 246-4221",
+            "description": "Speak with a representative to start your application and find your local contractor office."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect ID for all household members, recent utility bill, and proof of all income sources."
+          },
+          {
+            "step": 3,
+            "title": "Complete LIEAP application",
+            "description": "Submit application by phone, email (lieapinfo@wyo.gov), or through your assigned local contractor."
+          },
+          {
+            "step": 4,
+            "title": "For crisis help, apply separately",
+            "description": "If facing shut-off or heating failure, complete additional Crisis Application after regular application is submitted."
+          }
+        ],
+        "processingTime": "Not specified by state",
+        "waitlist": "No formal waitlist — applications may stop when funds are exhausted",
+        "tip": "Apply early in the season (October-November) since funding is limited and may run out before April 30.",
+        "urls": [
+          {
+            "label": "Wyoming LIHEAP Information",
+            "url": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Monthly Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2985
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3904
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 4823
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 5741
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 6660
+            },
+            {
+              "householdSize": 6,
+              "monthlyLimit": 7579
+            }
+          ],
+          "footnote": "2025-2026 season limits. For households larger than 6, add $1,377 per additional person to annual income limit."
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Photo ID for every person living in the household"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of all household income (earned and unearned)",
+                "Most recent utility bill"
+              ]
+            },
+            {
+              "name": "Application",
+              "items": [
+                "Completed LIEAP Application form",
+                "Crisis Application (if applying for emergency assistance)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Applications only accepted October 1 - April 30. Funding is limited and may run out early, so apply as soon as the season opens."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Everyone living at your parent's address counts as household members for income calculations, even if they don't share expenses."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom receives Social Security — does that count as income?",
+          "answer": "Yes, Social Security counts toward the income limit. However, if your mom receives SSI (not regular Social Security), she automatically qualifies regardless of other income."
+        },
+        {
+          "question": "Can Dad get help if his heating is turned off in winter?",
+          "answer": "Yes, but he must apply for regular LIHEAP first, then complete a separate Crisis Application. Crisis assistance provides up to $550 for winter emergencies like shut-offs or heating system failures."
+        },
+        {
+          "question": "What if Mom's income is just over the monthly limit?",
+          "answer": "She won't qualify based on income alone. However, if she receives SNAP, SSI, TANF, or certain veterans benefits, she automatically qualifies regardless of income."
+        },
+        {
+          "question": "Does the money go directly to Mom or to the utility company?",
+          "answer": "Payments go directly to the utility company or heating vendor. Your mom won't receive cash — the program pays her heating bills directly from November through May."
+        },
+        {
+          "question": "What if Mom applies late in the season?",
+          "answer": "She may be out of luck. Wyoming's LIHEAP has limited funding and may stop accepting applications before the April 30 deadline if money runs out."
+        },
+        {
+          "question": "Can Mom get weatherization help through this program?",
+          "answer": "LIHEAP focuses on bill payment assistance. Weatherization services like insulation and heating repairs are available through a related but separate program — ask when you call (800) 246-4221."
+        }
+      ],
+      "phone": "(800) 246-4221",
+      "sourceUrl": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "wyoming-tax-refund-elderly-disabled",
+      "name": "Wyoming Tax Refund for Elderly & Disabled",
+      "shortName": "Wyoming Tax Refund",
+      "tagline": "Get $250–$900 back annually to help cover taxes and utility costs if your parent is 65+ or disabled in Wyoming.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Wyoming Department of Health (statewide administration)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ or completely disabled and living on a tight budget in Wyoming, they could get $250–$900 back each year to help cover sales taxes, property taxes, and utility costs. This annual refund is designed specifically for Wyoming residents who need help managing the cost of living on a fixed income.\n\nThe amount your parent receives depends on their income level. Single adults get the full refund if they earn $10,000 or less annually, with reduced amounts up to the $17,500 income limit. Married couples get the full amount if they earn $16,000 or less, with reductions up to $28,500. Because this isn't automatic, your parent must apply every single year — even if they qualified before.",
+      "savingsRange": "$250 – $900/year",
+      "savingsSource": "Annual tax refund amount varies by income level and marital status",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or 100% disabled",
+          "Wyoming resident for 12 months",
+          "Single income under $17,500/year",
+          "Assets under $29,950 per adult"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1458
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2375
+          }
+        ],
+        "assetLimits": {
+          "individual": 29950,
+          "couple": 59900,
+          "countedAssets": [],
+          "exemptAssets": [],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "If under 65: Must be 100% disabled for at least one full year before applying",
+        "otherRequirements": [
+          "Wyoming resident for 12 months before applying",
+          "Must reapply every year"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "mail",
+        "summary": "Apply by mail through the Wyoming Department of Health — new application required every year.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Get the current year's application",
+            "description": "Contact Wyoming Department of Health for this year's application form, as income limits and refund amounts may have changed."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of age/disability, income statements for the full year, residency documentation, and asset statements for all household members."
+          },
+          {
+            "step": 3,
+            "title": "Complete and mail application",
+            "description": "Fill out the application completely and mail to Wyoming Department of Health. Keep copies of everything."
+          },
+          {
+            "step": 4,
+            "title": "Mark calendar for next year",
+            "description": "Set a reminder to reapply next year — qualification doesn't carry over automatically."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Call Wyoming Department of Health first to confirm current income limits and refund amounts, as the program details may have changed since 2013.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Proof of age (birth certificate, driver's license)",
+                "If under 65: Medical documentation of 100% disability for full year prior",
+                "Proof of Wyoming residency for 12 months (utility bills, lease, etc.)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Income documentation for all household members (Social Security statements, pension records, tax returns)",
+                "Asset statements for all accounts and property owned by household members"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "You must reapply every single year — even if your parent qualified before. The state doesn't automatically renew anyone."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "The refund phases out gradually. Single adults can still get partial refunds with income up to $17,500/year, and married couples up to $28,500/year. The exact amount depends on where their income falls in that range."
+        },
+        {
+          "question": "Does my parent's house count toward the asset limit?",
+          "answer": "The research doesn't specify which assets are exempt, including whether the primary residence counts. Contact Wyoming Department of Health directly to clarify what assets count toward the $29,950 per adult limit."
+        },
+        {
+          "question": "Can my disabled parent under 65 qualify?",
+          "answer": "Yes, but they must be 100% disabled (not partially disabled) for at least one full year before applying. They'll need medical documentation proving total disability for that timeframe."
+        },
+        {
+          "question": "What if my parent forgets to reapply one year?",
+          "answer": "They lose that year's refund permanently. Each year requires a completely new application — there's no automatic renewal or carryover from previous years."
+        },
+        {
+          "question": "Is this the same as Wyoming's property tax refund program?",
+          "answer": "No, this is separate. Wyoming has multiple tax refund programs with different rules and administrators. This specific program is run by the Department of Health, not the Department of Revenue."
+        },
+        {
+          "question": "How much will my parent actually get?",
+          "answer": "Single adults get $250-$800 depending on income level. Married couples get $216-$900. The lowest amounts go to those just under the income limits, while those with the lowest incomes get the maximum refund."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.lincolninst.edu/app/uploads/legacy-files/gwipp/upload/sources/Wyoming/2017/WY_Tax_Refund_for_Elderly_and_Disabled_Wyoming_Department_of_Health_2013.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Wyoming offers 3 key benefit programs for seniors that can save your parent hundreds to over $2,000 annually. These range from direct cash assistance (up to $900/year through the Tax Refund for Elderly & Disabled) to utility bill help (up to $2,176/year for heating costs through LIHEAP) to recreational discounts at state parks. Most programs have income limits around $2,985/month for a single person, but the tax refund program serves a broader income range.\n\nStart with the programs that offer the largest financial impact first — energy assistance and tax refunds — then add park discounts for ongoing savings throughout the year.",
+    "startHere": [
+      {
+        "name": "Low Income Energy Assistance Program (LIHEAP)",
+        "programId": "liheap",
+        "why": "Offers the highest potential savings at up to $2,176/year toward heating bills."
+      },
+      {
+        "name": "Wyoming Tax Refund for Elderly & Disabled",
+        "programId": "wyoming-tax-refund",
+        "why": "Provides $250–$900 annually in direct cash assistance with broader income eligibility."
+      },
+      {
+        "name": "Wyoming State Parks Senior Discounts",
+        "programId": "wyoming-parks-discount",
+        "why": "Easy to qualify at age 62+ and provides ongoing recreational savings year-round."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying utility bills",
+        "programs": [
+          "Low Income Energy Assistance Program (LIHEAP)"
+        ],
+        "description": "Get up to $2,176/year toward heating costs if income is under $2,985/month."
+      },
+      {
+        "need": "Direct financial assistance",
+        "programs": [
+          "Wyoming Tax Refund for Elderly & Disabled"
+        ],
+        "description": "Annual cash refund of $250–$900 to help cover taxes and utility costs."
+      },
+      {
+        "need": "Recreation and entertainment savings",
+        "programs": [
+          "Wyoming State Parks Senior Discounts"
+        ],
+        "description": "Reduced fees at all Wyoming state parks and historic sites for residents 62+."
+      }
+    ],
+    "quickFacts": [
+      "Most Wyoming benefit programs use the income limit of $2,985/month for a single person",
+      "The largest potential savings come from energy assistance at up to $2,176/year",
+      "Wyoming residents 62+ automatically qualify for state park discounts regardless of income"
+    ],
+    "resourcesVsBenefits": "All three Wyoming programs are qualification-based benefits that require meeting age, residency, or income requirements. The state parks discount only requires being 62+ and a Wyoming resident, while LIHEAP and the tax refund program have income limits around $2,985/month for single individuals. Wyoming does not appear to offer universal free resources — all programs provide direct financial benefits or discounts to those who qualify."
+  }
+}

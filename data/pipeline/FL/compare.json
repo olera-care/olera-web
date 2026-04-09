@@ -1,0 +1,581 @@
+{
+  "state": "FL",
+  "stateName": "Florida",
+  "comparedAt": "2026-04-09T09:30:14.016Z",
+  "total": 16,
+  "newPrograms": 11,
+  "withDiffs": 5,
+  "withNovelFields": 5,
+  "benefitTypes": {
+    "service": 7,
+    "financial": 5,
+    "in_kind": 1,
+    "advocacy": 2,
+    "employment": 1
+  },
+  "variationPatterns": {
+    "individual_needs|medical_necessity": 1,
+    "region": 3,
+    "program_tier": 1,
+    "household_size": 1,
+    "not_applicable": 5,
+    "priority_tier": 4,
+    "living_arrangement|facility_type": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 5,
+      "programs": [
+        "Statewide Medicaid Managed Care Long Term Care Program",
+        "Medicare Savings Programs (MSP)",
+        "SHINE (Serving Health Insurance Needs of Elders)",
+        "Home-Delivered Meals",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 5,
+      "programs": [
+        "Statewide Medicaid Managed Care Long Term Care Program",
+        "Medicare Savings Programs (MSP)",
+        "SHINE (Serving Health Insurance Needs of Elders)",
+        "Home-Delivered Meals",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 3,
+      "programs": [
+        "Statewide Medicaid Managed Care Long Term Care Program",
+        "Medicare Savings Programs (MSP)",
+        "Home-Delivered Meals"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 5,
+      "programs": [
+        "Statewide Medicaid Managed Care Long Term Care Program",
+        "Medicare Savings Programs (MSP)",
+        "SHINE (Serving Health Insurance Needs of Elders)",
+        "Home-Delivered Meals",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Statewide Medicaid Managed Care Long Term Care Program",
+      "isNew": false,
+      "existingId": "statewide-medicaid-managed-care-long-term-care-smmc-ltc",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "65 or older, or 18 and older if disabled",
+          "source": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Home and Community-Based Services (HCBS) and institutional care including: Adult Day Care, Home-Delivered Meals, Hospice Care, Medical Supplies and Equipment, Medication Administration & Management, Nursing Home Care, Intermittent/Skilled Nursing Services, Nutritional Assessment & Risk Reduction, Personal Care Services (non-medical assistance with hygiene, toileting, meals, housework), Personal Emergency Response System (PERS), Respite Care (in-home/out-of-home), Therapies (occupational, physical, respiratory, speech), Non-Emergency Transportation; services based on medical necessity to delay/prevent nursing home placement; delivered via single Managed Care Organization (MCO) plan; some non-medical benefits like personal care can be consumer-directed (hire own providers including family)",
+          "source": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Standard Medicaid asset limits apply (typically $2,000 for individual; primary home, one vehicle, personal belongings, and certain prepaid funeral expenses often exempt; full details via DCF financial eligibility determination)",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Services delivered via regional Managed Care Organizations (MCOs) with plan choice; screenings via local ADRCs; potential regional differences in providers, wait times, or availability not detailed",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Possible wait list release step prior to CARES assessment",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income and assets for DCF financial eligibility",
+            "Medical records for CARES NFLOC assessment",
+            "Identification and residency proof"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Managed care model via MCO plans; eligibility splits financial (DCF) and medical (DOEA CARES NFLOC); services vary by individual plan of care and medical necessity; statewide but regional MCOs and ADRCs",
+      "gotchas": [
+        "Multi-agency process: DCF (financial), DOEA/CARES (medical/NFLOC), AHCA (enrollment in MCO plan); delays if any step fails",
+        "Services based on assessed need, not all available immediately (unlike some programs like Nursing Home Medicaid)",
+        "No coverage for room and board in community settings like assisted living",
+        "Must choose LTC MCO plan; integrates with other SMMC components (MMA, Dental) but LTC-specific",
+        "Consumer-directed options allow hiring family but require approval",
+        "Fair Hearing available if disagree with screening/eligibility",
+        "Different from MEDS-AD (benefits one at a time) or ICP/PACE"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "individual_needs|medical_necessity",
+      "officialSource": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-restricted (primarily Miami-Dade/Broward); no direct income/asset limits for PACE but tied to Medicaid financials; no waitlist but 1-3 month processing; provider-specific enrollment processes; customized interdisciplinary care plans rather than fixed hours/dollars",
+      "gotchas": [
+        "Not statewide—must live in specific service areas like Miami-Dade/Broward; check provider service area first[1][4]",
+        "Medicaid eligibility often key but not automatic; over-income/assets may need planning/attorney help, though PACE has no direct financial test[2][3][4]",
+        "Cannot be in Medicare Advantage, certain other plans, or hospice[2]",
+        "Requires nursing home level of care certification via physician form and state assessment, but must be community-capable with PACE help[1][3][4]",
+        "Enrollment voluntary but locks into PACE as sole provider for covered services—no opting out for other Medicare/Medicaid options while enrolled[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://ahca.myflorida.com/medicaid/medicaid-policy-quality-and-operations/medicaid-policy-and-quality/medicaid-policy/federal-authorities/federal-waivers/program-of-all-inclusive-care-for-the-elderly"
+    },
+    {
+      "name": "Medicare Savings Programs (MSP)",
+      "isNew": false,
+      "existingId": "medicare-savings-program-qmb-slmb-qi",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "Varies by program. QMB provides the most comprehensive coverage (all premiums and cost-sharing). SLMB and QI cover Part B premium only. Specific dollar amounts depend on current Medicare premiums and individual cost-sharing amounts.[1][2]",
+          "source": "https://www.myflfamilies.com (Florida Department of Children & Families) and https://www.medicare.gov/basics/costs/help/medicare-savings-programs"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.myflfamilies.com (Florida Department of Children & Families) and https://www.medicare.gov/basics/costs/help/medicare-savings-programs"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": {
+            "description": "Total resources (assets) must not exceed specified limits. The value of your home and personal belongings are NOT counted.[1]",
+            "2026_limits": {
+              "individual": "$9,950",
+              "couple": "$14,910"
+            },
+            "what_counts": "Money in bank accounts, retirement accounts (IRAs), and other liquid assets.[1]",
+            "what_does_not_count": "Your home, personal belongings, and household goods.[1]"
+          },
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "No specific regional variations in benefits or eligibility noted in available sources. However, processing times and application availability may vary by county office.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI program operates on a first-come, first-served basis and may have limited funding.[2] Other programs do not appear to have waitlists based on available information.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (recent pay stubs, tax returns, Social Security statements, pension statements)",
+            "Proof of assets (bank statements, retirement account statements)",
+            "Medicare card",
+            "Proof of residency",
+            "Social Security number"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "This program's structure is complex because: (1) There are four distinct programs with different income/asset limits and benefits; (2) Income limits scale by household size and are recalculated annually; (3) Florida recently changed household size calculation rules, making the program more generous; (4) Certain income types are excluded from the calculation, requiring individual assessment; (5) The QI program has first-come, first-served funding limitations; (6) Benefits are purely financial (premium and cost-sharing assistance), not direct services. Families must understand which of the four programs they qualify for, as each has different coverage levels.",
+      "gotchas": [
+        "Income limits appear higher than they are: Many types of income don't count toward the limit. Even if your income seems to exceed the limit, you should apply—you may still qualify.[2][6]",
+        "Household size calculation changed: Florida recently expanded how household size is counted, which can significantly increase your income limit. If you were previously denied, you may now qualify.[4]",
+        "Asset limits are strict but home doesn't count: You can own a home of any value and still qualify, but liquid assets are tightly limited ($9,950 individual/$14,910 couple as of 2026).[3]",
+        "QI program has limited funding: The Qualifying Individual program operates on a first-come, first-served basis and may run out of funding.[2]",
+        "Annual reapplication required: You must reapply each year to maintain benefits, particularly for the QI program.[5]",
+        "Income limits change annually: The limits are adjusted each January based on federal poverty level updates. What qualifies one year may not the next.[3][5]",
+        "Different programs have different coverage: QMB is the most comprehensive (covers premiums and cost-sharing), while SLMB and QI only cover the Part B premium. Choose the program that best fits your situation.[1][2]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "program_tier",
+      "officialSource": "https://www.myflfamilies.com (Florida Department of Children & Families) and https://www.medicare.gov/basics/costs/help/medicare-savings-programs"
+    },
+    {
+      "name": "SNAP Food Assistance",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "SNAP benefits scale by household size. Seniors 60+ have special eligibility rules that are more favorable than general SNAP rules (net income only, higher asset limits). The program is statewide but administered by county DCF offices with potential local variations. Benefits are provided via EBT card and calculated as a percentage of household income. The search results do not provide specific dollar amounts for income limits or maximum allotments for Florida; these must be obtained directly from Florida DCF or USDA FNS for the current benefit year (Oct. 1, 2025–Sept. 30, 2026).",
+      "gotchas": [
+        "Only about half of eligible seniors apply: Approximately 4.8 million seniors receive SNAP, but that's only about half of all eligible seniors[1]. Many seniors don't realize they qualify.",
+        "Seniors have a major advantage: Unlike other applicants, seniors 60+ only need to meet the NET income limit, not the gross income limit[2]. This makes it easier for seniors to qualify than younger adults.",
+        "Higher asset limits for seniors: Seniors can have $4,500 in countable resources; other households with a disqualified member can only have $3,000[6].",
+        "30% income rule: You are expected to spend 30% of your own income on food; your benefit is calculated by subtracting this from the maximum allotment[2].",
+        "Household composition matters: Everyone who lives with you and buys/prepares food with you must be included in the application[1].",
+        "Medical costs can help: Medical costs are factored into eligibility calculations for seniors, which can lower the net income threshold[1].",
+        "Recent legislative changes: The One Big Beautiful Bill Act of 2025 changed certain SNAP eligibility factors, including work requirements and non-citizen eligibility[3]. Families should verify current rules with DCF.",
+        "Non-citizen restrictions: Undocumented non-citizens are not eligible; only U.S. citizens and certain lawfully present non-citizens qualify[3][8]."
+      ],
+      "benefitType": "in_kind",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://www.myflfamilies.com/services/public-assistance/supplemental-nutrition-assistance-program-snap and https://elderaffairs.org/programs-and-services/food-assistance/"
+    },
+    {
+      "name": "Florida Emergency Home Energy Assistance Program (EHEAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "County-administered with varying income limits, providers, and document rules; requires energy crisis verification; elderly-focused subset of broader LIHEAP",
+      "gotchas": [
+        "Not statewide—must contact county-specific provider; no central application",
+        "Crisis required (disconnection/past due proof); not preventive",
+        "Original documents often needed (no copies for SS cards/ID[3][4])",
+        "Income proof for all adults, even non-workers; bank statements separate[3][4]",
+        "Excludes group homes/subsidized/dorms[4]; residency at time of bill[7]",
+        "Seasonal limits in some areas (one per summer/winter[7])"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "region",
+      "officialSource": "No single statewide .gov; local e.g., https://hcfl.gov/residents/seniors/senior-and-caregiver-services/emergency-home-energy-assistance-program[2]"
+    },
+    {
+      "name": "SHINE (Serving Health Insurance Needs of Elders)",
+      "isNew": false,
+      "existingId": "shine-serving-health-insurance-needs-of-elders",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "Free counseling service",
+          "found": "Free, unbiased, confidential one-on-one counseling on Medicare eligibility/enrollment/coverage, health plan choices, appeals, Medigap, long-term care insurance, prescription assistance, Extra Help/Low-Income Subsidy, Medicare Savings Programs, fraud prevention; educational presentations and community events.[3][5][6]",
+          "source": "https://www.floridashine.org"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.floridashine.org"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits for SHINE; for assisted programs like Extra Help, resources below $18,090 (exclusions not detailed in sources).[8]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Delivered via 11 local Area Agencies on Aging (e.g., Senior Connection Center Tampa, AAA Palm Beach/Treasure Coast, AAA SWFL); site availability, volunteer numbers, event schedules vary by region; ~400 volunteers statewide, e.g., 60 in one 5-county area[4][5][6][7]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "For counseling: Medicare card, insurance details recommended but not required; for assisted programs: income/resource proof as guided by counselor[5][8]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income test for counseling; volunteer-delivered via local Area Agencies on Aging; assists with tiered Medicare aid programs (e.g., Extra Help with specific income/resource caps); statewide but regionally variable sites/volunteers",
+      "gotchas": [
+        "Not a direct benefit payer/provider—pure counseling/advocacy to navigate Medicare/options; volunteers not insurance agents, do not sell/recommend plans[3][5][6]",
+        "Many eligible for subsidies (e.g., 35,000+ in one region) unaware/unenrolled—requires consultation/application[7]",
+        "Assists with but does not determine eligibility for MSP/Extra Help—screens and applies[8]",
+        "Services free but demand high (e.g., 9,500 users/year in SWFL)[6]"
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.floridashine.org"
+    },
+    {
+      "name": "Home-Delivered Meals",
+      "isNew": false,
+      "existingId": "home-delivered-meals",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Nutritious home-delivered meals (e.g., 5-10 meals per authorization for Medicaid; medically tailored options; post-discharge unlimited with prior auth; disaster relief 1x/year). Meals priced at $9.49 or less if not qualifying for free/low-cost.",
+          "source": "https://elderaffairs.org/programs-and-services/food-assistance/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://elderaffairs.org/programs-and-services/food-assistance/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits mentioned across sources.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Delivered by local providers (e.g., Meals on Wheels, Mom's Meals); different coverage areas, wait times, and operators by county (e.g., Manatee County specific).",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Common in local programs; varies by region and demand.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of age",
+            "Proof of residence",
+            "Medical information/dietary restrictions",
+            "Financial docs (sometimes)",
+            "Emergency contacts"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Decentralized by county/provider; tied to Medicaid SMMC LTC or local AAAs; no uniform income test; priority for homebound 60+ or disabled; varies heavily by region and health plan authorization.",
+      "gotchas": [
+        "Not automatic; requires assessment and often waitlist",
+        "Car ownership or ability to leave home may disqualify",
+        "Must have functional kitchen appliances and door access",
+        "Separate from SNAP/TEFAP; contact health plan for Medicaid benefits",
+        "Local delivery zones exclude some addresses",
+        "Spouses/dependents sometimes eligible but verify locally"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://elderaffairs.org/programs-and-services/food-assistance/"
+    },
+    {
+      "name": "Respite for Elders Living in Everyday Families (RELIEF)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "No data available; program not found in Florida-specific search results which focus on DCF economic self-sufficiency programs (TCA, SNAP) rather than elder respite services.",
+      "gotchas": [
+        "Search results do not contain any information on 'Respite for Elders Living in Everyday Families (RELIEF)' program; it may not exist under this exact name or be covered in available sources. Families should verify via Florida Department of Elder Affairs (DOEA) or Aging and Disability Resource Centers (ADRCs). Common similar programs like Alzheimer's Disease Initiative (ADI) Respite Services have separate eligibility."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "No official .gov URL identified in search results for RELIEF."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Multiple regional grantees/providers; priority enrollment tiers; income at 125% poverty scales by household size; no fixed asset test; part-time hours/wage tied to local minimums",
+      "gotchas": [
+        "Must be unemployed and have poor employment prospects (not just low-income)",
+        "Priority tiers may limit access for non-priority applicants",
+        "Temporary bridge program (avg 6 months) aimed at unsubsidized jobs, not long-term employment",
+        "Funding transitions/delays may affect availability",
+        "Income based on family size at 125% poverty (check current HHS guidelines)",
+        "No asset limits specified, but prove income/unemployment"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://elderaffairs.org/programs-and-services/senior-community-service-employment-program-scsep/"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Free, confidential advocacy services including identifying, investigating, and resolving complaints on behalf of residents; visiting facilities to monitor conditions and support residents; providing information on nursing homes; assisting with issues like relocations, rights violations, and fair treatment; proactive problem prevention.",
+          "source": "https://elderaffairs.org/programs-and-services/long-term-care-ombudsman-program/"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://elderaffairs.org/programs-and-services/long-term-care-ombudsman-program/"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits; no financial requirements apply.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Delivered through 14 (or 13) district offices covering the entire state; local volunteers and district managers handle cases, but core services consistent statewide.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents needed to request assistance; provide details of the complaint or concern verbally or in writing."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income test; open to any concerned party for facility residents; volunteer-based advocacy network across 14 districts; complaint-resolution focused, not service provision or financial aid.",
+      "gotchas": [
+        "Not a Medicaid or financial assistance program—purely advocacy for facility residents, not direct care or funding; requires no affiliation with facilities for ombudsman volunteers to maintain impartiality; services are complaint-driven, not automatic enrollment; distinct from Long-Term Care (LTC) Medicaid services which have strict age, Medicaid, and nursing home level-of-care requirements."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://elderaffairs.org/programs-and-services/long-term-care-ombudsman-program/"
+    },
+    {
+      "name": "Home Care for the Elderly",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Tied to ICP Medicaid limits and requires dedicated live-in caregiver; functional eligibility via 701B nursing home risk assessment; statewide but locally administered.",
+      "gotchas": [
+        "Requires live-in adult caregiver (18+) committed full-time; not for those without family-type arrangement.",
+        "Financial eligibility tied to ICP/SSI/QMB/SLMB; self-declared but verified against Medicaid limits.",
+        "Must be at risk of nursing home placement via specific 701B assessment, not just general home care need.",
+        "Not standard Medicaid home health; caregiver-focused to avoid institutionalization."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.agingcarefl.org/uploads/1/3/6/5/136526411/2020-chapter-6-home-care-for-the-elderly-program.pdf"
+    },
+    {
+      "name": "Optional State Supplementation (OSS)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Facility-restricted to assisted living/adult family care/mental health residential; payment calculated as provider rate + personal needs allowance minus countable income; scales by facility type and couple status; state-funded supplement to SSI.",
+      "gotchas": [
+        "Strictly for residents of specific licensed facilities only—not independent living or home.",
+        "Must meet facility 'needs-based' criteria via objective medical/social evaluations.",
+        "Income/assets tied to SSI standards but state supplements only if in qualifying arrangement and income below state limit (may differ from federal SSI).",
+        "Recipients must pursue all other benefits; losing SSI due to Title II increases may retain OSS if in specific arrangement and under income limit.",
+        "Payments go toward facility provider rate + personal needs; third-party supplements allowed but paid to facility, not recipient.",
+        "Grandfathered eligibility possible for those meeting SSI criteria except income."
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "living_arrangement|facility_type",
+      "officialSource": "https://www.flrules.org/gateway/RuleNo.asp?id=65A-2.032 (Fla. Admin. Code Ann. R. 65A-2.032); https://www.myflfamilies.com/service-programs/access/ (DCF ACCESS Florida)"
+    },
+    {
+      "name": "Homestead Exemption for Seniors",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Income limit fixed per household (not scaled by size), set annually by FL DOR; county-specific variations in thresholds, residency tiers, and tax applicability; requires base homestead exemption",
+      "gotchas": [
+        "Must already have standard homestead exemption; apply for both if new.[1][2][7]",
+        "Income is household total for prior year, includes all residents (not just owners).[1][5][8]",
+        "Annual renewal required or audit possible; mail instructions sent in January.[2]",
+        "Deadlines: March 1 for application, June 1 for income if delayed.[2]",
+        "Varies by county/municipality; not all areas offer full $50k or long-term tier.[4][7]",
+        "Only reduces non-school taxes in some counties.[5][6]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "region",
+      "officialSource": "https://floridarevenue.com/property/Documents/pt110.pdf"
+    },
+    {
+      "name": "Florida Discount Drug Card Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "no income test; completely open eligibility; instant no-form access; nationwide pharmacy network but Florida-focused",
+      "gotchas": [
+        "One-time $1.50 activation fee may apply at first use for permanent card (not all sources confirm)[1][4][5]",
+        "Discount amount varies by drug, pharmacy, brand/generic, supply quantity[4][8]",
+        "Not insurance; cannot be used with insurance on same prescription at some pharmacies[2]",
+        "Older sources (2007) mention outdated income limits and eligibility for under-60; current program has none[1]",
+        "Class II narcotics no longer available via mail order[8]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.floridashine.org/getattachment/Resources/ResourceLinks/BPrescripAsstOptions.pdf.aspx (SHINE program reference)[5]"
+    },
+    {
+      "name": "Alzheimer's Disease Initiative (ADI)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Administered regionally via 11 AAAs and 17 Memory Disorder Clinics in 13 areas; needs-based services authorized after assessment; no fixed income/asset tests statewide, diagnosis-driven with funding constraints",
+      "gotchas": [
+        "No statewide income/asset limits specified, but local sliding scale co-pays and funding availability determine access—contact local AAA for details[4]",
+        "Strict diagnosis documentation required, especially for specialized services like adult day care or Brain Bank[1][2]",
+        "Services authorized post-comprehensive case management assessment, not automatic upon eligibility[6]",
+        "Regional delivery means eligibility/services vary by AAA/provider—must contact local office[3]",
+        "Created in 1985 as respite-focused but expanded; includes non-respite like clinics and training[5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://elderaffairs.org/programs-services/alzheimers-disease-initiative/ (inferred from DOEA context; primary docs via agingcarefl.org or elderaffairs.org)[1]"
+    },
+    {
+      "name": "RELIEF Program (Respite for Elders Living in Everyday Families)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Volunteer-based with local administration through 11 AAAs/ADRCs; no published income/asset tables or fixed hours guarantee; free service focused on evenings/weekends expansion[5][6]",
+      "gotchas": [
+        "Program relies on volunteers, so availability depends on local volunteer corps and matching process[5]",
+        "Expansion of basic public respite programs, not a replacement; may not cover all needs[5]",
+        "No detailed eligibility financial thresholds provided, suggesting needs-based assessment via local ADRC rather than strict cutoffs[5]",
+        "Volunteers provide companionship up to 4 hours, not medical or skilled nursing care[5]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://elderaffairs.org/programs-and-services/respite-for-elders-living-in-everyday-families-relief/[5]"
+    }
+  ]
+}

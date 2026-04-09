@@ -1,0 +1,3014 @@
+{
+  "state": "MO",
+  "stateName": "Missouri",
+  "draftedAt": "2026-04-09T14:43:05.487Z",
+  "total": 17,
+  "successful": 17,
+  "programs": [
+    {
+      "id": "missouri-mo-healthnet-medicaid",
+      "name": "MO HealthNet (Medicaid)",
+      "shortName": "MO HealthNet",
+      "tagline": "Free health coverage including doctor visits, prescriptions, and long-term care for low-income seniors in Missouri.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "144 Family Support Division (FSD) Resource Centers throughout Missouri",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ with limited income and assets, MO HealthNet covers their complete medical care at no cost — including doctor visits, hospital stays, prescription drugs, and long-term care. The program has strict financial limits: single seniors must have income under $860/month and assets under $3,000 (or $1,166/month income and $6,000 assets for couples). Even if your parent's income is slightly over these limits, they may still qualify through \"spend-down\" — where their medical expenses count toward meeting the income requirement. Missouri offers several specialized tracks within MO HealthNet, including programs specifically for aged, blind, and disabled residents, plus Medicare Savings Programs that help pay Medicare premiums and deductibles.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income under $860/month (single)",
+          "Assets under $3,000 (single)",
+          "Missouri resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 3000,
+          "couple": 6000,
+          "countedAssets": [
+            "Savings accounts",
+            "Other bank accounts",
+            "Investment accounts"
+          ],
+          "exemptAssets": [
+            "Primary home (up to equity limits)",
+            "One vehicle",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "For long-term care benefits, must meet Nursing Facility Level of Care (clinical assessment showing need for daily help with bathing, dressing, or medication management)",
+        "otherRequirements": [
+          "Missouri resident",
+          "U.S. citizen or qualified non-citizen"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at mydss.mo.gov in about 30 minutes — processing takes 45 days for seniors.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather financial documents",
+            "description": "Collect recent bank statements, Social Security award letters, and proof of any other income your parent receives"
+          },
+          {
+            "step": 2,
+            "title": "Apply online or visit local office",
+            "description": "Complete the MO HealthNet application at mydss.mo.gov/healthcare/apply or visit one of 144 local Family Support Division offices"
+          },
+          {
+            "step": 3,
+            "title": "Submit required documents",
+            "description": "Upload or mail copies of income proof, asset statements, ID, and Medicare card if your parent has one"
+          },
+          {
+            "step": 4,
+            "title": "Complete any required assessments",
+            "description": "If applying for long-term care benefits, your parent may need a clinical assessment to determine level of care needs"
+          }
+        ],
+        "processingTime": "Typically 45 days for aged/blind/disabled; 90 days if disability determination needed",
+        "waitlist": "Possible waitlist for Home and Community Based Waiver services due to limited slots",
+        "tip": "If your parent's income is slightly over the limit, ask about \"spend-down\" — their medical bills can count toward meeting the income requirement.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://mydss.mo.gov/healthcare/apply"
+          },
+          {
+            "label": "HealthCare.gov Application",
+            "url": "https://www.healthcare.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Savings and checking accounts",
+            "Investment accounts",
+            "Other financial resources"
+          ],
+          "excluded": [
+            "Primary home (often exempt up to certain equity limits)",
+            "One vehicle",
+            "Personal belongings and household items"
+          ]
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Program Categories",
+          "tiers": [
+            {
+              "name": "MHABD (Aged/Blind/Disabled)",
+              "description": "Standard Medicaid for seniors 65+",
+              "incomeLimit": "$860/month (single), $1,166/month (couple)",
+              "coverage": "Full medical, dental, vision, long-term care"
+            },
+            {
+              "name": "MHABD (Blind)",
+              "description": "Enhanced limits for blind individuals",
+              "incomeLimit": "$1,012/month (single), $1,372/month (couple)",
+              "coverage": "Same as standard MHABD"
+            },
+            {
+              "name": "Medicare Savings Programs",
+              "description": "Helps pay Medicare costs",
+              "incomeLimit": "Higher asset limits ($7,560 single)",
+              "coverage": "Medicare premiums and cost-sharing"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Birth certificate",
+                "Social Security card",
+                "Proof of Missouri residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Recent bank statements",
+                "SSI/SSDI award letters",
+                "Pay stubs if still working",
+                "Medicare card (if applicable)"
+              ]
+            },
+            {
+              "name": "Medical (if applying for long-term care)",
+              "items": [
+                "Medical records showing care needs",
+                "Doctor assessments",
+                "Current medication list"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Home and community-based waiver services may have waitlists due to limited funding slots. Nursing home care typically has no waitlist but requires clinical assessment."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Many seniors miss asset exemptions like home equity limits. Your parent may qualify even if their assets seem too high — the primary home often doesn't count toward the $3,000 limit."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom's income is $900/month — just over the $860 limit?",
+          "answer": "She may still qualify through \"spend-down.\" If her monthly medical expenses are $40 or more, those bills count toward meeting the income requirement. Many seniors qualify this way even when their income appears too high."
+        },
+        {
+          "question": "Can Dad keep the house if he gets MO HealthNet?",
+          "answer": "Yes, the primary home is usually exempt from the $3,000 asset limit, up to certain equity limits. Personal belongings and one vehicle are also exempt."
+        },
+        {
+          "question": "Mom has Medicare — does she still need MO HealthNet?",
+          "answer": "Yes, MO HealthNet can work alongside Medicare to cover what Medicare doesn't — like long-term care, some prescriptions, and Medicare premiums through Medicare Savings Programs."
+        },
+        {
+          "question": "How long does approval take for seniors?",
+          "answer": "Typically 45 days for aged/blind/disabled applications. If disability determination is needed, it can take up to 90 days."
+        },
+        {
+          "question": "What's the difference between regular MO HealthNet and the waiver programs?",
+          "answer": "Regular MO HealthNet covers basic medical care. Waiver programs provide home and community-based services to help your parent stay at home instead of going to a nursing home, but these have waitlists."
+        },
+        {
+          "question": "Will the state try to recover costs from the estate after death?",
+          "answer": "Missouri may seek recovery from the estate for long-term care services provided after age 55, but the home is typically protected if a surviving spouse lives there."
+        }
+      ],
+      "phone": "855-373-9994",
+      "sourceUrl": "https://mydss.mo.gov/healthcare/apply",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "missouri-structured-family-caregiving-waiver",
+      "name": "Structured Family Caregiving Waiver",
+      "shortName": "Family Caregiving Waiver",
+      "tagline": "If your parent with dementia already lives with you full-time, Missouri will pay you for the care you provide.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "DHSS Division of Senior and Disability Services (statewide admin); local providers like UCP Heartland, Emerest, Circle of Care St. Louis.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent with Alzheimer's or dementia already lives with you full-time and needs daily help with bathing, dressing, or medication management, Missouri's Structured Family Caregiving Waiver can pay you for the care you're already providing. This program covers homemaker and attendant care services — including help with daily activities, medication oversight, and escort to medical appointments — delivered by you as the primary caregiver.\n\nThe key requirement: your parent must already live in your household full-time. This program doesn't create new living arrangements — it pays family caregivers who are already providing care. Your parent must have Medicaid, be diagnosed with Alzheimer's or related dementia by a licensed professional, and meet Nursing Facility Level of Care (a clinical assessment showing they need daily help with basic activities). You'll also need a backup caregiver plan for when you're unavailable.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 21+",
+          "Alzheimer's or dementia diagnosis",
+          "Lives full-time with family caregiver",
+          "Income below $1,109/month",
+          "Needs daily care assistance"
+        ],
+        "ageRequirement": "21+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1109
+          }
+        ],
+        "assetLimits": {
+          "individual": 6068,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Cash value of life insurance"
+          ],
+          "exemptAssets": [
+            "Primary home (up to $730,000 equity if living there)",
+            "One vehicle",
+            "Household goods and personal belongings"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (a clinical assessment showing your parent needs daily help with bathing, dressing, eating, toileting, or medication management)",
+        "otherRequirements": [
+          "Must have Alzheimer's or dementia diagnosis from licensed healthcare professional",
+          "Must live full-time in same household as primary caregiver",
+          "Must be enrolled in Missouri Medicaid",
+          "Cannot be in any facility, group home, or nursing home",
+          "Cannot use other Missouri HCBS waiver services",
+          "Must have backup caregiver plan"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact Missouri DHSS for assessment — processing time not specified by the state.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Ensure Medicaid enrollment",
+            "description": "Your parent must be enrolled in Missouri Medicaid (MO HealthNet) first. Apply at mydss.mo.gov if not already enrolled."
+          },
+          {
+            "step": 2,
+            "title": "Get dementia diagnosis documentation",
+            "description": "Obtain written diagnosis of Alzheimer's or related dementia from a licensed healthcare professional."
+          },
+          {
+            "step": 3,
+            "title": "Contact DHSS for assessment",
+            "description": "Reach out to Missouri Department of Health and Senior Services, Division of Senior and Disability Services to begin the Nursing Facility Level of Care assessment."
+          },
+          {
+            "step": 4,
+            "title": "Complete InterRAI HC assessment",
+            "description": "Your parent will be assessed using the InterRAI HC tool to determine if they meet the nursing facility level of care requirement."
+          },
+          {
+            "step": 5,
+            "title": "Establish backup caregiver plan",
+            "description": "Identify and document a qualified substitute caregiver who can provide care when you're unavailable."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": null,
+        "tip": "Start with Medicaid enrollment if your parent doesn't have it yet — this program requires active Missouri Medicaid coverage.",
+        "urls": [
+          {
+            "label": "Missouri DHSS Waiver Information",
+            "url": "https://mydss.mo.gov/mhd/waiver/structured-family-caregiving"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1109,
+              "yearlyLimit": 13308
+            }
+          ],
+          "footnote": "2025 figures. Follows standard Missouri Medicaid income limits."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Cash value of life insurance policies",
+            "Additional real estate beyond primary home"
+          ],
+          "excluded": [
+            "Primary home (if equity is $730,000 or less and they live there)",
+            "One vehicle for transportation",
+            "Household goods and personal belongings",
+            "Home if spouse or disabled adult child lives there"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Medical",
+              "items": [
+                "Written Alzheimer's/dementia diagnosis from licensed healthcare professional",
+                "Medical records showing need for daily care assistance",
+                "Current medication list"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Missouri Medicaid enrollment verification",
+                "Income verification (Social Security, pensions)",
+                "Bank statements and asset documentation"
+              ]
+            },
+            {
+              "name": "Living Situation",
+              "items": [
+                "Proof of shared household residence",
+                "Backup caregiver plan and contact information",
+                "Documentation of current care needs"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This program only works if your parent already lives with you full-time. It doesn't help create new living arrangements — it pays family caregivers who are already providing care in shared households."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "You cannot combine this waiver with any other Missouri HCBS waiver or state plan services. If your parent receives Medicaid through Blind Pension, they're not eligible for this program."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for this program?",
+          "answer": "Yes, as long as her home equity doesn't exceed $730,000 and she's living there (or intends to return). The home is completely exempt if a spouse, minor child under 21, or blind/permanently disabled adult child lives there."
+        },
+        {
+          "question": "What if Mom needs more care than I can provide as one person?",
+          "answer": "The program requires you to have a qualified substitute caregiver who can step in when you're unavailable. This backup caregiver must be employed by the approved provider agency and chosen by you or your parent's guardian."
+        },
+        {
+          "question": "Can we use this program if Mom lives in assisted living?",
+          "answer": "No. Your parent cannot live in any facility, group home, boarding home, hospital, nursing facility, or ICF/MR. They must live full-time in the same household as you, the primary caregiver."
+        },
+        {
+          "question": "What's the difference between this and other Missouri waivers?",
+          "answer": "This waiver is specifically for people with Alzheimer's or dementia who live with family caregivers. You cannot combine it with any other Missouri HCBS waiver or state plan services — it's one or the other."
+        },
+        {
+          "question": "How much will I get paid for caregiving?",
+          "answer": "The program doesn't specify fixed dollar amounts or hours. Payment is based on your parent's individualized plan of care, which is developed after the assessment shows what level of care they need."
+        },
+        {
+          "question": "What if Mom's income is just over the $1,109 limit?",
+          "answer": "She won't qualify for this waiver. The income limits are strict and follow standard Missouri Medicaid rules. However, if she's receiving Medicaid through Blind Pension, she's automatically ineligible regardless of income."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://mydss.mo.gov/mhd/waiver/structured-family-caregiving",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "missouri-pace-comprehensive-care",
+      "name": "Missouri PACE (Program of All-Inclusive Care for the Elderly)",
+      "shortName": "Missouri PACE",
+      "tagline": "All medical care, home services, and adult day health in one program — designed to keep your parent out of nursing homes.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "PACE KC: Kansas City/Jackson County",
+            "type": "service-area"
+          },
+          {
+            "name": "EverTrue PACE: St. Louis",
+            "type": "service-area"
+          },
+          {
+            "name": "Jordan Valley Senior Care: Southwest Missouri",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and needs nursing home-level care but wants to stay home, Missouri PACE provides everything under one roof: primary care, specialists, prescription drugs, home care, adult day health, medical equipment, and therapies. Because PACE covers all medical care through one coordinated team, your parent won't juggle multiple providers or insurance approvals.\n\nYour parent must live in Kansas City/Jackson County, St. Louis, or Southwest Missouri — these are the only three areas with PACE programs. Most participants (90-99%) qualify for free services through dual Medicare/Medicaid coverage. Without Medicaid, private pay costs approximately $7,000+ per month.\n\nPACE requires certification that your parent needs nursing home-level care but can live safely at home with support. This means they need daily help with activities like bathing, dressing, medication management, or mobility.",
+      "savingsRange": "",
+      "savingsSource": "Free comprehensive health services",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Live in Kansas City, St. Louis, or Southwest Missouri only",
+          "Needs nursing home level of care",
+          "Can live safely at home with support"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second homes"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must be certified by Missouri as needing nursing home level of care — daily help with bathing, dressing, medication management, or mobility",
+        "otherRequirements": [
+          "Live in service area of Kansas City, St. Louis, or Southwest Missouri",
+          "Cannot be enrolled in Medicare Advantage",
+          "Cannot be enrolled in hospice care"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local PACE organization directly for enrollment — processing times vary by provider and region.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local PACE provider",
+            "description": "Call PACE KC (Kansas City), EverTrue PACE (St. Louis), or Jordan Valley Senior Care (Southwest Missouri) to start enrollment."
+          },
+          {
+            "step": 2,
+            "title": "Complete nursing home level of care assessment",
+            "description": "Missouri will evaluate whether your parent needs daily assistance with bathing, dressing, medication management, or mobility."
+          },
+          {
+            "step": 3,
+            "title": "Submit medical records and documentation",
+            "description": "Provide proof of age, residency in the service area, and medical history for the clinical assessment."
+          },
+          {
+            "step": 4,
+            "title": "Financial eligibility review",
+            "description": "If seeking Medicaid coverage (free services), provide income and asset documentation to determine cost share."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Start with the nursing home level of care assessment early — this clinical evaluation takes time and determines eligibility.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "For Free Services: Medicaid Asset Limits",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Second homes or rental properties",
+            "Vehicles beyond the first one"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "One vehicle",
+            "Personal belongings and household items",
+            "Burial funds up to $1,500"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "PACE Providers by Region",
+          "offices": [
+            {
+              "name": "PACE KC",
+              "type": "service-area",
+              "phone": null,
+              "address": "Jackson County/Kansas City area"
+            },
+            {
+              "name": "EverTrue PACE",
+              "type": "service-area",
+              "phone": null,
+              "address": "St. Louis area"
+            },
+            {
+              "name": "Jordan Valley Senior Care",
+              "type": "service-area",
+              "phone": null,
+              "address": "Southwest Missouri"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of address in Kansas City, St. Louis, or Southwest Missouri"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medicare card",
+                "Complete medical records",
+                "Current medication list",
+                "Hospital discharge summaries if recent"
+              ]
+            },
+            {
+              "name": "Financial (for Medicaid eligibility)",
+              "items": [
+                "Social Security award letter",
+                "Bank statements (3 months)",
+                "Investment account statements",
+                "Property deeds or mortgage statements"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Missouri PACE is only available in three regions: Kansas City/Jackson County, St. Louis, and Southwest Missouri. If your parent lives elsewhere in Missouri, they cannot access this program."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent's income is above Medicaid limits, private pay is still an option at approximately $7,000+ per month — often less expensive than nursing home care plus all the separate medical costs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for PACE?",
+          "answer": "Yes. Your home is completely exempt from Medicaid asset limits for PACE eligibility. She can own a home of any value and still qualify for free PACE services through Medicaid."
+        },
+        {
+          "question": "What if Dad has Medicare Advantage — can he still get PACE?",
+          "answer": "No. Your parent cannot be enrolled in Medicare Advantage, Medicare prepayment plans, or Medicare prescription drug plans while in PACE. PACE replaces all these programs with its comprehensive coverage."
+        },
+        {
+          "question": "How do I know if Mom needs 'nursing home level of care'?",
+          "answer": "Missouri will assess whether she needs daily help with bathing, dressing, medication management, or mobility. If she requires assistance with these activities but can live safely at home with support, she likely qualifies."
+        },
+        {
+          "question": "What happens if Dad's income is just over the Medicaid limit?",
+          "answer": "Private pay is available at approximately $7,000+ per month. This may still cost less than nursing home care plus separate medical expenses, and includes all doctors, prescriptions, and home services."
+        },
+        {
+          "question": "Can Mom choose her own doctors with PACE?",
+          "answer": "No. PACE provides all medical care through its coordinated team of providers. You cannot use outside doctors or specialists — all care goes through the PACE program."
+        },
+        {
+          "question": "What if we live in rural Missouri outside these three areas?",
+          "answer": "Unfortunately, PACE is not available. The program only operates in Kansas City/Jackson County, St. Louis, and Southwest Missouri. Consider other home and community-based waiver programs through Missouri Medicaid."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://mydss.mo.gov/mhd/pace",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "missouri-medicare-savings-program",
+      "name": "Medicare Savings Program (MSP)",
+      "shortName": "Medicare Savings",
+      "tagline": "If your parent has Medicare, Missouri may pay their monthly premium and medical costs based on income.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "intro": "If your parent is on Medicare and has limited income, Missouri's Medicare Savings Program can pay their Medicare Part B premium ($202.90/month in 2026) and potentially all their Medicare deductibles and copays. Because this program has three different tiers based on income level, your parent might qualify for premium help even if their income is too high for full Medicaid. The highest tier covers families earning up to $2,400/month for couples or $1,781/month for singles, potentially saving thousands per year on medical costs.",
+      "savingsRange": "$2,435 – $5,000+/year in 2026",
+      "savingsSource": "Medicare Part B premium savings plus potential deductible and copay coverage",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Must have Medicare Part A",
+          "Income below $1,781/month (single) or $2,400/month (married)",
+          "Assets under $9,660 (single) or $14,470 (married)",
+          "Missouri resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1781
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2400
+          }
+        ],
+        "assetLimits": {
+          "individual": 9660,
+          "couple": 14470,
+          "countedAssets": [],
+          "exemptAssets": [],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be enrolled in Medicare Part A (Hospital Insurance)",
+          "Must be Missouri resident and plan to stay",
+          "Must have healthcare coverage through Medicare or MO HealthNet"
+        ],
+        "povertyLevelReference": "100-135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at myDSS.mo.gov or call 855-373-4636 to request application by mail — processing time not specified by state.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Choose your application type",
+            "description": "Use IM-1 MSP Application if applying only for Medicare Savings Program, or standard MO HealthNet application if you want both programs."
+          },
+          {
+            "step": 2,
+            "title": "Gather income and asset documentation",
+            "description": "Collect verification of monthly income, resources owned, Medicare enrollment proof, and Missouri residency documents."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Apply online at myDSS.mo.gov, call 855-373-4636 for mail application, or visit your local Family Support Division Resource Center."
+          },
+          {
+            "step": 4,
+            "title": "Verify provider acceptance",
+            "description": "Once approved, confirm your parent's healthcare providers accept MSP coverage and offer Medicare services."
+          }
+        ],
+        "processingTime": "Not specified by Missouri",
+        "waitlist": "QI program tier is first-come, first-served with limited funding",
+        "tip": "If your parent is still working, less than half their employment income counts toward the limit, so they might qualify despite higher total income.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://myDSS.mo.gov"
+          },
+          {
+            "label": "Download PDF Application",
+            "url": "https://tinyurl.com/MSP-apply"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1781,
+              "annualLimit": 21372
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 2400,
+              "annualLimit": 28800
+            }
+          ],
+          "footnote": "2026 limits. Includes $20 general income disregard. Limits change each April."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Savings and checking accounts",
+            "Investments and stocks",
+            "Cash value of life insurance"
+          ],
+          "excluded": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings"
+          ]
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Full coverage tier",
+              "incomeLimit": "$1,325/month single, $1,783/month married",
+              "coverage": "Pays Part A and B premiums plus all deductibles, copayments, and coinsurance"
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Premium assistance only",
+              "incomeLimit": "$1,585/month single, $2,135/month married",
+              "coverage": "Pays Part B premium ($202.90/month in 2026)"
+            },
+            {
+              "name": "QI (Qualifying Individual)",
+              "description": "Limited funding, first-come first-served",
+              "incomeLimit": "$1,781/month single, $2,400/month married",
+              "coverage": "Pays Part B premium ($202.90/month in 2026)"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Medicare",
+              "items": [
+                "Medicare card or enrollment documentation",
+                "Records showing Medicare Part A eligibility"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements for all accounts",
+                "Pay stubs or Social Security award letters",
+                "Investment account statements",
+                "Life insurance policies with cash value"
+              ]
+            },
+            {
+              "name": "Residency",
+              "items": [
+                "Missouri driver's license or state ID",
+                "Utility bills or lease agreement",
+                "Voter registration card"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "The QI program tier has limited funding and operates first-come, first-served. If your parent qualifies for QI, apply as soon as possible."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income limits change every April when federal poverty levels are announced. If your parent was denied before, they may qualify now with updated limits."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes. The primary home doesn't count toward the $9,660 (single) or $14,470 (married) asset limits, regardless of value."
+        },
+        {
+          "question": "What if Mom's income is just over the limit?",
+          "answer": "The program has three tiers with different income limits. If she doesn't qualify for QMB, she might still qualify for SLMB or QI, which cover the $202.90/month Part B premium. Also, if she's working, less than half her employment income counts."
+        },
+        {
+          "question": "Can my parent have both this program and regular Medicaid?",
+          "answer": "Yes, except for SLMB2 (Group 2), which cannot be active at the same time as MO HealthNet insurance. QMB and SLMB1 can be combined with MO HealthNet."
+        },
+        {
+          "question": "Does my parent need to be enrolled in Medicare Part B to apply?",
+          "answer": "No, they only need to be eligible for Medicare Part A (Hospital Insurance). They don't need to be currently enrolled in Part B since this program can pay those premiums."
+        },
+        {
+          "question": "How often do the income limits change?",
+          "answer": "Every April when the federal government announces new Federal Poverty Level guidelines. If your parent was denied before, it's worth reapplying with the new limits."
+        },
+        {
+          "question": "Will all doctors accept this coverage?",
+          "answer": "You must verify that your parent's healthcare providers accept MSP coverage and offer Medicare services. Not all providers accept Medicare cost-sharing programs, so confirm before your parent's appointments."
+        }
+      ],
+      "phone": "855-373-4636",
+      "sourceUrl": "https://mydss.mo.gov/medicare-cost-savings-programs",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "missouri-snap-food-benefits",
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "shortName": "SNAP Food Benefits",
+      "tagline": "Your parent could get $100-400/month toward groceries if they're on a fixed income.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "intro": "If your parent is struggling to afford groceries on Social Security or a pension, SNAP (food stamps) provides monthly benefits loaded onto an EBT card. In Missouri, a single person with $1,200/month income could receive $415/month for food — that's nearly $5,000/year. Parents age 60+ have easier qualification rules because they only need to meet net income limits (income after deductions), not gross income limits like younger adults. Because Missouri allows medical expense deductions for seniors, your parent's prescription costs and doctor visits can actually lower their countable income and increase their food benefits.",
+      "savingsRange": "$1,200 – $5,000/year in 2026",
+      "savingsSource": "Based on Missouri SNAP benefit calculations for elderly households",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ (easier rules)",
+          "Net income below $1,415/month (single)",
+          "Assets under $4,500",
+          "Lives in Missouri"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1415
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1903
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 2391
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 2879
+          }
+        ],
+        "assetLimits": {
+          "individual": 4500,
+          "couple": 4500,
+          "countedAssets": [
+            "Money in bank accounts",
+            "Cash",
+            "Savings accounts",
+            "Checking accounts"
+          ],
+          "exemptAssets": [
+            "Home",
+            "Vehicle(s)",
+            "Life insurance",
+            "Burial plots",
+            "Retirement savings",
+            "Pension plans",
+            "Personal property"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must live in Missouri",
+          "All household members need Social Security numbers"
+        ],
+        "povertyLevelReference": "100% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at mydss.mo.gov or at your local DSS office — processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect Social Security statements, bank statements, rent/mortgage receipts, and medical bills (seniors can deduct medical expenses)"
+          },
+          {
+            "step": 2,
+            "title": "Complete SNAP application",
+            "description": "Apply online at mydss.mo.gov or visit your local Department of Social Services office"
+          },
+          {
+            "step": 3,
+            "title": "Submit documentation",
+            "description": "Provide proof of income, residency, identity, and medical expenses if claiming the elderly medical deduction"
+          },
+          {
+            "step": 4,
+            "title": "Complete interview",
+            "description": "Participate in eligibility interview with DSS caseworker (may be by phone)"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent is 60+, make sure to claim the medical expense deduction — prescription costs and doctor visits can significantly lower their countable income.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://mydss.mo.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Net Income Limits by Household Size (Age 60+)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1415
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 1903
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 2391
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 2879
+            }
+          ],
+          "footnote": "2025-2026 limits. Add $488 for each additional household member. Households with elderly/disabled members only need to meet net income limits, not gross income."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts ($4,500 for Age 60+)",
+          "included": [
+            "Money in bank accounts",
+            "Cash on hand",
+            "Savings accounts",
+            "Checking accounts"
+          ],
+          "excluded": [
+            "Your home (any value)",
+            "Vehicle(s)",
+            "Retirement savings and pension plans",
+            "Life insurance",
+            "Burial plots and prepaid burials",
+            "Personal property that doesn't generate income"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Social Security cards for all household members",
+                "Photo ID",
+                "Proof of Missouri residency (utility bill, lease)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security statements",
+                "Pension statements",
+                "Bank statements (last 3 months)",
+                "Medical bills and prescription receipts (for elderly deduction)",
+                "Rent/mortgage receipts"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Only about half of eligible seniors apply for SNAP. If your parent receives Social Security, owns their home, or has retirement savings, they may still qualify — these don't automatically disqualify them."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Adults age 55-64 without dependents may need to work or join a SNAP job program under new federal rules. This doesn't apply to people 65+ or those with disabilities."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent qualify if they own their home and have retirement savings?",
+          "answer": "Yes. The home doesn't count as an asset regardless of value, and retirement savings in 401(k)s or pensions are exempt. Only liquid savings in bank accounts count toward the $4,500 asset limit for seniors."
+        },
+        {
+          "question": "Will my parent's Social Security count against the income limit?",
+          "answer": "Social Security counts as income, but households with someone 60+ only need to meet net income limits (after deductions), not gross income limits. Medical expenses can be deducted to lower countable income."
+        },
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "Medical expense deductions for seniors can significantly lower countable income. Prescription costs, doctor visits, and health insurance premiums may bring them under the net income limit."
+        },
+        {
+          "question": "How much will my parent actually receive in food benefits?",
+          "answer": "It varies by household size and net income. Example: A 2-person elderly household with $1,200 gross income receives $415/month. Higher income means lower benefits."
+        },
+        {
+          "question": "Does my parent need to recertify every year?",
+          "answer": "Elderly households may qualify for longer certification periods — some states offer 24-month periods instead of annual recertification, reducing paperwork burden."
+        },
+        {
+          "question": "What can't my parent buy with SNAP benefits?",
+          "answer": "SNAP cannot be used for alcohol, tobacco, vitamins, supplements, hot prepared foods, or non-food items. It covers groceries, bread, cereals, fruits, vegetables, meats, fish, poultry, and dairy products."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://mydss.mo.gov/food-assistance/apply-for-snap",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "missouri-liheap-energy-assistance",
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "shortName": "LIHEAP Energy Assistance",
+      "tagline": "If your parent struggles to pay heating or cooling bills, they may qualify for $153-$495 toward utility costs plus emergency crisis assistance.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local contracted agencies; examples: CMCA (cmca.us), Ameren participating agencies",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent's utility bills are eating into their fixed income, LIHEAP can provide direct payment to their energy company — from $153 to $495 for regular heating assistance, plus up to $800 for winter emergencies and $300 for summer cooling crises. Because payments go straight to the utility company, your parent won't handle the money directly, but their bill will be reduced by the assistance amount.\n\nYour parent qualifies if their gross monthly income is below $2,839 for a single person (or $3,713 for a couple) and they have less than $3,000 in countable assets like bank accounts. Priority goes to households with someone age 60+ or disabled, who can apply starting October 1st — a full two months before general applications open December 1st.",
+      "savingsRange": "$153 – $1,095/year",
+      "savingsSource": "Combines regular heating assistance ($153-$495) plus potential crisis assistance (up to $800 winter, $300 summer)",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income below $2,839/month (single person)",
+          "Assets under $3,000",
+          "Missouri resident",
+          "U.S. citizen or permanent resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2839
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3713
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4587
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5461
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6335
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 7209
+          }
+        ],
+        "assetLimits": {
+          "individual": 3000,
+          "couple": 3000,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Retirement accounts"
+          ],
+          "exemptAssets": [],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be over 18 and responsible for paying the utility bill",
+          "Provide Social Security numbers for all household members"
+        ],
+        "povertyLevelReference": "60% of state median income"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local LIHEAP agency — processing begins after October 1st for elderly/disabled households, December 1st for others.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local agency",
+            "description": "Use the agency finder at cmca.us or contact Ameren participating agencies. Each region has different contracted agencies that handle applications."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect utility bills, proof of income from the prior month, and Social Security numbers for everyone in the household."
+          },
+          {
+            "step": 3,
+            "title": "Apply during your priority window",
+            "description": "Age 60+ or disabled can apply starting October 1st. All others wait until December 1st. Apply as early as possible — funds run out."
+          },
+          {
+            "step": 4,
+            "title": "Complete eligibility screening",
+            "description": "Your local agency will use the LIHEAP Worksheet (E1LW) to determine eligibility before processing your full application."
+          }
+        ],
+        "processingTime": "Eligibility notifications and payments after program start dates (post-October 1 for elderly/disabled). Exact processing varies by agency and intake month",
+        "waitlist": "Funds limited; priority for elderly (60+), disabled, families with children, multi-person households. Applications processed first-come basis within priority periods; may exhaust funding",
+        "tip": "If your parent is 60+ or disabled, mark your calendar for October 1st — that two-month head start can mean the difference between getting assistance or being waitlisted.",
+        "urls": [
+          {
+            "label": "Find Local LIHEAP Agency",
+            "url": "https://www.cmca.us"
+          },
+          {
+            "label": "Ameren LIHEAP Partners",
+            "url": "https://www.ameren.com/bill/assistance/liheap"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2839
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3713
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 4587
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 5461
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 6335
+            },
+            {
+              "householdSize": 6,
+              "monthlyLimit": 7209
+            }
+          ],
+          "footnote": "2025 limits based on 60% of state median income. Income calculated from month prior to application."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investment accounts",
+            "Retirement accounts (401k, IRA)"
+          ],
+          "excluded": [
+            "Primary home",
+            "One vehicle"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Proof of Missouri residency",
+                "Proof of U.S. citizenship or permanent residence status",
+                "Social Security numbers for all household members"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Pay stubs or income proof from the month prior to application",
+                "Current utility bills",
+                "Bank statements showing assets under $3,000"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Funds run out every year. If your parent is 60+ or disabled, apply starting October 1st. Everyone else must wait until December 1st, when competition is fierce and money is limited."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SNAP recipients still need to provide utility bills and Social Security numbers, even though they're already income-qualified for another program."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What's the difference between regular assistance and crisis assistance?",
+          "answer": "Regular assistance ($153-$495) helps with seasonal heating costs. Crisis assistance provides emergency help when your parent faces utility shutoff or extreme weather — up to $800 in winter, $300 in summer. Your parent can potentially receive both in the same year."
+        },
+        {
+          "question": "My parent's income is $50 over the limit. Is there any flexibility?",
+          "answer": "No. The income limits are strict and based on gross monthly income from the month prior to application. However, if your parent's income varies month to month, they could apply when their income dips below the limit."
+        },
+        {
+          "question": "Does Mom need to reapply every year?",
+          "answer": "Yes. LIHEAP requires a new application every year, and priority windows reset annually. Set a reminder for October 1st if she's 60+ or disabled, December 1st otherwise."
+        },
+        {
+          "question": "Can my parent get help with air conditioning costs?",
+          "answer": "There's no routine cooling assistance, only summer crisis help (up to $300) if your parent faces a heat-related emergency or utility shutoff during summer months."
+        },
+        {
+          "question": "What if everyone in the house isn't on the utility bill?",
+          "answer": "Unlike SNAP, LIHEAP counts everyone living in the household for income calculations, regardless of whether they're on the utility bill. The person applying must be over 18 and responsible for paying the utility bill."
+        },
+        {
+          "question": "My parent has $4,000 in savings. Can they spend down to qualify?",
+          "answer": "Yes, but they must have $3,000 or less in countable assets at the time of application. This includes bank accounts, investments, and retirement accounts, but not their home or primary vehicle."
+        }
+      ],
+      "phone": "(573) 200-6655",
+      "sourceUrl": "https://dss.mo.gov/fsd/energy-assistance",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "missouri-weatherization-assistance",
+      "name": "Weatherization Assistance Program (WAP)",
+      "shortName": "Home Weatherization",
+      "tagline": "Free home energy improvements that can save your parent $370/year on utility bills",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "18 local agencies (e.g., CMCA, Jefferson Franklin CAC, CAASTLC, East Missouri Action Agency); find via dnr.mo.gov",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent's home is drafty and their utility bills are high, Missouri's Weatherization Assistance Program provides free energy-efficient improvements that typically save $370 per year. The program installs insulation, weather-stripping, new LED lighting, and can even repair or replace heating systems — all at no cost to your parent.\n\nYour parent qualifies if their household income is at or below 200% of the Federal Poverty Level (around $2,510/month for a single person). Homeowners and renters both qualify, though renters need written permission from their landlord. Because seniors over 60 get priority, your parent may move up the waiting list faster than younger applicants.\n\nThe program covers single-family homes, mobile homes, and apartments in buildings with 4 units or less. However, each home can only be weatherized once, and the work is determined by a professional energy audit that identifies the most cost-effective improvements for that specific home.",
+      "savingsRange": "$370/year",
+      "savingsSource": "Average annual utility bill savings per Missouri home",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income at or below 200% Federal Poverty Level",
+          "Missouri resident",
+          "Home not previously weatherized",
+          "Priority for age 60+"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2510
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3407
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4304
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5201
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Missouri resident",
+          "Homeowner or renter with landlord permission",
+          "Single-family home, mobile home, or apartment in building with 4 units or less",
+          "Home not previously weatherized"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local weatherization agency by phone or visit in person — there are 18 agencies statewide, and processing time varies by location and waiting list length.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local agency",
+            "description": "Visit dnr.mo.gov/energy/weatherization to find which of the 18 local agencies serves your parent's area. Each agency has its own phone number and office location."
+          },
+          {
+            "step": 2,
+            "title": "Call or visit to apply",
+            "description": "Contact the local agency directly. They'll provide the Missouri Low Income Weatherization Assistance Program Application and explain what documents your parent needs."
+          },
+          {
+            "step": 3,
+            "title": "Submit income documentation",
+            "description": "Provide 3 months of income proof for all household members, utility bills, Social Security cards, and proof of home ownership or rental agreement with landlord permission."
+          },
+          {
+            "step": 4,
+            "title": "Get placed on waiting list",
+            "description": "Eligible applicants are placed on a waiting list. Seniors over 60 get priority placement."
+          },
+          {
+            "step": 5,
+            "title": "Schedule energy audit",
+            "description": "When your parent reaches the top of the list, a professional conducts a free energy audit to determine which improvements will save the most money."
+          },
+          {
+            "step": 6,
+            "title": "Contractor completes work",
+            "description": "Approved contractors install insulation, weather-stripping, repair HVAC systems, and make other improvements at no cost. A final inspection ensures quality work."
+          }
+        ],
+        "processingTime": "Not specified in official sources",
+        "waitlist": "Eligible applicants placed on waiting list with priority for elderly (over 60), families with children, or people with disabilities",
+        "tip": "Even if your parent receives SSI or TANF (which makes them automatically eligible), they still need to submit a formal application.",
+        "urls": [
+          {
+            "label": "Find Local Agency",
+            "url": "https://dnr.mo.gov/energy/weatherization"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Priority Groups",
+          "tiers": [
+            {
+              "name": "Priority 1",
+              "description": "Seniors over 60, people with disabilities, families with children under 18",
+              "incomeLimit": "200% Federal Poverty Level",
+              "coverage": "Move to front of waiting list for faster service"
+            },
+            {
+              "name": "Standard",
+              "description": "All other eligible households",
+              "incomeLimit": "200% Federal Poverty Level",
+              "coverage": "Same services, longer wait time"
+            },
+            {
+              "name": "Auto-Eligible",
+              "description": "Recipients of SSI or TANF",
+              "incomeLimit": "No additional income verification required",
+              "coverage": "Must still submit formal application"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residence",
+              "items": [
+                "Social Security card for all household members",
+                "Proof of home ownership (deed, mortgage statement) OR rental agreement with written landlord permission including landlord's name, address, and phone"
+              ]
+            },
+            {
+              "name": "Income Verification",
+              "items": [
+                "3 months of income proof for ALL household members (pay stubs, Social Security award letters, pensions, unemployment benefits, etc.)",
+                "If anyone has zero income: completed and notarized 'Weatherization Certification of Individual Adult Claiming Zero Income' form"
+              ]
+            },
+            {
+              "name": "Utilities",
+              "items": [
+                "Recent gas and electric utility bills"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Renters must get written permission from their landlord before applying. For multi-unit buildings, the property owner may be required to share improvement costs."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Each home can only be weatherized once through this program. If your parent's home was previously weatherized (even decades ago), they won't qualify again."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom is a renter — can she still get weatherization?",
+          "answer": "Yes, but she needs written permission from her landlord first. The landlord must provide their name, address, and phone number. For buildings with multiple units, the landlord may be required to pay part of the improvement costs."
+        },
+        {
+          "question": "How long is the waiting list?",
+          "answer": "Wait times aren't specified and vary by local agency. However, because your parent is over 60, they get priority placement ahead of younger applicants without children or disabilities."
+        },
+        {
+          "question": "What improvements will they actually do to Dad's house?",
+          "answer": "It depends on a professional energy audit of his specific home. Common improvements include adding insulation to attics and walls, installing weather-stripping and caulking, repairing or replacing heating systems, wrapping water heaters, and installing LED lighting. They focus on changes that will save the most money on his utility bills."
+        },
+        {
+          "question": "Can Mom apply if she gets Social Security but also has a small pension?",
+          "answer": "Yes, as long as her total household income (Social Security plus pension) is below $2,510/month for a single person. She'll need to provide 3 months of documentation for both income sources."
+        },
+        {
+          "question": "What if Dad's income is just over the limit?",
+          "answer": "He won't qualify. The income limits are strict — household income must be at or below 200% of the Federal Poverty Level. There's no partial assistance for people slightly over the income threshold."
+        },
+        {
+          "question": "Will they come back if something breaks after the work is done?",
+          "answer": "The program includes a final inspection to ensure quality work, but ongoing maintenance isn't covered. Each home can only be weatherized once through this program, so any future repairs would be your parent's responsibility."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://dnr.mo.gov/energy/weatherization",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "missouri-ship-medicare-counseling",
+      "name": "Missouri State Health Insurance Assistance Program (Missouri SHIP)",
+      "shortName": "Missouri SHIP",
+      "tagline": "Free one-on-one help choosing Medicare plans and finding savings programs for your parent.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Atchison County Health Department (mentioned as offering Missouri SHIP services)",
+            "type": "service-area"
+          },
+          {
+            "name": "Approximately 2,200 local sites nationally (Missouri's portion not specified)",
+            "type": "service-area"
+          },
+          {
+            "name": "Local area agencies on aging and community-based partners (specific locations not listed)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is approaching 65 or already has Medicare, Missouri SHIP provides free, unbiased counseling to help them navigate their options. Because Medicare has dozens of plan choices that change every year, SHIP counselors help your parent compare prescription drug coverage, understand costs, and find savings programs they might qualify for.\n\nMissouri SHIP serves anyone eligible for Medicare — whether they're 65+, under 65 with a disability, or have end-stage renal disease. The program also helps family caregivers understand Medicare basics and assist their parents with enrollment. Counselors are trained volunteers who don't sell insurance, so their advice is completely objective.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Eligible for Medicare (65+ or disabled)",
+          "Any income level",
+          "U.S. citizen or legal resident",
+          "Available to family caregivers too"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be eligible for Medicare (age 65+, OR under 65 with disability or end-stage renal disease)",
+          "U.S. citizen or legal resident who has lived in the U.S. for at least 5 years"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 1-800-390-3330 for immediate help — no application or forms required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call Missouri SHIP",
+            "description": "Dial 1-800-390-3330 to speak with a counselor or schedule an appointment."
+          },
+          {
+            "step": 2,
+            "title": "Describe your parent's situation",
+            "description": "Explain what Medicare questions you have — comparing plans, enrollment deadlines, or finding savings programs."
+          },
+          {
+            "step": 3,
+            "title": "Get personalized guidance",
+            "description": "The counselor will walk through your parent's specific options and help with enrollment if needed."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Call before Medicare Open Enrollment (October 15 - December 7) to avoid long wait times.",
+        "urls": [
+          {
+            "label": "Missouri SHIP website",
+            "url": "https://missouriship.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Missouri SHIP does not sell insurance — they provide free counseling only. If someone tries to sell you insurance claiming they're from SHIP, hang up."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Missouri SHIP help if my parent already has Medicare?",
+          "answer": "Yes. SHIP counselors help people who already have Medicare compare plans during Open Enrollment, understand their benefits, resolve claim issues, and find additional savings programs like Extra Help for prescription costs."
+        },
+        {
+          "question": "What if my parent's income is too high for most programs?",
+          "answer": "Missouri SHIP has no income limits. Even high-income Medicare beneficiaries benefit from plan comparisons, since choosing the wrong Medicare plan can cost hundreds of dollars per year in unnecessary premiums and drug costs."
+        },
+        {
+          "question": "Can I get help for my parent if I live in a different state?",
+          "answer": "Yes, as long as your parent lives in Missouri. Family caregivers can call Missouri SHIP from anywhere to get information and help with their parent's Medicare decisions."
+        },
+        {
+          "question": "Will they try to sell my parent insurance?",
+          "answer": "No. Missouri SHIP counselors are trained volunteers who don't sell insurance or get commissions. Their advice is completely objective and focused on finding the best options for your parent's specific situation."
+        },
+        {
+          "question": "What's the difference between Missouri SHIP and the Medicare.gov website?",
+          "answer": "Medicare.gov shows plan options but doesn't provide personalized guidance. Missouri SHIP counselors walk through your parent's specific medications, doctors, and budget to recommend the best plans and identify savings programs."
+        },
+        {
+          "question": "Can Missouri SHIP help with Medicaid applications?",
+          "answer": "SHIP counselors can explain how Medicare and Medicaid work together and help you understand eligibility, but they don't process Medicaid applications. They can refer you to the right agency for MO HealthNet (Missouri Medicaid) enrollment."
+        }
+      ],
+      "phone": "1-800-390-3330",
+      "sourceUrl": "https://missouriship.org",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "missouri-csfp-food-program",
+      "name": "Commodity Supplemental Food Program (CSFP)",
+      "shortName": "CSFP Food Program",
+      "tagline": "Your parent can get $50 worth of groceries delivered monthly if they're 60+ and on a limited income.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local sites found via 800-733-6251 or https://health.mo.gov/csfp; examples: Platte County (816-270-4100)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and living on $1,957 or less per month, they can receive a monthly box of groceries worth about $50 through Missouri's Commodity Supplemental Food Program. The box includes canned fruits, vegetables, meat, cheese, cereal, and milk products — all USDA-approved nutritious foods.\n\nUnlike SNAP food stamps, this program gives your parent actual food items rather than money to spend. Because funding is limited, not all eligible seniors can participate — many local sites maintain waitlists. Your parent must pick up their monthly box at a designated local site, though some locations offer home delivery for mobility-limited seniors.",
+      "savingsRange": "$600/year in 2026",
+      "savingsSource": "Monthly food package worth approximately $50",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income below $1,957/month (single)",
+          "Missouri resident",
+          "Cannot also receive WIC"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1957
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2644
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 3332
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 4019
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 4707
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 5394
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 6082
+          },
+          {
+            "householdSize": 8,
+            "monthlyLimit": 6769
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Missouri resident",
+          "Cannot participate in WIC simultaneously"
+        ],
+        "povertyLevelReference": "150% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call the statewide locator to find your nearest site, then apply in-person at that location — processing time varies by site.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local site",
+            "description": "Call 800-733-6251 or visit https://health.mo.gov/living/wellness/nutrition/foodprograms/csfp/ to locate the distribution site nearest your parent."
+          },
+          {
+            "step": 2,
+            "title": "Gather documents",
+            "description": "Collect proof of your parent's age (driver's license or birth certificate) and Missouri residency (utility bill or driver's license with address). Income is self-declared — no proof required."
+          },
+          {
+            "step": 3,
+            "title": "Apply at the local site",
+            "description": "Visit or call the local site to complete certification. Ask about waitlists and home delivery options if your parent has mobility issues."
+          }
+        ],
+        "processingTime": "Not specified — varies by local site",
+        "waitlist": "Program limited by funding; may have waitlists at local sites as it serves only as many as funding allows",
+        "tip": "Ask about home delivery when you call — some sites offer this for seniors who can't pick up their monthly box.",
+        "urls": [
+          {
+            "label": "Find Local Sites",
+            "url": "https://health.mo.gov/living/wellness/nutrition/foodprograms/csfp/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity and Age",
+              "items": [
+                "Birth certificate",
+                "Driver's license",
+                "State ID card"
+              ]
+            },
+            {
+              "name": "Residency",
+              "items": [
+                "Utility bill with current address",
+                "Driver's license with Missouri address",
+                "Social Security Administration document with address"
+              ]
+            },
+            {
+              "name": "Income",
+              "items": [
+                "Self-declaration only — no documents required"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Because funding is limited, not all eligible seniors can participate. Many local sites maintain waitlists — call early to get on the list."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent cannot receive both CSFP and WIC benefits at the same time. If they're currently on WIC, they'll need to choose between programs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What's actually in the monthly food box?",
+          "answer": "Each month your parent receives canned fruits, vegetables, and meat, plus cheese, cereal, grain products, and milk products. All items are USDA commodity foods chosen for nutritional value. The specific items may vary monthly but the box is worth about $50."
+        },
+        {
+          "question": "Can my parent get CSFP if they already receive SNAP food stamps?",
+          "answer": "Yes, your parent can receive both CSFP and SNAP benefits simultaneously. However, they cannot receive CSFP and WIC at the same time — they must choose one or the other."
+        },
+        {
+          "question": "What if my parent can't physically pick up the monthly box?",
+          "answer": "Some local sites offer home delivery for seniors with mobility limitations. When you call your local site, ask specifically about home delivery options. Availability varies by location."
+        },
+        {
+          "question": "My parent's income is slightly over the limit — should they still apply?",
+          "answer": "The income limit is firm: $1,957/month for a single person in 2026. However, if your parent's income fluctuates or they expect it to decrease (like losing part-time work), they can reapply when their income drops below the limit."
+        },
+        {
+          "question": "How long does my parent stay on the waitlist?",
+          "answer": "Waitlist times vary dramatically by location because each local site has different funding levels and participant turnover. Call your local site for their current waitlist length — some may have openings while others have months-long waits."
+        },
+        {
+          "question": "Does CSFP count as income for other benefits?",
+          "answer": "No, the monthly food box does not count as income for Social Security, Medicaid, or other government benefits. Because it's food rather than cash, it won't affect your parent's eligibility for other programs."
+        }
+      ],
+      "phone": "800-733-6251",
+      "sourceUrl": "https://health.mo.gov/living/wellness/nutrition/foodprograms/csfp/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "missouri-alzheimers-caregiver-resource-program",
+      "name": "Alzheimer's Association Caregiver Resource Program",
+      "shortName": "Caregiver Resource Program",
+      "tagline": "If you're caring for a parent with Alzheimer's at home in Missouri, get up to $700 reimbursement for respite care and support services.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Alzheimer's Association (statewide), Memory Care Home Solutions, Missouri Rural Health Association, Community Asset Builders",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Alzheimer's or dementia and lives at home with you in Missouri, this program reimburses up to $700 for respite services to give you a break. Because the program covers adult day care, in-home care, assessment coordination, and safety programs, you can get professional help managing your parent's care while staying in their own home.\n\nThe program is completely free with no income or asset limits. However, funding is limited and awarded first-come, first-served, so apply as soon as your parent receives an Alzheimer's or related dementia diagnosis. You must live in the same home as your parent, and they cannot be in long-term care facilities.",
+      "savingsRange": "",
+      "savingsSource": "Free service with up to $700 reimbursement for qualified expenses",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Parent has Alzheimer's/dementia diagnosis",
+          "Parent lives at home in Missouri",
+          "You live with your parent",
+          "First-come, first-served funding"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Parent must have a probable diagnosis of Alzheimer's disease or related dementia",
+        "otherRequirements": [
+          "Care recipient must reside in Missouri and live at home (not in long-term care facilities)",
+          "Caregiver must live in the same home as the care recipient",
+          "Enrollment contingent on funding availability, first-come first-served"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the Alzheimer's Association 24/7 Helpline to set up a free care consultation and enroll immediately.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the helpline",
+            "description": "Call 800-272-3900 to speak with a care specialist about your parent's needs and situation."
+          },
+          {
+            "step": 2,
+            "title": "Complete care consultation",
+            "description": "The specialist will assess your parent's diagnosis, living situation, and your caregiving needs to determine eligibility."
+          },
+          {
+            "step": 3,
+            "title": "Get enrolled and use services",
+            "description": "Once enrolled, you can access reimbursable services like respite care, adult day care, and in-home support within your funding timeframe."
+          }
+        ],
+        "processingTime": "Funds must be used within 45 days of enrollment",
+        "waitlist": "First-come, first-served based on funding availability; no formal waitlist",
+        "tip": "Call as soon as your parent receives a dementia diagnosis - funding runs out during the year and there's no waitlist.",
+        "urls": [
+          {
+            "label": "Missouri Caregiver Program Information",
+            "url": "https://health.mo.gov/seniors/dementia-caregiving/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Medical",
+              "items": [
+                "Documentation of Alzheimer's or related dementia diagnosis",
+                "Medical records showing probable diagnosis from healthcare provider"
+              ]
+            },
+            {
+              "name": "Residency",
+              "items": [
+                "Proof your parent lives in Missouri",
+                "Proof you live in the same home as your parent"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Funding is limited and awarded first-come, first-served. The program may run out of money before the end of the year, and there's no waitlist."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is a reimbursement program, meaning you'll pay for services upfront and get paid back. Keep all receipts for qualified expenses like adult day care, in-home care, and safety equipment."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent is already in assisted living or a nursing home?",
+          "answer": "Your parent is not eligible if they live in any long-term care facility. This program is only for people with dementia who live at home with their caregiver."
+        },
+        {
+          "question": "Do I have to live with my parent to qualify?",
+          "answer": "Yes, you must live in the same home as your parent. The program is designed for family caregivers providing daily, in-home care."
+        },
+        {
+          "question": "What counts as a 'related dementia' if it's not Alzheimer's?",
+          "answer": "Related dementias include vascular dementia, Lewy body dementia, frontotemporal dementia, and other conditions that cause progressive cognitive decline. Your parent needs a medical diagnosis, not just memory problems."
+        },
+        {
+          "question": "How quickly do I have to use the $700 reimbursement?",
+          "answer": "You must use funds within 45 days of enrollment. This timeline may vary by funding cycle, so confirm the deadline when you enroll."
+        },
+        {
+          "question": "Can I apply if my parent was just diagnosed but doesn't need much help yet?",
+          "answer": "Yes, apply as soon as you have the diagnosis. Early-stage services like education, counseling, and safety programs are covered, and funding runs out during the year."
+        },
+        {
+          "question": "What if I need more than $700 worth of respite care?",
+          "answer": "The program caps reimbursement at $700 per enrollment. However, you may also be eligible for other tracks that provide in-home assessment, caregiver training, and assistive technology through partner organizations."
+        }
+      ],
+      "phone": "800-272-3900",
+      "sourceUrl": "https://health.mo.gov/seniors/dementia-caregiving/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "missouri-scsep-senior-employment",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP",
+      "tagline": "Part-time paid work training at nonprofits for parents 55+ who need income and job skills.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Missouri Dept. of Health & Senior Services (statewide inquiries: 573-526-4542)",
+            "type": "service-area"
+          },
+          {
+            "name": "MERS Goodwill (eastern/central/southeast MO)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and unemployed with limited income, SCSEP provides part-time paid work training at local nonprofits, schools, or senior centers. Because this combines income with job skills training, your parent earns minimum wage for about 20 hours per week while learning skills to transition to permanent employment.\n\nYour parent must have household income at or below 125% of the federal poverty level and be unemployed when applying. The program places participants at community organizations where they gain work experience, receive job search help, and build skills for unsubsidized employment. Priority goes to veterans, people over 65, those with disabilities, and rural residents.\n\nSCSEP isn't available in all Missouri counties. You'll need to contact the state to find your local provider and check availability in your parent's area.",
+      "savingsRange": "",
+      "savingsSource": "Paid employment opportunity",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Unemployed when applying",
+          "Income at 125% federal poverty level or below",
+          "Available in select Missouri counties"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unemployed at time of application",
+          "U.S. citizen or eligible non-citizen",
+          "Priority for veterans, those over 65, people with disabilities, low literacy, rural residents, homeless, or those with limited employment prospects"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call Missouri's statewide number to find your local provider and check county availability.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check county availability",
+            "description": "Call 573-526-4542 to confirm SCSEP operates in your parent's county and get local provider contact information."
+          },
+          {
+            "step": 2,
+            "title": "Contact local provider",
+            "description": "Call the local grantee (like MERS Goodwill for eastern/central Missouri) to discuss openings and schedule intake appointment."
+          },
+          {
+            "step": 3,
+            "title": "Gather income documentation",
+            "description": "Prepare proof of age, unemployment status, and income including Social Security statements (only 25% counts toward income limit)."
+          },
+          {
+            "step": 4,
+            "title": "Complete intake and assessment",
+            "description": "Meet with provider to verify eligibility and develop Individual Employment Plan (IEP) with job training goals."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Priority applicants (veterans, 65+, disabled, rural residents) may get faster placement if spots are limited.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Government-issued photo ID",
+                "Birth certificate or passport for age verification",
+                "Proof of citizenship or eligible non-citizen status"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security benefit statements (only 25% counts toward income)",
+                "Unemployment benefit records if applicable",
+                "Any other income documentation",
+                "Proof of current unemployment status"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "SCSEP isn't available in all Missouri counties. Call the state line first to confirm your parent's area has a local provider before gathering documents."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "When calculating income, remember that Social Security Disability, 25% of regular Social Security, SNAP benefits, and housing assistance don't count toward the 125% poverty level limit."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent receives Social Security — does that count against the income limit?",
+          "answer": "Only 75% of regular Social Security income counts toward the limit. Social Security Disability, SNAP benefits, and housing assistance are completely excluded. This often helps people qualify even if their total benefits seem too high."
+        },
+        {
+          "question": "Can my parent stay in SCSEP permanently or is this temporary?",
+          "answer": "SCSEP is designed as temporary job training to help transition to unsubsidized employment. The goal is to build skills and connections that lead to permanent work, not to provide long-term subsidized employment."
+        },
+        {
+          "question": "What kind of work would my parent actually do?",
+          "answer": "Participants work at nonprofits, schools, hospitals, or government agencies — never private businesses. Tasks might include office support, helping at senior centers, assisting in libraries, or supporting community programs. The work matches your parent's abilities and interests."
+        },
+        {
+          "question": "What happens if there's no SCSEP provider in our county?",
+          "answer": "Your parent cannot participate if SCSEP isn't available locally. The program requires in-person work at community organizations, so you'll need to look at other employment or income support programs in your area."
+        },
+        {
+          "question": "Does my parent get benefits like health insurance through SCSEP?",
+          "answer": "SCSEP provides annual health screenings and help applying for other benefit programs, but participants remain part-time employees without traditional benefits. Your parent keeps existing Medicare or Medicaid coverage."
+        },
+        {
+          "question": "What if my parent has never worked or has been out of work for years?",
+          "answer": "That's exactly who SCSEP serves. The program provides job skills training, help with resumes and interviews, and supportive work experience specifically for people who need to rebuild employment skills and confidence."
+        }
+      ],
+      "phone": "573-526-4542",
+      "sourceUrl": "https://health.mo.gov/seniors/senioremployment/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "missouri-lsem-older-adult-legal-services",
+      "name": "Legal Services of Eastern Missouri (Advocates for Older Adults Program)",
+      "shortName": "LSEM Legal Services",
+      "tagline": "Free legal help for income-qualified seniors facing housing, benefits, or consumer problems in eastern Missouri.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Five regional offices for Legal Services of Eastern Missouri (specific locations not detailed in search results)[10]",
+            "type": "service-area"
+          },
+          {
+            "name": "Main office: 4232 Forest Park Ave, Saint Louis, MO 63108-2811[8]",
+            "type": "service-area"
+          },
+          {
+            "name": "Alternative office: 701 Market Street, Suite 1100, St. Louis, Missouri 63101[9]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling with eviction threats, Medicare denials, or debt collection calls, Legal Services of Eastern Missouri provides free legal representation and advice. This program serves low-income seniors in 21 counties across eastern Missouri with civil legal problems — everything from housing disputes to Social Security appeals.\n\nBecause LSEM handles the entire case from consultation to courtroom representation, your parent gets comprehensive legal support without paying attorney fees. The program cannot help with criminal cases or traffic tickets, but covers the civil legal issues that most commonly affect seniors on fixed incomes.\n\nYour parent must meet income requirements to qualify, though specific dollar limits aren't published. Financial eligibility is determined during the intake process after you apply.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Low income (limits not published)",
+          "Civil legal matters only",
+          "Must live in eastern Missouri"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have civil legal issue (not criminal cases or traffic citations)",
+          "Must live in one of 21 eastern Missouri counties served by LSEM"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online anytime at lsem.org or call during limited phone hours — someone will call back within 3-5 business days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply online or by phone",
+            "description": "Visit lsem.org to apply online anytime, or call 800-444-0514 Monday, Wednesday, or Thursday between 9 AM and 5 PM only."
+          },
+          {
+            "step": 2,
+            "title": "Wait for intake call",
+            "description": "Within 3-5 business days, an LSEM staff member will call to conduct intake screening and determine if your parent's case qualifies for representation."
+          },
+          {
+            "step": 3,
+            "title": "Get assigned to attorney",
+            "description": "If accepted, your parent will be connected with an attorney who specializes in their type of legal issue for ongoing representation."
+          }
+        ],
+        "processingTime": "Someone will call back within 3-5 business days to conduct intake screening",
+        "waitlist": null,
+        "tip": "Phone applications are only accepted 3 days per week, so apply online at lsem.org if you need to reach them on Tuesday or Friday.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://lsem.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "LSEM Offices",
+          "offices": [
+            {
+              "name": "Main Office",
+              "type": "service-area",
+              "phone": "314-534-4200",
+              "address": "4232 Forest Park Ave, Saint Louis, MO 63108"
+            },
+            {
+              "name": "Downtown Office",
+              "type": "service-area",
+              "phone": "314-534-4200",
+              "address": "701 Market Street, Suite 1100, St. Louis, MO 63101"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Phone applications only accepted Monday, Wednesday, and Thursday from 9 AM to 5 PM. Use the online application at lsem.org if you need to apply on other days."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "LSEM only serves 21 counties in eastern Missouri. If your parent lives elsewhere in Missouri, call the Missouri Senior Resource Helpline at 800-235-5503 for local legal assistance options."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What types of legal problems can LSEM help with?",
+          "answer": "LSEM handles housing issues (eviction defense, bad conditions, disability accommodations), public benefits appeals (SNAP, Medicaid, Social Security, Medicare), consumer problems (debt collection, predatory lending), domestic abuse protection orders, estate planning, immigration, and legal help for grandparents caring for minors. They cannot help with criminal cases or traffic citations."
+        },
+        {
+          "question": "How do I know if my parent's income is low enough to qualify?",
+          "answer": "LSEM doesn't publish specific income limits. You must apply and go through intake screening to find out if your parent qualifies financially. The intake call happens within 3-5 business days of applying."
+        },
+        {
+          "question": "What if my parent lives outside eastern Missouri?",
+          "answer": "LSEM only serves 21 counties in eastern Missouri. If your parent lives elsewhere in the state, call the Missouri Senior Resource Helpline at 800-235-5503 to find legal assistance through your local Area Agency on Aging."
+        },
+        {
+          "question": "Does my parent need to go to court, or will the attorney handle everything?",
+          "answer": "LSEM provides full representation, meaning the attorney handles court appearances and legal proceedings on your parent's behalf. Your parent may need to provide information and documents, but the attorney manages the legal work."
+        },
+        {
+          "question": "Can LSEM help if my parent is already facing eviction this week?",
+          "answer": "Apply immediately online at lsem.org rather than waiting for phone hours. LSEM handles eviction defense, but you need to get the intake process started as soon as possible since court dates move quickly in eviction cases."
+        },
+        {
+          "question": "What if my parent's case gets rejected during intake screening?",
+          "answer": "If LSEM cannot take the case due to capacity or other factors, they may provide referrals to other legal resources. You can also attend their monthly legal clinic on the third Thursday of each month at St. Louis Public Library Central Library for basic legal advice."
+        }
+      ],
+      "phone": "800-444-0514",
+      "sourceUrl": "https://lsem.org/advocates-for-older-adults/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "missouri-long-term-care-ombudsman",
+      "name": "Long-Term Care Ombudsman Program",
+      "shortName": "Ombudsman Program",
+      "tagline": "Free advocacy when your parent faces problems in nursing homes or assisted living facilities.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Administered statewide by Missouri Department of Health and Senior Services (DHSS), Division of Senior and Disability Services (DSDS); local programs via Area Agencies on Aging (AAAs)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a nursing home, assisted living, or other long-term care facility and faces problems with care, safety, or rights violations, Missouri's Long-Term Care Ombudsman Program provides free advocacy. Trained ombudsmen investigate complaints, work with facility management to resolve issues, and ensure your parent's voice is heard.\n\nBecause ombudsmen are independent advocates (not employed by facilities or state agencies), they can challenge facility decisions and push for changes without conflicts of interest. The program serves any resident in Missouri long-term care facilities regardless of income — no financial tests or paperwork required.\n\nOmbudsmen make regular visits to facilities, so they often know staff and can spot patterns of problems. When you call with a concern, you get immediate assistance from someone who understands how these facilities work.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Parent lives in long-term care facility",
+          "No income limits",
+          "No asset limits",
+          "Available in all Missouri counties"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a resident of a long-term care facility in Missouri (nursing homes, assisted living, residential care facilities, or veteran homes)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the state hotline and get immediate assistance — no forms or applications needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the ombudsman hotline",
+            "description": "Contact (800) 309-3282 and explain your parent's situation, the facility name, and specific problems."
+          },
+          {
+            "step": 2,
+            "title": "Ombudsman investigates",
+            "description": "A trained advocate visits the facility, interviews staff and residents, and reviews policies to understand the issue."
+          },
+          {
+            "step": 3,
+            "title": "Work toward resolution",
+            "description": "The ombudsman discusses findings with facility management and pushes for changes to resolve your parent's complaint."
+          }
+        ],
+        "processingTime": "Immediate assistance upon contact",
+        "waitlist": null,
+        "tip": "Keep detailed notes about incidents (dates, staff names, witnesses) before calling — this helps ombudsmen investigate more effectively.",
+        "urls": [
+          {
+            "label": "Missouri Ombudsman Program",
+            "url": "http://health.mo.gov/seniors/ombudsman/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program only provides advocacy — not financial assistance, healthcare, or help finding facilities. If your parent needs placement assistance, contact your local Area Agency on Aging separately."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if the facility retaliates against my parent for filing a complaint?",
+          "answer": "Retaliation is illegal. Ombudsmen monitor for retaliation and can file additional complaints with state regulators if facilities punish residents for speaking up."
+        },
+        {
+          "question": "Can I file a complaint even if my parent doesn't want me to?",
+          "answer": "Generally, competent adults must consent to ombudsman involvement. If your parent has dementia or cannot make decisions, ombudsmen work with families while still protecting the resident's interests."
+        },
+        {
+          "question": "Will the ombudsman share details about my parent's complaint with facility staff?",
+          "answer": "Ombudsmen keep complaints confidential unless your parent (or legal representative) agrees to share information needed to resolve the issue."
+        },
+        {
+          "question": "What types of problems can ombudsmen actually fix?",
+          "answer": "They handle care quality issues, billing disputes, resident rights violations, medication errors, and facility policy problems. They cannot provide medical care or financial assistance directly."
+        },
+        {
+          "question": "How long does it take to resolve complaints?",
+          "answer": "Simple issues may resolve within days. Complex problems involving multiple residents or systemic facility issues can take weeks or months to fully address."
+        },
+        {
+          "question": "What if my parent lives in a veteran home — does this program still apply?",
+          "answer": "Yes, Missouri ombudsmen serve residents in state veteran homes and work with both facility staff and VA representatives to resolve issues."
+        }
+      ],
+      "phone": "(800) 309-3282",
+      "sourceUrl": "http://health.mo.gov/seniors/ombudsman/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "missouri-rx-program-morx",
+      "name": "Missouri Rx Program (MoRx)",
+      "shortName": "MoRx",
+      "tagline": "Cuts your parent's Medicare prescription costs in half if they qualify for Missouri Medicaid.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Family Support Division (FSD) offices statewide for MO HealthNet/MoRx",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has both Medicare Part D and Missouri Medicaid (MO HealthNet), Missouri Rx Program pays 50% of their prescription drug costs — including deductibles, co-pays, and coverage gap expenses. The program also covers some drugs that Medicare excludes, like certain over-the-counter medications and vitamins.\n\nThis program requires your parent to have both Medicare Part D and some form of Missouri Medicaid. Because of changes in 2017, seniors with only Medicare Part D no longer qualify — they must also be eligible for MO HealthNet, including those with spenddown plans who meet their deductible at least once per year.\n\nIf your parent qualifies for both programs, they're automatically enrolled in MoRx. The benefit layers on top of Medicare Part D, so one prescription might be covered first by Medicare, then MoRx pays half of what your parent still owes.",
+      "savingsRange": "",
+      "savingsSource": "Pays 50% of out-of-pocket Medicare Part D costs",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Missouri resident",
+          "Has Medicare Part D",
+          "Eligible for MO HealthNet (Medicaid)",
+          "Income around $15,315/month (single)"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1276
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1711
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Missouri resident",
+          "Enrolled in Medicare Part D plan",
+          "Eligible for MO HealthNet (Medicaid) including spenddown, full benefits, or qualified Medicare beneficiary status"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "online",
+        "summary": "Apply online through Missouri's MO HealthNet application — processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Enroll in Medicare Part D first",
+            "description": "Your parent must have a Medicare Part D prescription plan before applying for MoRx."
+          },
+          {
+            "step": 2,
+            "title": "Apply for MO HealthNet",
+            "description": "Complete the MO HealthNet (Medicaid) application at mydss.mo.gov. MoRx eligibility is determined through this application."
+          },
+          {
+            "step": 3,
+            "title": "Automatic enrollment",
+            "description": "If approved for both Medicare Part D and MO HealthNet, your parent is automatically enrolled in MoRx."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent has a Medicaid spenddown plan, they must meet their deductible at least once per year for MoRx to activate the 50% coverage.",
+        "urls": [
+          {
+            "label": "Apply for MO HealthNet",
+            "url": "https://mydss.mo.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Estimated Income Limits",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1276,
+              "annualLimit": 15315
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 1711,
+              "annualLimit": 20535
+            }
+          ],
+          "footnote": "Approximate figures based on Low Income Subsidy thresholds. Actual limits determined by MO HealthNet eligibility rules."
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Proof of Missouri residency",
+                "Medicare Part D plan information"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of income (tax returns, pay stubs, Social Security statements)",
+                "Bank statements and asset documentation",
+                "MO HealthNet spenddown notices (if applicable)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Major change in 2017: Seniors with only Medicare Part D (no Medicaid) lost eligibility. Your parent now needs both Medicare Part D AND some form of Missouri Medicaid to qualify."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom has Medicare Part D but her income is too high for regular Medicaid?",
+          "answer": "She might still qualify through Medicaid spenddown. With spenddown, she pays a monthly deductible, and once met, MoRx covers 50% of her prescription costs for that month. She needs to meet spenddown at least once per year to maintain MoRx eligibility."
+        },
+        {
+          "question": "Will this cover the expensive medication Medicare doesn't pay for?",
+          "answer": "MoRx covers some Medicare-excluded drugs like certain over-the-counter medications, vitamins, and minerals — but only if your parent is eligible for MO HealthNet. It won't cover drugs that both Medicare Part D and MO HealthNet exclude."
+        },
+        {
+          "question": "How much will Mom actually save on her prescriptions?",
+          "answer": "MoRx pays 50% of what she owes after Medicare Part D pays its share. So if Medicare covers 75% of a prescription and she owes $100, MoRx pays $50 of that remaining cost."
+        },
+        {
+          "question": "Does she need to apply separately for MoRx?",
+          "answer": "No. If she qualifies for both Medicare Part D and MO HealthNet, she's automatically enrolled in MoRx. The eligibility is determined through the MO HealthNet application."
+        },
+        {
+          "question": "What if she had MoRx before 2017 but lost it?",
+          "answer": "She can requalify if she becomes eligible for MO HealthNet (Medicaid). The 2017 change only affected people with Medicare Part D alone — those who get Medicaid can still access MoRx."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://mydss.mo.gov/mhd/morx-general-faqs",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "missouri-property-tax-credit",
+      "name": "Missouri Property Tax Credit (Circuit Breaker)",
+      "shortName": "Property Tax Credit",
+      "tagline": "Get up to $1,100 back on property taxes or rent if your parent is 65+ and has low income.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Statewide via DOR; local help from aging agencies like Aging Ahead",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and struggles with property taxes or rent, Missouri's Property Tax Credit can provide significant relief. This program gives homeowners up to $1,100 back and renters up to $750 back each year — money that comes as a tax refund even if your parent doesn't owe any income tax.\n\nThe credit is designed for seniors on fixed incomes. Your parent qualifies if they're single with income under $30,000 (homeowners) or $27,200 (renters), or married filing jointly with income under $34,000/$29,200 respectively. Because the credit phases down as income increases, your parent gets the maximum amount ($1,100/$750) only if their total income is $14,300 or less.\n\nUnlike many programs, there are no asset limits — your parent can own their home, have savings, and still qualify. The key requirement is that they must have been a Missouri resident for the entire tax year and either own their home or rent from a property that pays real estate taxes.",
+      "savingsRange": "$750 – $1,100/year in 2026",
+      "savingsSource": "Tax credit up to $750 for renters/part-year owners; up to $1,100 for full-year homeowners",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income below $27,200-$34,000/year",
+          "Missouri resident",
+          "No asset limits"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Single homeowners: income ≤ $30,000/year",
+          "Married homeowners: income ≤ $34,000/year",
+          "Single renters: income ≤ $27,200/year",
+          "Married renters: income ≤ $29,200/year",
+          "Must be Missouri resident for entire tax year",
+          "Renters must rent from property that pays real estate taxes"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "mail",
+        "summary": "File with your Missouri tax return or use standalone form — processing follows standard tax return timeline.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Choose your form",
+            "description": "Use Form MO-PTS if filing a Missouri income tax return (MO-1040). Use standalone Form MO-PTC if not filing an income tax return."
+          },
+          {
+            "step": 2,
+            "title": "Gather income documentation",
+            "description": "Collect proof of ALL income sources including Social Security, pensions, wages, dividends, interest, rental income, and veteran benefits (except 100% disability benefits)."
+          },
+          {
+            "step": 3,
+            "title": "Get property tax or rent records",
+            "description": "Homeowners need proof of real estate taxes paid. Renters need receipts showing rent paid and lease documentation."
+          },
+          {
+            "step": 4,
+            "title": "Mail completed application",
+            "description": "Send to Missouri Department of Revenue, PO Box 3340, Jefferson City, MO 65105-3340. Include all required documentation."
+          }
+        ],
+        "processingTime": "Standard tax return processing timeline",
+        "waitlist": null,
+        "tip": "Income includes Social Security and other non-taxable benefits — many people miss this and think they don't qualify when they actually do.",
+        "urls": [
+          {
+            "label": "Official Missouri Property Tax Credit page",
+            "url": "https://dor.mo.gov/taxation/individual/tax-types/property-tax-credit/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Age",
+              "items": [
+                "Proof of age 65+ by December 31 of tax year",
+                "Documentation of 100% disability status if under 65",
+                "Proof of surviving spouse Social Security benefits if ages 60-64"
+              ]
+            },
+            {
+              "name": "Income Documentation",
+              "items": [
+                "Social Security statements (SSA-1099)",
+                "Pension statements (1099-R)",
+                "Wage statements (W-2)",
+                "Interest and dividend statements (1099-INT, 1099-DIV)",
+                "Veterans benefits documentation (except 100% disability)",
+                "Any other income sources including public assistance"
+              ]
+            },
+            {
+              "name": "Housing Documentation",
+              "items": [
+                "Real estate tax statements (for homeowners)",
+                "Rent receipts for entire year (for renters)",
+                "Lease agreement showing property pays real estate taxes",
+                "Proof of Missouri residency for entire tax year"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Renters living in non-profit assisted living facilities or other tax-exempt properties don't qualify because those properties don't pay real estate taxes. Check with the facility's billing office to confirm their tax status before applying."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "My mom gets Social Security — does that count as income even though it's not taxed?",
+          "answer": "Yes, Social Security counts toward the income limits even though it's not taxable. The program looks at total household income from all sources including Social Security, pensions, and veterans benefits (except 100% disability benefits)."
+        },
+        {
+          "question": "Dad owns his house but his income is $20,000 — how much will he get back?",
+          "answer": "Because his income is above $14,300, the credit phases down. The exact amount depends on how much property tax he paid, but it will be less than the maximum $1,100. The credit is calculated based on both his income level and actual taxes paid."
+        },
+        {
+          "question": "Can Mom apply if she lives in assisted living and pays rent?",
+          "answer": "Only if the assisted living facility pays real estate taxes on the property. Many non-profit facilities are tax-exempt, which makes residents ineligible. Contact the facility's billing office to confirm their tax status before applying."
+        },
+        {
+          "question": "What if my parents moved to Missouri mid-year?",
+          "answer": "They must be Missouri residents for the entire tax year to qualify. If they moved mid-year, they'll need to wait until the following tax year when they've been residents for the full 12 months."
+        },
+        {
+          "question": "My parents don't file income taxes — can they still get this credit?",
+          "answer": "Yes, they can file the standalone Form MO-PTC even if they don't owe income taxes. This is a refundable credit, meaning they'll get money back even if they don't owe any taxes."
+        },
+        {
+          "question": "Does Dad's savings account or retirement fund affect his eligibility?",
+          "answer": "No, there are no asset limits. Your dad can have savings, retirement accounts, and other assets and still qualify as long as his annual income from all sources stays within the limits."
+        }
+      ],
+      "phone": "800-243-6060",
+      "sourceUrl": "https://dor.mo.gov/taxation/individual/tax-types/property-tax-credit/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "missouri-aged-disabled-waiver",
+      "name": "Aged and Disabled Waiver (ADW)",
+      "shortName": "ADW Waiver",
+      "tagline": "Get home care services for your parent so they can avoid nursing home placement — if you can navigate the waitlist.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Department of Health and Senior Services, Division of Senior and Disability Services",
+            "type": "service-area"
+          },
+          {
+            "name": "Local DSS offices, Area Agencies on Aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 63+ and needs daily help with bathing, dressing, or medication management, Missouri's Aged and Disabled Waiver can provide home care services to keep them out of a nursing home. The program covers adult day care, homemaker services, home-delivered meals, and respite care — but only if your parent has very limited income and assets.\n\nYour parent must qualify for nursing home-level care (determined by a clinical assessment that typically requires 21+ points on a 60-point scale) and have income below $903/month as a single person. Because this isn't an entitlement program, there's a waitlist even if your parent qualifies.\n\nThe program requires enrollment in Missouri Medicaid and has strict asset limits: $5,000 for a single person, $10,000 for couples. Missouri looks back 60 months at any asset transfers, so planning ahead is critical.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 63+",
+          "Income below $903/month (single)",
+          "Assets under $5,000 (single)",
+          "Needs nursing home-level care",
+          "Missouri Medicaid enrolled"
+        ],
+        "ageRequirement": "63+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 903
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1215
+          }
+        ],
+        "assetLimits": {
+          "individual": 5000,
+          "couple": 10000,
+          "countedAssets": [
+            "Bank accounts",
+            "CDs",
+            "Stocks",
+            "Additional vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home (if spouse/minor child/disabled adult child lives there)",
+            "One vehicle",
+            "Household furnishings",
+            "Personal effects",
+            "Appliances"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must meet Nursing Facility Level of Care via InterRAI HC assessment (typically 21+ points on 0-60 scale based on need for daily help with mobility, eating, bathing, or cognition)",
+        "otherRequirements": [
+          "Missouri resident",
+          "U.S. citizen or qualified alien",
+          "Valid Social Security number",
+          "Live in home or community setting (not assisted living)",
+          "Ages 63-64 must be physically disabled"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact Missouri Department of Social Services or your local Area Agency on Aging, but expect a waitlist even if eligible.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for Missouri Medicaid first",
+            "description": "Your parent must be enrolled in MO HealthNet (Missouri Medicaid) before applying for the waiver. Apply at mydss.mo.gov."
+          },
+          {
+            "step": 2,
+            "title": "Contact DSS or Area Agency on Aging",
+            "description": "Call your local Department of Social Services office or Area Agency on Aging to request an ADW application."
+          },
+          {
+            "step": 3,
+            "title": "Complete InterRAI HC assessment",
+            "description": "A professional will assess your parent's care needs using a scored assessment to determine if they meet nursing facility level of care."
+          },
+          {
+            "step": 4,
+            "title": "Submit financial documentation",
+            "description": "Provide proof of income, assets, and any asset transfers in the past 60 months."
+          },
+          {
+            "step": 5,
+            "title": "Join waitlist if approved",
+            "description": "Even if your parent qualifies, they'll likely be placed on a waitlist due to limited program slots."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": "Yes - limited enrollment slots mean there's a waitlist even if eligible",
+        "tip": "Start the Medicaid application process early, as you must be enrolled in Missouri Medicaid before applying for the waiver.",
+        "urls": [
+          {
+            "label": "Missouri DSS Waivers",
+            "url": "https://dss.mo.gov/mhd/waivers/1915c-home-and-community-waivers/aged-and-disabled.htm"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Certificates of deposit",
+            "Stocks and bonds",
+            "Additional vehicles beyond one",
+            "Real estate other than primary home"
+          ],
+          "excluded": [
+            "Primary home (if spouse, minor child, or disabled adult child lives there)",
+            "One vehicle",
+            "Household furnishings and personal effects",
+            "Appliances",
+            "Personal belongings"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Valid Social Security number",
+                "Proof of Missouri residency",
+                "Proof of U.S. citizenship or qualified alien status"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements for all accounts",
+                "Proof of monthly income",
+                "Documentation of any asset transfers in past 60 months",
+                "Property deeds or mortgage statements"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records showing need for daily care assistance",
+                "Documentation of physical disability (for ages 63-64)",
+                "Current medication list",
+                "Doctor's assessment of care needs"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This program has limited slots and a waitlist. Even if your parent qualifies, they may wait months or years for services to begin."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Missouri looks back 60 months at asset transfers. Any gifts or below-market sales during this period can result in penalty periods that delay eligibility."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes, if your parent lives in the home, or if their spouse, minor child, or disabled adult child lives there. Otherwise, the home counts toward asset limits and may be subject to estate recovery after death."
+        },
+        {
+          "question": "What if my parent's income is just over $903 per month?",
+          "answer": "They won't qualify. The income limits are strict, though certain income disregards may apply. Contact DSS to discuss their specific situation, as these limits are updated annually."
+        },
+        {
+          "question": "How long is the waitlist for services?",
+          "answer": "Missouri doesn't publish waitlist times. Because this isn't an entitlement program with limited enrollment slots, waits can be months to years depending on your region and your parent's priority level."
+        },
+        {
+          "question": "What happens if my parent gave money to family in the past 5 years?",
+          "answer": "Missouri has a 60-month look-back period. Any transfers below fair market value result in penalty periods that delay eligibility. Document all transfers and their purposes when applying."
+        },
+        {
+          "question": "Can my parent get services if they live in assisted living?",
+          "answer": "No. Your parent must live in their own home or a community setting. Assisted living and foster care residents don't qualify for this waiver program."
+        },
+        {
+          "question": "What's the difference between this and regular Medicaid?",
+          "answer": "Regular Medicaid covers medical care. This waiver adds home and community services like adult day care, homemaker services, and respite care specifically to help people avoid nursing home placement."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://dss.mo.gov/mhd/waivers/1915c-home-and-community-waivers/aged-and-disabled.htm",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "missouri-senior-independent-living-program",
+      "name": "Senior Independent Living Program (SILP)",
+      "shortName": "SILP",
+      "tagline": "Free wrap-around services help your parent age safely at home when they lack the resources to do it alone.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Jewish Federation of St. Louis in Creve Coeur",
+            "type": "service-area"
+          },
+          {
+            "name": "A Caring Plus Foundation in Jennings",
+            "type": "service-area"
+          },
+          {
+            "name": "Palestine Senior Center in Kansas City",
+            "type": "service-area"
+          },
+          {
+            "name": "Aging Best Senior Independent Living",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling to live safely at home due to limited resources, Missouri's Senior Independent Living Program provides free wrap-around services tailored to their specific needs. Because the program focuses on health and safety improvements, your parent gets coordinated support designed to help them age in place independently.\n\nThe program isn't available statewide — only four providers serve select urban areas in St. Louis and Kansas City regions. Services vary by location and your parent's individual needs assessment, but all aim to address the gaps that make independent living difficult when resources are stretched thin.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Missouri resident",
+          "Insufficient resources to age independently",
+          "Live in St. Louis or Kansas City service areas"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Missouri resident",
+          "Live in designated service area (St. Louis or Kansas City regions)",
+          "Have insufficient resources to age independently in own home"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact the SILP provider in your parent's area directly — no standardized application form.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Identify your parent's service area",
+            "description": "Determine which of the four SILP providers serves your parent's location in the St. Louis or Kansas City regions."
+          },
+          {
+            "step": 2,
+            "title": "Call the provider directly",
+            "description": "Each SILP handles its own intake process and will assess your parent's needs and eligibility."
+          },
+          {
+            "step": 3,
+            "title": "Complete needs assessment",
+            "description": "The provider will evaluate your parent's specific situation and resources to determine what wrap-around services they need."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Services vary significantly by provider and location, so ask specifically what support is available in your parent's area.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "SILP Providers by Area",
+          "offices": [
+            {
+              "name": "Jewish Federation of St. Louis",
+              "type": "service-area",
+              "phone": null,
+              "address": "Creve Coeur"
+            },
+            {
+              "name": "A Caring Plus Foundation",
+              "type": "service-area",
+              "phone": null,
+              "address": "Jennings"
+            },
+            {
+              "name": "Palestine Senior Center",
+              "type": "service-area",
+              "phone": null,
+              "address": "Kansas City"
+            },
+            {
+              "name": "Aging Best Senior Independent Living",
+              "type": "service-area",
+              "phone": null,
+              "address": "Location unspecified"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Prepare",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Proof of age (birth certificate or driver's license)",
+                "Proof of Missouri residency"
+              ]
+            },
+            {
+              "name": "Assessment",
+              "items": [
+                "Information about current living situation and challenges",
+                "Details about resources and support currently available"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program is only available in select urban areas through four specific providers — most of Missouri is not covered. Check if your parent's location qualifies before assuming they can access services."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What services will my parent actually receive?",
+          "answer": "Services are customized based on your parent's needs assessment and vary by provider. The program focuses on wrap-around support for health and safety, but specific services depend on what gaps exist in your parent's ability to live independently."
+        },
+        {
+          "question": "Is there an income limit to qualify?",
+          "answer": "No specific income limits are published. The program targets seniors with 'insufficient resources' to age independently, but each provider makes individual determinations during the assessment process."
+        },
+        {
+          "question": "Can my parent get services if they live in rural Missouri?",
+          "answer": "No. SILP is only available through four providers in urban areas around St. Louis and Kansas City. The program doesn't serve rural areas of Missouri."
+        },
+        {
+          "question": "Is this the same as the Independent Living Waiver?",
+          "answer": "No. SILP is specifically for seniors 60+ and is state-funded. The Independent Living Waiver is a separate Medicaid program for younger adults with disabilities (18+)."
+        },
+        {
+          "question": "How long does it take to start receiving services?",
+          "answer": "Processing times aren't specified and likely vary by provider. Contact your local SILP directly to ask about their current timeline from assessment to service delivery."
+        },
+        {
+          "question": "What if my parent needs more help than SILP provides?",
+          "answer": "Because services are tailored to individual needs, discuss your parent's full situation during the assessment. The provider can help determine if SILP is sufficient or if your parent needs additional programs."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://health.mo.gov/seniors/pdf/program-info.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Missouri offers 17 programs that can help your aging parent — 13 provide direct financial benefits or services, 3 offer free resources and advocacy, and 1 provides employment support. The financial help ranges from $100-400/month for groceries through SNAP to full medical coverage through MO HealthNet (Medicaid). Some programs like Missouri PACE coordinate all care under one roof, while others like the Structured Family Caregiving Waiver will actually pay you for caring for a parent with dementia who lives with you. Most benefit programs have income limits, but several free resources are available regardless of your parent's financial situation. Start by checking if your parent qualifies for MO HealthNet — it opens doors to other programs and covers the biggest expenses.",
+    "startHere": [
+      {
+        "name": "MO HealthNet (Medicaid)",
+        "programId": "mo-healthnet",
+        "why": "Free comprehensive health coverage that qualifies your parent for other programs."
+      },
+      {
+        "name": "Medicare Savings Program (MSP)",
+        "programId": "medicare-savings-program",
+        "why": "If your parent has Medicare, Missouri may pay their premiums and medical costs."
+      },
+      {
+        "name": "Missouri State Health Insurance Assistance Program (Missouri SHIP)",
+        "programId": "missouri-ship",
+        "why": "Free expert help navigating Medicare and finding all available savings programs."
+      },
+      {
+        "name": "Supplemental Nutrition Assistance Program (SNAP)",
+        "programId": "snap",
+        "why": "Quick financial relief with $100-400/month toward groceries for parents on fixed incomes."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Health coverage and medical costs",
+        "programs": [
+          "MO HealthNet (Medicaid)",
+          "Medicare Savings Program (MSP)",
+          "Missouri Rx Program (MoRx)"
+        ],
+        "description": "Programs that cover health insurance, medical bills, and prescription costs."
+      },
+      {
+        "need": "Home care to avoid nursing homes",
+        "programs": [
+          "Missouri PACE",
+          "Aged and Disabled Waiver (ADW)",
+          "Senior Independent Living Program (SILP)"
+        ],
+        "description": "Services that help your parent stay safely at home with professional support."
+      },
+      {
+        "need": "Food and utility assistance",
+        "programs": [
+          "Supplemental Nutrition Assistance Program (SNAP)",
+          "Commodity Supplemental Food Program (CSFP)",
+          "Low-Income Home Energy Assistance Program (LIHEAP)",
+          "Weatherization Assistance Program (WAP)"
+        ],
+        "description": "Monthly grocery benefits, food delivery, and help with heating and cooling costs."
+      },
+      {
+        "need": "Support for family caregivers",
+        "programs": [
+          "Structured Family Caregiving Waiver",
+          "Alzheimer's Association Caregiver Resource Program"
+        ],
+        "description": "Programs that pay family members for caregiving or reimburse respite care costs."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "Missouri State Health Insurance Assistance Program (Missouri SHIP)",
+          "Legal Services of Eastern Missouri",
+          "Long-Term Care Ombudsman Program"
+        ],
+        "description": "No-cost expert help with Medicare, legal issues, and nursing home problems."
+      },
+      {
+        "need": "Housing and property costs",
+        "programs": [
+          "Missouri Property Tax Credit (Circuit Breaker)"
+        ],
+        "description": "Tax relief for seniors paying property taxes or rent on low incomes."
+      }
+    ],
+    "quickFacts": [
+      "Missouri PACE operates in St. Louis and Kansas City areas only — not available statewide.",
+      "The Structured Family Caregiving Waiver specifically requires your parent to have dementia and live with you full-time.",
+      "Legal Services of Eastern Missouri only serves the eastern part of the state — other regions have different legal aid providers.",
+      "Several programs like SNAP and LIHEAP have emergency assistance options for crisis situations."
+    ],
+    "resourcesVsBenefits": "Missouri's benefit programs require your parent to meet specific income and asset limits — for example, MO HealthNet and SNAP both have strict financial requirements. However, free resources like Missouri SHIP (Medicare help), the Long-Term Care Ombudsman (nursing home advocacy), and Legal Services of Eastern Missouri are available regardless of your parent's income, though legal services do have their own qualification process for eastern Missouri residents."
+  }
+}

@@ -1,0 +1,2256 @@
+{
+  "state": "KS",
+  "stateName": "Kansas",
+  "draftedAt": "2026-04-09T13:42:54.308Z",
+  "total": 14,
+  "successful": 14,
+  "programs": [
+    {
+      "id": "kansas-frail-elderly-waiver",
+      "name": "KanCare Frail Elderly Waiver (FE Waiver)",
+      "shortName": "FE Waiver",
+      "tagline": "If your parent needs nursing home-level care but wants to stay home, Kansas may pay for home care services instead.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Managed through KDADS; providers enroll via fiscal agent (KMAP); MCOs like Sunflower Health Plan involved",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and needs significant daily help with bathing, dressing, or managing medications, the KanCare Frail Elderly Waiver can pay for home care services as an alternative to nursing home placement. Because this waiver covers home and community-based services, your parent can receive professional care while staying in their own home.\n\nYour parent must first qualify for KanCare (Kansas Medicaid) and meet Nursing Facility Level of Care through a clinical assessment. The state keeps your parent's income above $2,982 per month (2026 amount). This program has limited slots statewide, so there may be a waitlist.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Kansas resident",
+          "Qualifies for KanCare Medicaid",
+          "Needs nursing home-level care",
+          "Limited slots available"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [
+            "Cash and checking accounts",
+            "Savings accounts",
+            "Investments",
+            "Additional vehicles beyond one"
+          ],
+          "exemptAssets": [
+            "Primary home (if equity ≤ $752,000)",
+            "Household furnishings and appliances",
+            "Personal effects",
+            "One vehicle"
+          ],
+          "homeEquityCap": 752000
+        },
+        "functionalRequirement": "Must need nursing home-level care based on assessment of daily living activities like bathing, dressing, toileting, eating, and managing medications",
+        "otherRequirements": [
+          "Must qualify for KanCare Medicaid first",
+          "Kansas resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply for KanCare Medicaid first, then request a waiver assessment through KDADS.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for KanCare Medicaid",
+            "description": "Your parent must be eligible for Kansas Medicaid before applying for the waiver."
+          },
+          {
+            "step": 2,
+            "title": "Contact KDADS for waiver assessment",
+            "description": "Request a preliminary functional eligibility application from Kansas Department for Aging and Disability Services or your local waiver program manager."
+          },
+          {
+            "step": 3,
+            "title": "Complete clinical assessment",
+            "description": "A Functional Assessment Instrument (FAI) will evaluate your parent's need for help with daily activities and determine if they meet Nursing Facility Level of Care."
+          },
+          {
+            "step": 4,
+            "title": "Join waitlist if needed",
+            "description": "If no slots are available, your parent will be placed on a waitlist until an opening occurs."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Waitlist maintained when no openings exist due to limited slots statewide",
+        "tip": "Start the KanCare Medicaid application first — waiver eligibility depends on financial qualification for Medicaid.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Cash and checking accounts",
+            "Savings accounts",
+            "Investments and stocks",
+            "Additional vehicles beyond one",
+            "Property other than primary home"
+          ],
+          "excluded": [
+            "Primary home (if equity ≤ $752,000 and parent lives there or intends to return)",
+            "Household furnishings and appliances",
+            "Personal effects and clothing",
+            "One vehicle"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Social Security card",
+                "Driver's license or state ID",
+                "Proof of Kansas residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements for all accounts",
+                "Social Security award letter",
+                "Pension or retirement income statements",
+                "Property deeds or mortgage statements",
+                "Vehicle registration and title"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records showing need for daily care",
+                "Current medication list",
+                "Doctor's notes about functional limitations",
+                "Any previous nursing home assessments"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This program has limited slots statewide. Even if your parent qualifies, they may be placed on a waitlist until an opening becomes available."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Asset transfers within 60 months of application can create penalty periods that delay eligibility. Get help before moving money or property."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes, if your parent lives in the home or intends to return, and the home equity is $752,000 or less (2026 limit). The home doesn't count toward asset limits."
+        },
+        {
+          "question": "What if my parent's income is too high for regular Medicaid?",
+          "answer": "The waiver uses different Medicaid categories including spend-down options. Your parent keeps $2,982 per month of their income (2026 amount), and excess income may be applied toward care costs."
+        },
+        {
+          "question": "What services does this waiver actually cover?",
+          "answer": "Home and community-based services like personal care, homemaker services, and care coordination — but not room and board or living expenses. Services are authorized through an individual Plan of Care."
+        },
+        {
+          "question": "How long is the waitlist?",
+          "answer": "Wait times aren't specified and likely vary by region. Contact KDADS for current waitlist status in your area."
+        },
+        {
+          "question": "What happens if my parent gets denied?",
+          "answer": "Most denials happen because the person doesn't qualify for KanCare Medicaid first, or doesn't meet the nursing facility level of care requirement. You can appeal both decisions."
+        },
+        {
+          "question": "Can my parent have this waiver and live in assisted living?",
+          "answer": "The waiver is designed for community-based care, typically in your parent's own home. Coverage in assisted living facilities would depend on specific circumstances and Plan of Care approval."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://khap.kdhe.ks.gov/KEESM/Oct_2020_Output/keesm8210.htm",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "kansas-pace-elderly-care",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "shortName": "PACE",
+      "tagline": "All medical care, meals, and transportation for parents who need nursing home-level care but want to stay home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Via Christi HOPE (Wichita) — serves Sedgwick County",
+            "type": "service-area"
+          },
+          {
+            "name": "Midland Care (Topeka) — serves Wyandotte, Leavenworth, Shawnee, Douglas, Jackson, Jefferson, Osage, Pottawatomie, and other counties",
+            "type": "service-area"
+          },
+          {
+            "name": "Bluestem PACE (McPherson) — serves Marion, McPherson, Ottawa, Reno, Rice, and Saline counties",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay at home, PACE provides everything under one program: primary care, specialists, medications, physical therapy, meals, transportation to appointments, and even adult day programs. Because PACE covers all medical care through one coordinated team, your parent won't need separate doctors, insurance approvals, or transportation arrangements — one program manages it all.\n\nPACE is only available in three regions of Kansas: Wichita area (Sedgwick County), Topeka area (9+ counties including Kansas City metro), and central Kansas around McPherson (6 counties). Your parent must be 55+ and certified as needing nursing home-level care (daily help with bathing, dressing, medication management, or mobility). Most participants qualify for Medicaid funding, but private pay is possible at $7,000+ per month.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Needs nursing home-level care",
+          "Lives in PACE service area",
+          "Can safely live at home with support"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2901
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Property other than home"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One automobile"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must be certified by the state as needing nursing home-level care (daily help with bathing, dressing, medication management, or mobility)",
+        "otherRequirements": [
+          "Must live in a PACE service area",
+          "Must be able to live safely at home with PACE services",
+          "Cannot be enrolled in Medicare Advantage or Medicare prescription drug plans",
+          "Ages 55-64 must be determined disabled by Social Security"
+        ],
+        "povertyLevelReference": "300% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local PACE provider directly or request referral through Kansas aging services — processing time varies by provider.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check service area",
+            "description": "Confirm your parent lives in one of the three PACE regions: Wichita area, Topeka area, or McPherson area."
+          },
+          {
+            "step": 2,
+            "title": "Contact PACE provider",
+            "description": "Call the PACE organization serving your area directly to request enrollment assessment."
+          },
+          {
+            "step": 3,
+            "title": "Complete nursing home assessment",
+            "description": "State will assess whether your parent needs nursing home-level care through clinical evaluation."
+          },
+          {
+            "step": 4,
+            "title": "PACE team evaluation",
+            "description": "PACE team determines if your parent can live safely at home with their services."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent is enrolled in Medicare Advantage, they'll need to disenroll before joining PACE — contact the provider to coordinate timing.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts (for Medicaid funding)",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Property other than primary home",
+            "Life insurance cash value over $1,500"
+          ],
+          "excluded": [
+            "Primary home (no equity limit)",
+            "One automobile",
+            "Personal belongings and household items",
+            "Burial plot and funeral funds up to $1,500"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "PACE Providers by Service Area",
+          "offices": [
+            {
+              "name": "Via Christi HOPE",
+              "type": "service-area",
+              "phone": null,
+              "address": "Wichita - serves Sedgwick County"
+            },
+            {
+              "name": "Midland Care PACE",
+              "type": "service-area",
+              "phone": null,
+              "address": "Topeka - serves Wyandotte, Leavenworth, Shawnee, Douglas, Jackson, Jefferson, Osage, Pottawatomie counties"
+            },
+            {
+              "name": "Bluestem PACE",
+              "type": "service-area",
+              "phone": null,
+              "address": "McPherson - serves Marion, McPherson, Ottawa, Reno, Rice, Saline counties"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE is NOT available statewide. Your parent must live in one of three specific service areas: Wichita area, Topeka area, or McPherson area. Check with providers about exact coverage boundaries."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "About 99% of PACE participants use Medicaid funding, but if your parent's income is slightly over the limit, private pay is possible. The PACE team can help explore Medicaid planning options to qualify."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for PACE?",
+          "answer": "Yes. Your parent's primary home and one car don't count toward the $2,000 asset limit for Medicaid-funded PACE. PACE is designed to help people stay in their homes instead of moving to nursing facilities."
+        },
+        {
+          "question": "What if Dad's income is just over $2,901 per month?",
+          "answer": "He can still join PACE by paying privately (typically $7,000+ per month) or through a Medicaid spend-down program where he pays a monthly share of cost. The PACE provider can explain both options and help with Medicaid planning."
+        },
+        {
+          "question": "Does PACE replace Dad's current Medicare and doctors?",
+          "answer": "Yes. PACE becomes your parent's Medicare and Medicaid plan, and they'll get a new primary care team through PACE. They cannot keep Medicare Advantage or separate prescription drug plans, but PACE covers everything those plans covered and more."
+        },
+        {
+          "question": "What if Mom needs more care than PACE can provide at home?",
+          "answer": "PACE covers nursing home care when needed. Because PACE manages all care, they coordinate any transitions between home care, adult day programs, and temporary or permanent nursing facility placement."
+        },
+        {
+          "question": "Can we choose which PACE provider to use?",
+          "answer": "No. Each PACE organization serves specific counties. Your choice depends entirely on where your parent lives. If they're in Sedgwick County, it's Via Christi HOPE. In the Topeka area, it's Midland Care. In central Kansas, it's Bluestem PACE."
+        },
+        {
+          "question": "What happens if we move to a different county in Kansas?",
+          "answer": "Your parent would need to disenroll from their current PACE program. They could only re-enroll if moving to another PACE service area, and would need to go through the full eligibility process again with the new provider."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://khap.kdhe.ks.gov/KEESM/Feb_2018_Output/keesm8300.htm",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "kansas-medicare-savings-programs-msp",
+      "name": "Medicare Savings Programs (MSP) including QMB, SLMB, QI",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "Get help paying Medicare premiums and out-of-pocket costs if your parent's income is under $1,660/month.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local DCF Service Centers",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with Medicare costs, Kansas Medicare Savings Programs can pay their Part B premiums, deductibles, and copayments. Because these programs have three tiers based on income, your parent may qualify even if their income is too high for Medicaid. QMB (Qualified Medicare Beneficiary) covers all Medicare cost-sharing for people with income under $1,275/month. SLMB and QI cover Part B premiums for those with slightly higher incomes up to $1,660/month.\n\nBecause MSP automatically qualifies your parent for Extra Help with prescription drug costs, they'll also save on Medicare Part D copayments (capped at $12.65 per drug in 2026). The combined savings typically exceed $2,000 per year in premiums and out-of-pocket costs.",
+      "savingsRange": "$2,000+/year",
+      "savingsSource": "Medicare premiums and cost-sharing coverage",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Must have Medicare Part A",
+          "Income under $1,660/month (single)",
+          "Assets under $9,430 (single)",
+          "Kansas resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1275
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1724
+          }
+        ],
+        "assetLimits": {
+          "individual": 9430,
+          "couple": 14130,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks",
+            "Bonds",
+            "Certificates of deposit"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One car",
+            "Household goods",
+            "Life insurance",
+            "Burial plots",
+            "Prepaid funeral expenses",
+            "$1,500 burial allowance"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be enrolled in Medicare Part A",
+          "Kansas resident",
+          "U.S. citizen or qualified immigrant",
+          "Cannot be eligible for full Medicaid"
+        ],
+        "povertyLevelReference": "100-135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your local Kansas DCF Service Center by phone, in-person, or mail — processing begins the month you apply.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local DCF Service Center",
+            "description": "Visit kdhe.ks.gov or call 1-800-792-4884 to locate your nearest Kansas Department for Children and Families office."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect your parent's Medicare card, Social Security award letters, bank statements, and proof of Kansas residency."
+          },
+          {
+            "step": 3,
+            "title": "Complete the 4-page MSP application",
+            "description": "Fill out form KC-2700 (available at DCF offices) with income, asset, and household information."
+          },
+          {
+            "step": 4,
+            "title": "Submit application and documents",
+            "description": "Apply in-person, by phone at 1-800-792-4884, or mail to your local DCF Service Center."
+          }
+        ],
+        "processingTime": "Begins month of application if eligible",
+        "waitlist": "QI program has funding limits and uses first-come, first-served basis",
+        "tip": "Apply early in the year for QI since funding can run out — prior recipients get priority.",
+        "urls": [
+          {
+            "label": "Find DCF Service Center",
+            "url": "https://kdhe.ks.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Most comprehensive coverage",
+              "incomeLimit": "Under $1,275/month (single), $1,724/month (couple)",
+              "coverage": "Pays Part A premiums, Part B premiums, deductibles, coinsurance, and copayments for all Medicare-covered services. Providers cannot bill you."
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Part B premium assistance",
+              "incomeLimit": "Around $1,549/month (single), $2,080/month (couple)",
+              "coverage": "Pays Part B premiums only. Does not cover deductibles or copayments."
+            },
+            {
+              "name": "QI (Qualifying Individual)",
+              "description": "Limited Part B help",
+              "incomeLimit": "Around $1,660/month (single), $2,239/month (couple)",
+              "coverage": "Pays Part B premiums only. Requires annual reapplication. First-come, first-served with funding limits."
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts (checking and savings)",
+            "Stocks and bonds",
+            "Certificates of deposit",
+            "Mutual funds"
+          ],
+          "excluded": [
+            "Primary home (where your parent lives)",
+            "One car of any value",
+            "Household goods and personal belongings",
+            "Life insurance policies",
+            "Burial plots and prepaid funeral expenses",
+            "$1,500 burial allowance"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Medicare Information",
+              "items": [
+                "Medicare card",
+                "Medicare Summary Notices (if available)"
+              ]
+            },
+            {
+              "name": "Financial Documents",
+              "items": [
+                "Social Security award letters",
+                "Bank statements (last 3 months)",
+                "Investment account statements",
+                "Pay stubs (if still working)"
+              ]
+            },
+            {
+              "name": "Identity and Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Utility bill or lease agreement",
+                "Proof of U.S. citizenship or qualified immigrant status"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI program funding is limited and distributed first-come, first-served. Apply early in the year, as funding can be exhausted before year-end."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income and asset limits change every year in February. Always confirm current limits by calling 1-800-792-4884 before applying."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify for MSP?",
+          "answer": "Yes. The primary home where your parent lives does not count toward the asset limit, regardless of its value. They can own their home and still qualify."
+        },
+        {
+          "question": "What happens if my parent's income is just over the QMB limit but under SLMB?",
+          "answer": "They can still get help through SLMB, which pays Part B premiums (around $185/month in 2026). While SLMB doesn't cover deductibles and copayments like QMB does, it still provides significant savings plus automatic Extra Help with prescription drugs."
+        },
+        {
+          "question": "Does MSP count my parent's Social Security as income?",
+          "answer": "Yes, but Kansas allows a $20 monthly disregard, meaning they subtract $20 from the total monthly income when determining eligibility. So if your parent receives $1,295 in Social Security, it counts as $1,275 for MSP purposes."
+        },
+        {
+          "question": "If my parent gets QMB, will doctors still bill them for Medicare services?",
+          "answer": "No. QMB recipients are protected from billing for Medicare-covered services. Providers cannot charge your parent for copayments, coinsurance, or deductibles on Medicare-approved services. However, small Medicaid copays (usually under $3) may apply."
+        },
+        {
+          "question": "How long does MSP coverage last once approved?",
+          "answer": "QMB and SLMB coverage continues until your parent's income or circumstances change significantly. QI requires annual reapplication and approval is not guaranteed due to funding limits."
+        },
+        {
+          "question": "Can my parent have MSP if they're already on Medicare Advantage?",
+          "answer": "Yes. MSP works with both Original Medicare and Medicare Advantage plans. The program will still pay premiums and cost-sharing according to your parent's MSP tier level."
+        }
+      ],
+      "phone": "1-800-792-4884",
+      "sourceUrl": "https://khap.kdhe.ks.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "kansas-snap-food-assistance",
+      "name": "Food Assistance (SNAP)",
+      "shortName": "SNAP",
+      "tagline": "Monthly grocery assistance of $100–300+ for Kansas seniors on fixed incomes",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Kansas DCF Economic and Employment Services offices by county.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly money loaded onto an EBT card for food purchases. Because your parent is 60+, they get more favorable income rules and higher asset limits than younger applicants.\n\nThe maximum monthly benefit ranges from $298 for a single person to $546 for a two-person household (October 2025-September 2026). Your parent's actual benefit equals the maximum minus 30% of their net income after deductions for medical expenses over $35/month and high housing costs.\n\nYour parent cannot use SNAP for hot prepared foods, alcohol, or tobacco, but it covers groceries including meat, dairy, produce, and packaged foods at most stores.",
+      "savingsRange": "$1,200 – $3,600/year in 2026",
+      "savingsSource": "Based on typical monthly SNAP benefits of $100-300 for seniors",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Assets below $4,250",
+          "Kansas resident",
+          "Net income after deductions within limits"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 4250,
+          "couple": 4250,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Non-exempt property"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "Household goods",
+            "Retirement savings",
+            "Life insurance cash value"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Kansas resident",
+          "U.S. citizen or qualified non-citizen",
+          "Apply in county of residence"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at Kansas Benefits Portal or call your local DCF office; typically takes 30 days to process.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect proof of identity, income (Social Security statements, pensions), medical bills over $35/month, and rent/utility bills."
+          },
+          {
+            "step": 2,
+            "title": "Apply online or by phone",
+            "description": "Use the Kansas Benefits Portal or contact your county DCF office. Authorized representatives can apply for parents with mobility issues."
+          },
+          {
+            "step": 3,
+            "title": "Complete interview",
+            "description": "DCF will schedule a phone interview to review your parent's application and verify information."
+          },
+          {
+            "step": 4,
+            "title": "Receive decision",
+            "description": "Benefits start within 30 days if approved (7 days for expedited cases with very low income)."
+          }
+        ],
+        "processingTime": "Typically 30 days; expedited for urgent cases (7 days if very low income/liquid assets under $100)",
+        "waitlist": null,
+        "tip": "Seniors skip the gross income test and get uncapped deductions for medical expenses over $35/month and high shelter costs.",
+        "urls": [
+          {
+            "label": "Kansas Benefits Portal",
+            "url": "https://www.benefitsparkansas.org/"
+          },
+          {
+            "label": "Find Local DCF Office",
+            "url": "https://www.dcf.ks.gov/services/ees/Pages/default.aspx"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Cash and checking/savings accounts",
+            "Non-exempt property and investments",
+            "Vehicles over certain value limits"
+          ],
+          "excluded": [
+            "Primary home (no equity limit for seniors)",
+            "Household goods and personal belongings",
+            "Retirement accounts (401k, IRA, pension funds)",
+            "Life insurance cash value (varies by policy)"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Photo ID or driver's license",
+                "Proof of Kansas residency (utility bill, lease)",
+                "Citizenship or immigration documents"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letters",
+                "Pension statements",
+                "Bank statements (all accounts)",
+                "Medical bills over $35/month",
+                "Rent receipts and utility bills"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent's Social Security and pension income count toward SNAP limits, but medical expenses over $35/month reduce their counted income dollar-for-dollar with no cap."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify for SNAP?",
+          "answer": "Yes. The primary home is completely exempt from SNAP asset limits regardless of value. Your parent will not lose their home by receiving SNAP benefits."
+        },
+        {
+          "question": "What if my parent's Social Security puts them over the income limit?",
+          "answer": "Seniors get special income rules. High medical expenses over $35/month and shelter costs over 50% of income are deducted from Social Security before determining eligibility, often making qualification possible even with higher Social Security payments."
+        },
+        {
+          "question": "Can I apply for SNAP on my parent's behalf?",
+          "answer": "Yes. Kansas allows authorized representatives to apply for elderly or disabled individuals. You'll need to complete additional paperwork establishing your authority to act on your parent's behalf."
+        },
+        {
+          "question": "What happens if my parent lives with other family members?",
+          "answer": "SNAP looks at who buys and prepares food together as one 'household.' If your parent shops and cooks separately from other family members, they can apply as a household of one even if living with others."
+        },
+        {
+          "question": "How quickly can my parent get benefits if they're approved?",
+          "answer": "Regular applications take up to 30 days. If your parent has very low income and less than $100 in cash/bank accounts, they may qualify for expedited processing and receive benefits within 7 days."
+        },
+        {
+          "question": "Can my parent use SNAP at farmers markets or for meal delivery?",
+          "answer": "Many Kansas farmers markets accept SNAP EBT cards. However, SNAP cannot be used for hot prepared meals or meal delivery services - only for groceries your parent will prepare at home."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.dcf.ks.gov/services/ees/Pages/Food/FoodAssistance.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "kansas-liheap-energy-assistance",
+      "name": "Low-Income Energy Assistance Program (LIHEAP)",
+      "shortName": "Kansas LIHEAP",
+      "tagline": "If your parent struggles to pay heating bills, Kansas may cover part of their energy costs with a one-time payment.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local DCF Service Centers, regional processing offices",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in Kansas and struggles to afford heating bills, LIHEAP provides a one-time payment directly to their energy company each year. The exact amount depends on their income, household size, type of heating fuel, and current utility rates — but it helps cover heating costs during the coldest months.\n\nYour parent must be personally responsible for paying their heating bill (not included in subsidized rent) and meet income limits. Everyone living at the same address counts toward household size and income, even if they're not related. Applications are only accepted during a limited window each year — typically January through March.",
+      "savingsRange": "",
+      "savingsSource": "Amount varies by household income, size, dwelling type, heating fuel type, and utility rates",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Combined household income below 150% federal poverty level",
+          "Must pay heating costs directly (not included in rent)",
+          "Kansas resident",
+          "One benefit per year"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1956
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2644
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 3331
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 4019
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 4706
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 5394
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 6081
+          },
+          {
+            "householdSize": 8,
+            "monthlyLimit": 6769
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be personally responsible for paying heating costs to landlord or fuel vendor",
+          "At least one U.S. citizen or qualified alien in household",
+          "Everyone at same utility address must apply together",
+          "Cannot receive both state LIHEAP and tribal LIHEAP in same year"
+        ],
+        "povertyLevelReference": "150% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through DCF Self-Service Portal or at local DCF offices during the application period (typically January-March).",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect proof of income for everyone in the household, recent fuel bills, and rental agreement if heating costs are included in rent."
+          },
+          {
+            "step": 2,
+            "title": "Complete LIHEAP application",
+            "description": "Use the specific LIHEAP application (separate from other benefit applications). Include heating and cooling account numbers and fuel type. All adults in the household must sign."
+          },
+          {
+            "step": 3,
+            "title": "Submit during application period",
+            "description": "Submit online at www.dcf.ks.gov, in-person at local DCF Service Center, or mail to designated regional processing office."
+          },
+          {
+            "step": 4,
+            "title": "Wait for processing",
+            "description": "DCF will review your application and contact your energy company directly if approved."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "College students living in dorms don't count toward household size, but if they live at home full-time, their income must be included.",
+        "urls": [
+          {
+            "label": "DCF Self-Service Portal",
+            "url": "https://www.dcf.ks.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (2026)",
+          "rows": [
+            {
+              "householdSize": "1 person",
+              "monthlyLimit": "$1,956"
+            },
+            {
+              "householdSize": "2 people",
+              "monthlyLimit": "$2,644"
+            },
+            {
+              "householdSize": "3 people",
+              "monthlyLimit": "$3,331"
+            },
+            {
+              "householdSize": "4 people",
+              "monthlyLimit": "$4,019"
+            },
+            {
+              "householdSize": "5 people",
+              "monthlyLimit": "$4,706"
+            },
+            {
+              "householdSize": "6 people",
+              "monthlyLimit": "$5,394"
+            },
+            {
+              "householdSize": "7 people",
+              "monthlyLimit": "$6,081"
+            },
+            {
+              "householdSize": "8 people",
+              "monthlyLimit": "$6,769"
+            },
+            {
+              "householdSize": "Each additional person",
+              "monthlyLimit": "Add $688"
+            }
+          ],
+          "footnote": "Combined gross monthly income (before deductions) of all persons living at the address. 2026 federal poverty guidelines."
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Income Proof",
+              "items": [
+                "Social Security, VA, SSI, or pension award letters for everyone in household",
+                "Recent tax return if anyone is self-employed",
+                "Child support payment records or court order"
+              ]
+            },
+            {
+              "name": "Housing & Utilities",
+              "items": [
+                "Recent fuel bills (gas, electric, propane, etc.)",
+                "Rental or lease agreement (especially if heating costs included in rent or bills in landlord's name)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Everyone living at your parent's address must apply together, and all their income counts — even adult children, roommates, or other non-relatives. This is different from other programs that only count immediate family income."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's heating is included in their rent?",
+          "answer": "They can still qualify if they pay heating costs to their landlord as part of rent. However, if they live in fully subsidized housing where heating is completely covered, they won't be eligible."
+        },
+        {
+          "question": "Can Mom apply if my adult brother lives with her but doesn't help with bills?",
+          "answer": "Yes, but your brother's income will count toward the household total, and he must sign the application. Everyone at the same utility address must apply together, regardless of whether they contribute to expenses."
+        },
+        {
+          "question": "What if we miss the application deadline?",
+          "answer": "You'll have to wait until the next application period, typically January through March. Emergency assistance may be available through local agencies, but regular LIHEAP benefits are only available during the annual application window."
+        },
+        {
+          "question": "How much money will my parent actually receive?",
+          "answer": "The amount varies based on income, household size, type of heating fuel, dwelling type, and current utility rates. Kansas doesn't publish specific benefit amounts because they change each year based on available federal funding."
+        },
+        {
+          "question": "Can my parent get both LIHEAP and tribal energy assistance?",
+          "answer": "No, they can only receive one energy assistance benefit per year. If your parent is a tribal member, DCF will refer them to their tribe's program instead."
+        },
+        {
+          "question": "What if my parent is legally incapacitated due to dementia?",
+          "answer": "Someone with legal guardian or conservator status must apply on their behalf. If no legal guardian exists, your parent won't be eligible until guardianship is established."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.dcf.ks.gov/services/ees/Pages/EnergyAssistance.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "kansas-weatherization-assistance",
+      "name": "Weatherization Assistance Program",
+      "shortName": "Weatherization Assistance",
+      "tagline": "Get your parent's home insulated, sealed, and energy-efficient at no cost — could save hundreds per year on utility bills.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "KHRC primary: https://kshousingcorp.org/weatherization-assistance[1].",
+            "type": "service-area"
+          },
+          {
+            "name": "NCRPC[3].",
+            "type": "service-area"
+          },
+          {
+            "name": "SEK-CAP (Southeast Kansas)[4].",
+            "type": "service-area"
+          },
+          {
+            "name": "SCKEDD (South Central KS counties: Butler, Chautauqua, etc.)[8].",
+            "type": "service-area"
+          },
+          {
+            "name": "Evergy area agencies[6].",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with high heating and cooling bills, Kansas's Weatherization Assistance Program provides free home energy improvements that can dramatically reduce utility costs. The program covers everything from professional insulation installation to air sealing and health and safety upgrades — all at no cost to families earning less than 200% of federal poverty guidelines.\n\nYour parent gets a certified energy audit first, then professional contractors install whatever improvements will save the most energy: insulation, weatherstripping, window repairs, furnace tune-ups, or even new efficient appliances. Because all work is done by licensed professionals using quality materials, the improvements last for decades and can significantly lower monthly utility bills year-round.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income under 200% poverty level",
+          "Home utilities must be active",
+          "Owner or renter with landlord permission",
+          "Not weatherized in past 15 years"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must occupy the home as primary residence",
+          "All utilities (electric and gas) must be active and functioning",
+          "Home cannot be scheduled for demolition within 12 months",
+          "No major health hazards like mold, asbestos, or structural problems",
+          "If renter, must have landlord permission and agreement not to raise rent for 2 years",
+          "Cannot have received weatherization services in past 15 years unless due to disaster damage"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your local regional provider online or by phone — processing time varies by region and demand.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your regional provider",
+            "description": "Kansas uses different agencies by region. NCRPC serves northern counties, SEK-CAP serves southeast Kansas, SCKEDD serves south-central counties. Check the provider directory to find yours."
+          },
+          {
+            "step": 2,
+            "title": "Gather income documents",
+            "description": "Collect 3 months of income records for everyone in the household: pay stubs, Social Security statements, unemployment benefits, or public assistance letters. If no income, you'll need a notarized affidavit."
+          },
+          {
+            "step": 3,
+            "title": "Complete application",
+            "description": "Fill out the standardized weatherization application online or request a paper form. Include utility account numbers and landlord information if renting."
+          },
+          {
+            "step": 4,
+            "title": "Submit with documentation",
+            "description": "Send completed application with all income verification. Renters must include signed landlord permission form."
+          },
+          {
+            "step": 5,
+            "title": "Schedule energy audit",
+            "description": "Once approved, a certified auditor will inspect the home to determine which improvements will save the most energy."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Priority goes to households already receiving SSI, TANF, or energy assistance — mention these if your parent qualifies.",
+        "urls": [
+          {
+            "label": "Kansas Housing Resources Corporation",
+            "url": "https://kshousingcorp.org/weatherization-assistance"
+          },
+          {
+            "label": "Download Application Form",
+            "url": "https://kshousingcorp.org/wp-content/uploads/2023/05/Standardized-Weatherization-Application.pdf"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Income Verification",
+              "items": [
+                "Past 3 months of pay stubs for all household members",
+                "Social Security, SSI, or disability award letters",
+                "Unemployment benefits statements",
+                "TANF or other public assistance letters",
+                "Notarized affidavit of no income if applicable"
+              ]
+            },
+            {
+              "name": "Housing Information",
+              "items": [
+                "Utility company names and account numbers",
+                "Names, birth dates, and gender of all household members",
+                "Landlord contact information and signed permission form (renters only)",
+                "Proof of residence (lease, deed, or utility bill)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Renters need written landlord permission and the landlord must agree not to raise rent for 2 years after weatherization work is completed."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's home was weatherized years ago?",
+          "answer": "Homes cannot receive weatherization services again unless it's been more than 15 years since the last work, or there was disaster damage not covered by insurance. Previous improvements won't be repeated even if eligible again."
+        },
+        {
+          "question": "Can my parent get weatherization if they rent their home?",
+          "answer": "Yes, but the landlord must give written permission and agree not to raise rent for 2 years after the work is completed. The renter applies directly but needs the landlord's cooperation."
+        },
+        {
+          "question": "What if the home has safety issues like mold or asbestos?",
+          "answer": "Homes with major health hazards, structural problems, or safety issues that would make weatherization work dangerous or ineffective are not eligible. Minor issues may be addressed as part of health and safety improvements."
+        },
+        {
+          "question": "How do I know which local agency serves my parent's area?",
+          "answer": "Kansas divides weatherization services by region. You'll need to contact the specific agency serving your parent's county — NCRPC for northern counties, SEK-CAP for southeast Kansas, SCKEDD for south-central counties, or other Evergy-area agencies."
+        },
+        {
+          "question": "What happens if my parent's utilities are shut off?",
+          "answer": "All utilities must be active and functioning to qualify. If electric or gas service is disconnected, your parent will need to restore service before applying for weatherization assistance."
+        },
+        {
+          "question": "Does my parent automatically qualify if they get food stamps or Medicaid?",
+          "answer": "Not automatically. Priority goes to households receiving SSI, TANF, or LIEAP (energy assistance) in the past 12 months. Other programs may help show income eligibility but don't guarantee acceptance."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://kshousingcorp.org/weatherization-assistance",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "kansas-shick-medicare-counseling",
+      "name": "Senior Health Insurance Counseling for Kansas (SHICK)",
+      "shortName": "SHICK Kansas",
+      "tagline": "Free one-on-one help to compare Medicare plans and understand your parent's health insurance options.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Kansas Department for Aging and Disability Services, 503 S. Kansas Ave, Topeka, KS 66603",
+            "type": "service-area"
+          },
+          {
+            "name": "Sedgwick County (Wichita), Johnson County, North Central region",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare questions — comparing plans, understanding coverage, or dealing with claims — SHICK provides free, confidential counseling with trained volunteers who aren't trying to sell anything. Because SHICK counselors are independent and work for no insurance company, they can give unbiased advice about Medicare Parts A through D, Medicare Advantage, Medigap supplements, and prescription drug coverage.\n\nYour parent doesn't need to meet income limits or pass any financial tests. Anyone with Medicare questions can get help, including caregivers like you trying to understand your parent's options. Sessions are available by phone Monday through Friday, typically 8:30 a.m. to 3 p.m. or 8 a.m. to 5 p.m., with in-person meetings also available through local offices.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "No income limits",
+          "Anyone with Medicare questions",
+          "Caregivers can call too",
+          "All Kansas residents"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have Medicare-related questions or be helping someone who does"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 800-860-5260 to schedule a counseling session — no forms required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the statewide number",
+            "description": "Dial 800-860-5260 or your regional office to schedule an appointment."
+          },
+          {
+            "step": 2,
+            "title": "Gather documents (optional)",
+            "description": "Have your parent's Medicare card, current insurance documents, and prescription list ready, but these aren't required to schedule."
+          },
+          {
+            "step": 3,
+            "title": "Meet with counselor",
+            "description": "Talk by phone or meet in person to get personalized help with Medicare questions."
+          }
+        ],
+        "processingTime": "Counseling appointments scheduled upon contact",
+        "waitlist": null,
+        "tip": "Call early during Medicare Open Enrollment (mid-October to early December) when counselors are busiest.",
+        "urls": [
+          {
+            "label": "SHICK Kansas website",
+            "url": "https://www.kdads.ks.gov/services-programs/aging/medicare-programs/senior-health-insurance-counseling-for-kansas-shick"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Regional Contacts",
+          "offices": [
+            {
+              "name": "Statewide (all Kansas)",
+              "type": "service-area",
+              "phone": "800-860-5260",
+              "address": "Kansas Department for Aging and Disability Services, 503 S. Kansas Ave, Topeka, KS 66603"
+            },
+            {
+              "name": "Sedgwick County (Wichita area)",
+              "type": "county",
+              "phone": "316-660-0126",
+              "address": null
+            },
+            {
+              "name": "Johnson County",
+              "type": "county",
+              "phone": "913-715-8856",
+              "address": null
+            },
+            {
+              "name": "North Central region",
+              "type": "service-area",
+              "phone": "800-432-2703",
+              "address": null
+            },
+            {
+              "name": "Central Plains (Wichita)",
+              "type": "service-area",
+              "phone": "800-367-7298 ext. 5132",
+              "address": null
+            },
+            {
+              "name": "Wyandotte/Leavenworth (Kansas City)",
+              "type": "service-area",
+              "phone": "888-661-1444",
+              "address": null
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "SHICK gets busy during Medicare Open Enrollment (mid-October to early December). Call early in the season to avoid delays in scheduling."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SHICK counselors don't sell insurance or work for insurance companies. They're trained volunteers who can give you honest comparisons without trying to make a sale."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I call SHICK to get help understanding my parent's Medicare options even if I'm not the one enrolled?",
+          "answer": "Yes. SHICK helps caregivers, adult children, and family members who have questions about Medicare. You don't need to be the Medicare beneficiary to get counseling."
+        },
+        {
+          "question": "Will SHICK try to sell my parent a specific insurance plan?",
+          "answer": "No. SHICK counselors are trained volunteers who don't work for insurance companies. They provide unbiased information and comparisons without trying to sell anything."
+        },
+        {
+          "question": "What should my parent have ready before calling SHICK?",
+          "answer": "Having their Medicare card, current insurance documents, and prescription list is helpful but not required to schedule an appointment. The counselor will let you know what to gather for the actual session."
+        },
+        {
+          "question": "Does my parent need to meet income limits to get SHICK counseling?",
+          "answer": "No income or asset limits apply. Anyone with Medicare questions can use SHICK for free, regardless of their financial situation."
+        },
+        {
+          "question": "Can SHICK help with Medicare Advantage and supplement plan comparisons?",
+          "answer": "Yes. SHICK counselors help with all Medicare parts (A, B, C, D), Medicare Advantage plans, Medigap supplements, prescription drug coverage, and even long-term care insurance questions."
+        },
+        {
+          "question": "How long does it take to get a SHICK appointment?",
+          "answer": "Appointments are scheduled when you call, but during Medicare Open Enrollment (mid-October to early December) there may be delays due to high demand. Call early in the enrollment period for faster scheduling."
+        }
+      ],
+      "phone": "800-860-5260",
+      "sourceUrl": "https://www.kdads.ks.gov/services-programs/aging/medicare-programs/senior-health-insurance-counseling-for-kansas-shick",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "kansas-senior-nutrition-program",
+      "name": "Kansas Senior Nutrition Program (Home-Delivered and Congregate Meals)",
+      "shortName": "Senior Nutrition Program",
+      "tagline": "Free meals delivered to your parent's home or at community centers if they're 60+.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Aging and Disability Resource Centers (call 855-200-ADRC)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggles with meal preparation or social isolation, they can get free nutritious meals through Kansas's Senior Nutrition Program. Your parent can receive meals at group dining sites (congregate meals) or delivered directly to their home if they can't leave easily.\n\nThe program has no income limits statewide — any Kansas resident 60+ qualifies, plus their spouse regardless of age. Home-delivered meals typically require that your parent is homebound or has functional limitations, but each local provider makes this determination. Because this program runs through 15 local Area Agencies on Aging, availability and wait times vary by region.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "No income limits",
+          "Spouses qualify at any age",
+          "Home delivery requires assessment"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "For home-delivered meals: typically requires homebound status or functional impairment (inability to shop for or prepare meals independently). Local provider conducts assessment.",
+        "otherRequirements": [
+          "Must be Kansas resident",
+          "Spouses of 60+ individuals qualify regardless of their age",
+          "Program volunteers eligible for congregate meals"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Aging and Disability Resource Center at 855-200-ADRC — no formal application needed, just registration and assessment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your local office",
+            "description": "Contact your local Aging and Disability Resource Center at 855-200-ADRC (2372). They'll connect you to the provider in your area."
+          },
+          {
+            "step": 2,
+            "title": "Complete intake assessment",
+            "description": "Provider will ask about your parent's age, address, and daily living situation. For home-delivered meals, they'll assess whether your parent is homebound or has difficulty preparing meals."
+          },
+          {
+            "step": 3,
+            "title": "Start receiving meals",
+            "description": "If approved, your parent will be scheduled for meal delivery or given information about local congregate dining sites. Timing depends on local capacity."
+          }
+        ],
+        "processingTime": "Varies by local provider",
+        "waitlist": "Possible depending on local capacity",
+        "tip": "Even if there's a wait for home-delivered meals, ask about congregate meal sites — these typically have more availability and provide social interaction.",
+        "urls": [
+          {
+            "label": "Kansas Senior Nutrition Program Official Page",
+            "url": "https://www.kdads.ks.gov/services-programs/aging/kansas-senior-nutrition-program"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Have Ready",
+          "categories": [
+            {
+              "name": "Basic Information",
+              "items": [
+                "Your parent's age (proof of age like driver's license or ID)",
+                "Kansas address where they live",
+                "Phone number for contact"
+              ]
+            },
+            {
+              "name": "For Home Delivery Assessment",
+              "items": [
+                "Description of mobility limitations or health conditions",
+                "Information about ability to shop for groceries",
+                "Details about difficulty preparing meals independently"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Wait times for home-delivered meals vary significantly by location. Some areas may have immediate availability while others have waiting lists. Contact your local provider early to understand timing in your area."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is different from the Kansas Senior Farmers Market Nutrition Program, which has strict income limits and only provides produce coupons. The Senior Nutrition Program has no income limits and provides full meals."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is too high for other programs — can they still get meals?",
+          "answer": "Yes. The Kansas Senior Nutrition Program has no income limits statewide. Even if your parent doesn't qualify for SNAP or other income-based programs, they can still receive these meals as long as they're 60+."
+        },
+        {
+          "question": "My parent can still drive but has trouble cooking — do they qualify for home delivery?",
+          "answer": "Maybe. Home delivery typically requires homebound status or functional impairment, but each local provider makes this decision. If your parent has difficulty meal planning, shopping, or cooking due to health conditions, they may qualify even if they can still drive short distances."
+        },
+        {
+          "question": "Can my 58-year-old father get meals if my 62-year-old mother qualifies?",
+          "answer": "Yes. Spouses of individuals 60+ are eligible regardless of their own age. Your father can receive the same meals as your mother through this program."
+        },
+        {
+          "question": "What if there's no availability in our area right now?",
+          "answer": "Ask to be placed on a waiting list and inquire about congregate meal sites nearby. Group dining locations often have more capacity than home delivery, and the social interaction can benefit your parent's overall wellbeing."
+        },
+        {
+          "question": "Does this affect my parent's other benefits like Medicare or Social Security?",
+          "answer": "No. These nutrition services don't count as income and won't affect any other government benefits your parent receives."
+        },
+        {
+          "question": "What if my parent moves to a different county in Kansas?",
+          "answer": "They'll need to re-register with the new local provider since the program is administered regionally. Call 855-200-ADRC from their new location to connect with the right office."
+        }
+      ],
+      "phone": "855-200-2372",
+      "sourceUrl": "https://www.kdads.ks.gov/services-programs/aging/kansas-senior-nutrition-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "kansas-caregiver-support-programs",
+      "name": "Caregiver Support Programs",
+      "shortName": "Caregiver Support",
+      "tagline": "Get respite care and support services when you're caring for an aging parent who needs daily help with basic tasks.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Northeast Kansas Area Agency on Aging",
+            "type": "service-area"
+          },
+          {
+            "name": "East Central Area Agency on Aging",
+            "type": "service-area"
+          },
+          {
+            "name": "Kansas Aging and Disability Resource Center",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're caring for a parent who needs daily help with bathing, dressing, or medication management, Kansas offers respite care and support services through local Area Agencies on Aging. Because your parent must qualify for nursing facility level of care (a clinical assessment showing they need significant daily assistance), these programs target families managing serious caregiving responsibilities.\n\nThe Kansas Respite for Alzheimer's and Dementia (K-RAD) program provides up to $1,000 per year toward respite care if your parent has Alzheimer's or dementia. Other caregiver support varies by county and includes personal care, homemaker services, and additional respite options. Funding is limited and awarded first-come, first-served each fiscal year (July through June).",
+      "savingsRange": "Up to $1,000/year",
+      "savingsSource": "K-RAD respite care subsidy maximum",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "You're 18+ caring for someone 60+",
+          "Your parent needs nursing facility level of care",
+          "For K-RAD: Parent has Alzheimer's/dementia",
+          "Limited access to other support services"
+        ],
+        "ageRequirement": "18+ (caregiver), 60+ (care recipient)",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Your parent must meet nursing facility level of care (clinical assessment showing they need daily help with bathing, dressing, medication management, or similar basic activities)",
+        "otherRequirements": [
+          "Must be family member or informal caregiver",
+          "For dementia program: limited access to other support services",
+          "May require enrollment in Medicaid/KanCare depending on specific waiver"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the Kansas Aging and Disability Resource Center at 1-855-200-2372 for referral to your local Area Agency on Aging.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call statewide referral line",
+            "description": "Contact Kansas Aging and Disability Resource Center at 1-855-200-2372 to get connected to your local Area Agency on Aging"
+          },
+          {
+            "step": 2,
+            "title": "Contact your local Area Agency",
+            "description": "Your local AAA will assess your parent's care needs and determine which waiver programs or services match your situation"
+          },
+          {
+            "step": 3,
+            "title": "Complete nursing facility level of care assessment",
+            "description": "A clinical assessment determines if your parent needs the level of care typically provided in a nursing facility"
+          },
+          {
+            "step": 4,
+            "title": "Submit required forms",
+            "description": "For K-RAD dementia program, email donalds@eckaaa.org with two required forms (contact them for the specific forms)"
+          }
+        ],
+        "processingTime": "K-RAD applications processed in order received",
+        "waitlist": "Funding is limited with no awards guaranteed - you may wait if funds are exhausted for the fiscal year",
+        "tip": "Apply early in the fiscal year (July-August) when funding is most likely available",
+        "urls": [
+          {
+            "label": "Kansas Department for Aging and Disability Services",
+            "url": "https://www.kdads.ks.gov/services-programs/aging/caregivers"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Area Agencies on Aging",
+          "offices": [
+            {
+              "name": "Kansas Aging and Disability Resource Center",
+              "type": "service-area",
+              "phone": "1-855-200-2372",
+              "address": "Statewide referrals"
+            },
+            {
+              "name": "Northeast Kansas Area Agency on Aging",
+              "type": "service-area",
+              "phone": null,
+              "address": "nekaaa.org"
+            },
+            {
+              "name": "East Central Area Agency on Aging",
+              "type": "service-area",
+              "phone": "785-242-7200",
+              "address": "eckaaa.org"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This isn't one program but a network of different waivers and local services. Each county's Area Agency on Aging offers different services with different funding levels. Contact your local AAA to find out what's available in your area."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "K-RAD funding runs July through June on a first-come, first-served basis. If you're caring for someone with Alzheimer's or dementia, apply early in the fiscal year for the best chance at the $1,000 respite subsidy."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is too high for Medicaid but we still need help?",
+          "answer": "Some caregiver support programs don't have specific income limits, but many tie to Medicaid waivers that do have income requirements. Contact your local Area Agency on Aging - they can explain which programs in your county have income restrictions and which don't."
+        },
+        {
+          "question": "Can I get paid to care for my parent through this program?",
+          "answer": "In some cases, family members can be paid caregivers under certain waivers, but you must live with your parent and pass background checks. The program primarily provides respite care (temporary relief) rather than paying family caregivers directly."
+        },
+        {
+          "question": "What's the difference between K-RAD and other caregiver support programs?",
+          "answer": "K-RAD specifically serves families dealing with Alzheimer's or dementia and provides up to $1,000 per year for respite care. Other caregiver programs serve broader disabilities and aging needs but vary significantly by county in what services and funding they offer."
+        },
+        {
+          "question": "How long does the nursing facility level of care assessment take?",
+          "answer": "The research doesn't specify assessment timelines. Contact your local Area Agency on Aging for specific timing - they handle the clinical assessments that determine if your parent qualifies for the level of care typically provided in nursing facilities."
+        },
+        {
+          "question": "What happens if funding runs out before my application is processed?",
+          "answer": "You'll likely wait until the next fiscal year (July) when new funding becomes available. K-RAD and other programs operate on limited annual budgets with no guarantee of awards, so applying early in the fiscal year gives you the best chance."
+        },
+        {
+          "question": "Can I apply if my parent lives in assisted living?",
+          "answer": "Yes, as long as your parent meets nursing facility level of care requirements and you're providing informal caregiving support. The programs focus on the care needs and family caregiver situation, not where your parent currently lives."
+        }
+      ],
+      "phone": "1-855-200-2372",
+      "sourceUrl": "https://www.kdads.ks.gov/services-programs/aging/caregivers",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "kansas-scsep-senior-employment",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP",
+      "tagline": "Paid part-time work and job training for unemployed parents 55+ with low incomes",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Wichita Workforce Center (primary contact)[5]",
+            "type": "service-area"
+          },
+          {
+            "name": "SER Jobs For Progress (operates program in Kansas)[3][6]",
+            "type": "service-area"
+          },
+          {
+            "name": "AARP Foundation SCSEP[7]",
+            "type": "service-area"
+          },
+          {
+            "name": "Additional providers through Kansas WorkforceONE system[3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and struggling to find work on a fixed income, SCSEP provides paid part-time employment while they build skills for permanent jobs. Your parent earns at least minimum wage for 20 hours per week on average, working at nonprofits or government agencies while receiving job training and placement assistance.\n\nThis isn't permanent employment — it's a bridge program designed to help older adults transition to unsubsidized work. Because SCSEP includes supportive services like transportation assistance and computer training, your parent gets both income and the tools they need to find lasting employment.\n\nYour parent must be unemployed with poor job prospects and have family income below 125% of federal poverty level. Priority goes to veterans, those over 65, people with disabilities, and rural residents.",
+      "savingsRange": "",
+      "savingsSource": "Paid employment opportunity",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Currently unemployed",
+          "Family income below 125% federal poverty level",
+          "Poor employment prospects"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be currently unemployed",
+          "Must have poor employment prospects"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call the Wichita Workforce Center at (316) 771-6750 — processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local provider",
+            "description": "Call Wichita Workforce Center at (316) 771-6750 or use the AARP Foundation locator to find providers in your area"
+          },
+          {
+            "step": 2,
+            "title": "Verify income eligibility",
+            "description": "Confirm your parent's family income is below 125% of federal poverty level for their household size"
+          },
+          {
+            "step": 3,
+            "title": "Complete assessment",
+            "description": "Provider will assess employment history and job prospects to determine eligibility"
+          },
+          {
+            "step": 4,
+            "title": "Submit application",
+            "description": "Complete required forms and provide documentation as requested by your local provider"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Priority enrollment goes to veterans, those over 65, people with disabilities, and rural residents — mention these factors when applying.",
+        "urls": [
+          {
+            "label": "AARP Foundation SCSEP Locator",
+            "url": "https://my.aarpfoundation.org/locator/scsep/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is temporary employment designed to lead to permanent jobs. Your parent should expect to transition to unsubsidized work after completing the training program."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Income limits are strict at 125% of federal poverty level. Contact your local provider to verify the exact dollar threshold for your parent's household size before applying."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "How much will my parent earn through SCSEP?",
+          "answer": "Your parent will earn the highest of federal, state, or local minimum wage for an average of 20 hours per week. This is part-time work, not full-time employment."
+        },
+        {
+          "question": "What kind of work will my parent do?",
+          "answer": "SCSEP participants work at nonprofits, schools, hospitals, and government agencies. Jobs include clerical work, maintenance, food service, and community services. The program also provides computer and vocational skills training."
+        },
+        {
+          "question": "How long can my parent stay in the program?",
+          "answer": "SCSEP is designed as temporary employment to help transition to permanent jobs. The program provides job placement assistance to help participants find unsubsidized employment."
+        },
+        {
+          "question": "What if my parent has been working recently?",
+          "answer": "Your parent must be currently unemployed and have poor employment prospects to qualify. Recent employment or strong job prospects may disqualify them from the program."
+        },
+        {
+          "question": "Are there additional services beyond the job placement?",
+          "answer": "Yes. SCSEP provides supportive services including dental and vision assistance, clothing allowances, transportation help, and computer training. Services vary by provider."
+        },
+        {
+          "question": "Which provider should my parent apply with?",
+          "answer": "Multiple organizations run SCSEP in Kansas including SER Jobs For Progress and AARP Foundation. Start with the Wichita Workforce Center at (316) 771-6750 or use the AARP locator to find the provider serving your area."
+        }
+      ],
+      "phone": "(316) 771-6750",
+      "sourceUrl": "https://www.kansascommerce.gov/program/workforce-services/state-of-kansas-senior-employment-services/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "kansas-legal-services-seniors",
+      "name": "Kansas Legal Services (Legal Aid for Seniors)",
+      "shortName": "Kansas Legal Aid",
+      "tagline": "Free legal advice and document help for Kansas seniors 60+ facing estate planning, consumer problems, or elder abuse.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Johnson County: Roeland Park Community Center (4850 Rosewood Drive), Matt Ross Community Center (8101 Marty St., Overland Park), Sunset Drive Office Building (11811 S. Sunset Drive, Olathe)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs legal help with wills, powers of attorney, consumer scams, or elder abuse, Kansas Legal Services provides free legal advice and document preparation for seniors 60 and older. The Elder Law Hotline (1-888-353-5337) connects your parent directly with attorneys who specialize in senior legal issues — no income requirements, just age 60+ and Kansas residency.\n\nThe service covers estate planning documents like living wills and powers of attorney, help accessing public benefits, consumer advocacy against scams, and elder abuse prevention. Priority goes to vulnerable seniors in greatest social and economic need. Because this focuses on civil legal matters only, they cannot help with criminal cases.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Kansas resident",
+          "Civil legal issues only",
+          "Priority to vulnerable seniors"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Kansas resident",
+          "Civil legal issues only (no criminal cases)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the Elder Law Hotline at 1-888-353-5337 and an intake specialist will contact you within 1-3 business days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Elder Law Hotline",
+            "description": "Call 1-888-353-5337 (Mon-Fri 8am-4:30pm) or use the general intake line 1-800-723-6953."
+          },
+          {
+            "step": 2,
+            "title": "Complete phone intake",
+            "description": "Provide household size, income details, rent/mortgage, debts, and information about the legal issue including any opposing parties."
+          },
+          {
+            "step": 3,
+            "title": "Wait for contact",
+            "description": "An intake specialist will contact you within 24 hours to 2-3 business days to discuss eligibility and next steps."
+          }
+        ],
+        "processingTime": "Intake specialist contacts within 24 hours to 2-3 business days",
+        "waitlist": "Services subject to availability of funding",
+        "tip": "Have your parent's income information and details about the legal issue ready when you call to speed up the intake process.",
+        "urls": [
+          {
+            "label": "Online Application",
+            "url": "https://www.kansaslegalservices.org/online-application"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Offices",
+          "offices": [
+            {
+              "name": "Roeland Park Community Center",
+              "type": "service-area",
+              "phone": "913-826-3160",
+              "address": "4850 Rosewood Drive, Roeland Park"
+            },
+            {
+              "name": "Matt Ross Community Center",
+              "type": "service-area",
+              "phone": "913-826-2830",
+              "address": "8101 Marty St., Overland Park"
+            },
+            {
+              "name": "Sunset Drive Office Building",
+              "type": "service-area",
+              "phone": "913-715-8860",
+              "address": "11811 S. Sunset Drive, Olathe"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "The Elder Law Hotline provides advice only — attorneys cannot draft legal documents or represent your parent in court through this program. You may need to seek a private attorney for full representation."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Priority goes to the most vulnerable seniors, so mention any urgent situations like pending eviction, elder abuse, or immediate estate planning needs when you call."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What's the difference between the hotline and in-person services?",
+          "answer": "The Elder Law Hotline (1-888-353-5337) provides free legal advice over the phone but cannot draft documents or represent your parent in court. In-person consultations in Johnson County can provide more comprehensive help including document preparation."
+        },
+        {
+          "question": "Can they help if my parent already has a lawyer?",
+          "answer": "Kansas Legal Services typically helps people who cannot afford private attorneys. If your parent already has legal representation, they may not qualify for these free services."
+        },
+        {
+          "question": "What if my parent's income is too high for other programs?",
+          "answer": "The senior legal services don't have strict income limits like other Kansas Legal Services programs. Priority goes to vulnerable seniors in greatest need, but age 60+ and Kansas residency are the main requirements."
+        },
+        {
+          "question": "How long does it take to get help?",
+          "answer": "An intake specialist will contact you within 1-3 business days after calling. However, actual services depend on funding availability and staff capacity, so there may be additional wait times."
+        },
+        {
+          "question": "What if my parent needs help with criminal charges?",
+          "answer": "Kansas Legal Services only handles civil legal matters. For criminal cases, your parent needs a criminal defense attorney or public defender through the court system."
+        },
+        {
+          "question": "Can they help with Medicare or Social Security problems?",
+          "answer": "Yes, they provide help accessing public benefits, which includes navigating Medicare and Social Security issues as well as other government programs."
+        }
+      ],
+      "phone": "1-888-353-5337",
+      "sourceUrl": "https://www.kansaslegalservices.org/page/57/programs-seniors",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "kansas-long-term-care-ombudsman",
+      "name": "Long-Term Care Ombudsman Program",
+      "shortName": "Ombudsman Program",
+      "tagline": "Free advocacy to resolve problems with your parent's care in nursing homes, assisted living, or adult day centers.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "State office: 900 SW Jackson Street, Suite 1041, Topeka, KS 66612",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a Kansas nursing home, assisted living facility, or adult day center, you have a free advocate available when problems arise. The Long-Term Care Ombudsman Program investigates complaints about care quality, resident rights violations, billing issues, and facility conditions — from medication errors to poor food service.\n\nBecause ombudsmen are trained advocates who know facility regulations, they can often resolve issues faster than families working alone. They handle everything from minor concerns to serious safety problems while protecting your parent's privacy and preventing retaliation.\n\nAny resident, family member, or concerned person can contact the program. No income limits, no applications, no waiting periods — just call when you need help.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Any nursing home or assisted living resident",
+          "Any adult day center participant",
+          "Family members can also call",
+          "No income or asset limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Parent must live in or be considering a long-term care facility in Kansas (nursing homes, assisted living, board and care homes, home plus facilities, adult day care centers, or residential healthcare facilities)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call the toll-free number to report concerns immediately — no forms or applications required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call or contact directly",
+            "description": "Phone 1-877-662-8362 (toll-free) or email LTCO@ks.gov with details about your concern."
+          },
+          {
+            "step": 2,
+            "title": "Explain the situation",
+            "description": "Describe the problem with your parent's care or facility conditions. No formal documentation required."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman investigates",
+            "description": "A trained advocate will look into the issue, visit the facility if needed, and work to resolve the problem."
+          }
+        ],
+        "processingTime": "Services provided as needed without formal processing",
+        "waitlist": null,
+        "tip": "Keep notes about incidents (dates, staff involved, what happened) to help the ombudsman investigate more effectively.",
+        "urls": [
+          {
+            "label": "Find your regional ombudsman",
+            "url": "https://www.ombudsman.ks.gov/find-your-ombudsman"
+          },
+          {
+            "label": "Submit concerns online",
+            "url": "https://www.ombudsman.ks.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program provides advocacy only — not financial aid, healthcare, or housing assistance. For Medicaid issues, contact the separate KanCare Ombudsman instead."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Will the facility retaliate against my parent if I file a complaint?",
+          "answer": "Ombudsmen are trained to protect residents from retaliation and work confidentially when possible. They know how to investigate issues while maintaining your parent's safety and relationships with staff."
+        },
+        {
+          "question": "What kinds of problems can the ombudsman actually solve?",
+          "answer": "They handle care quality issues (medication errors, neglect), billing disputes, resident rights violations, food service problems, and facility condition concerns. They cannot provide direct medical care or financial assistance."
+        },
+        {
+          "question": "How is this different from calling the state health department?",
+          "answer": "Ombudsmen focus specifically on resident advocacy and often resolve issues through negotiation rather than formal enforcement. They work for residents' interests, not the state regulatory system."
+        },
+        {
+          "question": "Can I contact the ombudsman before my parent moves into a facility?",
+          "answer": "Yes. They provide information about long-term care services and resident rights to prospective residents and families considering facility placement."
+        },
+        {
+          "question": "What if my parent doesn't want me to file a complaint on their behalf?",
+          "answer": "Ombudsmen respect resident wishes and confidentiality. They can often provide guidance to you while working directly with your parent or handling the situation sensitively."
+        },
+        {
+          "question": "Is this the same as the KanCare Ombudsman I've heard about?",
+          "answer": "No. This program focuses on long-term care facility issues. The KanCare Ombudsman handles Medicaid managed care problems. Contact this program for nursing home or assisted living concerns."
+        }
+      ],
+      "phone": "1-877-662-8362",
+      "sourceUrl": "https://www.ombudsman.ks.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "kansas-senior-care-act-services",
+      "name": "Senior Care Act Services",
+      "shortName": "Senior Care Act",
+      "tagline": "In-home care services for Kansas parents 60+ who need help with daily tasks but want to stay home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "11 AAAs across Kansas, contact 855-200-2372 for local AAA",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling with daily tasks like bathing, meal preparation, or housekeeping but wants to stay in their own home, Kansas Senior Care Act Services can provide in-home attendant care, homemaker services, respite care, and adult day care. Because this program uses a sliding fee scale based on income and assets, your parent pays only what they can afford—from a small donation to the full cost of services.\n\nThis isn't free care like some programs. Your parent must pass a functional assessment that evaluates their ability to perform activities of daily living (bathing, dressing, toileting) and independent living tasks (meal prep, shopping, managing money). The program focuses on early intervention—helping people before they need nursing home care.\n\nServices vary significantly by county because the program operates through 11 regional Area Agencies on Aging (AAAs). Your parent can even choose a family member or friend as their paid caregiver through the self-direction option for attendant care and homemaker services.",
+      "savingsRange": "",
+      "savingsSource": "Sliding fee service based on ability to pay",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Kansas resident",
+          "Pass functional assessment",
+          "Sliding fee based on income/assets"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must pass functional assessment evaluating ability to perform activities of daily living (bathing, dressing, toileting) and independent living tasks (meal prep, shopping, managing medications). Must have functional limitations but be able to live in community with services.",
+        "otherRequirements": [
+          "Kansas resident",
+          "Adjustable income limits updated each July"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 855-200-2372 to reach your local Area Agency on Aging—no forms needed to start.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your local Area Agency on Aging",
+            "description": "Dial 855-200-2372. They'll connect you to one of 11 regional agencies based on your parent's address."
+          },
+          {
+            "step": 2,
+            "title": "Schedule functional assessment",
+            "description": "A case manager will arrange an in-person assessment of your parent's ability to perform daily tasks and independent living activities."
+          },
+          {
+            "step": 3,
+            "title": "Provide income and asset documentation",
+            "description": "Bring financial records to determine your parent's cost-sharing amount on the sliding fee scale."
+          },
+          {
+            "step": 4,
+            "title": "Develop plan of care",
+            "description": "If qualified, the case manager creates a service plan. For attendant care or homemaker services, you can request a family member or friend as the caregiver."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": null,
+        "tip": "Ask specifically about self-direction if you want to be paid to provide care—not all Area Agencies promote this option.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letters",
+                "Pension statements",
+                "Bank statements",
+                "Investment account statements",
+                "Property tax records"
+              ]
+            },
+            {
+              "name": "Health Information",
+              "items": [
+                "List of current medications",
+                "Recent medical records",
+                "Documentation of functional limitations",
+                "Physician contact information"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income guidelines change every July, so if your parent was previously over the limit, reapply after July 1st. Services vary dramatically by county—some offer more options than others."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I get paid to take care of my own parent through this program?",
+          "answer": "Yes, through the self-direction option for attendant care and homemaker services. You can choose a family member or friend as the paid caregiver. Ask your local Area Agency on Aging specifically about this when you apply."
+        },
+        {
+          "question": "What if my parent's income is too high but they can't afford private care?",
+          "answer": "The sliding fee scale means even higher-income seniors may qualify for reduced-cost services. Income limits are updated each July, and the program considers both income and assets together. Call 855-200-2372 to get assessed—don't assume they won't qualify."
+        },
+        {
+          "question": "How much will my parent have to pay for services?",
+          "answer": "It depends on their income and assets. Payment ranges from a small donation to 100% of the service cost. The exact amount is determined after a financial assessment by your local Area Agency on Aging."
+        },
+        {
+          "question": "What's the difference between this and Medicaid waiver services?",
+          "answer": "Senior Care Act focuses on early intervention—helping people before they need nursing home level care. It's not an entitlement program like Medicaid waivers, and most participants pay something toward their services. The functional requirements are less strict than Medicaid waivers."
+        },
+        {
+          "question": "Will my parent get the same services no matter where in Kansas they live?",
+          "answer": "No. Services vary significantly by county because each of the 11 Area Agencies on Aging operates differently with different local providers. Call your local AAA to find out exactly what's available in your parent's area."
+        },
+        {
+          "question": "Can my parent with dementia qualify even if they can still do some things for themselves?",
+          "answer": "Maybe. A dementia diagnosis alone isn't enough—your parent must pass the functional assessment showing they need help with daily activities or independent living tasks. The assessment looks at cognitive deficits alongside physical limitations."
+        }
+      ],
+      "phone": "855-200-2372",
+      "sourceUrl": "https://www.kdads.ks.gov/services-programs/aging/senior-care-act-sca",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "kansas-senior-citizen-law-project",
+      "name": "Senior Citizen Law Project (SCLP)",
+      "shortName": "SCLP",
+      "tagline": "Free legal help for Kansas seniors 60+ facing elder abuse, benefit denials, or financial exploitation.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If your parent is 60+ and lives in Kansas, they can get free legal help through the Senior Citizen Law Project. This includes legal counseling, representation in court, and help with documents — at no cost. The program focuses on seniors who need help obtaining cash and medical assistance, stopping elder abuse, or dealing with financial exploitation. Priority goes to seniors with the lowest incomes and those who are isolated or at risk, but the Elder Law Hotline has no income requirements and can help anyone 60+ get legal guidance.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Kansas resident",
+          "Priority for low-income seniors",
+          "Elder Law Hotline has no income limits"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Kansas residency",
+          "Priority given to those in greatest economic need (generally 125%-200% of federal poverty level)",
+          "Priority for those with greatest social need (physical/mental disabilities, language barriers, isolation)"
+        ],
+        "povertyLevelReference": "125%-200% FPL for priority services"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call Kansas Legal Services or the Elder Law Hotline — no application forms required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Elder Law Hotline",
+            "description": "Start with the Elder Law Hotline (no income requirements) for immediate legal consultation and referrals."
+          },
+          {
+            "step": 2,
+            "title": "Or call Kansas Legal Services",
+            "description": "Contact Kansas Legal Services directly to request a staff attorney consultation."
+          },
+          {
+            "step": 3,
+            "title": "Request home visit if needed",
+            "description": "Staff attorneys can visit your parent at home or in their community if they cannot travel to an office."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Start with the Elder Law Hotline — it has no income requirements and can immediately connect your parent to the right legal resources.",
+        "urls": [
+          {
+            "label": "Kansas Legal Services",
+            "url": "https://www.kansaslegalservices.org/page/57/programs-seniors"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "The Elder Law Hotline has no income requirements — even if your parent's income is too high for other SCLP services, they can still get legal consultation through the hotline."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom's income is too high for priority services?",
+          "answer": "She can still call the Elder Law Hotline, which has no income requirements. Even for other SCLP services, seniors who don't meet strict priority criteria may still receive consultation — the program serves anyone 60+ who needs help."
+        },
+        {
+          "question": "Can they help if Dad is being financially exploited by a caregiver?",
+          "answer": "Yes. Stopping financial, physical, and psychological abuse of elders is a core focus of SCLP. They provide legal representation and can help with court proceedings to protect your father."
+        },
+        {
+          "question": "What if Mom was denied Medicaid or other benefits?",
+          "answer": "SCLP specifically helps seniors obtain cash and medical assistance, including appealing benefit denials. They can provide legal representation in administrative proceedings and help draft appeals."
+        },
+        {
+          "question": "Do they only help in certain parts of Kansas?",
+          "answer": "No, SCLP is statewide. Staff attorneys can visit communities throughout Kansas and arrange at-home visits if your parent cannot travel to an office."
+        },
+        {
+          "question": "What legal documents can they help with?",
+          "answer": "SCLP attorneys can draft legal documents related to their focus areas — benefit applications, elder abuse protection orders, and documents needed to obtain cash or medical assistance. For other legal needs, they provide referrals."
+        },
+        {
+          "question": "How quickly can someone get help?",
+          "answer": "Contact times aren't specified, but cases involving elder abuse, healthcare access, and financial assistance get priority. Call immediately if your parent is in an unsafe situation."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.kansaslegalservices.org/page/57/programs-seniors",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Kansas offers 14 programs to help your aging parent — 9 provide direct financial benefits or services, 4 offer free resources and advocacy, and 1 provides employment opportunities. These range from monthly grocery assistance and help paying Medicare costs to free home-delivered meals and legal advocacy. Many programs start at age 60, though some require nursing home-level care or specific income limits.\n\nIf your parent is struggling financially, start with the benefit programs below. If they need guidance navigating Medicare or resolving care facility problems, the free resource programs can help immediately without income requirements.",
+    "startHere": [
+      {
+        "name": "Medicare Savings Programs (MSP)",
+        "programId": "medicare-savings-programs",
+        "why": "Most Kansas seniors qualify and this directly reduces Medicare costs every month."
+      },
+      {
+        "name": "Food Assistance (SNAP)",
+        "programId": "snap",
+        "why": "Provides $100–300+ monthly for groceries with broad income eligibility."
+      },
+      {
+        "name": "Kansas Senior Nutrition Program",
+        "programId": "senior-nutrition-program",
+        "why": "Free meals for anyone 60+ with no income requirements — immediate help available."
+      },
+      {
+        "name": "Senior Health Insurance Counseling for Kansas (SHICK)",
+        "programId": "shick",
+        "why": "Free expert help to optimize Medicare plans and reduce healthcare costs."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying for home care",
+        "programs": [
+          "KanCare Frail Elderly Waiver (FE Waiver)",
+          "Program of All-Inclusive Care for the Elderly (PACE)",
+          "Senior Care Act Services"
+        ],
+        "description": "Three options to help parents who need daily care stay home instead of moving to a nursing facility."
+      },
+      {
+        "need": "Food assistance",
+        "programs": [
+          "Food Assistance (SNAP)",
+          "Kansas Senior Nutrition Program"
+        ],
+        "description": "Monthly grocery benefits plus free home-delivered or community meals for seniors 60+."
+      },
+      {
+        "need": "Lower utility and healthcare costs",
+        "programs": [
+          "Low-Income Energy Assistance Program (LIHEAP)",
+          "Weatherization Assistance Program",
+          "Medicare Savings Programs (MSP)"
+        ],
+        "description": "Help with heating bills, home energy efficiency, and Medicare expenses."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "Senior Health Insurance Counseling for Kansas (SHICK)",
+          "Kansas Legal Services",
+          "Long-Term Care Ombudsman Program",
+          "Senior Citizen Law Project"
+        ],
+        "description": "Expert guidance on Medicare, legal issues, and resolving problems with care facilities."
+      },
+      {
+        "need": "Support for family caregivers",
+        "programs": [
+          "Caregiver Support Programs"
+        ],
+        "description": "Respite care and services when you're caring for a parent who needs daily help."
+      },
+      {
+        "need": "Employment for active seniors",
+        "programs": [
+          "Senior Community Service Employment Program (SCSEP)"
+        ],
+        "description": "Paid part-time work and job training for parents 55+ with low incomes."
+      }
+    ],
+    "quickFacts": [
+      "Most Kansas benefit programs start eligibility at age 60, not 65",
+      "Programs requiring nursing home-level care use the same clinical assessment — if your parent qualifies for one, they likely qualify for others",
+      "Kansas has multiple free legal aid programs specifically for seniors 60+",
+      "PACE is available in Kansas for comprehensive medical care under one program"
+    ],
+    "resourcesVsBenefits": "Benefits like SNAP, LIHEAP, and the Frail Elderly Waiver require income limits and formal applications — but they provide direct financial help or services. Resources like SHICK, Kansas Legal Services, and the Ombudsman Program are free to all Kansas seniors regardless of income and can help immediately with advice, advocacy, and problem-solving."
+  }
+}

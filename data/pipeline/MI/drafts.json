@@ -1,0 +1,961 @@
+{
+  "state": "MI",
+  "stateName": "Michigan",
+  "draftedAt": "2026-04-09T14:16:50.127Z",
+  "total": 6,
+  "successful": 6,
+  "programs": [
+    {
+      "id": "michigan-choice-waiver",
+      "name": "Michigan Choice Waiver Program",
+      "shortName": "MI Choice Waiver",
+      "tagline": "If your parent needs help with daily tasks but wants to stay home, this Medicaid program covers care coordination and home services to avoid nursing home placement.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Regional MI Choice Waiver Agencies",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and needs help with bathing, dressing, or medication management, the Michigan Choice Waiver Program provides care coordination and home services through Medicaid. This lets them stay in their own home instead of moving to a nursing facility.\n\nThe program covers services like adult day health, home-delivered meals, personal emergency response systems, respite care, and home modifications. Because it's administered through regional agencies across Michigan, you'll work with one local team that coordinates all their care needs.\n\nIncome limit: $2,982/month for a single person (2025). Asset limit: $9,950 (2025). Your parent must qualify for Medicaid and need nursing facility-level care to be eligible.",
+      "savingsRange": "",
+      "savingsSource": "Free service through Medicaid",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ (or 18-64 if disabled)",
+          "Income below $2,982/month",
+          "Assets below $9,950",
+          "Needs nursing facility-level care",
+          "Must qualify for Medicaid"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 9950,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Cash",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home (if equity under $730,000)",
+            "One vehicle",
+            "Spouse's assets (protected under federal guidelines)"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must need nursing facility-level care (determined through in-person assessment of ability to perform daily activities like bathing, dressing, and medication management)",
+        "otherRequirements": [
+          "Must be eligible for Medicaid",
+          "Must live in home or community setting (not nursing facility)",
+          "Must need supports coordination plus at least one other waiver service"
+        ],
+        "povertyLevelReference": "300% of Federal Benefit Rate"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your regional MI Choice Waiver Agency for a phone screening, then schedule an in-person assessment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your regional agency",
+            "description": "Look up which MI Choice Waiver Agency serves your parent's county on the state website or call 734-722-2830 for Wayne County (The Senior Alliance)."
+          },
+          {
+            "step": 2,
+            "title": "Complete phone screening",
+            "description": "The agency will do a preliminary screening over the phone to check basic eligibility requirements."
+          },
+          {
+            "step": 3,
+            "title": "Schedule in-person assessment",
+            "description": "If your parent passes the phone screening, schedule a Level of Care Determination (LOCD) assessment at their home to evaluate their care needs."
+          },
+          {
+            "step": 4,
+            "title": "Gather required documents",
+            "description": "Collect income verification (Social Security statements), asset statements, proof of residency, and medical information before the assessment."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Yes - waitlists exist and vary by region",
+        "tip": "Call with your parent's gross Social Security amount (before Medicare deductions) - if they're even $1 over the income limit, they won't qualify.",
+        "urls": [
+          {
+            "label": "Find your regional MI Choice agency",
+            "url": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts Toward $9,950 Limit",
+          "included": [
+            "Bank accounts and cash",
+            "Stocks, bonds, and investments",
+            "Second vehicles",
+            "Property other than primary home",
+            "Life insurance with cash value over $1,500"
+          ],
+          "excluded": [
+            "Primary home (if equity under $730,000)",
+            "One vehicle of any value",
+            "Spouse's assets (protected under federal guidelines)",
+            "Household goods and personal belongings",
+            "Burial plots and prepaid funeral plans"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring to Assessment",
+          "categories": [
+            {
+              "name": "Income Verification",
+              "items": [
+                "Social Security award letter showing gross amount",
+                "Pension statements",
+                "Bank statements for any interest income"
+              ]
+            },
+            {
+              "name": "Asset Documentation",
+              "items": [
+                "Bank account statements",
+                "Investment account statements",
+                "Vehicle titles and registrations",
+                "Property deeds or tax assessments"
+              ]
+            },
+            {
+              "name": "Medical Information",
+              "items": [
+                "List of current medications",
+                "Recent doctor visits and hospitalizations",
+                "Documentation of help needed with daily activities"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Income is calculated using gross amounts before deductions. If your parent receives $2,983/month in Social Security before Medicare premiums are taken out, they won't qualify even if their take-home amount is lower."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "The 60-month look-back rule applies - any assets your parent gave away or sold below fair market value in the past 5 years could trigger a penalty period that delays eligibility."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes, as long as the home equity is under $730,000 (2025 limit) and they intend to return home. The house doesn't count toward the $9,950 asset limit."
+        },
+        {
+          "question": "What if Mom's income is just over the $2,982 limit?",
+          "answer": "Unfortunately, there's no flexibility - being even $1 over the gross income limit disqualifies her. The limit is based on gross Social Security before Medicare deductions."
+        },
+        {
+          "question": "Does my parent's spouse's income count against the limit?",
+          "answer": "No, spousal income is excluded from the $2,982 individual limit, and the spouse's assets are protected under federal spousal protection guidelines."
+        },
+        {
+          "question": "What's the difference between this and regular Medicaid?",
+          "answer": "MI Choice Waiver provides additional home and community services beyond regular Medicaid, like adult day health, home modifications, and respite care - services specifically designed to help people avoid nursing home placement."
+        },
+        {
+          "question": "How long is the waitlist in my area?",
+          "answer": "Waitlist times vary by regional agency. When you call your local MI Choice agency, ask specifically about current wait times in your parent's county."
+        },
+        {
+          "question": "What happens if Dad gives away money to qualify?",
+          "answer": "Any assets transferred for less than fair market value in the past 60 months create a penalty period that delays eligibility. It's better to work with the agency to explore legitimate spend-down options."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "michigan-mi-health-link",
+      "name": "MI Health Link Program",
+      "shortName": "MI Health Link",
+      "tagline": "One card, one plan for all your parent's Medicare and Medicaid services — no more coordinating between different providers.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "ICO-specific providers (e.g., HAP for Macomb/Wayne, DWMHA for Wayne)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has both Medicare and Medicaid, MI Health Link combines everything into one plan with one card. Instead of juggling separate Medicare and Medicaid providers, your parent gets all medical care, prescriptions, home care, and transportation through one team that coordinates everything.\n\nThis program is only available in 25 Michigan counties, including Wayne, Macomb, and all Upper Peninsula counties. Your parent must have full Medicare (Parts A, B, and D) and full Medicaid — not spend-down Medicaid.\n\nBecause MI Health Link replaces your parent's Medicare Part D prescription plan, they'll have no co-pays or deductibles on covered medications. If they need home care services, one care coordinator handles the assessment and arranges everything.",
+      "savingsRange": "",
+      "savingsSource": "Free service coordination and integrated care",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 21+",
+          "Full Medicare Parts A, B, and D",
+          "Full Medicaid (not spend-down)",
+          "Live in eligible county",
+          "Not in hospice or nursing home"
+        ],
+        "ageRequirement": "21+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [],
+          "exemptAssets": [
+            "Home with equity up to $730,000 if returning home",
+            "Home if spouse or dependent child lives there"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "For home care services: Must meet Nursing Facility Level of Care (assessment of whether your parent needs daily help with bathing, dressing, medication management, or has cognitive impairment)",
+        "otherRequirements": [
+          "Must live in Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, Macomb, St. Joseph, Van Buren, Wayne, or any Upper Peninsula county",
+          "Cannot be in state veteran's home, hospice, PACE, or MI Choice programs"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Most eligible people are automatically enrolled after receiving a letter with plan options.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Wait for enrollment letter",
+            "description": "Michigan ENROLLS will mail you plan options if your parent is eligible. This happens automatically based on Medicare and Medicaid records."
+          },
+          {
+            "step": 2,
+            "title": "Choose a plan",
+            "description": "Select an Integrated Care Organization (ICO) from the options provided. Different plans serve different counties."
+          },
+          {
+            "step": 3,
+            "title": "Submit required forms",
+            "description": "Complete Authorization to Disclose Protected Health Information (DCH-1183) and Behavioral Health Consent Form (MDHHS-5515)."
+          },
+          {
+            "step": 4,
+            "title": "Get assigned if no choice",
+            "description": "If you don't choose a plan during the enrollment window, your parent will be automatically assigned to one."
+          }
+        ],
+        "processingTime": "Varies by enrollment phase",
+        "waitlist": null,
+        "tip": "Don't wait for the auto-assignment — choose your preferred plan during the enrollment window to have more control.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and investments",
+            "Home equity over $730,000 (if planning to return home)"
+          ],
+          "excluded": [
+            "Primary home up to $730,000 equity if intending to return",
+            "Home of any value if spouse or dependent child lives there",
+            "One vehicle",
+            "Personal belongings and household items"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Eligible Counties",
+          "offices": [
+            {
+              "name": "Southwest Michigan",
+              "type": "service-area",
+              "phone": null,
+              "address": "Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, St. Joseph, Van Buren counties"
+            },
+            {
+              "name": "Southeast Michigan",
+              "type": "service-area",
+              "phone": null,
+              "address": "Macomb, Wayne counties"
+            },
+            {
+              "name": "Upper Peninsula",
+              "type": "service-area",
+              "phone": null,
+              "address": "All 15 UP counties: Alger, Baraga, Chippewa, Delta, Dickinson, Gogebic, Houghton, Iron, Keweenaw, Luce, Mackinac, Marquette, Menominee, Ontonagon, Schoolcraft"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Insurance",
+              "items": [
+                "Medicare card (Parts A, B, and D)",
+                "Medicaid card",
+                "Current Medicare Part D prescription plan information"
+              ]
+            },
+            {
+              "name": "Personal",
+              "items": [
+                "Proof of address in eligible county",
+                "List of current medications and providers"
+              ]
+            },
+            {
+              "name": "Care Needs",
+              "items": [
+                "Existing Level of Care Determination (if your parent already receives home care services)",
+                "Medical records showing need for daily assistance (for home care assessment)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent must leave MI Choice, PACE, or hospice programs before joining MI Health Link. They cannot be enrolled in both."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What happens to Mom's current Medicare Part D prescription plan?",
+          "answer": "MI Health Link replaces her Part D plan completely. She'll get prescription coverage through the integrated plan with no co-pays or deductibles on covered medications. You'll need to cancel her current Part D plan."
+        },
+        {
+          "question": "Can Dad keep his current doctors?",
+          "answer": "It depends on which Integrated Care Organization (ICO) you choose and whether his doctors are in that network. Each ICO has different provider networks, so ask about his specific doctors before selecting a plan."
+        },
+        {
+          "question": "What if Mom moves to a different Michigan county?",
+          "answer": "If she moves to another eligible county, she can transfer to that area's ICO. If she moves to a county not covered by MI Health Link, her enrollment ends and she'll go back to separate Medicare and Medicaid."
+        },
+        {
+          "question": "Does this cover nursing home care if Dad needs it later?",
+          "answer": "Yes, MI Health Link covers nursing home care when medically necessary. However, your dad will need to pay his patient pay amount (most of his income minus a small personal allowance) toward the cost."
+        },
+        {
+          "question": "Can Mom get home care services through this program?",
+          "answer": "Yes, but she must first pass a Nursing Facility Level of Care assessment showing she needs daily help with activities like bathing, dressing, or medication management. The care coordinator will arrange this assessment."
+        },
+        {
+          "question": "What if we don't choose a plan during enrollment?",
+          "answer": "Michigan will automatically assign your parent to an available ICO in your county. You'll lose the ability to choose which plan and provider network works best for your family's needs."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.michigan.gov/mdhhs/doing-business/providers/integrated",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "michigan-mi-options-counseling",
+      "name": "MI Options",
+      "shortName": "MI Options",
+      "tagline": "Free one-on-one counseling to help you navigate long-term care options and Medicare for your parent.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Statewide call center; local: The Senior Alliance (Wayne County), AgeWays, WellWise Services (regional examples)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're trying to figure out care options for your parent — whether that's home care, adult day programs, or understanding Medicare plans — MI Options provides free one-on-one counseling sessions to help you navigate these decisions. Because the program uses certified counselors who understand Michigan's specific resources, you'll get personalized guidance tailored to your parent's situation and your local community.\n\nThe program is open to all Michigan adults 18+, including caregivers and family members. There are no income or asset limits. Sessions typically last 90 minutes and include follow-up support to help you implement the action plan you create together.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 18+",
+          "Michigan resident",
+          "No income limits",
+          "Includes caregivers and family"
+        ],
+        "ageRequirement": "18+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Michigan resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the statewide number to speak with an agent immediately or schedule a counselor appointment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the MI Options line",
+            "description": "Call 800-803-7174 (8 a.m.-8 p.m., Monday-Friday) to speak with an agent about your parent's situation."
+          },
+          {
+            "step": 2,
+            "title": "Schedule your counseling session",
+            "description": "The agent will connect you with a local certified counselor in your area or schedule an appointment."
+          },
+          {
+            "step": 3,
+            "title": "Prepare for your session",
+            "description": "Think about your parent's current needs, goals, and any challenges you're facing. No documents required."
+          },
+          {
+            "step": 4,
+            "title": "Meet with your counselor",
+            "description": "Work together to create a personalized action plan during your ~90-minute session, with follow-up support available."
+          }
+        ],
+        "processingTime": "Immediate phone access; counselor appointments scheduled via call center",
+        "waitlist": null,
+        "tip": "Prepare a list of your parent's current challenges and what you hope to achieve — this will help the counselor provide more targeted guidance.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Offices",
+          "offices": [
+            {
+              "name": "Statewide Call Center",
+              "type": "service-area",
+              "phone": "800-803-7174",
+              "address": "8 a.m.-8 p.m., Monday-Friday"
+            },
+            {
+              "name": "AgeWays",
+              "type": "service-area",
+              "phone": "833-801-5587",
+              "address": "OptionsCounseling@AgeWays.org"
+            },
+            {
+              "name": "WellWise Services",
+              "type": "service-area",
+              "phone": "517-592-1974",
+              "address": "intake.referral@wellwiseservices.org"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "MI Options provides counseling and referrals only — it's not the same as MI Choice Waiver, which provides direct home care services. Your counselor will help you understand which programs your parent might qualify for."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What's the difference between MI Options and MI Choice?",
+          "answer": "MI Options is free counseling available to anyone — it helps you understand your options. MI Choice is a Medicaid waiver program that provides actual home care services but has income limits and a waitlist. Your MI Options counselor can help determine if your parent qualifies for MI Choice or other programs."
+        },
+        {
+          "question": "Can I get counseling even if my parent doesn't qualify for government programs?",
+          "answer": "Yes. MI Options is open to all Michigan residents regardless of income or assets. Even if your parent makes too much money for programs like Medicaid, the counselor can help you understand private pay options, community resources, and Medicare benefits."
+        },
+        {
+          "question": "Will the counselor come to my parent's house?",
+          "answer": "The program offers personalized counseling sessions, but the research doesn't specify if home visits are available. When you call 800-803-7174, ask about meeting options that work for your parent's situation."
+        },
+        {
+          "question": "How much does this cost?",
+          "answer": "MI Options counseling is completely free. However, any programs or services your counselor refers you to may have their own costs or eligibility requirements."
+        },
+        {
+          "question": "Is this just for seniors or can I get help as a caregiver?",
+          "answer": "The program explicitly includes caregivers and family members seeking guidance on long-term care or Medicare. You don't need to be elderly or disabled to access counseling."
+        },
+        {
+          "question": "What if I don't know what questions to ask?",
+          "answer": "That's exactly what the counselors are for. During your ~90-minute session, they'll help you identify your parent's needs and explore options you may not have considered. Come prepared with your current challenges and goals, but the counselor will guide the conversation."
+        }
+      ],
+      "phone": "800-803-7174",
+      "sourceUrl": "https://www.michigan.gov/mdhhs/inside-mdhhs/newsroom/2025/08/22/mi-options",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "michigan-senior-project-fresh",
+      "name": "Senior Project Fresh Program",
+      "shortName": "Senior Project Fresh",
+      "tagline": "Get $25 in coupons for fresh produce at farmers markets if your parent is 60+ and meets income limits.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If your parent is 60+ and on a fixed income, they may qualify for $25 in coupons each season to buy fresh Michigan-grown fruits, vegetables, and herbs at farmers markets. Because this program runs only during growing season (May through October), your parent gets coupons they must use by October 31 each year.\n\nThe program uses a digital coupon system through the Healthy Together platform — no more paper coupons to lose or forget. Your parent can use these at any participating farmers market or roadside stand in their county. Income limit: $2,322/month for a single person or $3,151/month for a couple (2024 limits).\n\nBecause each eligible household member can apply separately, if both your parents qualify, they each get their own $25 in coupons. The program also includes free nutrition counseling to help your parent make the most of fresh produce.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ (55+ if tribal member)",
+          "Income below $2,322/month (single)",
+          "Michigan resident",
+          "Must live in county where applying"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2322
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3151
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 3981
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 4810
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be Michigan resident",
+          "Must live in county where receiving benefits",
+          "Age 55+ if member of Michigan federally recognized tribe"
+        ],
+        "povertyLevelReference": "185% FPL"
+      },
+      "applicationGuide": {
+        "method": "online",
+        "summary": "Apply online starting May 1st through the Healthy Together platform — processing time not specified by the state.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Wait for May 1st",
+            "description": "Applications only open May 1st each year and the program runs through October 31st."
+          },
+          {
+            "step": 2,
+            "title": "Apply through Healthy Together",
+            "description": "Complete the online application with your parent's income information, household size, and address."
+          },
+          {
+            "step": 3,
+            "title": "Provide required documents",
+            "description": "Submit proof of income eligibility and confirmation of any other assistance programs your parent receives."
+          },
+          {
+            "step": 4,
+            "title": "Attend nutrition education (if required)",
+            "description": "Some counties require attendance at a nutrition class to receive coupons — format varies by county (in-person, Zoom, or phone)."
+          },
+          {
+            "step": 5,
+            "title": "Receive digital coupons",
+            "description": "Coupons are loaded digitally and can be used at participating farmers markets in your parent's county."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent can't apply themselves, you can serve as their proxy by completing form MDHHS-6011 and providing identification.",
+        "urls": [
+          {
+            "label": "Email for questions",
+            "url": "mailto:MDHHS-SeniorProjectFresh@michigan.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Applications only open May 1st and all coupons expire October 31st — you cannot carry them over to the next year."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent must receive and use coupons in the same county where they live — they cannot shop at farmers markets in other counties with these coupons."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the monthly limit?",
+          "answer": "Income limits are updated annually based on federal poverty guidelines. The limits shown are for 2024 — check current year limits before applying. Income is calculated as yearly gross household income including everyone who shares the address and pools expenses."
+        },
+        {
+          "question": "Can my parent use these coupons at regular grocery stores?",
+          "answer": "No. Coupons can only be used at participating farmers markets and roadside stands that sell Michigan-grown produce. The farmers must complete special training to accept these coupons."
+        },
+        {
+          "question": "What if my parent can't get to farmers markets or use the online system?",
+          "answer": "You can serve as your parent's proxy to apply, receive, and redeem coupons. You must be at least 18, provide identification, and complete form MDHHS-6011 with written approval from your parent."
+        },
+        {
+          "question": "Does this affect my parent's other benefits like SNAP or Medicaid?",
+          "answer": "No. This is a supplemental program that does not count as income for other benefit programs. Your parent can receive both SNAP and Senior Project Fresh coupons."
+        },
+        {
+          "question": "What if we miss the May 1st application deadline?",
+          "answer": "Applications are only accepted during the growing season (May 1 - October 31). If you miss the deadline, you'll need to wait until the following May to apply."
+        },
+        {
+          "question": "Why might my parent need to attend a nutrition class?",
+          "answer": "Some counties require nutrition education to receive coupons, but the format varies — it might be in-person, over Zoom, or by phone. This depends on which agency serves your parent's county and their specific requirements."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.michigan.gov/mdhhs/adult-child-serv/adults-and-seniors/acls/special-programs/senior-project-freshmarket-fresh",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "michigan-micafe-food-assistance",
+      "name": "MiCAFE (Michigan's Coordinated Access to Food for the Elderly)",
+      "shortName": "MiCAFE",
+      "tagline": "Free help getting your parent signed up for SNAP food benefits they may be missing out on.",
+      "programType": "navigator",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Primary office: Elder Law of Michigan, Inc., Lansing, MI",
+            "type": "service-area"
+          },
+          {
+            "name": "Network of statewide partners",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is struggling to afford groceries, they may qualify for SNAP food benefits (Michigan Bridge Card) but don't know how to apply. Nearly 50% of eligible Michigan seniors aren't enrolled in SNAP — missing out on monthly grocery assistance they've earned. MiCAFE provides free, personalized help to walk your parent through the entire SNAP application process.\n\nBecause MiCAFE handles the paperwork and advocacy, your parent gets professional support navigating income calculations (income minus medical expenses), gathering required documents, and communicating with the Michigan Department of Health and Human Services. The program also helps with utility assistance, tax programs, Medicare Part D, and other benefits your parent may be eligible for but hasn't accessed.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Seniors or adults with disabilities",
+          "Potentially eligible for SNAP benefits",
+          "Based on income minus medical expenses",
+          "Statewide Michigan coverage"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be potentially eligible for SNAP (Supplemental Nutrition Assistance Program)",
+          "All persons living together and purchasing/preparing food together count as one household"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call (877) 664-2233 to start — trained professionals can complete the application by phone or schedule in-home visits where available.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call MiCAFE intake line",
+            "description": "Call (877) 664-2233 Monday-Friday, 9:00 a.m. to 3:00 p.m. to discuss your parent's situation and schedule assistance."
+          },
+          {
+            "step": 2,
+            "title": "Gather required information",
+            "description": "Collect your parent's Social Security number, monthly income details, shelter costs, medical expenses, asset information, and any current public benefits."
+          },
+          {
+            "step": 3,
+            "title": "Complete application with MiCAFE counselor",
+            "description": "A certified professional will complete the SNAP application with your parent by phone or in-person, including income calculations that factor in medical expenses."
+          },
+          {
+            "step": 4,
+            "title": "MiCAFE advocates with state agency",
+            "description": "MiCAFE staff work directly with Michigan Department of Health and Human Services to process the application and resolve any issues."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Medical expenses can significantly reduce your parent's countable income for SNAP eligibility — gather documentation of all medical costs including premiums, prescriptions, and out-of-pocket expenses.",
+        "urls": [
+          {
+            "label": "MiCAFE Program Information",
+            "url": "elderlawofmi.org/micafe"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Phone hours are limited to weekdays 9:00 a.m. to 3:00 p.m. — call early in the day for best chance of reaching a counselor without long wait times."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "In-home application assistance is only available in some areas of Michigan. Call to confirm whether this service is offered in your parent's location."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent was denied SNAP benefits before?",
+          "answer": "MiCAFE can help reapply even if your parent was previously denied. Because eligibility is based on income minus medical expenses, rising medical costs or changes in income may now make your parent eligible. MiCAFE advocates can also identify if the previous application missed deductions or made calculation errors."
+        },
+        {
+          "question": "Will using MiCAFE affect my parent's privacy?",
+          "answer": "All information shared during MiCAFE appointments is confidential and only used for benefit eligibility determination. MiCAFE staff are bound by privacy rules and won't discuss your parent's information outside the application process."
+        },
+        {
+          "question": "Can MiCAFE help if my parent lives with other family members?",
+          "answer": "Yes, but household composition affects SNAP eligibility. All people living together who purchase and prepare food together count as one household for income and benefit calculations. MiCAFE counselors will walk through your parent's specific living situation to determine how it impacts eligibility."
+        },
+        {
+          "question": "What other benefits can MiCAFE help my parent apply for?",
+          "answer": "Beyond SNAP, MiCAFE assists with utility assistance programs, tax programs, and Medicare Part D prescription drug benefits. If your parent doesn't qualify for SNAP, they may still get help accessing Medicare programs to reduce prescription costs."
+        },
+        {
+          "question": "Does my parent need to visit an office in person?",
+          "answer": "No office visit required. MiCAFE can complete applications entirely by phone. In-home visits are available in some areas where MiCAFE has local partners, but most services are provided remotely for convenience."
+        },
+        {
+          "question": "How much SNAP benefits could my parent receive?",
+          "answer": "SNAP benefit amounts depend on household size, income after medical expense deductions, and shelter costs. MiCAFE counselors calculate the potential benefit amount during the application process based on your parent's specific financial situation."
+        }
+      ],
+      "phone": "(877) 664-2233",
+      "sourceUrl": "elderlawofmi.org/micafe",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "michigan-senior-companion-program",
+      "name": "Senior Companion Program",
+      "shortName": "Senior Companion",
+      "tagline": "Free one-on-one companion for your parent who needs help with daily activities and social connection.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Catholic Services of Macomb",
+            "type": "service-area"
+          },
+          {
+            "name": "Family Service Agency of Mid Michigan",
+            "type": "service-area"
+          },
+          {
+            "name": "CCSEM (Oakland/Macomb)",
+            "type": "service-area"
+          },
+          {
+            "name": "Milestone Senior Services",
+            "type": "service-area"
+          },
+          {
+            "name": "MAFG/SCP",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs daily companionship and help with activities like light housekeeping, meal preparation, or transportation to appointments, the Senior Companion Program provides a trained volunteer companion at no cost. Your parent receives one-on-one support from a vetted companion age 55+ who visits regularly to help maintain independence at home.\n\nCompanions provide non-medical assistance with daily living activities, social interaction, and light household tasks. Because companions are trained volunteers who pass FBI background checks, you can trust they're qualified to help your parent safely. The program serves adults 21+ with conditions like dementia, physical impairments, developmental disabilities, or those experiencing isolation.\n\nAvailable in 73 of Michigan's 83 counties through local non-profit organizations. Your parent doesn't need to meet income requirements — eligibility focuses on need for companionship and assistance.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 21+",
+          "Needs help with daily activities",
+          "Has dementia, disability, or isolation",
+          "Available in 73 counties"
+        ],
+        "ageRequirement": "21+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must need assistance with activities of daily living or companionship due to conditions like dementia, physical/visual impairments, developmental disabilities, mental illness, frail health, or social isolation",
+        "otherRequirements": [
+          "Lives in one of 73 participating counties",
+          "Accepts volunteer companion visits"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your local provider for a referral — no formal application needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Look up which organization serves your county from the list below"
+          },
+          {
+            "step": 2,
+            "title": "Call for assessment",
+            "description": "Provider will assess your parent's needs and match with an appropriate companion"
+          },
+          {
+            "step": 3,
+            "title": "Meet your companion",
+            "description": "Provider introduces companion and schedules regular visits (typically 15-20 hours per week)"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Referrals often come through healthcare providers or other agencies, so ask your parent's doctor or social worker about Senior Companion services.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Providers",
+          "offices": [
+            {
+              "name": "CCSEM (Oakland/Macomb)",
+              "type": "service-area",
+              "phone": "248-537-3300",
+              "address": "lacommarec@ccsem.org"
+            },
+            {
+              "name": "Family Service Agency of Mid Michigan",
+              "type": "service-area",
+              "phone": "810-257-3769",
+              "address": "Mid-Michigan region"
+            },
+            {
+              "name": "Milestone Senior Services",
+              "type": "service-area",
+              "phone": "269-382-0515",
+              "address": "Kalamazoo area"
+            },
+            {
+              "name": "Catholic Services of Macomb",
+              "type": "service-area",
+              "phone": null,
+              "address": "Macomb County"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program provides companions TO your parent, not for your parent to become a companion. The income limits apply to the volunteers, not the people receiving services."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What exactly will the companion do for my parent?",
+          "answer": "Companions provide non-medical assistance like light housekeeping, meal preparation, transportation to appointments, social interaction, and help with daily activities. They cannot provide medical care or nursing services."
+        },
+        {
+          "question": "How often will the companion visit?",
+          "answer": "Companions typically visit 15-20 hours per week, depending on your local provider. CCSEM requires 20 hours per week while Catholic Services requires 15 hours per week."
+        },
+        {
+          "question": "Does my parent need to pay anything?",
+          "answer": "No. This is a free service funded by the federal Older Americans Act. Your parent doesn't pay for the companion's time, training, or background checks."
+        },
+        {
+          "question": "What if my parent lives in a nursing home or assisted living?",
+          "answer": "Companions can visit your parent in nursing homes, assisted living facilities, adult day care centers, or family homes. The setting doesn't disqualify them from services."
+        },
+        {
+          "question": "How do I know the companion is trustworthy?",
+          "answer": "All companions pass FBI fingerprinting and National Sex Offender background checks. They also complete pre-service orientation and monthly training through the local provider organization."
+        },
+        {
+          "question": "What if there's no provider in my parent's county?",
+          "answer": "The program only operates in 73 of Michigan's 83 counties. If your county isn't served, contact the Michigan Department of Health and Human Services at the number above to ask about other companion or respite services."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.michigan.gov/mdhhs/adult-child-serv/adults-and-seniors/acls/special-programs",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Michigan offers 6 programs specifically designed to help seniors stay independent and healthy at home. These range from Medicaid waiver programs that can cover thousands in home care costs, to free counseling that helps you navigate Medicare, to $25 produce coupons at farmers markets. Three programs provide direct financial benefits or services if your parent qualifies, while three offer free resources available to any Michigan senior.\n\nThe state's approach focuses heavily on keeping seniors out of nursing homes — multiple programs coordinate care and services around this goal. Start with the programs below based on your parent's most urgent need, whether that's paying for daily care, getting nutritious food, or simply having someone to help them navigate their options.",
+    "startHere": [
+      {
+        "name": "MI Options",
+        "programId": "mi-options",
+        "why": "Free counseling to help you understand all available options before applying for specific programs."
+      },
+      {
+        "name": "Michigan Choice Waiver Program",
+        "programId": "michigan-choice-waiver",
+        "why": "Covers home care costs through Medicaid if your parent needs daily help but wants to avoid nursing home placement."
+      },
+      {
+        "name": "MiCAFE",
+        "programId": "micafe",
+        "why": "Free help signing up for SNAP benefits your parent may be missing — no research required on your part."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying for home care",
+        "programs": [
+          "Michigan Choice Waiver Program",
+          "MI Health Link Program"
+        ],
+        "description": "Medicaid programs that coordinate and pay for services to keep your parent safely at home."
+      },
+      {
+        "need": "Food assistance",
+        "programs": [
+          "Senior Project Fresh Program",
+          "MiCAFE"
+        ],
+        "description": "Direct produce coupons plus help accessing federal SNAP food benefits."
+      },
+      {
+        "need": "Free advice and navigation",
+        "programs": [
+          "MI Options"
+        ],
+        "description": "One-on-one counseling to help you understand long-term care and Medicare options."
+      },
+      {
+        "need": "Companionship and daily support",
+        "programs": [
+          "Senior Companion Program"
+        ],
+        "description": "Free volunteer companion for parents who need help with daily activities and social connection."
+      }
+    ],
+    "quickFacts": [
+      "Michigan coordinates Medicare and Medicaid through MI Health Link to eliminate provider confusion",
+      "The state prioritizes home-based care — multiple programs specifically designed to avoid nursing home placement",
+      "Free resources (MI Options, MiCAFE, Senior Companion) have no income requirements for Michigan residents"
+    ],
+    "resourcesVsBenefits": "Three programs require qualification based on income or care needs: Michigan Choice Waiver and MI Health Link (both Medicaid programs) and Senior Project Fresh ($25 produce coupons for income-qualified seniors). The other three — MI Options counseling, MiCAFE food benefit navigation, and Senior Companion services — are free to any Michigan senior regardless of income or assets."
+  }
+}

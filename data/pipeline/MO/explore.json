@@ -1,0 +1,134 @@
+{
+  "entity": "Missouri",
+  "entitySlug": "missouri",
+  "state": "MO",
+  "stateName": "Missouri",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T14:32:57.742Z",
+  "programCount": 17,
+  "programs": [
+    {
+      "name": "MO HealthNet (Medicaid)",
+      "what_it_does": "Provides health insurance coverage for low-income seniors and disabled individuals, including doctor visits, hospital care, and long-term services. In Missouri, it is administered as MO HealthNet with specific eligibility for seniors and those with disabilities.[1][9]",
+      "who_its_for": "Low-income seniors aged 65+ and disabled individuals meeting income limits (e.g., single gross monthly income under $1,669 for Expanded Medicaid with no resource limit).[1]",
+      "official_url": "https://mydss.mo.gov/mhd/participants",
+      "benefit_value": "Full health coverage; no resource limit for Expanded Medicaid (AEG); income thresholds vary by category.[1]"
+    },
+    {
+      "name": "Structured Family Caregiving Waiver",
+      "what_it_does": "Offers home and community-based services (HCBS) waiver to provide long-term care support in home settings instead of institutions. Allows family caregivers to be paid for providing care to eligible individuals.[4]",
+      "who_its_for": "Seniors and disabled individuals qualifying for nursing home level care, with income and asset limits under MO HealthNet rules.",
+      "official_url": "https://health.mo.gov/seniors/hcbs/",
+      "benefit_value": "Paid family caregiving services, respite, and other HCBS; can combine with other supports like Alzheimer’s grants up to $1,000 annually.[4]"
+    },
+    {
+      "name": "Missouri PACE",
+      "what_it_does": "Program of All-Inclusive Care for the Elderly (PACE) provides comprehensive medical and social services to help seniors live safely in the community. Coordinates all Medicare and Medicaid benefits in one program.",
+      "who_its_for": "Seniors aged 55+ certified for nursing facility level of care, able to live safely in the community with PACE support; must reside in a PACE service area.",
+      "official_url": "https://health.mo.gov/seniors/pace/index.php",
+      "benefit_value": "All-inclusive care including adult day health, transportation, home care, and inpatient services at no additional cost beyond Medicare/Medicaid premiums."
+    },
+    {
+      "name": "Medicare Savings Program (MSP)",
+      "what_it_does": "Pays Medicare Part B premiums and may cover deductibles, coinsurance for three levels: QMB, SLMB, QI-1. Helps low-income beneficiaries afford Medicare costs.[1][2]",
+      "who_its_for": "Low-income Medicare beneficiaries; single gross monthly income < $1,735, resources < $9,430; married < $2,320, resources < $14,130.[1]",
+      "official_url": "https://mydss.mo.gov/mhd/participants/medicare-savings",
+      "benefit_value": "Part B premium payment ($174.70/month in 2024); additional cost-sharing for QMB; varies by level (QMB, SLMB, QI).[1]"
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "what_it_does": "Provides monthly benefits via EBT card to buy healthy food at approved stores. Helps low-income households afford nutritious meals.[1][2][9]",
+      "who_its_for": "Low-income seniors aged 60+ and disabled individuals; income-based eligibility through MO Department of Social Services.",
+      "official_url": "https://mydss.mo.gov/food-assistance",
+      "benefit_value": "Average monthly benefit ~$200-300 per household; higher for seniors/disabled with no elderly/disabled deduction limits."
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "Provides one-time payments to help with heating bills and crisis assistance for energy shutoffs. Administered through local agencies in Missouri.[1][2][4]",
+      "who_its_for": "Low-income households including seniors; priority for those 60+, disabled, or with high energy costs.",
+      "official_url": "https://liheap-mo.org/",
+      "benefit_value": "Grants $200-$1,000+ per household depending on income, household size, and fuel type; crisis aid up to full bill payment."
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "what_it_does": "Improves energy efficiency of low-income homes through insulation, sealing, and efficient equipment installation. Reduces energy costs and health risks from poor housing.",
+      "who_its_for": "Low-income homeowners/renters including seniors 60+; priority for disabled, families with children, and high energy users.",
+      "official_url": "https://www.liheap-mo.org/weatherization",
+      "benefit_value": "Free home improvements valued at $5,000-$10,000 per home; lifetime energy savings often exceed costs."
+    },
+    {
+      "name": "State Health Insurance Assistance Program (SHIP)",
+      "what_it_does": "Offers free, unbiased counseling on Medicare, Medicare Advantage, Part D, and savings programs. Helps seniors choose plans and resolve issues.[5][7]",
+      "who_its_for": "All Missouri Medicare beneficiaries, especially low-income seniors and those with disabilities.",
+      "official_url": "https://health.mo.gov/seniors/ship/",
+      "benefit_value": "Personalized counseling; average savings $1,000+/year through optimal plan selection and MSP enrollment."
+    },
+    {
+      "name": "Commodity Supplemental Food Program (CSFP)",
+      "what_it_does": "Provides monthly boxes of nutritious USDA foods to combat hunger. Distributed through local senior centers and agencies.[6]",
+      "who_its_for": "Income-eligible seniors aged 60+; no disability requirement.",
+      "official_url": "https://mydss.mo.gov/food-assistance/csfp",
+      "benefit_value": "$50-$100+ monthly food value per person; funded ~$471K for MO seniors in 2021.[6]"
+    },
+    {
+      "name": "Alzheimer’s Association Caregiver Resource Program",
+      "what_it_does": "Awards grants to caregivers for respite care, supplies, and training to support those caring for dementia patients at home. Complements HCBS waivers.[4]",
+      "who_its_for": "Family caregivers of individuals with Alzheimer’s, dementia, or related disorders living at home.",
+      "official_url": "https://www.alz.org/mo",
+      "benefit_value": "Up to $1,000 annual grant per caregiver for approved expenses including respite."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time paid community service work training to unemployed low-income seniors. Helps transition to unsubsidized employment.",
+      "who_its_for": "Unemployed low-income individuals aged 55+ unable to find work.",
+      "official_url": "https://www.experienceworks.org/ or Missouri AARP Foundation SCSEP",
+      "benefit_value": "Minimum wage work ~20 hrs/week; supportive services; avg. $6,000-$8,000 annual earnings."
+    },
+    {
+      "name": "Legal Services of Eastern Missouri (Senior Legal Helpline)",
+      "what_it_does": "Provides free legal assistance for income-eligible seniors on issues like housing, benefits, abuse, and consumer problems. Operates statewide helplines.",
+      "who_its_for": "Low-income seniors 60+ residing in Missouri.",
+      "official_url": "https://lsem.org/seniors",
+      "benefit_value": "Free legal representation valued at $200-$500/hour; thousands helped annually."
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in nursing homes, assisted living, and other long-term care facilities to resolve complaints and protect rights. Operates statewide network.",
+      "who_its_for": "Residents of long-term care facilities and their families in Missouri.",
+      "official_url": "https://health.mo.gov/seniors/ombudsman/",
+      "benefit_value": "Free advocacy services; resolves 80%+ of complaints without formal action."
+    },
+    {
+      "name": "Missouri Rx Program (MoRx)",
+      "what_it_does": "This state-funded program assists Missouri seniors on Medicare Part D with prescription drug costs by covering many common medications. It helps reduce out-of-pocket expenses for eligible low-income individuals through local aging agencies.",
+      "who_its_for": "Missouri residents aged 65+ or eligible seniors on Medicare Part D meeting state income limits.",
+      "whats_unique": "State-specific pharmaceutical assistance program supplementing federal Medicare Part D, not available in every state.",
+      "official_url": "https://health.mo.gov/seniors/",
+      "benefit_value": "Average annual savings of $200 per enrollee (over 50,000 seniors benefited in 2024)."
+    },
+    {
+      "name": "Missouri Property Tax Credit (Circuit Breaker)",
+      "what_it_does": "This program provides refunds on property taxes or rent paid by eligible low-income seniors. It offers financial relief to help seniors afford housing costs in Missouri.",
+      "who_its_for": "Missouri residents aged 65+ (or 62+ if disabled) with household income under limits (e.g., around $30,000-$40,000 depending on status).",
+      "whats_unique": "State-funded tax credit tailored to Missouri's low-income seniors and disabled, with specific refund amounts not matching federal programs.",
+      "official_url": "https://dor.mo.gov/forms/Property_Tax_Credit_Claim_Form_1260_2024.pdf",
+      "benefit_value": "Up to $750 for renters or $1,100 for homeowners (over 100,000 claimed in 2023)."
+    },
+    {
+      "name": "Aged and Disabled Waiver (ADW)",
+      "what_it_does": "This Medicaid waiver delivers home and community-based services to prevent nursing home placement. Services include adult day care, homemaker/chore assistance, home-delivered meals, respite care, and transportation.",
+      "who_its_for": "Missouri residents aged 63+ who are Medicaid-eligible (MO HealthNet), at risk of institutionalization, and meet functional needs assessment.",
+      "whats_unique": "Missouri's state-administered HCBS waiver with customized services like chore services and advanced respite, optional beyond federal Medicaid requirements.",
+      "official_url": "https://health.mo.gov/seniors/",
+      "benefit_value": "Varies; up to 10 hours/day adult day care, 2 meals/day, in-home respite (no fixed dollar amount specified)."
+    },
+    {
+      "name": "Senior Independent Living Program (SILP)",
+      "what_it_does": "This program supports community-based services for seniors to maintain independence at home. It funds personal care and supportive services through state allocations.",
+      "who_its_for": "Low-income Missouri seniors aged 60+ needing assistance to avoid institutionalization.",
+      "whats_unique": "State-specific program funded via Missouri appropriations, distinct from federal Older Americans Act services.",
+      "official_url": "https://health.mo.gov/seniors/",
+      "benefit_value": "Varies by need; subject to state budget (historically faced cuts but ongoing)."
+    }
+  ]
+}

@@ -1,0 +1,2468 @@
+{
+  "state": "WV",
+  "stateName": "West Virginia",
+  "draftedAt": "2026-04-09T17:37:06.705Z",
+  "total": 15,
+  "successful": 15,
+  "programs": [
+    {
+      "id": "west-virginia-medicare-savings-programs",
+      "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "If your parent has Medicare and limited income, these programs can pay their premiums and reduce their prescription costs.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local WV DHHR field offices; central BMS in Charleston.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare but struggles with premiums and deductibles, West Virginia's Medicare Savings Programs can help. These three programs—QMB, SLMB, and QI—pay some or all Medicare costs based on your parent's income level. QMB provides the most coverage, paying Medicare Part A and B premiums plus all deductibles and coinsurance for covered services. SLMB and QI cover Part B premiums only but still provide significant relief.\n\nAll three programs automatically qualify your parent for Extra Help with prescription drug costs (copays as low as $12.65 per drug in 2026). Because these are Medicaid programs, your parent must meet both income and asset limits. Income limits range from $1,350/month for QMB up to approximately $1,823/month for QI (single person, 2026).",
+      "savingsRange": "$1,000 – $3,600/year in 2026",
+      "savingsSource": "Medicare Part B premiums ($185/month in 2026) plus potential deductibles and coinsurance savings",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income below $1,823/month (single)",
+          "Assets under $9,660 (single)",
+          "Must have Medicare"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1350
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1824
+          }
+        ],
+        "assetLimits": {
+          "individual": 9660,
+          "couple": 14470,
+          "countedAssets": [
+            "Cash",
+            "Checking/savings accounts",
+            "Stocks and bonds",
+            "CDs",
+            "Annuities"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One car",
+            "Personal belongings",
+            "Burial plots"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be eligible for Medicare Part A",
+          "Must have Medicare Part B (for SLMB and QI)",
+          "U.S. citizen or qualified immigrant",
+          "West Virginia resident",
+          "Cannot have full Medicaid (QI only)"
+        ],
+        "povertyLevelReference": "100-135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through WV DHHR or call 304-587-0105; processing takes up to 45 days for QMB.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Choose your application method",
+            "description": "Apply online at bms.wv.gov, call 304-587-0105, or visit your local DHHR office."
+          },
+          {
+            "step": 2,
+            "title": "Complete form DFA-QSQ-1",
+            "description": "This is the specific form for Medicare Savings Programs. It asks about income, assets, and Medicare coverage."
+          },
+          {
+            "step": 3,
+            "title": "Gather required documents",
+            "description": "You'll need proof of income, bank statements, Medicare card, and identification documents."
+          },
+          {
+            "step": 4,
+            "title": "Submit and follow up",
+            "description": "QMB decisions come within 45 days. SLMB and QI can be approved retroactively up to 3 months."
+          }
+        ],
+        "processingTime": "QMB: ≤45 days, effective 1st of month after complete info. SLMB/QI: Up to 3 months retroactive if eligible",
+        "waitlist": "QI has limited funding and uses first-come, first-served basis. Apply early in the year.",
+        "tip": "If applying for QI, submit your application in January when funding resets for the year.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://bms.wv.gov/"
+          },
+          {
+            "label": "Download Form DFA-QSQ-1",
+            "url": "https://www.wvdhhr.org/bcf/policy/imm/immanualchanges/525/dfa_qsq_1.pdf"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Most comprehensive coverage",
+              "incomeLimit": "≤$1,350/month (single), ≤$1,824/month (couple)",
+              "coverage": "Pays Medicare Part A premiums (if any), Part B premiums, all deductibles and coinsurance. Providers cannot bill you for covered services."
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Part B premium assistance",
+              "incomeLimit": "≤$1,526/month (single), higher for couples",
+              "coverage": "Pays Medicare Part B premiums only ($185/month in 2026)."
+            },
+            {
+              "name": "QI (Qualifying Individual)",
+              "description": "Limited funding, annual renewal required",
+              "incomeLimit": "≤$1,823/month (single), higher for couples",
+              "coverage": "Pays Medicare Part B premiums only. First-come, first-served with limited funds."
+            }
+          ]
+        },
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Program (2026)",
+          "rows": [
+            {
+              "program": "QMB",
+              "single": 1350,
+              "couple": 1824
+            },
+            {
+              "program": "SLMB",
+              "single": 1526,
+              "couple": null
+            },
+            {
+              "program": "QI",
+              "single": 1823,
+              "couple": null
+            }
+          ],
+          "footnote": "2026 limits based on Federal Poverty Level. Exact couple limits for SLMB and QI available from WV DHHR."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Cash on hand",
+            "Checking and savings accounts",
+            "Stocks and bonds",
+            "Certificates of deposit",
+            "Annuities"
+          ],
+          "excluded": [
+            "Primary home (regardless of value)",
+            "One vehicle",
+            "Personal belongings and household items",
+            "Burial plots and burial funds"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Social Security card",
+                "Birth certificate",
+                "Proof of West Virginia residency",
+                "Medicare card or proof of Part A/B eligibility"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements (last 3 months)",
+                "Pay stubs or SSI award letters",
+                "Stock or bond statements",
+                "Any other proof of income or assets"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI has limited funding each year. If you think your parent might qualify, apply in January when funding resets. Previous recipients get priority, but funds can run out."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent has QMB, medical providers cannot bill them for Medicare-covered services. If they receive a bill, contact the provider—this is not allowed under the program rules."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes. The primary home is exempt from asset limits regardless of value. Your parent can own their home and still qualify for these programs."
+        },
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "Income limits are strict, but West Virginia applies standard deductions (like a $20 general disregard) before counting income. Also, irregular income like gifts may be excluded. It's worth applying if they're close to the limit."
+        },
+        {
+          "question": "Does this affect my parent's regular Medicare coverage?",
+          "answer": "No, these programs work alongside Medicare. Your parent keeps all their Medicare benefits—these programs just help pay the costs. They'll still see the same doctors and use the same Medicare card."
+        },
+        {
+          "question": "What's the difference between getting QMB versus SLMB?",
+          "answer": "QMB pays all Medicare premiums, deductibles, and coinsurance—potentially saving $3,000+ per year. SLMB only pays the Part B premium ($2,220/year in 2026). QMB has lower income limits but provides much more comprehensive coverage."
+        },
+        {
+          "question": "Will this help with prescription drug costs too?",
+          "answer": "Yes. All three programs automatically qualify your parent for Extra Help with Medicare Part D prescription costs. Copays drop to $12.65 or less per drug in 2026, and there's no coverage gap."
+        },
+        {
+          "question": "How often does my parent need to reapply?",
+          "answer": "QMB and SLMB typically require annual renewal. QI definitely requires annual reapplication and has limited funding, so timing matters. West Virginia will send renewal notices before coverage expires."
+        }
+      ],
+      "phone": "304-587-0105",
+      "sourceUrl": "https://bms.wv.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "west-virginia-aged-disabled-waiver",
+      "name": "Aged and Disabled Waiver (ADW)",
+      "shortName": "ADW",
+      "tagline": "If your parent needs daily help with bathing, dressing, or medication but wants to stay home, this waiver can provide full-time in-home care instead of nursing home placement.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If your parent needs nursing home-level care but wants to stay in their own home, West Virginia's Aged and Disabled Waiver can provide the same level of care at home. The program covers in-home personal care services, including help with bathing, dressing, medication management, and mobility assistance — everything a nursing home would provide, but in your parent's familiar environment.\n\nTo qualify, your parent must be 18 or older, live in West Virginia permanently, and need help with at least 5 daily activities like eating, bathing, dressing, or moving around safely. They must also meet Medicaid financial requirements, which vary by county and Social Security status. Home equity cannot exceed $730,000 unless a spouse or dependent relative lives there.\n\nThe biggest challenge: enrollment depends on available funded slots, so there may be a waitlist. Your parent's doctor must initiate the application by completing a Medical Necessity Evaluation Request form.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 18+",
+          "Needs help with 5+ daily activities",
+          "Home equity under $730,000 (with exceptions)",
+          "Must qualify for Medicaid",
+          "West Virginia resident"
+        ],
+        "ageRequirement": "18+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [],
+          "exemptAssets": [
+            "Primary home if spouse lives there",
+            "Primary home if dependent relative lives there"
+          ],
+          "homeEquityCap": 730000
+        },
+        "functionalRequirement": "Must need help with at least 5 daily activities (eating, bathing, dressing, grooming, mobility, restroom assistance) and require nursing home-level care",
+        "otherRequirements": [
+          "Must choose home care over nursing home placement",
+          "Must provide safe working environment for caregivers",
+          "Enrollment depends on available funded slots"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Your parent's doctor must start the application by completing a medical form, then you apply through your county DHHR office.",
+        "processingTime": "Case manager should contact you within 5 days after provider selection",
+        "waitlist": "Enrollment depends on available funded slots — waitlist possible",
+        "tip": "Start early and have your parent's doctor complete the Medical Necessity Evaluation Request form before applying",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Get doctor's evaluation",
+            "description": "Your parent's physician, physician assistant, or nurse practitioner must complete the Medical Necessity Evaluation Request (MNER) form"
+          },
+          {
+            "step": 2,
+            "title": "Submit application to county office",
+            "description": "Take the MNER form and financial documents to your local DHHR county office or apply online at inRoads platform"
+          },
+          {
+            "step": 3,
+            "title": "Complete medical review",
+            "description": "KEPRO (Keystone Peer Review Organization) will review the medical evaluation and send confirmation letter"
+          },
+          {
+            "step": 4,
+            "title": "Schedule in-home assessment",
+            "description": "A registered nurse will visit your parent's home to complete the Pre-Admission Screening (PAS) to confirm nursing facility level of care"
+          },
+          {
+            "step": 5,
+            "title": "Wait for slot availability",
+            "description": "If approved, you'll be placed on the list for available funded ADW slots"
+          }
+        ],
+        "urls": [
+          {
+            "label": "Apply online at inRoads",
+            "url": "https://www.wvdhhr.org/inroads/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts for Home Equity",
+          "included": [
+            "Current home value minus outstanding mortgage",
+            "Only the portion your parent owns (if jointly owned)"
+          ],
+          "excluded": [
+            "Primary home if spouse lives there",
+            "Primary home if dependent relative lives there (child, grandchild, parent, sibling, aunt/uncle, niece/nephew)"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Medical",
+              "items": [
+                "Completed Medical Necessity Evaluation Request (MNER) from physician",
+                "KEPRO confirmation letter after medical review",
+                "Documentation of functional deficits in at least 5 daily living activities"
+              ]
+            },
+            {
+              "name": "Residency",
+              "items": [
+                "Proof of West Virginia permanent residency",
+                "Current address documentation"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Financial documentation for Medicaid eligibility determination",
+                "Home ownership and mortgage information",
+                "Income verification (varies by county and SSI status)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Enrollment is not guaranteed — it depends on available funded slots. Apply early and ask about current waitlist length when you call."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Having Alzheimer's or dementia alone doesn't qualify your parent — they must demonstrate functional need for help with at least 5 daily activities during the in-home nursing assessment."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify for ADW?",
+          "answer": "Yes, as long as the home equity doesn't exceed $730,000. If your parent's spouse or a dependent relative (like you, a grandchild, or sibling) lives in the home, there's no equity limit at all."
+        },
+        {
+          "question": "What if my parent's income is just over the Medicaid limit?",
+          "answer": "They may still qualify through the Medically Needy Program if medical costs consume most of their monthly income, leaving no more than $209 per month available. Your county DHHR office can evaluate this option."
+        },
+        {
+          "question": "How long is the waitlist for ADW services?",
+          "answer": "The state doesn't publish waitlist length. Enrollment depends on available funded slots, so call 1-866-767-1575 to ask about current availability in your area."
+        },
+        {
+          "question": "What happens during the in-home assessment?",
+          "answer": "A registered nurse will visit your parent's home to complete a Pre-Admission Screening (PAS). They'll evaluate whether your parent needs nursing facility level of care and can function safely at home with services."
+        },
+        {
+          "question": "Can my parent choose their own caregivers?",
+          "answer": "Services are provided through contracted agencies and case management organizations, not direct hire. Your case manager will help coordinate services, but specific caregiver selection depends on the contracted provider."
+        },
+        {
+          "question": "What if our home isn't safe for caregivers to work in?",
+          "answer": "Your parent must provide a safe working environment for all staff (personal care workers, case managers, nurses). Unsafe conditions could disqualify them or delay services until safety issues are resolved."
+        }
+      ],
+      "phone": "1-866-767-1575",
+      "sourceUrl": "https://www.wvseniorservices.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "west-virginia-pace-elderly-care",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "shortName": "PACE",
+      "tagline": "All your parent's medical care coordinated by one team — no more juggling doctors, insurance, or transportation",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "PACE Your LIFE (West Virginia-specific, paceyourlifemwv.com)[3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and needs significant daily help but wants to stay home, PACE provides all their medical care, medications, transportation, and personal care through one coordinated team. Because PACE covers everything from primary care to adult day programs under one roof, your parent won't need to coordinate between separate doctors, insurance plans, or transportation services.\n\nPACE is only available in specific service areas in West Virginia through PACE Your LIFE — it's not statewide. Your parent must qualify for nursing home level of care (meaning they need daily help with activities like bathing, dressing, or medication management) but be able to live safely at home with PACE services. Most participants qualify for both Medicare and Medicaid, though private pay options may exist.\n\nOnce enrolled, PACE becomes your parent's sole source of Medicare and Medicaid benefits. They cannot use other Medicare or Medicaid plans at the same time.",
+      "savingsRange": "",
+      "savingsSource": "Comprehensive medical and social services",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Live in PACE service area",
+          "Qualify for nursing home level of care",
+          "Safe to live at home with services",
+          "Most participants have Medicare and Medicaid"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be certified to meet nursing home level of care (a clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other activities of daily living)",
+        "otherRequirements": [
+          "Live in the service area of PACE Your LIFE",
+          "Able to live safely in the community at enrollment without jeopardizing health or safety",
+          "Eligible for Medicare and/or Medicaid (most participants are dually eligible)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact PACE Your LIFE directly to check if your parent lives in their service area and schedule an assessment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check service area coverage",
+            "description": "Visit paceyourlifemwv.com or call to confirm PACE is available where your parent lives"
+          },
+          {
+            "step": 2,
+            "title": "Complete initial screening",
+            "description": "PACE staff will assess your parent's Medicare/Medicaid eligibility and basic care needs"
+          },
+          {
+            "step": 3,
+            "title": "Schedule clinical assessment",
+            "description": "A team will evaluate whether your parent meets nursing home level of care requirements"
+          },
+          {
+            "step": 4,
+            "title": "Safety evaluation",
+            "description": "PACE determines if your parent can live safely at home with their coordinated services"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "PACE is only available in limited areas of West Virginia, so confirming coverage in your parent's location is the critical first step.",
+        "urls": [
+          {
+            "label": "PACE Your LIFE West Virginia",
+            "url": "https://paceyourlifemwv.com"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of address in PACE service area"
+              ]
+            },
+            {
+              "name": "Healthcare Coverage",
+              "items": [
+                "Medicare card",
+                "Medicaid card (if applicable)",
+                "Medical records documenting care needs"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE is only available in specific service areas in West Virginia, not statewide. Check coverage before starting the application process."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Once your parent enrolls in PACE, they cannot use other Medicare or Medicaid plans. PACE becomes their sole source of coverage, so make sure the services meet all their needs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What exactly does PACE cover for my parent?",
+          "answer": "PACE covers all medical and social services: primary care, specialists, prescription medications with home delivery, medical equipment, dental and vision care, physical therapy, behavioral health, home health aide services, transportation to appointments, adult day programs, meals, and hospital or nursing home care when needed. One interdisciplinary team coordinates everything."
+        },
+        {
+          "question": "Can my parent keep their current doctors if they join PACE?",
+          "answer": "No. PACE provides all care through their own team of doctors and specialists. Your parent will need to switch to PACE providers for all medical care, but the benefit is that one team manages and coordinates everything."
+        },
+        {
+          "question": "What if my parent's income is too high for Medicaid but they need PACE services?",
+          "answer": "Private pay options may exist, but specific income limits aren't published. Contact PACE Your LIFE directly to discuss your parent's situation — they can explain payment options based on your parent's Medicare and Medicaid eligibility."
+        },
+        {
+          "question": "How do I know if my parent qualifies for 'nursing home level of care'?",
+          "answer": "If your parent needs daily help with bathing, dressing, eating, using the bathroom, taking medications safely, or managing their medical conditions, they likely qualify. PACE will conduct a clinical assessment to make this determination."
+        },
+        {
+          "question": "What if my parent lives outside the PACE service area?",
+          "answer": "Unfortunately, your parent cannot enroll in PACE if they live outside the service area. PACE is only available in specific parts of West Virginia through PACE Your LIFE — it's not a statewide program."
+        },
+        {
+          "question": "Can my parent leave PACE if they don't like the services?",
+          "answer": "Yes, your parent can disenroll from PACE, but they'll need to find new Medicare and Medicaid coverage since PACE will have been their sole source of benefits. It's important to have a transition plan before leaving the program."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://paceyourlifemwv.com",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "west-virginia-snap-food-benefits",
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "shortName": "SNAP Food Benefits",
+      "tagline": "Monthly grocery money for parents 60+ on fixed incomes — up to hundreds per month with no asset limits in West Virginia.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local DHHR county offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP provides monthly money loaded onto an EBT card for food purchases. The amount depends on household size and income — roughly every $100 more in monthly income reduces benefits by about $30.\n\nWest Virginia offers more generous rules for seniors than many states. If your parent's income is slightly over the standard limit, they may still qualify under special rules for older adults. West Virginia also has no asset limits, meaning your parent's savings account or car value won't disqualify them.\n\nSeniors get 24-month certification periods (versus 12 months for younger adults), meaning less frequent reapplication. Your parent is automatically exempt from work requirements at age 60+.",
+      "savingsRange": "",
+      "savingsSource": "Monthly food assistance varies by income and household size",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "West Virginia resident",
+          "Income generally under $2,608/month (1 person)",
+          "No asset limits in WV"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2608
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3526
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4442
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5358
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6276
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 7192
+          }
+        ],
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [],
+          "exemptAssets": [
+            "Home",
+            "Vehicles",
+            "Bank accounts (under WV rules)"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "U.S. citizen or qualified non-citizen",
+          "Social Security number (or applied for one)"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through West Virginia's DHHR portal or call your local county office — no documents needed to start the application.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Start application online or by phone",
+            "description": "Visit wvpath.wv.gov or call your local DHHR county office. You can submit without documents initially."
+          },
+          {
+            "step": 2,
+            "title": "Provide income information",
+            "description": "Report Social Security, pensions, and other monthly income. Include all household members who buy and prepare food together."
+          },
+          {
+            "step": 3,
+            "title": "Submit required documents",
+            "description": "Provide proof of income and expenses for deductions. Your county office will tell you exactly what's needed."
+          },
+          {
+            "step": 4,
+            "title": "Complete certification",
+            "description": "Seniors get 24-month certification periods. Mark your calendar to reapply before expiration."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": null,
+        "tip": "Even if your parent's gross income seems too high, apply anyway — West Virginia's special rules for seniors may still qualify them.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://wvpath.wv.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Gross Income Limits by Household Size (Oct 2025–Sept 2026)",
+          "rows": [
+            {
+              "householdSize": "1 person",
+              "monthlyLimit": "$2,608"
+            },
+            {
+              "householdSize": "2 people",
+              "monthlyLimit": "$3,526"
+            },
+            {
+              "householdSize": "3 people",
+              "monthlyLimit": "$4,442"
+            },
+            {
+              "householdSize": "4 people",
+              "monthlyLimit": "$5,358"
+            },
+            {
+              "householdSize": "5 people",
+              "monthlyLimit": "$6,276"
+            },
+            {
+              "householdSize": "6 people",
+              "monthlyLimit": "$7,192"
+            }
+          ],
+          "footnote": "For households with seniors (60+), only net income matters if gross income exceeds these limits. Add $916 for each additional person."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [],
+          "excluded": [
+            "Your parent's home",
+            "Vehicles",
+            "Bank accounts (under standard WV eligibility)",
+            "Personal belongings"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of West Virginia residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letters",
+                "Pension statements",
+                "Bank statements",
+                "Medical expense receipts (for deductions)",
+                "Rent or mortgage statements"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "West Virginia has no asset limits for standard SNAP eligibility, unlike many other states. Your parent's savings won't disqualify them unless they're using special high-income rules."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's Social Security puts them over the income limit?",
+          "answer": "For seniors 60+, West Virginia uses only net income if gross income exceeds the standard limits. After deductions for medical expenses, shelter costs, and standard deductions, your parent may still qualify even with higher Social Security benefits."
+        },
+        {
+          "question": "Does my parent's house or car count against them?",
+          "answer": "No. West Virginia has no asset limits for standard SNAP eligibility. Your parent's home, vehicles, and personal belongings don't count. Even bank accounts don't disqualify them under West Virginia's rules."
+        },
+        {
+          "question": "Can my parent live with me and still get SNAP?",
+          "answer": "It depends on food arrangements. If your parent buys and prepares food separately, they can apply as their own household. If you share meals and grocery shopping, the whole household must apply together, which could affect eligibility based on combined income."
+        },
+        {
+          "question": "How often does my parent need to reapply?",
+          "answer": "Seniors get 24-month certification periods, so your parent reapplies every two years instead of annually. This reduces paperwork compared to younger SNAP recipients who reapply every 12 months."
+        },
+        {
+          "question": "What can't my parent buy with SNAP benefits?",
+          "answer": "SNAP covers most food for home preparation but excludes alcohol, tobacco, vitamins, hot prepared foods, and non-food items. Your parent can use SNAP for groceries, bread, dairy, meat, fruits, vegetables, and seeds for growing food."
+        },
+        {
+          "question": "What if my parent was denied SNAP in another state?",
+          "answer": "Apply again in West Virginia. Each state has different rules, and West Virginia's more generous asset limits and senior-friendly income rules may qualify your parent even if they were denied elsewhere."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://dhhr.wv.gov/bcf/programs/snap/Pages/default.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "west-virginia-liheap-energy-assistance",
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "shortName": "LIHEAP Energy Help",
+      "tagline": "Get help paying heating and cooling bills if your parent's income is under $1,884/month for a single person.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local DoHS field offices (list at dhhr.wv.gov), Community Action Agencies, Senior Centers",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to pay heating or cooling bills, LIHEAP provides one-time cash payments directly to utility companies or your parent. Because this program uses West Virginia's median income rather than federal poverty levels, more families qualify than you might expect.\n\nLIHEAP offers two types of help: regular assistance during fall and winter for heating costs, and crisis assistance year-round for emergencies like utility shutoffs or broken heating equipment. The amount varies based on your parent's income, household size, and actual heating costs, but payments go directly toward energy bills.\n\nApply early in the season because funding is limited. Once the money runs out, the program closes until the next funding period.",
+      "savingsRange": "",
+      "savingsSource": "Direct utility bill payment",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Income at or below 60% of state median",
+          "Must pay own heating/cooling bill",
+          "West Virginia resident",
+          "U.S. citizen or qualified immigrant"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1884
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2464
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 3043
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 3623
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Household must be responsible for paying heating/cooling bill",
+          "Must reside in West Virginia",
+          "Automatic eligibility if receiving SNAP, TANF, or SSI Code A"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at WV PATH or call 1-800-642-8589; applications processed within 30 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather your parent's documents",
+            "description": "Get recent pay stubs or benefit letters, utility bills, proof of residency, and Social Security numbers for everyone in the household."
+          },
+          {
+            "step": 2,
+            "title": "Apply online or by phone",
+            "description": "Use WV PATH website or call the toll-free number. You can also visit local DHHR offices or Community Action Agencies."
+          },
+          {
+            "step": 3,
+            "title": "Submit income from application month only",
+            "description": "LIHEAP only counts income from the month you apply. Some income like Social Security and Veterans benefits may not count."
+          },
+          {
+            "step": 4,
+            "title": "Wait for processing",
+            "description": "Applications are processed within 30 days. Payment goes directly to the utility company or vendor."
+          }
+        ],
+        "processingTime": "Within 30 days of receipt or program open date (whichever later)",
+        "waitlist": "No waitlist; funding limited and exhausts—apply early as benefits stop when funds run out",
+        "tip": "Apply as soon as the program opens in fall because funding runs out and late applications get denied.",
+        "urls": [
+          {
+            "label": "Apply Online - WV PATH",
+            "url": "https://www.wvpath.wv.gov/"
+          },
+          {
+            "label": "Program Information",
+            "url": "https://bfa.wv.gov/utility-assistancelieap"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1884
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 2464
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 3043
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 3623
+            },
+            {
+              "householdSize": "5+",
+              "monthlyLimit": "Add $567 per additional person"
+            }
+          ],
+          "footnote": "Based on 60% of West Virginia state median income. Add $567 for each person beyond 4."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Income: What Counts and What Doesn't",
+          "included": [
+            "Wages and salary from the month you apply",
+            "Self-employment income",
+            "Unemployment benefits",
+            "Pension payments (non-government)"
+          ],
+          "excluded": [
+            "Social Security benefits",
+            "Veterans benefits (for current period)",
+            "SNAP benefits",
+            "Student loans and grants",
+            "CSEP under Older Americans Act"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Proof of residency in West Virginia",
+                "Proof of citizenship or qualified immigration status",
+                "Social Security numbers for all household members"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Pay stubs or benefit letters from the month of application",
+                "Recent heating/utility bills showing your parent is responsible for payment",
+                "Proof of any excluded income (Social Security, Veterans benefits)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Apply early in the season. LIHEAP has limited federal funding and closes when money runs out. Late applications get denied even if your parent qualifies."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Everyone living at the same address counts as one household if they share the utility bill, even if they're not related. This can affect income calculations."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if Mom's Social Security puts her over the income limit?",
+          "answer": "Social Security doesn't count toward the income limit for LIHEAP. Only count wages, unemployment, and other non-government income from the month you apply."
+        },
+        {
+          "question": "Can Dad get help if his heat is included in rent?",
+          "answer": "No. Your parent must be directly responsible for paying the heating or cooling bill. If utilities are included in rent, they don't qualify for LIHEAP."
+        },
+        {
+          "question": "How much money will Mom actually get?",
+          "answer": "The amount varies based on income, household size, fuel type, and actual heating costs. Payments go directly to the utility company, not to your parent."
+        },
+        {
+          "question": "What counts as a crisis for emergency assistance?",
+          "answer": "Utility shutoff notices, broken heating equipment, or other heating emergencies. Crisis assistance requires immediate proof and evaluation by a DHHR worker."
+        },
+        {
+          "question": "Can Mom apply again next year?",
+          "answer": "Yes, but she must reapply each year when the program reopens. Benefits are not automatic and funding may run out."
+        },
+        {
+          "question": "What if Mom lives with other family members?",
+          "answer": "Everyone at the same address who shares the utility bill counts as one household for income calculations, even if they're not related."
+        }
+      ],
+      "phone": "1-800-642-8589",
+      "sourceUrl": "https://bfa.wv.gov/utility-assistancelieap",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "west-virginia-weatherization-assistance",
+      "name": "Weatherization Assistance Program (WAP)",
+      "shortName": "Weatherization Assistance",
+      "tagline": "Free home weatherization services to cut your parent's utility bills by improving insulation, sealing air leaks, and repairing heating systems.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local community action agencies throughout WV (12 agencies funded in recent grants); examples: wvcad.org for statewide info, casewv.org, mthtwv.com, scacwv.org.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles with high heating and cooling bills, West Virginia's Weatherization Assistance Program provides free home improvements to reduce energy costs. The program includes air sealing, insulation installation, duct repairs, heating system tune-ups, and electrical improvements — all at no cost to qualifying households.\n\nYour parent qualifies if their household income is below 200% of Federal Poverty Guidelines — $31,300/year for a single person or $42,300/year for a couple in 2025. Households with seniors 60+, disabled individuals, or high energy usage get priority on the waitlist. Because services are customized based on an energy audit of your parent's home, the specific improvements vary, but all aim to reduce utility bills and improve comfort and safety.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Income below 200% Federal Poverty Level",
+          "Must own or rent in West Virginia",
+          "Home must be structurally suitable for weatherization",
+          "Priority for age 60+, disabled, or high energy costs"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2608
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3525
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 4442
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 5358
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 6275
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 7192
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must reside in West Virginia",
+          "Dwelling must be structurally suitable for weatherization improvements",
+          "Renters need written landlord permission"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your county's community action agency by phone or in person — application takes about 20 minutes, then you'll be placed on a priority waitlist.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local community action agency",
+            "description": "Each county is served by a different agency. Contact the agency serving your parent's county for an application."
+          },
+          {
+            "step": 2,
+            "title": "Gather income documentation",
+            "description": "Collect written proof of all gross income from the prior year — tax returns, pay stubs, Social Security statements, pension records."
+          },
+          {
+            "step": 3,
+            "title": "Complete application",
+            "description": "Apply by phone, in person, or mail. Takes about 20 minutes and includes household details, home construction date, and utility account information."
+          },
+          {
+            "step": 4,
+            "title": "Wait for eligibility determination",
+            "description": "Agency verifies income and determines eligibility, then places qualified applicants on waitlist based on priority factors."
+          },
+          {
+            "step": 5,
+            "title": "Schedule energy audit",
+            "description": "When your parent reaches the front of the waitlist, a technician will audit the home to determine which weatherization services are needed."
+          }
+        ],
+        "processingTime": "Eligibility determination after application, then placement on waitlist. No specific timeline provided.",
+        "waitlist": "Yes — all eligible applicants are placed on a waitlist and prioritized by elderly (60+), disabled, children (18 or younger), high energy burden, or high energy use.",
+        "tip": "If your parent is 60+, disabled, or has very high utility bills, mention this when applying — they'll get priority on the waitlist.",
+        "urls": [
+          {
+            "label": "West Virginia Community Action Directory",
+            "url": "https://wvcad.org"
+          },
+          {
+            "label": "CASEWV (multiple counties)",
+            "url": "https://casewv.org"
+          },
+          {
+            "label": "Southwestern Community Action Council",
+            "url": "https://scacwv.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "size": "1 person",
+              "annual": "$31,300",
+              "monthly": "$2,608"
+            },
+            {
+              "size": "2 people",
+              "annual": "$42,300",
+              "monthly": "$3,525"
+            },
+            {
+              "size": "3 people",
+              "annual": "$53,300",
+              "monthly": "$4,442"
+            },
+            {
+              "size": "4 people",
+              "annual": "$64,300",
+              "monthly": "$5,358"
+            },
+            {
+              "size": "5 people",
+              "annual": "$75,300",
+              "monthly": "$6,275"
+            },
+            {
+              "size": "6 people",
+              "annual": "$86,300",
+              "monthly": "$7,192"
+            },
+            {
+              "size": "Each additional person",
+              "annual": "+$11,000",
+              "monthly": "+$917"
+            }
+          ],
+          "footnote": "2025 Federal Poverty Guidelines, effective April 8, 2025"
+        },
+        {
+          "type": "what-counts",
+          "heading": "Income: What Counts",
+          "included": [
+            "Wages and salary",
+            "Social Security benefits",
+            "Pension payments",
+            "Investment income",
+            "Unemployment benefits",
+            "All other gross cash receipts before taxes"
+          ],
+          "excluded": [
+            "Child support payments",
+            "Tax refunds",
+            "College scholarships and grants"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Income Verification",
+              "items": [
+                "Prior year tax returns",
+                "Pay stubs for all household members",
+                "Social Security benefit statements",
+                "Pension or retirement account statements",
+                "Any other proof of gross income"
+              ]
+            },
+            {
+              "name": "Household Information",
+              "items": [
+                "Utility account numbers for all providers",
+                "Home construction date (if known)",
+                "Number of people in household",
+                "Written landlord permission (renters only)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "All eligible applicants are placed on a waitlist. Priority goes to households with seniors 60+, disabled individuals, children under 18, or very high energy costs. Non-priority households may wait significantly longer for services."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Renters must get written permission from their landlord before applying. The landlord cannot raise rent for one year after weatherization work is completed."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent rents their home?",
+          "answer": "Renters can qualify, but they need written permission from their landlord before applying. The landlord benefits from the free improvements and cannot raise rent for one year after the work is completed."
+        },
+        {
+          "question": "How long will my parent wait for services?",
+          "answer": "There's no specific timeline, but seniors 60+, disabled individuals, and those with very high energy costs get priority. Others may wait longer depending on local demand and funding."
+        },
+        {
+          "question": "What if their home is very old or in poor condition?",
+          "answer": "The home must be structurally suitable for weatherization improvements. A technician will assess whether the building can accommodate insulation, air sealing, and other weatherization measures."
+        },
+        {
+          "question": "Can my parent get weatherization services more than once?",
+          "answer": "Generally, homes can only be weatherized once through this program. However, if significant time has passed or major changes occurred, they may be eligible for additional services."
+        },
+        {
+          "question": "What if their income is just over the limit?",
+          "answer": "Income must be at or below 200% of Federal Poverty Guidelines. If they're slightly over, check if any income sources don't count (like child support or tax refunds) or if household size was calculated correctly."
+        },
+        {
+          "question": "Do they need to pay anything upfront?",
+          "answer": "No. All weatherization services are completely free to qualifying households. There are no upfront costs, co-pays, or charges for materials or labor."
+        }
+      ],
+      "phone": "304-682-8271",
+      "sourceUrl": "https://wvcad.org/sustainability/weatherization-assistance-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "west-virginia-ship-medicare-counseling",
+      "name": "SHIP (State Health Insurance Assistance Program)",
+      "shortName": "SHIP Medicare Counseling",
+      "tagline": "Free one-on-one counseling to help your parent navigate Medicare options and avoid overpaying.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "West Virginia Bureau of Senior Services (main office), Charleston, WV",
+            "type": "service-area"
+          },
+          {
+            "name": "Multiple county senior centers throughout West Virginia",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare and feels overwhelmed by insurance options, SHIP provides free, one-on-one counseling to help them understand their choices and avoid overpaying. Because Medicare has dozens of supplement plans, prescription drug options, and Medicare Advantage alternatives, many seniors pay hundreds more than necessary each year — SHIP counselors help identify the most cost-effective coverage for your parent's specific needs.\n\nSHIP serves all Medicare beneficiaries in West Virginia, regardless of income. Your parent gets personalized guidance on Medicare Parts A, B, C, and D, Medigap policies, prescription drug assistance programs, and Medicare Savings Programs that could reduce their premiums and co-pays.\n\nServices are available through the main office in Charleston and at county senior centers throughout West Virginia. No income limits apply — this program serves anyone with Medicare who needs help understanding their options.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Must have Medicare",
+          "West Virginia resident",
+          "No income limits",
+          "All ages welcome"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a West Virginia resident",
+          "Must be a Medicare beneficiary"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call to schedule a free counseling appointment — no application needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the SHIP helpline",
+            "description": "Call 1-877-987-4463 to schedule your parent's free counseling appointment."
+          },
+          {
+            "step": 2,
+            "title": "Choose location",
+            "description": "Schedule at the Charleston main office or ask about county senior center locations."
+          },
+          {
+            "step": 3,
+            "title": "Bring Medicare information",
+            "description": "Have your parent bring their Medicare card, current insurance information, and list of prescription medications to the appointment."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Schedule appointments during Medicare Open Enrollment (October 15 - December 7) well in advance, as this is the busiest time for SHIP counselors.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "How to Get Help",
+          "offices": [
+            {
+              "name": "Statewide SHIP Helpline",
+              "type": "service-area",
+              "phone": "1-877-987-4463",
+              "address": "Available to all West Virginia Medicare beneficiaries"
+            },
+            {
+              "name": "West Virginia Bureau of Senior Services",
+              "type": "service-area",
+              "phone": "1-877-987-4463",
+              "address": "1900 Kanawha Boulevard East (3rd Floor Town Center Mall), Charleston, WV 25305-0160"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SHIP provides information and counseling only — they don't directly pay medical bills or premiums. However, their guidance can help your parent find programs that do provide financial assistance, like Medicare Savings Programs or prescription drug discount programs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What's the difference between SHIP and Medicare customer service?",
+          "answer": "SHIP counselors are independent and objective — they don't work for insurance companies or Medicare. They can compare all available plans in your area and help identify the most cost-effective option for your parent's specific medications and doctors, which Medicare's general customer service cannot do."
+        },
+        {
+          "question": "Can SHIP help if my parent already has a Medicare Supplement or Medicare Advantage plan?",
+          "answer": "Yes. SHIP can review your parent's current coverage and help determine if they're paying too much or missing better options. They can explain when and how to switch plans during enrollment periods."
+        },
+        {
+          "question": "Will SHIP try to sell my parent insurance?",
+          "answer": "No. SHIP counselors cannot sell insurance or receive commissions. They provide objective information to help your parent make informed decisions about their Medicare coverage."
+        },
+        {
+          "question": "Can SHIP help with Medicaid questions too?",
+          "answer": "Yes. SHIP counselors can provide information about Medicaid and other insurance programs, including free or reduced-fee health care programs. They can also help determine if your parent qualifies for Medicare Savings Programs that reduce Medicare costs."
+        },
+        {
+          "question": "How long does a SHIP counseling session take?",
+          "answer": "Sessions are typically one-on-one appointments that can last 30 minutes to over an hour, depending on your parent's questions and needs. The counselor will take time to thoroughly review options specific to your parent's situation."
+        },
+        {
+          "question": "Can I attend the counseling session with my parent?",
+          "answer": "Yes, family members are welcome to attend SHIP counseling sessions to help their parent understand the information and make decisions. Many adult children find these sessions helpful for understanding their parent's Medicare options."
+        }
+      ],
+      "phone": "1-877-987-4463",
+      "sourceUrl": "https://www.cms.gov/contacts/west-virginia-state-health-insurance-assistance-program-wv-ship/general-beneficiary-contact/1562251",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "west-virginia-meals-on-wheels",
+      "name": "Meals on Wheels (Home Delivered Meals)",
+      "shortName": "Meals on Wheels",
+      "tagline": "Free daily meals delivered to your parent's home if they can't cook or leave the house safely.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local senior centers and Area Agencies on Aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggles to prepare meals or leave home safely, Meals on Wheels delivers one nutritious meal per day to their door at no cost. Each meal provides one-third of daily vitamins and minerals, typically lunch, with accommodations for special diets like diabetic or low-sodium.\n\nYour parent qualifies if they're homebound due to mobility issues, illness, or lack someone to help with meal preparation. Spouses and disabled family members living with them may also receive meals. Because the program runs through local agencies, availability depends on your county — over 1,000 West Virginia seniors are currently on waitlists.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Homebound or can't prepare meals",
+          "Live in service delivery area",
+          "No caregiver to help with meals"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be homebound or unable to prepare meals due to physical/mental limitations, mobility challenges, or lack of caregiver assistance",
+        "otherRequirements": [
+          "Must live within local program's delivery area",
+          "Disabled individuals under 60 qualify if living with eligible 60+ participant"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your local Area Agency on Aging by phone — some approve within a week, others have waitlists.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Use the Meals on Wheels America search tool or call your county's Area Agency on Aging to find who serves your parent's address."
+          },
+          {
+            "step": 2,
+            "title": "Complete application and assessment",
+            "description": "Provide basic information about your parent's age, residence, mobility, and dietary needs. Some providers require a doctor or social worker referral."
+          },
+          {
+            "step": 3,
+            "title": "Submit required documents",
+            "description": "Bring proof of age, residence, medical information, prescription list, and emergency contacts."
+          },
+          {
+            "step": 4,
+            "title": "Wait for approval",
+            "description": "Processing varies by county — some start delivery within a week, others have waitlists due to funding limits."
+          }
+        ],
+        "processingTime": "Varies by county — some within a week, others have waitlists",
+        "waitlist": "Over 1,000 seniors statewide are on waitlists as of October 2024",
+        "tip": "Call even if your parent can sometimes leave home — temporary homebound status may qualify them during recovery periods.",
+        "urls": [
+          {
+            "label": "Find Local Meals on Wheels Provider",
+            "url": "https://www.mealsonwheelsamerica.org/find-meals-and-services/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residence",
+              "items": [
+                "Proof of age (driver's license, birth certificate)",
+                "Proof of residence (utility bill, lease)"
+              ]
+            },
+            {
+              "name": "Medical Information",
+              "items": [
+                "List of current medications",
+                "Dietary restrictions or special diet requirements",
+                "Primary physician contact information",
+                "Health insurance information"
+              ]
+            },
+            {
+              "name": "Emergency Contacts",
+              "items": [
+                "Family member or caregiver contact information",
+                "Backup emergency contact"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Heavy waitlists statewide mean eligible seniors may wait months for service. Even qualifying seniors can be turned away if they live outside the local provider's delivery area."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Car ownership doesn't automatically disqualify your parent — if they're unsafe driving or physically can't prepare meals, they may still qualify."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent can drive but shouldn't be cooking anymore?",
+          "answer": "They may still qualify. Being able to leave home doesn't disqualify them if they can't safely prepare meals due to physical limitations, memory issues, or lack of cooking skills."
+        },
+        {
+          "question": "Can my parent get meals if they live with me but I work all day?",
+          "answer": "Possibly. If your parent is 60+ and you're not available during meal times to help with cooking, they may qualify. Each local provider has different criteria for household situations."
+        },
+        {
+          "question": "What if we live just outside the delivery area?",
+          "answer": "Unfortunately, service areas are limited by funding. Even eligible seniors are often turned away if they live outside delivery boundaries. Try calling nearby counties' providers to see if any serve your area."
+        },
+        {
+          "question": "How much do the meals cost?",
+          "answer": "Meals are free, though some programs accept donations or charge fees on a sliding scale based on income. No one is turned away for inability to pay."
+        },
+        {
+          "question": "Can they accommodate my parent's diabetic diet?",
+          "answer": "Most providers can accommodate common dietary restrictions like diabetic, low-sodium, or soft foods. Mention all dietary needs when applying so they can plan appropriate meals."
+        },
+        {
+          "question": "What happens if my parent is on the waitlist?",
+          "answer": "Waitlist times vary by county — some areas have 70+ people waiting. Contact multiple nearby providers to see if any have shorter waits, and ask to be notified immediately when spots open."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://code.wvlegislature.gov/16-5S-9/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "west-virginia-nfcsp-caregiver-support",
+      "name": "National Family Caregiver Support Program (NFCSP)",
+      "shortName": "NFCSP",
+      "tagline": "Free caregiver training, respite care, and support services if you're caring for a parent 60+ or someone with Alzheimer's.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging; contact via West Virginia Bureau for Senior Services",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're caring for a parent 60+ or someone with Alzheimer's disease, NFCSP provides free caregiver training, respite care, and support services to help you manage caregiving responsibilities. The program serves family caregivers and informal caregivers without income limits — you don't need to qualify financially to receive help.\n\nBecause NFCSP operates through 11 regional Area Agencies on Aging across West Virginia, the specific services available (respite hours, training programs, supplemental services) vary by your location. Unlike VA caregiver programs that provide monthly stipends, NFCSP offers services and support rather than cash payments.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "No income limits",
+          "Caring for someone 60+ or with Alzheimer's",
+          "Family or informal caregiver",
+          "Available statewide"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be caring for someone 60+ OR someone of any age with Alzheimer's disease",
+          "Older relatives (55+) caring for children under 18 also qualify"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your local Area Agency on Aging — no formal application needed and processing time varies by region.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local Area Agency on Aging",
+            "description": "West Virginia has 11 regional AAAs that deliver NFCSP services — your location determines which office serves you."
+          },
+          {
+            "step": 2,
+            "title": "Call your regional AAA",
+            "description": "Explain that you're a family caregiver needing support and ask about NFCSP services available in your area."
+          },
+          {
+            "step": 3,
+            "title": "Describe your caregiving situation",
+            "description": "Be ready to explain who you're caring for (age, health conditions) and what type of support would help most."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Services vary significantly by region — ask specifically what respite care, training, and support services your local AAA offers.",
+        "urls": [
+          {
+            "label": "West Virginia Bureau for Senior Services",
+            "url": "https://wvseniorservices.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "Information to Prepare",
+          "categories": [
+            {
+              "name": "About You",
+              "items": [
+                "Your relationship to the person you're caring for",
+                "Your contact information and address"
+              ]
+            },
+            {
+              "name": "About Your Care Recipient",
+              "items": [
+                "Their age and health conditions",
+                "Description of care needs and your caregiving responsibilities",
+                "Documentation of Alzheimer's diagnosis (if applicable)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "NFCSP provides services, not cash payments. If you need paid caregiver support, ask your AAA about West Virginia's Lighthouse program or check VA caregiver programs if your care recipient is a veteran."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Does NFCSP pay me to be a caregiver like some VA programs do?",
+          "answer": "No. NFCSP provides services like respite care and training, but no monthly stipend or payments. For paid caregiver support, ask about West Virginia's Lighthouse program or VA caregiver programs if your parent is a veteran with qualifying service-connected disabilities."
+        },
+        {
+          "question": "What if my parent is under 60 but has dementia?",
+          "answer": "You qualify if your parent has Alzheimer's disease or related disorders, regardless of age. The program covers caregivers of people with Alzheimer's at any age."
+        },
+        {
+          "question": "How many hours of respite care can I get?",
+          "answer": "This varies by your local Area Agency on Aging. Some regions may have more resources than others. Contact your regional AAA to ask about specific respite hours available in your area."
+        },
+        {
+          "question": "Can I get services if I live in a different county than my parent?",
+          "answer": "Services are typically based on where your care recipient lives, since that determines which Area Agency on Aging serves them. Contact the AAA in your parent's county."
+        },
+        {
+          "question": "What's the difference between NFCSP and other caregiver programs I've heard about?",
+          "answer": "NFCSP has no income limits and provides services (not payments). VA caregiver programs require the veteran to be enrolled in VA healthcare with specific service-connected disabilities. State programs like Lighthouse may have different eligibility and payment structures."
+        },
+        {
+          "question": "Do I need to prove my income or assets to qualify?",
+          "answer": "No. NFCSP has no income or asset limits. The program focuses on your caregiving situation, not your financial status."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://acl.gov/programs/support-caregivers/national-family-caregiver-support-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "west-virginia-senior-legal-aid",
+      "name": "West Virginia Senior Legal Aid, Inc. (Senior Legal Services)",
+      "shortName": "WV Senior Legal Aid",
+      "tagline": "Free legal help for West Virginia seniors 60+ dealing with benefit denials, nursing home issues, or financial exploitation.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Statewide service via West Virginia Senior Legal Aid, Inc.; no specific regional offices listed",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and lives in West Virginia, they can get free legal help with senior-specific problems like Medicaid denials, nursing home disputes, guardianship issues, or financial exploitation. West Virginia Senior Legal Aid provides legal information to all qualifying seniors, with enhanced services (direct legal advice and court representation) prioritized for low-income, disabled, rural, minority, LGBT, or very elderly seniors.\n\nThis program handles civil legal matters only — issues like public benefits appeals, long-term care disputes, age discrimination, consumer fraud, and abuse or neglect cases. Because it's designed specifically for seniors, the attorneys understand Medicare, Medicaid, Social Security, and other programs that affect older adults. All West Virginia residents 60+ qualify for basic services regardless of income.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "West Virginia resident",
+          "Civil legal issues only",
+          "No income limits for basic services"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be West Virginia resident",
+          "Civil legal matters only (not criminal, accidents, or personal injury)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call the toll-free number for fastest response — processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the intake line",
+            "description": "Call 1-800-229-5068 to speak with staff about your parent's legal issue."
+          },
+          {
+            "step": 2,
+            "title": "Describe the legal problem",
+            "description": "Explain the issue — benefit denial, nursing home problem, financial exploitation, etc. Have details about your parent's situation ready."
+          },
+          {
+            "step": 3,
+            "title": "Complete intake process",
+            "description": "Staff will determine service level based on the issue and your parent's circumstances (income, disability status, location)."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": null,
+        "tip": "Enhanced services (direct legal advice and representation) are prioritized for vulnerable seniors, so mention if your parent is low-income, disabled, in a very rural area, or very elderly.",
+        "urls": [
+          {
+            "label": "West Virginia Senior Legal Aid website",
+            "url": "https://www.seniorlegalaid.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Contact Information",
+          "offices": [
+            {
+              "name": "West Virginia Senior Legal Aid, Inc.",
+              "type": "service-area",
+              "phone": "1-800-229-5068",
+              "address": "Statewide service - contact by phone or email"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is separate from Legal Aid of West Virginia, which has strict income requirements. West Virginia Senior Legal Aid serves all seniors 60+ regardless of income for basic services."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What's the difference between this and regular Legal Aid of West Virginia?",
+          "answer": "West Virginia Senior Legal Aid is specifically for seniors 60+ and has no income requirements for basic services. Legal Aid of West Virginia requires low income or domestic violence victim status and excludes most seniors unless they meet those criteria."
+        },
+        {
+          "question": "Will my parent get a lawyer, or just legal information?",
+          "answer": "All seniors 60+ get legal information and guidance. Direct legal advice and court representation are prioritized for low-income, disabled, rural, minority, LGBT, or very elderly seniors. The level of service depends on your parent's situation and vulnerability."
+        },
+        {
+          "question": "Can they help if Medicare denied my parent's claim?",
+          "answer": "Yes, public benefits appeals including Medicare and Medicaid denials are exactly what this program handles. They understand senior benefit programs and can help with appeals and advocacy."
+        },
+        {
+          "question": "What if my parent's nursing home isn't providing proper care?",
+          "answer": "Long-term care disputes are a specialty area. They can help with nursing home issues, assisted living problems, and other care-related legal matters."
+        },
+        {
+          "question": "Can they help if someone is stealing my parent's money?",
+          "answer": "Yes, financial exploitation and abuse/neglect of seniors are priority issues they handle. This includes cases where family members, caregivers, or scammers are taking advantage financially."
+        },
+        {
+          "question": "What if my parent needs help with a car accident or injury case?",
+          "answer": "No, they only handle civil legal matters related to senior programs and issues. They don't handle criminal cases, accidents, or personal injury lawsuits."
+        }
+      ],
+      "phone": "1-800-229-5068",
+      "sourceUrl": "https://www.seniorlegalaid.org",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "west-virginia-long-term-care-ombudsman",
+      "name": "Long-Term Care Ombudsman Program",
+      "shortName": "Ombudsman Program",
+      "tagline": "Free advocacy and complaint resolution if your parent is in a nursing home or assisted living facility.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Legal Aid of West Virginia operates the program with 9 regional ombudsmen; examples: Martinsburg (301 W. Burke St., Suite B, Martinsburg, WV 25401), Director remote office; full list at https://legalaidwv.org/our-programs/long-term-care/",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a nursing home, assisted living facility, or residential care community in West Virginia, they have access to a free advocate who can investigate complaints and resolve problems with their care. The Long-Term Care Ombudsman Program provides independent advocates who make unannounced visits to facilities, investigate health and safety concerns, and represent residents' rights.\n\nThis isn't healthcare or financial assistance — it's advocacy. Because ombudsmen have legal authority to access facilities and investigate complaints, they can address issues that families often struggle to resolve on their own. The program serves residents in 124 nursing homes, 87 assisted living facilities, and 49 other residential care homes across West Virginia.\n\nServices are completely free and confidential. No income limits, no paperwork, no qualifying process beyond living in a covered facility.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Resident of long-term care facility",
+          "No income or age limits",
+          "Free and confidential"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a resident of a nursing home, assisted living facility, residential care community, or legally unlicensed care home in West Virginia"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the toll-free number and you'll be connected to your regional ombudsman immediately — no forms or qualifying process required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the ombudsman hotline",
+            "description": "Dial 1-800-834-0598 and you'll be connected to the ombudsman for your parent's facility location."
+          },
+          {
+            "step": 2,
+            "title": "Describe the situation",
+            "description": "Explain your concerns about care, safety, or rights issues. No documentation required — just describe what's happening."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman investigates",
+            "description": "The ombudsman will visit the facility, investigate your complaint, and work to resolve the issue with facility staff or administrators."
+          }
+        ],
+        "processingTime": "Complaints investigated promptly per statewide procedures",
+        "waitlist": null,
+        "tip": "You can call even for minor concerns — ombudsmen handle everything from billing questions to serious safety issues.",
+        "urls": [
+          {
+            "label": "Find your regional ombudsman",
+            "url": "https://legalaidwv.org/our-programs/long-term-care/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Regional Ombudsmen",
+          "offices": [
+            {
+              "name": "Statewide Hotline",
+              "type": "service-area",
+              "phone": "1-800-834-0598",
+              "address": "Connects you to your regional ombudsman"
+            },
+            {
+              "name": "Martinsburg Regional Office",
+              "type": "service-area",
+              "phone": "304-263-8871 ext. 2812",
+              "address": "301 W. Burke St., Suite B, Martinsburg, WV 25401"
+            },
+            {
+              "name": "Program Director",
+              "type": "service-area",
+              "phone": "304-449-4755 or 1-800-834-0598 ext. 3912",
+              "address": "ehopple@lawv.net"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program only helps residents of facilities, not people receiving home care. For facility licensing complaints, contact OHFLAC at 304-558-0050 instead."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What kinds of problems can the ombudsman help with?",
+          "answer": "Health and safety concerns, billing disputes, medication issues, quality of care problems, residents' rights violations, and conflicts with facility staff. They investigate any complaint related to your parent's welfare in the facility."
+        },
+        {
+          "question": "Will the facility retaliate against my parent if I file a complaint?",
+          "answer": "No. Retaliation against residents or families for filing complaints is illegal, and ombudsmen are specifically trained to prevent and address retaliation."
+        },
+        {
+          "question": "Can I call if my parent has dementia and can't advocate for themselves?",
+          "answer": "Yes. Family members can file complaints on behalf of residents who cannot speak for themselves. The ombudsman will still visit and assess the situation directly."
+        },
+        {
+          "question": "How is this different from calling the facility administrator myself?",
+          "answer": "Ombudsmen have legal authority to access facilities unannounced, review records, and escalate issues to state agencies if needed. They're independent advocates, not employed by the facility."
+        },
+        {
+          "question": "What if my parent is in an assisted living facility, not a nursing home?",
+          "answer": "The program covers all long-term care facilities in West Virginia, including 87 assisted living facilities and 49 residential care communities — not just nursing homes."
+        },
+        {
+          "question": "Does this cost anything or affect my parent's benefits?",
+          "answer": "Completely free with no income limits or requirements. Using ombudsman services doesn't affect Medicare, Medicaid, or any other benefits your parent receives."
+        }
+      ],
+      "phone": "1-800-834-0598",
+      "sourceUrl": "https://legalaidwv.org/our-programs/long-term-care/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "west-virginia-lighthouse-program",
+      "name": "Lighthouse Program",
+      "shortName": "Lighthouse Program",
+      "tagline": "If your parent needs in-home care but doesn't qualify for Medicaid, this West Virginia program provides up to 60 hours/month of personal care and housekeeping help.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local county senior programs; WV Bureau of Senior Services for info: 1-877-987-3646",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and needs help with daily tasks like bathing, dressing, or meal preparation but makes too much money to qualify for Medicaid, West Virginia's Lighthouse Program can provide up to 60 hours per month of in-home care services. The program uses a sliding fee scale based on your parent's income — they'll pay something, but less than private care rates.\n\nServices include personal care (bathing, dressing), mobility assistance, meal preparation, light housekeeping, and laundry. A registered nurse evaluates your parent to determine medical eligibility and assess how many hours of care they need. Because this program is specifically designed for people who don't qualify for Medicaid, your parent can keep their assets and home without penalty.",
+      "savingsRange": "",
+      "savingsSource": "Subsidized service with sliding fee scale",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "West Virginia resident",
+          "Doesn't qualify for Medicaid",
+          "Passes nurse evaluation",
+          "Pays sliding fee based on income"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must pass functional evaluation by program's registered nurse to demonstrate need for personal care, mobility assistance, or household support",
+        "otherRequirements": [
+          "West Virginia resident",
+          "Does not qualify for Medicaid programs"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local county senior program to start the application and schedule a nurse evaluation.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call your local county senior program",
+            "description": "Each county has its own office that administers Lighthouse Program services. Find your county's number or call the state line at 1-877-987-3646 for a referral."
+          },
+          {
+            "step": 2,
+            "title": "Complete income documentation",
+            "description": "Provide proof of your parent's annual income (and spouse's income if married) to determine their sliding fee amount."
+          },
+          {
+            "step": 3,
+            "title": "Schedule nurse evaluation",
+            "description": "A registered nurse will assess your parent's functional needs to determine medical eligibility and recommended hours of care."
+          },
+          {
+            "step": 4,
+            "title": "Wait for caregiver assignment",
+            "description": "If approved, you'll be matched with a county-employed caregiver based on availability in your area."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Services are limited by caregiver availability in your county",
+        "tip": "Prepare annual income documentation for both your parent and their spouse if married before calling — this speeds up the fee calculation.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of annual income for your parent",
+                "Spouse's annual income documentation if married",
+                "Social Security statements",
+                "Pension statements",
+                "Any other regular income sources"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Services are limited by caregiver availability in your county. Even if your parent qualifies, there may be a wait for services to begin."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program is specifically for people who don't qualify for Medicaid. If your parent's income or assets recently changed, check Medicaid eligibility first — it may cover more services at no cost."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "How much will my parent pay for services?",
+          "answer": "Your parent pays a sliding fee based on their annual income (and spouse's income if married). The exact amount follows a state fee schedule, but specific dollar amounts aren't published. The local county program will calculate the fee during application."
+        },
+        {
+          "question": "What if my parent needs more than 60 hours per month?",
+          "answer": "60 hours is the maximum the program provides. If your parent needs more care, you'll need to arrange additional private services or explore other programs. The nurse evaluation determines how many hours within that 60-hour limit your parent qualifies for."
+        },
+        {
+          "question": "Can my parent keep their house and savings?",
+          "answer": "Yes. Unlike Medicaid, the Lighthouse Program has no asset limits or tests. Your parent can own their home and have savings accounts without affecting eligibility."
+        },
+        {
+          "question": "What happens if my parent starts qualifying for Medicaid later?",
+          "answer": "If your parent's income drops or circumstances change so they qualify for Medicaid, they should apply for Medicaid services instead. Medicaid typically covers more hours and services at no cost."
+        },
+        {
+          "question": "Who provides the care services?",
+          "answer": "County-employed caregivers provide the services. Each county manages its own staff, so caregiver availability varies by location."
+        },
+        {
+          "question": "What if the nurse evaluation says my parent doesn't qualify medically?",
+          "answer": "The registered nurse must determine your parent has functional needs requiring personal care or household assistance. If they're too independent for the program's criteria, they won't qualify for services."
+        }
+      ],
+      "phone": "1-877-987-3646",
+      "sourceUrl": null,
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "west-virginia-take-me-home-program",
+      "name": "Take Me Home Program",
+      "shortName": "Take Me Home",
+      "tagline": "Free help moving your parent from nursing home or hospital back to community living after 90+ days.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Primary office: Bureau for Medical Services, 350 Capitol St., Room 251, Charleston, WV 25301-3702",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has been in a nursing home, hospital, or mental health facility for at least 90 days and wants to return to community living, West Virginia's Take Me Home Program provides the transition support they need. The program covers practical necessities like rental deposits, utility deposits, and basic household items, plus assigns a transition manager to develop a personalized plan for moving back home, to your home, or to an apartment or small group home.\n\nThis isn't general home care — it's specifically designed for people transitioning out of institutional care who are on Medicaid and qualify for West Virginia's disability or aging waiver programs. Your parent must have been receiving Medicaid on their last day in the facility and be assessed as eligible for either the Aged/Disabled Waiver or Traumatic Brain Injury Waiver to qualify.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Been in facility 90+ consecutive days",
+          "On Medicaid when leaving facility",
+          "Eligible for disability/aging waiver",
+          "Physically disabled, elderly, or serious mental health issues"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be assessed and determined eligible for Aged/Disabled Waiver or Traumatic Brain Injury Waiver (clinical assessments that determine need for long-term care services)",
+        "otherRequirements": [
+          "Resided in qualifying institution for at least 90 consecutive days (excluding Medicare rehabilitation days)",
+          "Receives Medicaid benefits on last day before transition"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call 1-855-519-7557 to start the application process — no processing time specified in official sources.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Take Me Home hotline",
+            "description": "Contact 1-855-519-7557 or 304-352-4281 to request an application and discuss your parent's situation."
+          },
+          {
+            "step": 2,
+            "title": "Complete application with facility information",
+            "description": "Fill out the Take Me Home application form, including details about your parent's current facility stay, Medicaid status, and housing history."
+          },
+          {
+            "step": 3,
+            "title": "Provide required documentation",
+            "description": "Submit Medicaid number, proof of 90-day institutional stay, and identification documents needed for housing applications."
+          },
+          {
+            "step": 4,
+            "title": "Work with assigned transition manager",
+            "description": "Your parent will be assigned a TMH field staff member who will complete the qualification checklist and develop a personalized transition plan."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Start the process while your parent is still in the facility — they cannot transition until after 90 consecutive days, but planning can begin earlier.",
+        "urls": [
+          {
+            "label": "Official Take Me Home Program page",
+            "url": "https://bms.wv.gov/take-me-home-tmh-transition-program"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Legal",
+              "items": [
+                "Birth certificate",
+                "Social Security card",
+                "Driver's license or state ID",
+                "Documentation of legal representation (if applicable)"
+              ]
+            },
+            {
+              "name": "Medical & Financial",
+              "items": [
+                "Medicaid number",
+                "Proof of 90-day institutional stay",
+                "ADW/TBIW eligibility assessment",
+                "Income documentation (jobs, Social Security, Worker's Compensation)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Medicare rehabilitation days don't count toward the required 90-day institutional stay — only long-term care days qualify."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent has bad credit or past evictions?",
+          "answer": "The program assesses housing history including evictions, bad credit, and criminal history, but this doesn't automatically disqualify your parent. The transition manager will work with these challenges to find suitable housing options."
+        },
+        {
+          "question": "Can my parent move in with me instead of getting their own place?",
+          "answer": "Yes. The program supports transitions to your parent's own home, a family member's home, an apartment, or a group home with 4 or fewer residents."
+        },
+        {
+          "question": "What if my parent hasn't been approved for the disability waiver yet?",
+          "answer": "Your parent must be assessed and determined eligible for either the Aged/Disabled Waiver or Traumatic Brain Injury Waiver before the transition can happen. The Take Me Home staff can help coordinate this assessment."
+        },
+        {
+          "question": "Does the 90-day requirement reset if my parent goes to the hospital?",
+          "answer": "It depends on the type of stay. Medicare rehabilitation days don't count toward the 90-day requirement, but other hospital days as part of long-term care may count. Discuss your parent's specific situation with the program staff."
+        },
+        {
+          "question": "What exactly does the program pay for during the move?",
+          "answer": "The program covers rental deposits, utility deposits, and basic household items needed to set up community living. Your transition manager will work with you to identify specific needs and develop a personalized support plan."
+        },
+        {
+          "question": "What happens if the transition doesn't work out?",
+          "answer": "The program provides ongoing community support as part of the transition plan, but specific details about what happens if your parent needs to return to institutional care aren't specified in the official materials. Ask your transition manager about contingency planning."
+        }
+      ],
+      "phone": "1-855-519-7557",
+      "sourceUrl": "https://bms.wv.gov/take-me-home-tmh-transition-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "west-virginia-visions-seniors-blind-services",
+      "name": "Visually Impaired Seniors In-Home Outreach and Networking Services (VISIONS)",
+      "shortName": "VISIONS",
+      "tagline": "If your parent is 55+ with vision loss and not working, they can get free in-home training to live independently.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "West Virginia Division of Rehabilitation Services (DRS) offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55 or older with permanent vision loss and not working, VISIONS provides free one-on-one training in their home for 3-9 months. Because services come to your parent's home, they don't need to travel to unfamiliar locations or navigate transportation barriers while learning new skills.\n\nThe program offers customized training based on your parent's specific needs: how to navigate their home and community safely, use assistive technology like talking devices, learn braille, manage daily tasks like cooking and organizing, and cope emotionally with vision loss. A specially trained rehabilitation counselor works directly with your parent to build confidence and maintain independence.\n\nThere are no income limits — eligibility focuses on age, vision status, and employment. Because the program is part of West Virginia's Division of Rehabilitation Services, counselors are available statewide.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Permanent vision loss",
+          "Not currently working",
+          "West Virginia resident"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must have permanent vision loss (not temporary conditions)",
+        "otherRequirements": [
+          "Not currently working",
+          "West Virginia resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact a DRS rehabilitation counselor who specializes in vision services — no formal application form required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Visit wvdrs.org to find your local office",
+            "description": "Find contact information for DRS rehabilitation counselors in your parent's area who specialize in blind and visually impaired services."
+          },
+          {
+            "step": 2,
+            "title": "Call to discuss your parent's needs",
+            "description": "The counselor will assess your parent's vision loss, current living situation, and goals for independent living."
+          },
+          {
+            "step": 3,
+            "title": "Schedule initial home visit",
+            "description": "The counselor will visit your parent's home to evaluate their environment and develop a customized training plan."
+          },
+          {
+            "step": 4,
+            "title": "Begin individualized training",
+            "description": "Training sessions start based on your parent's schedule and needs, lasting 3-9 months depending on goals."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Have documentation of your parent's vision loss from their eye doctor ready when you call — this speeds up the eligibility confirmation.",
+        "urls": [
+          {
+            "label": "Find Local DRS Office",
+            "url": "https://wvdrs.org/adults/specialized-services/services-for-the-blind-and-impaired/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What You'll Need",
+          "categories": [
+            {
+              "name": "Medical",
+              "items": [
+                "Documentation of permanent vision loss from ophthalmologist or optometrist",
+                "Medical records showing current vision status"
+              ]
+            },
+            {
+              "name": "Identity/Residency",
+              "items": [
+                "Proof of age (driver's license, birth certificate)",
+                "Proof of West Virginia residency (utility bill, lease, mail)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent is currently working, they won't qualify for VISIONS but may be eligible for other DRS vision services. Ask the counselor about work-focused programs instead."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent has some vision left but struggles with daily tasks?",
+          "answer": "VISIONS serves people with permanent vision loss, not necessarily total blindness. The counselor will assess whether your parent's vision impairment significantly impacts their daily living and qualifies them for services."
+        },
+        {
+          "question": "Can my parent get VISIONS if they're retired but do occasional part-time work?",
+          "answer": "No — the program specifically requires that your parent not be working. If they're doing any paid work, they would need to apply for DRS's work-focused vision services instead."
+        },
+        {
+          "question": "How long does the training actually take?",
+          "answer": "Services are individualized and last 3-9 months depending on your parent's goals and progress. Some may need just a few months for basic navigation skills, while others learning braille or complex technology may take longer."
+        },
+        {
+          "question": "What if my parent is hesitant about having someone come to their home?",
+          "answer": "The counselor will explain exactly what to expect and can start with short visits to build comfort. Because services happen at home, your parent learns skills in their actual living environment, which is more effective than training elsewhere."
+        },
+        {
+          "question": "Does my parent need to be legally blind to qualify?",
+          "answer": "The program requires permanent vision loss, but specific vision thresholds aren't detailed in available information. The DRS counselor will determine eligibility based on how vision loss impacts your parent's daily functioning."
+        },
+        {
+          "question": "What happens after the 3-9 month training period ends?",
+          "answer": "Your parent keeps all the skills they've learned and any assistive devices provided. They can contact their counselor for follow-up support if needed, though the intensive training period will be complete."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://wvdrs.org/adults/specialized-services/services-for-the-blind-and-impaired/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "wv-home-modification-accessibility-grants",
+      "name": "WV Bureau of Senior Services Home Modification and Accessibility Grant Program (Aging Well, Safe at Home Initiative)",
+      "shortName": "WV Home Modification Grants",
+      "tagline": "Up to $3,000 to make your parent's home safer with ramps, grab bars, and accessibility equipment.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "WV Aging & Disability Resource Center (central contact in Charleston)",
+            "type": "service-area"
+          },
+          {
+            "name": "Local Aging Providers (locate via WV Bureau of Senior Services)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and needs help making their West Virginia home safer to age in place, they may qualify for up to $3,000 in grants. This covers wheelchair ramps, grab bars, bathroom modifications, durable medical equipment, and assistive technology — anything that helps them live independently at home.\n\nBecause this program has no income or asset limits, your parent only needs to demonstrate they're a West Virginia resident over 60 who needs specific modifications to stay safely in their home. The grant covers the full cost up to $3,000, but requires pre-approval and documentation from licensed contractors.",
+      "savingsRange": "Up to $3,000 in 2026",
+      "savingsSource": "Grant maximum from WV Bureau of Senior Services",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "West Virginia resident",
+          "Need for home modifications",
+          "No income limits"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "West Virginia resident",
+          "Demonstrate need for modifications to live independently at home"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply by phone at 866-981-2372 or download the application online — processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Get the application",
+            "description": "Call 866-981-2372 or download from wvadrc.com. You can also email adrcinfo@wvadrc.com."
+          },
+          {
+            "step": 2,
+            "title": "Get contractor estimates",
+            "description": "For home modifications, get detailed estimates from licensed contractors (no sales tax included). Collect copies of their license, insurance, and W-9 form."
+          },
+          {
+            "step": 3,
+            "title": "Submit application with documentation",
+            "description": "Mail completed application with contractor documentation or equipment cost estimates to WV ADRC at 824 Cross Lanes Drive, Charleston, WV 25313."
+          },
+          {
+            "step": 4,
+            "title": "Wait for approval",
+            "description": "Once approved, take 'before' photos and complete the project. Submit 'after' photos before payment is released."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Get pre-approval before starting any work — payment requires before and after photos.",
+        "urls": [
+          {
+            "label": "Download application",
+            "url": "https://www.wvadrc.com/uploads/2/7/8/2/27820909/wv_boss_home_mod_application_job_aid_no_highlight.docx"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "For Home Modifications",
+              "items": [
+                "Detailed estimate from licensed contractor (no sales tax included)",
+                "Copy of contractor's license and insurance",
+                "Contractor's W-9 form",
+                "Photos of area before work begins (required before payment)"
+              ]
+            },
+            {
+              "name": "For Equipment/Devices",
+              "items": [
+                "Estimated cost of durable medical equipment or assistive technology",
+                "Documentation of need for independence at home"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Local Offices",
+          "offices": [
+            {
+              "name": "WV Aging & Disability Resource Center",
+              "type": "service-area",
+              "phone": "866-981-2372",
+              "address": "824 Cross Lanes Drive, Charleston, WV 25313"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Payment only happens after you submit before and after photos — don't start work until you get approval and take the required 'before' pictures."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What home modifications does this cover?",
+          "answer": "Wheelchair ramps, grab bars, bathroom modifications, stair lifts, and other accessibility improvements. Also covers durable medical equipment and assistive technology that helps your parent live independently."
+        },
+        {
+          "question": "Can Mom use any contractor she wants?",
+          "answer": "The contractor must be licensed and insured. You'll need to submit copies of their license, insurance, and W-9 form with your application before approval."
+        },
+        {
+          "question": "What if the work costs more than $3,000?",
+          "answer": "The grant covers up to $3,000 maximum. Your parent would need to pay any costs above that amount out of pocket or find additional funding sources."
+        },
+        {
+          "question": "How long does approval take?",
+          "answer": "Processing time isn't specified in available sources. Call 866-981-2372 to ask about current timelines when you apply."
+        },
+        {
+          "question": "What if Dad's income is high — does that disqualify him?",
+          "answer": "No income limits are specified for this program. As long as he's 60+, lives in West Virginia, and can demonstrate need for modifications, income shouldn't be a barrier."
+        },
+        {
+          "question": "Can she get another grant if she needs more work done later?",
+          "answer": "The sources don't specify if this is a one-time grant or if additional applications are possible. Ask when you apply at 866-981-2372."
+        }
+      ],
+      "phone": "866-981-2372",
+      "sourceUrl": "https://www.wvadrc.com/assistance-programs.html",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "West Virginia offers 15 programs to help seniors and their families — 12 provide direct financial benefits or services, plus 3 free resources available to everyone. These range from monthly grocery money through SNAP (no asset limits in West Virginia) to full-time in-home care through the Aged and Disabled Waiver, plus West Virginia-specific programs like the Lighthouse Program for those who don't qualify for Medicaid. Most programs serve seniors 60+, though some start at 55.\n\nStart by identifying your parent's most urgent need — whether that's help paying bills, getting care at home, or navigating Medicare. Income limits vary widely: LIHEAP helps those under $1,884/month, while some programs have no income requirements at all.",
+    "startHere": [
+      {
+        "name": "Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
+        "programId": "medicaid-medicare-savings-programs",
+        "why": "If your parent has Medicare, these programs can immediately reduce their prescription costs and monthly premiums."
+      },
+      {
+        "name": "SNAP (Supplemental Nutrition Assistance Program)",
+        "programId": "snap",
+        "why": "West Virginia has no asset limits, making more seniors eligible for monthly grocery assistance."
+      },
+      {
+        "name": "SHIP (State Health Insurance Assistance Program)",
+        "programId": "ship",
+        "why": "Free counseling available to everyone — no income limits — to avoid overpaying for Medicare."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying monthly bills",
+        "programs": [
+          "SNAP",
+          "LIHEAP",
+          "Medicaid Medicare Savings Programs"
+        ],
+        "description": "Monthly assistance for groceries, heating/cooling bills, and Medicare costs."
+      },
+      {
+        "need": "In-home care and support",
+        "programs": [
+          "Aged and Disabled Waiver",
+          "PACE",
+          "Lighthouse Program",
+          "Meals on Wheels"
+        ],
+        "description": "From full-time care coordination to daily meal delivery, depending on your parent's needs and income."
+      },
+      {
+        "need": "Making the home safer and more accessible",
+        "programs": [
+          "Weatherization Assistance Program",
+          "WV Bureau of Senior Services Home Modification and Accessibility Grant Program"
+        ],
+        "description": "Free weatherization services plus up to $3,000 for ramps, grab bars, and accessibility equipment."
+      },
+      {
+        "need": "Support for caregivers",
+        "programs": [
+          "National Family Caregiver Support Program"
+        ],
+        "description": "Free training, respite care, and support services if you're caring for a parent 60+ or someone with Alzheimer's."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "SHIP",
+          "West Virginia Senior Legal Aid",
+          "Long-Term Care Ombudsman Program"
+        ],
+        "description": "Free help with Medicare decisions, legal issues, and nursing home complaints."
+      },
+      {
+        "need": "Specialized support",
+        "programs": [
+          "Take Me Home Program",
+          "VISIONS"
+        ],
+        "description": "Help transitioning from nursing home to home, plus services for seniors with vision loss."
+      }
+    ],
+    "quickFacts": [
+      "West Virginia has no asset limits for SNAP, making more seniors eligible than in other states",
+      "The Lighthouse Program provides up to 60 hours/month of care for those who don't qualify for Medicaid",
+      "Most programs serve seniors 60+, though VISIONS starts at 55 and some have no age requirements"
+    ],
+    "resourcesVsBenefits": "Most West Virginia programs require income qualification — like LIHEAP's $1,884/month limit for singles or the clinical assessments needed for the Aged and Disabled Waiver. But three resources are free to everyone regardless of income: SHIP for Medicare counseling, West Virginia Senior Legal Aid for legal help, and the Long-Term Care Ombudsman for nursing home advocacy."
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "entity": "Illinois",
+  "entitySlug": "illinois",
+  "state": "IL",
+  "stateName": "Illinois",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T13:13:26.435Z",
+  "programCount": 13,
+  "programs": [
+    {
+      "name": "Medical Assistance (Medicaid) for Seniors/Disabled",
+      "what_it_does": "Provides health coverage including long-term medical and personal care for low-income seniors. Covers services to help seniors avoid institutional care through waivers.[4][9]",
+      "who_its_for": "Low-income seniors and persons with disabilities who meet income eligibility.",
+      "official_url": "https://ilaging.illinois.gov",
+      "benefit_value": "Varies by eligibility; covers medical costs, long-term care."
+    },
+    {
+      "name": "Home Services Program (HSP) Waiver",
+      "what_it_does": "Offers home and community-based services like personal care, home-delivered meals, and transportation as a Medicaid waiver. Enables seniors to receive care at home instead of nursing facilities.[4]",
+      "who_its_for": "Medicaid-eligible seniors aged 60+ needing nursing home level care but preferring home-based services.",
+      "official_url": "https://ilaging.illinois.gov",
+      "benefit_value": "Personalized services based on assessed needs; prevents institutionalization."
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "what_it_does": "Delivers comprehensive medical and social services to eligible seniors in community settings. Integrates Medicare and Medicaid benefits for coordinated care.[1]",
+      "who_its_for": "Seniors 55+ certified for nursing home care but able to live safely in community.",
+      "official_url": "https://ilaging.illinois.gov",
+      "benefit_value": "Full coverage of approved services including adult day health and transportation."
+    },
+    {
+      "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
+      "what_it_does": "Pays Medicare premiums, deductibles, and copayments for eligible low-income seniors. Helps reduce out-of-pocket healthcare costs through state assistance.[1][9]",
+      "who_its_for": "Low-income Medicare beneficiaries meeting specific income and resource limits.",
+      "official_url": "https://ilaging.illinois.gov",
+      "benefit_value": "Full/partial payment of Medicare Part A/B costs depending on program."
+    },
+    {
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
+      "what_it_does": "Provides funds via Link card to purchase groceries for low-income households. Offers expanded eligibility and deductions for seniors including medical and housing expenses.[3][4]",
+      "who_its_for": "Seniors 60+ with income up to 200% federal poverty level; simplified recertification every 24 months.",
+      "official_url": "https://wegotyouillinois.org/older-adults/",
+      "benefit_value": "Monthly benefits based on income/household size; avg. $200+ per person."
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "Offers financial aid for energy bills especially during extreme weather. Helps low-income households manage heating/cooling costs.[4]",
+      "who_its_for": "Low-income seniors on fixed incomes.",
+      "official_url": "https://ilaging.illinois.gov",
+      "benefit_value": "One-time grants up to $1,500+ depending on fuel type and need."
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "what_it_does": "Improves home energy efficiency through insulation, sealing, and efficiency upgrades. Reduces energy costs and improves comfort for low-income homes.[4]",
+      "who_its_for": "Low-income seniors and disabled households.",
+      "official_url": "https://ilaging.illinois.gov",
+      "benefit_value": "Free home upgrades; long-term energy savings."
+    },
+    {
+      "name": "Senior Health Insurance Program (SHIP)",
+      "what_it_does": "Provides free health insurance counseling for Medicare beneficiaries and caregivers. Assists with Medicare options, appeals, and fraud prevention.[1][7][9]",
+      "who_its_for": "Medicare beneficiaries 65+ and caregivers.",
+      "official_url": "https://ilaging.illinois.gov",
+      "benefit_value": "Free personalized counseling statewide."
+    },
+    {
+      "name": "Community Care Program Home Delivered Meals",
+      "what_it_does": "Delivers nutritious meals to homebound seniors to support independence. Part of broader in-home and community-based care services.[1][4]",
+      "who_its_for": "Homebound seniors 60+ unable to prepare meals.",
+      "official_url": "https://ilaging.illinois.gov",
+      "benefit_value": "5-14 meals/week based on eligibility; promotes nutrition and reduces isolation."
+    },
+    {
+      "name": "Community Care Program Caregiver Support/Respite",
+      "what_it_does": "Offers respite services and support for family caregivers of seniors. Provides temporary relief and training to prevent caregiver burnout.[1][4]",
+      "who_its_for": "Family caregivers of older adults receiving community care services.",
+      "official_url": "https://ilaging.illinois.gov",
+      "benefit_value": "Respite hours, counseling, and financial aid as needed."
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time community service jobs with training for low-income seniors. Aims to increase employability and income.[7]",
+      "who_its_for": "Unemployed low-income seniors 55+.",
+      "official_url": "https://ilaging.illinois.gov",
+      "benefit_value": "Minimum wage pay for 20 hours/week training positions."
+    },
+    {
+      "name": "Illinois Long-Term Care Ombudsman Program (LTCOP)",
+      "what_it_does": "Advocates for residents in long-term care facilities to protect rights and improve quality of life. Investigates complaints and provides support.[1]",
+      "who_its_for": "Residents of nursing homes, assisted living, and other long-term care settings.",
+      "official_url": "https://ilaging.illinois.gov",
+      "benefit_value": "Free advocacy and complaint resolution services."
+    },
+    {
+      "name": "Legal Assistance for Seniors",
+      "what_it_does": "Provides legal aid to low-income seniors for issues like benefits, housing, and abuse. Delivered through Area Agencies on Aging and partners.[1]",
+      "who_its_for": "Low-income seniors 60+ facing legal challenges.",
+      "official_url": "https://ilaging.illinois.gov",
+      "benefit_value": "Free or low-cost legal consultations and representation."
+    }
+  ]
+}

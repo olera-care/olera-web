@@ -1,0 +1,35 @@
+{
+  "entity": "Wyoming",
+  "entitySlug": "wyoming",
+  "state": "WY",
+  "stateName": "Wyoming",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T17:40:46.733Z",
+  "programCount": 3,
+  "programs": [
+    {
+      "name": "Wyoming State Parks Senior Discounts",
+      "what_it_does": "Provides reduced fees for camping, day-use activities, and cabin rentals at Wyoming state parks and historic sites. Eligible seniors receive discounted rates on outdoor recreation activities.[2]",
+      "who_its_for": "Wyoming residents aged 62 and older[2]",
+      "whats_unique": "State-specific discount program tied to Wyoming residency, complementing the federal National Parks Senior Pass[2]",
+      "official_url": "Not provided in search results",
+      "benefit_value": "Specific discount amounts not detailed in search results[2]"
+    },
+    {
+      "name": "Low Income Energy Assistance Program (LIHEAP)",
+      "what_it_does": "Helps seniors reduce heating and utility bills during winter months. Administered through Wyoming's Department of Family Services.[2]",
+      "who_its_for": "Low-income Wyoming seniors[2]",
+      "whats_unique": "State-administered energy assistance program addressing Wyoming's harsh winter conditions[2]",
+      "official_url": "Not provided in search results",
+      "benefit_value": "Specific benefit amounts not detailed in search results[2]"
+    },
+    {
+      "name": "Wyoming Tax Refund for Elder & Disabled",
+      "what_it_does": "Provides tax refund assistance for eligible elderly and disabled residents. Applications are available June through August.[6]",
+      "who_its_for": "Wyoming elders and disabled residents[6]",
+      "whats_unique": "State-specific tax relief program with seasonal application windows[6]",
+      "official_url": "health.wyo.gov (contact: 866-989-8901)[6]",
+      "benefit_value": "Specific refund amounts not detailed in search results[6]"
+    }
+  ]
+}

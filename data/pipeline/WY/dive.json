@@ -1,0 +1,161 @@
+{
+  "state": "WY",
+  "stateName": "Wyoming",
+  "diveAt": "2026-04-09T17:40:57.368Z",
+  "total": 3,
+  "parsed": 3,
+  "programs": [
+    {
+      "name": "Wyoming State Parks Senior Discounts",
+      "eligibility": {
+        "age": 62,
+        "income_limits": "No income limits; available to all Wyoming residents aged 62 and older.",
+        "asset_limits": "No asset limits.",
+        "other_requirements": [
+          "Must be Wyoming resident."
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Reduced fees for day-use, camping, and cabin rentals at Wyoming state parks and historic sites. Exact discount percentages or amounts not specified in sources; applies to activities like fishing, hiking, and camping.",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "No formal application or pass purchase required; present proof of age (photo ID) and Wyoming residency at park entrance or historic site to receive reduced fees.",
+          "Phone: 877-WYO-PARK (for general permits info, though not specific senior process).",
+          "Online reservations with discounts: reserve.wyoming.gov (proof required on-site)."
+        ],
+        "processing_time": "Immediate at point of entry; no processing needed.",
+        "waitlist": null,
+        "forms": [],
+        "documents": [
+          "Photo ID proving age 62+",
+          "Proof of Wyoming residency (e.g., driver's license)."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Wyoming residents only.",
+        "regional_variations": null,
+        "offices_or_providers": [
+          "All Wyoming State Parks, Historic Sites, & Trails locations."
+        ]
+      },
+      "official_source": "https://wyoparks.wyo.gov/index.php/permits-reservations/permits-fees",
+      "gotchas": [
+        "Discounts not automatic—must request and show proof of age/residency each time.",
+        "Separate from federal Senior Pass (for national parks like Yellowstone).",
+        "Annual camping passes (resident-only) provide discounts but are not senior-specific; seniors get on-the-spot reductions instead.",
+        "No dedicated senior pass sticker; differs from states with formal senior passes like Nevada or Texas.",
+        "Historic sites may have fixed senior pricing (e.g., $9 adult/$4.50 youth at some, but seniors qualify for reduced)."
+      ],
+      "data_shape_notes": "No formal pass or application; simple proof-of-age/residency discount at entry. No income/asset tests. Distinct from annual resident passes which require purchase.",
+      "_raw": "{\n  \"name\": \"Wyoming State Parks Senior Discounts\",\n  \"eligibility\": {\n    \"age\": 62,\n    \"income_limits\": \"No income limits; available to all Wyoming residents aged 62 and older.\",\n    \"asset_limits\": \"No asset limits.\",\n    \"other_requirements\": [\"Must be Wyoming resident.\"]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Reduced fees for day-use, camping, and cabin rentals at Wyoming state parks and historic sites. Exact discount percentages or amounts not specified in sources; applies to activities like fishing, hiking, and camping.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"No formal application or pass purchase required; present proof of age (photo ID) and Wyoming residency at park entrance or historic site to receive reduced fees.\", \"Phone: 877-WYO-PARK (for general permits info, though not specific senior process).\", \"Online reservations with discounts: reserve.wyoming.gov (proof required on-site).\"],\n    \"processing_time\": \"Immediate at point of entry; no processing needed.\",\n    \"waitlist\": null,\n    \"forms\": [],\n    \"documents\": [\"Photo ID proving age 62+\", \"Proof of Wyoming residency (e.g., driver's license).\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Wyoming residents only.\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\"All Wyoming State Parks, Historic Sites, & Trails locations.\"]\n  },\n  \"official_source\": \"https://wyoparks.wyo.gov/index.php/permits-reservations/permits-fees\",\n  \"gotchas\": [\"Discounts not automatic—must request and show proof of age/residency each time.\", \"Separate from federal Senior Pass (for national parks like Yellowstone).\", \"Annual camping passes (resident-only) provide discounts but are not senior-specific; seniors get on-the-spot reductions instead.\", \"No dedicated senior pass sticker; differs from states with formal senior passes like Nevada or Texas.\", \"Historic sites may have fixed senior pricing (e.g., $9 adult/$4.50 youth at some, but seniors qualify for reduced).\"],\n  \"data_shape_notes\": \"No formal pass or application; simple proof-of-age/residency discount at entry. No income/asset tests. Distinct from annual resident passes which require purchase.\"\n}"
+    },
+    {
+      "name": "Low Income Energy Assistance Program (LIHEAP)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Annual household income (before taxes) at or below 60% of state median: 1 person: $60,609; 2: $61,986; 3: $63,364 (full table not complete in sources; for >8 add $1,377 per person). Equivalent monthly: 1: $2,985; 2: $3,904; 3: $4,823; 4: $5,741; 5: $6,660; 6: $7,579. Automatic eligibility if household receives SNAP, SSI, TANF, or certain veterans benefits.[1][2]",
+        "asset_limits": "No asset limits mentioned in current program details.[1][2]",
+        "other_requirements": [
+          "Wyoming resident.",
+          "Need financial assistance for home energy costs.",
+          "For crisis assistance: immediate threat like shut-off, fuel hook-up deposit, or heating failure in winter months (requires completing regular LIEAP application first).[1]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Regular heating: one-time payment to utility (max $2,176, min $49). Crisis: winter max $550 (summer not available). Paid directly to utility/vendor for heating costs Nov-May. Related weatherization: insulation, heating repairs (separate program).[1][2][4]",
+        "varies_by": "household_size|priority_tier|fuel_type"
+      },
+      "application": {
+        "methods": [
+          "Phone: (800) 246-4221.",
+          "Email: lieapinfo@wyo.gov.",
+          "Online (implied via contractors like NOWCAP, specifics via phone/email).",
+          "Mail or in-person via regional contractors (contact via phone for locations).[1][5][6]"
+        ],
+        "processing_time": "Not specified; funding limited, may close early.[2][6]",
+        "waitlist": "Funding limited; applications may stop if funds exhausted (no formal waitlist mentioned).[2]",
+        "forms": [
+          "LIEAP Application (for regular). Additional Crisis Application (after regular).[1]"
+        ],
+        "documents": [
+          "Proof of household income (earned/unearned).",
+          "Most recent utility bill.",
+          "Photocopy of ID for every household member.",
+          "Application form.[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; Wyoming residents statewide.[1]",
+        "regional_variations": "Administered statewide by Dept. of Family Services; eligibility determined by contractors like NOWCAP (covers state, possible regional processing differences). No specific wait time or provider variations detailed.[1][3]",
+        "offices_or_providers": [
+          "Statewide contractors (e.g., NOWCAP); contact (800) 246-4221 for local.[3][6]"
+        ]
+      },
+      "official_source": "https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/",
+      "gotchas": [
+        "Applications Oct 1 - Apr 30 (2025-2026 season; heating through Mar 31, crisis to Apr 15); funds limited, may close early.",
+        "Crisis requires regular app first.",
+        "Everyone at address counts as household (even non-sharing expenses).",
+        "Elderly: no special age priority beyond automatic via SSI; compare to property tax relief (different income/asset rules, residency req).[1][2][3][6]"
+      ],
+      "data_shape_notes": "Income at 60% state median (recent ~$60k for 1); automatic eligibility via SNAP/SSI/TANF; crisis tiered; statewide but contractor-processed; seasonal/funding-limited.",
+      "_raw": "{\n  \"name\": \"Low Income Energy Assistance Program (LIHEAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Annual household income (before taxes) at or below 60% of state median: 1 person: $60,609; 2: $61,986; 3: $63,364 (full table not complete in sources; for >8 add $1,377 per person). Equivalent monthly: 1: $2,985; 2: $3,904; 3: $4,823; 4: $5,741; 5: $6,660; 6: $7,579. Automatic eligibility if household receives SNAP, SSI, TANF, or certain veterans benefits.[1][2]\",\n    \"asset_limits\": \"No asset limits mentioned in current program details.[1][2]\",\n    \"other_requirements\": [\"Wyoming resident.\", \"Need financial assistance for home energy costs.\", \"For crisis assistance: immediate threat like shut-off, fuel hook-up deposit, or heating failure in winter months (requires completing regular LIEAP application first).[1]\"]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Regular heating: one-time payment to utility (max $2,176, min $49). Crisis: winter max $550 (summer not available). Paid directly to utility/vendor for heating costs Nov-May. Related weatherization: insulation, heating repairs (separate program).[1][2][4]\",\n    \"varies_by\": \"household_size|priority_tier|fuel_type\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: (800) 246-4221.\", \"Email: lieapinfo@wyo.gov.\", \"Online (implied via contractors like NOWCAP, specifics via phone/email).\", \"Mail or in-person via regional contractors (contact via phone for locations).[1][5][6]\"],\n    \"processing_time\": \"Not specified; funding limited, may close early.[2][6]\",\n    \"waitlist\": \"Funding limited; applications may stop if funds exhausted (no formal waitlist mentioned).[2]\",\n    \"forms\": [\"LIEAP Application (for regular). Additional Crisis Application (after regular).[1]\"],\n    \"documents\": [\"Proof of household income (earned/unearned).\", \"Most recent utility bill.\", \"Photocopy of ID for every household member.\", \"Application form.[1]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; Wyoming residents statewide.[1]\",\n    \"regional_variations\": \"Administered statewide by Dept. of Family Services; eligibility determined by contractors like NOWCAP (covers state, possible regional processing differences). No specific wait time or provider variations detailed.[1][3]\",\n    \"offices_or_providers\": [\"Statewide contractors (e.g., NOWCAP); contact (800) 246-4221 for local.[3][6]\"]\n  },\n  \"official_source\": \"https://dfs.wyo.gov/assistance-programs/home-utilities-energy-assistance/\",\n  \"gotchas\": [\"Applications Oct 1 - Apr 30 (2025-2026 season; heating through Mar 31, crisis to Apr 15); funds limited, may close early.\", \"Crisis requires regular app first.\", \"Everyone at address counts as household (even non-sharing expenses).\", \"Elderly: no special age priority beyond automatic via SSI; compare to property tax relief (different income/asset rules, residency req).[1][2][3][6]\"],\n  \"data_shape_notes\": \"Income at 60% state median (recent ~$60k for 1); automatic eligibility via SNAP/SSI/TANF; crisis tiered; statewide but contractor-processed; seasonal/funding-limited.\"\n}"
+    },
+    {
+      "name": "Wyoming Tax Refund for Elderly & Disabled",
+      "eligibility": {
+        "age": "65 or older, or 18 or older and totally (100%) disabled for at least one full year prior to application",
+        "income_limits": "Single: less than $17,500 per year (full refund if $10,000 or below; prorated $10,001-$17,500). Married: less than $28,500 per year (full refund if $16,000 or below; prorated $16,001-$28,500). Note: Older sources cite lower limits like $13,500 single/$? married with proration from $8,000, indicating possible updates.",
+        "asset_limits": "Total household assets must not exceed $29,950 per adult household member. Specific exemptions not detailed in sources.",
+        "other_requirements": [
+          "Wyoming resident for 12 months prior to application date",
+          "Must submit new application each year",
+          "Three applicant types: single, joint (married), or joint with deceased spouse (if spouse died in prior 1-2 years)"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Single: $250 to $800 (prorated by income). Married: $216 to $900 (prorated by income). Helps cover sales/use taxes, property taxes, utility/energy costs.",
+        "varies_by": "income_level"
+      },
+      "application": {
+        "methods": [
+          "Mail or in-person to Wyoming Department of Health (specific addresses not in results; contact WDH)",
+          "Phone: Not specified in results; contact Wyoming Department of Health"
+        ],
+        "processing_time": "Not specified; refunds typically processed annually",
+        "waitlist": null,
+        "forms": [
+          "New application required each year (form name/number not specified; administered by Wyoming Department of Health)"
+        ],
+        "documents": [
+          "Proof of age/disability, income documentation, residency proof, asset statements (inferred from eligibility)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": null,
+        "offices_or_providers": [
+          "Wyoming Department of Health (statewide administration)"
+        ]
+      },
+      "official_source": "https://www.lincolninst.edu/app/uploads/legacy-files/gwipp/upload/sources/Wyoming/2017/WY_Tax_Refund_for_Elderly_and_Disabled_Wyoming_Department_of_Health_2013.pdf (2013/2017 info; check Wyoming Department of Health for current)",
+      "gotchas": [
+        "Must reapply every year with new application",
+        "Totally (100%) disabled for full year prior; not partial disability",
+        "Income limits and refund amounts may have changed since 2013 data (e.g., older 2006/2007 figures differ)",
+        "Asset limit per adult household member; excludes unclear items",
+        "Distinguish from separate Property Tax Refund Program (administered by Dept. of Revenue, different eligibility like 5-year residency, median income-based)"
+      ],
+      "data_shape_notes": "Annual reapplication required; refund prorated by income tiers (full below threshold, phased out above); statewide but data outdated (2013+); separate from property tax programs with different admins/eligibility",
+      "_raw": "{\n  \"name\": \"Wyoming Tax Refund for Elderly & Disabled\",\n  \"eligibility\": {\n    \"age\": \"65 or older, or 18 or older and totally (100%) disabled for at least one full year prior to application\",\n    \"income_limits\": \"Single: less than $17,500 per year (full refund if $10,000 or below; prorated $10,001-$17,500). Married: less than $28,500 per year (full refund if $16,000 or below; prorated $16,001-$28,500). Note: Older sources cite lower limits like $13,500 single/$? married with proration from $8,000, indicating possible updates.\",\n    \"asset_limits\": \"Total household assets must not exceed $29,950 per adult household member. Specific exemptions not detailed in sources.\",\n    \"other_requirements\": [\n      \"Wyoming resident for 12 months prior to application date\",\n      \"Must submit new application each year\",\n      \"Three applicant types: single, joint (married), or joint with deceased spouse (if spouse died in prior 1-2 years)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Single: $250 to $800 (prorated by income). Married: $216 to $900 (prorated by income). Helps cover sales/use taxes, property taxes, utility/energy costs.\",\n    \"varies_by\": \"income_level\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Mail or in-person to Wyoming Department of Health (specific addresses not in results; contact WDH)\",\n      \"Phone: Not specified in results; contact Wyoming Department of Health\"\n    ],\n    \"processing_time\": \"Not specified; refunds typically processed annually\",\n    \"waitlist\": null,\n    \"forms\": [\"New application required each year (form name/number not specified; administered by Wyoming Department of Health)\"],\n    \"documents\": [\"Proof of age/disability, income documentation, residency proof, asset statements (inferred from eligibility)\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\"Wyoming Department of Health (statewide administration)\"]\n  },\n  \"official_source\": \"https://www.lincolninst.edu/app/uploads/legacy-files/gwipp/upload/sources/Wyoming/2017/WY_Tax_Refund_for_Elderly_and_Disabled_Wyoming_Department_of_Health_2013.pdf (2013/2017 info; check Wyoming Department of Health for current)\",\n  \"gotchas\": [\n    \"Must reapply every year with new application\",\n    \"Totally (100%) disabled for full year prior; not partial disability\",\n    \"Income limits and refund amounts may have changed since 2013 data (e.g., older 2006/2007 figures differ)\",\n    \"Asset limit per adult household member; excludes unclear items\",\n    \"Distinguish from separate Property Tax Refund Program (administered by Dept. of Revenue, different eligibility like 5-year residency, median income-based)\"\n  ],\n  \"data_shape_notes\": \"Annual reapplication required; refund prorated by income tiers (full below threshold, phased out above); statewide but data outdated (2013+); separate from property tax programs with different admins/eligibility\"\n}"
+    }
+  ]
+}

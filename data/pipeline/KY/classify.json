@@ -1,0 +1,83 @@
+{
+  "state": "KY",
+  "stateName": "Kentucky",
+  "classifiedAt": "2026-04-09T09:33:08.648Z",
+  "total": 2,
+  "typeSummary": {
+    "benefit": 2
+  },
+  "scopeSummary": {
+    "local": 1,
+    "state": 1
+  },
+  "complexitySummary": {
+    "deep": 2
+  },
+  "programs": [
+    {
+      "name": "Senior CommUnity Care of Kentucky (PACE)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Louisville: 960 S 4th St, Louisville KY 40203; (502) 676-7515",
+            "type": "service-area"
+          },
+          {
+            "name": "Northern KY: 47 Cavalier Blvd., Suite 140, Florence, KY 41042; (859) 970-2450",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": false,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": true,
+        "hasMultipleTiers": false,
+        "isStatewide": false
+      }
+    },
+    {
+      "name": "Kentucky Family Caregiver Program (Grandparents Raising Grandchildren)",
+      "programType": "benefit",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Area Agencies on Aging and Independent Living (contact via chfs.ky.gov[9])",
+            "type": "service-area"
+          }
+        ]
+      },
+      "complexity": "deep",
+      "recommendedSections": [
+        "prose",
+        "income-table",
+        "what-counts",
+        "documents",
+        "county-directory"
+      ],
+      "signals": {
+        "benefitType": "service",
+        "hasIncomeTiers": true,
+        "hasAssetLimits": true,
+        "hasRegionalVariation": true,
+        "hasFunctionalReq": false,
+        "hasMultipleTiers": false,
+        "isStatewide": true
+      }
+    }
+  ]
+}

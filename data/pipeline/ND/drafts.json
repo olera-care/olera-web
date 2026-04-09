@@ -1,0 +1,448 @@
+{
+  "state": "ND",
+  "stateName": "North Dakota",
+  "draftedAt": "2026-04-09T15:53:23.239Z",
+  "total": 3,
+  "successful": 3,
+  "programs": [
+    {
+      "id": "north-dakota-basic-care-assistance-program",
+      "name": "North Dakota Basic Care Assistance Program (BCAP)",
+      "shortName": "BCAP",
+      "tagline": "If your parent lives in a North Dakota basic care facility, this program can cover costs beyond what their income allows.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Customer Support Center (statewide)",
+            "type": "service-area"
+          },
+          {
+            "name": "County social workers for assessments",
+            "type": "service-area"
+          },
+          {
+            "name": "Licensed basic care facilities statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ (or younger with a disability) and lives in a licensed basic care facility in North Dakota, BCAP can help pay for their care costs. Because this program works with Medicaid, your parent keeps $150/month for personal needs while their other income goes toward facility costs — BCAP covers the remaining balance directly to the facility.\n\nYour parent must already qualify for North Dakota Medicaid and need daily help with activities like bathing, dressing, or eating (confirmed through a functional assessment). Because BCAP requires facility residence, this isn't for parents living at home or in assisted living — only licensed basic care facilities.",
+      "savingsRange": "",
+      "savingsSource": "Covers facility costs beyond income",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or disabled",
+          "North Dakota resident",
+          "Qualifies for ND Medicaid",
+          "Lives in licensed basic care facility",
+          "Needs help with daily activities"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 3000,
+          "couple": null,
+          "countedAssets": [],
+          "exemptAssets": [],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need assistance with activities of daily living like bathing, dressing, eating, or toileting (confirmed by county assessment)",
+        "otherRequirements": [
+          "North Dakota resident",
+          "Qualifies for North Dakota Medicaid",
+          "Resides in licensed basic care facility"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online or call (866) 614-6005 — eligibility starts from your application date if qualified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Confirm Medicaid eligibility",
+            "description": "Your parent must first qualify for North Dakota Medicaid or already be enrolled"
+          },
+          {
+            "step": 2,
+            "title": "Submit BCAP application",
+            "description": "Complete Application for Assistance online or Medicaid Application for the Elderly and Disabled (SFN 958) by phone, mail, or email"
+          },
+          {
+            "step": 3,
+            "title": "Functional assessment",
+            "description": "County social worker will assess your parent's need for help with daily activities"
+          },
+          {
+            "step": 4,
+            "title": "Facility verification",
+            "description": "Confirm your parent resides in a licensed North Dakota basic care facility"
+          }
+        ],
+        "processingTime": "Eligibility starts from application date if qualified",
+        "waitlist": null,
+        "tip": "If your parent is already on Medicaid, the process uses their existing redetermination rather than a new application.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://www.hhs.nd.gov/adults-and-aging/services/basic-care-assistance-program-bcap"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Social Security card",
+                "Proof of age (birth certificate or driver's license)",
+                "Proof of North Dakota residence",
+                "Proof of disability (if under 65)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Financial information for Medicaid eligibility",
+                "Social Security benefits statements",
+                "Bank statements",
+                "Income documentation"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent must live in a licensed basic care facility to qualify — this program doesn't cover home care or assisted living costs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep any of their income for personal expenses?",
+          "answer": "Yes, your parent keeps $150/month for personal needs. All other income goes toward facility and medical costs, with BCAP covering the remaining balance."
+        },
+        {
+          "question": "What if my parent doesn't qualify for Medicaid?",
+          "answer": "They cannot get BCAP without first qualifying for North Dakota Medicaid. You'll need to apply for Medicaid first or address whatever is preventing qualification."
+        },
+        {
+          "question": "Does this cover assisted living or memory care?",
+          "answer": "No, BCAP only covers licensed basic care facilities in North Dakota. Assisted living, memory care, or home care are not covered."
+        },
+        {
+          "question": "What happens if my parent moves to a different facility?",
+          "answer": "As long as they move to another licensed basic care facility in North Dakota, BCAP can continue. The new facility will need to work with the program directly."
+        },
+        {
+          "question": "How do I know if a facility accepts BCAP?",
+          "answer": "Contact the facility directly to ask if they accept BCAP payments, or call the Customer Support Center at (866) 614-6005 for a list of participating facilities."
+        },
+        {
+          "question": "What if my parent was denied nursing home level of care?",
+          "answer": "If your parent lived in a nursing facility for at least 6 months and was then denied nursing facility level of care, they may still qualify for BCAP in a basic care facility."
+        }
+      ],
+      "phone": "(866) 614-6005",
+      "sourceUrl": "https://www.hhs.nd.gov/adults-and-aging/services/basic-care-assistance-program-bcap",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "north-dakota-aging-in-community-project",
+      "name": "North Dakota Aging in Community (AIC) Project",
+      "shortName": "AIC Project",
+      "tagline": "Get your rural parent connected to volunteers who provide rides, tech help, and local resources to stay independent at home.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "NDSU Extension Service (Lisbon, western Morton Counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Local community partners and volunteers",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in rural North Dakota and wants to stay in their home as they age, the AIC Project connects them with local volunteers and resources. The program provides transportation assistance, fall prevention education, nutrition classes, and help with technology — all designed to keep older adults safe and connected in their rural communities.\n\nThis isn't a statewide program. It currently operates only in select rural areas like Lisbon and western Morton Counties through NDSU Extension. Because it relies on community volunteers rather than paid staff, available services vary by location and volunteer capacity.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Lives in rural North Dakota",
+          "Wants to age in place",
+          "Located in participating counties"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "North Dakota resident",
+          "Lives in participating rural communities (Lisbon, western Morton Counties)",
+          "Desire to age in place at home"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact NDSU Extension in your area to connect with local AIC coordinators.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check if your parent's area participates",
+            "description": "Call NDSU Extension to confirm AIC Project operates in your parent's county. Currently limited to areas like Lisbon and western Morton Counties."
+          },
+          {
+            "step": 2,
+            "title": "Connect with local coordinator",
+            "description": "NDSU Extension will connect you with the community-based AIC coordinator in your parent's area."
+          },
+          {
+            "step": 3,
+            "title": "Complete informal needs assessment",
+            "description": "Local coordinator will discuss your parent's specific needs and match them with available volunteer services and community resources."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "This program depends on local volunteers, so available services change based on volunteer capacity in your parent's specific community.",
+        "urls": [
+          {
+            "label": "NDSU Extension Agriculture",
+            "url": "https://www.ndsu.edu/agriculture/extension"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is a pilot program in select rural counties only — not available statewide. Services depend on local volunteer availability, not guaranteed hours like formal home care programs."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent doesn't live in Lisbon or western Morton Counties?",
+          "answer": "The AIC Project is currently limited to select rural areas. Contact NDSU Extension to see if your parent's county participates or if similar programs are available in their area."
+        },
+        {
+          "question": "How reliable are volunteer services compared to paid caregivers?",
+          "answer": "Volunteer availability varies and isn't guaranteed like paid services. The program focuses on community connections and occasional help rather than daily care. If your parent needs regular, reliable assistance, consider combining this with other programs."
+        },
+        {
+          "question": "Can my parent get transportation to medical appointments?",
+          "answer": "Transportation assistance is offered, but specific availability depends on volunteers in your parent's community. The local coordinator can explain what transportation help is currently available."
+        },
+        {
+          "question": "Does this program provide any financial assistance?",
+          "answer": "No, the AIC Project doesn't provide money or pay for services. It connects your parent with volunteers and teaches skills like fall prevention. For financial assistance, look into programs like SNAP or SPED."
+        },
+        {
+          "question": "What's the difference between this and Medicaid home care?",
+          "answer": "AIC focuses on prevention and community connections through volunteers. Medicaid waivers provide paid professional caregivers for daily tasks like bathing and medication management. Your parent may qualify for both."
+        },
+        {
+          "question": "How do I know if the volunteers are trustworthy?",
+          "answer": "Volunteers work through NDSU Extension and local community partners. Ask the local coordinator about volunteer screening processes and how they match volunteers with participants."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.ndsu.edu/agriculture/extension/programs/aging-community-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "nd-assistive-senior-safety-program",
+      "name": "ND Assistive Senior Safety Program",
+      "shortName": "Senior Safety Devices",
+      "tagline": "Free home safety devices and professional setup for North Dakota seniors who need help staying safe at home.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Central office: 3240 15th St. S, Suite B, Fargo, ND 58104",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your North Dakota parent is 60+ and needs safety devices to stay in their home, this program provides free equipment like hearing alert devices, anti-wandering devices, and other safety tools. Because the program also includes professional setup, your parent gets both the device and help learning to use it properly.\n\nThis program is designed as a last resort — your parent must first check if Medicare, Medicaid, or their insurance will cover the devices. If those options don't work, North Dakota will provide the equipment at no cost to families who meet income guidelines.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "North Dakota resident",
+          "Income guidelines apply",
+          "Need devices to stay safely at home",
+          "Cannot get devices through other programs"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must need assistive safety devices to remain safely in home",
+        "otherRequirements": [
+          "North Dakota resident",
+          "Cannot qualify for devices through insurance, Medicare, Medicaid, or other programs"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online or by mail with proof of income and device needs — processing typically takes 3-4 weeks.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "List your parent's needed devices",
+            "description": "Write devices in order of importance on the application — only one device per line. The program prioritizes requests based on your ranking."
+          },
+          {
+            "step": 2,
+            "title": "Gather income documentation",
+            "description": "Collect proof of income to show your parent meets the guidelines listed in the current year's application form."
+          },
+          {
+            "step": 3,
+            "title": "Prove other funding sources don't apply",
+            "description": "Document that Medicare, Medicaid, insurance, or other programs cannot provide these specific devices."
+          },
+          {
+            "step": 4,
+            "title": "Submit application",
+            "description": "Apply online, mail the completed form to 3240 15th St. S, Suite B, Fargo, ND 58104, or fax to 701-365-6242."
+          }
+        ],
+        "processingTime": "Typically 3-4 weeks",
+        "waitlist": null,
+        "tip": "List devices in order of most important to least important — the program may not approve everything, so prioritize what your parent needs most.",
+        "urls": [
+          {
+            "label": "Apply online",
+            "url": "https://ndassistive.org/senior-safety-program/asdds-application/"
+          },
+          {
+            "label": "Download PDF application",
+            "url": "https://ndassistive.org/wp-content/uploads/2025/03/2025-Senior-Safety-Application-Standard-Print.pdf"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Program Office",
+          "offices": [
+            {
+              "name": "ND Assistive Senior Safety Program",
+              "type": "service-area",
+              "phone": "800-735-5400",
+              "address": "3240 15th St. S, Suite B, Fargo, ND 58104"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program only works if Medicare, Medicaid, and insurance cannot provide the devices your parent needs. Check those options first before applying — it's required."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What types of safety devices can my parent get?",
+          "answer": "The program provides alerting devices for hearing loss, anti-elopement devices to prevent wandering, and other home safety equipment. Professional setup assistance is included with approved devices."
+        },
+        {
+          "question": "Can my parent get devices if they live in assisted living?",
+          "answer": "Yes, the program is available to seniors in assisted living facilities if the devices help them remain safely in their current living situation."
+        },
+        {
+          "question": "What if Medicare denied coverage for a device my parent needs?",
+          "answer": "That's exactly what this program covers — bring documentation of the Medicare denial when you apply. The program serves as backup funding when other sources don't work."
+        },
+        {
+          "question": "How many devices can my parent request?",
+          "answer": "You can request multiple devices, but list them in order of importance on the application. The program may not approve everything, so prioritize the most critical safety needs first."
+        },
+        {
+          "question": "Where do I find the current income guidelines?",
+          "answer": "Income limits are listed in the current year's application form. Download the 2025 application to see the specific dollar amounts for your parent's household size."
+        },
+        {
+          "question": "What happens after my parent's application is approved?",
+          "answer": "The program provides both the approved devices and professional setup assistance, so your parent gets help learning to use the equipment properly."
+        }
+      ],
+      "phone": "800-735-5400",
+      "sourceUrl": "https://ndassistive.org/senior-safety-program/asdds-application/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "If your parent lives in North Dakota, 3 specialized programs can help reduce costs and keep them safe at home or in care facilities. Two provide financial assistance for facility costs and community support, while one offers free safety equipment. North Dakota's rural focus means unique programs like volunteer driver networks and tech support specifically designed for aging in small communities. Start by identifying your biggest challenge — paying for basic care facility costs, keeping your rural parent connected to help, or making their home safer.",
+    "startHere": [
+      {
+        "name": "ND Assistive Senior Safety Program",
+        "programId": "nd-assistive-senior-safety",
+        "why": "Free safety devices with professional installation — no income requirements or waiting lists."
+      },
+      {
+        "name": "North Dakota Aging in Community (AIC) Project",
+        "programId": "nd-aging-in-community",
+        "why": "Connects rural seniors to volunteer drivers and tech help to prevent isolation."
+      },
+      {
+        "name": "North Dakota Basic Care Assistance Program (BCAP)",
+        "programId": "nd-basic-care-assistance",
+        "why": "Covers basic care facility costs when your parent's income isn't enough."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying for care facility costs",
+        "programs": [
+          "North Dakota Basic Care Assistance Program (BCAP)"
+        ],
+        "description": "Financial assistance when your parent's income can't cover basic care facility expenses."
+      },
+      {
+        "need": "Keeping rural parents independent at home",
+        "programs": [
+          "North Dakota Aging in Community (AIC) Project"
+        ],
+        "description": "Volunteer network providing rides, technology help, and local resource connections."
+      },
+      {
+        "need": "Making the home safer",
+        "programs": [
+          "ND Assistive Senior Safety Program"
+        ],
+        "description": "Free safety equipment and professional installation for fall prevention and emergency response."
+      }
+    ],
+    "quickFacts": [
+      "North Dakota has specialized programs for rural seniors, including volunteer driver networks",
+      "One program provides completely free safety equipment with professional setup",
+      "Basic care facility assistance is available beyond what Medicare or private insurance covers"
+    ],
+    "resourcesVsBenefits": "North Dakota offers both income-qualified benefits and free resources. The Basic Care Assistance Program requires financial need assessment and covers facility costs you can't afford. Meanwhile, the Assistive Senior Safety Program provides free equipment to any North Dakota senior regardless of income, and the Aging in Community Project connects rural families to volunteer support without financial requirements."
+  }
+}

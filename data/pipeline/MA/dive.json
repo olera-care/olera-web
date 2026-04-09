@@ -1,0 +1,966 @@
+{
+  "state": "MA",
+  "stateName": "Massachusetts",
+  "diveAt": "2026-04-09T14:04:19.744Z",
+  "total": 17,
+  "parsed": 16,
+  "programs": [
+    {
+      "name": "MassHealth Medicare Savings Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Must be a Medicare beneficiary (typically age 65+ or disabled/ESRD under 65). Income at or below 225% Federal Poverty Level (FPL), updated annually on March 1. Current limits (as of latest 2025/2026 data): Single individual ≤ $2,993/month; Married couple ≤ $4,058/month. Higher incomes may qualify for full MassHealth if assets meet limits. Under age 65 on MassHealth Standard may qualify without asset test.[1][2][3][5]",
+        "asset_limits": "No asset limit for MSP-only eligibility (effective March 1, 2024; home, savings, etc., not counted). For combined MSP + certain MassHealth benefits: $2,000 single / $3,000 married couple countable assets apply.[2][3][4][5]",
+        "other_requirements": [
+          "Massachusetts resident",
+          "Entitled to Medicare Part A (or eligible for Part A if not enrolled)",
+          "Meet MassHealth immigration criteria",
+          "Must not exceed countable income limits"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Pays Medicare premiums, deductibles, coinsurance, copays depending on tier:\n- **QMB**: Part A/B premiums, all Part A/B deductibles/coinsurance/copays; Health Safety Net (HSN) at hospitals/CHCs; Medicare Part D Extra Help.\n- **SLMB/QI**: Part B premium; HSN; Part D Extra Help.\nSaves up to $3,000/year in premiums/costs. Show Medicare + MassHealth cards for QMB.[2][4]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Online: MassHealth portal at mass.gov (use Medicare Savings Programs Application)",
+          "Phone: MassHealth Customer Service Center at 1-800-841-2900",
+          "Mail: MassHealth Enrollment Center (address on application form)",
+          "Download/print PDF application from mass.gov and mail"
+        ],
+        "processing_time": "Notice of decision within 30 days",
+        "waitlist": null,
+        "forms": [
+          "Medicare Savings Programs Application (attached to mass.gov/doc/medicare-savings-programs-application/download)",
+          "Massachusetts Application for Health and Dental Coverage and Help Paying Costs (ACA-3) for MSP + MassHealth"
+        ],
+        "documents": [
+          "Proof of income (pay stubs, SSI/SSDI awards, pension statements)",
+          "Proof of Medicare enrollment",
+          "Proof of residency (utility bill, lease)",
+          "Spouse information if applicable",
+          "Immigration status if non-citizen",
+          "Bank statements or asset proof only if seeking combined MassHealth benefits"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": null,
+        "offices_or_providers": null
+      },
+      "official_source": "https://www.mass.gov/info-details/get-help-paying-medicare-costs",
+      "gotchas": [
+        "No asset test for MSP-only, but applies for MSP + full MassHealth ($2,000/$3,000 limits)",
+        "Income limits update yearly on March 1; check current FPL chart",
+        "Must be on Medicare; program auto-enrolls you in Part D Extra Help",
+        "QMB: Providers can't charge you copays (show both cards); SLMB/QI don't cover deductibles/copays",
+        "Under 65 on MassHealth Standard: Income test applies, no assets checked",
+        "Applying also screens for SNAP; opt out if unwanted",
+        "Higher income (>225% FPL) may still get MassHealth if assets low"
+      ],
+      "data_shape_notes": "Tiered by QMB/SLMB/QI with different premium/cost coverage; no asset test for core MSP (unique since 3/1/2024); income scales to household size via FPL; statewide uniform; combines with MassHealth for fuller benefits",
+      "_raw": "{\n  \"name\": \"MassHealth Medicare Savings Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Must be a Medicare beneficiary (typically age 65+ or disabled/ESRD under 65). Income at or below 225% Federal Poverty Level (FPL), updated annually on March 1. Current limits (as of latest 2025/2026 data): Single individual ≤ $2,993/month; Married couple ≤ $4,058/month. Higher incomes may qualify for full MassHealth if assets meet limits. Under age 65 on MassHealth Standard may qualify without asset test.[1][2][3][5]\",\n    \"asset_limits\": \"No asset limit for MSP-only eligibility (effective March 1, 2024; home, savings, etc., not counted). For combined MSP + certain MassHealth benefits: $2,000 single / $3,000 married couple countable assets apply.[2][3][4][5]\",\n    \"other_requirements\": [\n      \"Massachusetts resident\",\n      \"Entitled to Medicare Part A (or eligible for Part A if not enrolled)\",\n      \"Meet MassHealth immigration criteria\",\n      \"Must not exceed countable income limits\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Pays Medicare premiums, deductibles, coinsurance, copays depending on tier:\\n- **QMB**: Part A/B premiums, all Part A/B deductibles/coinsurance/copays; Health Safety Net (HSN) at hospitals/CHCs; Medicare Part D Extra Help.\\n- **SLMB/QI**: Part B premium; HSN; Part D Extra Help.\\nSaves up to $3,000/year in premiums/costs. Show Medicare + MassHealth cards for QMB.[2][4]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: MassHealth portal at mass.gov (use Medicare Savings Programs Application)\",\n      \"Phone: MassHealth Customer Service Center at 1-800-841-2900\",\n      \"Mail: MassHealth Enrollment Center (address on application form)\",\n      \"Download/print PDF application from mass.gov and mail\"\n    ],\n    \"processing_time\": \"Notice of decision within 30 days\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"Medicare Savings Programs Application (attached to mass.gov/doc/medicare-savings-programs-application/download)\",\n      \"Massachusetts Application for Health and Dental Coverage and Help Paying Costs (ACA-3) for MSP + MassHealth\"\n    ],\n    \"documents\": [\n      \"Proof of income (pay stubs, SSI/SSDI awards, pension statements)\",\n      \"Proof of Medicare enrollment\",\n      \"Proof of residency (utility bill, lease)\",\n      \"Spouse information if applicable\",\n      \"Immigration status if non-citizen\",\n      \"Bank statements or asset proof only if seeking combined MassHealth benefits\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": null,\n    \"offices_or_providers\": null\n  },\n  \"official_source\": \"https://www.mass.gov/info-details/get-help-paying-medicare-costs\",\n  \"gotchas\": [\n    \"No asset test for MSP-only, but applies for MSP + full MassHealth ($2,000/$3,000 limits)\",\n    \"Income limits update yearly on March 1; check current FPL chart\",\n    \"Must be on Medicare; program auto-enrolls you in Part D Extra Help\",\n    \"QMB: Providers can't charge you copays (show both cards); SLMB/QI don't cover deductibles/copays\",\n    \"Under 65 on MassHealth Standard: Income test applies, no assets checked\",\n    \"Applying also screens for SNAP; opt out if unwanted\",\n    \"Higher income (>225% FPL) may still get MassHealth if assets low\"\n  ],\n  \"data_shape_notes\": \"Tiered by QMB/SLMB/QI with different premium/cost coverage; no asset test for core MSP (unique since 3/1/2024); income scales to household size via FPL; statewide uniform; combines with MassHealth for fuller benefits\"\n}"
+    },
+    {
+      "name": "Frail Elder Waiver (FEW)",
+      "eligibility": {
+        "age": "60-64 with a disability, or 65+",
+        "income_limits": "Must qualify for MassHealth Standard under 300% of Federal Poverty Level (FPL) or Federal SSI; approximately under $2,199/month for individual (varies annually); special rules like spend-down for medically needy over $2,901/month via medical bills; spousal income waived; no full household table specified but individual-focused with spousal protections[1][2][4][5][6]",
+        "asset_limits": "Individual: $2,000 max; spousal allowance: $154,140; certain exemptions apply under MassHealth rules (e.g., primary home potentially exempt, specifics via MassHealth); special financial rules for waivers[1][4][5][6]",
+        "other_requirements": [
+          "Nursing Facility Level of Care (NFLOC) via Comprehensive Data Set (CDS) assessment of ADLs (mobility, toileting, hygiene, cognition) by ASAP RN[1][2][3][4][5][6]",
+          "Need FEW services and receive at least one per month to remain eligible[1][4]",
+          "Live in community setting (own home, family home, congregate housing; not assisted living, group homes, rest homes, or institutions except brief respite)[1]",
+          "Safely served in community[1]",
+          "Enrolled in MassHealth; not in another HCBS waiver, One Care, or PACE[1][5]",
+          "Eligible for state home care services via ASAP[3][4]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home and Community-Based Services (HCBS) including home care, supports for basic to intensive needs (specifics like nursing, personal care, respite, Alzheimer's coaching by qualified providers e.g., RN, LCSW, OT; must receive at least one waiver service/month)[1][7][8]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local Aging Services Access Point (ASAP) for clinical assessment[1]",
+          "Complete and mail application to local ASAP[1]",
+          "Referral to ASAP (e.g., ESWA, AgeSpan) for home care eligibility assessment[3][4]",
+          "Submit Senior Affordable Care Act (SACA) MassHealth Application + Long Term Care Supplement (A) with verifications to MassHealth[4]"
+        ],
+        "processing_time": "Often 3 months or more[2]",
+        "waitlist": "Not specified in sources; may vary by region/ASAP[2]",
+        "forms": [
+          "Senior Affordable Care Act (SACA) MassHealth Application",
+          "Long Term Care Supplement (A)[4]"
+        ],
+        "documents": [
+          "Social Security and Medicare cards",
+          "Bank statements (last 60 months)",
+          "Proof of all income sources",
+          "Property deeds",
+          "Life insurance policies[2]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must reside in Massachusetts; served via local ASAP catchment areas",
+        "regional_variations": "Administered by regional Aging Services Access Points (ASAPs) e.g., AgeSpan, ESWA, ASNCM; different providers, offices, potential wait time variations by ASAP region[1][3][4][6]",
+        "offices_or_providers": [
+          "Local ASAPs (e.g., AgeSpan, ESWA, Aging Services of North Central Massachusetts)[1][3][4][6]"
+        ]
+      },
+      "official_source": "https://www.mass.gov/info-details/frail-elder-waiver-information-for-applicants-and-participants",
+      "gotchas": [
+        "Must receive at least one FEW service per month or lose eligibility[1][4]",
+        "Cannot live in assisted living, group homes, rest homes (congregate housing ok)[1]",
+        "No participation in other waivers/One Care/PACE[1]",
+        "Financial eligibility tied to MassHealth Standard (300% FPL/$2k assets) with special waiver rules/spend-down, but over-limits require spend-down on medical costs[2][4][5][6]",
+        "Age 60-64 requires disability determination[1][2][4]",
+        "Spousal protections (income/assets waived) often missed[4][6]"
+      ],
+      "data_shape_notes": "Tied to MassHealth financial eligibility (300% FPL individual focus with spousal impoverishment protections); regional ASAP administration with RN clinical screening; service tiers from basic to intensive; must use at least one service monthly",
+      "_raw": "{\n  \"name\": \"Frail Elder Waiver (FEW)\",\n  \"eligibility\": {\n    \"age\": \"60-64 with a disability, or 65+\",\n    \"income_limits\": \"Must qualify for MassHealth Standard under 300% of Federal Poverty Level (FPL) or Federal SSI; approximately under $2,199/month for individual (varies annually); special rules like spend-down for medically needy over $2,901/month via medical bills; spousal income waived; no full household table specified but individual-focused with spousal protections[1][2][4][5][6]\",\n    \"asset_limits\": \"Individual: $2,000 max; spousal allowance: $154,140; certain exemptions apply under MassHealth rules (e.g., primary home potentially exempt, specifics via MassHealth); special financial rules for waivers[1][4][5][6]\",\n    \"other_requirements\": [\n      \"Nursing Facility Level of Care (NFLOC) via Comprehensive Data Set (CDS) assessment of ADLs (mobility, toileting, hygiene, cognition) by ASAP RN[1][2][3][4][5][6]\",\n      \"Need FEW services and receive at least one per month to remain eligible[1][4]\",\n      \"Live in community setting (own home, family home, congregate housing; not assisted living, group homes, rest homes, or institutions except brief respite)[1]\",\n      \"Safely served in community[1]\",\n      \"Enrolled in MassHealth; not in another HCBS waiver, One Care, or PACE[1][5]\",\n      \"Eligible for state home care services via ASAP[3][4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home and Community-Based Services (HCBS) including home care, supports for basic to intensive needs (specifics like nursing, personal care, respite, Alzheimer's coaching by qualified providers e.g., RN, LCSW, OT; must receive at least one waiver service/month)[1][7][8]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Aging Services Access Point (ASAP) for clinical assessment[1]\",\n      \"Complete and mail application to local ASAP[1]\",\n      \"Referral to ASAP (e.g., ESWA, AgeSpan) for home care eligibility assessment[3][4]\",\n      \"Submit Senior Affordable Care Act (SACA) MassHealth Application + Long Term Care Supplement (A) with verifications to MassHealth[4]\"\n    ],\n    \"processing_time\": \"Often 3 months or more[2]\",\n    \"waitlist\": \"Not specified in sources; may vary by region/ASAP[2]\",\n    \"forms\": [\"Senior Affordable Care Act (SACA) MassHealth Application\", \"Long Term Care Supplement (A)[4]\"],\n    \"documents\": [\n      \"Social Security and Medicare cards\",\n      \"Bank statements (last 60 months)\",\n      \"Proof of all income sources\",\n      \"Property deeds\",\n      \"Life insurance policies[2]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must reside in Massachusetts; served via local ASAP catchment areas\",\n    \"regional_variations\": \"Administered by regional Aging Services Access Points (ASAPs) e.g., AgeSpan, ESWA, ASNCM; different providers, offices, potential wait time variations by ASAP region[1][3][4][6]\",\n    \"offices_or_providers\": [\"Local ASAPs (e.g., AgeSpan, ESWA, Aging Services of North Central Massachusetts)[1][3][4][6]\"]\n  },\n  \"official_source\": \"https://www.mass.gov/info-details/frail-elder-waiver-information-for-applicants-and-participants\",\n  \"gotchas\": [\n    \"Must receive at least one FEW service per month or lose eligibility[1][4]\",\n    \"Cannot live in assisted living, group homes, rest homes (congregate housing ok)[1]\",\n    \"No participation in other waivers/One Care/PACE[1]\",\n    \"Financial eligibility tied to MassHealth Standard (300% FPL/$2k assets) with special waiver rules/spend-down, but over-limits require spend-down on medical costs[2][4][5][6]\",\n    \"Age 60-64 requires disability determination[1][2][4]\",\n    \"Spousal protections (income/assets waived) often missed[4][6]\"\n  ],\n  \"data_shape_notes\": \"Tied to MassHealth financial eligibility (300% FPL individual focus with spousal impoverishment protections); regional ASAP administration with RN clinical screening; service tiers from basic to intensive; must use at least one service monthly\"\n}"
+    },
+    {
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "No strict statewide income limits specified; often suitable for extremely low-income (below 300% Federal SSI rate, approximately $2,829/month for individual in 2024) with assets under $2,000. MassHealth may cover premium if income/asset guidelines met; some pay monthly share-of-cost premium based on income. Varies by provider and MassHealth eligibility—no table provided[3][6][8].",
+        "asset_limits": "Typically under $2,000 for low-income applicants; MassHealth asset rules may apply if seeking premium coverage (e.g., exempt primary home, car, personal items; countable: bank accounts, investments). Exact limits not uniformly stated[3][6].",
+        "other_requirements": [
+          "Nursing home level of care (clinically eligible)",
+          "Ability to live safely in community with PACE services",
+          "Reside in service area of a PACE provider",
+          "55 years or older[1][4][6][8]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Comprehensive medical/social services including: adult day care, dentistry/vision, emergency services, home care, hospital care, lab/x-ray, meals, medical specialties, nursing home care (if needed), nutritional counseling, occupational/physical/recreational therapy, prescription drugs, primary care (doctors/nurses), social services/work counseling, transportation. All Medicare/Medicaid-covered services, no copays for covered items; individualized plan by Interdisciplinary Team[1][5][8]. No specific dollar amounts or hours stated.",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local PACE provider directly (e.g., use MassPace zip code directory at masspace.net; call enrollment specialists)",
+          "Phone examples: Summit ElderCare 1-877-837-9009; general inquiries via Mass.gov PACE page",
+          "In-person at PACE centers",
+          "No statewide online form; provider-assisted process[4][6][9]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": "Possible; varies by provider/region—not detailed statewide",
+        "forms": [
+          "No specific form names/numbers listed; enrollment via PACE provider assessment"
+        ],
+        "documents": [
+          "Not explicitly listed; prepare income/asset proof, medical records for nursing home level determination, ID, residency proof—consult provider[6]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Available in 271 of 351 cities/towns; must live in provider service area (e.g., Neighborhood PACE: East Boston, Chelsea, Winthrop, Revere, Everett, Malden, Medford, Melrose, Stoneham, North End)[4][8]",
+        "regional_variations": "Multiple providers with different service areas, wait times, capacities (e.g., Serenity Care, Summit ElderCare in Worcester, Element Care in Lynn, Neighborhood PACE in Greater Boston). Use zip code finder for local options[4][6][8][9]",
+        "offices_or_providers": [
+          "Summit ElderCare (Worcester area)",
+          "Neighborhood PACE (Greater Boston)",
+          "Serenity Care PACE",
+          "Element Care (Lynn)",
+          "Others via masspace.net directory[4][5][6][8][9]"
+        ]
+      },
+      "official_source": "https://www.mass.gov/program-of-all-inclusive-care-for-the-elderly-pace",
+      "gotchas": [
+        "Not statewide—check zip code for availability; limited to specific provider areas[4]",
+        "Requires nursing home-level need but ability to live safely in community with services[8]",
+        "Not automatic MassHealth requirement, but they may pay premium; some pay share-of-cost[3][8]",
+        "All services must be authorized by PACE team (except emergencies)[9]",
+        "Often for dual-eligible (Medicare/Medicaid) frail elderly; private pay possible but premium-based[2][6]"
+      ],
+      "data_shape_notes": "Provider-specific service areas only (not statewide), no fixed income/asset tables (tied to MassHealth/SSI), multiple regional PACE organizations with varying availability/waitlists, clinical nursing-home eligibility required despite community focus",
+      "_raw": "{\n  \"name\": \"Program of All-Inclusive Care for the Elderly (PACE)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"No strict statewide income limits specified; often suitable for extremely low-income (below 300% Federal SSI rate, approximately $2,829/month for individual in 2024) with assets under $2,000. MassHealth may cover premium if income/asset guidelines met; some pay monthly share-of-cost premium based on income. Varies by provider and MassHealth eligibility—no table provided[3][6][8].\",\n    \"asset_limits\": \"Typically under $2,000 for low-income applicants; MassHealth asset rules may apply if seeking premium coverage (e.g., exempt primary home, car, personal items; countable: bank accounts, investments). Exact limits not uniformly stated[3][6].\",\n    \"other_requirements\": [\n      \"Nursing home level of care (clinically eligible)\",\n      \"Ability to live safely in community with PACE services\",\n      \"Reside in service area of a PACE provider\",\n      \"55 years or older[1][4][6][8]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Comprehensive medical/social services including: adult day care, dentistry/vision, emergency services, home care, hospital care, lab/x-ray, meals, medical specialties, nursing home care (if needed), nutritional counseling, occupational/physical/recreational therapy, prescription drugs, primary care (doctors/nurses), social services/work counseling, transportation. All Medicare/Medicaid-covered services, no copays for covered items; individualized plan by Interdisciplinary Team[1][5][8]. No specific dollar amounts or hours stated.\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local PACE provider directly (e.g., use MassPace zip code directory at masspace.net; call enrollment specialists)\",\n      \"Phone examples: Summit ElderCare 1-877-837-9009; general inquiries via Mass.gov PACE page\",\n      \"In-person at PACE centers\",\n      \"No statewide online form; provider-assisted process[4][6][9]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Possible; varies by provider/region—not detailed statewide\",\n    \"forms\": [\"No specific form names/numbers listed; enrollment via PACE provider assessment\"],\n    \"documents\": [\"Not explicitly listed; prepare income/asset proof, medical records for nursing home level determination, ID, residency proof—consult provider[6]\"]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Available in 271 of 351 cities/towns; must live in provider service area (e.g., Neighborhood PACE: East Boston, Chelsea, Winthrop, Revere, Everett, Malden, Medford, Melrose, Stoneham, North End)[4][8]\",\n    \"regional_variations\": \"Multiple providers with different service areas, wait times, capacities (e.g., Serenity Care, Summit ElderCare in Worcester, Element Care in Lynn, Neighborhood PACE in Greater Boston). Use zip code finder for local options[4][6][8][9]\",\n    \"offices_or_providers\": [\"Summit ElderCare (Worcester area)\", \"Neighborhood PACE (Greater Boston)\", \"Serenity Care PACE\", \"Element Care (Lynn)\", \"Others via masspace.net directory[4][5][6][8][9]\"]\n  },\n  \"official_source\": \"https://www.mass.gov/program-of-all-inclusive-care-for-the-elderly-pace\",\n  \"gotchas\": [\n    \"Not statewide—check zip code for availability; limited to specific provider areas[4]\",\n    \"Requires nursing home-level need but ability to live safely in community with services[8]\",\n    \"Not automatic MassHealth requirement, but they may pay premium; some pay share-of-cost[3][8]\",\n    \"All services must be authorized by PACE team (except emergencies)[9]\",\n    \"Often for dual-eligible (Medicare/Medicaid) frail elderly; private pay possible but premium-based[2][6]\"\n  ],\n  \"data_shape_notes\": \"Provider-specific service areas only (not statewide), no fixed income/asset tables (tied to MassHealth/SSI), multiple regional PACE organizations with varying availability/waitlists, clinical nursing-home eligibility required despite community focus\"\n}"
+    },
+    {
+      "name": "SNAP (Food Stamps)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "For households with a member 60+ or disabled, gross income limit is 200% FPL (Oct 1, 2025–Sept 30, 2026): 1 person $2608/month, 2 $3526, 3 $4442, 4 $5358, 5 $6276, 6 $7192, 7 $8108, +$916 each additional. Such households may qualify via net income (100% FPL) and asset tests if gross exceeded. Alternative 2025 limits cited: 1 person $15,060/year ($1255/month), 2 $20,440/year ($1703/month). Social Security, pensions, disability count as income.[1][4][6]",
+        "asset_limits": "Asset test applies, especially for elderly/disabled households exceeding gross income; exemptions not detailed but primary home, retirement savings often excluded for seniors. Exact limits not specified; households with 60+ or disabled may be exempt from asset test in some cases.[1][7]",
+        "other_requirements": [
+          "Massachusetts resident, U.S. citizen or qualified non-citizen.",
+          "Social Security number or proof of application.",
+          "For Elderly/Disabled Simplified Application Project (EDSAP): all adults 60+, no earned income (wages/self-employment); children under 18 allowed; shorter form, 36-month certification, no recertification interview.[6]",
+          "Able-bodied adults generally register for work, but exemptions for 60+.",
+          "Legal immigrants 60+ may skip 5-year wait.[8]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Monthly EBT card for groceries; average for MA seniors $147/month. Maximum allotment based on net income (e.g., 2-person elderly/disabled: up to $546/month minus 30% net income). Varies by household net income, size, expenses (medical, shelter, utilities deduct higher for seniors).[1][2][7]",
+        "varies_by": "household_size"
+      },
+      "application": {
+        "methods": [
+          "Online: Mass.gov DTA portal (specific senior form at mass.gov/lists/snap-application-for-seniors or mass.gov/doc/snap-application-for-seniors-snap-app-seniors/download).[3][9]",
+          "Download/print/mail SNAP Application for Seniors (form for 60+ individuals/couples).[3][9]",
+          "Phone: Call local DTA office or 211/1-877-382-2363 (general DTA line).",
+          "In-person: Local DTA office or senior center/council on aging for assistance.[5]",
+          "Via senior center or council on aging outreach.[5]"
+        ],
+        "processing_time": "Standard 30 days; expedited within 7 days if gross income + assets < monthly housing costs, or gross < $150/month + assets ≤ $100, or migrant worker with ≤ $100 assets.[3]",
+        "waitlist": null,
+        "forms": [
+          "SNAP Application for Seniors (for individuals/couples 60+; form #09-160-1221-05).[3][9]",
+          "EDSAP simplified form for eligible seniors (download at Mass.gov).[6]"
+        ],
+        "documents": [
+          "Proof of income (Social Security, pension statements).",
+          "Proof of expenses: medical (bills/receipts for elderly/disabled), shelter, utilities, child support, dependent care.[3]",
+          "ID, residency proof, SSN.",
+          "LIHEAP heating assistance proof for extra deductions (if >$20 and 60+/disabled).[1]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Administered locally via DTA offices; apply via local office or senior centers; no major benefit differences noted, but processing may vary by office demand.[5]",
+        "offices_or_providers": [
+          "Local DTA offices, councils on aging, senior centers for outreach/application help."
+        ]
+      },
+      "official_source": "https://www.mass.gov/lists/snap-application-for-seniors",
+      "gotchas": [
+        "Seniors 60+ have easier rules (skip gross income if meet net/asset; higher medical/shelter deductions), but recent 2025 federal changes (One Big Beautiful Bill Act) add work docs for 60-65, reduce benefits/utility aid for ~144,000, end eligibility for some immigrants/refugees.[2][7]",
+        "Must include all who buy/prepare food together; own home/savings often OK.[4]",
+        "Report changes (expenses) anytime for more benefits; digital/paperwork barriers for mobility-limited seniors.[2][3]",
+        "EDSAP only if no earned income.[6]",
+        "Average benefit low ($147); disruptions force food/meds tradeoffs.[2]"
+      ],
+      "data_shape_notes": "Easier eligibility for 60+ households (gross income optional, net/asset focus, EDSAP simplification); benefits scale by household size/net income with senior-specific deductions (medical/utilities); statewide but local DTA/senior center access.",
+      "_raw": "{\n  \"name\": \"SNAP (Food Stamps)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"For households with a member 60+ or disabled, gross income limit is 200% FPL (Oct 1, 2025–Sept 30, 2026): 1 person $2608/month, 2 $3526, 3 $4442, 4 $5358, 5 $6276, 6 $7192, 7 $8108, +$916 each additional. Such households may qualify via net income (100% FPL) and asset tests if gross exceeded. Alternative 2025 limits cited: 1 person $15,060/year ($1255/month), 2 $20,440/year ($1703/month). Social Security, pensions, disability count as income.[1][4][6]\",\n    \"asset_limits\": \"Asset test applies, especially for elderly/disabled households exceeding gross income; exemptions not detailed but primary home, retirement savings often excluded for seniors. Exact limits not specified; households with 60+ or disabled may be exempt from asset test in some cases.[1][7]\",\n    \"other_requirements\": [\n      \"Massachusetts resident, U.S. citizen or qualified non-citizen.\",\n      \"Social Security number or proof of application.\",\n      \"For Elderly/Disabled Simplified Application Project (EDSAP): all adults 60+, no earned income (wages/self-employment); children under 18 allowed; shorter form, 36-month certification, no recertification interview.[6]\",\n      \"Able-bodied adults generally register for work, but exemptions for 60+.\",\n      \"Legal immigrants 60+ may skip 5-year wait.[8]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Monthly EBT card for groceries; average for MA seniors $147/month. Maximum allotment based on net income (e.g., 2-person elderly/disabled: up to $546/month minus 30% net income). Varies by household net income, size, expenses (medical, shelter, utilities deduct higher for seniors).[1][2][7]\",\n    \"varies_by\": \"household_size\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: Mass.gov DTA portal (specific senior form at mass.gov/lists/snap-application-for-seniors or mass.gov/doc/snap-application-for-seniors-snap-app-seniors/download).[3][9]\",\n      \"Download/print/mail SNAP Application for Seniors (form for 60+ individuals/couples).[3][9]\",\n      \"Phone: Call local DTA office or 211/1-877-382-2363 (general DTA line).\",\n      \"In-person: Local DTA office or senior center/council on aging for assistance.[5]\",\n      \"Via senior center or council on aging outreach.[5]\"\n    ],\n    \"processing_time\": \"Standard 30 days; expedited within 7 days if gross income + assets < monthly housing costs, or gross < $150/month + assets ≤ $100, or migrant worker with ≤ $100 assets.[3]\",\n    \"waitlist\": null,\n    \"forms\": [\n      \"SNAP Application for Seniors (for individuals/couples 60+; form #09-160-1221-05).[3][9]\",\n      \"EDSAP simplified form for eligible seniors (download at Mass.gov).[6]\"\n    ],\n    \"documents\": [\n      \"Proof of income (Social Security, pension statements).\",\n      \"Proof of expenses: medical (bills/receipts for elderly/disabled), shelter, utilities, child support, dependent care.[3]\",\n      \"ID, residency proof, SSN.\",\n      \"LIHEAP heating assistance proof for extra deductions (if >$20 and 60+/disabled).[1]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Administered locally via DTA offices; apply via local office or senior centers; no major benefit differences noted, but processing may vary by office demand.[5]\",\n    \"offices_or_providers\": [\"Local DTA offices, councils on aging, senior centers for outreach/application help.\"]\n  },\n  \"official_source\": \"https://www.mass.gov/lists/snap-application-for-seniors\",\n  \"gotchas\": [\n    \"Seniors 60+ have easier rules (skip gross income if meet net/asset; higher medical/shelter deductions), but recent 2025 federal changes (One Big Beautiful Bill Act) add work docs for 60-65, reduce benefits/utility aid for ~144,000, end eligibility for some immigrants/refugees.[2][7]\",\n    \"Must include all who buy/prepare food together; own home/savings often OK.[4]\",\n    \"Report changes (expenses) anytime for more benefits; digital/paperwork barriers for mobility-limited seniors.[2][3]\",\n    \"EDSAP only if no earned income.[6]\",\n    \"Average benefit low ($147); disruptions force food/meds tradeoffs.[2]\"\n  ],\n  \"data_shape_notes\": \"Easier eligibility for 60+ households (gross income optional, net/asset focus, EDSAP simplification); benefits scale by household size/net income with senior-specific deductions (medical/utilities); statewide but local DTA/senior center access.\"\n}"
+    },
+    {
+      "name": "Fuel Assistance (LIHEAP)",
+      "_parseError": true,
+      "_raw": "{\n  \"name\": \"Fuel Assistance (LIHEAP)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Gross annual household income cannot exceed 60% of Massachusetts' estimated State Median Income for FY 2026. Limits by household size: 1: $51,777; 2: $67,709; 3: $83,641; 4: $99,573; 5: $115,504; 6: $131,436; 7: $127,720-$134,423 (slight source variation); 8: $134,423-$137,410; 9: $137,410; 10: $140,397. Income considered for all household members 18+.[1][3][4][5]\",\n    \"asset_limits\": \"No asset limits mentioned in program guidelines.[1][4]\",\n    \"other_requirements\": [\"Reside in Massachusetts.\", \"Homeowners and renters eligible, including those with heat included in rent.\", \"Multiple factors beyond income may impact eligibility (e.g., housing subsidies affect benefit level); contact local agency for details.\", \"For rent-included heat: may need to pay over 30% of income toward rent in some regions.\"][1][2][4]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Payments for actual usage or fuel delivery made directly to heating vendor for primary energy needs (oil, electricity, natural gas, propane, kerosene, wood, coal) from November 1 to April 30. Fixed benefit amounts; exact amount varies by factors like housing subsidies, fuel type, and income. Specific benefit levels detailed in FY 2026 LIHEAP Income Eligibility and Benefit Chart.[1][2][3][4]\",\n    \"varies_by\": \"household_size|priority_tier|region\"\n  },\n  \"application\": {\n    \"methods\": [\"Online: HEAP portal at https://toapply.org/MassHEAP (opens October 1 for heating season Nov 1-Apr 30).\", \"Phone: Call local agency (e.g., Boston/Brookline/Newton: 617.357.6012; Malden/Medford area: 781.322.6284; Cold Relief Heatline: 800.632.8175).\", \"Mail: To local agency.\", \"In-person: At local LIHEAP agency (use HEAP portal or lookup tool to find; e.g., Valley Opp Chicopee: 413.552.1548, Holyoke office).\"][1][2][3][4]],\n    \"processing_time\": \"Not specified; apply early as seasonal (Nov 1-Apr 30, deadline Apr 30).[1][3]\",\n    \"waitlist\": null,\n    \"forms\": [\"Recertification application (mailed to prior recipients).\", \"Printable forms available from local providers (e.g., ABCD).\", \"FY 2026 LIHEAP Income Eligibility and Benefit Chart for reference.\"][1][3][4]],\n    \"documents\": [\"Photo ID for head of household (e.g., driver's license).\", \"List of all household members.\", \"Heating bills info (company name, account number).\", \"Housing info (lease or mortgage statement).\", \"Proof of income for 30 days prior to application (wages, pension, etc.).\"][1][4]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available statewide to MA residents.\",\n    \"regional_variations\": \"Administered by local agencies/providers with potential differences in offices, phone numbers, wait times, and rent-heat subsidy rules (e.g., >30% income to rent in Hampden County). Use HEAP portal or lookup to find local agency by town.[1][2][3][4]\",\n    \"offices_or_providers\": [\"Local LIHEAP agencies (e.g., Valley Opportunity Council for Hampden County, ABCD for Boston area, Self Help Inc.). Full list via https://www.mass.gov/how-to/apply-for-home-heating-and-energy-assistance or Cold Relief Heatline.\"][1][2][3]\n  },\n  \"official_source\": \"https://www.mass.gov/how-to/apply-for-home-heating-and-energy-assistance\",\n  \"gotchas\": [\"Must apply annually; no automatic renewal.\", \"Income based on gross annual for all adults 18+; not just head of household.\", \"Heat-in-rent households may need to prove >30% income to rent and get income subsidy Nov-Apr.\", \"Benefit level affected by housing subsidies/fuel type; not guaranteed fixed amount.\", \"Over-income households may qualify for Mass Save Moderate Income program instead (call 1-866-527-7283).\", \"Seasonal only (Nov 1-Apr 30); apply starting Oct 1.\"[1][2][3][4][6]],\n  \"data_shape_notes\": \"Administered regionally by local agencies with unified statewide income limits at 60% SMI; benefits scale by household size, fuel type, housing status, and local factors; no age or asset test.\"\n}"
+    },
+    {
+      "name": "Residential Conservation Service (Weatherization)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "Eligibility is based on households qualifying for LIHEAP/HEAP or categorical eligibility (member receiving TAFDC or SSI). Gross annual income must not exceed 60% of the Estimated State Median Income (SMI) or up to 200% of Federal Poverty Level (FPL) via LIHEAP criteria. Exact dollar amounts vary annually by household size and are not fixed in sources; refer to current LIHEAP income eligibility chart on Mass.gov for precise table (e.g., aligns with LIHEAP which uses 60% SMI). Priority given to households with elderly members, disabled, children 6 and under, high energy costs, or Native Americans.[2][4][1]",
+        "asset_limits": "No asset limits mentioned in sources.[1][2]",
+        "other_requirements": [
+          "Households must not have been previously weatherized through this program.",
+          "Homeowners must provide proof of ownership; tenants need signed landlord permission.",
+          "Landlord must agree not to raise rent for 1 year post-weatherization and not evict except for good cause; must be current on property taxes, excise taxes, water/sewer bills.",
+          "For multi-unit buildings (1-4 units or mobile homes), tenant must receive utility discount or fuel assistance and pay own heating bills. Entire building eligible if >50% units qualify.",
+          "U.S. citizenship or qualified alien status required.",
+          "Condominiums with >4 units ineligible."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free weatherization services including air sealing, attic/sidewall/floor insulation, pipe/duct insulation, weather-stripping, heating system evaluation/tune-ups/repairs, health/safety testing of combustion appliances, limited energy-related repairs. Average value $4,725 per household (ranges $200-$7,500 depending on audit, funding, area). May coordinate with utility programs. No client cost or contribution required. Estimated 25-35% reduction in heating bills.[2][3][4][5]",
+        "varies_by": "priority_tier|region"
+      },
+      "application": {
+        "methods": [
+          "Online: Apply starting October 1 through April 30 each program year via local energy assistance agency portal or Mass.gov (specific LIHEAP application used).[2]",
+          "In-person or mail: Contact local energy assistance agency serving your city/town (agency listing by town on Mass.gov). Applications mailed to prior recipients after first year.[2]",
+          "Phone: Call local agency (no statewide number; find via town listing on Mass.gov).[2]"
+        ],
+        "processing_time": "Not specified; after eligibility, local agency schedules energy inspection, then work by contractors with quality inspection.[2][4]",
+        "waitlist": "Due to limited funding, priority service creates effective waitlist; households apply annually.[2][4]",
+        "forms": [
+          "Single Certification Process application for LIHEAP/WAP (used for both programs)."
+        ],
+        "documents": [
+          "Proof of income for all household members 18+.",
+          "Proof of U.S. citizenship or qualified alien status.",
+          "Homeowners: Proof of ownership.",
+          "Tenants: Landlord permission letter.",
+          "Landlord: Agreement on no rent increase/eviction, proof current on taxes/utilities."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide via local agencies; some agencies serve specific areas (e.g., ABCD: Boston, Brookline, Newton, Mystic Valley towns; Self Help: Southeastern MA; Community Teamwork: local area).[2][3][5][6]",
+        "regional_variations": "Administered by local energy assistance agencies with varying service areas, contractors, wait times, and coordination with local utilities. Value/measures may vary by funding availability and utility area ($4,500-$7,500 reported in some regions).[3][5][6]",
+        "offices_or_providers": [
+          "Local energy assistance agencies (full list by town on Mass.gov); e.g., ABCD, Community Teamwork, Self Help Inc."
+        ]
+      },
+      "official_source": "https://www.mass.gov/info-details/weatherization-assistance-program-wap",
+      "gotchas": [
+        "Must apply annually even if previously approved; applications only Oct 1-Apr 30.",
+        "Tenants in 1-4 unit buildings or mobile homes only if paying own heat and receiving fuel assistance/utility discount; >4 unit condos ineligible.",
+        "Landlord caps (taxes/utilities current, no rent hike/eviction) strictly enforced or no permit.",
+        "Priority tiers (elderly, disabled, young children) affect wait times, not eligibility.",
+        "No prior weatherization under WAP; may coordinate but not duplicate utility programs like MassSave.",
+        "Entire building weatherized only if >50% eligible units."
+      ],
+      "data_shape_notes": "Eligibility tied directly to LIHEAP/60% SMI (no fixed dollar table in sources, varies yearly by household size); priority tiers drive service order; regional agencies with town-specific access; no age minimum but elderly prioritized; building-wide rules for multi-family.",
+      "_raw": "{\n  \"name\": \"Residential Conservation Service (Weatherization)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"Eligibility is based on households qualifying for LIHEAP/HEAP or categorical eligibility (member receiving TAFDC or SSI). Gross annual income must not exceed 60% of the Estimated State Median Income (SMI) or up to 200% of Federal Poverty Level (FPL) via LIHEAP criteria. Exact dollar amounts vary annually by household size and are not fixed in sources; refer to current LIHEAP income eligibility chart on Mass.gov for precise table (e.g., aligns with LIHEAP which uses 60% SMI). Priority given to households with elderly members, disabled, children 6 and under, high energy costs, or Native Americans.[2][4][1]\",\n    \"asset_limits\": \"No asset limits mentioned in sources.[1][2]\",\n    \"other_requirements\": [\n      \"Households must not have been previously weatherized through this program.\",\n      \"Homeowners must provide proof of ownership; tenants need signed landlord permission.\",\n      \"Landlord must agree not to raise rent for 1 year post-weatherization and not evict except for good cause; must be current on property taxes, excise taxes, water/sewer bills.\",\n      \"For multi-unit buildings (1-4 units or mobile homes), tenant must receive utility discount or fuel assistance and pay own heating bills. Entire building eligible if >50% units qualify.\",\n      \"U.S. citizenship or qualified alien status required.\",\n      \"Condominiums with >4 units ineligible.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free weatherization services including air sealing, attic/sidewall/floor insulation, pipe/duct insulation, weather-stripping, heating system evaluation/tune-ups/repairs, health/safety testing of combustion appliances, limited energy-related repairs. Average value $4,725 per household (ranges $200-$7,500 depending on audit, funding, area). May coordinate with utility programs. No client cost or contribution required. Estimated 25-35% reduction in heating bills.[2][3][4][5]\",\n    \"varies_by\": \"priority_tier|region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Online: Apply starting October 1 through April 30 each program year via local energy assistance agency portal or Mass.gov (specific LIHEAP application used).[2]\",\n      \"In-person or mail: Contact local energy assistance agency serving your city/town (agency listing by town on Mass.gov). Applications mailed to prior recipients after first year.[2]\",\n      \"Phone: Call local agency (no statewide number; find via town listing on Mass.gov).[2]\"\n    ],\n    \"processing_time\": \"Not specified; after eligibility, local agency schedules energy inspection, then work by contractors with quality inspection.[2][4]\",\n    \"waitlist\": \"Due to limited funding, priority service creates effective waitlist; households apply annually.[2][4]\",\n    \"forms\": [\"Single Certification Process application for LIHEAP/WAP (used for both programs).\"],\n    \"documents\": [\n      \"Proof of income for all household members 18+.\",\n      \"Proof of U.S. citizenship or qualified alien status.\",\n      \"Homeowners: Proof of ownership.\",\n      \"Tenants: Landlord permission letter.\",\n      \"Landlord: Agreement on no rent increase/eviction, proof current on taxes/utilities.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide via local agencies; some agencies serve specific areas (e.g., ABCD: Boston, Brookline, Newton, Mystic Valley towns; Self Help: Southeastern MA; Community Teamwork: local area).[2][3][5][6]\",\n    \"regional_variations\": \"Administered by local energy assistance agencies with varying service areas, contractors, wait times, and coordination with local utilities. Value/measures may vary by funding availability and utility area ($4,500-$7,500 reported in some regions).[3][5][6]\",\n    \"offices_or_providers\": [\"Local energy assistance agencies (full list by town on Mass.gov); e.g., ABCD, Community Teamwork, Self Help Inc.\"]\n  },\n  \"official_source\": \"https://www.mass.gov/info-details/weatherization-assistance-program-wap\",\n  \"gotchas\": [\n    \"Must apply annually even if previously approved; applications only Oct 1-Apr 30.\",\n    \"Tenants in 1-4 unit buildings or mobile homes only if paying own heat and receiving fuel assistance/utility discount; >4 unit condos ineligible.\",\n    \"Landlord caps (taxes/utilities current, no rent hike/eviction) strictly enforced or no permit.\",\n    \"Priority tiers (elderly, disabled, young children) affect wait times, not eligibility.\",\n    \"No prior weatherization under WAP; may coordinate but not duplicate utility programs like MassSave.\",\n    \"Entire building weatherized only if >50% eligible units.\"\n  ],\n  \"data_shape_notes\": \"Eligibility tied directly to LIHEAP/60% SMI (no fixed dollar table in sources, varies yearly by household size); priority tiers drive service order; regional agencies with town-specific access; no age minimum but elderly prioritized; building-wide rules for multi-family.\"\n}"
+    },
+    {
+      "name": "SHINE (Serving Health Insurance Needs of Everyone)",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; open to all Massachusetts residents eligible for Medicare (typically age 65+) or approaching eligibility, their caregivers, and those with limited resources seeking related programs[1][2][3][9]",
+        "asset_limits": "No asset limits; no financial tests required for SHINE counseling itself[4][5]",
+        "other_requirements": [
+          "Massachusetts resident[1][2][9]",
+          "Eligible for Medicare or approaching Medicare eligibility, or caregiver[2][3][5][9]",
+          "U.S. citizenship or immigration status may apply for screened programs like MassHealth, but not for SHINE counseling[1]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free, unbiased health insurance information, counseling, and assistance including: Medicare Parts A/B/C/D, Medigap, Medicare Advantage, prescription drug plans, MassHealth, Medicare Savings Programs (QMB/SLMB/QI), Extra Help/LIS, Prescription Advantage; screening for eligibility and help with applications for cost-saving programs; enrollment process guidance[2][3][4][7][9]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: Call MassOptions at 1-800-243-4636 to find a local SHINE counselor[6][9]",
+          "In-person: At senior centers, Councils on Aging, or Regional Aging Services Access Points[9]",
+          "Phone/email/virtual/mail via local providers (e.g., Mattapoisett: 508-758-4110; regional sites vary)[1][4]",
+          "SHINE staff directory via MassOptions[9]"
+        ],
+        "processing_time": "Immediate counseling appointment scheduling; no formal processing as it's direct assistance[2][4]",
+        "waitlist": "High demand periods like Medicare Open Enrollment may have wait times (e.g., Cape Cod recorded 3,600+ appointments in 2025 season)[2]",
+        "forms": [
+          "No specific SHINE form; counselors assist with Medicare, MassHealth, Extra Help, etc. applications[3][4]"
+        ],
+        "documents": [
+          "Medicare card, current insurance details, income info for program screenings (optional for counseling)[3][4]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Massachusetts residents only[1][2][9]",
+        "regional_variations": "Administered locally via Councils on Aging, elder service agencies, and regional offices (e.g., Barnstable County for Cape Cod & Islands with county funding; high demand varies by area like Cape Cod during enrollment)[2][7][9]",
+        "offices_or_providers": [
+          "Local: Councils on Aging, senior centers, AgeSpan, LifePath, Access Care Partners; statewide coordination via Executive Office of Elder Affairs[2][4][8][9]"
+        ]
+      },
+      "official_source": "https://www.mass.gov/info-details/serving-the-health-insurance-needs-of-everyone-shine-program[9]",
+      "gotchas": [
+        "Not a direct benefits program—provides counseling only, not financial aid itself[3][5]",
+        "High demand during Medicare Open Enrollment (Oct-Dec) and Advantage Open Enrollment (Jan-Mar) may cause appointment delays[2]",
+        "Contact local sites for availability as statewide phone routes to regional counselors[1][6][9]",
+        "Some sites list as 'Health Information Needs of Elders' but full name is 'Health Insurance Needs of Everyone'—same program[7]"
+      ],
+      "data_shape_notes": "no income/asset test for counseling; regionally administered with local providers and variable demand; volunteer/staff counselors assist with multiple Medicare-related applications but do not provide direct services or funding",
+      "_raw": "{\n  \"name\": \"SHINE (Serving Health Insurance Needs of Everyone)\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; open to all Massachusetts residents eligible for Medicare (typically age 65+) or approaching eligibility, their caregivers, and those with limited resources seeking related programs[1][2][3][9]\",\n    \"asset_limits\": \"No asset limits; no financial tests required for SHINE counseling itself[4][5]\",\n    \"other_requirements\": [\"Massachusetts resident[1][2][9]\", \"Eligible for Medicare or approaching Medicare eligibility, or caregiver[2][3][5][9]\", \"U.S. citizenship or immigration status may apply for screened programs like MassHealth, but not for SHINE counseling[1]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free, unbiased health insurance information, counseling, and assistance including: Medicare Parts A/B/C/D, Medigap, Medicare Advantage, prescription drug plans, MassHealth, Medicare Savings Programs (QMB/SLMB/QI), Extra Help/LIS, Prescription Advantage; screening for eligibility and help with applications for cost-saving programs; enrollment process guidance[2][3][4][7][9]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: Call MassOptions at 1-800-243-4636 to find a local SHINE counselor[6][9]\", \"In-person: At senior centers, Councils on Aging, or Regional Aging Services Access Points[9]\", \"Phone/email/virtual/mail via local providers (e.g., Mattapoisett: 508-758-4110; regional sites vary)[1][4]\", \"SHINE staff directory via MassOptions[9]\"],\n    \"processing_time\": \"Immediate counseling appointment scheduling; no formal processing as it's direct assistance[2][4]\",\n    \"waitlist\": \"High demand periods like Medicare Open Enrollment may have wait times (e.g., Cape Cod recorded 3,600+ appointments in 2025 season)[2]\",\n    \"forms\": [\"No specific SHINE form; counselors assist with Medicare, MassHealth, Extra Help, etc. applications[3][4]\"],\n    \"documents\": [\"Medicare card, current insurance details, income info for program screenings (optional for counseling)[3][4]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Massachusetts residents only[1][2][9]\",\n    \"regional_variations\": \"Administered locally via Councils on Aging, elder service agencies, and regional offices (e.g., Barnstable County for Cape Cod & Islands with county funding; high demand varies by area like Cape Cod during enrollment)[2][7][9]\",\n    \"offices_or_providers\": [\"Local: Councils on Aging, senior centers, AgeSpan, LifePath, Access Care Partners; statewide coordination via Executive Office of Elder Affairs[2][4][8][9]\"]\n  },\n  \"official_source\": \"https://www.mass.gov/info-details/serving-the-health-insurance-needs-of-everyone-shine-program[9]\",\n  \"gotchas\": [\"Not a direct benefits program—provides counseling only, not financial aid itself[3][5]\", \"High demand during Medicare Open Enrollment (Oct-Dec) and Advantage Open Enrollment (Jan-Mar) may cause appointment delays[2]\", \"Contact local sites for availability as statewide phone routes to regional counselors[1][6][9]\", \"Some sites list as 'Health Information Needs of Elders' but full name is 'Health Insurance Needs of Everyone'—same program[7]\"],\n  \"data_shape_notes\": \"no income/asset test for counseling; regionally administered with local providers and variable demand; volunteer/staff counselors assist with multiple Medicare-related applications but do not provide direct services or funding\"\n}"
+    },
+    {
+      "name": "Meals on Wheels",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No statewide income limits; some local providers apply means-testing for reduced-price or free meals, but most serve any income level based on need[3][7].",
+        "asset_limits": "No asset limits mentioned across sources.",
+        "other_requirements": [
+          "Chronically or temporarily homebound and unable to shop, prepare, or obtain at least one nutritious meal per day[1][2][6]",
+          "Physically or emotionally unable to prepare meals, with inadequate family/formal support[1]",
+          "Lack of transportation to stores or senior dining sites[1]",
+          "Spouses and dependents with disabilities may qualify regardless of age[5][7]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Nutritionally balanced hot lunch delivered weekdays (meets 1/3 of daily requirements, low sodium/fat/sugar); special diets for diabetes/heart disease; daily safety check-in and social contact by driver; serves over 30,000 meals daily statewide[1][7][8]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local Area Agency on Aging (AAA) or provider via https://www.mealsonwheelsamerica.org/find-meals-and-services/[2]",
+          "Statewide helpline: 1-800-985-6000[3]",
+          "Local examples: Greater Springfield Senior Services (https://www.gsssi.org/meals-on-wheels)[1]; Meals on Wheels Boston (https://www.mealsonwheelsboston.org/)[6]; South Shore Elder Services (https://sselder.org/mealsonwheels/)[8]; Mass Meals on Wheels agency finder (https://www.massmealsonwheels.org)[7]"
+        ],
+        "processing_time": "Not specified; contact local provider for assessment[2]",
+        "waitlist": "Varies by region and provider; some areas have demand exceeding capacity[2]",
+        "forms": [
+          "Application and needs assessment (varies by provider); possible doctor/social worker referral[2]"
+        ],
+        "documents": [
+          "Proof of age, residency, homebound status; doctor referral if requested; income info for means-tested fees[2][3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must reside in service area of local provider (e.g., Boston city limits for Meals on Wheels Boston[6])",
+        "regional_variations": "Administered by local AAAs and providers (e.g., Greater Springfield, South Shore Elder Services, Meals on Wheels Boston); eligibility details, fees, wait times, and delivery schedules differ; some emphasize short-term post-hospital needs[1][6][7][8]",
+        "offices_or_providers": [
+          "Local AAAs via https://www.massmealsonwheels.org; examples: Greater Springfield Senior Services, Meals on Wheels Boston, South Shore Elder Services[1][6][7][8]"
+        ]
+      },
+      "official_source": "https://www.massmealsonwheels.org (state network); local AAAs; state regs at https://www.mass.gov/doc/651-cmr-4-the-state-funded-nutrition-program-for-elderly-persons/download[5][7]",
+      "gotchas": [
+        "Not a single centralized program—must contact specific local provider for service area, exact eligibility, and availability[2][7]",
+        "Homebound status strictly required; drivers cannot leave meals unattended[1][6]",
+        "Fees may apply based on local means-testing (free for most, low-cost otherwise)[3][8]",
+        "Primarily weekday lunch only; no weekends/holidays typically[6]",
+        "Separate from Medicaid/Mom's Meals (which requires enrollment in those plans)[4]"
+      ],
+      "data_shape_notes": "Decentralized by local AAAs/providers with no uniform statewide income test or application; eligibility emphasizes homebound need over finances; serves 70,000+ daily via network[3][7]",
+      "_raw": "{\n  \"name\": \"Meals on Wheels\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No statewide income limits; some local providers apply means-testing for reduced-price or free meals, but most serve any income level based on need[3][7].\",\n    \"asset_limits\": \"No asset limits mentioned across sources.\",\n    \"other_requirements\": [\"Chronically or temporarily homebound and unable to shop, prepare, or obtain at least one nutritious meal per day[1][2][6]\", \"Physically or emotionally unable to prepare meals, with inadequate family/formal support[1]\", \"Lack of transportation to stores or senior dining sites[1]\", \"Spouses and dependents with disabilities may qualify regardless of age[5][7]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Nutritionally balanced hot lunch delivered weekdays (meets 1/3 of daily requirements, low sodium/fat/sugar); special diets for diabetes/heart disease; daily safety check-in and social contact by driver; serves over 30,000 meals daily statewide[1][7][8]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\"Contact local Area Agency on Aging (AAA) or provider via https://www.mealsonwheelsamerica.org/find-meals-and-services/[2]\", \"Statewide helpline: 1-800-985-6000[3]\", \"Local examples: Greater Springfield Senior Services (https://www.gsssi.org/meals-on-wheels)[1]; Meals on Wheels Boston (https://www.mealsonwheelsboston.org/)[6]; South Shore Elder Services (https://sselder.org/mealsonwheels/)[8]; Mass Meals on Wheels agency finder (https://www.massmealsonwheels.org)[7]\"],\n    \"processing_time\": \"Not specified; contact local provider for assessment[2]\",\n    \"waitlist\": \"Varies by region and provider; some areas have demand exceeding capacity[2]\",\n    \"forms\": [\"Application and needs assessment (varies by provider); possible doctor/social worker referral[2]\"],\n    \"documents\": [\"Proof of age, residency, homebound status; doctor referral if requested; income info for means-tested fees[2][3]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must reside in service area of local provider (e.g., Boston city limits for Meals on Wheels Boston[6])\",\n    \"regional_variations\": \"Administered by local AAAs and providers (e.g., Greater Springfield, South Shore Elder Services, Meals on Wheels Boston); eligibility details, fees, wait times, and delivery schedules differ; some emphasize short-term post-hospital needs[1][6][7][8]\",\n    \"offices_or_providers\": [\"Local AAAs via https://www.massmealsonwheels.org; examples: Greater Springfield Senior Services, Meals on Wheels Boston, South Shore Elder Services[1][6][7][8]\"]\n  },\n  \"official_source\": \"https://www.massmealsonwheels.org (state network); local AAAs; state regs at https://www.mass.gov/doc/651-cmr-4-the-state-funded-nutrition-program-for-elderly-persons/download[5][7]\",\n  \"gotchas\": [\"Not a single centralized program—must contact specific local provider for service area, exact eligibility, and availability[2][7]\", \"Homebound status strictly required; drivers cannot leave meals unattended[1][6]\", \"Fees may apply based on local means-testing (free for most, low-cost otherwise)[3][8]\", \"Primarily weekday lunch only; no weekends/holidays typically[6]\", \"Separate from Medicaid/Mom's Meals (which requires enrollment in those plans)[4]\"],\n  \"data_shape_notes\": \"Decentralized by local AAAs/providers with no uniform statewide income test or application; eligibility emphasizes homebound need over finances; serves 70,000+ daily via network[3][7]\"\n}"
+    },
+    {
+      "name": "Alzheimer’s Respite Care Program",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No specific income limits mentioned in sources; eligibility primarily based on age, diagnosis, and caregiver status rather than income. Over-income programs exist for respite (e.g., AgeSpan fact sheet), but no dollar amounts or household tables provided.[4]",
+        "asset_limits": "Not applicable or not specified for this program. Related MassHealth programs exempt primary home (equity ≤ $1,097,000 in 2025 if intent to return), but not directly tied to Alzheimer's respite.[3]",
+        "other_requirements": [
+          "Caregiver must be adult family member or non-paid caregiver, age 18+.",
+          "Individual cared for: age 60+ or any age with Alzheimer's disease or related dementia.",
+          "Must live at home in Massachusetts (not institutional or certified assisted living).",
+          "Determined by need, residence, and ability to perform daily tasks.[1][5]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Respite care services including Alzheimer's/dementia coaching, home health aide, homemaker, personal care, respite, chore, companion, complex care training and oversight. Specific hours or dollar amounts not detailed; related programs offer e.g., $2,500 annual respite benefit via Medicare GUIDE.[2][6]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Contact local Aging Service Access Points (ASAPs) by calling (800) 243-4636 or search at https://contactus.800ageinfo.com/FindAgency.aspx.[2]",
+          "Request clinical eligibility assessment via ASAP.[2]",
+          "Phone: (800) AGE-INFO ((800) 243-4636).[2]"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Not mentioned for this program (contrast with Medicaid waivers that have enrollment limits).[2]",
+        "forms": [
+          "No specific form names/numbers identified."
+        ],
+        "documents": [
+          "Diagnosis of Alzheimer's or related dementia.",
+          "Proof of age and residence.",
+          "Functional needs assessment (for related programs, by OT/RN).[3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must live at home in Massachusetts outside institutional settings.[5]",
+        "regional_variations": "Administered via local Aging Service Access Points (ASAPs), which may lead to provider or wait time differences by region; contact local ASAP for specifics.[2]",
+        "offices_or_providers": [
+          "Local Massachusetts Aging Service Access Points (ASAPs) – find via (800) 243-4636 or https://contactus.800ageinfo.com/FindAgency.aspx.[2]"
+        ]
+      },
+      "official_source": "https://www.mass.gov/info-details/family-caregiver-support-program-eligibility",
+      "gotchas": [
+        "Not a standalone 'Alzheimer’s Respite Care Program' – likely refers to respite within Family Caregiver Support Program or Home Care Program; families may confuse with Medicare GUIDE ($2,500 respite, requires Medicare A/B, no Advantage).[1][6]",
+        "Eligibility focuses on caregiver supporting person 60+ or any age with dementia; grandparents/relatives have separate criteria.[1]",
+        "Dementia diagnosis alone does not guarantee functional eligibility in related assessments.[3]",
+        "No automatic entitlement or waitlist info; apply via local ASAPs which vary regionally.[2]"
+      ],
+      "data_shape_notes": "Program embedded in broader Family Caregiver Support and Home Care Programs via local ASAPs; no strict income/asset tests detailed, priority on diagnosis and home residence; regional ASAP administration creates provider variations.",
+      "_raw": "{\n  \"name\": \"Alzheimer’s Respite Care Program\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No specific income limits mentioned in sources; eligibility primarily based on age, diagnosis, and caregiver status rather than income. Over-income programs exist for respite (e.g., AgeSpan fact sheet), but no dollar amounts or household tables provided.[4]\",\n    \"asset_limits\": \"Not applicable or not specified for this program. Related MassHealth programs exempt primary home (equity ≤ $1,097,000 in 2025 if intent to return), but not directly tied to Alzheimer's respite.[3]\",\n    \"other_requirements\": [\n      \"Caregiver must be adult family member or non-paid caregiver, age 18+.\",\n      \"Individual cared for: age 60+ or any age with Alzheimer's disease or related dementia.\",\n      \"Must live at home in Massachusetts (not institutional or certified assisted living).\",\n      \"Determined by need, residence, and ability to perform daily tasks.[1][5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Respite care services including Alzheimer's/dementia coaching, home health aide, homemaker, personal care, respite, chore, companion, complex care training and oversight. Specific hours or dollar amounts not detailed; related programs offer e.g., $2,500 annual respite benefit via Medicare GUIDE.[2][6]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Aging Service Access Points (ASAPs) by calling (800) 243-4636 or search at https://contactus.800ageinfo.com/FindAgency.aspx.[2]\",\n      \"Request clinical eligibility assessment via ASAP.[2]\",\n      \"Phone: (800) AGE-INFO ((800) 243-4636).[2]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Not mentioned for this program (contrast with Medicaid waivers that have enrollment limits).[2]\",\n    \"forms\": [\"No specific form names/numbers identified.\"],\n    \"documents\": [\n      \"Diagnosis of Alzheimer's or related dementia.\",\n      \"Proof of age and residence.\",\n      \"Functional needs assessment (for related programs, by OT/RN).[3]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must live at home in Massachusetts outside institutional settings.[5]\",\n    \"regional_variations\": \"Administered via local Aging Service Access Points (ASAPs), which may lead to provider or wait time differences by region; contact local ASAP for specifics.[2]\",\n    \"offices_or_providers\": [\"Local Massachusetts Aging Service Access Points (ASAPs) – find via (800) 243-4636 or https://contactus.800ageinfo.com/FindAgency.aspx.[2]\"]\n  },\n  \"official_source\": \"https://www.mass.gov/info-details/family-caregiver-support-program-eligibility\",\n  \"gotchas\": [\n    \"Not a standalone 'Alzheimer’s Respite Care Program' – likely refers to respite within Family Caregiver Support Program or Home Care Program; families may confuse with Medicare GUIDE ($2,500 respite, requires Medicare A/B, no Advantage).[1][6]\",\n    \"Eligibility focuses on caregiver supporting person 60+ or any age with dementia; grandparents/relatives have separate criteria.[1]\",\n    \"Dementia diagnosis alone does not guarantee functional eligibility in related assessments.[3]\",\n    \"No automatic entitlement or waitlist info; apply via local ASAPs which vary regionally.[2]\"\n  ],\n  \"data_shape_notes\": \"Program embedded in broader Family Caregiver Support and Home Care Programs via local ASAPs; no strict income/asset tests detailed, priority on diagnosis and home residence; regional ASAP administration creates provider variations.\"\n}"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Family income at or below 125% of the federal poverty level. Exact dollar amounts vary annually by household size and are not specified in sources; families must check current federal poverty guidelines via provider or DOL. Applies statewide in MA.[1][2][3][4][5][7]",
+        "asset_limits": "No asset limits mentioned in sources.",
+        "other_requirements": [
+          "Unemployed[1][2][3][4][5][7]",
+          "U.S. citizen or authorized to work[4] (inferred from federal program)",
+          "Enrollment priority: Veterans and qualified spouses first, then individuals over 65, with disability, low literacy, limited English proficiency, rural residents, homeless/at risk, low employment prospects, or prior American Job Center users[1][2][4][5]"
+        ]
+      },
+      "benefits": {
+        "type": "employment",
+        "value": "Part-time community service work (up to 20 hours/week) at minimum wage at nonprofits/public agencies (e.g., schools, hospitals, senior centers); on-the-job training; job placement assistance; leads to unsubsidized employment. Duration limited to 48 months.[4][5][6][7][8]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact regional providers: e.g., Springfield Dept of Elder Affairs (Hampden/Hampshire Counties) via springfield-ma.gov/hhs/scsepelderaffairs[1]; CFC Inc Fall River office (Bristol, Plymouth, Hampden Counties)[2]; CCWORC (Worcester/Franklin Counties) at 508-860-2241[5]",
+          "No statewide centralized online form; apply via local grantee (state agencies or nonprofits like AARP Foundation SCSEP)[4][8]",
+          "American Job Centers for assistance[1][4]"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Possible based on 'Most in Need' criteria and priority; eligible considered by characteristics[2]",
+        "forms": [
+          "No specific form names/numbers listed; proof of income required[2]"
+        ],
+        "documents": [
+          "Proof of income[2]",
+          "Proof of age, unemployment status, veteran status if applicable (inferred)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Served by regional grantees covering specific counties (e.g., Hampden/Hampshire[1], Bristol/Plymouth/Hampden[2], Worcester/Franklin[5]); no county exclusions noted.",
+        "regional_variations": "Administered by different providers per region (e.g., City of Springfield[1], CFC Inc[2], CCWORC/CWI Works[5]); contact local office; potential wait time/provider differences.",
+        "offices_or_providers": [
+          "Springfield Dept of Elder Affairs (Hampden/Hampshire)[1]",
+          "CFC Inc (Bristol/Plymouth/Hampden, Fall River office)[2]",
+          "CCWORC (Worcester/Franklin, 508-860-2241)[5]"
+        ]
+      },
+      "official_source": "https://www.dol.gov/agencies/eta/seniors[4]",
+      "gotchas": [
+        "Not regular employment; work-training only, excluded from MA Paid Family Medical Leave[6]",
+        "Priority-based enrollment may cause delays for non-priority applicants[1][2][4]",
+        "Must be actively unemployed and seeking unsubsidized job; limited to 48 months[7]",
+        "Income is family-based at 125% FPL; check current guidelines as they update yearly",
+        "Regional providers only—no single statewide application[1][2][5]"
+      ],
+      "data_shape_notes": "Administered by multiple regional grantees covering counties; priority tiers determine access; income at 125% FPL (family size-adjusted, annual update); 20 hours/week minimum wage training positions.",
+      "_raw": "{\n  \"name\": \"Senior Community Service Employment Program (SCSEP)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income at or below 125% of the federal poverty level. Exact dollar amounts vary annually by household size and are not specified in sources; families must check current federal poverty guidelines via provider or DOL. Applies statewide in MA.[1][2][3][4][5][7]\",\n    \"asset_limits\": \"No asset limits mentioned in sources.\",\n    \"other_requirements\": [\n      \"Unemployed[1][2][3][4][5][7]\",\n      \"U.S. citizen or authorized to work[4] (inferred from federal program)\",\n      \"Enrollment priority: Veterans and qualified spouses first, then individuals over 65, with disability, low literacy, limited English proficiency, rural residents, homeless/at risk, low employment prospects, or prior American Job Center users[1][2][4][5]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Part-time community service work (up to 20 hours/week) at minimum wage at nonprofits/public agencies (e.g., schools, hospitals, senior centers); on-the-job training; job placement assistance; leads to unsubsidized employment. Duration limited to 48 months.[4][5][6][7][8]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact regional providers: e.g., Springfield Dept of Elder Affairs (Hampden/Hampshire Counties) via springfield-ma.gov/hhs/scsepelderaffairs[1]; CFC Inc Fall River office (Bristol, Plymouth, Hampden Counties)[2]; CCWORC (Worcester/Franklin Counties) at 508-860-2241[5]\",\n      \"No statewide centralized online form; apply via local grantee (state agencies or nonprofits like AARP Foundation SCSEP)[4][8]\",\n      \"American Job Centers for assistance[1][4]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Possible based on 'Most in Need' criteria and priority; eligible considered by characteristics[2]\",\n    \"forms\": [\"No specific form names/numbers listed; proof of income required[2]\"],\n    \"documents\": [\n      \"Proof of income[2]\",\n      \"Proof of age, unemployment status, veteran status if applicable (inferred)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Served by regional grantees covering specific counties (e.g., Hampden/Hampshire[1], Bristol/Plymouth/Hampden[2], Worcester/Franklin[5]); no county exclusions noted.\",\n    \"regional_variations\": \"Administered by different providers per region (e.g., City of Springfield[1], CFC Inc[2], CCWORC/CWI Works[5]); contact local office; potential wait time/provider differences.\",\n    \"offices_or_providers\": [\n      \"Springfield Dept of Elder Affairs (Hampden/Hampshire)[1]\",\n      \"CFC Inc (Bristol/Plymouth/Hampden, Fall River office)[2]\",\n      \"CCWORC (Worcester/Franklin, 508-860-2241)[5]\"\n    ]\n  },\n  \"official_source\": \"https://www.dol.gov/agencies/eta/seniors[4]\",\n  \"gotchas\": [\n    \"Not regular employment; work-training only, excluded from MA Paid Family Medical Leave[6]\",\n    \"Priority-based enrollment may cause delays for non-priority applicants[1][2][4]\",\n    \"Must be actively unemployed and seeking unsubsidized job; limited to 48 months[7]\",\n    \"Income is family-based at 125% FPL; check current guidelines as they update yearly\",\n    \"Regional providers only—no single statewide application[1][2][5]\"\n  ],\n  \"data_shape_notes\": \"Administered by multiple regional grantees covering counties; priority tiers determine access; income at 125% FPL (family size-adjusted, annual update); 20 hours/week minimum wage training positions.\"\n}"
+    },
+    {
+      "name": "Massachusetts Senior Legal Helpline",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No specific income limits for the helpline itself; eligibility for free attorney representation (via referral) depends on separate Massachusetts civil legal services programs, often requiring low income (e.g., below 125% of federal poverty level in some programs).[1][2][3]",
+        "asset_limits": "No asset limits mentioned for the helpline; asset tests may apply to referred free attorney services on a program-by-program basis.",
+        "other_requirements": [
+          "Massachusetts resident",
+          "Civil legal issues only (e.g., Social Security/SSI, MassHealth, housing, guardianship, etc.).[1][2]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Free legal information, advice, and referrals; assistance completing applications for free attorneys from civil legal services programs (most callers not eligible for free attorney); referrals to reduced-fee or private attorneys; materials via text, email, or mail. Covers civil law areas: Social Security/SSI, veterans benefits, MassHealth, Medicare, consumer issues, public benefits, unemployment, foreclosures, guardianship, power of attorney, bankruptcy, evictions, landlord/tenant, utilities, family law, nursing home issues.[1][2]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 800-342-5297 (Mon-Fri 9am-12pm, English/Spanish)",
+          "Download brochure/form: https://www.mass.gov/doc/senior-legal-help-line/download.[1][2]"
+        ],
+        "processing_time": "Immediate phone consultation during hours; attorney eligibility/application handled during call if applicable.",
+        "waitlist": null,
+        "forms": [
+          "No specific form name; helpline assists with applications to civil legal services programs over the phone.[2]"
+        ],
+        "documents": [
+          "No documents required for initial helpline call; prepare details of legal issue, income info if seeking free attorney referral.[2]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Massachusetts residents only.",
+        "regional_variations": "Operated by Volunteer Lawyers Project of Boston; some listings note specific service areas (e.g., North Shore towns like Amesbury, Lowell), but described as statewide for MA seniors.[1]",
+        "offices_or_providers": [
+          "Volunteer Lawyers Project of Boston"
+        ]
+      },
+      "official_source": "https://www.mass.gov/doc/senior-legal-help-line/download",
+      "gotchas": [
+        "Most callers not eligible for free attorney—primarily info/referral service; excludes criminal, medical malpractice, workers’ comp, personal injury (contingency basis only); limited hours (9am-12pm); not full representation unless referred and qualified elsewhere; separate from AG Elder Hotline (888-243-5337).[1][2][5]"
+      ],
+      "data_shape_notes": "no income test for helpline access; free info/referral open to all 60+ MA seniors; attorney services via referral with separate eligibility; phone-only primary access with short daily hours",
+      "_raw": "{\n  \"name\": \"Massachusetts Senior Legal Helpline\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No specific income limits for the helpline itself; eligibility for free attorney representation (via referral) depends on separate Massachusetts civil legal services programs, often requiring low income (e.g., below 125% of federal poverty level in some programs).[1][2][3]\",\n    \"asset_limits\": \"No asset limits mentioned for the helpline; asset tests may apply to referred free attorney services on a program-by-program basis.\",\n    \"other_requirements\": [\"Massachusetts resident\", \"Civil legal issues only (e.g., Social Security/SSI, MassHealth, housing, guardianship, etc.).[1][2]\"]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Free legal information, advice, and referrals; assistance completing applications for free attorneys from civil legal services programs (most callers not eligible for free attorney); referrals to reduced-fee or private attorneys; materials via text, email, or mail. Covers civil law areas: Social Security/SSI, veterans benefits, MassHealth, Medicare, consumer issues, public benefits, unemployment, foreclosures, guardianship, power of attorney, bankruptcy, evictions, landlord/tenant, utilities, family law, nursing home issues.[1][2]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 800-342-5297 (Mon-Fri 9am-12pm, English/Spanish)\", \"Download brochure/form: https://www.mass.gov/doc/senior-legal-help-line/download.[1][2]\"],\n    \"processing_time\": \"Immediate phone consultation during hours; attorney eligibility/application handled during call if applicable.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific form name; helpline assists with applications to civil legal services programs over the phone.[2]\"],\n    \"documents\": [\"No documents required for initial helpline call; prepare details of legal issue, income info if seeking free attorney referral.[2]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Massachusetts residents only.\",\n    \"regional_variations\": \"Operated by Volunteer Lawyers Project of Boston; some listings note specific service areas (e.g., North Shore towns like Amesbury, Lowell), but described as statewide for MA seniors.[1]\",\n    \"offices_or_providers\": [\"Volunteer Lawyers Project of Boston\"]\n  },\n  \"official_source\": \"https://www.mass.gov/doc/senior-legal-help-line/download\",\n  \"gotchas\": [\"Most callers not eligible for free attorney—primarily info/referral service; excludes criminal, medical malpractice, workers’ comp, personal injury (contingency basis only); limited hours (9am-12pm); not full representation unless referred and qualified elsewhere; separate from AG Elder Hotline (888-243-5337).[1][2][5]\"],\n  \"data_shape_notes\": \"no income test for helpline access; free info/referral open to all 60+ MA seniors; attorney services via referral with separate eligibility; phone-only primary access with short daily hours\"\n}"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "eligibility": {
+        "age": null,
+        "income_limits": "No income limits; support is free for all eligible residents[2][3][6]",
+        "asset_limits": "No asset limits; support is free for all eligible residents[2][3][6]",
+        "other_requirements": [
+          "Must reside in a nursing home, rest home, or assisted living facility in Massachusetts[1][2][3][6][8]"
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Investigate and resolve complaints related to health, safety, welfare, rights; mediate conflicts; regular facility visits; advocate for systemic changes; educate on rights; assist with facility selection; support resident/family councils; handle issues like abuse, care, discharge, autonomy, dietary, environment[1][3][4][5][7]",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Phone: 617-222-7495 (statewide main line to connect to local ombudsman)[2][3][6]",
+          "Website: https://www.mass.gov/orgs/massachusetts-long-term-care-ombudsman-program (for regional contacts)[2][4]",
+          "Local/regional offices: Contact via city/town-aligned agency or host sites (e.g., AgeSpan, Springwell, LifePath, Old Colony Planning)[1][7][8][9]",
+          "In-person: At facilities during regular ombudsman visits or local offices[1][8]"
+        ],
+        "processing_time": "No formal application or processing; complaints investigated promptly by certified ombudsmen[3][4]",
+        "waitlist": null,
+        "forms": [
+          "No specific forms required; contact directly to file complaint or seek assistance[3][6]"
+        ],
+        "documents": [
+          "No documents needed; anyone can file on behalf of resident (confidential unless consent or abuse requires reporting)[3][4][7]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Limited to residents of nursing homes, rest homes, assisted living facilities across Massachusetts[1][2][3]",
+        "regional_variations": "Operates from 17 host sites with 41 paid staff and 199 volunteers covering specific regions/cities/towns; local ombudsmen assigned to facilities (e.g., Springwell for 22-town area, LifePath for its area, Old Colony for its region); contact local via main line or directory[1][4][7][8][9]",
+        "offices_or_providers": [
+          "State office: 1 Ashburton, Room 517, Boston[2]",
+          "Regional examples: Old Colony Planning Council[1], AgeSpan[2], Springwell (22 towns)[8], LifePath (e.g., 413-829-9234)[9]"
+        ]
+      },
+      "official_source": "https://www.mass.gov/orgs/massachusetts-long-term-care-ombudsman-program",
+      "gotchas": [
+        "Not a regulatory agency; cannot enforce rules but advocates and educates on regulations[5]",
+        "Must already reside in qualifying facility—not for community/home care or pre-admission[1][2][3]",
+        "Complaints can be anonymous/confidential, but identity may be disclosed in abuse cases[4][7]",
+        "Families/loved ones can contact on behalf of resident, but services target facility residents[3][6]",
+        "Not healthcare or financial aid; purely advocacy for rights and issue resolution[5]"
+      ],
+      "data_shape_notes": "no income/asset test; residency in certified long-term care facility required; regionally delivered via 17 host sites and local volunteers; free immediate advocacy access without application",
+      "_raw": "{\n  \"name\": \"Long-Term Care Ombudsman Program\",\n  \"eligibility\": {\n    \"age\": null,\n    \"income_limits\": \"No income limits; support is free for all eligible residents[2][3][6]\",\n    \"asset_limits\": \"No asset limits; support is free for all eligible residents[2][3][6]\",\n    \"other_requirements\": [\"Must reside in a nursing home, rest home, or assisted living facility in Massachusetts[1][2][3][6][8]\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Investigate and resolve complaints related to health, safety, welfare, rights; mediate conflicts; regular facility visits; advocate for systemic changes; educate on rights; assist with facility selection; support resident/family councils; handle issues like abuse, care, discharge, autonomy, dietary, environment[1][3][4][5][7]\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: 617-222-7495 (statewide main line to connect to local ombudsman)[2][3][6]\", \"Website: https://www.mass.gov/orgs/massachusetts-long-term-care-ombudsman-program (for regional contacts)[2][4]\", \"Local/regional offices: Contact via city/town-aligned agency or host sites (e.g., AgeSpan, Springwell, LifePath, Old Colony Planning)[1][7][8][9]\", \"In-person: At facilities during regular ombudsman visits or local offices[1][8]\"],\n    \"processing_time\": \"No formal application or processing; complaints investigated promptly by certified ombudsmen[3][4]\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific forms required; contact directly to file complaint or seek assistance[3][6]\"],\n    \"documents\": [\"No documents needed; anyone can file on behalf of resident (confidential unless consent or abuse requires reporting)[3][4][7]\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Limited to residents of nursing homes, rest homes, assisted living facilities across Massachusetts[1][2][3]\",\n    \"regional_variations\": \"Operates from 17 host sites with 41 paid staff and 199 volunteers covering specific regions/cities/towns; local ombudsmen assigned to facilities (e.g., Springwell for 22-town area, LifePath for its area, Old Colony for its region); contact local via main line or directory[1][4][7][8][9]\",\n    \"offices_or_providers\": [\"State office: 1 Ashburton, Room 517, Boston[2]\", \"Regional examples: Old Colony Planning Council[1], AgeSpan[2], Springwell (22 towns)[8], LifePath (e.g., 413-829-9234)[9]\"]\n  },\n  \"official_source\": \"https://www.mass.gov/orgs/massachusetts-long-term-care-ombudsman-program\",\n  \"gotchas\": [\"Not a regulatory agency; cannot enforce rules but advocates and educates on regulations[5]\", \"Must already reside in qualifying facility—not for community/home care or pre-admission[1][2][3]\", \"Complaints can be anonymous/confidential, but identity may be disclosed in abuse cases[4][7]\", \"Families/loved ones can contact on behalf of resident, but services target facility residents[3][6]\", \"Not healthcare or financial aid; purely advocacy for rights and issue resolution[5]\"],\n  \"data_shape_notes\": \"no income/asset test; residency in certified long-term care facility required; regionally delivered via 17 host sites and local volunteers; free immediate advocacy access without application\"\n}"
+    },
+    {
+      "name": "Prescription Advantage",
+      "eligibility": {
+        "age": "65 or older (primary category); under 65 with disabilities also eligible[3]",
+        "income_limits": {
+          "description": "Income limits vary by category and household composition. As of January 1, 2026:[6]",
+          "medicare_eligible_categories": {
+            "S0": {
+              "single_yearly": "$0 - $21,128",
+              "single_monthly": "$0 - $1,761",
+              "married_yearly": "$0 - $28,553",
+              "married_monthly": "$0 - $2,379"
+            },
+            "S1": {
+              "single_yearly": "$21,129 - $31,692",
+              "single_monthly": "$1,762 - $2,641",
+              "married_yearly": "$28,554 - $42,924",
+              "married_monthly": "$2,380 - $3,577"
+            },
+            "S2": {
+              "single_yearly": "$31,693 - $39,616",
+              "single_monthly": "$2,642 - $3,301",
+              "married_yearly": "$42,925 - $53,550",
+              "married_monthly": "$3,578 - $4,463"
+            },
+            "S3": {
+              "single_yearly": "$39,617 - $46,950",
+              "single_monthly": "$3,302 - $3,913",
+              "married_yearly": "$53,551 - $63,450",
+              "married_monthly": "$4,464 - $5,288"
+            },
+            "S5": {
+              "single_yearly": "$46,951 - $78,250",
+              "single_monthly": "$3,914 - $6,521",
+              "married_yearly": "$63,451 - $105,750",
+              "married_monthly": "$5,289 - $8,813"
+            }
+          },
+          "under_65_disabled": "Gross annual household income at or below 188% of the Federal Poverty Level[3]",
+          "note": "For Medicare-eligible applicants, income must be less than 500% of the Federal Poverty Level to qualify[3]"
+        },
+        "asset_limits": {
+          "general": "No asset limit for most applicants[5]",
+          "exceptions": "Applicants who may qualify for Medicare Extra Help (Low Income Subsidy) must have assets no more than: Single $17,220; Married $34,360. Assets do not include home, life insurance policies, burial plots, or personal possessions[4]",
+          "msp_exception": "Applicants who may qualify for MassHealth Buy-In Program (Medicare Savings Program) must have resources no more than: Single $18,180; Married $27,260[7]"
+        },
+        "other_requirements": [
+          "Must be a Massachusetts resident with primary residence in Massachusetts[2]",
+          "Must be eligible for Medicare (with exceptions for those 65+ not eligible for Medicare)[3]",
+          "Cannot currently receive prescription drug benefits through MassHealth (CommonHealth) or MassHealth[1]",
+          "Under age 65: must work no more than 40 hours per month and meet MassHealth's CommonHealth disability guidelines[3]",
+          "Must not be receiving MassHealth Buy-In Program (Medicare Savings Program) assistance — if eligible, must apply for it first[4][6]",
+          "Must apply for Medicare Extra Help if income qualifies[4]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Prescription drug insurance plan that provides financial assistance with premiums, deductibles, and co-payments. Members pay based on gross annual household income; lower-income members receive greater assistance[1]",
+        "varies_by": "priority_tier",
+        "tier_details": "Benefits scale by income category (S0-S5 for Medicare-eligible members). Categories S3 and below may qualify for copayments and coinsurance assistance[6]"
+      },
+      "application": {
+        "methods": [
+          "Phone: 1-800-243-4636 (TTY 711)[1][6]",
+          "Mail: Prescription Advantage, P.O. Box 15153, Worcester, MA 01615-0153[1]",
+          "Online: www.prescriptionadvantagema.org[6]",
+          "Website: www.mass.gov/info-details/prescription-advantage[9]"
+        ],
+        "processing_time": "Benefits begin on the first day of the month following complete processing of application[1]. Specific processing timeline not provided in search results.",
+        "waitlist": "No waitlist mentioned in search results. Open enrollment periods exist; if applicant does not join during open enrollment, must wait for next open enrollment period[1]",
+        "forms": [
+          "Standard Prescription Advantage application form (specific form number not provided in search results)"
+        ],
+        "documents": [
+          "Proof of Massachusetts residency[2]",
+          "Medicare eligibility documentation (if applicable)[3]",
+          "Proof of income (gross annual household income)[1]",
+          "Spouse information if married and living together[2]",
+          "Disability documentation (if under age 65)[3]",
+          "Asset documentation (if applying for Medicare Extra Help or Medicare Savings Program)[4][7]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must be a Massachusetts resident with primary residence in Massachusetts[2]",
+        "regional_variations": null,
+        "offices_or_providers": [
+          "Centralized administration through Commonwealth of Massachusetts Executive Office of Elder Affairs[1]",
+          "Applications processed through central P.O. Box in Worcester, MA[1]"
+        ]
+      },
+      "official_source": "https://www.prescriptionadvantagema.org and https://www.mass.gov/info-details/prescription-advantage",
+      "gotchas": [
+        "**Mandatory application requirement for other programs**: If income qualifies for Medicare Extra Help (LIS) or Medicare Savings Program (MSP/MassHealth Buy-In), applicants MUST apply for these programs first or they will not be eligible for Prescription Advantage assistance[4][6]",
+        "**Cannot have MassHealth coverage**: Individuals receiving prescription drug benefits through MassHealth (CommonHealth) cannot join Prescription Advantage[1]",
+        "**Open enrollment periods**: If applicant misses open enrollment, must wait for next enrollment period (exceptions exist for those 66+ who recently moved to MA, lost coverage, or became ineligible for Medicaid)[1]",
+        "**Income-based premiums and cost-sharing**: Members pay premiums, deductibles, and co-payments based on income — this is not free coverage[1]",
+        "**Medicare requirement for most**: Most applicants must be eligible for Medicare; only limited primary coverage available for those not eligible for Medicare[3]",
+        "**Must maintain Medicare Part D or equivalent**: Medicare-eligible members must be enrolled in a primary Medicare Part D plan, Medicare Advantage plan with drug coverage, or creditable coverage to receive Prescription Advantage assistance[4]",
+        "**Asset limits for some categories**: While no asset limit exists for most applicants, those qualifying for Extra Help or MSP face asset restrictions[4][7]"
+      ],
+      "data_shape_notes": "Prescription Advantage is a tiered income-based program with five categories (S0-S5) for Medicare-eligible members, each with different income thresholds that vary by household size (single vs. married). The program has mandatory prerequisites — applicants must first apply for other federal/state programs (Extra Help, MSP) if they qualify by income. Benefits are not fixed dollar amounts but rather financial assistance that scales with income category. The program is statewide with centralized administration but no regional variations in eligibility or benefits. A critical structural feature is that it functions as secondary coverage for Medicare-eligible members (filling gaps in Medicare Part D) but as primary coverage for non-Medicare-eligible residents.",
+      "_raw": "```json\n{\n  \"name\": \"Prescription Advantage\",\n  \"eligibility\": {\n    \"age\": \"65 or older (primary category); under 65 with disabilities also eligible[3]\",\n    \"income_limits\": {\n      \"description\": \"Income limits vary by category and household composition. As of January 1, 2026:[6]\",\n      \"medicare_eligible_categories\": {\n        \"S0\": {\n          \"single_yearly\": \"$0 - $21,128\",\n          \"single_monthly\": \"$0 - $1,761\",\n          \"married_yearly\": \"$0 - $28,553\",\n          \"married_monthly\": \"$0 - $2,379\"\n        },\n        \"S1\": {\n          \"single_yearly\": \"$21,129 - $31,692\",\n          \"single_monthly\": \"$1,762 - $2,641\",\n          \"married_yearly\": \"$28,554 - $42,924\",\n          \"married_monthly\": \"$2,380 - $3,577\"\n        },\n        \"S2\": {\n          \"single_yearly\": \"$31,693 - $39,616\",\n          \"single_monthly\": \"$2,642 - $3,301\",\n          \"married_yearly\": \"$42,925 - $53,550\",\n          \"married_monthly\": \"$3,578 - $4,463\"\n        },\n        \"S3\": {\n          \"single_yearly\": \"$39,617 - $46,950\",\n          \"single_monthly\": \"$3,302 - $3,913\",\n          \"married_yearly\": \"$53,551 - $63,450\",\n          \"married_monthly\": \"$4,464 - $5,288\"\n        },\n        \"S5\": {\n          \"single_yearly\": \"$46,951 - $78,250\",\n          \"single_monthly\": \"$3,914 - $6,521\",\n          \"married_yearly\": \"$63,451 - $105,750\",\n          \"married_monthly\": \"$5,289 - $8,813\"\n        }\n      },\n      \"under_65_disabled\": \"Gross annual household income at or below 188% of the Federal Poverty Level[3]\",\n      \"note\": \"For Medicare-eligible applicants, income must be less than 500% of the Federal Poverty Level to qualify[3]\"\n    },\n    \"asset_limits\": {\n      \"general\": \"No asset limit for most applicants[5]\",\n      \"exceptions\": \"Applicants who may qualify for Medicare Extra Help (Low Income Subsidy) must have assets no more than: Single $17,220; Married $34,360. Assets do not include home, life insurance policies, burial plots, or personal possessions[4]\",\n      \"msp_exception\": \"Applicants who may qualify for MassHealth Buy-In Program (Medicare Savings Program) must have resources no more than: Single $18,180; Married $27,260[7]\"\n    },\n    \"other_requirements\": [\n      \"Must be a Massachusetts resident with primary residence in Massachusetts[2]\",\n      \"Must be eligible for Medicare (with exceptions for those 65+ not eligible for Medicare)[3]\",\n      \"Cannot currently receive prescription drug benefits through MassHealth (CommonHealth) or MassHealth[1]\",\n      \"Under age 65: must work no more than 40 hours per month and meet MassHealth's CommonHealth disability guidelines[3]\",\n      \"Must not be receiving MassHealth Buy-In Program (Medicare Savings Program) assistance — if eligible, must apply for it first[4][6]\",\n      \"Must apply for Medicare Extra Help if income qualifies[4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Prescription drug insurance plan that provides financial assistance with premiums, deductibles, and co-payments. Members pay based on gross annual household income; lower-income members receive greater assistance[1]\",\n    \"varies_by\": \"priority_tier\",\n    \"tier_details\": \"Benefits scale by income category (S0-S5 for Medicare-eligible members). Categories S3 and below may qualify for copayments and coinsurance assistance[6]\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: 1-800-243-4636 (TTY 711)[1][6]\",\n      \"Mail: Prescription Advantage, P.O. Box 15153, Worcester, MA 01615-0153[1]\",\n      \"Online: www.prescriptionadvantagema.org[6]\",\n      \"Website: www.mass.gov/info-details/prescription-advantage[9]\"\n    ],\n    \"processing_time\": \"Benefits begin on the first day of the month following complete processing of application[1]. Specific processing timeline not provided in search results.\",\n    \"waitlist\": \"No waitlist mentioned in search results. Open enrollment periods exist; if applicant does not join during open enrollment, must wait for next open enrollment period[1]\",\n    \"forms\": [\n      \"Standard Prescription Advantage application form (specific form number not provided in search results)\"\n    ],\n    \"documents\": [\n      \"Proof of Massachusetts residency[2]\",\n      \"Medicare eligibility documentation (if applicable)[3]\",\n      \"Proof of income (gross annual household income)[1]\",\n      \"Spouse information if married and living together[2]\",\n      \"Disability documentation (if under age 65)[3]\",\n      \"Asset documentation (if applying for Medicare Extra Help or Medicare Savings Program)[4][7]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must be a Massachusetts resident with primary residence in Massachusetts[2]\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\n      \"Centralized administration through Commonwealth of Massachusetts Executive Office of Elder Affairs[1]\",\n      \"Applications processed through central P.O. Box in Worcester, MA[1]\"\n    ]\n  },\n  \"official_source\": \"https://www.prescriptionadvantagema.org and https://www.mass.gov/info-details/prescription-advantage\",\n  \"gotchas\": [\n    \"**Mandatory application requirement for other programs**: If income qualifies for Medicare Extra Help (LIS) or Medicare Savings Program (MSP/MassHealth Buy-In), applicants MUST apply for these programs first or they will not be eligible for Prescription Advantage assistance[4][6]\",\n    \"**Cannot have MassHealth coverage**: Individuals receiving prescription drug benefits through MassHealth (CommonHealth) cannot join Prescription Advantage[1]\",\n    \"**Open enrollment periods**: If applicant misses open enrollment, must wait for next enrollment period (exceptions exist for those 66+ who recently moved to MA, lost coverage, or became ineligible for Medicaid)[1]\",\n    \"**Income-based premiums and cost-sharing**: Members pay premiums, deductibles, and co-payments based on income — this is not free coverage[1]\",\n    \"**Medicare requirement for most**: Most applicants must be eligible for Medicare; only limited primary coverage available for those not eligible for Medicare[3]\",\n    \"**Must maintain Medicare Part D or equivalent**: Medicare-eligible members must be enrolled in a primary Medicare Part D plan, Medicare Advantage plan with drug coverage, or creditable coverage to receive Prescription Advantage assistance[4]\",\n    \"**Asset limits for some categories**: While no asset limit exists for most applicants, those qualifying for Extra Help or MSP face asset restrictions[4][7]\"\n  ],\n  \"data_shape_notes\": \"Prescription Advantage is a tiered income-based program with five categories (S0-S5) for Medicare-eligible members, each with different income thresholds that vary by household size (single vs. married). The program has mandatory prerequisites — applicants must first apply for other federal/state programs (Extra Help, MSP) if they qualify by income. Benefits are not fixed dollar amounts but rather financial assistance that scales with income category. The program is statewide with centralized administration but no regional variations in eligibility or benefits. A critical structural feature is that it functions as secondary coverage for Medicare-eligible members (filling gaps in Medicare Part D) but as primary coverage for non-Medicare-eligible residents.\"\n}\n```\n\n## Key Takeaways for Families\n\n**The biggest gotcha**: If your elderly loved one's income is low enough to qualify for **Medicare Extra Help** or the **Medicare Savings Program**, they must apply for those programs first, or Prescription Advantage will deny them[4][6]. These are federal/state programs that take priority.\n\n**Who qualifies**: Primarily Massachusetts residents 65+ who are Medicare-eligible[3]. Younger disabled individuals can qualify if they work 40 hours or fewer per month and meet income limits[3].\n\n**Income matters most**: There are no asset limits for most applicants, which is unusual[5]. Income is the primary eligibility factor, with five tiers (S0-S5) determining how much financial assistance they receive[6].\n\n**How it works**: For Medicare members, Prescription Advantage fills gaps in their Medicare Part D coverage[9]. For non-Medicare-eligible residents, it provides primary prescription drug coverage[9].\n\n**Application is straightforward**: Call 1-800-243-4636, visit the website, or mail an application[1][6]. The program is administered centrally through Worcester, so there are no regional offices to visit[1].\n\n**Processing timeline unclear**: Search results don't specify how long approval takes, only that benefits begin the first day of the month after complete processing[1]. Contact the program directly for current wait times."
+    },
+    {
+      "name": "Home Modification Loan Program",
+      "eligibility": {
+        "age": "60 or older for seniors; no minimum age if person with disability[1][2][4]",
+        "income_limits": "Gross household income up to 200% of Area Median Income (AMI), updated annually based on HUD data; varies by household size and region (no specific dollar table in sources, contact regional provider for current figures)[3][6]",
+        "asset_limits": "$75,000 maximum in countable assets (excludes primary home, one vehicle, household furnishings, IRA/401k retirement accounts; countable includes cash, bank accounts, stocks, bonds, secondary properties)[3][6]",
+        "other_requirements": [
+          "Massachusetts resident and homeowner (or small landlord with <10 units for tenant modifications)[1][2][4]",
+          "Household member must be frail elder (60+), person with disability, or both; modifications must address functional limitations documented by a professional (e.g., doctor, OT) with client history[1][2][4][6]",
+          "Must be current on MA state income taxes and property taxes[4][6]",
+          "Homeowner or landlord; for landlords, tenant household income/assets determine eligibility, 3% interest amortizing loan[3][4][6]"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "0% interest deferred loans up to $50,000 for homeowners/property owners; up to $30,000 for manufactured/mobile homes; no monthly payments, repayment due on sale/refinance/transfer of property; funds specific accessibility mods (ramps/lifts, bathroom/kitchen adaptations, handrails, doorway widening, flooring, fencing, lighting, sensory spaces, accessory dwelling units); excludes general repairs (roof, windows, heating, septic)[1][2][5][6][8]",
+        "varies_by": "household_size|region"
+      },
+      "application": {
+        "methods": [
+          "Contact regional provider agency (six agencies statewide process applications)[4][5]",
+          "Mail: Community Economic Development Assistance Corp., Attn: Susan Gillam, 18 Tremont Street, Suite 500, Boston, MA 02108[2]",
+          "In-person or phone via local provider (e.g., Valley CDC for Hampshire/Hampden: valleycdc.org; Metro Housing Boston; Way Finders; SMOC)[1][3][7]"
+        ],
+        "processing_time": "Not specified; applications reviewed by regional providers after complete submission[3][4][6]",
+        "waitlist": "Not mentioned in sources[null]",
+        "forms": [
+          "HMLP Application (includes checklist on page 7)[3]",
+          "Home Modification Loan Program Bid Form and Scope of Work Bid Form (completed by contractor)[6]",
+          "Documentation of Need form (for beneficiary's functional limitations)[6]"
+        ],
+        "documents": [
+          "Income verification (current gross household income)[3][6]",
+          "Asset verification[3][6]",
+          "Professional documentation of disability/functional need[4][6]",
+          "Property deed[4]",
+          "Proof current on property taxes (city/town letter or escrow statement)[6]",
+          "MA Income Tax Return or proof paid (if owed)[6]",
+          "Copy of Driver’s License or government ID[6]",
+          "Home modification plans (if available), contractor bid/scope[4][6]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to MA residents statewide[1][2]",
+        "regional_variations": "Administered by six regional provider agencies with varying contact points, income limits by AMI region, potential differences in processing[1][4][5]",
+        "offices_or_providers": [
+          "Valley CDC (Hampshire/Hampden Counties)[1]",
+          "Metro Housing Boston[3]",
+          "SMOC[6]",
+          "Way Finders[7]",
+          "CEDAC (state admin, Boston office)[2][8]"
+        ]
+      },
+      "official_source": "https://www.mass.gov/home-modification-loan-program-hmlp",
+      "gotchas": [
+        "Not a general home repair program—only accessibility mods tied to documented disability/functional need; no roof/windows/heating/septic[2][3][6]",
+        "Landlords get 3% interest loan (not 0%), based on tenant income/assets[3][4][6]",
+        "Strict $75k asset limit excludes some retirement savings but counts cash/stocks[3][6]",
+        "Must use licensed/insured MA contractor; no loan without bid form[6]",
+        "Income is gross (pre-tax/deductions), up to 200% AMI—check regional limits as they vary[3][6]",
+        "No credit check but requires tax/property tax compliance[4][6][7]"
+      ],
+      "data_shape_notes": "Loans capped by property type ($50k standard, $30k mobile); regional providers handle apps/eligibility with AMI-based income varying by location; professional need documentation required; excludes repairs, focuses on disability-specific mods",
+      "_raw": "{\n  \"name\": \"Home Modification Loan Program\",\n  \"eligibility\": {\n    \"age\": \"60 or older for seniors; no minimum age if person with disability[1][2][4]\",\n    \"income_limits\": \"Gross household income up to 200% of Area Median Income (AMI), updated annually based on HUD data; varies by household size and region (no specific dollar table in sources, contact regional provider for current figures)[3][6]\",\n    \"asset_limits\": \"$75,000 maximum in countable assets (excludes primary home, one vehicle, household furnishings, IRA/401k retirement accounts; countable includes cash, bank accounts, stocks, bonds, secondary properties)[3][6]\",\n    \"other_requirements\": [\n      \"Massachusetts resident and homeowner (or small landlord with <10 units for tenant modifications)[1][2][4]\",\n      \"Household member must be frail elder (60+), person with disability, or both; modifications must address functional limitations documented by a professional (e.g., doctor, OT) with client history[1][2][4][6]\",\n      \"Must be current on MA state income taxes and property taxes[4][6]\",\n      \"Homeowner or landlord; for landlords, tenant household income/assets determine eligibility, 3% interest amortizing loan[3][4][6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"0% interest deferred loans up to $50,000 for homeowners/property owners; up to $30,000 for manufactured/mobile homes; no monthly payments, repayment due on sale/refinance/transfer of property; funds specific accessibility mods (ramps/lifts, bathroom/kitchen adaptations, handrails, doorway widening, flooring, fencing, lighting, sensory spaces, accessory dwelling units); excludes general repairs (roof, windows, heating, septic)[1][2][5][6][8]\",\n    \"varies_by\": \"household_size|region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact regional provider agency (six agencies statewide process applications)[4][5]\",\n      \"Mail: Community Economic Development Assistance Corp., Attn: Susan Gillam, 18 Tremont Street, Suite 500, Boston, MA 02108[2]\",\n      \"In-person or phone via local provider (e.g., Valley CDC for Hampshire/Hampden: valleycdc.org; Metro Housing Boston; Way Finders; SMOC)[1][3][7]\"\n    ],\n    \"processing_time\": \"Not specified; applications reviewed by regional providers after complete submission[3][4][6]\",\n    \"waitlist\": \"Not mentioned in sources[null]\",\n    \"forms\": [\n      \"HMLP Application (includes checklist on page 7)[3]\",\n      \"Home Modification Loan Program Bid Form and Scope of Work Bid Form (completed by contractor)[6]\",\n      \"Documentation of Need form (for beneficiary's functional limitations)[6]\"\n    ],\n    \"documents\": [\n      \"Income verification (current gross household income)[3][6]\",\n      \"Asset verification[3][6]\",\n      \"Professional documentation of disability/functional need[4][6]\",\n      \"Property deed[4]\",\n      \"Proof current on property taxes (city/town letter or escrow statement)[6]\",\n      \"MA Income Tax Return or proof paid (if owed)[6]\",\n      \"Copy of Driver’s License or government ID[6]\",\n      \"Home modification plans (if available), contractor bid/scope[4][6]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to MA residents statewide[1][2]\",\n    \"regional_variations\": \"Administered by six regional provider agencies with varying contact points, income limits by AMI region, potential differences in processing[1][4][5]\",\n    \"offices_or_providers\": [\n      \"Valley CDC (Hampshire/Hampden Counties)[1]\",\n      \"Metro Housing Boston[3]\",\n      \"SMOC[6]\",\n      \"Way Finders[7]\",\n      \"CEDAC (state admin, Boston office)[2][8]\"\n    ]\n  },\n  \"official_source\": \"https://www.mass.gov/home-modification-loan-program-hmlp\",\n  \"gotchas\": [\n    \"Not a general home repair program—only accessibility mods tied to documented disability/functional need; no roof/windows/heating/septic[2][3][6]\",\n    \"Landlords get 3% interest loan (not 0%), based on tenant income/assets[3][4][6]\",\n    \"Strict $75k asset limit excludes some retirement savings but counts cash/stocks[3][6]\",\n    \"Must use licensed/insured MA contractor; no loan without bid form[6]\",\n    \"Income is gross (pre-tax/deductions), up to 200% AMI—check regional limits as they vary[3][6]\",\n    \"No credit check but requires tax/property tax compliance[4][6][7]\"\n  ],\n  \"data_shape_notes\": \"Loans capped by property type ($50k standard, $30k mobile); regional providers handle apps/eligibility with AMI-based income varying by location; professional need documentation required; excludes repairs, focuses on disability-specific mods\"\n}"
+    },
+    {
+      "name": "Home Care Program (HCP)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "Annual gross income less than $35,784 ($2,982/month) in 2026 for individuals. For non-MassHealth members, prior 2024 limit was $33,948/year ($2,829/month). Co-payments range $10-$141/month for individuals with incomes $16,292-$36,598; $14-$199 for two-person households $21,940-$51,785. MassHealth members are financially eligible without additional income test.[2][6]",
+        "asset_limits": "No specific asset limits mentioned; financial eligibility tied to MassHealth enrollment or income guidelines. Assets not detailed in sources.[1][2][6]",
+        "other_requirements": [
+          "Massachusetts resident living at home (not in institutional setting or certified assisted living).",
+          "Need-based: Assessed need for assistance with activities of daily living (ADLs) like bathing, dressing, meal preparation, medication management via comprehensive functional assessment.",
+          "Under 60 only if diagnosed with early-onset Alzheimer’s or related dementia.",
+          "MassHealth enrollment preferred or required for full financial eligibility."
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "In-home services based on assessed need, including home care assistance (hours of specific tasks determined post-assessment). Cost-sharing via co-payments based on income. Services help age in place; exact services like personal care, homemaking, respite not exhaustively listed but tied to functional needs.[2][4][6]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: Call MassAbility Home Care Program at 617-204-3853 or MassAbility Connect at 617-204-3665.",
+          "Online: Start an online referral for Home Care Assistance Program (HCAP) via Mass.gov.",
+          "In-person/home assessment: Arranged by case manager post-referral."
+        ],
+        "processing_time": "Up to 3-4 months to process application, determine eligibility, and arrange services.[4]",
+        "waitlist": "May have waitlist depending on funding or open enrollment periods for new referrals.[4]",
+        "forms": [
+          "Online referral for Home Care Assistance Program (HCAP)"
+        ],
+        "documents": [
+          "Financial documents.",
+          "Signed release forms.",
+          "Medical documentation."
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must live at home in Massachusetts, outside institutional or assisted living settings.",
+        "regional_variations": "Delivered via Aging Services Access Points (ASAPs) locally; potential waitlist or processing variations not specified by region.[1][2]",
+        "offices_or_providers": [
+          "MassAbility Home Care Program (statewide coordination via 617 area code contacts)"
+        ]
+      },
+      "official_source": "https://www.mass.gov/info-details/home-care-program",
+      "gotchas": [
+        "Financial eligibility often the biggest barrier; many exceed income limits despite functional need.[1]",
+        "Must be MassHealth member for easiest access; non-members face stricter income caps.[1][6]",
+        "Services cost-shared based on income, not fully free.[6]",
+        "Waitlists or enrollment periods limit access based on funding.[4]",
+        "Requires living at home, excludes assisted living/institutional settings.[2]",
+        "Processing can take 3-4 months.[4]"
+      ],
+      "data_shape_notes": "Tied heavily to MassHealth; eligibility dual need-based (functional assessment) and financial (income/MassHealth); services hours/tasks set by in-home assessment and case manager; statewide but local ASAP delivery with potential funding-driven waitlists.",
+      "_raw": "{\n  \"name\": \"Home Care Program (HCP)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"Annual gross income less than $35,784 ($2,982/month) in 2026 for individuals. For non-MassHealth members, prior 2024 limit was $33,948/year ($2,829/month). Co-payments range $10-$141/month for individuals with incomes $16,292-$36,598; $14-$199 for two-person households $21,940-$51,785. MassHealth members are financially eligible without additional income test.[2][6]\",\n    \"asset_limits\": \"No specific asset limits mentioned; financial eligibility tied to MassHealth enrollment or income guidelines. Assets not detailed in sources.[1][2][6]\",\n    \"other_requirements\": [\n      \"Massachusetts resident living at home (not in institutional setting or certified assisted living).\",\n      \"Need-based: Assessed need for assistance with activities of daily living (ADLs) like bathing, dressing, meal preparation, medication management via comprehensive functional assessment.\",\n      \"Under 60 only if diagnosed with early-onset Alzheimer’s or related dementia.\",\n      \"MassHealth enrollment preferred or required for full financial eligibility.\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"In-home services based on assessed need, including home care assistance (hours of specific tasks determined post-assessment). Cost-sharing via co-payments based on income. Services help age in place; exact services like personal care, homemaking, respite not exhaustively listed but tied to functional needs.[2][4][6]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Call MassAbility Home Care Program at 617-204-3853 or MassAbility Connect at 617-204-3665.\",\n      \"Online: Start an online referral for Home Care Assistance Program (HCAP) via Mass.gov.\",\n      \"In-person/home assessment: Arranged by case manager post-referral.\"\n    ],\n    \"processing_time\": \"Up to 3-4 months to process application, determine eligibility, and arrange services.[4]\",\n    \"waitlist\": \"May have waitlist depending on funding or open enrollment periods for new referrals.[4]\",\n    \"forms\": [\"Online referral for Home Care Assistance Program (HCAP)\"],\n    \"documents\": [\n      \"Financial documents.\",\n      \"Signed release forms.\",\n      \"Medical documentation.\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must live at home in Massachusetts, outside institutional or assisted living settings.\",\n    \"regional_variations\": \"Delivered via Aging Services Access Points (ASAPs) locally; potential waitlist or processing variations not specified by region.[1][2]\",\n    \"offices_or_providers\": [\"MassAbility Home Care Program (statewide coordination via 617 area code contacts)\"]\n  },\n  \"official_source\": \"https://www.mass.gov/info-details/home-care-program\",\n  \"gotchas\": [\n    \"Financial eligibility often the biggest barrier; many exceed income limits despite functional need.[1]\",\n    \"Must be MassHealth member for easiest access; non-members face stricter income caps.[1][6]\",\n    \"Services cost-shared based on income, not fully free.[6]\",\n    \"Waitlists or enrollment periods limit access based on funding.[4]\",\n    \"Requires living at home, excludes assisted living/institutional settings.[2]\",\n    \"Processing can take 3-4 months.[4]\"\n  ],\n  \"data_shape_notes\": \"Tied heavily to MassHealth; eligibility dual need-based (functional assessment) and financial (income/MassHealth); services hours/tasks set by in-home assessment and case manager; statewide but local ASAP delivery with potential funding-driven waitlists.\"\n}"
+    },
+    {
+      "name": "Enhanced Community Options Program (ECOP)",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "At or below ASAP income guidelines for individual or couple (specific dollar amounts not detailed in sources; aligns with MassHealth/Frail Elder Waiver standards for low-income elders). Less restrictive than full nursing home eligibility to facilitate enrollment[2][3][4].",
+        "asset_limits": "Less restrictive resource requirements than MassHealth-funded nursing home care or Frail Elder Waiver, designed for those in process of asset spend-down; exact limits not specified but clarified allowable by CMS SMD #21-004[3]. What counts and exemptions not detailed.",
+        "other_requirements": [
+          "Clinically qualifies for MassHealth-funded nursing home level of care (same as Frail Elder Waiver)",
+          "Resides in geographical area served by local Aging Services Access Point (ASAP)",
+          "Typically ineligible for MassHealth Standard (middle-income program for those not yet qualifying for MassHealth waivers)",
+          "Frail elder needing services to avoid/postpone nursing home placement[2][3][4][6]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Higher level of in-home supportive services including personal care (e.g., bathing), homemaking, chore, laundry, home health aide, companion, adult day care, home delivered meals, grocery shopping, transportation, personal emergency response systems; maximum 7.5 hours per week of assistance; providers receive set state funding rate per client, adjusted annually[3][5][6].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local Aging Services Access Point (ASAP) as single point of entry (e.g., Springwell for their region: springwell.com/service/subsidized-home-care/)[6]",
+          "In-home comprehensive assessment by ASAP care manager with nurse consultation[6]"
+        ],
+        "processing_time": "Not specified in sources.",
+        "waitlist": "Statewide enrollment cap at 7,322 slots (down from 9,000 as of June prior to 2026); new enrollees waitlisted once cap reached, leading to months-long delays and risk of health decline/nursing home placement[3].",
+        "forms": [],
+        "documents": [
+          "Documents for income verification, clinical/nursing home level assessment, residency proof (exact list not detailed; prepare based on ASAP requirements)"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Must reside in geographical area served by local ASAP",
+        "regional_variations": "Administered through regional ASAPS with varying providers (e.g., Springwell, Mystic Valley Elder Services, Mass Aging Access); potential differences in wait times, spending thresholds, and access due to enrollment cap and local capacity[3][4][6].",
+        "offices_or_providers": [
+          "Local Aging Services Access Points (ASAPs) such as Springwell, Mystic Valley Elder Services"
+        ]
+      },
+      "official_source": "https://www.mass.gov (specific ECOP page not directly linked; see Mass.gov doc on state programs[8])",
+      "gotchas": [
+        "Enrollment cap causes waitlists for new applicants; no impact on current enrollees[3][4]",
+        "Recent tightening of eligibility (e.g., higher minimum spend threshold for new enrollees as of Feb 2026 or earlier)[4]",
+        "Not for MassHealth Standard, Basic, or HMO recipients; bridges to waivers like Frail Elder while assets are spent down[2][3]",
+        "Max 7.5 hours/week limits intensity; directs lower-need to basic home care[3][4][5]",
+        "State-funded, cheaper than MassHealth alternatives but capped due to costs[4]"
+      ],
+      "data_shape_notes": "Administered via regional ASAPS with statewide cap and waitlist; eligibility mirrors Frail Elder Waiver clinically but less restrictive assets/income for spend-down phase; recent 2026 caps and tightened thresholds; max fixed 7.5 hours/week",
+      "_raw": "{\n  \"name\": \"Enhanced Community Options Program (ECOP)\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"At or below ASAP income guidelines for individual or couple (specific dollar amounts not detailed in sources; aligns with MassHealth/Frail Elder Waiver standards for low-income elders). Less restrictive than full nursing home eligibility to facilitate enrollment[2][3][4].\",\n    \"asset_limits\": \"Less restrictive resource requirements than MassHealth-funded nursing home care or Frail Elder Waiver, designed for those in process of asset spend-down; exact limits not specified but clarified allowable by CMS SMD #21-004[3]. What counts and exemptions not detailed.\",\n    \"other_requirements\": [\n      \"Clinically qualifies for MassHealth-funded nursing home level of care (same as Frail Elder Waiver)\",\n      \"Resides in geographical area served by local Aging Services Access Point (ASAP)\",\n      \"Typically ineligible for MassHealth Standard (middle-income program for those not yet qualifying for MassHealth waivers)\",\n      \"Frail elder needing services to avoid/postpone nursing home placement[2][3][4][6]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Higher level of in-home supportive services including personal care (e.g., bathing), homemaking, chore, laundry, home health aide, companion, adult day care, home delivered meals, grocery shopping, transportation, personal emergency response systems; maximum 7.5 hours per week of assistance; providers receive set state funding rate per client, adjusted annually[3][5][6].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Aging Services Access Point (ASAP) as single point of entry (e.g., Springwell for their region: springwell.com/service/subsidized-home-care/)[6]\",\n      \"In-home comprehensive assessment by ASAP care manager with nurse consultation[6]\"\n    ],\n    \"processing_time\": \"Not specified in sources.\",\n    \"waitlist\": \"Statewide enrollment cap at 7,322 slots (down from 9,000 as of June prior to 2026); new enrollees waitlisted once cap reached, leading to months-long delays and risk of health decline/nursing home placement[3].\",\n    \"forms\": [],\n    \"documents\": [\n      \"Documents for income verification, clinical/nursing home level assessment, residency proof (exact list not detailed; prepare based on ASAP requirements)\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Must reside in geographical area served by local ASAP\",\n    \"regional_variations\": \"Administered through regional ASAPS with varying providers (e.g., Springwell, Mystic Valley Elder Services, Mass Aging Access); potential differences in wait times, spending thresholds, and access due to enrollment cap and local capacity[3][4][6].\",\n    \"offices_or_providers\": [\n      \"Local Aging Services Access Points (ASAPs) such as Springwell, Mystic Valley Elder Services\"\n    ]\n  },\n  \"official_source\": \"https://www.mass.gov (specific ECOP page not directly linked; see Mass.gov doc on state programs[8])\",\n  \"gotchas\": [\n    \"Enrollment cap causes waitlists for new applicants; no impact on current enrollees[3][4]\",\n    \"Recent tightening of eligibility (e.g., higher minimum spend threshold for new enrollees as of Feb 2026 or earlier)[4]\",\n    \"Not for MassHealth Standard, Basic, or HMO recipients; bridges to waivers like Frail Elder while assets are spent down[2][3]\",\n    \"Max 7.5 hours/week limits intensity; directs lower-need to basic home care[3][4][5]\",\n    \"State-funded, cheaper than MassHealth alternatives but capped due to costs[4]\"\n  ],\n  \"data_shape_notes\": \"Administered via regional ASAPS with statewide cap and waitlist; eligibility mirrors Frail Elder Waiver clinically but less restrictive assets/income for spend-down phase; recent 2026 caps and tightened thresholds; max fixed 7.5 hours/week\"\n}"
+    },
+    {
+      "name": "Senior Care Options (SCO)",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "No specific income limits stated in available sources. Eligibility is based on MassHealth Standard qualification, which is the Medicaid program for persons 65+. Contact MassHealth at (800) 841-2900 for income thresholds by household composition.",
+        "asset_limits": "Maximum $2,000 in countable assets (excluding primary residence, one vehicle, and personal belongings). For married couples, assets are divided equally; the at-home spouse may retain up to $109,560 in assets and $2,739 in monthly income.[3]",
+        "other_requirements": [
+          "Must be eligible for MassHealth Standard[1][2]",
+          "Must have Medicare Parts A and B (enrollment in Medicare is required)[1][4]",
+          "Must qualify for Medicare Part D (prescription drug coverage)[1]",
+          "Cannot have end-stage renal disease[2][5]",
+          "Cannot be an inpatient at a chronic or rehabilitation hospital[1]",
+          "Cannot reside in an intermediate care facility for people with intellectual disabilities[1]",
+          "Must live at home or in a long-term-care facility[1]",
+          "Cannot be subject to a six-month deductible period under MassHealth regulations[1]",
+          "Must live in a geographic area served by an SCO plan[1]",
+          "Must not have other comprehensive health insurance[4]",
+          "For long-term care access via Frail Elder Waiver: must demonstrate functional need (assistance required with minimum one Activity of Daily Living: transferring, dressing, bathing, mobility, eating, or toileting)[2]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Integrated coverage combining MassHealth and Medicare benefits: medical care, mental health services, prescription medications, specialized geriatric support services, care coordination, transportation to medical appointments, and vision exams. Members have no or low monthly premiums, no copays, and little to no out-of-pocket costs for most covered services. One health plan card and unified care team instead of separate MassHealth, Medicare, Medicare Part D, and Medicare Supplement cards.[7][6]",
+        "varies_by": "region (different SCO providers offer different service areas and may include different supplemental benefits)"
+      },
+      "application": {
+        "methods": [
+          "Mail: Send enrollment form to MassHealth[5]",
+          "Phone: Contact local Aging Service Access Points (ASAPs)[5]",
+          "Phone: Contact the SCO directly (five SCOs operate in Massachusetts)[5]",
+          "In-person: Visit local ASAP office[5]"
+        ],
+        "processing_time": "Not specified in available sources. Contact SCO or ASAP for current processing timeline.",
+        "waitlist": "Not mentioned in available sources.",
+        "forms": [
+          "MassHealth enrollment form (specific form number not provided in sources)[5]"
+        ],
+        "documents": [
+          "Medicare card (to verify Parts A and B)[1]",
+          "Proof of MassHealth Standard eligibility[1]",
+          "Asset documentation (to verify compliance with $2,000 limit)[3]",
+          "For long-term care via Frail Elder Waiver: functional needs assessment completed by ASAP or hospital[2]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Dukes and Nantucket Counties are excluded from SCO coverage. Parts of Hampshire County and the islands are not serviced by any SCO.[5]",
+        "regional_variations": "Five SCOs operate in Massachusetts with different service areas. Most counties are covered by multiple SCOs; some areas have no coverage. For example, Commonwealth Care Alliance, Navicare, Senior Whole Health, and United Health Care all cover Middlesex County. UnitedHealthcare Senior Care Options serves 10 Massachusetts counties.[5][6]",
+        "offices_or_providers": [
+          "Commonwealth Care Alliance[5]",
+          "Navicare[5]",
+          "Senior Whole Health[5]",
+          "United Health Care[5]",
+          "UnitedHealthcare (serves 10 counties)[6]",
+          "Contact local Aging Service Access Points (ASAPs) for referrals[5]"
+        ]
+      },
+      "official_source": "https://www.mass.gov/senior-care-options",
+      "gotchas": [
+        "Geographic coverage is NOT statewide. Verify your county/town is served before applying. Dukes, Nantucket, parts of Hampshire County, and the islands have no SCO coverage.[2][5]",
+        "Medicare enrollment is required, not optional. While MassHealth Standard enrollment is required, you must also have Medicare Parts A and B to qualify.[2]",
+        "Functional need assessment required for long-term care access. A dementia diagnosis alone does not automatically qualify someone; a functional needs assessment must demonstrate need for assistance with Activities of Daily Living.[2]",
+        "Medicaid Look-Back Period applies for some applicants. If entering via the Frail Elder Waiver, Medicaid reviews the 60 months prior to application for asset transfers or sales below fair market value, which can trigger a penalty period of ineligibility.[2]",
+        "Asset limits are strict at $2,000 (excluding home, car, personal items). Married couples have different rules with the at-home spouse allowed significantly more assets.[3]",
+        "No other comprehensive health insurance allowed. Enrollment in SCO is exclusive; you cannot maintain other comprehensive coverage.[4]",
+        "Enrollment is voluntary but disenrollment is always possible. Members can leave the program at any time.[4]",
+        "Multiple application routes exist but no single online portal mentioned. You must contact MassHealth, an ASAP, or the SCO directly; no centralized online application system is described in available sources.[5]"
+      ],
+      "data_shape_notes": "SCO is a regional program with significant geographic variation—five different providers serve different county combinations, and substantial portions of Massachusetts have no coverage. Eligibility is binary (you either qualify or don't) rather than tiered, but benefits may vary slightly by provider. The program uniquely integrates two separate government programs (Medicare and Medicaid/MassHealth) into one coordinated plan. Asset limits are strict but vary for married couples. Functional need assessment is required only for long-term care access via specific waivers, not for all applicants. Processing timelines and specific forms are not detailed in public sources.",
+      "contact_information": {
+        "MassHealth": "(800) 841-2900, TDD/TTY: 711[1]",
+        "Medicare": "(800) 633-4227[1]",
+        "Social Security Administration": "(800) 772-1213[3]",
+        "Local Aging Service Access Points (ASAPs)": "Contact through MassHealth or visit MassResources.org[5]"
+      },
+      "_raw": "```json\n{\n  \"name\": \"Senior Care Options (SCO)\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"No specific income limits stated in available sources. Eligibility is based on MassHealth Standard qualification, which is the Medicaid program for persons 65+. Contact MassHealth at (800) 841-2900 for income thresholds by household composition.\",\n    \"asset_limits\": \"Maximum $2,000 in countable assets (excluding primary residence, one vehicle, and personal belongings). For married couples, assets are divided equally; the at-home spouse may retain up to $109,560 in assets and $2,739 in monthly income.[3]\",\n    \"other_requirements\": [\n      \"Must be eligible for MassHealth Standard[1][2]\",\n      \"Must have Medicare Parts A and B (enrollment in Medicare is required)[1][4]\",\n      \"Must qualify for Medicare Part D (prescription drug coverage)[1]\",\n      \"Cannot have end-stage renal disease[2][5]\",\n      \"Cannot be an inpatient at a chronic or rehabilitation hospital[1]\",\n      \"Cannot reside in an intermediate care facility for people with intellectual disabilities[1]\",\n      \"Must live at home or in a long-term-care facility[1]\",\n      \"Cannot be subject to a six-month deductible period under MassHealth regulations[1]\",\n      \"Must live in a geographic area served by an SCO plan[1]\",\n      \"Must not have other comprehensive health insurance[4]\",\n      \"For long-term care access via Frail Elder Waiver: must demonstrate functional need (assistance required with minimum one Activity of Daily Living: transferring, dressing, bathing, mobility, eating, or toileting)[2]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Integrated coverage combining MassHealth and Medicare benefits: medical care, mental health services, prescription medications, specialized geriatric support services, care coordination, transportation to medical appointments, and vision exams. Members have no or low monthly premiums, no copays, and little to no out-of-pocket costs for most covered services. One health plan card and unified care team instead of separate MassHealth, Medicare, Medicare Part D, and Medicare Supplement cards.[7][6]\",\n    \"varies_by\": \"region (different SCO providers offer different service areas and may include different supplemental benefits)\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Mail: Send enrollment form to MassHealth[5]\",\n      \"Phone: Contact local Aging Service Access Points (ASAPs)[5]\",\n      \"Phone: Contact the SCO directly (five SCOs operate in Massachusetts)[5]\",\n      \"In-person: Visit local ASAP office[5]\"\n    ],\n    \"processing_time\": \"Not specified in available sources. Contact SCO or ASAP for current processing timeline.\",\n    \"waitlist\": \"Not mentioned in available sources.\",\n    \"forms\": [\n      \"MassHealth enrollment form (specific form number not provided in sources)[5]\"\n    ],\n    \"documents\": [\n      \"Medicare card (to verify Parts A and B)[1]\",\n      \"Proof of MassHealth Standard eligibility[1]\",\n      \"Asset documentation (to verify compliance with $2,000 limit)[3]\",\n      \"For long-term care via Frail Elder Waiver: functional needs assessment completed by ASAP or hospital[2]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Dukes and Nantucket Counties are excluded from SCO coverage. Parts of Hampshire County and the islands are not serviced by any SCO.[5]\",\n    \"regional_variations\": \"Five SCOs operate in Massachusetts with different service areas. Most counties are covered by multiple SCOs; some areas have no coverage. For example, Commonwealth Care Alliance, Navicare, Senior Whole Health, and United Health Care all cover Middlesex County. UnitedHealthcare Senior Care Options serves 10 Massachusetts counties.[5][6]\",\n    \"offices_or_providers\": [\n      \"Commonwealth Care Alliance[5]\",\n      \"Navicare[5]\",\n      \"Senior Whole Health[5]\",\n      \"United Health Care[5]\",\n      \"UnitedHealthcare (serves 10 counties)[6]\",\n      \"Contact local Aging Service Access Points (ASAPs) for referrals[5]\"\n    ]\n  },\n  \"official_source\": \"https://www.mass.gov/senior-care-options\",\n  \"gotchas\": [\n    \"Geographic coverage is NOT statewide. Verify your county/town is served before applying. Dukes, Nantucket, parts of Hampshire County, and the islands have no SCO coverage.[2][5]\",\n    \"Medicare enrollment is required, not optional. While MassHealth Standard enrollment is required, you must also have Medicare Parts A and B to qualify.[2]\",\n    \"Functional need assessment required for long-term care access. A dementia diagnosis alone does not automatically qualify someone; a functional needs assessment must demonstrate need for assistance with Activities of Daily Living.[2]\",\n    \"Medicaid Look-Back Period applies for some applicants. If entering via the Frail Elder Waiver, Medicaid reviews the 60 months prior to application for asset transfers or sales below fair market value, which can trigger a penalty period of ineligibility.[2]\",\n    \"Asset limits are strict at $2,000 (excluding home, car, personal items). Married couples have different rules with the at-home spouse allowed significantly more assets.[3]\",\n    \"No other comprehensive health insurance allowed. Enrollment in SCO is exclusive; you cannot maintain other comprehensive coverage.[4]\",\n    \"Enrollment is voluntary but disenrollment is always possible. Members can leave the program at any time.[4]\",\n    \"Multiple application routes exist but no single online portal mentioned. You must contact MassHealth, an ASAP, or the SCO directly; no centralized online application system is described in available sources.[5]\"\n  ],\n  \"data_shape_notes\": \"SCO is a regional program with significant geographic variation—five different providers serve different county combinations, and substantial portions of Massachusetts have no coverage. Eligibility is binary (you either qualify or don't) rather than tiered, but benefits may vary slightly by provider. The program uniquely integrates two separate government programs (Medicare and Medicaid/MassHealth) into one coordinated plan. Asset limits are strict but vary for married couples. Functional need assessment is required only for long-term care access via specific waivers, not for all applicants. Processing timelines and specific forms are not detailed in public sources.\",\n  \"contact_information\": {\n    \"MassHealth\": \"(800) 841-2900, TDD/TTY: 711[1]\",\n    \"Medicare\": \"(800) 633-4227[1]\",\n    \"Social Security Administration\": \"(800) 772-1213[3]\",\n    \"Local Aging Service Access Points (ASAPs)\": \"Contact through MassHealth or visit MassResources.org[5]\"\n  }\n}\n```\n\n## Key Takeaways for Families\n\n**Before you apply, verify three things:**\n\n1. **Your county is covered.** Dukes, Nantucket, parts of Hampshire County, and the islands have zero SCO providers.[5] Check which of the five SCOs serves your area.[5]\n\n2. **Your loved one has Medicare Parts A and B.** This is non-negotiable. Call Medicare at (800) 633-4227 to confirm.[1]\n\n3. **Your loved one qualifies for MassHealth Standard.** This is the Medicaid program for seniors 65+. Asset limits are strict: $2,000 for individuals, with different rules for married couples.[3] Call MassHealth at (800) 841-2900 to verify eligibility.[1]\n\n**The application process is decentralized.** There is no single online portal or centralized application. You must either contact MassHealth directly, reach out to your local Aging Service Access Point (ASAP), or contact an SCO provider directly.[5] Once you initiate contact, the SCO will coordinate with MassHealth to complete enrollment.[5]\n\n**What makes SCO different:** It consolidates Medicare and Medicaid into one integrated plan with one card, one care team, and a dedicated care coordinator—eliminating the complexity of managing multiple insurance programs.[7] Members typically pay no or low premiums and have minimal out-of-pocket costs.[7]\n\n**The gotcha for long-term care:** If your loved one needs nursing home or extended care services, Medicaid will conduct a 60-month \"Look-Back\" review of asset transfers. Any gifts or below-market-value sales during that period can trigger a penalty period of ineligibility.[2]"
+    }
+  ]
+}

@@ -1,564 +1,179 @@
 {
   "state": "MI",
   "stateName": "Michigan",
-  "comparedAt": "2026-04-07T01:01:45.639Z",
-  "total": 16,
-  "newPrograms": 12,
-  "withDiffs": 4,
-  "withNovelFields": 4,
+  "comparedAt": "2026-04-09T14:13:41.430Z",
+  "total": 6,
+  "newPrograms": 5,
+  "withDiffs": 1,
+  "withNovelFields": 1,
   "benefitTypes": {
-    "service": 10,
-    "financial": 3,
-    "employment": 1,
-    "advocacy": 2
+    "service": 4,
+    "in_kind": 1,
+    "advocacy|service": 1
   },
   "variationPatterns": {
-    "region": 3,
-    "individualized_plan_based_on_assessed_needs": 1,
-    "program_tier": 1,
-    "household_size": 1,
-    "priority_tier|household_size|region": 1,
-    "priority_tier": 3,
-    "not_applicable": 3,
-    "priority_tier|region": 1,
-    "fixed": 1,
-    "Individual need and assessment; specific hours/frequency not detailed in search results but determined through care coordination": 1
+    "priority_tier": 1,
+    "region": 2,
+    "not_applicable": 1,
+    "household_size (each eligible household member receives coupons)": 1,
+    "Individual eligibility and circumstances": 1
   },
   "novelFieldSummary": {
     "asset_limits": {
-      "count": 4,
+      "count": 1,
       "programs": [
-        "Medicare Savings Programs (MSP) - QMB, SLMB, QI",
-        "SNAP Food Assistance (MiCAFE for seniors)",
-        "Nursing Home Long-Term Care Ombudsman",
-        "MI Choice Waiver Program"
+        "Michigan Choice Waiver Program"
       ],
       "note": "Our model has no asset limit fields"
     },
     "regional_variations": {
-      "count": 4,
+      "count": 1,
       "programs": [
-        "Medicare Savings Programs (MSP) - QMB, SLMB, QI",
-        "SNAP Food Assistance (MiCAFE for seniors)",
-        "Nursing Home Long-Term Care Ombudsman",
-        "MI Choice Waiver Program"
+        "Michigan Choice Waiver Program"
       ],
       "note": "Program varies by region — our model doesn't capture this"
     },
     "waitlist": {
-      "count": 2,
+      "count": 1,
       "programs": [
-        "Medicare Savings Programs (MSP) - QMB, SLMB, QI",
-        "MI Choice Waiver Program"
+        "Michigan Choice Waiver Program"
       ],
       "note": "Has waitlist info — our model has no wait time field"
     },
     "documents_required": {
-      "count": 4,
-      "programs": [
-        "Medicare Savings Programs (MSP) - QMB, SLMB, QI",
-        "SNAP Food Assistance (MiCAFE for seniors)",
-        "Nursing Home Long-Term Care Ombudsman",
-        "MI Choice Waiver Program"
-      ],
-      "note": "Has document checklist — our model doesn't store per-program documents"
-    },
-    "household_size_table": {
       "count": 1,
       "programs": [
-        "SNAP Food Assistance (MiCAFE for seniors)"
+        "Michigan Choice Waiver Program"
       ],
-      "note": "Benefits/eligibility vary by household size — we store a single number"
+      "note": "Has document checklist — our model doesn't store per-program documents"
     }
   },
   "comparisons": [
     {
-      "name": "MI Health Link",
+      "name": "Michigan Choice Waiver Program",
+      "isNew": false,
+      "existingId": "mi-choice-waiver-program",
+      "existingVerified": "2026-04-08",
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "65+ for elderly/frail adults; 18-64 if disabled",
+          "source": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$2,901",
+          "found": "$2,982",
+          "source": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Medicaid-covered basics plus supports coordination and waiver services: adult day health, chore services, community health worker, community living supports, community transportation, counseling, environmental accessibility adaptations, fiscal intermediary, goods/services, home delivered meals, nursing services (preventative), personal emergency response systems (PERS), private duty nursing/respiratory care, respite, specialized medical equipment/supplies, training. No fixed dollar/hour amounts; individualized based on needs.[4][7]",
+          "source": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Countable assets limited to $9,950 (2025 figure, excludes one home, one car, and spousal protections under Federal Protected Spousal Asset guidelines). Home equity limit: $730,000 if intent to return (2025). 60-month look-back rule applies; assets given away/sold below fair market value trigger penalty period. Exempt: primary home (if equity ≤$730,000 or spouse/minor/disabled child lives there), one vehicle.[1][3]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by regional MI Choice Waiver Agencies/Area Agencies on Aging (e.g., Valley Area Agency: Genesee/Lapeer/Shiawassee; CareWell: Barry/Berrien/Branch/Calhoun/Cass/Kalamazoo/St. Joseph/Van Buren; The Senior Alliance: Wayne etc.; Region 1C: Wayne County via The Senior Alliance). Different providers, potential waitlist variations by agency/region.[2][4][7]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Exists; varies by region (not detailed)",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Income verification (e.g., gross Social Security before deductions)",
+            "Asset statements",
+            "Proof of residency, disability (if under 65), Medicaid status",
+            "Medical/functional need info for LOCD"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Administered via 10+ regional agencies with county assignments; eligibility has fixed individual income cap (not household-scaled) but spousal exemptions; benefits individualized by assessed needs/priority, not fixed hours/dollars; statewide but regionally varied providers/waitlists",
+      "gotchas": [
+        "Strict income cap (e.g., $1 over disqualifies; gross before deductions)[5]",
+        "60-month look-back penalty for asset transfers[1]",
+        "Must need NFLOC + supports coordination + 1 waiver service; dementia diagnosis alone insufficient[1]",
+        "Not for nursing home residents; community/home only[4][7]",
+        "Annual income/asset limits change (track 300% FBR)[3]",
+        "Regional agency required—must contact specific local provider, not central hotline[5][7]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver"
+    },
+    {
+      "name": "MI Health Link Program",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "County-restricted to specific lower peninsula counties plus entire Upper Peninsula; dual eligibility mandatory with full Medicaid (no spend down); regional ICO providers; automatic enrollment outreach via Michigan ENROLLS",
+      "dataShapeNotes": "Dual-eligible only (full Medicare + Medicaid), county-restricted to 25 areas with regional ICO providers, requires NFLOC for HCBS, no spend down or conflicting programs allowed",
       "gotchas": [
-        "Must leave PACE or MI Choice programs to join",
-        "Medicaid spend down disqualifies",
-        "MI Health Link Part D replaces Medicare Part D drug plan",
-        "Nursing home residents must continue paying patient pay amount",
-        "Limited to specific counties only—not statewide",
-        "Requires NFLOC for HCBS, assessed via LOCD tool"
+        "Must disenroll from PACE, MI Choice, or hospice to join; spend down Medicaid ineligible.[2]",
+        "County-restricted; moving out of eligible area ends participation.[8]",
+        "Nursing home residents pay patient pay amount.[2]",
+        "Auto-assignment if no choice made during enrollment window.[7]",
+        "Replaces Medicare Part D drug plan.[1]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "region",
       "officialSource": "https://www.michigan.gov/mdhhs/doing-business/providers/integrated"
     },
     {
-      "name": "MI Choice Medicaid Waiver",
+      "name": "MI Options",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Administered regionally via local AAAs with individualized service plans; no fixed dollar/hour caps but NFLOC-based; statewide since 1998 with agency variations in access/wait times.",
+      "dataShapeNotes": "no income/asset test; counseling/referral service via statewide call center and regional AAA/nonprofit network; distinct from entitlement-based MI Choice Waiver; open to all adults/caregivers regardless of finances",
       "gotchas": [
-        "Income limit applies per applicant ($2,901+ in 2025), not household total; spousal rules differ.",
-        "Must need supports coordination + one waiver service beyond basic Medicaid.",
-        "60-month Look-Back Rule penalties for asset transfers; home vulnerable to Estate Recovery post-death.",
-        "Dementia diagnosis alone insufficient—must meet NFLOC via full assessment.",
-        "Regional waitlists and agency-specific processes; not direct nursing home alternative without waiver approval.",
-        "Annual income/asset limits adjust with Federal Benefit Rate."
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "individualized_plan_based_on_assessed_needs",
-      "officialSource": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver"
-    },
-    {
-      "name": "Michigan Program for All-Inclusive Care for the Elderly (PACE)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Multiple regional providers with exclusive service areas; no strict income/asset limits for enrollment but Medicaid determines costs; eligibility hinges on state-certified nursing home level of care assessment by PACE IDT; private pay option available",
-      "gotchas": [
-        "Not statewide—must live in specific provider service area; use zip code search on provider sites",
-        "Must receive ALL care through PACE (except emergencies); out-of-network/unauthorized services may cost participant",
-        "Nursing home level of care required but must live safely in community at enrollment (not in facility)",
-        "No concurrent enrollment in MIChoice waiver or HMO",
-        "Private pay premium if not Medicaid-eligible (amount based on income/assets; provider helps determine)",
-        "Exclusive provider per area designated by state"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "region",
-      "officialSource": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/program-of-all-inclusive-care-for-the-elderly-pace"
-    },
-    {
-      "name": "Medicare Savings Programs (MSP) - QMB, SLMB, QI",
-      "isNew": false,
-      "existingId": "medicare-savings-program",
-      "existingVerified": null,
-      "diffsFound": 1,
-      "diffs": [
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/disabilities/dualeligible/medicare-savings-programs"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": {
-            "QMB_SLMB_ALMB": {
-              "individual": "$9,950",
-              "couple": "$14,910",
-              "note": "Connecticut has no asset limit for QI as an example of state variation[1]"
-            },
-            "QDWI": {
-              "individual": "$4,000",
-              "couple": "$6,000"
-            },
-            "what_counts": "Resources/assets (specific items not detailed in search results)",
-            "what_may_be_exempt": "Search results do not specify exemptions"
-          },
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "States can set different eligibility requirements within federal limits[7]. Connecticut example shows no asset limit for QI[1]. Search results do not specify regional variations within Michigan itself.",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "QI program operates on first-come, first-served basis with limited availability[5]",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Medicare eligibility documentation",
-            "Income verification (Social Security benefits, pensions, wages, interest payments, dividends)[9]",
-            "Asset/resource documentation",
-            "Specific document list not fully detailed in search results; contact MDHHS for complete requirements"
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "This program has three distinct tiers (QMB, SLMB, QI) with different income thresholds, coverage levels, and retroactivity rules. The key differentiator is retroactivity: QMB has none, SLMB has up to 3 months, QI has calendar-year-based retroactivity. QI operates on first-come, first-served basis with annual reapplication requirement, making it fundamentally different from QMB and SLMB. Income limits are tied to Federal Poverty Level and reset annually on April 1. Asset limits are uniform across QMB/SLMB/ALMB but vary by household size. Automatic enrollment exists for those with SSI-related Medicaid.",
-      "gotchas": [
-        "QMB coverage only goes forward from approval month — no retroactive coverage for previous months[3]",
-        "SLMB coverage can be retroactive up to three months, but only if you were income-eligible during those months[1][3]",
-        "QI coverage only starts from the calendar year MDHHS determines eligibility — even if you applied in December of the previous year, coverage begins January 1 of the approval year (with exception: if approved in April, coverage can go back to January)[3]",
-        "QI requires annual reapplication[5]",
-        "QI is only available on first-come, first-served basis with limited funding[5]",
-        "You must have premium-free Medicare Part A to qualify for SLMB or QI[3][5]",
-        "QI is only available if you don't qualify for any other Medicaid coverage[5]",
-        "If you have SSI-related Medicaid coverage, you automatically qualify for QMB — no separate application needed[4]",
-        "Income limits change every April 1[1]",
-        "States can be more generous than federal minimums but not less generous[1]"
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "program_tier",
-      "officialSource": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/disabilities/dualeligible/medicare-savings-programs"
-    },
-    {
-      "name": "SNAP Food Assistance (MiCAFE for seniors)",
-      "isNew": false,
-      "existingId": "food-assistance-program",
-      "existingVerified": null,
-      "diffsFound": 3,
-      "diffs": [
-        {
-          "field": "min_age",
-          "ours": "65",
-          "found": "60",
-          "source": "https://www.michigan.gov/mdhhs/assistance-programs/food"
-        },
-        {
-          "field": "benefit_value",
-          "ours": "$1,500 – $3,600/year",
-          "found": "SNAP benefits via Michigan Bridge Card for purchasing food at grocery stores, supermarkets, farmers markets. Single seniors receive $23 to $292 monthly (as of available data; amounts vary by income, household size, expenses). Supplements grocery budget for nutritious food.[1][6]",
-          "source": "https://www.michigan.gov/mdhhs/assistance-programs/food"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://www.michigan.gov/mdhhs/assistance-programs/food"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "Most Food Assistance Program (FAP/SNAP) groups have no asset limit effective March 1, 2024. Asset limit of $3,000 applies if a group member is disqualified (e.g., Intentional Program Violation, employment/training disqualification for head of household, fleeing felon); increases to $4,500 if group includes someone 60+ or disabled. Countable assets: cash, checking/savings accounts, investments, some trusts, property/real estate (excludes primary home). Household must live in Michigan and have at least one U.S. citizen or acceptable non-citizen.[5]",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "household_size_table",
-          "value": "For seniors (60+), disabled, or disabled veterans: Gross monthly income at or below 200% of the Federal Poverty Level (FPL); Net monthly income at or below 100% FPL after deductions. Exact dollar amounts vary by household size and year; check current FPL tables via MDHHS as they are updated annually. Traditional households: Gross at or below 130% FPL.[2][5]",
-          "note": "Benefits/eligibility vary by household size — we store a single number"
-        },
-        {
-          "field": "regional_variations",
-          "value": "MiCAFE Network provides statewide partners for local outreach and in-home assistance where available; call center is centralized but times may vary by program/provider (e.g., 9AM-5PM in some listings).[1][3]",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Proof of income (wages, self-employment, rental, Social Security, veterans benefits).",
-            "Proof of expenses (shelter, utilities, medical for 60+/disabled, child support, dependent care).",
-            "ID, residency proof, immigration status if applicable.",
-            "Bank/investment statements if asset test applies."
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "MiCAFE provides application assistance for standard SNAP/FAP (not a distinct benefit program); eligibility uses household-based income/expenses with senior-specific higher gross income threshold (200% FPL) and deductions; benefits scale by household size, income, deductions; statewide with network partners.",
-      "gotchas": [
-        "MiCAFE is not a separate program—it's assistance for standard SNAP/FAP, targeted at 60+ to overcome barriers/stigma; nearly 50% of eligible seniors do not apply.[1][2][6]",
-        "Higher 200% FPL gross income limit specifically for seniors/disabled (not 130% for general households).[2]",
-        "No asset limit for most, but applies in disqualification cases—many miss deductions for medical/shelter that lower net income.[5]",
-        "Must recertify annually; MiCAFE helps with this.[1]",
-        "Work requirements changed March 1, 2026 for ages 18-64 (proof of work needed).[7]"
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "household_size",
-      "officialSource": "https://www.michigan.gov/mdhhs/assistance-programs/food"
-    },
-    {
-      "name": "Michigan LIHEAP (Energy Assistance)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Eligibility auto-qualifies via other MI programs (SNAP/Medicaid/SSI); income at 60% SMI with household table; crisis vs. non-crisis tiers; administered statewide but via local agencies/utilities with funding caps and first-come availability.",
-      "gotchas": [
-        "No longer requires SER decision letter; eligibility expanded to 60% SMI or auto-qualify via other programs—reapply if previously denied.[2][3][5]",
-        "Funds limited, first-come first-served; apply early in heating season (e.g., Nov-Mar protections).[1][4]",
-        "LIHEAP is crisis-focused via SER; MEAP is broader state program—distinguish for needs.[5][6]",
-        "Utilities opting out of LIEAF must provide equivalent aid but may have shut-off protections Nov 1-Apr 15.[5][7]",
-        "Seniors (65+) get extras like no shut-off payments in some utility Winter Protection Plans.[1][4]"
-      ],
-      "benefitType": "financial",
-      "benefitVariesBy": "priority_tier|household_size|region",
-      "officialSource": "https://www.michigan.gov/mdhhs/inside-mdhhs/reports-stats/plans-regs/plans-regs/low-income-home-energy-assistance-program-liheap-state-plans[6]"
-    },
-    {
-      "name": "Weatherization Assistance Program (WAP)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Administered statewide via regional Community Action Agencies with varying income tables, providers, and screening based on local funding; eligibility heavily home-condition dependent via audit.",
-      "gotchas": [
-        "Not a repair/rehab/emergency program; major issues (roof, mold, wiring) disqualify home.",
-        "No service guaranteed; based on audit.",
-        "Funds limited, screenings only when funding available; process takes months.",
-        "Home must be 'weatherization ready' per initial screening/audit.",
-        "Renters need landlord approval; homes can't be re-weatherized within 15 years."
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://www.michigan.gov/mdhhs/doing-business/weatherization"
-    },
-    {
-      "name": "Michigan Medicare Assistance Program (MMAP)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "no income/asset test for core counseling; statewide free service via regional volunteer counselors; focuses on education/enrollment help for Medicare/Medicaid rather than direct aid",
-      "gotchas": [
-        "Not a direct benefits payer—provides counseling/education only, not enrollment or payments itself; counselors cannot sell insurance (unbiased)[2][5][6]",
-        "People confuse with Medicare Savings Programs (MSPs) it helps screen for, which do have income/asset limits[1][3]",
-        "Volunteers handle most counseling; thorough training but availability may vary by region[4][5]",
-        "Free service funded by CMS/AoA grants—no cost, but must call hotline for local access[2][4]"
+        "Not a direct service provider or Medicaid program—provides counseling and referrals only, not benefits itself; often confused with MI Choice Waiver (which has slots, income limits, HCBS services); free but connects to potentially paid/eligibility-based programs; launched 2025, so verify current availability[1][2][3][5]"
       ],
       "benefitType": "service",
       "benefitVariesBy": "not_applicable",
-      "officialSource": "http://www.mmapinc.org"
+      "officialSource": "https://www.michigan.gov/mdhhs/inside-mdhhs/newsroom/2025/08/22/mi-options"
     },
     {
-      "name": "Home Delivered Meals (Meals on Wheels)",
+      "name": "Senior Project Fresh Program",
       "isNew": true,
       "existingId": null,
       "existingVerified": null,
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Decentralized by local AAAs/providers with core OAA standards but regional variations in operation, providers, and funding; no income/asset tests; prioritizes greatest need/homebound; Medicaid tiers add clinical criteria",
+      "dataShapeNotes": "This is a seasonal, county-based program with variable regional administration. Benefits are fixed ($25 per eligible person) but scale by household size since each eligible member can apply. Income eligibility is tied to federal poverty guidelines updated annually. The program transitioned to a fully digital system in 2025, eliminating paper-based applications. Nutrition education requirements vary by county and lead agency. The program is tightly geographically restricted — applicants must live in and receive benefits from their home county.",
       "gotchas": [
-        "Not a single centralized program—must contact local AAA/provider; eligibility varies by region/provider[2][3][6]",
-        "Homebound status strictly enforced; regular absences can disqualify[2][3]",
-        "Voluntary contributions expected but no fixed cost; private pay options if ineligible[3]",
-        "Medicaid/MA versions require plan enrollment and specific health risks—check plan manually[1][5]",
-        "Must allow in-home assessments (initial + every 6 months)[2][3]",
-        "Spouse/disabled extensions depend on funding availability[3][7]"
+        "Program runs May 1 – October 31 only; coupons expire on October 31 each year[2]",
+        "Online application opens May 1, 2026 (not available year-round)[1]",
+        "Income eligibility is based on yearly gross household income, and household is defined as people sharing an address and pooling income/expenses — this may include non-relatives[1]",
+        "If receiving coupons from MSU Extension staff, attendance at nutrition education class may be required (format varies by county)[2]",
+        "Transition to digital system (Healthy Together) as of 2025 means no more paper coupons or applications[4]",
+        "Farmers must grow Michigan-grown produce and sell only at farmers markets or roadside stands to participate[1][4]",
+        "Farmers must complete required Senior Project Fresh Farmer Training after applying[1]",
+        "If using a proxy to receive/redeem coupons, proxy must be at least 18 years old and provide identification plus written approval from the eligible person[3]",
+        "Income limits are updated annually based on Federal Poverty Guidelines — verify current year limits before applying"
       ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier|region",
-      "officialSource": "https://www.michigan.gov/mdhhs/assistance-programs/other-help/food/home-delivered-meals[6]"
-    },
-    {
-      "name": "Respite Care (via MI Choice Waiver)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Administered statewide via ~16 regional MI Choice Agencies; benefits not fixed hours/dollars but personalized by assessed need/priority; strict NFLOC + dual service requirement; annual federal income/asset adjustments; home equity limit unique to waivers.",
-      "gotchas": [
-        "Must need supports coordination PLUS at least one other service; dementia diagnosis alone does not qualify.",
-        "Income/asset limits change annually (300% SSI rate); home equity cap applies ($730,000 in 2025).",
-        "Not for nursing home residents; only community settings.",
-        "Financial eligibility stricter than standard Medicaid (special waiver limits).",
-        "Regional agencies handle applications—must contact local one, not central state office.",
-        "Married couples have special spousal impoverishment protections often missed."
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver"
-    },
-    {
-      "name": "Senior Community Service Employment Program (SCSEP)",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "SCSEP is a statewide program administered through multiple regional providers with consistent eligibility criteria (age 55+, unemployed, income ≤125% federal poverty level) but varying application processes and contact information by region. Benefits are fixed (20 hours/week at minimum wage) and do not vary by household size or priority tier, though enrollment priority does affect waitlist placement. Income limits scale by household size but are based on federal poverty guidelines updated annually. The program is administered by the Michigan Department of Health and Human Services at the state level but delivered through approximately 50 local partner organizations across the state, creating geographic variation in accessibility and specific services offered.",
-      "gotchas": [
-        "Income limits are strict: 125% of federal poverty level means a single person earning ~$19,562 annually qualifies, but higher earners do not[4][6]",
-        "Must be actively unemployed—not underemployed or part-time employed[4]",
-        "Enrollment priority is given to veterans and qualified spouses first, then individuals over 65, with disabilities, low literacy, limited English proficiency, rural residents, homeless/at-risk, low employment prospects, or those who failed to find employment through American Job Center[4][5]. This means non-priority applicants may face longer waits.",
-        "Program is part-time (20 hours/week average), not full-time employment[3][4][5]",
-        "Must commit to job search activities in addition to training hours[2]",
-        "Must register with Michigan Works as a requirement[1]",
-        "Program serves as a 'bridge' to unsubsidized employment—it's temporary training, not permanent employment[3][4]",
-        "No specific information provided about asset limits; families should ask about this during application",
-        "Processing time and waitlist information not publicly available—varies by region and provider",
-        "Multiple regional providers operate in Michigan; the correct contact depends on the applicant's county of residence"
-      ],
-      "benefitType": "employment",
-      "benefitVariesBy": "fixed",
-      "officialSource": "https://www.dol.gov/agencies/eta/seniors (U.S. Department of Labor); https://www.michigan.gov/mdhhs (Michigan Department of Health and Human Services administers statewide)"
-    },
-    {
-      "name": "Legal Assistance for Seniors",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Decentralized by regional legal aid non-profits; no uniform income/asset table or statewide application; seniors (60+) prioritized or exempt from financial tests; varies significantly by provider geography and funding.",
-      "gotchas": [
-        "Not a single statewide program; must contact regional provider for exact eligibility.",
-        "Seniors often qualify regardless of income, but low-income get priority.",
-        "Services limited to civil legal matters; no criminal defense.",
-        "Asset definitions vary; confirm countable vs. exempt.",
-        "Modest Means is reduced-fee, not free.",
-        "Eligibility determined case-by-case; funding restrictions apply."
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "region",
-      "officialSource": "https://www.michigan.gov/fyit/resources/legal (links to MichiganLegalAid.org)"
-    },
-    {
-      "name": "Nursing Home Long-Term Care Ombudsman",
-      "isNew": false,
-      "existingId": "long-term-care-ombudsman-program",
-      "existingVerified": null,
-      "diffsFound": 2,
-      "diffs": [
-        {
-          "field": "benefit_value",
-          "ours": "$10,000 – $30,000/year",
-          "found": "Free, confidential advocacy services including investigating and resolving complaints about care or services, explaining resident rights, empowering residents to voice concerns, providing information and consultation on long-term care issues, routine visits to facilities, community education, training for resident councils or staff, and systemic advocacy for laws, regulations, and policies benefiting residents.",
-          "source": "https://mltcop.org"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://mltcop.org"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": "No asset limits; no financial tests apply.",
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Program operates statewide with a network of local ombudsmen; some hosted by Area Agencies on Aging (e.g., MEJI for state-level, AgeWays for Livingston, Macomb, Monroe, Oakland, St. Clair, Washtenaw counties); contact methods and specific advocates vary by region but services are consistent.",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "No specific documents required; provide details of the concern or facility when contacting."
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "no income or asset test; resident consent required; statewide network of local ombudsmen with regional hosting but uniform services; advocacy-only, not financial or direct care provision.",
-      "gotchas": [
-        "Services require resident consent and are directed by the resident's wishes; families cannot initiate action without it.",
-        "Not a regulatory or licensing body; focuses on advocacy, not enforcement or surveys.",
-        "Confidentiality means ombudsmen cannot disclose details without permission.",
-        "Not for non-residents or unlicensed facilities.",
-        "People may confuse with Medicaid or facility admission programs, which have financial eligibility."
-      ],
-      "benefitType": "advocacy",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "https://mltcop.org"
-    },
-    {
-      "name": "MI Choice Waiver Program",
-      "isNew": false,
-      "existingId": "mi-choice-waiver-program",
-      "existingVerified": null,
-      "diffsFound": 3,
-      "diffs": [
-        {
-          "field": "min_age",
-          "ours": "65",
-          "found": "65 or older, OR 18+ with documented disability",
-          "source": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver"
-        },
-        {
-          "field": "benefit_value",
-          "ours": "$10,000 – $30,000/year",
-          "found": "Home and community-based services equivalent to nursing home care, including: Nursing Services (Preventative), Private Duty Nursing/Respiratory Care, Respite Care, Specialized Medical Equipment and Supplies, Supports Coordination, Training, and Personal Emergency Response Systems (PERS)",
-          "source": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver"
-        },
-        {
-          "field": "source_url",
-          "ours": "MISSING",
-          "found": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver"
-        }
-      ],
-      "novelFields": [
-        {
-          "field": "asset_limits",
-          "value": {
-            "2026_individual": "$9,950",
-            "2026_couple": "$14,910",
-            "exemptions": [
-              "Primary residence (home equity interest up to $730,000 in 2025; applicant must live in home or have 'Intent to Return')",
-              "One vehicle",
-              "Personal belongings"
-            ],
-            "note": "Not all assets are counted. Home equity is calculated as current home value minus outstanding debt."
-          },
-          "note": "Our model has no asset limit fields"
-        },
-        {
-          "field": "regional_variations",
-          "value": "Each county has a designated MI Choice Waiver Agency that handles applications and assessments. Different agencies serve different county groupings (e.g., Region 1C serves Wayne County except certain cities; CareWell Services serves 8 counties in southwest Michigan: Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, St. Joseph, Van Buren)",
-          "note": "Program varies by region — our model doesn't capture this"
-        },
-        {
-          "field": "waitlist",
-          "value": "Not specified in search results",
-          "note": "Has waitlist info — our model has no wait time field"
-        },
-        {
-          "field": "documents_required",
-          "value": [
-            "Detailed financial information: income documentation and asset statements",
-            "Verification of Power of Attorney status (if applicable)",
-            "Medical/functional assessment information (Activities of Daily Living capabilities, cognitive abilities, behavioral considerations)"
-          ],
-          "note": "Has document checklist — our model doesn't store per-program documents"
-        }
-      ],
-      "dataShapeNotes": "MI Choice is a statewide program with county-level administration through designated regional agencies. Eligibility is uniform across the state (income, asset, age, functional requirements), but application processing and service delivery vary by region. The program is Medicaid-funded with strict federal income/asset limits that reset annually. Functional eligibility is determined through a standardized assessment tool (LOCD) but requires in-person evaluation. Benefits are service-based (not cash) and tailored to individual need rather than fixed amounts. The program explicitly excludes current nursing home residents and is designed as a community-based alternative to institutionalization.",
-      "gotchas": [
-        "Diagnosis alone does not qualify: Having Alzheimer's disease or dementia does not automatically meet functional criteria; applicants must demonstrate specific functional needs through the LOCD assessment",
-        "Income limit is strict: Even $1 over the $2,982 monthly limit disqualifies applicants; no exceptions",
-        "Must require two services minimum: Applicants must need supports coordination PLUS at least one other waiver service; supports coordination alone is insufficient",
-        "Cannot use while in nursing home: MI Choice is explicitly for community-based care; residents of nursing homes are ineligible",
-        "Functional assessment is rigorous: The LOCD evaluates Activities of Daily Living (transferring, mobility, eating, toileting), cognitive abilities (decision-making, memory, communication), and behavioral factors (wandering, refusing care); applicants must demonstrate genuine need",
-        "Annual income/asset limits reset: Limits are set by Federal Government each year and may change; 2026 limits differ from prior years",
-        "Regional agency variation: Application process and wait times may vary by county; contact your specific county's waiver agency for accurate timelines",
-        "Home equity cap: Home equity interest cannot exceed $730,000 (2025 figure); this may change annually"
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "Individual need and assessment; specific hours/frequency not detailed in search results but determined through care coordination",
-      "officialSource": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver"
-    },
-    {
-      "name": "Home Help Program",
-      "isNew": true,
-      "existingId": null,
-      "existingVerified": null,
-      "diffsFound": 0,
-      "diffs": [],
-      "novelFields": [],
-      "dataShapeNotes": "Tied to Medicaid eligibility with strict ADL assessment; caregiver payments via CHAMPS; hours tiered by need (up to 180+/month); statewide but county-administered with local variations.",
-      "gotchas": [
-        "Must be enrolled in Medicaid first—not Medicare alone.",
-        "Income limit at 100% FPL (lower than some programs' 300% SSI); updates April annually.",
-        "Caregivers cannot be spouses or parents of minors; responsible relatives must be unavailable.",
-        "Home equity limit applies ($752,000 in 2026).",
-        "Functional need assessed strictly via MDHHS-5534 form."
-      ],
-      "benefitType": "service",
-      "benefitVariesBy": "priority_tier",
-      "officialSource": "https://www.michigan.gov/mdhhs/doing-business/providers/providers/other/homehelp[8]"
+      "benefitType": "in_kind",
+      "benefitVariesBy": "household_size (each eligible household member receives coupons)",
+      "officialSource": "https://www.michigan.gov/mdhhs/adult-child-serv/adults-and-seniors/acls/special-programs/senior-project-freshmarket-fresh"
     },
     {
       "name": "MiCAFE (Michigan's Coordinated Access to Food for the Elderly)",
@@ -568,16 +183,39 @@
       "diffsFound": 0,
       "diffs": [],
       "novelFields": [],
-      "dataShapeNotes": "Advocacy-focused with eligibility tied to multiple programs (SNAP primary); no fixed MiCAFE-specific income/asset tables provided—uses program-specific rules with medical deductions; statewide network model with partner variations",
+      "dataShapeNotes": "MiCAFE is primarily an application assistance and advocacy program rather than a direct benefit provider. The actual benefits come through SNAP (Bridge Card) administered by Michigan Department of Health and Human Services. MiCAFE's value is in helping eligible seniors navigate the application process and access benefits they might otherwise miss. Specific income and asset limits are not published in available sources — they follow SNAP federal guidelines as administered by Michigan DHHS. The program serves both elderly and disabled individuals. As of 2015, approximately 4,000 seniors were actively receiving SNAP through MiCAFE assistance[3].",
       "gotchas": [
-        "MiCAFE itself is not a direct benefit provider but an assistance program—families must qualify for underlying programs like SNAP based on household finances[1][2][6]",
-        "Nearly 50% of eligible seniors do not enroll in SNAP without assistance, so proactive application via MiCAFE is key[8]",
-        "Phone support limited to specific hours; eligibility for non-SNAP benefits (e.g., Medicare help) available even if SNAP-ineligible[2]",
-        "Focuses on reducing stigma/barriers for food assistance but extends to utilities/medical[3]"
+        "Nearly 50% of seniors eligible for SNAP are not enrolling — MiCAFE exists specifically to address this gap[9]",
+        "Over 160,000 Michigan seniors still face hunger despite program availability[3]",
+        "Program focuses on reducing 'barriers and stigma' — suggests application process or stigma may deter eligible seniors[3]",
+        "Phone hours are limited: Monday-Friday, 9:00 a.m. to 3:00 p.m.[1]",
+        "All information shared during MiCAFE appointment is confidential and not discussed outside the benefit eligibility determination process[2]",
+        "Eligibility is based on 'income minus medical expenses' — medical costs can significantly reduce countable income[5]"
       ],
-      "benefitType": "advocacy",
-      "benefitVariesBy": "not_applicable",
-      "officialSource": "https://www.elderlawofmi.org/micafe"
+      "benefitType": "advocacy|service",
+      "benefitVariesBy": "Individual eligibility and circumstances",
+      "officialSource": "elderlawofmi.org/micafe[1]"
+    },
+    {
+      "name": "Senior Companion Program",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Federally-funded under Older Americans Act, locally administered by non-profits with regional providers and varying minimum service hours; eligibility for volunteer companions (not recipients); referral-based matching rather than direct family application",
+      "gotchas": [
+        "This is a volunteer program for low-income seniors (55+) to provide services to others, not direct benefits for the elderly loved one seeking care; families request matching via referrals, not direct enrollment",
+        "Income eligibility applies to the volunteer companion, not the care recipient (though recipients often frail/low-income)",
+        "No statewide centralized application; must contact local providers serving your county",
+        "Stipend for volunteers is tax-exempt and not counted as income",
+        "Not healthcare—focuses on companionship and non-medical ADL support",
+        "Limited to 73/83 counties; check local availability"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://www.michigan.gov/mdhhs/adult-child-serv/adults-and-seniors/acls/special-programs"
     }
   ]
 }

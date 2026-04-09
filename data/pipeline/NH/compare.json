@@ -1,0 +1,806 @@
+{
+  "state": "NH",
+  "stateName": "New Hampshire",
+  "comparedAt": "2026-04-09T15:11:52.020Z",
+  "total": 18,
+  "newPrograms": 8,
+  "withDiffs": 10,
+  "withNovelFields": 10,
+  "benefitTypes": {
+    "service": 11,
+    "financial": 3,
+    "employment": 1,
+    "advocacy": 2,
+    "employment + in_kind": 1
+  },
+  "variationPatterns": {
+    "program_type": 1,
+    "priority_tier": 5,
+    "region": 4,
+    "household_size": 1,
+    "household_size|priority_tier": 1,
+    "priority_tier|region": 1,
+    "not_applicable": 4,
+    "fixed": 1
+  },
+  "novelFieldSummary": {
+    "asset_limits": {
+      "count": 10,
+      "programs": [
+        "Medicaid for Aged, Blind, Disabled (ABD)",
+        "Choices for Independence (CFI) Waiver",
+        "NH PACE (Program of All-Inclusive Care for the Elderly)",
+        "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI/SLMB-135)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "LIHEAP (Low-Income Home Energy Assistance Program)",
+        "SHIP (State Health Insurance Assistance Program)",
+        "Family Caregiver Support Program",
+        "Legal Assistance for Older Adults",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Our model has no asset limit fields"
+    },
+    "regional_variations": {
+      "count": 8,
+      "programs": [
+        "Medicaid for Aged, Blind, Disabled (ABD)",
+        "Choices for Independence (CFI) Waiver",
+        "NH PACE (Program of All-Inclusive Care for the Elderly)",
+        "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI/SLMB-135)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "LIHEAP (Low-Income Home Energy Assistance Program)",
+        "Family Caregiver Support Program",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Program varies by region — our model doesn't capture this"
+    },
+    "waitlist": {
+      "count": 4,
+      "programs": [
+        "Medicaid for Aged, Blind, Disabled (ABD)",
+        "NH PACE (Program of All-Inclusive Care for the Elderly)",
+        "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI/SLMB-135)",
+        "LIHEAP (Low-Income Home Energy Assistance Program)"
+      ],
+      "note": "Has waitlist info — our model has no wait time field"
+    },
+    "documents_required": {
+      "count": 10,
+      "programs": [
+        "Medicaid for Aged, Blind, Disabled (ABD)",
+        "Choices for Independence (CFI) Waiver",
+        "NH PACE (Program of All-Inclusive Care for the Elderly)",
+        "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI/SLMB-135)",
+        "SNAP (Supplemental Nutrition Assistance Program)",
+        "LIHEAP (Low-Income Home Energy Assistance Program)",
+        "SHIP (State Health Insurance Assistance Program)",
+        "Family Caregiver Support Program",
+        "Legal Assistance for Older Adults",
+        "Long-Term Care Ombudsman Program"
+      ],
+      "note": "Has document checklist — our model doesn't store per-program documents"
+    },
+    "household_size_table": {
+      "count": 1,
+      "programs": [
+        "SNAP (Supplemental Nutrition Assistance Program)"
+      ],
+      "note": "Benefits/eligibility vary by household size — we store a single number"
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Medicaid for Aged, Blind, Disabled (ABD)",
+      "isNew": false,
+      "existingId": "medicaid-for-aged-blind-and-disabled",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "65 or older, OR blind at any age, OR disabled at any age",
+          "source": "New Hampshire Department of Health and Human Services (DHHS) — specific URL not provided in search results; general reference: HealthCare.gov"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$5,000 – $20,000/year",
+          "found": "Varies by specific ABD program. For Choices for Independence Program (home-based care option): case management and assistance with bathing, dressing, meals, housework, and more to enable aging in place. For MOAD (Medicaid for Employed Older Adults with Disabilities, age 65+): Medicaid coverage for working disabled adults. For Aid to the Needy Blind and APTD: health coverage (specific services not detailed in search results).",
+          "source": "New Hampshire Department of Health and Human Services (DHHS) — specific URL not provided in search results; general reference: HealthCare.gov"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "New Hampshire Department of Health and Human Services (DHHS) — specific URL not provided in search results; general reference: HealthCare.gov"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "For long-term care Medicaid (which includes some ABD services): $2,500 asset limit for applicants, though New Hampshire applies an asset disregard allowing up to $7,500 in assets. Primary home is automatically exempt if spouse, child under 21, or permanently blind/disabled child lives in it; otherwise, home equity interest limit is $752,000 (2026). Asset limits may differ for non-long-term-care ABD programs; specific limits for Aid to the Needy Blind and APTD not provided in search results.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Not specified in search results",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Not specified in search results",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": "Not specified in search results. Applicants should contact DHHS at 1-800-852-3345, ext. 9700 for required documentation.",
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "ABD is a categorical umbrella with multiple sub-programs (Aid to the Needy Blind, APTD, MEAD, MOAD, Choices for Independence), each with distinct eligibility, benefits, and income/asset limits. Search results provide general ABD framework but lack specific dollar amounts for most income limits and detailed benefit schedules. Long-term care ABD programs have well-defined asset limits ($2,500/$7,500) and home equity rules, but non-long-term-care ABD programs' financial thresholds are not detailed. Applicants must contact DHHS directly for program-specific details. No regional variations documented in search results.",
+      "gotchas": [
+        "ABD is an umbrella category covering multiple distinct programs (Aid to the Needy Blind, APTD, MEAD, MOAD, Choices for Independence). Each has different eligibility criteria and benefits. Families must identify which specific ABD program applies to their situation.",
+        "Income and asset limits vary significantly by specific program within ABD. Search results do not provide complete income/asset thresholds for all ABD programs.",
+        "For long-term care ABD services: all monthly income except $93 Personal Needs Allowance, Medicare premiums, and potentially a spouse's needs allowance must go toward care costs (Patient Liability). This is a significant financial obligation.",
+        "Home equity exemption is NOT automatic for all applicants—only if spouse, child under 21, or permanently blind/disabled child lives in the home. Otherwise, $752,000 home equity limit applies (2026).",
+        "Medicaid renewal required annually; open enrollment for plan switching occurs in August.",
+        "Search results recommend applying even if you think you exceed income or asset limits, as exceptions and disregards may apply.",
+        "For employed disabled adults (MEAD/MOAD), higher resource limits and income thresholds apply compared to other ABD programs, but specific amounts not provided."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "program_type",
+      "officialSource": "New Hampshire Department of Health and Human Services (DHHS) — specific URL not provided in search results; general reference: HealthCare.gov"
+    },
+    {
+      "name": "Choices for Independence (CFI) Waiver",
+      "isNew": false,
+      "existingId": "choices-for-independence-waiver",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "18",
+          "source": "www.dhhs.nh.gov (DHHS) or www.servicelink.nh.gov[1]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Wide range of home and community-based services including care coordination, case management, and supports to remain at home (specific services determined by assessment; no fixed dollar amounts or hours stated)[1][3][4]",
+          "source": "www.dhhs.nh.gov (DHHS) or www.servicelink.nh.gov[1]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "www.dhhs.nh.gov (DHHS) or www.servicelink.nh.gov[1]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Must meet Medicaid asset guidelines for long-term care; specific limits, countable assets, and exemptions not detailed in sources—standard Medicaid rules apply (e.g., primary home often exempt)[1]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Entry points and case management via local Aging and Disability Resource Centers (ADRC/ServiceLink) or providers like Community Partners in specific counties (e.g., Strafford/Rockingham); care coordinators connect to local services[1][3]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Not explicitly listed; prepare standard Medicaid application documents such as proof of income, assets, residency, and medical records for nursing home level determination[1]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Medicaid 1915(c) waiver program; eligibility determined by DHHS; services person-centered via regional case managers; no fixed benefit amounts—varies by assessed needs and local providers[1][2][3]",
+      "gotchas": [
+        "Financial eligibility tied to Medicaid long-term care guidelines, which may be stricter than standard Medicaid—confirm current income/asset limits via DHHS[1]",
+        "Must have nursing home level of care medically; not just age or disability[1][3]",
+        "Post-eligibility, assigned a case management agency (can request specific one); services based on assessment and local availability[1][3]",
+        "If ineligible, ADRC counselors offer alternatives[1]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "www.dhhs.nh.gov (DHHS) or www.servicelink.nh.gov[1]"
+    },
+    {
+      "name": "NH PACE (Program of All-Inclusive Care for the Elderly)",
+      "isNew": false,
+      "existingId": "new-jersey-pace-program-of-all-inclusive-care-for-the-elderl",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$15,000 – $35,000/year",
+          "found": "Comprehensive, all-inclusive care from an interdisciplinary team including primary care, specialists, nursing, therapies, personal care, home care, transportation, meals (including home-delivered), medications, social services, and adult day health at PACE center; no deductibles or copays for PACE-provided services once enrolled[1][3]. Specific hours or dollar amounts not fixed; care is individualized based on needs.",
+          "source": "No operational NH PACE program; general info at https://www.medicare.gov/health-drug-plans/health-plans/your-coverage-options/other-medicare-health-plans/PACE[5]. For NH development: https://chhs.unh.edu/sites/default/files/bring-pace-to-nh-presentation-liz-parry.pdf[6]. Check https://www.dhhs.nh.gov/ for updates."
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "No operational NH PACE program; general info at https://www.medicare.gov/health-drug-plans/health-plans/your-coverage-options/other-medicare-health-plans/PACE[5]. For NH development: https://chhs.unh.edu/sites/default/files/bring-pace-to-nh-presentation-liz-parry.pdf[6]. Check https://www.dhhs.nh.gov/ for updates."
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits or tests apply[1].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Varies by PACE provider service area; no NH providers, so no regional differences within state[1][3][6].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "Possible waitlists due to capped financing and limited provider availability nationally; NH status unknown[2].",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Documentation for NFLOC certification (varies by state process).",
+            "Proof of age, residency in service area, Medicare/Medicaid status if applicable.",
+            "Medical records to assess ability to live safely in community with services."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "No operational programs in NH; eligibility tied to non-existent provider service areas; no income/asset tests but requires state NFLOC certification and proximity to center; national model with state-specific rollout barriers.",
+      "gotchas": [
+        "NH does not currently have any PACE programs operational; families cannot enroll today—program is in planning/discussion phase[6].",
+        "Availability strictly limited to specific PACE center service areas; must live nearby (typically 30-45 min drive)[1][3].",
+        "Requires NFLOC certification, which is more than just age or dementia—must need nursing home-level care but can safely avoid it with PACE[1].",
+        "Once enrolled, care is 'lock-in': must use PACE providers (except emergencies); out-of-network use may not be covered[4].",
+        "Private pay premium can be substantial for non-Medicaid (exact NH amounts TBD if launched)."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "No operational NH PACE program; general info at https://www.medicare.gov/health-drug-plans/health-plans/your-coverage-options/other-medicare-health-plans/PACE[5]. For NH development: https://chhs.unh.edu/sites/default/files/bring-pace-to-nh-presentation-liz-parry.pdf[6]. Check https://www.dhhs.nh.gov/ for updates."
+    },
+    {
+      "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI/SLMB-135)",
+      "isNew": false,
+      "existingId": "qualified-medicare-beneficiary-qmb",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$1304",
+          "found": "$13",
+          "source": "https://www.dhhs.nh.gov/health-care/medicaid (inferred state Medicaid site; federal: https://www.medicare.gov/basics/costs/help/medicare-savings-programs)[6]"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "**QMB**: Part A premiums (if applicable, up to $565/mo), Part A deductible ($1,736/benefit period), Part A copays (e.g., $434/day days 61-90), Part B premium ($202.90/mo 2026), Part B deductible ($283/yr), Part B 20% coinsurance. Providers cannot bill QMB for Medicare-covered cost-sharing.\n**SLMB**: Part B premiums only.\n**QI (SLMB-135)**: Part B premiums only.\nAutomatic qualification for Extra Help (Part D low-income subsidy)[1][2][3][4].",
+          "source": "https://www.dhhs.nh.gov/health-care/medicaid (inferred state Medicaid site; federal: https://www.medicare.gov/basics/costs/help/medicare-savings-programs)[6]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dhhs.nh.gov/health-care/medicaid (inferred state Medicaid site; federal: https://www.medicare.gov/basics/costs/help/medicare-savings-programs)[6]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "Federal limits apply: $9,090 single / $13,630 married. Counts: real estate, retirement accounts, savings/checking. Exemptions not specified in NH details; primary residence, one car often exempt federally[1][3].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "No regional differences, providers, or wait times detailed for NH[3]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "QI may have funding limits/priority (e.g., first-come first-served federally); NH details unavailable[2]",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of income (Social Security awards, pension statements)",
+            "Proof of assets/resources",
+            "Proof of Medicare enrollment",
+            "ID, residency proof likely required (standard for Medicaid/MSP apps)"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Tiered by income brackets (QMB <100% FPL, SLMB 100-120%, QI 120-135%); NH uses federal assets + state $13 disregard; benefits degrade by tier (full cost-sharing to premiums only)",
+      "gotchas": [
+        "QI (SLMB-135) called differently in NH; limited funding may create waitlist/priority[3][5]",
+        "Providers cannot bill QMB for cost-sharing, but must educate to avoid errors[2]",
+        "$13 NH unearned income disregard often missed[3]",
+        "Income limits update April 1; use current FPL[2][3]",
+        "Automatic Extra Help eligibility overlooked[8]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.dhhs.nh.gov/health-care/medicaid (inferred state Medicaid site; federal: https://www.medicare.gov/basics/costs/help/medicare-savings-programs)[6]"
+    },
+    {
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "isNew": false,
+      "existingId": "nj-snap-supplemental-nutrition-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 4,
+      "diffs": [
+        {
+          "field": "min_age",
+          "ours": "65",
+          "found": "60",
+          "source": "https://www.dhhs.nh.gov/programs-services/food-stamps (or via NHEasy: https://www.nheasy.nh.gov)"
+        },
+        {
+          "field": "income_limit",
+          "ours": "$1990",
+          "found": "$2608",
+          "source": "https://www.dhhs.nh.gov/programs-services/food-stamps (or via NHEasy: https://www.nheasy.nh.gov)"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$1,500 – $3,600/year",
+          "found": "Monthly EBT card for food purchases (groceries, no hot foods/alcohol/tobacco). Amount based on net income, household size: ~$100 more net income = $30 less benefits. Minimum/maximum allotments vary (e.g., example 2-person elderly: $415/month).[1][3]",
+          "source": "https://www.dhhs.nh.gov/programs-services/food-stamps (or via NHEasy: https://www.nheasy.nh.gov)"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dhhs.nh.gov/programs-services/food-stamps (or via NHEasy: https://www.nheasy.nh.gov)"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limit for most NH households (expanded eligibility). Households with elderly/disabled member over 200% FPG gross income: $4500 limit. Exempt: primary home, retirement savings, household goods, one vehicle (value if owned), cash value of life insurance. Application may still ask for assets.[1][2]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "household_size_table",
+          "value": "For households with a member 60+ or disabled (Oct 1, 2025 - Sept 30, 2026): Gross income limit at 200% FPG - 1 person: $2608/month, 2: $3526, 3: $4442, 4: $5358, 5: $6276, 6: $7192, 7: $8108, each additional +$916. If over gross limit, qualify via Net Income test (100% FPG) and Asset test. Most households (no elderly/disabled) exempt from Asset test if under gross; elderly/disabled over 200% FPG must meet federal asset limit of $4500.[1][5]",
+          "note": "Benefits/eligibility vary by household size — we store a single number"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered uniformly statewide by NH DHHS District Offices; no major differences in eligibility/benefits, possible minor processing variations by office.[6]",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Proof of ID.",
+            "Income (Social Security statements, pay stubs, pensions).",
+            "Expenses (rent/mortgage, utilities, medical costs >$35/month for elderly).",
+            "Assets if applicable (bank statements).",
+            "Household size proof."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Elderly/disabled: simplified to Net test if under 200% FPG gross (no assets); over uses federal $4500 assets. Benefits scale precisely by household size/net income. Statewide expanded beyond federal minimums.",
+      "gotchas": [
+        "Elderly over gross limit can still qualify via Net + Assets (missed by many).[1]",
+        "Medical expenses deductible for 60+ (out-of-pocket >$35/month boosts eligibility).[2]",
+        "Social Security/pensions count as income; only ~40% eligible elderly participate.[6]",
+        "No asset test for most, but app asks anyway.[1]",
+        "Broadened gross to 200% FPG since 2023; older info shows stricter limits.[5]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size",
+      "officialSource": "https://www.dhhs.nh.gov/programs-services/food-stamps (or via NHEasy: https://www.nheasy.nh.gov)"
+    },
+    {
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "isNew": false,
+      "existingId": "liheap",
+      "existingVerified": null,
+      "diffsFound": 3,
+      "diffs": [
+        {
+          "field": "income_limit",
+          "ours": "$2800",
+          "found": "$3,967",
+          "source": "https://www.energy.nh.gov/ (NH Department of Energy); local via CAPNH at https://www.caphr.org/services/fuel-assistance"
+        },
+        {
+          "field": "benefit_value",
+          "ours": "$500 – $2,000/year",
+          "found": "Heating assistance: $94 minimum to $2,177 maximum per household, paid directly to heating vendor. Winter crisis: up to $2,177. No summer crisis. Varies by income, household size, fuel type. Does not count as income for other programs.[1][2][5]",
+          "source": "https://www.energy.nh.gov/ (NH Department of Energy); local via CAPNH at https://www.caphr.org/services/fuel-assistance"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.energy.nh.gov/ (NH Department of Energy); local via CAPNH at https://www.caphr.org/services/fuel-assistance"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limit.[1]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Administered by regional Community Action Agencies with different offices and phone numbers; no benefit differences noted.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "waitlist",
+          "value": "No waitlist mentioned; funding awarded until depleted.",
+          "note": "Has waitlist info — our model has no wait time field"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Income proof (pay stubs, benefits statements), household size info, heating bills/fuel type, ID. List provided after initial phone intake.[5]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Administered regionally by Community Action Agencies; benefits scale by household size, income, fuel type, priority (elderly/disabled prioritized); seasonal with early funding exhaustion.",
+      "gotchas": [
+        "Household includes all at address on same utility (even non-sharing roommates).[1]",
+        "Not year-round; heating seasonal (Oct onward), crisis only for emergencies.[1][2]",
+        "Apply early (July 30, 2025 start); funds run out.[2][5]",
+        "Priority pre-apps July 1 for elderly/disabled/kids under 6; others Sept 1.[5]",
+        "Separate from state emergency aid (60-75% median) or HEA weatherization.[4][6]"
+      ],
+      "benefitType": "financial",
+      "benefitVariesBy": "household_size|priority_tier",
+      "officialSource": "https://www.energy.nh.gov/ (NH Department of Energy); local via CAPNH at https://www.caphr.org/services/fuel-assistance"
+    },
+    {
+      "name": "Weatherization Assistance Program (WAP)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Eligibility tied directly to FAP/EAP (200% FPG, varies by household size annually); priority tiers (elderly, disabled, young children); administered regionally by CAPs with county restrictions; free services based on energy audit, not fixed dollar amounts.",
+      "gotchas": [
+        "Must first qualify via FAP/EAP application—WAP is not standalone[1][2][3][5].",
+        "Renters need landlord permission; multi-unit requires 66% enrollment[1][2].",
+        "Homes weatherized post-1994 generally ineligible[1][2].",
+        "No fixes for structural issues, minor tune-ups, or ongoing repairs—focus on energy conservation only[1].",
+        "Heating repairs/replacements limited, especially for rentals[1].",
+        "Regional CAP assignment required; not all NH covered uniformly in results."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier|region",
+      "officialSource": "https://www.energy.nh.gov/ (NH Department of Energy administers statewide; regional CAPs handle delivery; federal overview at energy.gov[5][7])"
+    },
+    {
+      "name": "SHIP (State Health Insurance Assistance Program)",
+      "isNew": false,
+      "existingId": "new-jersey-ship-state-health-insurance-assistance-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Free one-on-one personalized health insurance counseling, information and printed materials, referrals to agencies; covers Medicare Part A/B, Part D, Medigap, Medicare Advantage, long-term care insurance, Medicare Savings Programs (QMB/SLMB/QI), prescription assistance, Medicaid, and other programs; helps understand benefits, compare options, avoid overpayment[2][4][5][6].",
+          "source": "http://www.servicelink.nh.gov/medicare/index.htm"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "http://www.servicelink.nh.gov/medicare/index.htm"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits apply[2][4][6].",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents needed for initial counseling; may request Medicare card or insurance details if discussing specific enrollment[2][5]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income/asset test; counseling-only service statewide via single provider (ServiceLink); refers to programs with limits like MSPs but SHIP itself is universal for Medicare-related questions",
+      "gotchas": [
+        "Not a financial aid or healthcare provider program—only free counseling and education, no direct payment or services; does not handle enrollments itself but refers/guides; people confuse with Medicare Savings Programs (which SHIP counselors explain but have separate eligibility like income up to $1,660 single/$2,239 couple for QI/SLMB-135 and assets $9,090 single/$13,630 couple)[1][2][4]",
+        "Requires trained counselors/volunteers; availability by appointment outside 8am-4pm[5]",
+        "Focuses on Medicare navigation, not general Medicaid or long-term care applications (though refers)[2][6]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "http://www.servicelink.nh.gov/medicare/index.htm"
+    },
+    {
+      "name": "Meals on Wheels (Elderly Nutrition Program)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized by local non-profit providers with county/town restrictions; no uniform income test for 60+ but required for younger disabled; varies by region including service areas and exact rules",
+      "gotchas": [
+        "Not statewide—must confirm residency in specific provider's delivery zone; living outside means no service[1][2][4][5]",
+        "Car ownership or ability to leave home easily may disqualify[2]",
+        "Under 60 requires disability, income limits, and often physician care—stricter than 60+[1][4][6]",
+        "Spouses/dependents sometimes eligible, but verify locally[2][6]",
+        "Contact local Area Agency on Aging first, as national sites don't handle applications[2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://mealsonwheelsnh.org (Meals on Wheels New Hampshire coalition); local providers via https://www.mealsonwheelsamerica.org/find-meals-and-services/"
+    },
+    {
+      "name": "Family Caregiver Support Program",
+      "isNew": false,
+      "existingId": "family-caregiver-support-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$2,000 – $8,000/year",
+          "found": "Information about community programs and resources; assistance accessing services; individual counseling and support groups; education and caregiver training; respite care (temporary break for full-time caregivers); limited supplemental services including chore services, assistive equipment, home modifications, and transportation[3][4][5].",
+          "source": "https://www.dhhs.nh.gov (inferred from program context; see also national: http://acl.gov/programs/support-caregivers/national-family-caregiver-support-program)[3][4]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dhhs.nh.gov (inferred from program context; see also national: http://acl.gov/programs/support-caregivers/national-family-caregiver-support-program)[3][4]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits specified; no details on what counts or is exempt.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Delivered through Bureau of Elderly and Adult Services and regional Aging and Disability Resource Centers; potential differences in providers or availability by region, but no specific wait times or variations detailed[2][5].",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No specific documents listed; prepare details on caregiver relationship, care recipient needs (e.g., ADLs), living situation."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "Funded under National Family Caregiver Support Program (Older Americans Act Title III-E); no income/asset test; tiered by caregiver/care recipient type (e.g., age 60+, ADRD, grandparents 55+); services via regional ADRCs statewide[2][3][4][5].",
+      "gotchas": [
+        "No direct payment to caregivers (unlike Medicaid CFI program); focuses on support services and respite only[1][5].",
+        "Specific subgroups have age requirements (e.g., 55+ for grandparents/relatives caring for children or disabled adults)[3][4].",
+        "Medicare alone does not qualify (relevant for confusion with other programs)[1].",
+        "Priority given to caregivers of adults with severe disabilities or certain populations[4].",
+        "Caregivers for dementia must live under the same roof[4]."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.dhhs.nh.gov (inferred from program context; see also national: http://acl.gov/programs/support-caregivers/national-family-caregiver-support-program)[3][4]"
+    },
+    {
+      "name": "SCSEP (Senior Community Service Employment Program)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Federally uniform but locally administered via grantees like Operation ABLE in NH; priority tiers affect access; no fixed dollar benefits (stipend ties to minimum wage); income test at 125% FPL scales by household size per annual HHS guidelines",
+      "gotchas": [
+        "Enrollment priority given first to veterans/qualified spouses, then over 65, disabled, low literacy, limited English, rural residents, homeless/at-risk, low prospects, or prior American Job Center users - may delay non-priority applicants[2]",
+        "Program is temporary training bridge to unsubsidized jobs, not permanent employment",
+        "Must be actively unemployed and seeking skills refresh; not for current workers",
+        "Income calculated as family income at 125% FPL - check current guidelines as they update yearly"
+      ],
+      "benefitType": "employment",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.dol.gov/agencies/eta/seniors"
+    },
+    {
+      "name": "Legal Assistance for Older Adults",
+      "isNew": false,
+      "existingId": "legal-assistance-for-seniors",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$3,000 – $10,000/year",
+          "found": "Free civil legal services including representation at hearings/court, advice, negotiation (e.g., with landlords), assistance navigating government programs (e.g., Medicare/Medicaid appeals), education for community groups; covers consumer contracts, debt collection, utility shutoffs, healthcare, housing/landlord-tenant, domestic/family issues, estate planning/probate/wills/power of attorney[2][3][5][6]",
+          "source": "https://www.nhla.org or https://www.603legalaid.org[3]"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.nhla.org or https://www.603legalaid.org[3]"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits; designed to help low-income, isolated, and/or institutionalized older persons, but open to all age 60+[5]",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "Not explicitly listed; prepare proof of age, residency, and details of legal issue (inferred from standard legal aid intake)[3]"
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income test; statewide via centralized intake; prioritizes low-income/isolated seniors without hard limits; advocacy/representation only",
+      "gotchas": [
+        "No income/asset limits but prioritizes low-income/isolated/institutionalized seniors, so higher-resource applicants may be deprioritized[5]",
+        "Focuses on civil legal aid only (not criminal cases)[3]",
+        "Specific to common senior issues; not general legal advice or private attorney services[2][5]",
+        "Some links outdated (e.g., nhla.org/seniors-17 not working as of 2021)[2]"
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.nhla.org or https://www.603legalaid.org[3]"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "isNew": false,
+      "existingId": "long-term-care-ombudsman-program",
+      "existingVerified": null,
+      "diffsFound": 2,
+      "diffs": [
+        {
+          "field": "benefit_value",
+          "ours": "$10,000 – $30,000/year",
+          "found": "Free and confidential advocacy services, including resolving complaints about care quality, obtaining information on facilities, representing interests to ensure fair treatment, dignity, and respect; collaborates with residents, families, facility staff, and lawmakers; does not provide direct patient care.",
+          "source": "https://www.dhhs.state.nh.us"
+        },
+        {
+          "field": "source_url",
+          "ours": "MISSING",
+          "found": "https://www.dhhs.state.nh.us"
+        }
+      ],
+      "novelFields": [
+        {
+          "field": "asset_limits",
+          "value": "No asset limits; no financial tests apply.",
+          "note": "Our model has no asset limit fields"
+        },
+        {
+          "field": "regional_variations",
+          "value": "Statewide program administered centrally from Concord with ombudsmen operating across the state; no specified regional differences in services, wait times, or providers.",
+          "note": "Program varies by region — our model doesn't capture this"
+        },
+        {
+          "field": "documents_required",
+          "value": [
+            "No documents needed; program offers services confidentially upon request."
+          ],
+          "note": "Has document checklist — our model doesn't store per-program documents"
+        }
+      ],
+      "dataShapeNotes": "no income test; advocacy-only for long-term care facility residents statewide; free/confidential with direct phone access",
+      "gotchas": [
+        "Not a direct care or financial assistance program—focuses solely on advocacy and complaint resolution, not medical treatment or funding.",
+        "Services are for facility residents only, not home-based care.",
+        "Confidential and free, but requires contact to initiate; no automatic enrollment.",
+        "People may miss that it's available to families and staff, not just residents."
+      ],
+      "benefitType": "advocacy",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.dhhs.state.nh.us"
+    },
+    {
+      "name": "Adult Day Services",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Medicaid-funded via State Plan (non-waiver) or waivers; eligibility hinges on Medicaid qualification + medical/nursing-level need; provider-specific with statewide licensing but local delivery; no fixed hours cap beyond minimum, scales by care plan",
+      "gotchas": [
+        "Must be Medicaid-eligible first; not standalone program",
+        "Excludes primary mental health or developmental disability needs",
+        "Physician exam/referral within 60 days mandatory",
+        "At risk of institutionalization required; provider can deny if needs exceed capacity",
+        "Minimum 4 hours/day commitment; not for those needing 24-hour care",
+        "Income/asset limits apply via Medicaid (2025: $2,901/mo individual, $2,500 assets); spousal protections differ[1][2]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "priority_tier",
+      "officialSource": "https://www.dhhs.nh.gov/programs-services/medicaid (DHHS Medicaid); Rules at N.H. Admin. Code § He-E 803"
+    },
+    {
+      "name": "Easterseals NH In-Home Care & Health Services",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Private/non-profit in-home care provider accepting multiple payments; no fixed income/asset tests or age minimum published; availability staff-dependent with regional focus; personalized plans post-assessment rather than standardized benefits",
+      "gotchas": [
+        "Not a free government waiver program with strict eligibility like MI Choice; primarily private pay, insurance, Medicaid, or Veterans-funded with potential out-of-pocket costs[4]",
+        "Services limited by staff availability, so access may vary even in served areas[4]",
+        "No detailed eligibility criteria published (e.g., no income/asset tables), requiring direct contact for assessment[4]",
+        "Focuses on specific regions with statewide intent, but not guaranteed everywhere[4][7]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "https://eastersealsnh.org/programs/senior-services/in-home-care-health-services/[4]"
+    },
+    {
+      "name": "Caregiver Respite and Senior Volunteer Programs",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "Decentralized by region with local Aging and Disability Resource Centers as key access points; mix of state-funded grants (NH Family Caregiver Program) and private paid services; no uniform income/asset tests or statewide processing times",
+      "gotchas": [
+        "Program is not fully centralized—must contact specific regional Aging and Disability Resource Centers or local providers; private options (e.g., St. Teresa, Comfort Keepers) are fee-based, not free grants[1][2][3]",
+        "Impromptu respite limited to 10% of budget[6]",
+        "Availability/beds limited, especially for preferred facilities[8]",
+        "Senior volunteer programs mentioned in title but no specific details in sources[7]",
+        "Eligibility encouragement is broad, but grants require assessment[3]"
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "region",
+      "officialSource": "No single primary .gov URL identified; closest is NH Care Collaborative (nhcare-c.org) for regional implementation and UNH CHHS PDF on NH Family Caregiver Support Program[3][6]."
+    },
+    {
+      "name": "AmeriCorps Senior Companion Program (NH)",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "This is a federal Senior Corps program with statewide reach but county-based administration. Income limits are the primary eligibility gate. The program is volunteer-based with a modest stipend, not a direct service benefit. Key distinction: eligibility for *volunteering* (55+, low-income) differs from eligibility for *receiving* services (60+, frail/homebound, or caregiver). Processing timelines and waitlist status are not documented in available sources.",
+      "gotchas": [
+        "Income limits vary slightly across sources ($21,660–$25,760 for single; $29,140–$34,840 for couple)—confirm exact current limits when applying[1][4]",
+        "Companions do NOT provide housekeeping, meal preparation, or personal care[2][3]",
+        "Visits are only available Monday–Friday, 8:30 a.m.–4:30 p.m.[2][3]",
+        "Stipend is $3.00/hour, which is modest; this is a volunteer program, not employment[1]",
+        "Stipend does NOT affect financial or housing assistance, but confirm this with your benefits administrator[3]",
+        "Volunteers must have their own reliable transportation and auto insurance to transport clients[2]",
+        "Eligibility for *receiving* companionship requires being 60+ and frail/homebound, OR any age with serious disability, OR a caregiver of adults with Alzheimer's[1]"
+      ],
+      "benefitType": "employment + in_kind",
+      "benefitVariesBy": "fixed",
+      "officialSource": "https://www.manchesternh.gov/Departments/Senior-Services/AmeriCorps-Senior-Companion-Program"
+    },
+    {
+      "name": "Monadnock at Home Community Services",
+      "isNew": true,
+      "existingId": null,
+      "existingVerified": null,
+      "diffsFound": 0,
+      "diffs": [],
+      "novelFields": [],
+      "dataShapeNotes": "town-restricted to 12 Monadnock Region communities; membership model with fee, not needs-tested; partners with local entities like Monadnock Community Hospital and CVTC for services.",
+      "gotchas": [
+        "Requires nominal membership fee (not free); geographic restriction to 12 specific towns only; not a government-funded entitlement program but a membership-based service network; no detailed application phone number listed—use contact form."
+      ],
+      "benefitType": "service",
+      "benefitVariesBy": "not_applicable",
+      "officialSource": "https://www.cc-nh.org/services/senior-support-services/monadnock-at-home/"
+    }
+  ]
+}

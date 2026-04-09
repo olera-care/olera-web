@@ -1,0 +1,43 @@
+{
+  "entity": "North Dakota",
+  "entitySlug": "north-dakota",
+  "state": "ND",
+  "stateName": "North Dakota",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T15:51:46.982Z",
+  "programCount": 4,
+  "programs": [
+    {
+      "name": "Service Payments for the Elderly and Disabled (SPED)",
+      "what_it_does": "The SPED program provides homemaker support, personal care, respite care for family caregivers, and home modifications for safety to individuals who need help with daily living activities but do not qualify for Medicaid. It enables participants to remain safely in their homes rather than entering institutional care.[2]",
+      "who_its_for": "North Dakota residents aged 18 or older who require assistance with at least four activities of daily living (e.g., bathing, dressing), have monthly income and assets below state limits, and do not qualify for Medicaid.[2]",
+      "whats_unique": "SPED is a state-funded program specifically for non-Medicaid eligible elderly and disabled individuals needing in-home services, filling a gap not universally covered by federal programs in other states.[2]",
+      "official_url": "https://dakotahomecare.com/supporting-independence-at-home-north-dakota-state-programs-for-in-home-care/",
+      "benefit_value": "Varies by need and income; covers services like personal care and home modifications for qualifying non-Medicaid recipients.[2]"
+    },
+    {
+      "name": "North Dakota Basic Care Assistance Program (BCAP)",
+      "what_it_does": "BCAP helps qualifying individuals pay a portion of the costs for care in licensed basic care facilities, which provide room, board, and assistance with health, social, and personal care needs like bathing and dressing. Participants contribute only part of the expense, with the program subsidizing the rest.[5][6]",
+      "who_its_for": "Qualifying North Dakota seniors and adults with physical disabilities needing basic care facility services.[5][6]",
+      "whats_unique": "BCAP is a North Dakota-specific financial assistance program for licensed basic care facilities, a care model unique to the state and not standard federally or in most other states.[5][6]",
+      "official_url": "https://www.hhs.nd.gov/adults-and-aging",
+      "benefit_value": "Subsidizes part of the cost of basic care facility services based on income and eligibility.[5][6]"
+    },
+    {
+      "name": "North Dakota Aging in Community (AIC) Project",
+      "what_it_does": "The AIC project supports older adults in rural North Dakota communities by addressing service gaps and fostering connections to resources, helping them age in place with confidence. It has demonstrated high participant satisfaction and potential Medicaid cost savings of $308 per $1 spent.[1]",
+      "who_its_for": "Older adults in rural North Dakota areas, such as Lisbon and western Morton Counties.[1]",
+      "whats_unique": "Implemented by North Dakota State University Extension Service, this rural-focused aging-in-place initiative is tailored to the state's unique demographic challenges of an aging rural population.[1]",
+      "official_url": "https://landgrantimpacts.org/north-dakota-program-helps-older-adults-in-rural-communities-live-independently/",
+      "benefit_value": "Reached 4,270 residents in 2024; 86% felt more confident living at home, with $308 Medicaid savings per $1 invested.[1]"
+    },
+    {
+      "name": "ND Assistive Senior Safety Program",
+      "what_it_does": "The Senior Safety program provides qualifying older adults with home safety devices and professional setup assistance to enhance security and promote independence. It prioritizes safety for aging individuals living at home.[3]",
+      "who_its_for": "Qualifying seniors in North Dakota.[3]",
+      "whats_unique": "Operated by ND Assistive, this program delivers free or low-cost home safety equipment tailored for seniors, as part of the state's assistive technology initiatives not standard across all states.[3]",
+      "official_url": "https://ndassistive.org/our-programs/",
+      "benefit_value": "Free home safety devices and professional installation for eligible participants.[3]"
+    }
+  ]
+}

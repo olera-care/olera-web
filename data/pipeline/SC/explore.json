@@ -1,0 +1,135 @@
+{
+  "entity": "South Carolina",
+  "entitySlug": "south-carolina",
+  "state": "SC",
+  "stateName": "South Carolina",
+  "isRegion": false,
+  "exploredAt": "2026-04-09T16:22:01.777Z",
+  "programCount": 17,
+  "programs": [
+    {
+      "name": "Healthy Connections Medicaid",
+      "what_it_does": "Healthy Connections, South Carolina's Medicaid program, provides medical coverage for hospital care, doctor visits, nursing homes, and long-term care services for eligible seniors. It covers seniors needing nursing home level care at home, in assisted living, or facilities using state and federal funds.[1][2][3]",
+      "who_its_for": "Seniors aged 65+, blind, or disabled with low income and assets (e.g., 2026 single applicant: income under $2,982/month, assets under $2,000) requiring nursing home level of care.[1][2][6]",
+      "official_url": "https://www.scdhhs.gov",
+      "benefit_value": "Full Medicaid services including hospital, doctor, lab, X-ray, nursing home; long-term care in facilities or home; income/asset limits vary by program (e.g., $2,982/month single nursing home).[2][3][6]"
+    },
+    {
+      "name": "Community Choices Waiver",
+      "what_it_does": "This home and community-based services waiver enables elderly and disabled individuals to receive nursing home-level care at home, adult foster care, or community residential care facilities. Benefits include home modifications, adult day health, specialized equipment, and assistance with ADLs like bathing and mobility.[2]",
+      "who_its_for": "Elderly/disabled requiring nursing home level of care but preferring community living; must meet Medicaid financial/medical eligibility.[2]",
+      "official_url": "https://www.scdhhs.gov",
+      "benefit_value": "Non-medical supports like home mods, day health, equipment, ADL help; prevents institutionalization.[2]"
+    },
+    {
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "what_it_does": "These programs help pay Medicare costs including Part B premiums, deductibles, and co-payments based on income/assets. Administered via Healthy Connections, they supplement Medicare for low-income seniors.[3][7]",
+      "who_its_for": "Medicare recipients with income ~$1,226/month (single) or $1,655 (couple); asset limits apply.[3]",
+      "official_url": "https://www.scdhhs.gov",
+      "benefit_value": "Covers Part B premium ($174.70/month+ in 2024), deductibles, co-pays; amount varies by income.[3][7]"
+    },
+    {
+      "name": "SNAP (Food Assistance)",
+      "what_it_does": "Provides monthly benefits via EBT card for purchasing nutritious food at approved stores. Helps low-income seniors afford groceries to maintain health.[3]",
+      "who_its_for": "Low-income seniors 60+ (higher asset disregard); general low-income households.[3]",
+      "official_url": "https://www.scdhhs.gov",
+      "benefit_value": "Average $200-300/month per household; max benefits scale by size/income (e.g., $291 single as of recent FY).[3]"
+    },
+    {
+      "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
+      "what_it_does": "Assists with heating/cooling bills, crisis aid, and weather-related energy costs. Helps prevent shutoffs and maintain safe home temperatures.[3]",
+      "who_its_for": "Low-income households including seniors; priority for elderly, disabled.[3]",
+      "official_url": "https://www.scdhhs.gov",
+      "benefit_value": "One-time grants $150-1,000+ depending on fuel type, income, household size.[3]"
+    },
+    {
+      "name": "Weatherization Assistance Program",
+      "what_it_does": "Provides home energy efficiency upgrades like insulation, sealing, furnace repair to reduce utility bills. Improves health/safety via better heating/cooling.[3]",
+      "who_its_for": "Low-income homeowners/renters, priority seniors/disabled.[3]",
+      "official_url": "https://www.scdhhs.gov",
+      "benefit_value": "Free upgrades valued $3,000-7,000 per home; long-term energy savings 20-30%.[3]"
+    },
+    {
+      "name": "SHIP / I-Care",
+      "what_it_does": "Offers free one-on-one counseling on Medicare options, Medicaid integration, insurance choices. Assists with applications, appeals, and cost-saving plans.[4][8]",
+      "who_its_for": "Medicare beneficiaries 65+, families, caregivers seeking insurance guidance.[4][8]",
+      "official_url": "https://aging.sc.gov/programs-and-initiatives",
+      "benefit_value": "Free counseling; helps save $1,000s/year on premiums/drugs via optimal plans.[4][8]"
+    },
+    {
+      "name": "Congregate Meals / Home Delivered Meals",
+      "what_it_does": "Provides nutritious meals at senior centers (congregate) or delivered home (Meals on Wheels equivalent). Promotes nutrition, socialization, independence.[3]",
+      "who_its_for": "Seniors 60+ unable to prepare meals; homebound priority.[3]",
+      "official_url": "https://aging.sc.gov/programs-and-initiatives",
+      "benefit_value": "1-2 meals/day suggested donation $3-4; ~$7-10 actual cost covered.[3]"
+    },
+    {
+      "name": "Respite Care Services",
+      "what_it_does": "Offers temporary relief for family caregivers via in-home, adult day, or facility care. Prevents caregiver burnout while supporting care recipient.[3]",
+      "who_its_for": "Family caregivers of seniors/disabled; income-eligible.[3]",
+      "official_url": "https://aging.sc.gov/programs-and-initiatives",
+      "benefit_value": "Hourly respite up to 240-360 hrs/year; vouchers ~$12-15/hr.[3]"
+    },
+    {
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "what_it_does": "Provides part-time community service jobs with training for skill-building/employment. Pays minimum wage for 20 hrs/week at nonprofits.[3]",
+      "who_its_for": "Unemployed low-income 55+ unable to find work.[3]",
+      "official_url": "https://aging.sc.gov/programs-and-initiatives",
+      "benefit_value": "$7.25+/hr x 20 hrs/week (~$625/month); plus training toward unsubsidized jobs.[3]"
+    },
+    {
+      "name": "Legal Assistance for Seniors",
+      "what_it_does": "Free legal aid for issues like housing, benefits, abuse, wills via Area Agencies on Aging. Represents/educates on elder rights.[3]",
+      "who_its_for": "Low-income seniors 60+ facing legal barriers.[3]",
+      "official_url": "https://aging.sc.gov/programs-and-initiatives",
+      "benefit_value": "Pro bono services valued $200+/hr; resolves benefits/housing disputes.[3]"
+    },
+    {
+      "name": "Long-Term Care Ombudsman Program",
+      "what_it_does": "Advocates for residents in nursing homes/assisted living resolving complaints. Protects rights, investigates abuse/neglect confidentially.[3]",
+      "who_its_for": "Residents/families in SC long-term care facilities.[3]",
+      "official_url": "https://aging.sc.gov/programs-and-initiatives",
+      "benefit_value": "Free advocacy; resolves 80%+ complaints without litigation.[3]"
+    },
+    {
+      "name": "Homestead Exemption (State Property Tax Assistance)",
+      "what_it_does": "Exempts the first $50,000 of a property's fair market value from local property taxes. This provides significant relief on property taxes for eligible homeowners.",
+      "who_its_for": "Individuals 65 or older, totally disabled, or legally blind who have lived in South Carolina for at least one year.",
+      "whats_unique": "This is a state-specific homestead exemption offering a fixed $50,000 exemption amount, which is more generous than many other states' basic exemptions and directly funded by South Carolina.",
+      "official_url": "https://www.scacog.org/senior-benefits",
+      "benefit_value": "Exemption on first $50,000 of fair market value from property taxes[3]"
+    },
+    {
+      "name": "Elderly Simplified Application Project (ESAP)",
+      "what_it_does": "Simplifies SNAP application for seniors by waiving the recertification interview, using data matches for verification, and extending certification to 36 months. This reduces paperwork and administrative burden for elderly applicants.",
+      "who_its_for": "Individuals 60 years or older whose household has no earned income and is not already receiving SNAP benefits.",
+      "whats_unique": "ESAP is a South Carolina-specific enhancement to the federal SNAP program, not available in every state, making food assistance access easier for seniors without earnings.",
+      "official_url": "https://scthrive.org/help-for-seniors/",
+      "benefit_value": "Streamlined SNAP access with 36-month certification period[1]"
+    },
+    {
+      "name": "Senior Farmers Market Nutrition Voucher Program",
+      "what_it_does": "Provides vouchers for fresh, locally grown fruits and vegetables at participating farmers markets from June to October 15. It supplements the diet of low-income seniors and supports local small farmers.",
+      "who_its_for": "Low-income seniors in South Carolina, issued on a first-come, first-served basis until funds are exhausted (over 5,000 served annually in Pee Dee region).",
+      "whats_unique": "This state-funded collaborative program between SC Department of Social Services and CareSouth Carolina is specific to South Carolina, targeting seniors with fresh produce vouchers not universally offered elsewhere.",
+      "official_url": "https://www.caresouth-carolina.com/seniors",
+      "benefit_value": "$25 in coupons per eligible senior[2]"
+    },
+    {
+      "name": "Vantage Point",
+      "what_it_does": "Serves as a one-stop resource for unbiased information on aging and disability services, including links to adult day centers, in-home care, support groups, counseling, caregiver training, and limited financial aid for modifications or respite. CareSouth Carolina is the only community health center nationally designated as an Area Agency on Aging and ADRC by South Carolina and federal agencies.",
+      "who_its_for": "Seniors, caregivers, and adults with disabilities in South Carolina seeking aging-related resources.",
+      "whats_unique": "Unique designation as the nation's only community health center with state and federal Area Agency on Aging/ADRC status, offering integrated comprehensive support specific to South Carolina.",
+      "official_url": "https://www.caresouth-carolina.com/seniors",
+      "benefit_value": "Free information, counseling, training, and limited financial assistance (e.g., household modifications, respite, supplies)[2]"
+    },
+    {
+      "name": "Senior Medicare Fraud Patrol",
+      "what_it_does": "Increases public awareness of Medicare fraud, reduces fraudulent practices through self-monitoring and reporting, and encourages volunteer participation. It is a collaborative effort to protect seniors from scams.",
+      "who_its_for": "South Carolina seniors on Medicare vulnerable to fraud.",
+      "whats_unique": "State-specific collaborative program between SC Lieutenant Governor’s Office on Aging and CareSouth Carolina, not a standard federal initiative.",
+      "official_url": "https://www.caresouth-carolina.com/seniors",
+      "benefit_value": "Fraud prevention education and reporting support[2]"
+    }
+  ]
+}

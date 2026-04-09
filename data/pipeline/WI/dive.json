@@ -1,0 +1,285 @@
+{
+  "state": "WI",
+  "stateName": "Wisconsin",
+  "diveAt": "2026-04-09T17:37:33.518Z",
+  "total": 5,
+  "parsed": 5,
+  "programs": [
+    {
+      "name": "SeniorCare",
+      "eligibility": {
+        "age": 65,
+        "income_limits": "Income-based tiers (updated annually based on Federal Poverty Level - FPL; 2024 figures from official sources):\nLevel 1: ≤160% FPL (Individual: ≤$25,536; Couple: ≤$34,624)\nLevel 2A: >160%-≤200% FPL (Individual: $25,537–$31,920; Couple: $34,625–$43,280)\nLevel 2B: >200%-≤240% FPL (Individual: $31,921–$38,304; Couple: $43,281–$51,936)\nLevel 3: >240% FPL (no upper limit; spenddown required equal to amount over 240% FPL, calculated monthly). For married applicants living with spouse, combined spousal income is used even if only one applies.[1][2][5]",
+        "asset_limits": "No asset limits or tests apply.[2][3]",
+        "other_requirements": [
+          "Wisconsin resident",
+          "U.S. citizen or qualifying immigrant",
+          "Not enrolled in full-benefit Medicaid/BadgerCare Plus (exceptions: Qualified Medicare Beneficiaries, QI-1/QI-2, SLMB, Tuberculosis-Related Medicaid, unmet Medicaid deductible)",
+          "Annual renewal required; $30 annual enrollment fee per person"
+        ]
+      },
+      "benefits": {
+        "type": "financial",
+        "value": "Prescription drugs and vaccines at participating pharmacies. Covers most FDA-approved drugs (generics preferred; prior authorization may be required for some). Coordinates with other insurance including Medicare Part D. Copays/deductibles by level:\n- **Level 1**: No deductible/spenddown; $5 generic, $15 brand-name per prescription; $0 vaccines.\n- **Level 2A**: $500 deductible/person (pay SeniorCare rate until met), then $5/$15 copays.\n- **Level 2B**: $850 deductible/person (pay SeniorCare rate until met), then $5/$15 copays.\n- **Level 3**: Monthly spenddown (income over 240% FPL), then $850 deductible/person (pay SeniorCare rate until met), then $5/$15 copays.[1][2][5]",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: Call SeniorCare Customer Service at 800-657-2038 to request application",
+          "Online: Print form at https://www.dhs.wisconsin.gov/seniorcare",
+          "Mail: Send completed application to address on form",
+          "Apply starting month of 65th birthday or anytime after; coverage starts month after approval"
+        ],
+        "processing_time": "4-6 weeks[6]",
+        "waitlist": null,
+        "forms": [
+          "SeniorCare application (no specific form number; request via phone or download from website)"
+        ],
+        "documents": [
+          "Social Security number",
+          "Proof of income (e.g., tax returns, pay stubs)",
+          "Proof of residency",
+          "$30 enrollment fee",
+          "Other insurance info if applicable"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "None; available to all Wisconsin residents meeting criteria",
+        "regional_variations": null,
+        "offices_or_providers": [
+          "Administered statewide by Wisconsin DHS; use any participating pharmacy (most WI pharmacies accept SeniorCare card)[1][6]"
+        ]
+      },
+      "official_source": "https://www.dhs.wisconsin.gov/seniorcare/index.htm",
+      "gotchas": [
+        "Cannot enroll if on full-benefit Medicaid/BadgerCare Plus (check exceptions carefully)",
+        "Income includes spousal income for married couples even if only one applies",
+        "Must renew annually and pay $30 fee or lose coverage",
+        "Level 3 requires ongoing monthly spenddown calculation (not one-time)",
+        "Coverage starts month AFTER approval, not immediately",
+        "Older sources [4][6] show outdated FPL figures; always check current at official site",
+        "Coordinates as secondary payer with Medicare/other insurance—may affect out-of-pocket"
+      ],
+      "data_shape_notes": "Tiered by income level with specific deductibles/copays scaling by FPL percentage; no assets test; statewide with pharmacy-based delivery; annual fee and renewal; spousal income aggregation unique for single applicants",
+      "_raw": "{\n  \"name\": \"SeniorCare\",\n  \"eligibility\": {\n    \"age\": 65,\n    \"income_limits\": \"Income-based tiers (updated annually based on Federal Poverty Level - FPL; 2024 figures from official sources):\\nLevel 1: ≤160% FPL (Individual: ≤$25,536; Couple: ≤$34,624)\\nLevel 2A: >160%-≤200% FPL (Individual: $25,537–$31,920; Couple: $34,625–$43,280)\\nLevel 2B: >200%-≤240% FPL (Individual: $31,921–$38,304; Couple: $43,281–$51,936)\\nLevel 3: >240% FPL (no upper limit; spenddown required equal to amount over 240% FPL, calculated monthly). For married applicants living with spouse, combined spousal income is used even if only one applies.[1][2][5]\",\n    \"asset_limits\": \"No asset limits or tests apply.[2][3]\",\n    \"other_requirements\": [\n      \"Wisconsin resident\",\n      \"U.S. citizen or qualifying immigrant\",\n      \"Not enrolled in full-benefit Medicaid/BadgerCare Plus (exceptions: Qualified Medicare Beneficiaries, QI-1/QI-2, SLMB, Tuberculosis-Related Medicaid, unmet Medicaid deductible)\",\n      \"Annual renewal required; $30 annual enrollment fee per person\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"financial\",\n    \"value\": \"Prescription drugs and vaccines at participating pharmacies. Covers most FDA-approved drugs (generics preferred; prior authorization may be required for some). Coordinates with other insurance including Medicare Part D. Copays/deductibles by level:\\n- **Level 1**: No deductible/spenddown; $5 generic, $15 brand-name per prescription; $0 vaccines.\\n- **Level 2A**: $500 deductible/person (pay SeniorCare rate until met), then $5/$15 copays.\\n- **Level 2B**: $850 deductible/person (pay SeniorCare rate until met), then $5/$15 copays.\\n- **Level 3**: Monthly spenddown (income over 240% FPL), then $850 deductible/person (pay SeniorCare rate until met), then $5/$15 copays.[1][2][5]\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Phone: Call SeniorCare Customer Service at 800-657-2038 to request application\",\n      \"Online: Print form at https://www.dhs.wisconsin.gov/seniorcare\",\n      \"Mail: Send completed application to address on form\",\n      \"Apply starting month of 65th birthday or anytime after; coverage starts month after approval\"\n    ],\n    \"processing_time\": \"4-6 weeks[6]\",\n    \"waitlist\": null,\n    \"forms\": [\"SeniorCare application (no specific form number; request via phone or download from website)\"],\n    \"documents\": [\n      \"Social Security number\",\n      \"Proof of income (e.g., tax returns, pay stubs)\",\n      \"Proof of residency\",\n      \"$30 enrollment fee\",\n      \"Other insurance info if applicable\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"None; available to all Wisconsin residents meeting criteria\",\n    \"regional_variations\": null,\n    \"offices_or_providers\": [\"Administered statewide by Wisconsin DHS; use any participating pharmacy (most WI pharmacies accept SeniorCare card)[1][6]\"]\n  },\n  \"official_source\": \"https://www.dhs.wisconsin.gov/seniorcare/index.htm\",\n  \"gotchas\": [\n    \"Cannot enroll if on full-benefit Medicaid/BadgerCare Plus (check exceptions carefully)\",\n    \"Income includes spousal income for married couples even if only one applies\",\n    \"Must renew annually and pay $30 fee or lose coverage\",\n    \"Level 3 requires ongoing monthly spenddown calculation (not one-time)\",\n    \"Coverage starts month AFTER approval, not immediately\",\n    \"Older sources [4][6] show outdated FPL figures; always check current at official site\",\n    \"Coordinates as secondary payer with Medicare/other insurance—may affect out-of-pocket\"\n  ],\n  \"data_shape_notes\": \"Tiered by income level with specific deductibles/copays scaling by FPL percentage; no assets test; statewide with pharmacy-based delivery; annual fee and renewal; spousal income aggregation unique for single applicants\"\n}"
+    },
+    {
+      "name": "Elder Benefit Specialist (EBS) Program",
+      "eligibility": {
+        "age": 60,
+        "income_limits": "No income limits; open to all regardless of income.",
+        "asset_limits": "No asset limits; open to all regardless of assets.",
+        "other_requirements": [
+          "Live in Wisconsin."
+        ]
+      },
+      "benefits": {
+        "type": "advocacy",
+        "value": "Free, confidential counseling, assistance, and advocacy on public/private benefits (e.g., Social Security, SSI, SSDI, Medicaid, Medicare, SeniorCare, FoodShare, housing/utilities, debt collection, evictions, tenant rights, consumer issues); help with applications, paperwork, appeals, comparing options, and legal rights supervised by elder law attorneys.",
+        "varies_by": "not_applicable"
+      },
+      "application": {
+        "methods": [
+          "Call statewide helpline 1-844-WIS-ADRC (1-844-947-2372)",
+          "Visit FindMyADRC.org to find local Aging and Disability Resource Center (ADRC) or tribal partner",
+          "Contact local county aging office, ADRC, or human/social services department in person or by email/phone (locations vary by county)"
+        ],
+        "processing_time": "No formal processing; services provided upon contact as available.",
+        "waitlist": null,
+        "forms": [
+          "No specific application form required; may sign release of information form if needed"
+        ],
+        "documents": [
+          "No specific documents required initially; bring benefit-related paperwork (e.g., denial letters, income statements, insurance docs) if seeking help with applications/appeals"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": null,
+        "regional_variations": "Services delivered through local county aging offices, ADRCs, or tribal partners; availability, office hours, and specific staff may vary by county, but core services consistent statewide.",
+        "offices_or_providers": [
+          "Local Aging and Disability Resource Centers (ADRCs), county aging offices, tribal partners; find via FindMyADRC.org"
+        ]
+      },
+      "official_source": "https://www.dhs.wisconsin.gov/benefit-specialists/ebs.htm",
+      "gotchas": [
+        "Services are assistance/advocacy only, not direct benefits or cash; free but donations encouraged (never required); family/friends/caregivers can participate with permission; not for selling products—unbiased; supervised by attorneys but not full legal representation unless referred."
+      ],
+      "data_shape_notes": "no income/asset test; statewide via decentralized local ADRC/county offices; advocacy-focused, not entitlement program",
+      "_raw": "{\n  \"name\": \"Elder Benefit Specialist (EBS) Program\",\n  \"eligibility\": {\n    \"age\": 60,\n    \"income_limits\": \"No income limits; open to all regardless of income.\",\n    \"asset_limits\": \"No asset limits; open to all regardless of assets.\",\n    \"other_requirements\": [\"Live in Wisconsin.\"]\n  },\n  \"benefits\": {\n    \"type\": \"advocacy\",\n    \"value\": \"Free, confidential counseling, assistance, and advocacy on public/private benefits (e.g., Social Security, SSI, SSDI, Medicaid, Medicare, SeniorCare, FoodShare, housing/utilities, debt collection, evictions, tenant rights, consumer issues); help with applications, paperwork, appeals, comparing options, and legal rights supervised by elder law attorneys.\",\n    \"varies_by\": \"not_applicable\"\n  },\n  \"application\": {\n    \"methods\": [\"Call statewide helpline 1-844-WIS-ADRC (1-844-947-2372)\", \"Visit FindMyADRC.org to find local Aging and Disability Resource Center (ADRC) or tribal partner\", \"Contact local county aging office, ADRC, or human/social services department in person or by email/phone (locations vary by county)\"],\n    \"processing_time\": \"No formal processing; services provided upon contact as available.\",\n    \"waitlist\": null,\n    \"forms\": [\"No specific application form required; may sign release of information form if needed\"],\n    \"documents\": [\"No specific documents required initially; bring benefit-related paperwork (e.g., denial letters, income statements, insurance docs) if seeking help with applications/appeals\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": null,\n    \"regional_variations\": \"Services delivered through local county aging offices, ADRCs, or tribal partners; availability, office hours, and specific staff may vary by county, but core services consistent statewide.\",\n    \"offices_or_providers\": [\"Local Aging and Disability Resource Centers (ADRCs), county aging offices, tribal partners; find via FindMyADRC.org\"]\n  },\n  \"official_source\": \"https://www.dhs.wisconsin.gov/benefit-specialists/ebs.htm\",\n  \"gotchas\": [\"Services are assistance/advocacy only, not direct benefits or cash; free but donations encouraged (never required); family/friends/caregivers can participate with permission; not for selling products—unbiased; supervised by attorneys but not full legal representation unless referred.\"],\n  \"data_shape_notes\": \"no income/asset test; statewide via decentralized local ADRC/county offices; advocacy-focused, not entitlement program\"\n}"
+    },
+    {
+      "name": "Wisconsin Senior Employment Program (WISE)",
+      "eligibility": {
+        "age": 55,
+        "income_limits": "Family income no more than 125% of the federal poverty level. Exact dollar amounts vary annually by household size and are not specified in sources; families must verify current federal poverty guidelines (e.g., via HHS.gov) and confirm ≤125% threshold with local provider[1][2][3][4][6].",
+        "asset_limits": "No asset limits mentioned in sources[1][2][3][4][6].",
+        "other_requirements": [
+          "Legal resident of Wisconsin[1][3][4]",
+          "Unemployed[1][2][3][4]",
+          "Poor employment prospects (implied by program focus)[6]"
+        ]
+      },
+      "benefits": {
+        "type": "employment",
+        "value": "Part-time, paid community service training positions (typically 20 hours per week) at host agencies; paid at the highest of federal, state, or local minimum wage; includes skills training, work experience for unsubsidized employment transition, individual job counseling, comprehensive assessment, yearly physical exams, and access to employment opportunities[1][2][3][4].",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Phone: (920) 229-5557 (Fox Valley Workforce Development Board)[1]",
+          "Email: info@fvwdb.com[1]",
+          "Email: detwise@dwd.wisconsin.gov (DWD)[3]",
+          "Phone: (608) 242-4928 (Dane County/GWAAR)[5]",
+          "Phone: (608) 243-5670 (GWAAR brochure)[7]",
+          "In-person: Local providers such as Job Center of Wisconsin, Employ Milwaukee, Dane County Job Center (e.g., 1819 Aberg Ave., Madison WI 53704)[3][4][5]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": "Not mentioned; may vary by local provider capacity",
+        "forms": [
+          "No specific form names/numbers listed; contact local provider for application process"
+        ],
+        "documents": [
+          "Not explicitly listed; prepare proof of age, residency, unemployment status, and income (e.g., tax returns, pay stubs) based on standard requirements"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide to Wisconsin residents; operated through multiple local providers and subgrantees[1][2][3][4][5][6]",
+        "regional_variations": "Administered by different organizations by region (e.g., Fox Valley Workforce Development Board in northeast, GWAAR in Dane County, Employ Milwaukee in Milwaukee area); contact info and offices vary; potential differences in availability, wait times, or host agencies by locality[1][4][5]",
+        "offices_or_providers": [
+          "Fox Valley Workforce Development Board (920-229-5557)[1]",
+          "GWAAR (608-242-4928 or 608-243-5670, Dane County)[5][7]",
+          "Employ Milwaukee[4]",
+          "Job Center of Wisconsin (detwise@dwd.wisconsin.gov)[3]",
+          "CWI Works subgrantee network including Wisconsin[2]"
+        ]
+      },
+      "official_source": "https://www.dhs.wisconsin.gov/publications/p00409-2024-2027.pdf (Wisconsin SCSEP State Plan 2024-2027); https://www.wisconsinjobcenter.org/ow/ (DWD Job Center)",
+      "gotchas": [
+        "Enrollment priority given to veterans/qualified spouses, then those over 65—others may face lower priority[2]",
+        "Temporary/part-time training (not permanent jobs); goal is transition to unsubsidized employment[1][2][6]",
+        "Income limit strictly ≤125% poverty level (family income, not individual)[1][2][6]",
+        "Must be actively unemployed and seeking work; not for current employees[1][4]",
+        "Regional providers differ—contact local office, as no centralized statewide application[1][3][5]",
+        "Paid at minimum wage, not higher despite experience[2][4]"
+      ],
+      "data_shape_notes": "Statewide but regionally administered via multiple workforce boards and subgrantees; priority tiers affect access; income test at 125% poverty (varies by household size annually); no asset test; part-time hours fixed at ~20/week",
+      "_raw": "{\n  \"name\": \"Wisconsin Senior Employment Program (WISE)\",\n  \"eligibility\": {\n    \"age\": 55,\n    \"income_limits\": \"Family income no more than 125% of the federal poverty level. Exact dollar amounts vary annually by household size and are not specified in sources; families must verify current federal poverty guidelines (e.g., via HHS.gov) and confirm ≤125% threshold with local provider[1][2][3][4][6].\",\n    \"asset_limits\": \"No asset limits mentioned in sources[1][2][3][4][6].\",\n    \"other_requirements\": [\"Legal resident of Wisconsin[1][3][4]\", \"Unemployed[1][2][3][4]\", \"Poor employment prospects (implied by program focus)[6]\"]\n  },\n  \"benefits\": {\n    \"type\": \"employment\",\n    \"value\": \"Part-time, paid community service training positions (typically 20 hours per week) at host agencies; paid at the highest of federal, state, or local minimum wage; includes skills training, work experience for unsubsidized employment transition, individual job counseling, comprehensive assessment, yearly physical exams, and access to employment opportunities[1][2][3][4].\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\"Phone: (920) 229-5557 (Fox Valley Workforce Development Board)[1]\", \"Email: info@fvwdb.com[1]\", \"Email: detwise@dwd.wisconsin.gov (DWD)[3]\", \"Phone: (608) 242-4928 (Dane County/GWAAR)[5]\", \"Phone: (608) 243-5670 (GWAAR brochure)[7]\", \"In-person: Local providers such as Job Center of Wisconsin, Employ Milwaukee, Dane County Job Center (e.g., 1819 Aberg Ave., Madison WI 53704)[3][4][5]\"],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Not mentioned; may vary by local provider capacity\",\n    \"forms\": [\"No specific form names/numbers listed; contact local provider for application process\"],\n    \"documents\": [\"Not explicitly listed; prepare proof of age, residency, unemployment status, and income (e.g., tax returns, pay stubs) based on standard requirements\"]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide to Wisconsin residents; operated through multiple local providers and subgrantees[1][2][3][4][5][6]\",\n    \"regional_variations\": \"Administered by different organizations by region (e.g., Fox Valley Workforce Development Board in northeast, GWAAR in Dane County, Employ Milwaukee in Milwaukee area); contact info and offices vary; potential differences in availability, wait times, or host agencies by locality[1][4][5]\",\n    \"offices_or_providers\": [\"Fox Valley Workforce Development Board (920-229-5557)[1]\", \"GWAAR (608-242-4928 or 608-243-5670, Dane County)[5][7]\", \"Employ Milwaukee[4]\", \"Job Center of Wisconsin (detwise@dwd.wisconsin.gov)[3]\", \"CWI Works subgrantee network including Wisconsin[2]\"]\n  },\n  \"official_source\": \"https://www.dhs.wisconsin.gov/publications/p00409-2024-2027.pdf (Wisconsin SCSEP State Plan 2024-2027); https://www.wisconsinjobcenter.org/ow/ (DWD Job Center)\",\n  \"gotchas\": [\"Enrollment priority given to veterans/qualified spouses, then those over 65—others may face lower priority[2]\", \"Temporary/part-time training (not permanent jobs); goal is transition to unsubsidized employment[1][2][6]\", \"Income limit strictly ≤125% poverty level (family income, not individual)[1][2][6]\", \"Must be actively unemployed and seeking work; not for current employees[1][4]\", \"Regional providers differ—contact local office, as no centralized statewide application[1][3][5]\", \"Paid at minimum wage, not higher despite experience[2][4]\"],\n  \"data_shape_notes\": \"Statewide but regionally administered via multiple workforce boards and subgrantees; priority tiers affect access; income test at 125% poverty (varies by household size annually); no asset test; part-time hours fixed at ~20/week\"\n}"
+    },
+    {
+      "name": "Family Care",
+      "eligibility": {
+        "age": "65 or older, or 18-64 with physical, intellectual, or developmental disability[1][2][3][4][8]",
+        "income_limits": "Must meet Wisconsin Medicaid financial eligibility (specific dollar amounts and household size tables not detailed in sources; typically under Medicaid limits, e.g., single applicants under $2,000 in countable assets as of 2025 with exemptions)[2][3]",
+        "asset_limits": "Medicaid asset limits apply (e.g., typically less than $2,000 for single applicants); exemptions include primary residence and personal vehicle[2]",
+        "other_requirements": [
+          "Wisconsin resident in a participating county/region[1][2][3][4]",
+          "Financially eligible for Medicaid[1][3][4][8]",
+          "Functionally eligible: Nursing Facility Level of Care (NFLOC) determined by Wisconsin Adult Long-Term Care Functional Screen (LTC FS), requiring assistance with ADLs (e.g., bathing, eating, mobility) and/or IADLs (e.g., meal prep, money management)[1][2][3][4]"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Home and Community Based Services (HCBS) via managed care organizations (CMOs), including personal care, respite care, home modifications, assisted living, memory care, and long-term care support instead of institutional care; no fixed dollar amounts or hours specified, tailored to assessed needs[2][3][7]",
+        "varies_by": "region"
+      },
+      "application": {
+        "methods": [
+          "Contact local Aging and Disability Resource Center (ADRC) or Tribal ADRS for screening and assistance: find via ADRC locator[2][4][5]",
+          "Complete Long Term Care Functional Screen with ADRC[4]",
+          "Apply for Medicaid online or paper form submitted to income maintenance agency (ADRC can help)[4]",
+          "ADRC finalizes enrollment: choose program, CMO, sign form[4]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": "No waitlists for program participation[3]",
+        "forms": [
+          "Medicaid application (online or paper)[4]",
+          "Long Term Care Functional Screen (via ADRC)[4]"
+        ],
+        "documents": [
+          "Income and asset documentation for Medicaid financial assessment[2][4]",
+          "Proof of residency and disability/age[1][2]"
+        ]
+      },
+      "geography": {
+        "statewide": false,
+        "restrictions": "Available only in specific counties/regions where offered by CMOs (e.g., Community Care service areas); Partnership variant has geographic limits[1][3][4]",
+        "regional_variations": "Varies by county/service area (different CMOs like Community Care, Anthem, My Choice Wisconsin); options depend on location; different providers and enrollment processes[1][4][5][8]",
+        "offices_or_providers": [
+          "Local ADRCs statewide[2][4][5]",
+          "Managed Care Organizations (CMOs) like Community Care Inc., Anthem, My Choice Wisconsin[1][5][8]"
+        ]
+      },
+      "official_source": "https://www.dhs.wisconsin.gov/familycare/apply.htm[4]",
+      "gotchas": [
+        "Not statewide—must live in a participating county/region; check local availability[1][3][4]",
+        "Requires both financial Medicaid eligibility AND functional screening (NFLOC via LTC FS)—many miss the functional need assessment[1][2][3][4]",
+        "Enrollment through specific CMOs available in your area; choose during process[4][5]",
+        "Medicare beneficiaries may still qualify if meeting criteria, but must meet Medicaid rules[9]",
+        "Persons with disabilities enrolled before 65 can continue post-65[3]"
+      ],
+      "data_shape_notes": "Regionally restricted to participating counties with varying CMOs/providers; eligibility ties directly to Medicaid financial rules plus mandatory functional screen; no waitlists but not statewide; benefits via managed care HCBS waiver",
+      "_raw": "{\n  \"name\": \"Family Care\",\n  \"eligibility\": {\n    \"age\": \"65 or older, or 18-64 with physical, intellectual, or developmental disability[1][2][3][4][8]\",\n    \"income_limits\": \"Must meet Wisconsin Medicaid financial eligibility (specific dollar amounts and household size tables not detailed in sources; typically under Medicaid limits, e.g., single applicants under $2,000 in countable assets as of 2025 with exemptions)[2][3]\",\n    \"asset_limits\": \"Medicaid asset limits apply (e.g., typically less than $2,000 for single applicants); exemptions include primary residence and personal vehicle[2]\",\n    \"other_requirements\": [\n      \"Wisconsin resident in a participating county/region[1][2][3][4]\",\n      \"Financially eligible for Medicaid[1][3][4][8]\",\n      \"Functionally eligible: Nursing Facility Level of Care (NFLOC) determined by Wisconsin Adult Long-Term Care Functional Screen (LTC FS), requiring assistance with ADLs (e.g., bathing, eating, mobility) and/or IADLs (e.g., meal prep, money management)[1][2][3][4]\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Home and Community Based Services (HCBS) via managed care organizations (CMOs), including personal care, respite care, home modifications, assisted living, memory care, and long-term care support instead of institutional care; no fixed dollar amounts or hours specified, tailored to assessed needs[2][3][7]\",\n    \"varies_by\": \"region\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Aging and Disability Resource Center (ADRC) or Tribal ADRS for screening and assistance: find via ADRC locator[2][4][5]\",\n      \"Complete Long Term Care Functional Screen with ADRC[4]\",\n      \"Apply for Medicaid online or paper form submitted to income maintenance agency (ADRC can help)[4]\",\n      \"ADRC finalizes enrollment: choose program, CMO, sign form[4]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"No waitlists for program participation[3]\",\n    \"forms\": [\n      \"Medicaid application (online or paper)[4]\",\n      \"Long Term Care Functional Screen (via ADRC)[4]\"\n    ],\n    \"documents\": [\n      \"Income and asset documentation for Medicaid financial assessment[2][4]\",\n      \"Proof of residency and disability/age[1][2]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": false,\n    \"restrictions\": \"Available only in specific counties/regions where offered by CMOs (e.g., Community Care service areas); Partnership variant has geographic limits[1][3][4]\",\n    \"regional_variations\": \"Varies by county/service area (different CMOs like Community Care, Anthem, My Choice Wisconsin); options depend on location; different providers and enrollment processes[1][4][5][8]\",\n    \"offices_or_providers\": [\n      \"Local ADRCs statewide[2][4][5]\",\n      \"Managed Care Organizations (CMOs) like Community Care Inc., Anthem, My Choice Wisconsin[1][5][8]\"\n    ]\n  },\n  \"official_source\": \"https://www.dhs.wisconsin.gov/familycare/apply.htm[4]\",\n  \"gotchas\": [\n    \"Not statewide—must live in a participating county/region; check local availability[1][3][4]\",\n    \"Requires both financial Medicaid eligibility AND functional screening (NFLOC via LTC FS)—many miss the functional need assessment[1][2][3][4]\",\n    \"Enrollment through specific CMOs available in your area; choose during process[4][5]\",\n    \"Medicare beneficiaries may still qualify if meeting criteria, but must meet Medicaid rules[9]\",\n    \"Persons with disabilities enrolled before 65 can continue post-65[3]\"\n  ],\n  \"data_shape_notes\": \"Regionally restricted to participating counties with varying CMOs/providers; eligibility ties directly to Medicaid financial rules plus mandatory functional screen; no waitlists but not statewide; benefits via managed care HCBS waiver\"\n}"
+    },
+    {
+      "name": "IRIS (Include, Respect, I Self-Direct)",
+      "eligibility": {
+        "age": 18,
+        "income_limits": "Must meet Medicaid financial eligibility (no specific IRIS income limits beyond Medicaid; for context, minimum income allowance $3,525/month and maximum $3,948/month effective 7/1/25–6/30/26 for spousal impoverishment). Income limits follow standard Wisconsin Medicaid rules, which vary by household size but not detailed here[1][2].",
+        "asset_limits": "Follows Medicaid asset rules; home equity limit of $750,000 if living in home or intent to return (2025). Exemptions include: home if applicant lives there or has intent to return (equity ≤$750,000), spouse lives in home, minor child (<18) lives in home, disabled child lives in home[2].",
+        "other_requirements": [
+          "Wisconsin resident",
+          "U.S. citizen or qualifying immigrant",
+          "Nursing Home (NH) or Intermediate Care Facility for Individuals with Intellectual/Developmental Disabilities (ICF-IID) level of care via Wisconsin Adult Long-Term Care Functional Screen (LTC FS), assessing ADLs/IADLs",
+          "Meet Medicaid non-financial criteria (cooperate with medical support, third-party liability, SSN, verification, health insurance requirements)",
+          "Reside in program-eligible setting (own home or residential setting; cannot be in skilled nursing facility or community-based residential facility)",
+          "Need for long-term care supports and services",
+          "Eligible population: older adults (65+) or adults 18-64 with physical, developmental, or intellectual disabilities (continues post-65 if enrolled earlier)"
+        ]
+      },
+      "benefits": {
+        "type": "service",
+        "value": "Self-directed Medicaid long-term care supports and services within an individualized budget (amount based on functional needs from LTC FS); covers DHS-approved services like personal care, goods/supports for daily living, adult day care; participant chooses/manages services, hires providers[3][5][6]. No fixed dollar amounts or hours specified; budget varies by assessed needs.",
+        "varies_by": "priority_tier"
+      },
+      "application": {
+        "methods": [
+          "Contact local Aging and Disability Resource Center (ADRC) or Tribal ADRS: dhs.wisconsin.gov/adrc/consumer/index.htm or dhs.wisconsin.gov/adrc/consumer/tribes.htm[3][6]",
+          "Complete Long-Term Care Functional Screen with ADRC/ADRS",
+          "Apply for Medicaid: online or paper form submitted to income maintenance agency (assistance from ADRC/ADRS)[3]",
+          "Select Fiscal Employer Agent (FEA) with ADRC/ADRS help for payroll/taxes[3][6]"
+        ],
+        "processing_time": "Not specified in sources",
+        "waitlist": "Not mentioned; may exist due to program caps (inferred from waiver nature, but not explicit)",
+        "forms": [
+          "Long-Term Care Functional Screen (via ADRC/ADRS)",
+          "Medicaid application (online or paper; no specific form number given)"
+        ],
+        "documents": [
+          "Proof of residency, citizenship/immigration status, income, assets (e.g., home equity docs), SSN, medical support/third-party liability info; specifics determined by Medicaid agency[1][3]"
+        ]
+      },
+      "geography": {
+        "statewide": true,
+        "restrictions": "Available statewide in Wisconsin for eligible settings; start via local ADRC/ADRS by county/tribe[3][5][6]",
+        "regional_variations": "Administered through local ADRCs/ADRS (county/tribal variations in offices/providers); different Fiscal Employer Agents and IRIS Consultant Agencies available by region; wait times may vary by demand[3][5]",
+        "offices_or_providers": [
+          "Local ADRCs (find via dhs.wisconsin.gov/adrc/consumer/index.htm)",
+          "Tribal ADRS (dhs.wisconsin.gov/adrc/consumer/tribes.htm)"
+        ]
+      },
+      "official_source": "https://www.dhs.wisconsin.gov/iris/index.htm",
+      "gotchas": [
+        "Must live in eligible community setting (own home/residential); ineligible if in nursing facility or certain residential facilities[1][6]",
+        "Self-direction responsibilities: participant manages budget, hires/fires providers, follows rules; FEA handles payroll but not service provision[3][6]",
+        "Financial eligibility ties to Medicaid (may require cost-sharing); pre-existing Medicaid speeds process[1][3]",
+        "Functional screen required for NH/ICF-IID level of care; not just any disability[1][2]",
+        "All providers must enroll with ForwardHealth Portal[4]"
+      ],
+      "data_shape_notes": "Self-directed budget model varies by functional assessment (LTC FS) and priority tier; county-based ADRC administration with regional providers/agents; no standalone income/asset limits (uses Medicaid); setting-restricted",
+      "_raw": "{\n  \"name\": \"IRIS (Include, Respect, I Self-Direct)\",\n  \"eligibility\": {\n    \"age\": 18,\n    \"income_limits\": \"Must meet Medicaid financial eligibility (no specific IRIS income limits beyond Medicaid; for context, minimum income allowance $3,525/month and maximum $3,948/month effective 7/1/25–6/30/26 for spousal impoverishment). Income limits follow standard Wisconsin Medicaid rules, which vary by household size but not detailed here[1][2].\",\n    \"asset_limits\": \"Follows Medicaid asset rules; home equity limit of $750,000 if living in home or intent to return (2025). Exemptions include: home if applicant lives there or has intent to return (equity ≤$750,000), spouse lives in home, minor child (<18) lives in home, disabled child lives in home[2].\",\n    \"other_requirements\": [\n      \"Wisconsin resident\",\n      \"U.S. citizen or qualifying immigrant\",\n      \"Nursing Home (NH) or Intermediate Care Facility for Individuals with Intellectual/Developmental Disabilities (ICF-IID) level of care via Wisconsin Adult Long-Term Care Functional Screen (LTC FS), assessing ADLs/IADLs\",\n      \"Meet Medicaid non-financial criteria (cooperate with medical support, third-party liability, SSN, verification, health insurance requirements)\",\n      \"Reside in program-eligible setting (own home or residential setting; cannot be in skilled nursing facility or community-based residential facility)\",\n      \"Need for long-term care supports and services\",\n      \"Eligible population: older adults (65+) or adults 18-64 with physical, developmental, or intellectual disabilities (continues post-65 if enrolled earlier)\"\n    ]\n  },\n  \"benefits\": {\n    \"type\": \"service\",\n    \"value\": \"Self-directed Medicaid long-term care supports and services within an individualized budget (amount based on functional needs from LTC FS); covers DHS-approved services like personal care, goods/supports for daily living, adult day care; participant chooses/manages services, hires providers[3][5][6]. No fixed dollar amounts or hours specified; budget varies by assessed needs.\",\n    \"varies_by\": \"priority_tier\"\n  },\n  \"application\": {\n    \"methods\": [\n      \"Contact local Aging and Disability Resource Center (ADRC) or Tribal ADRS: dhs.wisconsin.gov/adrc/consumer/index.htm or dhs.wisconsin.gov/adrc/consumer/tribes.htm[3][6]\",\n      \"Complete Long-Term Care Functional Screen with ADRC/ADRS\",\n      \"Apply for Medicaid: online or paper form submitted to income maintenance agency (assistance from ADRC/ADRS)[3]\",\n      \"Select Fiscal Employer Agent (FEA) with ADRC/ADRS help for payroll/taxes[3][6]\"\n    ],\n    \"processing_time\": \"Not specified in sources\",\n    \"waitlist\": \"Not mentioned; may exist due to program caps (inferred from waiver nature, but not explicit)\",\n    \"forms\": [\n      \"Long-Term Care Functional Screen (via ADRC/ADRS)\",\n      \"Medicaid application (online or paper; no specific form number given)\"\n    ],\n    \"documents\": [\n      \"Proof of residency, citizenship/immigration status, income, assets (e.g., home equity docs), SSN, medical support/third-party liability info; specifics determined by Medicaid agency[1][3]\"\n    ]\n  },\n  \"geography\": {\n    \"statewide\": true,\n    \"restrictions\": \"Available statewide in Wisconsin for eligible settings; start via local ADRC/ADRS by county/tribe[3][5][6]\",\n    \"regional_variations\": \"Administered through local ADRCs/ADRS (county/tribal variations in offices/providers); different Fiscal Employer Agents and IRIS Consultant Agencies available by region; wait times may vary by demand[3][5]\",\n    \"offices_or_providers\": [\"Local ADRCs (find via dhs.wisconsin.gov/adrc/consumer/index.htm)\", \"Tribal ADRS (dhs.wisconsin.gov/adrc/consumer/tribes.htm)\"]\n  },\n  \"official_source\": \"https://www.dhs.wisconsin.gov/iris/index.htm\",\n  \"gotchas\": [\n    \"Must live in eligible community setting (own home/residential); ineligible if in nursing facility or certain residential facilities[1][6]\",\n    \"Self-direction responsibilities: participant manages budget, hires/fires providers, follows rules; FEA handles payroll but not service provision[3][6]\",\n    \"Financial eligibility ties to Medicaid (may require cost-sharing); pre-existing Medicaid speeds process[1][3]\",\n    \"Functional screen required for NH/ICF-IID level of care; not just any disability[1][2]\",\n    \"All providers must enroll with ForwardHealth Portal[4]\"\n  ],\n  \"data_shape_notes\": \"Self-directed budget model varies by functional assessment (LTC FS) and priority tier; county-based ADRC administration with regional providers/agents; no standalone income/asset limits (uses Medicaid); setting-restricted\"\n}"
+    }
+  ]
+}

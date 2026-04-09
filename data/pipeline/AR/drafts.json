@@ -1,0 +1,2073 @@
+{
+  "state": "AR",
+  "stateName": "Arkansas",
+  "draftedAt": "2026-04-09T11:58:08.866Z",
+  "total": 12,
+  "successful": 12,
+  "programs": [
+    {
+      "id": "arkansas-archoices-homecare",
+      "name": "ARChoices in Homecare",
+      "shortName": "ARChoices Homecare",
+      "tagline": "If your parent needs daily help with bathing, dressing, or meals, Arkansas may pay for a caregiver to come to their home instead of moving to a nursing facility.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "DHS Division of County Operations offices by county",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "ARChoices in Homecare pays for home care services so your parent can stay in their own home instead of moving to a nursing facility. The program covers personal care assistance (bathing, dressing, meal preparation), household chores, and care coordination. Your parent can even choose their own caregiver, including family members.\n\nTo qualify, your parent must need nursing home-level care but score at exactly Tier 2 on Arkansas's functional assessment — enough need to require services, but not so much that they need skilled nursing care. They must also meet Medicaid income and asset limits, with home equity capped at $752,000 (2026).\n\nBecause this is a Medicaid waiver program, your parent gets comprehensive services at no cost to them. The state creates an Individual Services Budget based on their specific needs after assessment.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 21-64 with disability or 65+",
+          "Medicaid income limits apply",
+          "Home equity under $752,000",
+          "Needs daily help with bathing, dressing, or meals",
+          "Arkansas resident"
+        ],
+        "ageRequirement": "21+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [],
+          "exemptAssets": [
+            "Primary home (if equity under $752,000)",
+            "Home if spouse or disabled child lives there"
+          ],
+          "homeEquityCap": 752000
+        },
+        "functionalRequirement": "Must need nursing home-level care and score Tier 2 on ARIA assessment (unable to perform at least 1 activity of daily living without substantial assistance, or at least 2 ADLs without limited assistance, or has Alzheimer's/dementia requiring substantial supervision)",
+        "otherRequirements": [
+          "Arkansas resident",
+          "Live at home or intend to return home",
+          "Meet Medicaid financial eligibility"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "in-person",
+        "summary": "Apply at your county DHS office first for financial eligibility, then get referred for functional assessment — processing begins on approval date.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply at your county DHS office",
+            "description": "Visit the Department of Human Services Division of County Operations office in your parent's county of residence. Apply for Medicaid financial eligibility first."
+          },
+          {
+            "step": 2,
+            "title": "Get referred for functional assessment",
+            "description": "If financially eligible, DHS refers your parent to DAABHS (Division of Aging, Adult, and Behavioral Health Services) for the ARIA functional assessment."
+          },
+          {
+            "step": 3,
+            "title": "Complete ARIA assessment with Optum RN",
+            "description": "An Optum registered nurse conducts the ARIA assessment to determine if your parent scores Tier 2 (the required level for ARChoices services)."
+          },
+          {
+            "step": 4,
+            "title": "Develop service plan",
+            "description": "If approved, work with DAABHS to create a Person-Centered Service Plan and Individual Services Budget based on your parent's specific needs."
+          }
+        ],
+        "processingTime": "Eligibility begins on DCO approval date unless provisional plan of care",
+        "waitlist": null,
+        "tip": "Start at your county DHS office, not directly with the waiver program — financial eligibility must be determined first.",
+        "urls": [
+          {
+            "label": "Access Arkansas (general)",
+            "url": "https://access.arkansas.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Home Equity Limits",
+          "included": [
+            "Primary residence value above $752,000 (makes ineligible)"
+          ],
+          "excluded": [
+            "Primary residence if spouse lives there",
+            "Primary residence if minor or disabled child lives there",
+            "Primary residence value under $752,000"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Social Security card",
+                "Driver's license or state ID",
+                "Proof of Arkansas residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letters",
+                "Pension statements",
+                "Bank statements (all accounts)",
+                "Property deeds or home value documentation",
+                "Insurance policies"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records showing need for daily assistance",
+                "Disability determination (if under 65)",
+                "Current medications list",
+                "Doctor's assessment of functional limitations"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Your parent must score exactly Tier 2 on the ARIA assessment. Tier 0 or 1 means not enough need for services. Tier 3 means they need more care than ARChoices provides and would require nursing facility placement."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent's income is slightly over Medicaid limits, Arkansas allows 'spend-down' — they can qualify by paying medical expenses to reduce their countable income to the limit."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes, as long as the home's equity value is under $752,000 (2026). If your parent's spouse or a minor/disabled child lives in the home, there's no equity limit at all."
+        },
+        {
+          "question": "What if Mom needs more help than Tier 2 but doesn't want a nursing home?",
+          "answer": "If she scores Tier 3 on the ARIA assessment, she won't qualify for ARChoices because her needs exceed what the program provides. You'd need to explore other options like private pay home care or look into nursing facility placement."
+        },
+        {
+          "question": "Can I get paid to take care of Dad through this program?",
+          "answer": "Yes, ARChoices has a self-direction option called Independent Choices that allows your parent to hire family members as caregivers. The program pays the family member directly for providing care."
+        },
+        {
+          "question": "What if Dad's income is just over the Medicaid limit?",
+          "answer": "Arkansas has a 'spend-down' process where your dad can qualify by paying medical expenses to reduce his countable income to the Medicaid limit. The county DHS office can explain exactly how this works."
+        },
+        {
+          "question": "How long does it take to get approved and start receiving services?",
+          "answer": "Eligibility begins on the date the county DHS office approves Medicaid financial eligibility. The functional assessment and service planning happen after that, but the exact timeline isn't specified in state materials."
+        },
+        {
+          "question": "What's the difference between this and regular Medicaid?",
+          "answer": "Regular Medicaid would pay for your parent's nursing home care. ARChoices is a special waiver that lets Arkansas use that same Medicaid money to pay for home and community services instead, so your parent can stay at home."
+        }
+      ],
+      "phone": "855-372-1084",
+      "sourceUrl": "https://humanservices.arkansas.gov/wp-content/uploads/ARChoices-Detailed-Overview.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "arkansas-pace-elderly-care",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "shortName": "PACE",
+      "tagline": "All your parent's medical care — doctors, transportation, home care, even adult day care — coordinated by one team with no copays.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "PACE of the Ozarks – Washington Regional (Northwest): (479) 463-6600, Springdale",
+            "type": "service-area"
+          },
+          {
+            "name": "Total Life Healthcare – St. Bernards Healthcare (Northeast): (870) 207-7500, Jonesboro",
+            "type": "service-area"
+          },
+          {
+            "name": "Baptist Health PACE (six-county service area)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and needs nursing home-level care but wants to stay at home, PACE could cover all their medical expenses through one coordinated program. Because PACE combines Medicare and Medicaid funding, your parent gets comprehensive care — doctor visits, transportation to appointments, home care services, adult day care, prescription drugs, and even hospital stays — all managed by one medical team with no copays or deductibles.\n\nPACE is only available in specific Arkansas counties, not statewide. The average PACE participant is 76 years old with multiple complex medical conditions. Your parent must be certified by Arkansas DHS as needing nursing facility level of care (daily help with bathing, dressing, or medication management) but able to live safely at home with PACE support.",
+      "savingsRange": "",
+      "savingsSource": "Free comprehensive medical care service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Needs nursing home-level care",
+          "Lives in PACE service area",
+          "Can safely live at home with support"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Second homes"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "Personal belongings",
+            "One vehicle"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must be certified by Arkansas Department of Human Services as needing nursing facility level of care (daily help with bathing, dressing, or medication management)",
+        "otherRequirements": [
+          "U.S. citizen or qualified alien",
+          "Arkansas resident in PACE service area",
+          "Cannot be enrolled in Medicare Advantage or hospice",
+          "Must be able to live safely in community with PACE support"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your regional PACE provider directly — they handle both eligibility screening and enrollment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your regional PACE provider",
+            "description": "Call the PACE provider in your area to schedule an initial assessment."
+          },
+          {
+            "step": 2,
+            "title": "Complete nursing facility level of care assessment",
+            "description": "Arkansas DHS will assess whether your parent needs daily help with activities like bathing, dressing, or medication management."
+          },
+          {
+            "step": 3,
+            "title": "Medical team evaluation",
+            "description": "PACE's interdisciplinary team evaluates whether your parent can live safely at home with PACE support."
+          },
+          {
+            "step": 4,
+            "title": "Financial eligibility review",
+            "description": "If seeking Medicaid funding, income and asset limits apply. Private pay option available for those who don't qualify for Medicaid."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "PACE providers serve limited areas and have limited capacity — call as soon as possible to check availability in your parent's location.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts (For Medicaid Funding)",
+          "included": [
+            "Bank accounts and cash",
+            "Investments and stocks",
+            "Second homes or rental property",
+            "Vehicles beyond one car"
+          ],
+          "excluded": [
+            "Primary home (where your parent lives)",
+            "Personal belongings and household items",
+            "One vehicle for transportation",
+            "Burial plots and funeral funds"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "PACE Providers by Region",
+          "offices": [
+            {
+              "name": "PACE of the Ozarks (Northwest Arkansas)",
+              "type": "service-area",
+              "phone": "(479) 463-6600",
+              "address": "813 Founders Park Dr East, Ste 107, Springdale, AR 72762"
+            },
+            {
+              "name": "Total Life Healthcare (Northeast Arkansas)",
+              "type": "service-area",
+              "phone": "(870) 207-7500",
+              "address": "505 E. Matthews, Ste 101, Jonesboro, AR"
+            },
+            {
+              "name": "Baptist Health PACE",
+              "type": "service-area",
+              "phone": null,
+              "address": "Six-county service area (contact for specific counties)"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE is NOT available statewide. Only specific counties in Northwest Arkansas (Benton, Madison, Washington) and Northeast Arkansas (Craighead, Cross, Greene, Lawrence, Mississippi, Poinsett, Randolph) are served. Check your parent's address before applying."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent's income is above Medicaid limits (~$2,901/month in 2025), ask about Income Trusts. Arkansas allows this planning tool to help families qualify for Medicaid funding within PACE."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify for PACE?",
+          "answer": "Yes. Your parent's primary home doesn't count toward the $2,000 asset limit for Medicaid funding. PACE is specifically designed to help people stay in their own homes instead of moving to nursing facilities."
+        },
+        {
+          "question": "What if my parent's income is just over the Medicaid limit?",
+          "answer": "Arkansas allows Income Trusts for applicants whose income exceeds Medicaid limits. Contact a DHS caseworker to discuss this option. Your parent can also pay privately for PACE services if they don't qualify for Medicaid funding but meet the medical criteria."
+        },
+        {
+          "question": "Does my parent have to give up their current Medicare plan?",
+          "answer": "Yes. Your parent cannot be enrolled in Medicare Advantage, Medicare prescription drug plans, or certain other programs while in PACE. PACE becomes their Medicare and Medicaid coverage, providing more comprehensive services than typical Medicare plans."
+        },
+        {
+          "question": "How is PACE different from regular home health care?",
+          "answer": "PACE provides comprehensive care coordination — one team manages all medical care, transportation, adult day care, home services, and medications. Regular home health typically provides specific services a few times per week. PACE participants average 76 years old with multiple complex conditions."
+        },
+        {
+          "question": "What if my parent needs nursing home care later?",
+          "answer": "PACE covers nursing home care when medically necessary. Because the same team manages all care, transitions are coordinated rather than requiring separate applications and provider changes."
+        },
+        {
+          "question": "Can my parent choose their own doctors in PACE?",
+          "answer": "Your parent's care will be provided by PACE's interdisciplinary medical team. This team approach allows for better coordination but means your parent may need to change from their current doctors to PACE providers."
+        }
+      ],
+      "phone": "(479) 463-6600",
+      "sourceUrl": "https://humanservices.arkansas.gov/divisions-shared-services/aging-adult-behavioral-health-services/find-home-community-based-services-for-adults-seniors/pace-program-of-all-inclusive-care-for-the-elderly/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "arkansas-medicare-savings-programs",
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "Help your parent save $200+ monthly on Medicare premiums and costs if their income is below $1,660/month.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local Arkansas Department of Human Services (DHS) county offices; find via 1-800-482-8988",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to afford Medicare premiums and medical bills, Medicare Savings Programs can cut their healthcare costs significantly. These three programs — QMB, SLMB, and QI — pay Medicare Part B premiums ($202.90/month in 2026) and sometimes deductibles and copays based on income level.\n\nTo qualify, your parent must be on Medicare and have monthly income below $1,660 for a single person or $2,239 for a couple. Assets must be under $9,090 for individuals or $13,630 for couples. Because these programs also provide automatic eligibility for Extra Help with prescription drug costs, your parent could save hundreds more on medications.\n\nQMB offers the most comprehensive coverage, paying all Medicare cost-sharing. SLMB and QI cover Part B premiums only. The QI program has limited funding and operates first-come, first-served, so timing matters.",
+      "savingsRange": "$2,435 – $4,000+/year",
+      "savingsSource": "Part B premiums plus deductibles and copays for QMB; Part B premiums only for SLMB/QI",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ or on Medicare",
+          "Income below $1,660/month (single)",
+          "Assets under $9,090 (single)",
+          "Arkansas resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1235
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1663
+          }
+        ],
+        "assetLimits": {
+          "individual": 9090,
+          "couple": 13630,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Second car",
+            "Investment accounts"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One car",
+            "Burial plots",
+            "Life insurance up to $1,500 face value",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be eligible for Medicare Part A",
+          "U.S. citizen or qualified immigrant",
+          "Cannot receive full Medicaid (QI program only)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through Arkansas DHS ACCESS portal or call 1-800-482-8988; processing takes up to 45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect income proof (Social Security award letters, pension statements), bank statements, Medicare card, and ID documents"
+          },
+          {
+            "step": 2,
+            "title": "Complete Form DCO-0808",
+            "description": "Fill out the Application for Medicare Savings for Qualified Medicare Beneficiary online at access.arkansas.gov or request paper form"
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Submit online, mail to Arkansas Department of Human Services, or visit your local DHS county office"
+          },
+          {
+            "step": 4,
+            "title": "Follow up if needed",
+            "description": "DHS may request additional documentation; respond quickly to avoid delays in processing"
+          }
+        ],
+        "processingTime": "Up to 45 days",
+        "waitlist": "QI program operates first-come, first-served with limited federal funding",
+        "tip": "Apply early in the year for QI program as funding can run out",
+        "urls": [
+          {
+            "label": "Arkansas DHS ACCESS Portal",
+            "url": "https://access.arkansas.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Most comprehensive coverage",
+              "incomeLimit": "$1,235 single / $1,663 couple",
+              "coverage": "Pays Part B premiums, deductibles, coinsurance, and copayments for all Medicare-covered services"
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Premium assistance only",
+              "incomeLimit": "$1,478 single / $1,992 couple",
+              "coverage": "Pays Part B premiums only (~$202.90/month in 2026)"
+            },
+            {
+              "name": "QI (Qualified Individual)",
+              "description": "Limited funding, first-come basis",
+              "incomeLimit": "$1,660 single / $2,239 couple",
+              "coverage": "Pays Part B premiums only (~$202.90/month in 2026)"
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts (checking, savings, CDs)",
+            "Stocks, bonds, and investment accounts",
+            "Second car or recreational vehicles",
+            "Cash value of life insurance over $1,500 face value"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "One car for transportation",
+            "Burial plots and funeral arrangements",
+            "Personal belongings and household items",
+            "Life insurance up to $1,500 face value"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Medicare card or proof of Part A eligibility",
+                "Social Security card",
+                "Birth certificate",
+                "Proof of Arkansas residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security or SSI award letters",
+                "Pay stubs if working",
+                "Pension or retirement statements",
+                "Bank statements for all accounts",
+                "Investment account statements"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI program funding is limited and distributed first-come, first-served. Apply early in the year and reapply annually to maintain coverage."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income limits include a $20 general income disregard, and working disabled individuals may qualify with higher income under special rules. Always verify current limits with DHS as they update annually."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my mom keep her house if she qualifies for these programs?",
+          "answer": "Yes. Your primary home is completely exempt from asset limits, regardless of value. Only countable assets like bank accounts, investments, and second cars count toward the $9,090 individual limit."
+        },
+        {
+          "question": "What happens if her income is just over the QMB limit but under SLMB?",
+          "answer": "She can still qualify for SLMB, which pays the $202.90 monthly Part B premium. SLMB has higher income limits ($1,478 for singles) than QMB ($1,235 for singles) but covers fewer costs."
+        },
+        {
+          "question": "Does she need to reapply every year?",
+          "answer": "QI requires annual reapplication and operates first-come, first-served. QMB and SLMB typically have periodic renewals but not necessarily annual. Check with Arkansas DHS about your specific renewal timeline."
+        },
+        {
+          "question": "Can she have both this program and Medicare Advantage?",
+          "answer": "Yes. Medicare Savings Programs work with both Original Medicare and Medicare Advantage plans. The program pays the Part B premium regardless of which Medicare option she chooses."
+        },
+        {
+          "question": "What if she's already on Medicaid?",
+          "answer": "If she receives full Medicaid, she cannot get QI program benefits. However, she may still qualify for QMB or SLMB depending on her income level and specific Medicaid coverage."
+        },
+        {
+          "question": "How long does it take to get approved and start saving money?",
+          "answer": "Processing takes up to 45 days. Once approved, benefits are effective the first day of the month after all required information is received. SLMB and QI can be retroactive up to 3 months prior to application."
+        }
+      ],
+      "phone": "1-800-482-8988",
+      "sourceUrl": "https://humanservices.arkansas.gov",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "arkansas-snap-food-benefits",
+      "name": "SNAP (Supplemental Nutrition Assistance Program)",
+      "shortName": "SNAP Food Benefits",
+      "tagline": "Monthly grocery assistance for parents 60+ on fixed incomes — up to $298/month for food purchases.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local DHS County Operations offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling to afford groceries, SNAP provides monthly benefits loaded onto an EBT card for food purchases. Your parent could receive $100-300/month depending on their income and household size — benefits that work at grocery stores and some restaurants.\n\nBecause Arkansas follows strict federal rules, your parent must meet net income limits even if they receive Social Security or other benefits. However, seniors 60+ get advantages: no work requirements, higher asset limits ($4,500 vs $3,000), and no gross income test. The program counts Social Security and VA benefits as income, but medical expenses over $35/month can reduce their countable income.\n\nBenefits are issued back to the application date if approved, so applying early protects potential months of assistance. Processing typically takes 30 days, though urgent cases can be expedited.",
+      "savingsRange": "$1,200 – $3,576/year in 2026",
+      "savingsSource": "Based on minimum expected benefits of $100/month to maximum individual benefit of $298/month",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Net income below $1,305/month (1 person)",
+          "Assets under $4,500",
+          "Arkansas resident"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1305
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1763
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 2221
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 2680
+          }
+        ],
+        "assetLimits": {
+          "individual": 4500,
+          "couple": 4500,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Non-exempt property"
+          ],
+          "exemptAssets": [
+            "Home",
+            "Household goods",
+            "Life insurance",
+            "Burial spaces",
+            "Some vehicles",
+            "Retirement savings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "U.S. citizen or qualified legal non-citizen",
+          "Lives with people who buy/prepare food together"
+        ],
+        "povertyLevelReference": "100% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at Access Arkansas or call 1-800-482-8988 — processing takes 30 days with benefits paid back to application date.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect proof of identity, Social Security number, income statements (Social Security award letters, VA benefits), and medical expense receipts over $35/month."
+          },
+          {
+            "step": 2,
+            "title": "Submit application",
+            "description": "Apply online at Access Arkansas, call 1-800-482-8988, or visit your local DHS county office. Benefits are calculated back to your application date."
+          },
+          {
+            "step": 3,
+            "title": "Complete interview",
+            "description": "DHS will schedule a phone or in-person interview to verify information and calculate your parent's benefit amount."
+          },
+          {
+            "step": 4,
+            "title": "Receive EBT card",
+            "description": "If approved, your parent receives an EBT card loaded with monthly benefits for grocery purchases."
+          }
+        ],
+        "processingTime": "Benefits issued back to application date if eligible; typical processing 30 days, expedited for urgent cases",
+        "waitlist": null,
+        "tip": "Medical expenses over $35/month (prescriptions, Medicare premiums, doctor visits) reduce countable income and can increase benefits.",
+        "urls": [
+          {
+            "label": "Apply Online - Access Arkansas",
+            "url": "https://access.arkansas.gov"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Net Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1305,
+              "annualLimit": 15660
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 1763,
+              "annualLimit": 21156
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 2221,
+              "annualLimit": 26652
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 2680,
+              "annualLimit": 32160
+            }
+          ],
+          "footnote": "October 1, 2025 - September 30, 2026. Seniors 60+ have no gross income limit."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Cash and checking/savings accounts",
+            "Non-exempt property and investments",
+            "Vehicles worth over certain limits"
+          ],
+          "excluded": [
+            "Your parent's home (any value)",
+            "Household goods and personal belongings",
+            "Life insurance policies",
+            "Burial spaces and funeral funds",
+            "Retirement accounts (401k, IRA)",
+            "One vehicle if used for work or medical appointments"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Citizenship",
+              "items": [
+                "Driver's license or state ID",
+                "Social Security card",
+                "Proof of citizenship or legal status"
+              ]
+            },
+            {
+              "name": "Income Proof",
+              "items": [
+                "Social Security award letter",
+                "VA benefits statement",
+                "Pension or retirement statements",
+                "Bank statements for past 3 months"
+              ]
+            },
+            {
+              "name": "Expenses (if over $35/month)",
+              "items": [
+                "Medical bills and prescription receipts",
+                "Medicare premium statements",
+                "Rent or mortgage statements",
+                "Utility bills"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Arkansas doesn't expand asset or income limits beyond federal minimums like many states do. However, medical expenses over $35/month can significantly reduce your parent's countable income — keep all medical receipts and Medicare premium statements."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Does my parent's Social Security count against the income limit?",
+          "answer": "Yes, Social Security benefits count as income. However, medical expenses over $35/month (including Medicare premiums, prescriptions, and doctor visits) are deducted from countable income, which can help your parent qualify or increase their benefits."
+        },
+        {
+          "question": "Can Mom keep her house and still qualify?",
+          "answer": "Yes, your parent's home doesn't count toward the $4,500 asset limit regardless of its value. The limit applies to cash, bank accounts, and non-exempt property."
+        },
+        {
+          "question": "What if my parent lives with me but we buy groceries separately?",
+          "answer": "If your parent buys and prepares food separately, they can apply as a one-person household even if living with you. The key is whether food is purchased and prepared together — separate grocery shopping means separate household for SNAP purposes."
+        },
+        {
+          "question": "How much will my parent actually receive each month?",
+          "answer": "It depends on their net income after deductions. Maximum benefit is $298/month for one person, but most seniors receive $100-200/month. The exact amount is calculated by subtracting 30% of net income from the maximum benefit."
+        },
+        {
+          "question": "Can SNAP benefits be used at restaurants?",
+          "answer": "Yes, if your parent is 60+ or disabled, they may qualify for the Restaurant Meals Program, which allows EBT use at participating restaurants. Not all restaurants participate — check with your local DHS office for locations."
+        },
+        {
+          "question": "What happens if my parent's income is just over the limit?",
+          "answer": "Medical deductions can make the difference. If your parent pays more than $35/month for medical expenses (including Medicare premiums), those costs are subtracted from countable income. Even small medical deductions can bring income under the limit."
+        }
+      ],
+      "phone": "1-800-482-8988",
+      "sourceUrl": "https://humanservices.arkansas.gov/services-worth-knowing/snap/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "arkansas-liheap-energy-assistance",
+      "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
+      "shortName": "Energy Bill Help",
+      "tagline": "Get $50–475 toward your parent's heating and cooling bills if they're struggling with energy costs.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Community-Based Organizations (CBOs) by county; find via Arkansas Department of Energy & Environment site or local agencies like CSCDC (cscdc.net), CADC (cadc.com), EOA (eoawc.org), CRDC",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is struggling to pay heating or cooling bills, LIHEAP provides direct payments to their utility company. Because the program pays vendors directly, your parent won't handle cash — the money goes straight toward reducing their energy bill.\n\nLIHEAP offers two types of help: regular seasonal assistance ($50–475 for heating, $50–287 for cooling) and emergency crisis help (up to $500) for situations like service shut-offs or running out of fuel. The exact amount depends on household size, income level, and energy source (electricity, gas, propane, wood, or pellets).\n\nFunding is limited each year. Because applications can close early when money runs out, apply as soon as the seasonal periods open: heating assistance typically January–March, cooling assistance July–August, and crisis help during extended periods.",
+      "savingsRange": "$100 – $962/year in 2026",
+      "savingsSource": "Combined maximum regular heating ($475) and cooling ($287) plus crisis assistance ($500) when eligible",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income below $2,251/month (1 person)",
+          "Responsible for home energy bill",
+          "U.S. citizen or legal resident",
+          "All household members must apply together"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2251
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2944
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 3636
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 4329
+          }
+        ],
+        "assetLimits": {
+          "individual": null,
+          "couple": null,
+          "countedAssets": [
+            "Cash",
+            "Checking and savings accounts",
+            "CDs",
+            "Cryptocurrency",
+            "Stocks",
+            "Bonds"
+          ],
+          "exemptAssets": [],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be responsible for home energy bill (not paid by non-resident)",
+          "Household includes everyone under one roof sharing one utility meter",
+          "If utilities included in rent, must provide lease showing energy burden"
+        ],
+        "povertyLevelReference": "150% FPL or 60% State Median Income, whichever is higher"
+      },
+      "applicationGuide": {
+        "method": "in-person",
+        "summary": "Contact your county's Community-Based Organization to apply — processing time varies due to high demand.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county's CBO",
+            "description": "Visit the Arkansas Department of Energy & Environment website or call local agencies like CSCDC, CADC, EOA, or CRDC to find which organization serves your county."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect photo ID, Social Security cards for adults, utility bills, and income proof for the previous month for all adult household members."
+          },
+          {
+            "step": 3,
+            "title": "Contact your local CBO",
+            "description": "Call or visit your county's CBO for application instructions. Some accept applications by phone, mail, or in-person — each organization sets their own process."
+          },
+          {
+            "step": 4,
+            "title": "Submit complete application",
+            "description": "Provide all documents and ensure every household member is included. Incomplete applications delay processing."
+          }
+        ],
+        "processingTime": "Varies by local organization; can take longer due to high volume",
+        "waitlist": "Applications may close early if funding is exhausted; apply immediately when seasonal periods open",
+        "tip": "Apply for both regular seasonal assistance and crisis help if eligible — you can receive one of each per season per household.",
+        "urls": [
+          {
+            "label": "Find Your Local CBO",
+            "url": "https://www.adeq.state.ar.us/energy/assistance/liheap.aspx"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2251
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 2944
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 3636
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 4329
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 5001
+            }
+          ],
+          "footnote": "2025 Arkansas SMI limits; add $672/month for each additional household member"
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Cash on hand",
+            "Checking and savings accounts",
+            "Certificates of deposit (CDs)",
+            "Cryptocurrency",
+            "Stocks and bonds"
+          ],
+          "excluded": []
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Photo ID for applicant",
+                "Social Security cards for all household members 18+",
+                "Birth certificates or SSNs for minors"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Income proof for previous month (all adult household members)",
+                "Most recent utility bills",
+                "Lease agreement (if utilities included in rent)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Funding is limited and programs close when money runs out. Apply immediately when seasonal periods open to avoid missing the opportunity."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent lives with roommates, all residents under one roof must apply together as one household — even if they don't share expenses or family relationships."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "Income limits vary slightly between local Community-Based Organizations. If your parent is close to the limit, contact your county's CBO directly — they may use different calculations or have updated limits."
+        },
+        {
+          "question": "Can my parent get help if utilities are included in their rent?",
+          "answer": "Yes, but they must provide their lease agreement showing the energy burden. Different rules apply for subsidized versus unsubsidized housing, so bring the lease for your CBO to review."
+        },
+        {
+          "question": "What happens if the power company threatens to shut off service?",
+          "answer": "Apply immediately for crisis assistance (up to $500). Crisis help covers shut-offs, disconnections, fuel depletion, or life-threatening situations. Your parent can receive both regular seasonal assistance and crisis help in the same year."
+        },
+        {
+          "question": "Does my parent need to pay anything back?",
+          "answer": "No, LIHEAP benefits are not loans. The money goes directly to the utility company or fuel vendor and never needs to be repaid."
+        },
+        {
+          "question": "What if my parent heats with propane or wood instead of electric or gas?",
+          "answer": "LIHEAP covers all energy sources including propane, wood, and pellets. The benefit amount varies by energy source, so bring documentation of your parent's heating method when applying."
+        },
+        {
+          "question": "Can my parent apply every year?",
+          "answer": "Yes, but they must reapply each year during the designated seasonal periods. They can receive one regular heating benefit, one cooling benefit, and one crisis benefit per season per household each year."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.adeq.state.ar.us/energy/assistance/liheap.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "arkansas-weatherization-assistance-program",
+      "name": "Weatherization Assistance Program (WAP)",
+      "shortName": "WAP",
+      "tagline": "Free home energy improvements that can cut your parent's heating and cooling costs by hundreds each year.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Six CAAs cover entire state: https://www.acaaa.org/",
+            "type": "service-area"
+          },
+          {
+            "name": "Examples: Better Community Development (BCD), CADC, CSCDC",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent's income is below $23,760/year (for a single person) and they struggle with high energy bills, Arkansas's Weatherization Assistance Program provides free home improvements to reduce heating and cooling costs. The program covers everything from insulation and weather-stripping to furnace repairs and new energy-efficient heating equipment — all at no cost to your parent.\n\nBecause funding is limited, the program prioritizes households with seniors over 60, people with disabilities, or families with children under 7. If your parent receives SSI, they automatically qualify regardless of other income. The work is done by trained crews after a professional energy audit identifies what improvements will save the most money on utility bills.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Income below 200% Federal Poverty Level",
+          "Priority for age 60+",
+          "Homeowners or renters (with landlord approval)",
+          "Available statewide"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1980
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2670
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 3360
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 4050
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 4740
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 5430
+          },
+          {
+            "householdSize": 7,
+            "monthlyLimit": 6122
+          },
+          {
+            "householdSize": 8,
+            "monthlyLimit": 6815
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Households receiving SSI automatically qualify",
+          "Renters need landlord approval via Lessor Agreement",
+          "Must provide 12 months of utility bills"
+        ],
+        "povertyLevelReference": "200% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local Community Action Agency — processing time varies by region due to limited funding and waitlists.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local Community Action Agency",
+            "description": "Visit acaaa.org to find which of the six agencies serves your parent's county."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect 12 months of utility bills, proof of income (pay stubs, Social Security statements), and if renting, get landlord's written approval."
+          },
+          {
+            "step": 3,
+            "title": "Submit weatherization application",
+            "description": "Complete the application with income verification and utility usage history. Each agency has slightly different forms."
+          },
+          {
+            "step": 4,
+            "title": "Wait for energy audit scheduling",
+            "description": "If approved, a DOE-trained auditor will inspect your parent's home to determine which improvements will save the most energy."
+          },
+          {
+            "step": 5,
+            "title": "Schedule the weatherization work",
+            "description": "Local crews or contractors will complete all approved work at no cost — this can include insulation, new heating equipment, and safety upgrades."
+          }
+        ],
+        "processingTime": "Not specified; varies by region and funding availability",
+        "waitlist": "Possible due to limited funding; priority given to elderly, disabled, and families with young children",
+        "tip": "If your parent receives SSI, mention this upfront — they automatically qualify regardless of other income.",
+        "urls": [
+          {
+            "label": "Find local Community Action Agency",
+            "url": "https://www.acaaa.org/"
+          },
+          {
+            "label": "Arkansas Energy Office",
+            "url": "https://www.adeq.state.ar.us/energy/assistance/wap.aspx"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (2026)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1980,
+              "annualLimit": 23760
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 2670,
+              "annualLimit": 32040
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 3360,
+              "annualLimit": 40320
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 4050,
+              "annualLimit": 48600
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 4740,
+              "annualLimit": 56880
+            },
+            {
+              "householdSize": 6,
+              "monthlyLimit": 5430,
+              "annualLimit": 65160
+            },
+            {
+              "householdSize": 7,
+              "monthlyLimit": 6122,
+              "annualLimit": 73460
+            },
+            {
+              "householdSize": 8,
+              "monthlyLimit": 6815,
+              "annualLimit": 81780
+            }
+          ],
+          "footnote": "Based on 200% Federal Poverty Guidelines. Households receiving SSI automatically qualify."
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Income Proof",
+              "items": [
+                "Payroll checks or pay stubs",
+                "Social Security statements",
+                "Employment Office statements (if unemployed)",
+                "Support payment statements"
+              ]
+            },
+            {
+              "name": "Utility Records",
+              "items": [
+                "12 months of gas bills",
+                "12 months of electric bills",
+                "12 months of propane bills (if applicable)",
+                "Usage history (or sign release for agency to request)"
+              ]
+            },
+            {
+              "name": "For Renters",
+              "items": [
+                "Completed Lessor Agreement (landlord approval)",
+                "Tenant's Rights form",
+                "Landlord contact information"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Renters must get landlord approval before applying. Your parent's landlord must sign a Lessor Agreement allowing the weatherization work to proceed. Without this, the application cannot be processed."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent is over 60, has a disability, or there are children under 7 in the household, they receive priority placement due to limited funding. This can significantly reduce wait times."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent rents their home?",
+          "answer": "Renters can qualify, but the landlord must sign a Lessor Agreement and Tenant's Rights form before work begins. The improvements stay with the property, so landlords often agree since it increases the home's energy efficiency at no cost to them."
+        },
+        {
+          "question": "How much can this actually save on energy bills?",
+          "answer": "Savings vary based on the home's condition and which improvements are made. A professional energy auditor will assess your parent's home and prioritize the upgrades that will provide the biggest reduction in heating and cooling costs."
+        },
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "If your parent receives SSI, they automatically qualify regardless of other income. Otherwise, income must be at or below 200% of Federal Poverty Guidelines ($23,760/year for a single person in 2026). There's no flexibility on this requirement."
+        },
+        {
+          "question": "How long does the whole process take?",
+          "answer": "Processing time varies by region and funding availability. After approval, you'll wait for an energy audit appointment, then for work crews to be scheduled. Due to limited funding, there may be waitlists, especially in areas without priority status."
+        },
+        {
+          "question": "What exactly gets done to the house?",
+          "answer": "After an energy audit, work can include attic and wall insulation, weather-stripping, caulking, storm windows, furnace repairs or replacement, and health/safety upgrades. All work is done by trained crews or contractors at no cost to your parent."
+        },
+        {
+          "question": "Can my parent apply if they've gotten help from the utility company before?",
+          "answer": "Yes, this is separate from utility-specific programs like Entergy Low-Income Solutions. Your parent can potentially qualify for both programs since they serve different purposes and have different funding sources."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.adeq.state.ar.us/energy/assistance/wap.aspx",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "arkansas-senior-medicare-patrol-ship",
+      "name": "Senior Medicare Patrol (SMP) / SHIP",
+      "shortName": "SMP/SHIP Arkansas",
+      "tagline": "Free help spotting Medicare fraud and getting your parent's health insurance questions answered by experts.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Administered statewide by Arkansas Insurance Department",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare, they're a target for fraud — billing for services never received, fake medical equipment sales, or identity theft. Arkansas's Senior Medicare Patrol provides free one-on-one help to spot these scams before they cost your family money. The program also includes SHIP counselors who answer complex Medicare questions about coverage, claims, and benefits.\n\nBecause SMP counselors review your parent's Medicare statements with them, they catch billing errors and fraudulent charges that could increase premiums or reduce benefits. No income limits apply — any Medicare beneficiary in Arkansas can get help, and family members can call on behalf of their parents.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Medicare beneficiary in Arkansas",
+          "No income or asset limits",
+          "Family members can also get help"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a Medicare beneficiary, family member, or caregiver in Arkansas"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call for immediate help — no application required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the helpline",
+            "description": "Call 1-866-726-2916 for Medicare fraud issues or 1-800-224-6330 for general Medicare questions"
+          },
+          {
+            "step": 2,
+            "title": "Describe your concern",
+            "description": "Explain what Medicare billing or coverage question you need help with"
+          },
+          {
+            "step": 3,
+            "title": "Get personalized assistance",
+            "description": "A trained volunteer will review documents with you and provide guidance specific to your situation"
+          }
+        ],
+        "processingTime": "Immediate assistance available via phone or email",
+        "waitlist": null,
+        "tip": "Have your parent's Medicare card and recent Medicare statements ready when you call — counselors can spot problems faster with the actual paperwork in front of you.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Have Ready",
+          "categories": [
+            {
+              "name": "Medicare Documents",
+              "items": [
+                "Medicare card",
+                "Medicare statements or Explanation of Benefits (EOB) if addressing a specific issue"
+              ]
+            },
+            {
+              "name": "Identity",
+              "items": [
+                "Personal identification"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program focuses only on education and fraud prevention — counselors don't provide direct financial assistance or medical care, but they can save your family money by catching billing errors and preventing scams."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I call on behalf of my parent who has dementia?",
+          "answer": "Yes, family members and caregivers can contact SMP/SHIP for help. The counselors can work with you to review your parent's Medicare documents and identify potential issues."
+        },
+        {
+          "question": "What if we think someone is already using my parent's Medicare number fraudulently?",
+          "answer": "Call the SMP helpline at 1-866-726-2916 immediately. They'll help you report the fraud to Medicare and guide you through steps to protect your parent's Medicare benefits and identity."
+        },
+        {
+          "question": "My parent gets confusing Medicare Advantage bills — can SMP help with those?",
+          "answer": "Yes, SMP counselors help with all types of Medicare coverage including Medicare Advantage plans. They can review billing statements and explain what charges should and shouldn't appear."
+        },
+        {
+          "question": "Do we have to pay anything for this help?",
+          "answer": "No, all SMP and SHIP services are completely free. If anyone asks for payment for Medicare help, that itself may be a scam — report it to SMP."
+        },
+        {
+          "question": "How do we know if a medical equipment company is legitimate?",
+          "answer": "SMP counselors can help verify whether medical equipment suppliers are legitimate Medicare providers. They can also review any bills to ensure your parent actually received the equipment being charged for."
+        },
+        {
+          "question": "Can SMP help if my parent's Medicare claim was denied?",
+          "answer": "The SHIP component can help explain why a claim was denied and guide you through the appeals process. Call 1-800-224-6330 for Medicare coverage questions and appeals assistance."
+        }
+      ],
+      "phone": "1-866-726-2916",
+      "sourceUrl": "https://insurance.arkansas.gov/consumer-assistance/senior-medicare-patrol-smp/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "arkansas-meals-on-wheels",
+      "name": "Meals on Wheels",
+      "shortName": "Meals on Wheels",
+      "tagline": "Hot meals delivered to your parent's home if they can't safely prepare food or leave the house.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local chapters of Arkansas Association of Area Agencies on Aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and homebound — unable to safely prepare meals or leave home due to illness, disability, or frailty — they may qualify for hot meals delivered to their door 5 days a week. Each meal is planned by a registered dietitian and typically includes a hot entrée, sides, and sometimes a cold meal for later.\n\nThis isn't based on income. The key requirement is that your parent cannot safely cook or shop for groceries and doesn't have family or friends who can consistently provide meals. Because the program is run by local Area Agencies on Aging, availability and wait times vary by your parent's address — some areas start service within a week, others have waiting lists.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Homebound due to illness or disability",
+          "Cannot safely prepare meals",
+          "Lives in service delivery area"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be homebound due to illness, disability, frailty, or isolation and unable to prepare nutritious meals safely due to mobility or mental impairment",
+        "otherRequirements": [
+          "No adequate family, friends, or community support for meal preparation",
+          "Lives within local delivery area boundaries"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local Area Agency on Aging for an assessment — processing varies from one week to several months depending on local demand.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local Area Agency on Aging",
+            "description": "Visit aging.arkansas.gov to find your local chapter, or call them directly if you know which area serves your parent's address."
+          },
+          {
+            "step": 2,
+            "title": "Complete phone or in-person assessment",
+            "description": "Staff will assess your parent's health, mobility, dietary needs, and safety in preparing meals. Have medical information and emergency contacts ready."
+          },
+          {
+            "step": 3,
+            "title": "Provide required documents",
+            "description": "Bring proof of age, residence, medical conditions, dietary restrictions, and emergency contacts. Some programs may require a doctor's referral."
+          },
+          {
+            "step": 4,
+            "title": "Schedule delivery",
+            "description": "If approved, staff will arrange delivery schedule and any special dietary accommodations."
+          }
+        ],
+        "processingTime": "Varies by area — some within a week, others have waiting lists",
+        "waitlist": "Possible in high-demand areas — varies by local provider",
+        "tip": "Call early in the morning — local offices often have better availability information then and can tell you realistic wait times.",
+        "urls": [
+          {
+            "label": "Find Local Area Agency on Aging",
+            "url": "https://aging.arkansas.gov/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residence",
+              "items": [
+                "Proof of age (driver's license, birth certificate)",
+                "Proof of Arkansas residence (utility bill, lease)"
+              ]
+            },
+            {
+              "name": "Medical Information",
+              "items": [
+                "List of current medications",
+                "Dietary restrictions and allergies",
+                "Chronic health conditions (diabetes, heart disease)",
+                "Physician contact information",
+                "Recent hospitalization records",
+                "Health insurance cards"
+              ]
+            },
+            {
+              "name": "Support Information",
+              "items": [
+                "Emergency contact details",
+                "Information about adaptive equipment used",
+                "Details about current family/friend support for meals"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Meals on Wheels isn't available everywhere in Arkansas. You must live within the specific delivery area served by your local Area Agency on Aging. If your parent can drive to a senior center, they may only qualify for congregate meals there instead of home delivery."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This isn't an income-based program — it's about your parent's ability to safely prepare food and leave home. Even if they have savings or a decent pension, they can still qualify if they're homebound and can't cook safely."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent can still drive sometimes but struggles with cooking?",
+          "answer": "They may only qualify for congregate meals at senior centers rather than home delivery. The program prioritizes home delivery for people who are truly homebound. However, assessment criteria vary by local area — some programs make exceptions for severe mobility issues even if your parent can occasionally leave home."
+        },
+        {
+          "question": "Can my dad's wife get meals too if she's under 60?",
+          "answer": "Maybe. Spouses of eligible participants may qualify if it's in the best interest of the program, but they're not automatically eligible. The local Area Agency will assess her separately to determine if she also cannot safely prepare meals."
+        },
+        {
+          "question": "Will this affect my mother's other benefits like Medicaid?",
+          "answer": "No. Meals on Wheels won't count as income or assets for other programs. It's a nutrition service, not a cash benefit, so it won't impact eligibility for Medicaid, SNAP, or Social Security."
+        },
+        {
+          "question": "What if there's a waiting list in our area?",
+          "answer": "Ask to be placed on the waiting list and ask for an estimated timeline. Priority often goes to people with the greatest nutritional risk or fewest resources. Some programs can suggest alternative resources like senior food pantries while you wait."
+        },
+        {
+          "question": "Can Mom choose what meals she gets or accommodate her diabetes?",
+          "answer": "Yes, meals are planned by registered dietitians and programs typically accommodate medical dietary needs like diabetes, low-sodium, or soft foods. Discuss your parent's restrictions during the assessment — this is exactly what the program is designed to handle."
+        },
+        {
+          "question": "What if we move to a different county in Arkansas?",
+          "answer": "You'll need to reapply with the new county's Area Agency on Aging. Eligibility and availability vary by local area, so there's no guarantee of immediate service in the new location."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://aging.arkansas.gov/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "arkansas-family-caregiver-support",
+      "name": "Family Caregiver Support Program",
+      "shortName": "Caregiver Support",
+      "tagline": "Get respite care and support services when you're caring for a parent who needs help with daily activities.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Area Agencies on Aging statewide via agingarkansas.org[2].",
+            "type": "service-area"
+          },
+          {
+            "name": "Alzheimer's Arkansas Programs and Services, 201 Markham Center Drive, Little Rock AR 72205 (certain counties)[5].",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're caring for a parent who needs help with bathing, dressing, or other daily activities, Arkansas's Family Caregiver Support Program provides respite care and practical support services at no cost. The program serves family caregivers whose care recipient is 60+ (or any age with dementia) and functionally impaired.\n\nServices include respite care, transportation, meal preparation, medication reminders, and help with medical appointments. Because the program has no income or asset limits, your parent's financial situation won't disqualify them. However, your parent cannot receive duplicate services from Medicaid, Medicare, or insurance for the same needs.\n\nThe program operates through 9 regional Area Agencies on Aging across Arkansas, so available services and providers vary by location. Your parent must be unable to perform at least 2 activities of daily living without substantial help, or need supervision due to cognitive impairment that poses safety risks.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Care recipient 60+ (any age with dementia)",
+          "Unable to perform 2+ daily activities independently",
+          "No income or asset limits",
+          "Must be family caregiver providing unpaid care"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Care recipient must be unable to perform at least 2 activities of daily living (bathing, dressing, eating, toileting, transferring, continence) without substantial assistance, or require supervision due to cognitive impairment that poses serious health/safety risks",
+        "otherRequirements": [
+          "Caregiver must be adult family member providing unpaid care",
+          "Care recipient cannot receive duplicate services from Medicaid, Medicare, or insurance",
+          "Alternative: Grandparents 55+ caring for grandchildren when parents unable/unwilling"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your local Area Agency on Aging through agingarkansas.org - processing time varies by region.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local Area Agency on Aging",
+            "description": "Visit agingarkansas.org/services/family-caregiver-support/ to locate your regional AAA provider"
+          },
+          {
+            "step": 2,
+            "title": "Get physician certification",
+            "description": "Obtain a letter from your parent's doctor on professional letterhead stating the diagnosis and need for caregiver assistance"
+          },
+          {
+            "step": 3,
+            "title": "Gather required documents",
+            "description": "Collect proof your parent lives in the service area and confirmation they're not receiving duplicate services elsewhere"
+          },
+          {
+            "step": 4,
+            "title": "Complete regional application",
+            "description": "Submit application through your local AAA - specific forms and processes vary by region"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Start with the physician certification - this often takes longest to obtain and is required for most regional applications.",
+        "urls": [
+          {
+            "label": "Find Local Area Agency on Aging",
+            "url": "https://agingarkansas.org/services/family-caregiver-support/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Medical",
+              "items": [
+                "Physician certification letter on professional letterhead with date, diagnosis, and doctor's signature",
+                "Documentation of chronic illness or functional impairment"
+              ]
+            },
+            {
+              "name": "Residency",
+              "items": [
+                "Proof care recipient lives in the service area (utility bill, lease, or mail)",
+                "Confirmation care recipient is not receiving duplicate services from other programs"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "Local Offices",
+          "offices": [
+            {
+              "name": "Arkansas Area Agencies on Aging (Statewide)",
+              "type": "service-area",
+              "phone": null,
+              "address": "Contact via agingarkansas.org/services/family-caregiver-support/"
+            },
+            {
+              "name": "Alzheimer's Arkansas Programs and Services",
+              "type": "service-area",
+              "phone": null,
+              "address": "201 Markham Center Drive, Little Rock AR 72205 (serves Pulaski, Saline, Monroe, Prairie, Lonoke, Faulkner counties)"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent cannot receive the same services from this program and Medicaid, Medicare, or insurance simultaneously. Make sure to disclose all other services when applying to avoid conflicts."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent has dementia but is under 60?",
+          "answer": "They still qualify. The age requirement is waived for anyone diagnosed with Alzheimer's or another type of dementia, regardless of age."
+        },
+        {
+          "question": "Can I get paid to be my parent's caregiver through this program?",
+          "answer": "No. This program provides respite care and support services, not payment to family caregivers. If you're looking for paid caregiving, ask about Arkansas Independent Choices through Medicaid."
+        },
+        {
+          "question": "What exactly counts as 'unable to perform 2 activities of daily living'?",
+          "answer": "Your parent must need substantial assistance (more than just reminding) with at least 2 of these: bathing, dressing, eating, using the toilet, moving from bed to chair, or bowel/bladder control. Verbal reminding, physical help, or constant supervision all count as substantial assistance."
+        },
+        {
+          "question": "My parent has Medicare - does that disqualify them?",
+          "answer": "No, having Medicare doesn't disqualify them. However, they cannot use this program for services that Medicare is already covering. The program will coordinate to avoid duplicate services."
+        },
+        {
+          "question": "How much respite care can I get?",
+          "answer": "The amount varies by region and local provider availability. Your Area Agency on Aging will assess your needs and let you know what's available in your area."
+        },
+        {
+          "question": "What if I'm a grandparent raising my grandchild?",
+          "answer": "You may qualify if you're 55+ and the primary caregiver for a grandchild (by blood, marriage, or adoption) whose parents are unable or unwilling to provide care. You need either a legal relationship or be informally raising the child."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://agingarkansas.org/services/family-caregiver-support/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "arkansas-scsep-employment",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP",
+      "tagline": "Part-time paid work for unemployed adults 55+ at minimum wage while getting job training and placement help.",
+      "programType": "employment",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Primary: Division of Aging, Adult, and Behavioral Health Services, Little Rock",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55 or older and currently unemployed, SCSEP provides part-time paid work (average 20 hours per week) at community organizations like schools, hospitals, or senior centers. Your parent earns at least minimum wage while receiving job training and help finding permanent employment.\n\nBecause SCSEP is designed as a bridge to regular employment, participants work with an Employment and Training Coordinator who helps develop job skills and search for unsubsidized work. Income must be at or below 125% of the federal poverty level — for example, $18,735 annually for a single person in 2026.\n\nThe program is statewide but administered centrally through Little Rock. Veterans, those over 65, people with disabilities, and rural residents get priority enrollment.",
+      "savingsRange": "",
+      "savingsSource": "Part-time employment program",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Currently unemployed",
+          "Income at or below 125% federal poverty level",
+          "Arkansas resident"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unemployed at time of application",
+          "Arkansas resident",
+          "Low employment prospects"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call (501) 320-6586 to start the application process — if eligible and no waiting list, enrollment follows quickly.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact the Arkansas Department of Human Services",
+            "description": "Call (501) 320-6586 or email aging@dhs.arkansas.gov to request an application"
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of age, Arkansas residency, household income, and current unemployment status"
+          },
+          {
+            "step": 3,
+            "title": "Submit completed application",
+            "description": "Return application with documents by mail, email, or in-person at 700 Main Street, 5th Floor, Little Rock"
+          },
+          {
+            "step": 4,
+            "title": "If accepted, meet with Employment Coordinator",
+            "description": "Discuss work placement options at local community organizations and job training goals"
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": "Possible waiting list if program capacity is full",
+        "tip": "Veterans, those over 65, people with disabilities, and rural residents get priority — mention these when calling.",
+        "urls": [
+          {
+            "label": "Official Arkansas SCSEP page",
+            "url": "https://humanservices.arkansas.gov/divisions-shared-services/aging-adult-behavioral-health-services/find-home-community-based-services-for-adults-seniors/senior-community-service-employment-program/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Photo ID or birth certificate (proof of age)",
+                "Utility bill or lease agreement (proof of Arkansas residency)"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security statement, pension records, or other income documentation",
+                "Proof of current unemployment status"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "There may be a waiting list if the program is at capacity. Priority goes to veterans, those over 65, people with disabilities, homeless individuals, and rural residents."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is temporary employment designed to lead to permanent work. Your parent must be genuinely unemployed when applying — not just underemployed or looking for additional income."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "How much will my parent earn?",
+          "answer": "Your parent earns the higher of federal, state, or local minimum wage for an average of 20 hours per week. The exact amount depends on current minimum wage rates and hours worked at their specific placement."
+        },
+        {
+          "question": "What kind of work will my parent do?",
+          "answer": "Work placements are at non-profit organizations and government agencies like schools, hospitals, senior centers, or community organizations. The specific job depends on your parent's skills and available openings in your area."
+        },
+        {
+          "question": "How long can my parent stay in the program?",
+          "answer": "SCSEP is designed as a bridge to permanent employment, not long-term income. The Employment and Training Coordinator works with participants to find unsubsidized jobs. Duration varies but the goal is transition to regular employment."
+        },
+        {
+          "question": "What if my parent's income is just over 125% of poverty level?",
+          "answer": "Income must be at or below 125% of federal poverty guidelines to qualify. If your parent's income is above this threshold, they won't be eligible for SCSEP, but the coordinator may suggest other employment resources."
+        },
+        {
+          "question": "Can my parent keep other benefits while in SCSEP?",
+          "answer": "SCSEP earnings count as income and may affect other benefits like SNAP or Medicaid. Contact those programs directly to understand how part-time wages will impact eligibility."
+        },
+        {
+          "question": "What if there's no placement available in our area?",
+          "answer": "Placements depend on partnerships with local organizations. If nothing is immediately available, your parent may be placed on a waiting list or the coordinator may help identify opportunities in nearby areas."
+        }
+      ],
+      "phone": "(501) 320-6586",
+      "sourceUrl": "https://humanservices.arkansas.gov/divisions-shared-services/aging-adult-behavioral-health-services/find-home-community-based-services-for-adults-seniors/senior-community-service-employment-program/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "arkansas-legal-aid-seniors",
+      "name": "Legal Aid for Seniors in Arkansas (Multiple Programs)",
+      "shortName": "Arkansas Legal Aid",
+      "tagline": "Free legal help for your parent with wills, powers of attorney, debt relief, and protection from scams.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false
+      },
+      "intro": "If your parent needs legal help but can't afford an attorney, Arkansas offers free legal services through several organizations. These programs help with everyday legal issues that affect seniors: creating wills and powers of attorney, dealing with debt collectors, fighting evictions, and protecting against elder abuse. Your parent must have low income (generally 125% of federal poverty guidelines) to qualify.\n\nArkansas doesn't have one unified legal aid program. Instead, different organizations serve different parts of the state. Because you'll need to find the right organization for your parent's county, start by calling your local Area Agency on Aging for a referral — they know which legal aid group covers your area.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Low income (125% of federal poverty level)",
+          "Civil legal issues only",
+          "Arkansas resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must have civil (not criminal) legal problems",
+          "Income at or below 125% of federal poverty guidelines"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call your local Area Agency on Aging first for a referral to the right legal aid organization in your county.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Get a referral",
+            "description": "Call your local Area Agency on Aging to find out which legal aid organization serves your parent's county. Find your AAA at agingarkansas.org."
+          },
+          {
+            "step": 2,
+            "title": "Contact the legal aid organization",
+            "description": "Call the organization directly using the phone number provided by your AAA. For statewide coverage, try Legal Aid of Arkansas at 1-800-952-9243 first."
+          },
+          {
+            "step": 3,
+            "title": "Verify income eligibility",
+            "description": "Ask about income limits for your parent's household size and what documents they'll need to prove eligibility."
+          },
+          {
+            "step": 4,
+            "title": "Describe the legal issue",
+            "description": "Explain your parent's specific legal problem to see if it falls within their service areas (family law, debt relief, housing, elder abuse, estate planning)."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Start with Legal Aid of Arkansas (1-800-952-9243) since they serve statewide — if they can't help, they'll refer you to the right local organization.",
+        "urls": [
+          {
+            "label": "Legal Aid of Arkansas",
+            "url": "https://arlegalaid.org"
+          },
+          {
+            "label": "Find your Area Agency on Aging",
+            "url": "https://agingarkansas.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Arkansas has multiple legal aid organizations serving different counties. Don't waste time calling the wrong one — start with your Area Agency on Aging to get referred to the right organization for your parent's address."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Which legal aid organization should my parent call?",
+          "answer": "It depends on where they live. Legal Aid of Arkansas serves the whole state, but some counties have specialized programs. Arkansas Volunteer Lawyers for the Elderly serves most of the state except 8 central counties around Little Rock, which are served by Central Arkansas Legal Services instead. Call your Area Agency on Aging first — they'll tell you exactly which organization covers your parent's county."
+        },
+        {
+          "question": "What income level qualifies for free legal aid?",
+          "answer": "Generally 125% of federal poverty guidelines, but the exact dollar amounts aren't published. You'll need to call and ask based on your parent's household size. If their income is slightly over the limit, some organizations offer low-cost services instead of free ones."
+        },
+        {
+          "question": "Can these lawyers help if my parent is being sued or facing criminal charges?",
+          "answer": "They handle civil legal problems only — not criminal cases. They can help with debt collection lawsuits, eviction proceedings, and civil issues like elder abuse protective orders. For criminal matters, your parent would need a public defender or private criminal attorney."
+        },
+        {
+          "question": "How long does it take to get help once my parent applies?",
+          "answer": "Processing times aren't published by these organizations. When you call, ask about current wait times and whether they handle urgent situations (like pending evictions) faster than routine matters like will preparation."
+        },
+        {
+          "question": "What if my parent needs help with something not on their services list?",
+          "answer": "Legal aid programs focus on high-priority areas affecting low-income people. If your parent's issue isn't covered, the intake worker may be able to refer you to other resources, pro bono programs, or reduced-fee attorney referral services through the Arkansas Bar Association."
+        },
+        {
+          "question": "Does my parent need to bring documents when they first call?",
+          "answer": "Not for the initial call, but have information about their income, assets, and legal problem ready. If they qualify, the organization will tell you exactly what documents to bring to the appointment or mail in for the application."
+        }
+      ],
+      "phone": "1-800-952-9243",
+      "sourceUrl": "https://arlegalaid.org",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "arkansas-long-term-care-ombudsman",
+      "name": "Arkansas Long-Term Care Ombudsman Program",
+      "shortName": "Ombudsman Program",
+      "tagline": "Free advocate to resolve problems and protect your parent's rights if they're in a nursing home or assisted living facility.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "intro": "If your parent lives in a nursing home, assisted living facility, or other long-term care facility in Arkansas, they have a right to a free advocate who can investigate complaints and fight for better care. The Arkansas Long-Term Care Ombudsman Program provides trained advocates who work specifically to protect residents' rights and resolve problems within facilities.\n\nOmbudsmen help with issues like poor food quality, unsafe conditions, financial problems, Medicaid eligibility disputes, inappropriate restraints, room temperature problems, and discharge disputes. Because ombudsmen are independent from the facilities, they can investigate complaints without fear of retaliation against your parent.\n\nThis service is completely free and available to any resident in any long-term care facility in Arkansas. You, your parent, or anyone else can contact an ombudsman — no paperwork or eligibility requirements needed.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Currently living in Arkansas long-term care facility",
+          "No income limits",
+          "No age requirements",
+          "Free service"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a current resident of a long-term care facility in Arkansas"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local ombudsman (number should be posted in your parent's facility) — no application needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local ombudsman number",
+            "description": "Look for the ombudsman contact information posted in your parent's facility, or contact your local Area Agency on Aging to get connected to your regional ombudsman."
+          },
+          {
+            "step": 2,
+            "title": "Call and describe the problem",
+            "description": "Explain the specific issue or concern about your parent's care, safety, or rights. You can call on behalf of your parent or they can call themselves."
+          },
+          {
+            "step": 3,
+            "title": "Let the ombudsman investigate",
+            "description": "The ombudsman will visit the facility, investigate the complaint, and work with facility staff to resolve the issue while protecting your parent's rights."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "You can remain anonymous when filing a complaint if you're worried about retaliation against your parent.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program is only for people already living in long-term care facilities. If you're looking for help getting your parent into a facility or paying for care, you'll need different resources."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if the nursing home won't let the ombudsman visit my mom?",
+          "answer": "Facilities are required by law to allow ombudsman access. If they deny access, the State Ombudsman can seek court orders and request sanctions against the facility."
+        },
+        {
+          "question": "Can I call the ombudsman if my dad doesn't want me to?",
+          "answer": "Yes, family members, friends, facility staff, or anyone else can contact an ombudsman about concerns for a resident. You can even call anonymously."
+        },
+        {
+          "question": "Will calling an ombudsman make the facility treat my parent worse?",
+          "answer": "Ombudsmen are trained to protect residents from retaliation. They work to resolve issues while maintaining your parent's relationship with facility staff, and retaliation is illegal."
+        },
+        {
+          "question": "What kinds of problems can an ombudsman actually fix?",
+          "answer": "Ombudsmen help with care quality issues, financial disputes, Medicaid problems, inappropriate restraints, poor food, unsafe conditions, room temperature, discharge disputes, and violations of resident rights."
+        },
+        {
+          "question": "How long does it take for an ombudsman to resolve a complaint?",
+          "answer": "Resolution time varies depending on the complexity of the issue. Simple problems might be resolved in days, while complex issues involving multiple agencies could take weeks or months."
+        },
+        {
+          "question": "Does it cost anything to use ombudsman services?",
+          "answer": "No, ombudsman services are completely free. There are no fees, no paperwork, and no eligibility requirements to access help."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": null,
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Arkansas offers 12 programs to help your aging parent stay independent and reduce your family's caregiving costs. Nine provide direct financial benefits — from monthly grocery assistance to paid home care services — while three offer free resources like legal help and Medicare fraud protection. If your parent is on a fixed income or needs daily help with bathing, dressing, or meals, multiple programs may apply. Start by checking the highest-impact benefits first, then explore free resources that require no income qualification.",
+    "startHere": [
+      {
+        "name": "ARChoices in Homecare",
+        "programId": "ar_choices_homecare",
+        "why": "Arkansas will pay for home care instead of nursing home placement if your parent needs daily help."
+      },
+      {
+        "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+        "programId": "medicare_savings_programs",
+        "why": "Can save your parent $200+ monthly on Medicare costs if their income is below $1,660/month."
+      },
+      {
+        "name": "SNAP",
+        "programId": "snap",
+        "why": "Immediate monthly grocery assistance up to $298 for parents 60+ on fixed incomes."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying for home care",
+        "programs": [
+          "ARChoices in Homecare",
+          "Program of All-Inclusive Care for the Elderly (PACE)"
+        ],
+        "description": "Arkansas programs that provide or coordinate in-home caregiving services."
+      },
+      {
+        "need": "Monthly financial assistance",
+        "programs": [
+          "SNAP",
+          "Medicare Savings Programs (QMB, SLMB, QI)",
+          "LIHEAP"
+        ],
+        "description": "Direct monthly help with groceries, Medicare costs, and energy bills."
+      },
+      {
+        "need": "Home energy savings",
+        "programs": [
+          "LIHEAP",
+          "Weatherization Assistance Program (WAP)"
+        ],
+        "description": "Bill assistance and free home improvements to reduce heating and cooling costs."
+      },
+      {
+        "need": "Food and meal support",
+        "programs": [
+          "SNAP",
+          "Meals on Wheels"
+        ],
+        "description": "Monthly grocery benefits and delivered meals for parents who can't cook safely."
+      },
+      {
+        "need": "Support for you as caregiver",
+        "programs": [
+          "Family Caregiver Support Program"
+        ],
+        "description": "Respite care and services when you're caring for a parent who needs daily help."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "Senior Medicare Patrol (SMP) / SHIP",
+          "Legal Aid for Seniors in Arkansas",
+          "Arkansas Long-Term Care Ombudsman Program"
+        ],
+        "description": "Expert help with Medicare questions, legal issues, and nursing home problems at no cost."
+      }
+    ],
+    "quickFacts": [
+      "Most Arkansas benefit programs use income limits around $1,600-2,100/month for single seniors",
+      "Arkansas coordinates many senior programs through Area Agencies on Aging in your parent's county",
+      "PACE is available in select Arkansas counties only — check availability first",
+      "Free resources like legal aid and Medicare help have no income requirements"
+    ],
+    "resourcesVsBenefits": "Arkansas offers two types of help: qualification-based benefits that require income or health assessments (like ARChoices home care or SNAP grocery assistance), and free resources available to all seniors regardless of income (like Senior Medicare Patrol fraud protection and Legal Aid's will preparation). Start with benefits if your parent qualifies, but use the free resources regardless of their financial situation."
+  }
+}

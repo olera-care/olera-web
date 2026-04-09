@@ -1,0 +1,2163 @@
+{
+  "state": "MN",
+  "stateName": "Minnesota",
+  "draftedAt": "2026-04-09T14:24:35.569Z",
+  "total": 13,
+  "successful": 13,
+  "programs": [
+    {
+      "id": "minnesota-medical-assistance-medicaid",
+      "name": "Medical Assistance (Medicaid)",
+      "shortName": "Medical Assistance",
+      "tagline": "Comprehensive health coverage including full nursing home costs for parents with limited income and assets.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "County Human Services offices statewide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs nursing home care or extensive health services, Minnesota Medical Assistance can cover the full cost — including nursing home bills that often run $6,000-8,000 per month. The program provides comprehensive health coverage including doctor visits, hospital care, prescription drugs, and long-term services like nursing home care, home health, and personal care assistance.\n\nFor long-term care coverage, your parent must have income under $1,305/month and assets under $3,000 (single) or $6,000 (couple), plus meet clinical requirements showing they need daily help with activities like bathing, dressing, or medication management. Even if your parent's income is slightly over the limit, they may still qualify through spend-down options where medical expenses reduce countable income.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income under $1,305/month for long-term care",
+          "Assets under $3,000 (single)",
+          "Clinical need assessment for nursing home level care"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 3000,
+          "couple": 6000,
+          "countedAssets": [
+            "Bank accounts",
+            "Retirement accounts",
+            "Second vehicles",
+            "Investment accounts"
+          ],
+          "exemptAssets": [
+            "Primary home (with equity limits)",
+            "One car",
+            "Personal belongings",
+            "Burial plots"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (a clinical assessment showing your parent needs daily help with bathing, dressing, medication management, or other basic activities)",
+        "otherRequirements": [
+          "Minnesota residency",
+          "U.S. citizenship or qualified immigrant status"
+        ],
+        "povertyLevelReference": "138% FPL for general coverage"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online at MNsure.org or call 1-855-366-7873 — processing typically takes 45-90 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather financial documents",
+            "description": "Collect proof of income (Social Security statements, pension records), asset documentation (bank statements, property deeds), and identity documents (birth certificate, Social Security card)."
+          },
+          {
+            "step": 2,
+            "title": "Start application online or by phone",
+            "description": "Use MNsure.org for the fastest processing, or call 1-855-366-7873. For long-term care services, you may also contact your county Human Services office directly."
+          },
+          {
+            "step": 3,
+            "title": "Complete clinical assessment if needed",
+            "description": "For nursing home or waiver services, a clinical assessment will determine if your parent meets the required level of care. This is separate from the financial eligibility review."
+          },
+          {
+            "step": 4,
+            "title": "Authorize asset verification",
+            "description": "You'll need to authorize the Account Validation Service (AVS) which allows the state to verify bank accounts and other assets electronically."
+          }
+        ],
+        "processingTime": "45 days for standard applications, 90 days if disability determination needed",
+        "waitlist": "Possible waitlist for waiver services like Elderly Waiver due to funding caps",
+        "tip": "If your parent receives SSI, they may be automatically eligible without going through the full application process.",
+        "urls": [
+          {
+            "label": "Apply Online",
+            "url": "https://www.mnsure.org/"
+          },
+          {
+            "label": "Minnesota DHS Seniors Page",
+            "url": "https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/seniors.jsp"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Coverage Tiers",
+          "tiers": [
+            {
+              "name": "General Medical Assistance",
+              "description": "Basic health coverage for seniors 65+ with limited income",
+              "incomeLimit": "Up to 138% Federal Poverty Level",
+              "coverage": "Doctor visits, hospital care, prescriptions, basic dental/vision"
+            },
+            {
+              "name": "Long-Term Care Medical Assistance",
+              "description": "Comprehensive coverage including nursing home and waiver services",
+              "incomeLimit": "$1,305/month (single person, 2026)",
+              "coverage": "All general MA benefits plus full nursing home costs, home health, personal care assistance"
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Retirement accounts (401k, IRA)",
+            "Investment accounts",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "excluded": [
+            "Primary home (subject to equity limits)",
+            "One car of any value",
+            "Personal belongings and household items",
+            "Burial plots and prepaid funeral contracts",
+            "Life insurance under certain value limits"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Birth certificate",
+                "Social Security card",
+                "Medicare card if applicable"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letters",
+                "Pension statements",
+                "Bank statements (last 3 months)",
+                "Property deeds",
+                "Vehicle titles"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Disability documentation if applicable",
+                "Recent medical records for level of care assessment"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Estate recovery applies: Minnesota may recover costs from your parent's estate after death, typically through the family home. Spousal protections exist for married couples."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Income slightly over the limit? Ask about spend-down options where medical expenses can reduce countable income, or MA-EPD (Medicaid for Employed Persons with Disabilities) if applicable."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for Medical Assistance?",
+          "answer": "Yes, your parent can keep their primary home while receiving Medical Assistance. However, the state may recover costs from the home's value after death through estate recovery. Equity limits may apply, and spousal protections exist if your parent is married."
+        },
+        {
+          "question": "What if Dad's income is just over the $1,305 limit?",
+          "answer": "He may still qualify through spend-down, where medical expenses reduce his countable income below the limit. The state calculates how much he needs to 'spend down' each month on medical costs to become eligible."
+        },
+        {
+          "question": "How long is the waiting list for home care services?",
+          "answer": "Waiver programs like the Elderly Waiver that provide home care services may have waitlists due to funding caps. Wait times vary by county and current demand. Contact your county Human Services office for current waitlist information."
+        },
+        {
+          "question": "Do both parents need to apply if they're married?",
+          "answer": "Not necessarily. If only one spouse needs long-term care, spousal impoverishment rules protect the community spouse's income and assets up to certain limits. The rules are complex, so it's worth getting help with the application."
+        },
+        {
+          "question": "What's the difference between Medical Assistance and Medicare?",
+          "answer": "Medicare covers medical care but has limited long-term care coverage. Medical Assistance covers what Medicare doesn't, including full nursing home costs and extensive home care services. Many people use both programs together."
+        },
+        {
+          "question": "Can we transfer assets to qualify faster?",
+          "answer": "Asset transfers within 5 years of applying can create penalties and delay eligibility. The state reviews all transfers during this 'look-back period.' It's better to work with the current rules than try to transfer assets."
+        }
+      ],
+      "phone": "1-855-366-7873",
+      "sourceUrl": "https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/seniors.jsp",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "minnesota-elderly-waiver",
+      "name": "Elderly Waiver (EW)",
+      "shortName": "Elderly Waiver",
+      "tagline": "Pays for home care services so your parent can stay out of a nursing home — if they qualify for Minnesota Medical Assistance.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "County human services agencies",
+            "type": "service-area"
+          },
+          {
+            "name": "Tribal nations",
+            "type": "service-area"
+          },
+          {
+            "name": "Enrolled MHCP providers for specific services",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and needs daily help with bathing, dressing, or medication management, Minnesota's Elderly Waiver can pay for home care services instead of nursing home placement. The program covers personal care assistance, housekeeping, meal delivery, home modifications like grab bars, and respite care for family caregivers — but only if the total cost is less than nursing home care.\n\nYour parent must first qualify for Medical Assistance for long-term care services. This isn't automatic for low-income seniors — it requires a separate financial assessment with strict income and asset limits. The program is administered through your county human services office, and services are individualized based on a clinical assessment of your parent's needs.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Need nursing home level of care",
+          "Qualify for Medical Assistance long-term care",
+          "Assets under $3,000"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 3000,
+          "couple": null,
+          "countedAssets": [],
+          "exemptAssets": [],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need nursing facility level of care (a clinical assessment of whether your parent needs daily help with bathing, dressing, medication management, or other basic activities)",
+        "otherRequirements": [
+          "Must qualify for Medical Assistance for long-term care services",
+          "Community-based care must cost less than nursing home placement",
+          "Must choose community care over nursing facility",
+          "Minnesota resident",
+          "U.S. citizen or qualified immigrant"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Contact your county human services office for a Long-Term Care Consultation assessment — processing time varies by county.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for Medical Assistance long-term care",
+            "description": "Visit your county human services office. Your parent must qualify for Medical Assistance before Elderly Waiver eligibility can be determined."
+          },
+          {
+            "step": 2,
+            "title": "Request Long-Term Care Consultation",
+            "description": "Ask for an LTCC or MnCHOICES assessment to determine if your parent needs nursing facility level of care."
+          },
+          {
+            "step": 3,
+            "title": "Complete financial assessment",
+            "description": "Provide proof of income, assets, and other financial documentation. If income is over limits, you may need to pay a monthly spenddown amount."
+          },
+          {
+            "step": 4,
+            "title": "Develop care plan",
+            "description": "If eligible, work with assessor to create individualized service plan that costs less than nursing home placement."
+          }
+        ],
+        "processingTime": "Not specified — varies by county",
+        "waitlist": null,
+        "tip": "Schedule a face-to-face interview at your county office rather than applying by phone or mail — the process is complex and benefits from in-person guidance.",
+        "urls": [
+          {
+            "label": "Find your county office",
+            "url": "https://mn.gov/dhs/people-we-serve/seniors/services/home-community/programs-and-services/elderly-waiver.jsp"
+          },
+          {
+            "label": "Minnesota Aging Pathways helpline",
+            "url": "tel:8003332433"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Asset limit is $3,000 for most people",
+            "Specific asset rules follow standard Medical Assistance long-term care guidelines"
+          ],
+          "excluded": [
+            "Exempt assets follow standard Medical Assistance rules (specific exemptions not detailed in sources)"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Social Security card or number",
+                "Proof of U.S. citizenship or qualified immigrant status",
+                "Minnesota residency documentation"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of all income sources",
+                "Bank statements and asset documentation",
+                "Insurance information (Medicare, private insurance)"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records showing need for daily assistance",
+                "Current medications list",
+                "Contact information for doctors and specialists"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Your parent cannot start receiving services until both Medical Assistance eligibility AND the Long-Term Care Consultation are completed. This process can take weeks or months depending on your county."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent's income is over the Medical Assistance limit, they may still qualify but will need to pay a monthly spenddown amount toward their care costs. Don't assume they make 'too much money' — ask your county office to calculate the spenddown."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the Medical Assistance limit?",
+          "answer": "They may still qualify through a spenddown or waiver obligation — a monthly payment toward care costs. The exact amount depends on their income and the cost of services. Your county office can calculate this for you."
+        },
+        {
+          "question": "Can Mom keep her house if she qualifies?",
+          "answer": "Asset limits follow standard Medical Assistance long-term care rules. Contact your county office for specific guidance on home equity and other exempt assets."
+        },
+        {
+          "question": "What services are actually covered?",
+          "answer": "Services include personal care assistance, housekeeping, meal delivery, adult day programs, home modifications like ramps and grab bars, emergency response systems, and respite care for family caregivers. The exact services depend on your parent's assessed needs and must cost less than nursing home placement."
+        },
+        {
+          "question": "How much will we have to pay out of pocket?",
+          "answer": "If your parent qualifies for Medical Assistance without spenddown, services are covered. If their income is over limits, they'll pay a monthly amount toward care costs. The program individualizes costs based on need and available budget."
+        },
+        {
+          "question": "What if the community services would cost more than a nursing home?",
+          "answer": "Your parent won't qualify for Elderly Waiver. The program only covers community-based care when it costs less than nursing facility placement."
+        },
+        {
+          "question": "Can we choose our own home care providers?",
+          "answer": "Providers must be enrolled with Minnesota Health Care Programs (MHCP). Your county office or care coordinator can help you find enrolled providers in your area."
+        }
+      ],
+      "phone": "800-333-2433",
+      "sourceUrl": "https://mn.gov/dhs/people-we-serve/seniors/services/home-community/programs-and-services/elderly-waiver.jsp",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "minnesota-msho-health-plan",
+      "name": "Minnesota Senior Health Options (MSHO)",
+      "shortName": "MSHO",
+      "tagline": "If your parent has both Medicare and Medicaid, MSHO combines all their coverage into one health plan with $0 copays for most services.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Health plans like HealthPartners, Medica DUAL Solution, UCare, BlueCross SecureBlue; county human services offices for MA app",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and has both Medicare and Medicaid (Medical Assistance), Minnesota Senior Health Options (MSHO) combines all their health coverage into one managed care plan. Instead of coordinating between separate Medicare and Medicaid providers, one health plan manages everything—doctor visits, prescriptions, dental care, and long-term services.\n\nBecause MSHO integrates all coverage, your parent gets $0 copays for most in-network medical and dental services, low prescription copays based on income, plus extras like transportation to appointments and over-the-counter allowances. The program is only available in select Minnesota counties through specific health plans like HealthPartners, Medica, UCare, and BlueCross.\n\nMSHO is voluntary. Your parent must first qualify for Medical Assistance (Medicaid) and have Medicare Parts A and B before they can choose to enroll in an MSHO plan.",
+      "savingsRange": "",
+      "savingsSource": "Free service with reduced copays",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Must have Medicare Parts A & B",
+          "Must qualify for Medical Assistance (Medicaid)",
+          "Live in county served by MSHO plan",
+          "U.S. citizen or lawful resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Personal care assistance requires help with at least one activity of daily living (bathing, dressing, eating, toileting, transferring, or walking)",
+        "otherRequirements": [
+          "Must be enrolled in Medicare Parts A and B",
+          "Must qualify for Medical Assistance without spenddown",
+          "Must live in a county where an MSHO health plan operates",
+          "Enrollment is voluntary"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply for Medical Assistance first, then enroll in an MSHO health plan—processing typically takes 30-45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for Medical Assistance first",
+            "description": "Your parent must qualify for Medical Assistance (Medicaid) before enrolling in MSHO. Apply online at MNsure.org or contact your county human services office."
+          },
+          {
+            "step": 2,
+            "title": "Get approved for Medical Assistance",
+            "description": "Wait for MA approval. Processing typically takes 30-45 days depending on your county."
+          },
+          {
+            "step": 3,
+            "title": "Choose and contact an MSHO health plan",
+            "description": "Once MA-approved, contact a health plan that serves your county (HealthPartners, Medica, UCare, or BlueCross) to enroll in their MSHO program."
+          },
+          {
+            "step": 4,
+            "title": "Complete MSHO enrollment",
+            "description": "Enroll during Medicare open enrollment or during a qualifying enrollment period through the health plan."
+          }
+        ],
+        "processingTime": "30-45 days for Medical Assistance approval, then additional time for MSHO enrollment",
+        "waitlist": null,
+        "tip": "Check which health plans serve your parent's county before starting—not all plans operate statewide.",
+        "urls": [
+          {
+            "label": "Apply for Medical Assistance",
+            "url": "https://www.mnsure.org"
+          },
+          {
+            "label": "Find county human services office",
+            "url": "https://mn.gov/dhs"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Citizenship",
+              "items": [
+                "Birth certificate or government-issued ID",
+                "Social Security card",
+                "Proof of citizenship or lawful presence",
+                "Proof of Minnesota residency"
+              ]
+            },
+            {
+              "name": "Insurance & Financial",
+              "items": [
+                "Medicare card showing Parts A and B enrollment",
+                "Recent pay stubs or income statements",
+                "Bank statements and asset documentation",
+                "Previous year's tax returns"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "MSHO is not available statewide. Your parent must live in a county served by an MSHO health plan, and available plans vary by county. Check plan service areas before applying."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent is already in a nursing facility when they enroll, MSHO won't cover those nursing facility services. The 180-day nursing facility benefit only applies if they enter a facility after enrolling."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What happens if my parent doesn't choose MSHO after qualifying for Medical Assistance?",
+          "answer": "Your parent will be automatically enrolled in MSC (Minnesota Senior Care) or MSC+ instead. These programs provide similar services but don't integrate Medicare and Medicaid as seamlessly as MSHO does."
+        },
+        {
+          "question": "Can my parent switch MSHO health plans if they don't like their current one?",
+          "answer": "Yes, but switching is limited to specific enrollment periods like Medicare open enrollment (October 15 - December 7) or if they have a qualifying life event. They can also switch if they move to a county served by a different health plan."
+        },
+        {
+          "question": "Will MSHO cover nursing home costs if my parent needs long-term care?",
+          "answer": "MSHO covers up to 180 days of nursing facility care, but only if your parent enters the facility after enrolling in MSHO. If they're already in a nursing facility when they enroll, those costs won't be covered."
+        },
+        {
+          "question": "What if my parent's income is slightly over the Medical Assistance limit?",
+          "answer": "Your parent must qualify for Medical Assistance without a spenddown to be eligible for MSHO. If their income is over the MA limit, they won't qualify. Contact your county human services office to check current income limits and explore other options."
+        },
+        {
+          "question": "Does my parent need a functional assessment to qualify for MSHO?",
+          "answer": "No functional assessment is required to enroll in basic MSHO. However, if your parent wants specific services like personal care assistance, they'll need an assessment showing they need help with at least one daily activity like bathing or dressing."
+        },
+        {
+          "question": "What's the difference between the MSHO health plans in our area?",
+          "answer": "All MSHO plans provide the same core Medicare and Medicaid benefits, but they differ in provider networks, wellness programs, and extras. HealthPartners might include SilverSneakers, while Medica offers different wellness rewards. Compare plans' provider networks and extra benefits before choosing."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/msho.jsp",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "minnesota-medicare-savings-programs",
+      "name": "Medicare Savings Programs (QMB, SLMB, QI)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "Help paying Medicare premiums, deductibles, and copays if your parent's income is under $1,781/month",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local county or tribal human services offices",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to afford Medicare premiums, deductibles, or copays, Minnesota's Medicare Savings Programs can help. These programs pay some or all Medicare costs based on income — from $144-170/month in Part B premiums alone, plus deductibles and copays that can add up to thousands yearly.\n\nThere are three programs with different income limits: QMB covers the most costs (all Medicare premiums, deductibles, and copays) for incomes up to $1,325/month for singles. SLMB and QI cover Part B premiums only, for slightly higher incomes up to $1,781/month for singles. Because Minnesota sets higher asset limits than federal minimums ($10,000 for singles vs. $9,430 federally), more families qualify here than in other states.",
+      "savingsRange": "$1,700 – $4,000/year",
+      "savingsSource": "Part B premiums ($144-170/month) plus deductibles and copays for QMB enrollees",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "On Medicare or eligible",
+          "Income under $1,781/month (single)",
+          "Assets under $10,000 (single)",
+          "Minnesota resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1325,
+            "program": "QMB"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1783,
+            "program": "QMB"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1585,
+            "program": "SLMB"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2135,
+            "program": "SLMB"
+          },
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1781,
+            "program": "QI"
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2400,
+            "program": "QI"
+          }
+        ],
+        "assetLimits": {
+          "individual": 10000,
+          "couple": 18000,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Investment accounts"
+          ],
+          "exemptAssets": [
+            "Home",
+            "One car",
+            "Personal belongings",
+            "Burial plots",
+            "Life insurance (up to certain value)",
+            "Retirement accounts in payout"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Enrolled in or eligible for Medicare Part A",
+          "U.S. citizen or qualified immigrant",
+          "Cannot have both QI and MinnesotaCare"
+        ],
+        "povertyLevelReference": "100-135% Federal Poverty Level"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through Minnesota's health care programs portal or at your local county office — typically processed within 30-45 days.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather financial documents",
+            "description": "Collect recent bank statements, Social Security award letters, Medicare card, and proof of residency."
+          },
+          {
+            "step": 2,
+            "title": "Apply early if interested in QI",
+            "description": "QI has limited funding and fills up first-come, first-served. Apply as early in the fiscal year as possible."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Apply online at mhcp.dhs.state.mn.us or visit your county human services office with documents."
+          },
+          {
+            "step": 4,
+            "title": "Follow up on processing",
+            "description": "Contact your county office if you don't hear back within 45 days — processing times vary by county workload."
+          }
+        ],
+        "processingTime": "30-45 days (varies by county)",
+        "waitlist": "QI has limited funding and may have waitlist if funds are exhausted",
+        "tip": "Income limits use 'countable income' after standard disregards ($20 general plus half of earned income), so your parent may qualify even if gross income appears slightly over the limit.",
+        "urls": [
+          {
+            "label": "Online application",
+            "url": "https://mhcp.dhs.state.mn.us"
+          },
+          {
+            "label": "Find local county office",
+            "url": "https://mn.gov/dhs/people-we-serve/seniors/health-care/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Program (2024-2025)",
+          "rows": [
+            {
+              "program": "QMB",
+              "single": 1325,
+              "couple": 1783,
+              "benefits": "All Medicare costs covered"
+            },
+            {
+              "program": "SLMB",
+              "single": 1585,
+              "couple": 2135,
+              "benefits": "Part B premiums only"
+            },
+            {
+              "program": "QI",
+              "single": 1781,
+              "couple": 2400,
+              "benefits": "Part B premiums only (limited funding)"
+            }
+          ],
+          "footnote": "Monthly income limits, adjusted annually. Minnesota often exceeds federal minimums."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investment accounts",
+            "Cash value of life insurance (over certain limits)"
+          ],
+          "excluded": [
+            "Your home (primary residence)",
+            "One car per household",
+            "Personal belongings and household goods",
+            "Burial plots and burial funds",
+            "Retirement accounts currently paying out"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Medicare card or proof of Medicare eligibility",
+                "Birth certificate or Social Security card",
+                "Utility bill or lease showing Minnesota address"
+              ]
+            },
+            {
+              "name": "Financial Records",
+              "items": [
+                "Recent bank statements (2-3 months)",
+                "Social Security or pension award letters",
+                "Pay stubs if working",
+                "Investment account statements"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "QI has limited federal funding and fills up first-come, first-served. If you're interested in QI (income $1,585-$1,781 for singles), apply as early in the fiscal year as possible to avoid waitlists."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Minnesota's asset limits ($10,000 single, $18,000 couple) are higher than federal minimums, so your parent may qualify here even if they wouldn't in other states. Income limits also change annually — if your parent was denied before, they may qualify now."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house and car if she qualifies?",
+          "answer": "Yes. The home she lives in and one car don't count toward the $10,000 asset limit. Personal belongings, burial plots, and retirement accounts currently paying out are also exempt."
+        },
+        {
+          "question": "What's the difference between QMB, SLMB, and QI?",
+          "answer": "QMB covers all Medicare costs (premiums, deductibles, copays) but has the lowest income limit ($1,325/month for singles). SLMB and QI only cover Part B premiums (~$170/month) but allow higher incomes. QI has limited funding and may have waitlists."
+        },
+        {
+          "question": "What if Dad's income is just over the limit?",
+          "answer": "He may still qualify. Income limits use 'countable income' after standard disregards: $20 off total income plus half of any earned income. So if his gross income is slightly over, his countable income might still qualify."
+        },
+        {
+          "question": "Will doctors still bill Mom if she has QMB?",
+          "answer": "For Medicare-covered services, no — QMB providers cannot bill your mom for deductibles, copays, or coinsurance. However, non-Medicare providers (like some specialists) can still bill for services Medicare doesn't cover."
+        },
+        {
+          "question": "How long does approval take and when do benefits start?",
+          "answer": "Processing typically takes 30-45 days but varies by county workload. Benefits can be retroactive in some cases. QI may have waitlists due to limited federal funding, so apply early in the fiscal year."
+        },
+        {
+          "question": "Can Dad have both QI and MinnesotaCare?",
+          "answer": "No. Minnesota doesn't allow enrollment in both QI and MinnesotaCare simultaneously. Your dad would need to choose one program or the other based on which provides better coverage for his situation."
+        }
+      ],
+      "phone": "651-431-2670",
+      "sourceUrl": "https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/help-with-medicare-costs.jsp",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "minnesota-snap-food-benefits",
+      "name": "Minnesota SNAP (Supplemental Nutrition Assistance Program)",
+      "shortName": "Minnesota SNAP",
+      "tagline": "Monthly grocery money for parents 60+ on fixed incomes — up to $546/month for couples.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Local county human services offices; Tribal Nations; find via mn.gov/dhs.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and struggling with grocery costs, Minnesota SNAP provides monthly money loaded onto an EBT card for food purchases. Because your parent is over 60, they face no gross income limit and get higher asset limits ($4,500 vs $3,000). The program is designed for seniors on fixed incomes — Social Security, pensions, and disability payments all count as income, but medical expenses over $35/month and shelter costs reduce what counts against them.\n\nBenefit amounts depend on net income after deductions. A single person with $1,000/month after deductions might receive around $200/month in SNAP benefits. Maximum benefit for a couple is around $546/month. Because seniors 60+ can form their own household for SNAP purposes, your parent may qualify even if living with family members who earn too much.",
+      "savingsRange": "$1,200 – $6,500/year in 2026",
+      "savingsSource": "Monthly EBT benefits ranging from ~$100-546/month based on household size and income",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Net income below $1,305/month (single)",
+          "Assets under $4,500",
+          "Minnesota resident"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1305
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1763
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 2221
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 2680
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 3138
+          },
+          {
+            "householdSize": 6,
+            "monthlyLimit": 3596
+          }
+        ],
+        "assetLimits": {
+          "individual": 4500,
+          "couple": 4500,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Savings"
+          ],
+          "exemptAssets": [
+            "Home (typically exempt for seniors)"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "U.S. citizen or qualified non-citizen",
+          "Minnesota resident",
+          "Automatic eligibility if receiving SSI, MSA, or General Assistance"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through your county portal or call 1-800-657-3739 to find your local office.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Choose your application",
+            "description": "Use the Senior SNAP Application (age 60+) rather than the Combined Application Form. Download from benefitscheckup.org or your county website."
+          },
+          {
+            "step": 2,
+            "title": "Gather income and expense documents",
+            "description": "Collect Social Security statements, pension stubs, medical bills over $35/month, and rent/mortgage statements. Medical and shelter costs reduce your countable income."
+          },
+          {
+            "step": 3,
+            "title": "Submit to your county office",
+            "description": "Apply online through MNsure or your county portal, call your local county SNAP office, or mail/deliver in person. Find your county office at mn.gov/dhs."
+          },
+          {
+            "step": 4,
+            "title": "Complete interview if required",
+            "description": "Your county may schedule a phone or in-person interview to review your application and documents."
+          }
+        ],
+        "processingTime": "Contact local county office for processing timeframes",
+        "waitlist": null,
+        "tip": "Seniors 60+ can form a separate household for SNAP even when living with family, which often helps with qualification.",
+        "urls": [
+          {
+            "label": "Find County Offices",
+            "url": "https://mn.gov/dhs"
+          },
+          {
+            "label": "Minnesota DHS SNAP Info",
+            "url": "https://dcyf.mn.gov/snap"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Net Income Limits by Household Size (After Deductions)",
+          "rows": [
+            {
+              "size": "1 person",
+              "monthly": "$1,305",
+              "annual": "$15,660"
+            },
+            {
+              "size": "2 people",
+              "monthly": "$1,763",
+              "annual": "$21,156"
+            },
+            {
+              "size": "3 people",
+              "monthly": "$2,221",
+              "annual": "$26,652"
+            },
+            {
+              "size": "4 people",
+              "monthly": "$2,680",
+              "annual": "$32,160"
+            },
+            {
+              "size": "5 people",
+              "monthly": "$3,138",
+              "annual": "$37,656"
+            },
+            {
+              "size": "6 people",
+              "monthly": "$3,596",
+              "annual": "$43,152"
+            }
+          ],
+          "footnote": "October 2025 - September 2026. No gross income limit for households with someone 60+ or disabled."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts Toward $4,500",
+          "included": [
+            "Cash and checking/savings accounts",
+            "Stocks, bonds, and other investments",
+            "Second vehicles beyond primary transportation"
+          ],
+          "excluded": [
+            "Primary home (typically exempt for seniors)",
+            "Primary vehicle",
+            "Personal belongings and household items",
+            "Life insurance policies"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of Minnesota residency",
+                "Social Security card"
+              ]
+            },
+            {
+              "name": "Income",
+              "items": [
+                "Social Security award letter or bank statements showing deposits",
+                "Pension statements",
+                "VA or disability benefit statements",
+                "Any other income documentation"
+              ]
+            },
+            {
+              "name": "Expenses (Age 60+)",
+              "items": [
+                "Medical bills over $35/month",
+                "Rent or mortgage statements",
+                "Utility bills",
+                "Property tax and insurance statements"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Many eligible seniors miss out on SNAP benefits. If your parent is 60+ and lives with family, they can often qualify as a separate household even when others in the home earn too much."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she gets SNAP?",
+          "answer": "Yes. Your primary home typically doesn't count toward the $4,500 asset limit for seniors, regardless of value."
+        },
+        {
+          "question": "What if her Social Security puts her just over the income limit?",
+          "answer": "Medical expenses over $35/month and shelter costs (rent, utilities, property taxes) are deducted from income. A person with $1,400 in Social Security might qualify after deducting $200 in medical costs and $300 in housing expenses."
+        },
+        {
+          "question": "Can Dad qualify for SNAP if he lives with us?",
+          "answer": "Often yes. Seniors 60+ can form a separate household for SNAP purposes even when living with family members, as long as he buys and prepares some of his own food."
+        },
+        {
+          "question": "How much will she actually get each month?",
+          "answer": "It depends on net income after deductions. Someone with $200 net monthly income might receive around $450/month. Benefits decrease by about $30 for every $100 increase in net income."
+        },
+        {
+          "question": "Does her pension disqualify her?",
+          "answer": "No. Pensions count as income but don't disqualify seniors from SNAP. There's no gross income limit for households with someone 60+ — only the net income limits after deductions matter."
+        },
+        {
+          "question": "What can't she buy with SNAP benefits?",
+          "answer": "SNAP covers most food for home preparation but not alcohol, tobacco, vitamins, supplements, hot prepared foods, or non-food items like soap or pet food."
+        }
+      ],
+      "phone": "1-800-657-3739",
+      "sourceUrl": "https://dcyf.mn.gov/snap",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "minnesota-ship-medicare-counseling",
+      "name": "Senior Health Insurance Assistance Program (SHIP)",
+      "shortName": "SHIP Medicare Help",
+      "tagline": "Free one-on-one help to understand Medicare options and find savings programs for your parent.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Minnesota Board on Aging, 540 Cedar Street, P.O. Box 64976, St. Paul, MN 55164-0976; local Area Agencies on Aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Medicare and you're confused about their coverage options, SHIP provides free one-on-one counseling to help navigate Medicare Parts A, B, C, and D, Medigap policies, and money-saving programs. Because Medicare decisions can save or cost thousands per year, having an expert review your parent's specific situation ensures they get the right coverage at the best price.\n\nSHIP counselors help with Medicare Savings Programs (which can reduce premiums), Extra Help for prescription costs, appeals when claims are denied, and protection from Medicare fraud. The service is available to all Medicare beneficiaries regardless of income — no financial limits apply.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Has Medicare",
+          "No income limits",
+          "Family caregivers welcome"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a Medicare beneficiary or family/caregiver of one"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the Senior LinkAge Line at (800) 333-2433 for immediate counseling — no forms required.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call Senior LinkAge Line",
+            "description": "Call (800) 333-2433 to speak with a SHIP counselor immediately. No appointment needed for basic questions."
+          },
+          {
+            "step": 2,
+            "title": "Gather Medicare information",
+            "description": "Have your parent's Medicare card, current insurance details, prescription list, and income information ready if discussing savings programs."
+          },
+          {
+            "step": 3,
+            "title": "Schedule detailed review",
+            "description": "For complex situations, schedule an in-person or longer phone consultation through your local Area Agency on Aging."
+          }
+        ],
+        "processingTime": "Immediate counseling available via phone or in-person",
+        "waitlist": null,
+        "tip": "Call during open enrollment periods (October 15 - December 7) early in the morning for faster service.",
+        "urls": [
+          {
+            "label": "Minnesota SHIP Website",
+            "url": "https://www.mnaging.org"
+          },
+          {
+            "label": "Minnesota Help Portal",
+            "url": "https://www.minnesotahelp.info"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "SHIP only provides counseling and education — they don't pay premiums or provide financial assistance. Contact Minnesota-specific Senior LinkAge Line, not generic national SHIP numbers, for local Medicare options and providers."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can SHIP help if my parent already has Medicare and thinks they chose wrong?",
+          "answer": "Yes. SHIP counselors can review your parent's current coverage and help them switch during open enrollment (October 15 - December 7) or qualify for special enrollment periods if they have qualifying life changes."
+        },
+        {
+          "question": "Will SHIP try to sell my parent insurance?",
+          "answer": "No. SHIP counselors are volunteers who don't sell insurance or receive commissions. They provide unbiased information to help you compare all available options."
+        },
+        {
+          "question": "Can I call on behalf of my parent?",
+          "answer": "Yes. Family caregivers can get information and assistance for their parents. For detailed personal information, the counselor may need to speak directly with your parent or get their verbal consent."
+        },
+        {
+          "question": "What if my parent has both Medicare and Medicaid?",
+          "answer": "SHIP counselors specialize in dual eligibility situations and can help navigate how both programs work together, including special Medicare plans designed for people with both coverages."
+        },
+        {
+          "question": "Can SHIP help if Medicare denied my parent's claim?",
+          "answer": "Yes. SHIP counselors help with Medicare appeals and can guide you through the process of challenging denied claims or coverage decisions."
+        },
+        {
+          "question": "Is there a limit to how many times we can contact SHIP?",
+          "answer": "No limit. You can contact SHIP whenever you have Medicare questions — during enrollment periods, when circumstances change, or if new issues arise."
+        }
+      ],
+      "phone": "(800) 333-2433",
+      "sourceUrl": "https://mn.gov/adresources/search/f7c7358c-7c36-5ce3-bfac-c412310ca4c5",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "minnesota-meals-on-wheels",
+      "name": "Senior Nutrition Program (Meals on Wheels)",
+      "shortName": "Meals on Wheels",
+      "tagline": "Hot, nutritious meals delivered to your parent's door up to 5 days a week if they can't cook or get to the store.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Three Rivers CAP (southeast MN): (507) 316-0610[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Meals on Wheels of Ramsey County[9]",
+            "type": "service-area"
+          },
+          {
+            "name": "Otter Tail County Nutrition Assistance[4]",
+            "type": "service-area"
+          },
+          {
+            "name": "43 congregate sites and Meals on Wheels in southeast MN via local services[5]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent struggles to cook or can't drive to the grocery store, they may qualify for home-delivered meals Monday through Friday. Because this program focuses on need rather than strict income limits, your parent won't be turned away if they can't afford to donate.\n\nThe program delivers hot, nutritious noon meals directly to your parent's home, with low-sodium options standard and diabetic meals available. Because volunteers deliver the meals, your parent also gets daily safety checks and social connection. If your parent can get out, congregate dining sites offer meals plus social activities and health programs.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Unable to cook regularly",
+          "Unable to drive to stores",
+          "Must live in service area"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Unable to prepare hot, nutritious meals regularly due to mobility or other challenges",
+          "Unable to drive to meal sites, restaurants, or grocery stores",
+          "Able to feed themselves or have someone available to assist",
+          "Reside in the service area of the local provider",
+          "Not living in a facility that provides meals"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your local provider directly — no income verification needed and processing time varies by area.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your local provider",
+            "description": "Contact your area provider by phone. Three Rivers CAP serves southeast Minnesota at (507) 316-0610. Ramsey County residents contact Meals on Wheels of Ramsey County."
+          },
+          {
+            "step": 2,
+            "title": "Explain your parent's situation",
+            "description": "Describe why your parent can't cook or shop regularly — mobility issues, can't drive, or other challenges that make meal preparation difficult."
+          },
+          {
+            "step": 3,
+            "title": "Discuss dietary needs",
+            "description": "Ask about low-sodium, diabetic, or other special meal options if your parent has specific health requirements."
+          },
+          {
+            "step": 4,
+            "title": "Arrange delivery details",
+            "description": "Confirm your parent's address is in the service area and schedule delivery days (up to 5 days per week)."
+          }
+        ],
+        "processingTime": "Not specified — varies by local provider",
+        "waitlist": null,
+        "tip": "You can refer your parent for services even if they're hesitant — many providers will do a brief phone assessment to explain the program.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Local Providers",
+          "offices": [
+            {
+              "name": "Three Rivers CAP",
+              "type": "service-area",
+              "phone": "(507) 316-0610 or (800) 277-8418",
+              "address": "Southeast Minnesota"
+            },
+            {
+              "name": "Meals on Wheels of Ramsey County",
+              "type": "service-area",
+              "phone": "Contact via website",
+              "address": "Ramsey County"
+            },
+            {
+              "name": "Otter Tail County Nutrition Assistance",
+              "type": "service-area",
+              "phone": "Contact county office",
+              "address": "Otter Tail County"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Rural residents: Delivery may not be available outside city limits. Contact your local provider to confirm service area coverage before applying."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent is temporarily recovering from illness or surgery, they can qualify for short-term meal delivery during their recovery period."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent lives outside city limits in a rural area?",
+          "answer": "Delivery may not be available outside city limits. Contact your local provider to check if your parent's address is in their service area. Some areas may require family members or aides to help with delivery logistics."
+        },
+        {
+          "question": "Does my parent have to pay for meals?",
+          "answer": "No one is turned away due to inability to pay. Providers may request monthly donations, but this is completely voluntary. The program is funded through the Older Americans Act."
+        },
+        {
+          "question": "Can my parent get special diet meals?",
+          "answer": "Yes, low-sodium meals are standard and diabetic meals are available. However, not all areas offer gluten-free meals or extensive menu customization — ask your local provider about specific dietary options."
+        },
+        {
+          "question": "What happens in bad weather?",
+          "answer": "Delivery may be cancelled during severe weather for safety reasons. Volunteers will typically call ahead if weather conditions prevent delivery."
+        },
+        {
+          "question": "Can I qualify as a caregiver?",
+          "answer": "Yes, spouses or caregivers may qualify if their caregiving responsibilities prevent them from preparing meals regularly."
+        },
+        {
+          "question": "How many meals per week can my parent receive?",
+          "answer": "Up to 5 meals per week, typically delivered Monday through Friday as hot noon meals. The exact schedule depends on your local provider's capacity and your parent's needs."
+        }
+      ],
+      "phone": "(507) 316-0610",
+      "sourceUrl": "https://mn.gov/dhs/people-we-serve/seniors/services/home-community/programs-and-services/senior-nutrition.jsp",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "minnesota-family-adult-assistance-alternative-care-grants",
+      "name": "Family Adult Assistance Program (FAA) / Alternative Care Grants",
+      "shortName": "FAA / Alternative Care Grants",
+      "tagline": "If your parent needs help with daily activities, Minnesota may pay for home care services to keep them out of a nursing home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local county human services or tribal agencies",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs help with bathing, dressing, or medication management, Minnesota's Family Adult Assistance Program may pay for personal care assistance, homemaker services, and respite care in their home. Because this program is designed to prevent nursing home placement, your parent must meet the same clinical assessment (Nursing Facility Level of Care) that would qualify them for institutional care.\n\nThe program is administered by each county's human services office. Because counties set their own priorities and have different wait times, the services available and processing speed vary significantly across Minnesota. Most counties prioritize applicants at highest risk of immediate nursing home placement.\n\nThis is not the same as MFIP (Minnesota Family Investment Program), which provides cash assistance to families with children and has work requirements. FAA specifically targets elderly and disabled adults who need long-term care services.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Minnesota resident",
+          "Needs daily help with bathing, dressing, or medication",
+          "Risk of nursing home placement",
+          "County assessment required"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must meet Nursing Facility Level of Care (a clinical assessment that your parent needs daily help with activities like bathing, dressing, eating, or medication management)",
+        "otherRequirements": [
+          "Minnesota resident",
+          "At risk of nursing home placement without services"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "in-person",
+        "summary": "Contact your county human services office directly — processing times and availability vary by county.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your county human services office",
+            "description": "Call or visit your local county human services department. Each county administers this program independently."
+          },
+          {
+            "step": 2,
+            "title": "Request FAA/Alternative Care Grant assessment",
+            "description": "Ask specifically about services to help your parent avoid nursing home placement. Not all staff may be familiar with this program name."
+          },
+          {
+            "step": 3,
+            "title": "Complete functional assessment",
+            "description": "County staff will evaluate whether your parent meets Nursing Facility Level of Care through interviews and possibly home visits."
+          },
+          {
+            "step": 4,
+            "title": "Provide financial documentation",
+            "description": "Bring income verification, asset information, and medical records to support the assessment."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Ask specifically about 'services to avoid nursing home placement' if staff aren't familiar with FAA or Alternative Care Grants terminology.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Photo ID",
+                "Social Security card",
+                "Proof of Minnesota residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Bank statements (last 3 months)",
+                "Social Security award letters",
+                "Pension statements",
+                "Property tax statements"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Recent medical records",
+                "Medication lists",
+                "Doctor's notes about care needs",
+                "Hospital discharge summaries if recent"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Counties operate this program differently. What's available in Hennepin County may not be available in rural counties. Wait times and service levels vary significantly by location."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Don't confuse this with MFIP (Minnesota Family Investment Program), which is for families with children and has work requirements. FAA is specifically for elderly and disabled adults."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify for FAA services?",
+          "answer": "Yes. This program is designed to help people stay in their homes instead of moving to nursing facilities. The goal is to provide support services where your parent currently lives."
+        },
+        {
+          "question": "What's the difference between FAA and regular Medicaid home care?",
+          "answer": "We don't have specific details on how FAA differs from other Minnesota home care programs. Contact your county human services office to understand which program might be the best fit for your parent's situation."
+        },
+        {
+          "question": "Why do I need to call the county instead of a state office?",
+          "answer": "Each county administers FAA independently. They set their own priorities, manage their own waiting lists, and contract with different service providers. There's no central state application process."
+        },
+        {
+          "question": "What if my county says they've never heard of FAA or Alternative Care Grants?",
+          "answer": "Ask about 'services to help elderly people avoid nursing home placement' or 'home and community-based services for adults.' Some counties may use different names for similar programs."
+        },
+        {
+          "question": "How quickly can services start once my parent is approved?",
+          "answer": "This varies significantly by county and depends on available funding and service providers in your area. Some counties may have waiting lists while others can start services relatively quickly."
+        },
+        {
+          "question": "What specific services might be covered?",
+          "answer": "Typical services include personal care assistance (help with bathing, dressing), homemaker services (light housekeeping, meal prep), and respite care for family caregivers. Exact services depend on your county's contracts and your parent's assessed needs."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://mn.gov/dhs",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "minnesota-scsep-employment-program",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP Employment",
+      "tagline": "Part-time paid job training for parents 55+ earning under $18,000/year who need work experience to find employment.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "MET, Inc. (multiple counties, 832-599-0872)",
+            "type": "service-area"
+          },
+          {
+            "name": "Minnesota Valley Action Council (Blue Earth etc., 507-345-6822, Mankato office)",
+            "type": "service-area"
+          },
+          {
+            "name": "Administered via MN DEED and USDOL grantees like CWI Works",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and unemployed with limited income, SCSEP provides part-time paid work training to help them transition to permanent employment. Your parent would work about 20 hours per week at nonprofits, schools, hospitals, or senior centers while earning minimum wage and receiving job coaching.\n\nThe program is designed as temporary training—typically lasting several months—with the goal of helping participants find unsubsidized employment. Because SCSEP includes career coaching and job placement assistance alongside the work experience, your parent gets both immediate income and support finding permanent work.\n\nIncome must be at or below 125% of the federal poverty level (approximately $18,525/year for a single person in 2026), and your parent must be currently unemployed with poor job prospects. Veterans, those over 65, people with disabilities, and rural residents get priority placement.",
+      "savingsRange": "$3,200 – $5,200/year in 2026",
+      "savingsSource": "20 hours/week at $7.25-10.00/hour minimum wage depending on location",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Income below 125% poverty level",
+          "Currently unemployed",
+          "U.S. citizen or work authorized"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1544
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 2085
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be unemployed",
+          "Must have low employment prospects",
+          "Must be U.S. citizen or legally eligible to work"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call your county's SCSEP provider directly—processing time varies by location and priority status.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county's provider",
+            "description": "Most counties use MET, Inc. (832-599-0872). Blue Earth, Brown, Faribault, Martin, Nicollet, and Watonwan counties use Minnesota Valley Action Council (507-345-6822)."
+          },
+          {
+            "step": 2,
+            "title": "Call to check availability",
+            "description": "Ask about current openings and whether there's a waitlist. Priority applicants (veterans, over 65, disabilities, rural residents) may get faster placement."
+          },
+          {
+            "step": 3,
+            "title": "Complete application by phone or in-person",
+            "description": "Provide income documentation, proof of age and unemployment status. MNVAC has an office at 706 N Victory Dr., Mankato for in-person visits."
+          },
+          {
+            "step": 4,
+            "title": "Wait for placement",
+            "description": "If accepted, you'll be matched with a community service worksite and assigned a job coach."
+          }
+        ],
+        "processingTime": "Not specified—varies by county and priority status",
+        "waitlist": "Possible waitlists due to limited slots and priority system",
+        "tip": "Veterans and those over 65 get priority placement—mention this when calling if applicable.",
+        "urls": [
+          {
+            "label": "MN DEED SCSEP Overview",
+            "url": "https://mn.gov/deed/programs-services/dislocated-worker/scsep/index.jsp"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (125% Federal Poverty Level)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 1544,
+              "annualLimit": 18525
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 2085,
+              "annualLimit": 25025
+            }
+          ],
+          "footnote": "2026 estimates based on federal poverty guidelines. Contact provider for exact current limits."
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Age",
+              "items": [
+                "Driver's license or state ID",
+                "Social Security card"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Recent pay stubs or unemployment documentation",
+                "Social Security benefits statement",
+                "Any other income documentation"
+              ]
+            },
+            {
+              "name": "Priority Status (if applicable)",
+              "items": [
+                "DD-214 for veterans",
+                "Disability documentation",
+                "Proof of rural residence"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "SCSEP isn't available in all Minnesota counties uniformly. Some areas may have waitlists or program pauses due to federal funding changes. Hennepin County recently changed providers."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is temporary job training, not permanent employment. The goal is to transition to unsubsidized work within 18-24 months, so it's best for parents who want to return to the regular job market."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "How long can my parent stay in the SCSEP program?",
+          "answer": "SCSEP is designed as temporary training to help transition to unsubsidized employment. Most participants work in the program for several months to about two years while receiving job coaching and placement assistance."
+        },
+        {
+          "question": "What kind of work would my parent be doing?",
+          "answer": "Participants work at nonprofits, schools, hospitals, senior centers, and day care centers doing administrative work, maintenance, food service, or other community service roles. The work provides real job experience while serving the community."
+        },
+        {
+          "question": "Can my parent keep other benefits while in SCSEP?",
+          "answer": "SCSEP income may affect other benefit programs since participants earn minimum wage for about 20 hours per week. Contact your parent's other benefit programs to understand how SCSEP wages will impact eligibility."
+        },
+        {
+          "question": "What if our county isn't served by MET, Inc. or MNVAC?",
+          "answer": "Contact MN DEED at the number on their SCSEP webpage or try CWI Works. Some counties may have changed providers recently or may not currently have SCSEP coverage."
+        },
+        {
+          "question": "Does my parent get priority if they're a veteran?",
+          "answer": "Yes. Veterans and qualified military spouses get priority enrollment, along with people over 65, those with disabilities, rural residents, and people who are homeless or at risk of homelessness."
+        },
+        {
+          "question": "What happens if my parent can't find regular employment after SCSEP?",
+          "answer": "The program includes job placement assistance and career coaching specifically to help transition to unsubsidized work. However, if your parent cannot find regular employment, they would need to explore other support programs as SCSEP is not designed as long-term assistance."
+        }
+      ],
+      "phone": "832-599-0872",
+      "sourceUrl": "https://mn.gov/deed/programs-services/dislocated-worker/scsep/index.jsp",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "minnesota-legal-assistance-seniors",
+      "name": "Legal Assistance for Seniors",
+      "shortName": "Legal Assistance",
+      "tagline": "Free legal help for parents 60+ facing eviction, nursing home disputes, benefit denials, or elder abuse.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Mid-Minnesota Legal Aid (e.g., Minneapolis: 111 N 5th St, Ste 100; serves Anoka, Hennepin counties and central MN)",
+            "type": "service-area"
+          },
+          {
+            "name": "Central Minnesota Legal Services (21 counties)",
+            "type": "service-area"
+          },
+          {
+            "name": "Justice North (northern MN)",
+            "type": "service-area"
+          },
+          {
+            "name": "Minnesota Regional Legal Services (other areas)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is facing legal problems — eviction threats, nursing home discharge disputes, denied Social Security benefits, or elder abuse — they can get free civil legal help through Minnesota's senior legal aid programs. Because your parent is 60 or older, they qualify regardless of income, though lower-income seniors get priority for complex cases.\n\nThese programs handle the legal issues that commonly affect older adults: housing discrimination, debt collection, Medical Assistance denials, home care reductions, and assisted living disputes. They also offer Senior Wills Clinics for basic estate planning documents like wills, powers of attorney, and health care directives. Services include phone advice, full representation in court, and help with paperwork.\n\nCoverage varies by county — each legal aid organization serves specific regions across Minnesota, so you'll need to check which provider covers your parent's area.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Minnesota resident",
+          "Civil legal issues only",
+          "County-specific coverage areas"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must reside in or have legal case in the service area counties",
+          "Civil cases only (no criminal, personal injury, or damage awards)",
+          "Income considered for case prioritization but not eligibility for seniors 60+"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online or call for intake screening — eligibility is determined immediately during the initial contact.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact intake",
+            "description": "Call (877) 696-6529 or visit mylegalaid.org/get-legal-help to start online intake"
+          },
+          {
+            "step": 2,
+            "title": "Describe legal issue",
+            "description": "Explain your parent's legal problem, where it's located (county), and provide income information if under 60"
+          },
+          {
+            "step": 3,
+            "title": "Get matched to provider",
+            "description": "Intake will connect you to the legal aid organization serving your parent's county"
+          },
+          {
+            "step": 4,
+            "title": "Schedule services",
+            "description": "Receive phone advice immediately or schedule representation, clinic appointments, or in-person meetings"
+          }
+        ],
+        "processingTime": "Intake determines eligibility immediately via phone or online",
+        "waitlist": null,
+        "tip": "Have your parent's county and specific legal issue ready when you call — this determines which provider can help.",
+        "urls": [
+          {
+            "label": "Online intake form",
+            "url": "https://mylegalaid.org/get-legal-help"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "county-directory",
+          "heading": "Legal Aid Providers by Region",
+          "offices": [
+            {
+              "name": "Mid-Minnesota Legal Aid",
+              "type": "service-area",
+              "phone": "(877) 696-6529",
+              "address": "Minneapolis: 111 N 5th St, Ste 100, Minneapolis, MN 55403 (serves Anoka, Hennepin counties and 20+ central MN counties)"
+            },
+            {
+              "name": "Central Minnesota Legal Services",
+              "type": "service-area",
+              "phone": "(877) 696-6529",
+              "address": "Serves 21 counties in central Minnesota"
+            },
+            {
+              "name": "Justice North",
+              "type": "service-area",
+              "phone": "(877) 696-6529",
+              "address": "Serves northern Minnesota counties"
+            },
+            {
+              "name": "Minnesota Disability Law Center",
+              "type": "service-area",
+              "phone": "(800) 292-4150",
+              "address": "Disability-related legal issues statewide"
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Coverage is not statewide — you must check that your parent's county is served by one of these legal aid organizations. If not covered, they'll provide referrals to other resources."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is too high for regular legal aid but they're over 60?",
+          "answer": "Seniors 60+ qualify regardless of income. However, if your parent has higher income, they may be lower priority for time-intensive cases like full court representation, but they can still get phone advice and brief services."
+        },
+        {
+          "question": "Can this help if my parent is being kicked out of their nursing home?",
+          "answer": "Yes, assisted living and nursing home discharge disputes are specifically covered. They can help determine if the discharge is proper and represent your parent in appeals or negotiations."
+        },
+        {
+          "question": "What if my parent needs help with a will but can't travel to an office?",
+          "answer": "Many providers offer Senior Wills Clinics at local offices, but call intake to ask about phone consultations or other arrangements for basic estate planning documents."
+        },
+        {
+          "question": "My parent was denied Medical Assistance — can they help with the appeal?",
+          "answer": "Yes, public benefit denials including Medical Assistance, food support, and Social Security are core services. They can help with appeals and paperwork."
+        },
+        {
+          "question": "What legal problems can't they help with?",
+          "answer": "They only handle civil cases. No criminal defense, personal injury lawsuits, or cases seeking money damages. They also can't help if the legal issue is outside their service area counties."
+        },
+        {
+          "question": "How long does it take to get help after I call?",
+          "answer": "Phone advice often happens during the initial intake call. For representation or clinic appointments, timing depends on case complexity and the provider's current workload."
+        }
+      ],
+      "phone": "(877) 696-6529",
+      "sourceUrl": "https://mylegalaid.org/how-we-help/seniors/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "minnesota-long-term-care-ombudsman",
+      "name": "Office of Ombudsman for Long-Term Care",
+      "shortName": "Long-Term Care Ombudsman",
+      "tagline": "Free advocacy when your parent faces problems with nursing home care, assisted living, or home care services.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Regional ombudsman offices statewide (contact state office for local assignment).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is experiencing problems with their nursing home, assisted living facility, or home care services, Minnesota's Long-Term Care Ombudsman provides free advocacy to resolve issues and protect their rights. The ombudsman investigates complaints, helps resolve conflicts with facilities, and ensures your parent receives proper care and treatment.\n\nBecause ombudsmen are independent advocates, they can intervene when families feel unheard by facility staff or need help navigating complex care situations. Regional ombudsmen and trained volunteers visit facilities regularly — typically 6 hours monthly — to monitor conditions and assist residents with health, safety, and rights issues.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Adults in long-term care",
+          "No income limits",
+          "Available to families",
+          "Serves all Minnesota residents"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be receiving or seeking long-term care services in Minnesota",
+          "Includes nursing homes, assisted living, and home care"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the toll-free number to report concerns — no forms or paperwork required to start.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the ombudsman hotline",
+            "description": "Dial 1-800-657-3591 to speak with an ombudsman about your parent's situation."
+          },
+          {
+            "step": 2,
+            "title": "Describe the problem",
+            "description": "Explain the issue, provide your parent's name and facility information if applicable."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman investigates",
+            "description": "The ombudsman will contact the facility, interview staff, and work to resolve the complaint."
+          },
+          {
+            "step": 4,
+            "title": "Follow up on resolution",
+            "description": "The ombudsman will report back on findings and ensure the issue is properly addressed."
+          }
+        ],
+        "processingTime": "Response time varies by case complexity, but complaints receive prompt attention",
+        "waitlist": null,
+        "tip": "You can call on behalf of your parent even if they haven't asked you to — protecting residents' rights is the ombudsman's primary role.",
+        "urls": [
+          {
+            "label": "Minnesota Long-Term Care Ombudsman",
+            "url": "https://mn.gov/ooltc/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "The ombudsman focuses only on long-term care issues — they won't help with Medicaid applications or general elder care problems unrelated to care facilities or services."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can I call if my mom won't speak up about problems at her nursing home?",
+          "answer": "Yes. The ombudsman can investigate concerns even if your mom is reluctant to complain herself. They're trained to protect residents who may fear retaliation from facility staff."
+        },
+        {
+          "question": "What if the nursing home says they're handling the problem internally?",
+          "answer": "The ombudsman provides independent oversight separate from the facility's internal processes. They can investigate even when facilities claim they're addressing issues on their own."
+        },
+        {
+          "question": "Will calling the ombudsman cause problems for my dad with his care facility?",
+          "answer": "Ombudsmen are trained to protect residents from retaliation. Facilities are legally prohibited from punishing residents or families for filing complaints."
+        },
+        {
+          "question": "Can the ombudsman help with home care agencies, or just nursing homes?",
+          "answer": "Yes, they handle issues with all long-term care services including home care agencies, assisted living facilities, and adult day programs — not just nursing homes."
+        },
+        {
+          "question": "What kinds of problems can the ombudsman actually solve?",
+          "answer": "They resolve issues like inadequate care, medication errors, billing disputes, abuse or neglect, discharge problems, and violations of resident rights. They investigate complaints and work directly with facilities to fix problems."
+        },
+        {
+          "question": "How long does it take to get help after I call?",
+          "answer": "Response times vary based on the urgency and complexity of the situation. Emergency situations involving immediate health or safety concerns receive the fastest response."
+        }
+      ],
+      "phone": "1-800-657-3591",
+      "sourceUrl": "https://mn.gov/ooltc/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "ucare-minnesota-senior-care-plus-msc",
+      "name": "UCare Minnesota Senior Care Plus (MSC+)",
+      "shortName": "UCare MSC+",
+      "tagline": "Complete health coverage for parents 65+ on Minnesota Medicaid, including dental, vision, and home care services.",
+      "programType": "navigator",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local county human services offices",
+            "type": "service-area"
+          },
+          {
+            "name": "UCare (ucare.org)",
+            "type": "service-area"
+          },
+          {
+            "name": "Blue Plus (Blue Cross MN)",
+            "type": "service-area"
+          },
+          {
+            "name": "South Country Health Alliance (7-county area)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and qualifies for Minnesota Medicaid, UCare MSC+ provides comprehensive health coverage that goes beyond basic medical care. Because MSC+ coordinates all services under one plan, your parent gets medical, dental, vision, mental health, and pharmacy coverage without managing multiple providers.\n\nThe program includes extras that standard Medicaid doesn't cover: 2 free dental visits per year, a 24/7 nurse line, free rides to appointments, healthy food discounts through a special Visa card, and fall prevention kits. If your parent needs help with daily activities like bathing or dressing, MSC+ can also provide home care services through the Elderly Waiver program.\n\nMSC+ is only available in certain Minnesota counties (called CBP managed care counties), and your parent must first qualify for Minnesota Medical Assistance (Medicaid). If they're eligible and live in a participating county, enrollment in MSC+ is required unless they choose a different plan option.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Must qualify for Minnesota Medicaid",
+          "Must live in participating county",
+          "No Medicare Parts A/B required"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "For home care services only: must need help with at least one daily activity like bathing, dressing, eating, toileting, mobility, grooming, or transferring",
+        "otherRequirements": [
+          "Must be eligible for Minnesota Medical Assistance (Medicaid)",
+          "Must be Minnesota resident in UCare MSC+ service area",
+          "Lives in CBP managed care county (not PMAP county)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your county human services office first for Medicaid, then UCare will contact you about MSC+ enrollment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Apply for Minnesota Medical Assistance first",
+            "description": "Call your county human services office or Minnesota Health Care Programs at 1-800-657-3672. You must qualify for Medicaid before enrolling in MSC+."
+          },
+          {
+            "step": 2,
+            "title": "Complete Medicaid application",
+            "description": "Provide documents proving income, assets, residency, and age. Your county will tell you exactly what documents you need."
+          },
+          {
+            "step": 3,
+            "title": "Get enrolled in MSC+",
+            "description": "Once approved for Medicaid, you'll be automatically enrolled in MSC+ if you live in a participating county, unless you choose a different plan option."
+          },
+          {
+            "step": 4,
+            "title": "Choose your managed care organization",
+            "description": "Select between available providers like UCare, Blue Plus, or South Country Health Alliance depending on your county."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent needs home care services, mention this when applying - they'll need a separate functional assessment to determine eligibility for Elderly Waiver services.",
+        "urls": [
+          {
+            "label": "Minnesota Health Care Programs",
+            "url": "https://hcopub.dhs.state.mn.us/"
+          },
+          {
+            "label": "UCare MSC+ Information",
+            "url": "https://www.ucare.org/health-plans/medicaid/ages-65-plus/msc-plus"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "MSC+ is only available in certain Minnesota counties. If your parent lives in a PMAP county, they'll get regular MSC instead, which has different benefits. Call your county office to confirm which program applies in your area."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent already has Medicare?",
+          "answer": "MSC+ works alongside Medicare if your parent has it, but Medicare isn't required to qualify. MSC+ will cover services that Medicare doesn't, like dental care and transportation to appointments."
+        },
+        {
+          "question": "Can my parent choose their own doctors?",
+          "answer": "Your parent must use doctors and providers in their chosen managed care organization's network (UCare, Blue Plus, etc.). Make sure their current doctors accept the plan before enrolling."
+        },
+        {
+          "question": "What home care services are available?",
+          "answer": "If your parent qualifies for the Elderly Waiver, they can get personal care assistance, homemaker services, adult day care, and even assisted living services. They must need help with daily activities like bathing, dressing, or medication management to qualify."
+        },
+        {
+          "question": "What if my parent's income is too high for Medicaid?",
+          "answer": "Your parent must qualify for Minnesota Medical Assistance (Medicaid) first. Income and asset limits follow state Medicaid rules. Contact your county human services office to check specific limits for your parent's situation."
+        },
+        {
+          "question": "How do the food discounts work?",
+          "answer": "Eligible members get a Healthy Benefits+ Visa card with money loaded monthly to buy healthy foods at participating stores. The amount varies by plan and county."
+        },
+        {
+          "question": "What happens if my parent moves to a different county?",
+          "answer": "If they move to another MSC+ county, they can keep their coverage but may need to switch managed care organizations. If they move to a PMAP county, they'll switch to regular MSC coverage instead."
+        }
+      ],
+      "phone": "1-800-657-3672",
+      "sourceUrl": "https://www.ucare.org/health-plans/medicaid/ages-65-plus/msc-plus",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "minnesota-aging-pathways",
+      "name": "Minnesota Aging Pathways (formerly Senior LinkAge Line)",
+      "shortName": "Aging Pathways",
+      "tagline": "Get free help navigating long-term care options and Medicare questions for your parent in Minnesota.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Statewide phone/online; partners with Minnesota Board on Aging and area agencies on aging",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs help staying home longer or choosing care facilities, Minnesota Aging Pathways connects you to local services and explains your options at no cost. This free statewide service provides Medicare counseling, creates person-centered care plans, and helps coordinate home care referrals.\n\nYour parent qualifies if they're 60+ or Medicare-eligible and live in Minnesota. There are no income or asset limits for the core service. The program is also required for nursing facility admissions (through preadmission screening) and assisted living transitions (through options counseling).\n\nBecause one team handles information, referrals, and coordination, you won't need to research services yourself or navigate multiple agencies. They provide follow-up support as needed rather than one-time assistance.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ or Medicare-eligible",
+          "Minnesota resident",
+          "No income or asset limits",
+          "Available for any care setting"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Nursing home level of care assessment may be required for facility transitions (clinical evaluation of need for daily help with bathing, dressing, or medication management)",
+        "otherRequirements": [
+          "Minnesota resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call 800-333-2433 and speak with a counselor immediately during business hours.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the main line",
+            "description": "Call 800-333-2433 Monday-Friday 8:00 a.m. to 4:30 p.m. Press option 1 if you need housing information specifically."
+          },
+          {
+            "step": 2,
+            "title": "Discuss your parent's situation",
+            "description": "Explain your parent's current living situation, care needs, and what type of help you're looking for. Have Medicare information ready if asking about benefits."
+          },
+          {
+            "step": 3,
+            "title": "Receive referrals and coordination",
+            "description": "Get connected to local services, receive a person-centered care plan if needed, and schedule follow-up calls for ongoing support."
+          }
+        ],
+        "processingTime": "Phone assistance immediate; resource coordination involves discussion and plan development with prompt follow-up after referral",
+        "waitlist": null,
+        "tip": "Providers can also submit referrals online at www.sllreferral.org if your parent is already receiving services from a facility or home care agency.",
+        "urls": [
+          {
+            "label": "Online referral form (for providers)",
+            "url": "https://www.sllreferral.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Minnesota Aging Pathways provides information and referrals only — they don't directly provide home care or fund services. Actual eligibility and funding for long-term care services is determined separately by your county social services or managed care organization."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What's the difference between this and actually getting home care services?",
+          "answer": "Minnesota Aging Pathways helps you understand options and connects you to services, but doesn't provide or pay for care directly. After they refer you to home care or other services, those programs have their own eligibility requirements and costs. For low-income families, they'll help you navigate separate applications for publicly funded care."
+        },
+        {
+          "question": "Do I have to use this service before my parent can move to a nursing home?",
+          "answer": "Yes, preadmission screening (PAS) through Minnesota Aging Pathways is required for all nursing facility admissions, regardless of how your parent will pay. The facility or hospital will submit the screening, which leads to an assessment by your county to determine if nursing home level of care is needed."
+        },
+        {
+          "question": "Can they help if my parent wants to move back home from a facility?",
+          "answer": "Yes, they create person-centered plans specifically to help people stay in or return to home and community settings. They'll coordinate with local services and provide ongoing support as your parent transitions back home."
+        },
+        {
+          "question": "My parent has complex Medicare questions — can they really help with that?",
+          "answer": "Yes, their counselors are SHINE-certified Medicare specialists who can explain benefits, help compare plans, and guide you through Medicare decisions. This is in-depth counseling, not just basic information."
+        },
+        {
+          "question": "What if we need help outside normal business hours?",
+          "answer": "The main phone line operates Monday-Friday 8:00 a.m. to 4:30 p.m. For after-hours emergencies, they can connect you to crisis resources, but routine planning and counseling happens during business hours."
+        },
+        {
+          "question": "Will they keep following up, or is this just a one-time call?",
+          "answer": "They provide follow-up support as needed rather than one-time assistance. If your parent's situation changes or you need ongoing coordination, they'll continue working with you to adjust the care plan and connect to new services."
+        }
+      ],
+      "phone": "800-333-2433",
+      "sourceUrl": "https://mn.gov/aging-pathways/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Minnesota offers 13 programs to help your aging parent — from Medical Assistance that covers full nursing home costs to Meals on Wheels delivering hot food to their door. Seven programs provide direct financial benefits if your parent qualifies based on income and assets, while four free resources offer help and advocacy to any Minnesota senior regardless of income. If your parent is struggling with medical bills, can't afford groceries, or needs help staying safely at home, Minnesota likely has a program that can help. Start by checking if they qualify for Medical Assistance — it opens doors to the most comprehensive support.",
+    "startHere": [
+      {
+        "name": "Medical Assistance (Medicaid)",
+        "programId": "medical-assistance-medicaid",
+        "why": "Covers comprehensive health care including full nursing home costs and unlocks access to other home care programs."
+      },
+      {
+        "name": "Minnesota SNAP",
+        "programId": "minnesota-snap",
+        "why": "Provides immediate monthly grocery money — up to $546/month for couples — with faster approval for seniors 60+."
+      },
+      {
+        "name": "Minnesota Aging Pathways",
+        "programId": "minnesota-aging-pathways",
+        "why": "Free starting point to navigate all Minnesota's long-term care options and connect to the right programs."
+      },
+      {
+        "name": "Medicare Savings Programs",
+        "programId": "medicare-savings-programs",
+        "why": "Reduces Medicare costs immediately if your parent's income is under $1,781/month — no asset limits for basic help."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Health coverage and medical costs",
+        "programs": [
+          "Medical Assistance (Medicaid)",
+          "Minnesota Senior Health Options (MSHO)",
+          "Medicare Savings Programs",
+          "UCare Minnesota Senior Care Plus (MSC+)"
+        ],
+        "description": "Programs that cover medical expenses, reduce Medicare costs, or provide comprehensive health coverage."
+      },
+      {
+        "need": "Help staying at home instead of nursing care",
+        "programs": [
+          "Elderly Waiver (EW)",
+          "Family Adult Assistance Program (FAA) / Alternative Care Grants"
+        ],
+        "description": "Minnesota pays for home care services so your parent can stay safely in their own home."
+      },
+      {
+        "need": "Food and nutrition support",
+        "programs": [
+          "Minnesota SNAP",
+          "Senior Nutrition Program (Meals on Wheels)"
+        ],
+        "description": "Monthly grocery money or delivered meals for parents who can't shop or cook."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "Senior Health Insurance Assistance Program (SHIP)",
+          "Legal Assistance for Seniors",
+          "Office of Ombudsman for Long-Term Care",
+          "Minnesota Aging Pathways"
+        ],
+        "description": "Free help understanding benefits, resolving care problems, or getting legal assistance."
+      },
+      {
+        "need": "Employment for low-income seniors",
+        "programs": [
+          "Senior Community Service Employment Program (SCSEP)"
+        ],
+        "description": "Part-time paid job training for parents 55+ earning under $18,000/year."
+      }
+    ],
+    "quickFacts": [
+      "Minnesota combines Medicare and Medicaid through specialized programs like MSHO and MSC+ for coordinated care",
+      "The state pays for home care through multiple programs (Elderly Waiver, Alternative Care) to prevent nursing home placement",
+      "Minnesota Aging Pathways (formerly Senior LinkAge Line) is your free starting point for navigating all state programs",
+      "Seniors get faster SNAP approval — Minnesota processes applications for households with members 60+ within 5 days"
+    ],
+    "resourcesVsBenefits": "Minnesota offers both income-based benefits that require qualification and free resources available to all seniors. Programs like Medical Assistance and SNAP require your parent to meet specific income limits, while resources like Minnesota Aging Pathways, SHIP counseling, and legal assistance for seniors are free regardless of your parent's income or assets."
+  }
+}

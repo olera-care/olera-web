@@ -26,6 +26,46 @@ export interface MapPin {
   lng: number;
 }
 
+export interface ProgramContact {
+  label: string;
+  description?: string;
+  phone: string;
+  hours?: string;
+}
+
+export interface RegionalApplication {
+  region: string;
+  counties?: string[];
+  url: string;
+  isPdf?: boolean;
+}
+
+export interface StructuredEligibility {
+  summary: string[];
+  ageRequirement?: string | null;
+  incomeTable?: { householdSize: number; monthlyLimit: number }[] | null;
+  assetLimits?: {
+    individual?: number | null;
+    couple?: number | null;
+    countedAssets?: string[];
+    exemptAssets?: string[];
+    homeEquityCap?: number | null;
+  } | null;
+  functionalRequirement?: string | null;
+  otherRequirements?: string[];
+  povertyLevelReference?: string | null;
+}
+
+export interface ApplicationGuide {
+  method: string;
+  summary: string;
+  steps?: { step: number; title: string; description: string }[];
+  processingTime?: string | null;
+  waitlist?: string | null;
+  tip?: string | null;
+  urls?: { label: string; url: string }[];
+}
+
 export interface WaiverProgram {
   id: string;
   name: string;
@@ -52,6 +92,20 @@ export interface WaiverProgram {
   verifiedBy?: string; // e.g., "chantel", "pipeline"
   savingsSource?: string; // Where the savings estimate came from
   savingsVerified?: boolean; // true = researched, false/undefined = category estimate
+  // Classification (from pipeline)
+  programType?: "benefit" | "resource" | "navigator" | "employment";
+  complexity?: "deep" | "medium" | "simple";
+  geographicScope?: { type: string; stateVariation?: boolean; localEntities?: { name: string; type: string; phone?: string; address?: string; url?: string }[] };
+  // Rich structured content (from pipeline)
+  structuredEligibility?: StructuredEligibility;
+  applicationGuide?: ApplicationGuide;
+  contentSections?: { type: string; [key: string]: unknown }[];
+  documentsNeeded?: string[];
+  contacts?: ProgramContact[];
+  regionalApplications?: RegionalApplication[];
+  applicationNotes?: string[];
+  relatedPrograms?: string[];
+  contentStatus?: string;
 }
 
 export interface StateData {

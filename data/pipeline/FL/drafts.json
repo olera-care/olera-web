@@ -1,0 +1,2698 @@
+{
+  "state": "FL",
+  "stateName": "Florida",
+  "draftedAt": "2026-04-09T10:00:15.294Z",
+  "total": 16,
+  "successful": 16,
+  "programs": [
+    {
+      "id": "florida-medicaid-long-term-care",
+      "name": "Statewide Medicaid Managed Care Long Term Care Program",
+      "shortName": "Medicaid Long-Term Care",
+      "tagline": "Home care services and nursing home coverage for parents who need daily help with bathing, dressing, or medication management",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Aging and Disability Resource Centers (ADRCs)",
+            "type": "service-area"
+          },
+          {
+            "name": "Managed Care Plans selected via enrollment broker",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent needs daily help with bathing, dressing, or taking medications, Florida's Medicaid Long-Term Care program covers home care services that can help them stay at home longer. The program provides personal care assistance, home-delivered meals, medical equipment, therapy services, and emergency response systems. It also covers nursing home care when needed.\n\nYour parent must meet strict financial limits (typically 88% of Federal Poverty Level) and pass a clinical assessment proving they need nursing home-level care. Because this program coordinates all services through one managed care plan, your parent won't need to juggle multiple providers — one team manages everything from medical care to personal assistance.\n\nThe program allows consumer-directed care, meaning your parent can hire their own caregivers (including family members with approval). However, it does not cover room and board costs in assisted living facilities.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ (or 18+ if disabled)",
+          "Income at 88% of Federal Poverty Level",
+          "Need daily help with bathing/dressing/medications",
+          "Meet Medicaid asset limits"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Investments",
+            "Cash"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings",
+            "Prepaid funeral expenses"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must require Nursing Facility Level of Care (a clinical assessment proving your parent needs daily help with bathing, dressing, medication management, or other basic activities)",
+        "otherRequirements": [
+          "Must be eligible for Florida Medicaid",
+          "Must be Florida resident"
+        ],
+        "povertyLevelReference": "88% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Start with a screening at your local Aging and Disability Resource Center (ADRC) — the process involves multiple agencies and can take several weeks.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Initial Screening",
+            "description": "Contact your local ADRC or call Elder Helpline at 1-800-963-5337 for initial screening and guidance through the process."
+          },
+          {
+            "step": 2,
+            "title": "Financial Eligibility",
+            "description": "Apply for Medicaid through the Department of Children and Families (DCF) with income and asset documentation."
+          },
+          {
+            "step": 3,
+            "title": "Medical Assessment",
+            "description": "Complete clinical assessment with DOEA CARES unit to determine if your parent needs nursing home level of care."
+          },
+          {
+            "step": 4,
+            "title": "Plan Enrollment",
+            "description": "Once approved, work with enrollment broker to choose a managed care plan that will coordinate all services."
+          }
+        ],
+        "processingTime": "Multiple weeks (multi-step process)",
+        "waitlist": "Possible waitlist before clinical assessment",
+        "tip": "Gather medical records showing your parent's need for daily assistance before the CARES assessment — detailed documentation speeds approval.",
+        "urls": [
+          {
+            "label": "Find Your Local ADRC",
+            "url": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Investments and stocks",
+            "Cash on hand",
+            "Property other than primary home"
+          ],
+          "excluded": [
+            "Primary home (where your parent lives)",
+            "One vehicle",
+            "Personal belongings and household items",
+            "Prepaid funeral expenses"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Driver's license or state ID",
+                "Proof of Florida residency"
+              ]
+            },
+            {
+              "name": "Financial Records",
+              "items": [
+                "Bank statements (last 3 months)",
+                "Social Security award letters",
+                "Pension or retirement income statements",
+                "Property deeds or mortgage statements"
+              ]
+            },
+            {
+              "name": "Medical Documentation",
+              "items": [
+                "Recent medical records showing need for daily assistance",
+                "Current medication list",
+                "Doctor's notes about functional limitations"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This program involves three different agencies (DCF for financial eligibility, DOEA for medical assessment, AHCA for plan enrollment). If any step fails or gets delayed, the entire process stops. Stay in contact with each agency to track progress."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "You can hire family members as paid caregivers through consumer-directed care options, but this requires approval from the managed care plan. Ask about this option during enrollment if interested."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies?",
+          "answer": "Yes. The primary home where your parent lives is exempt from asset limits and won't affect eligibility."
+        },
+        {
+          "question": "What if her income is just over the 88% poverty level limit?",
+          "answer": "She may still qualify through spend-down provisions where medical expenses can reduce countable income. The DCF caseworker will calculate this during financial eligibility review."
+        },
+        {
+          "question": "Does this pay for assisted living costs?",
+          "answer": "No. The program covers home care services and personal assistance, but not room and board costs in assisted living facilities. It only covers the care services themselves."
+        },
+        {
+          "question": "Can I be paid to care for my parent?",
+          "answer": "Yes, through consumer-directed care options. Your parent can hire you as their caregiver, but this requires approval from their managed care plan and you'll need to meet provider requirements."
+        },
+        {
+          "question": "What happens if Mom needs nursing home care later?",
+          "answer": "The same program covers nursing home care when medically necessary. Because she's already enrolled, the transition is coordinated through her existing managed care plan."
+        },
+        {
+          "question": "How long does the whole application process take?",
+          "answer": "Expect several weeks to months. You're dealing with three different agencies (DCF, DOEA, and AHCA), each with their own timeline. There may also be a waitlist before the clinical assessment."
+        }
+      ],
+      "phone": "1-800-963-5337",
+      "sourceUrl": "https://ahca.myflorida.com/medicaid/statewide-medicaid-managed-care/long-term-care-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-pace-comprehensive-care",
+      "name": "Program of All-Inclusive Care for the Elderly (PACE)",
+      "shortName": "PACE",
+      "tagline": "Complete medical care, meals, transportation, and home support under one program for parents who need nursing home level care but want to stay home.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Florida PACE Centers (Miami-Dade area)",
+            "type": "service-area"
+          },
+          {
+            "name": "Miami Jewish Health Systems (Miami-Dade and Broward)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and needs daily help with bathing, dressing, or medication management, PACE could replace all their medical care with one coordinated team. Because PACE covers everything — doctor visits, prescriptions, adult day care, home care, meals, transportation, even nursing home care when needed — your parent won't juggle multiple providers or worry about coverage gaps.\n\nPACE is only available in Miami-Dade and Broward counties. Your parent must qualify for nursing home level care but be able to live safely at home with PACE support. Most PACE participants have both Medicare and Medicaid, but PACE can help enroll in Medicaid if your parent qualifies.\n\nIncome limit for Medicaid eligibility: $2,901/month for most seniors (2025). Asset limit: $2,000 in countable assets. Primary home, one car, and personal belongings don't count toward the limit.",
+      "savingsRange": "",
+      "savingsSource": "Free comprehensive care service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Needs nursing home level care",
+          "Lives in Miami-Dade or Broward",
+          "Income under $2,901/month for Medicaid",
+          "Can live safely at home with support"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Cash value life insurance"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One car",
+            "Personal belongings",
+            "Burial funds"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need nursing home level care (assistance with 3+ daily activities like bathing, dressing, medication management) but be able to live safely in the community with PACE services",
+        "otherRequirements": [
+          "Must live in PACE service area (Miami-Dade or Broward counties)",
+          "Cannot be enrolled in Medicare Advantage or hospice",
+          "Medicare and/or Medicaid eligible"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call a PACE center for phone screening, then complete enrollment with in-home visits over 1-3 months.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call for pre-screening",
+            "description": "PACE enrollment specialist conducts phone screening to check basic eligibility and explain program"
+          },
+          {
+            "step": 2,
+            "title": "Schedule in-home visit",
+            "description": "PACE staff visits your parent's home to complete paperwork and conduct initial health assessment"
+          },
+          {
+            "step": 3,
+            "title": "Get physician certification",
+            "description": "Primary care doctor completes Form 3008 certifying your parent needs long-term care assistance"
+          },
+          {
+            "step": 4,
+            "title": "Complete state assessment",
+            "description": "Florida Department of Elder Affairs conducts CARES assessment to verify nursing home level of care"
+          },
+          {
+            "step": 5,
+            "title": "Medicaid enrollment if needed",
+            "description": "PACE coordinates with Department of Children and Families for Medicaid enrollment if your parent qualifies but isn't enrolled"
+          }
+        ],
+        "processingTime": "1-3 months due to coordination with state agencies for assessments and Medicaid enrollment",
+        "waitlist": null,
+        "tip": "Have your parent's medical records and prescription list ready for the first call — this speeds up the screening process.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Stocks, bonds, and investments",
+            "Cash value of life insurance policies"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "One car (any value)",
+            "Personal belongings and household items",
+            "Burial funds and funeral contracts"
+          ]
+        },
+        {
+          "type": "county-directory",
+          "heading": "PACE Centers in Florida",
+          "offices": [
+            {
+              "name": "Florida PACE Centers",
+              "type": "service-area",
+              "phone": "786-933-7223",
+              "address": "Miami-Dade County area"
+            },
+            {
+              "name": "Miami Jewish Health Systems",
+              "type": "service-area",
+              "phone": "305-988-1364",
+              "address": "Miami-Dade and Broward Counties"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Picture ID",
+                "Social Security card",
+                "Medicare card",
+                "Proof of residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Income statements (Social Security benefits letter)",
+                "Three months of bank statements"
+              ]
+            },
+            {
+              "name": "Medical",
+              "items": [
+                "Medical records",
+                "Complete list of current prescriptions",
+                "Form 3008 from primary care doctor"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "PACE is only available in Miami-Dade and Broward counties. Your parent must live within the designated service area to qualify."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "If your parent's income or assets are over the Medicaid limits, consider consulting a Medicaid planning attorney before applying. PACE itself has no income limits, but most participants need Medicaid coverage."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for PACE?",
+          "answer": "Yes. Your parent's primary home doesn't count toward the $2,000 asset limit for Medicaid eligibility, regardless of the home's value. PACE also provides home care services so your parent can stay in their own home."
+        },
+        {
+          "question": "What if Dad's income is just over the $2,901 limit?",
+          "answer": "PACE itself has no income limits — only Medicaid does. If your parent's income is over the Medicaid limit, they may still qualify for PACE if they have Medicare and can pay the monthly premium. A Medicaid planning attorney can also help with strategies to qualify."
+        },
+        {
+          "question": "Can Mom still see her current doctors with PACE?",
+          "answer": "No. PACE becomes your parent's sole healthcare provider for all covered services. The PACE interdisciplinary team assigns a primary care doctor and coordinates all specialist care. Your parent cannot use other Medicare or Medicaid providers while enrolled in PACE."
+        },
+        {
+          "question": "What happens if we move to a different county in Florida?",
+          "answer": "Your parent would lose PACE coverage if they move outside Miami-Dade or Broward counties, since these are the only areas where PACE operates in Florida. You'd need to find alternative care arrangements in the new location."
+        },
+        {
+          "question": "Does PACE cover nursing home care if Mom needs it later?",
+          "answer": "Yes. PACE covers nursing facility care when needed, along with all other medical services. Because PACE provides comprehensive coverage, there are no gaps or additional costs if your parent's care needs increase."
+        },
+        {
+          "question": "Can we cancel PACE if we don't like it?",
+          "answer": "Yes, but timing matters. You can disenroll during specific periods or for cause. However, once you disenroll, your parent returns to regular Medicare and Medicaid (if eligible) and cannot re-enroll in PACE for a certain period."
+        }
+      ],
+      "phone": "786-933-7223",
+      "sourceUrl": "https://ahca.myflorida.com/medicaid/medicaid-policy-quality-and-operations/medicaid-policy-and-quality/medicaid-policy/federal-authorities/federal-waivers/program-of-all-inclusive-care-for-the-elderly",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-medicare-savings-programs",
+      "name": "Medicare Savings Programs (MSP)",
+      "shortName": "Medicare Savings Programs",
+      "tagline": "Help paying Medicare premiums and medical costs if your parent's income is below $1,816/month",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "intro": "If your parent struggles with Medicare premiums or high medical bills, Medicare Savings Programs can help. These federal programs pay your parent's Medicare premiums and, depending on which program they qualify for, cover deductibles and copays too. Your parent could save $2,220/year just on Medicare Part B premiums ($185/month in 2025), plus hundreds more on medical bills. There are four programs with different income limits — the highest allows up to $1,816/month for a single person. Because Florida recently changed how household size is calculated, your parent may now qualify even if they were denied before.",
+      "savingsRange": "$2,220 – $5,000+/year in 2026",
+      "savingsSource": "Medicare Part B premium savings plus potential cost-sharing coverage",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Must have Medicare Part A",
+          "Income below $1,816/month (varies by program)",
+          "Assets under $9,950 (single) or $14,910 (couple)",
+          "Florida resident"
+        ],
+        "ageRequirement": null,
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 1350
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1824
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 2155
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 2680
+          }
+        ],
+        "assetLimits": {
+          "individual": 9950,
+          "couple": 14910,
+          "countedAssets": [
+            "Bank accounts",
+            "Retirement accounts (IRAs)",
+            "Other liquid assets"
+          ],
+          "exemptAssets": [
+            "Your home (any value)",
+            "Personal belongings",
+            "Household goods"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be enrolled in Medicare Part A or expect to enroll soon",
+          "Must be a Florida resident"
+        ],
+        "povertyLevelReference": "100-135% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your local Department of Children & Families office — processing time varies by county.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather your documents",
+            "description": "You'll need recent bank statements, Medicare card, proof of income, and Social Security number."
+          },
+          {
+            "step": 2,
+            "title": "Contact your county DCF office",
+            "description": "Call or visit in person. You can also apply by phone or mail."
+          },
+          {
+            "step": 3,
+            "title": "Complete the application",
+            "description": "DCF will help determine which of the four MSP programs your parent qualifies for."
+          },
+          {
+            "step": 4,
+            "title": "Reapply annually",
+            "description": "You must reapply each year to maintain benefits, especially for the QI program."
+          }
+        ],
+        "processingTime": "Varies by county office",
+        "waitlist": "QI program operates first-come, first-served and may have limited funding",
+        "tip": "Apply even if income seems too high — many types of income don't count toward the limit",
+        "urls": [
+          {
+            "label": "Florida DCF Application Portal",
+            "url": "https://www.myflfamilies.com"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Program Tiers",
+          "tiers": [
+            {
+              "name": "QMB (Qualified Medicare Beneficiary)",
+              "description": "Most comprehensive coverage",
+              "incomeLimit": "$1,350/month (single), $1,824/month (couple)",
+              "coverage": "Pays Medicare Part A and B premiums, deductibles, coinsurance, and copayments"
+            },
+            {
+              "name": "SLMB (Specified Low-Income Medicare Beneficiary)",
+              "description": "Premium help only",
+              "incomeLimit": "$1,616/month (single), $2,184/month (couple)",
+              "coverage": "Covers Medicare Part B premium ($185/month in 2025)"
+            },
+            {
+              "name": "QI (Qualifying Individual)",
+              "description": "Limited funding, first-come first-served",
+              "incomeLimit": "$1,816/month (single), $2,455/month (couple)",
+              "coverage": "Covers Medicare Part B premium only"
+            },
+            {
+              "name": "QDWI (Qualified Disabled & Working Individuals)",
+              "description": "For disabled individuals who returned to work",
+              "incomeLimit": "Higher limits for working disabled individuals",
+              "coverage": "Helps pay Part A premiums only"
+            }
+          ]
+        },
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Money in bank accounts",
+            "Retirement accounts (IRAs, 401k)",
+            "Stocks, bonds, and investments",
+            "Other liquid assets"
+          ],
+          "excluded": [
+            "Your home (any value)",
+            "Personal belongings and household goods",
+            "One vehicle",
+            "Burial plots and funeral funds"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Medicare",
+              "items": [
+                "Medicare card",
+                "Social Security number",
+                "Proof of Florida residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Recent bank statements (all accounts)",
+                "Retirement account statements",
+                "Recent pay stubs or Social Security statements",
+                "Tax returns",
+                "Pension statements"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "The QI program operates on a first-come, first-served basis and may run out of funding during the year. Apply early in January for the best chance of approval."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Florida recently expanded how household size is calculated, which increases income limits for larger families. If your parent was previously denied, they may now qualify — apply again."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom keep her house if she qualifies for MSP?",
+          "answer": "Yes. Your home doesn't count toward the asset limit, regardless of value. The $9,950 asset limit only applies to liquid assets like bank accounts and retirement funds."
+        },
+        {
+          "question": "What if her income is just over the limit?",
+          "answer": "Apply anyway. Many types of income don't count toward the limit, including some earned income and work expenses. There's also a $20 general exclusion for unearned income. You may still qualify even if the income appears too high."
+        },
+        {
+          "question": "Which program should we apply for?",
+          "answer": "Don't worry about choosing — the Department of Children & Families will automatically determine which program your parent qualifies for based on their income. If they qualify for multiple programs, they'll get the one with the most benefits."
+        },
+        {
+          "question": "Do we have to reapply every year?",
+          "answer": "Yes, you must reapply annually to maintain benefits. This is especially important for the QI program, which has limited funding and operates first-come, first-served."
+        },
+        {
+          "question": "How much money will this actually save?",
+          "answer": "At minimum, your parent saves $2,220/year on Medicare Part B premiums. With QMB (the most comprehensive program), they could save thousands more by having all Medicare deductibles, coinsurance, and copays covered."
+        },
+        {
+          "question": "What if we live in a large household?",
+          "answer": "This helps you. Florida now counts all household members (not just the applicant and spouse), which significantly increases income limits. A family of four has an income limit of $2,680 for QMB, compared to $1,704 under the old rule."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.myflfamilies.com",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-snap-food-assistance",
+      "name": "SNAP Food Assistance",
+      "shortName": "SNAP Food Assistance",
+      "tagline": "Up to $300+ monthly toward groceries for seniors 60+ on fixed incomes.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true
+      },
+      "intro": "If your parent is 60+ and struggling with grocery costs, SNAP can provide monthly benefits on an EBT card to help cover food expenses. Because seniors get special eligibility rules in Florida, your parent only needs to meet the net income limit (not the gross income limit that applies to younger adults) and can have up to $4,500 in countable assets versus $3,000 for other households.\n\nBenefits are calculated as the maximum monthly allotment for your household size minus 30% of your net income. For example, a 2-person household might receive around $415/month. The EBT card works like a debit card at grocery stores for fruits, vegetables, meat, dairy, and grains — but not alcohol, tobacco, or prepared foods.\n\nAbout half of eligible seniors don't apply for SNAP, often because they don't realize they qualify. Medical expenses can lower your calculated net income, potentially making your parent eligible even if their income seems too high.",
+      "savingsRange": "$100 – $400/month in 2026",
+      "savingsSource": "Estimated based on household size and income calculations",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Net income at or below Federal Poverty Line",
+          "Assets under $4,500",
+          "U.S. citizen or lawful resident"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 4500,
+          "couple": 4500,
+          "countedAssets": [
+            "Bank accounts",
+            "Some vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "Social Security income",
+            "Most retirement/pension plans"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be U.S. citizen or certain lawfully present non-citizen",
+          "Must live in Florida",
+          "Must include all household members who buy/prepare food together"
+        ],
+        "povertyLevelReference": "100% FPL (net income)"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online through ACCESS Florida or visit your county DCF office — standard processing time varies, but expedited benefits available within 7 days if you qualify.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Gather required documents",
+            "description": "Collect proof of identity, income statements (Social Security, pension), bank statements, and medical expense records if applicable."
+          },
+          {
+            "step": 2,
+            "title": "Submit application",
+            "description": "Apply online at ACCESS Florida website, visit your county DCF office, or call your local DCF office for phone application."
+          },
+          {
+            "step": 3,
+            "title": "Complete interview",
+            "description": "DCF will schedule an eligibility interview, which can often be done by phone for seniors."
+          },
+          {
+            "step": 4,
+            "title": "Receive decision",
+            "description": "You'll get a written decision. If approved, your EBT card will be mailed to you with first month's benefits."
+          }
+        ],
+        "processingTime": "Processing time varies — expedited benefits available within 7 days if you qualify",
+        "waitlist": null,
+        "tip": "You may qualify for expedited benefits (within 7 days) if monthly income and cash total less than rent/mortgage plus utilities, or if income is under $150 with less than $100 in cash.",
+        "urls": [
+          {
+            "label": "ACCESS Florida Online Application",
+            "url": "https://www.myflorida.com/accessflorida/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and savings",
+            "Some vehicles (rules vary)"
+          ],
+          "excluded": [
+            "Primary home (any value)",
+            "Social Security income",
+            "Most retirement accounts and pension plans"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID",
+                "Social Security card"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security benefit statements",
+                "Pension or retirement income documents",
+                "Bank statements (last 3 months)",
+                "Medical expense receipts",
+                "Rent receipt or mortgage statement"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Seniors 60+ only need to meet the net income limit, not the gross income limit — making it easier to qualify than younger adults. Medical costs can reduce your calculated income, so bring all medical expense records."
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "You're expected to spend 30% of your net income on food. Your SNAP benefit equals the maximum allotment for your household size minus this 30% contribution."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my mom keep her house and still qualify for SNAP?",
+          "answer": "Yes. Your primary home doesn't count toward the $4,500 asset limit, regardless of its value. Only bank accounts and some vehicles count as assets."
+        },
+        {
+          "question": "What if Mom's Social Security puts her just over the income limit?",
+          "answer": "Medical expenses can reduce your calculated net income. If your parent has ongoing medical costs — prescriptions, doctor visits, medical equipment — these expenses may lower their net income enough to qualify."
+        },
+        {
+          "question": "Does my parent have to include me in their SNAP application if I live with them?",
+          "answer": "Only if you buy and prepare food together. If you shop and cook separately, you can apply as separate households even if you live in the same home."
+        },
+        {
+          "question": "How much will Mom actually get in SNAP benefits?",
+          "answer": "It depends on household size and income. The formula is: maximum allotment for your household size minus 30% of your net income. A single person might get $100-300/month depending on their income."
+        },
+        {
+          "question": "Can SNAP benefits pay for meals at senior centers?",
+          "answer": "No. SNAP only covers unprepared foods you buy at grocery stores — fruits, vegetables, meat, dairy, grains. You cannot use it for prepared meals, restaurant food, or hot foods from the deli counter."
+        },
+        {
+          "question": "What happens if Mom gets approved but her income changes?",
+          "answer": "You must report significant income changes to your county DCF office. Benefits will be recalculated. If income goes up, benefits may decrease. If income drops, benefits may increase."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.myflfamilies.com/services/public-assistance/supplemental-nutrition-assistance-program-snap",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-emergency-home-energy-assistance-program",
+      "name": "Florida Emergency Home Energy Assistance Program (EHEAP)",
+      "shortName": "Florida Energy Assistance",
+      "tagline": "Up to $400 to help your parent catch up on past-due electricity or gas bills if they're facing disconnection.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Hillsborough County Community Resource Centers",
+            "type": "service-area"
+          },
+          {
+            "name": "Jacksonville Parks & Rec Senior Services",
+            "type": "service-area"
+          },
+          {
+            "name": "St. Johns County offices",
+            "type": "service-area"
+          },
+          {
+            "name": "Senior Resource Alliance (Orange/Osceola/Brevard/Seminole)",
+            "type": "service-area"
+          },
+          {
+            "name": "Palm Beach County DOSS",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and received a utility disconnection notice or has a past-due energy bill, they may qualify for emergency help paying electricity, gas, or propane bills. Because this program pays the utility company directly, your parent won't handle the money — it goes straight toward the overdue balance. This is crisis assistance, meaning your parent must already be behind on bills or facing shutoff to qualify.\n\nThe program is run county by county across Florida, so income limits and benefit amounts vary by location. Most counties use 150% of the Federal Poverty Level as the income limit, while some areas provide up to $400 per season (summer cooling or winter heating). Your parent automatically qualifies if they receive SNAP, TANF, or SSI benefits.",
+      "savingsRange": "$400/season",
+      "savingsSource": "Maximum benefit amount in Palm Beach County",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Past-due energy bill or disconnection notice",
+          "Income varies by county",
+          "Florida resident",
+          "Responsible for utility bills"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 2311
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 3022
+          },
+          {
+            "householdSize": 3,
+            "monthlyLimit": 3734
+          },
+          {
+            "householdSize": 4,
+            "monthlyLimit": 4445
+          },
+          {
+            "householdSize": 5,
+            "monthlyLimit": 5156
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "U.S. citizen, permanent resident, or qualified alien",
+          "Not living in group home, subsidized housing, or dorm",
+          "Must provide recent energy bill and disconnection notice"
+        ],
+        "povertyLevelReference": "150% FPL"
+      },
+      "applicationGuide": {
+        "method": "in-person",
+        "summary": "Apply in person at your county's office with original documents — no online applications available.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Find your county office",
+            "description": "EHEAP is administered locally, so you must apply through your parent's county office. Check the Local Offices section below for contact information."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Bring original documents (no copies accepted for ID and Social Security cards). You'll need proof of the energy crisis, income for all household members, and identification."
+          },
+          {
+            "step": 3,
+            "title": "Call for appointment",
+            "description": "Most counties require appointments. Call your local office to schedule. Priority goes to households with seniors, disabled members, or school-age children."
+          },
+          {
+            "step": 4,
+            "title": "Complete application with staff",
+            "description": "A staff member will help you complete the EHEAP application during your appointment. If approved, payment goes directly to the utility company."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Priority given to households with seniors 60+, disabled members, or school-age children",
+        "tip": "Bring originals of all documents — many counties won't accept photocopies of ID cards or Social Security cards.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by Household Size (2023)",
+          "rows": [
+            {
+              "householdSize": 1,
+              "monthlyLimit": 2311,
+              "annualLimit": 27735
+            },
+            {
+              "householdSize": 2,
+              "monthlyLimit": 3022,
+              "annualLimit": 36269
+            },
+            {
+              "householdSize": 3,
+              "monthlyLimit": 3734,
+              "annualLimit": 44803
+            },
+            {
+              "householdSize": 4,
+              "monthlyLimit": 4445,
+              "annualLimit": 53337
+            },
+            {
+              "householdSize": 5,
+              "monthlyLimit": 5156,
+              "annualLimit": 61870
+            }
+          ],
+          "footnote": "Income limits vary by county. Some use 150% Federal Poverty Level, others use different standards. Contact your local office for exact limits."
+        },
+        {
+          "type": "county-directory",
+          "heading": "Local Offices by County",
+          "offices": [
+            {
+              "name": "Hillsborough County Community Resource Centers",
+              "type": "county",
+              "phone": null,
+              "address": "Multiple locations - contact county for details"
+            },
+            {
+              "name": "Jacksonville/Duval County Parks & Recreation Senior Services",
+              "type": "county",
+              "phone": "(904) 630-2489",
+              "address": null
+            },
+            {
+              "name": "St. Johns County",
+              "type": "county",
+              "phone": null,
+              "address": "Multiple office locations"
+            },
+            {
+              "name": "Senior Resource Alliance",
+              "type": "service-area",
+              "phone": null,
+              "address": "Serves Orange, Osceola, Brevard, and Seminole counties"
+            },
+            {
+              "name": "Palm Beach County Department of Social Services",
+              "type": "county",
+              "phone": "(561) 355-4746",
+              "address": "Multiple office locations"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring (Originals Required)",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Driver's license or state ID (original only)",
+                "Social Security cards for all household members (originals, no copies)",
+                "Birth certificates if needed",
+                "Citizenship or immigration documents if applicable"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Pay stubs for all working household members",
+                "Award letters (Social Security, disability, pension)",
+                "Bank statements (required separately from income proof)",
+                "SNAP, TANF, or SSI benefit letters if receiving"
+              ]
+            },
+            {
+              "name": "Energy Crisis",
+              "items": [
+                "Recent utility bill showing past-due amount",
+                "Disconnection or termination notice",
+                "Bills for electricity, natural gas, propane, or other heating fuel"
+              ]
+            },
+            {
+              "name": "Housing",
+              "items": [
+                "Lease agreement if renting",
+                "Proof of residence if receiving Section 8"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This program is only available in certain Florida counties. If your parent lives in a county not listed above, contact their local Area Agency on Aging to ask about other energy assistance options."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Your parent automatically qualifies income-wise if they receive SNAP, TANF, or SSI benefits — but they still need to show the energy crisis (past-due bill or disconnection notice)."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "If your parent receives SNAP, TANF, or SSI, they automatically qualify regardless of other income. Otherwise, income limits vary by county, so check with your local office — some counties use different standards that might be more generous."
+        },
+        {
+          "question": "Can this help with a future bill or only past-due amounts?",
+          "answer": "This is emergency assistance only. Your parent must already be behind on bills or have received a disconnection notice. The program cannot help with future bills or preventive assistance."
+        },
+        {
+          "question": "How much will my parent receive?",
+          "answer": "It varies by county and the amount owed. Some areas provide up to $400 per season (summer cooling period or winter heating period). The program pays the utility company directly to cover past-due balances."
+        },
+        {
+          "question": "Can my parent apply again if they need help later?",
+          "answer": "In areas with seasonal limits, your parent can apply once during summer cooling season (April-September) and once during winter heating season (October-March). Rules vary by county."
+        },
+        {
+          "question": "What if my parent lives in subsidized housing?",
+          "answer": "Your parent cannot receive this assistance if they live in group homes, subsidized housing, or dorms where utilities are included in rent. They must be responsible for paying their own heating or cooling bills."
+        },
+        {
+          "question": "What types of energy bills are covered?",
+          "answer": "The program covers electricity, natural gas, propane, wood, coal, and other refillable heating fuels. It does not cover water, sewer, or trash bills — only heating and cooling costs."
+        }
+      ],
+      "phone": "(904) 630-2489",
+      "sourceUrl": "https://hcfl.gov/residents/seniors/senior-and-caregiver-services/emergency-home-energy-assistance-program",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-shine-medicare-counseling",
+      "name": "SHINE (Serving Health Insurance Needs of Elders)",
+      "shortName": "SHINE Counseling",
+      "tagline": "Free, one-on-one help navigating Medicare choices and finding hidden subsidies your parent may qualify for.",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Florida Department of Elder Affairs, 4040 Esplanade Way, Suite 280-S, Tallahassee, FL 32399[1]",
+            "type": "service-area"
+          },
+          {
+            "name": "Local Area Agencies on Aging via www.floridashine.org[3]",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is on Medicare in Florida, they can get free, unbiased counseling to navigate their coverage options and find savings they may not know about. SHINE provides one-on-one guidance on Medicare enrollment, plan choices, appeals, and prescription assistance — plus helps apply for programs like Extra Help (up to $5,000+ yearly in prescription savings) and Medicare Savings Programs.\n\nBecause SHINE counselors don't sell insurance, they can give honest advice about which plans actually work best for your parent's specific needs and budget. The service is completely free with no income limits — available to all Florida Medicare beneficiaries and their families through 400+ trained volunteers statewide.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Florida resident",
+          "Medicare beneficiary or family member",
+          "No income limits for counseling",
+          "Assists with programs that have income limits"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Florida resident",
+          "Typically Medicare beneficiary, family member, or caregiver"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Call the Elder Helpline or visit the website — counseling is available immediately with no formal application.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact SHINE",
+            "description": "Call 1-800-963-5337 (8am-5pm) or visit floridashine.org to find local counseling sites"
+          },
+          {
+            "step": 2,
+            "title": "Schedule counseling",
+            "description": "Choose phone consultation, in-person meeting, or attend a community event"
+          },
+          {
+            "step": 3,
+            "title": "Bring Medicare information",
+            "description": "Have Medicare card and current insurance details ready (recommended but not required)"
+          },
+          {
+            "step": 4,
+            "title": "Get personalized guidance",
+            "description": "Counselor reviews options and helps apply for any savings programs your parent qualifies for"
+          }
+        ],
+        "processingTime": "No formal processing; counseling available year-round via phone, local sites, and events",
+        "waitlist": null,
+        "tip": "Services are in high demand (9,500+ users yearly in Southwest Florida alone), so call early in the day for fastest response.",
+        "urls": [
+          {
+            "label": "Find Local SHINE Sites",
+            "url": "https://www.floridashine.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Many eligible seniors don't know about Medicare savings programs — in one region alone, 35,000+ qualify for Extra Help but haven't enrolled. A SHINE counselor can screen your parent and help apply."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the limit for Extra Help?",
+          "answer": "SHINE counselors can check if they qualify for Medicare Savings Programs, which have higher income limits and still provide significant prescription and premium savings."
+        },
+        {
+          "question": "Will the counselor try to sell us insurance?",
+          "answer": "No. SHINE volunteers are not insurance agents and don't sell or recommend specific plans. They provide unbiased information to help you choose what's best for your parent's situation."
+        },
+        {
+          "question": "Can SHINE help if my parent already has Medicare coverage?",
+          "answer": "Yes. They help with plan changes during Open Enrollment, appeals if claims are denied, and finding additional savings programs your parent may qualify for."
+        },
+        {
+          "question": "What should I bring to a SHINE appointment?",
+          "answer": "Medicare card and current insurance information are helpful but not required. For applying to savings programs, the counselor will guide you on what income and asset documentation to gather."
+        },
+        {
+          "question": "How long does a counseling session take?",
+          "answer": "Sessions are typically one-on-one and can range from 30 minutes for simple questions to longer for comprehensive plan reviews or applications to savings programs."
+        },
+        {
+          "question": "Can I get help for my parent if they live in a different Florida county?",
+          "answer": "Yes. SHINE operates statewide through 11 Area Agencies on Aging, so counseling is available in every Florida county, though volunteer availability may vary by region."
+        }
+      ],
+      "phone": "1-800-963-5337",
+      "sourceUrl": "https://www.floridashine.org",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-home-delivered-meals",
+      "name": "Home-Delivered Meals",
+      "shortName": "Delivered Meals",
+      "tagline": "If your parent has trouble shopping or cooking, they may qualify for nutritious meals delivered to their door.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local Aging and Disability Resource Centers (ADRCs)",
+            "type": "service-area"
+          },
+          {
+            "name": "Area Agencies on Aging",
+            "type": "service-area"
+          },
+          {
+            "name": "SMMC LTC Plans",
+            "type": "service-area"
+          },
+          {
+            "name": "Mom's Meals (Medicaid/Medicare partner)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and has difficulty shopping for groceries or preparing meals, Florida's Home-Delivered Meals program can deliver nutritious meals directly to their door. This isn't just convenience — it's designed for older adults who are homebound or struggle with meal preparation due to mobility, health, or other challenges.\n\nThe program varies significantly by county and how your parent qualifies. If they have Medicaid long-term care coverage, they may receive 5-10 meals per authorization period at no cost. If they don't qualify for free meals, they can still receive them for $9.49 or less per meal. Because this program is run by local providers in each county, availability, wait times, and specific requirements differ depending on where your parent lives.",
+      "savingsRange": "",
+      "savingsSource": "Free service or low-cost meals at $9.49 or less",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+ or disabled",
+          "Homebound or difficulty shopping/cooking",
+          "Lives in delivery zone",
+          "Has working refrigerator and microwave/oven"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be homebound or have difficulty shopping for groceries and preparing meals due to mobility, health, or other limitations",
+        "otherRequirements": [
+          "Must live within local provider's delivery zone",
+          "Must have working refrigerator and microwave or oven",
+          "Must be able to access door for delivery"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the Elder Helpline at 1-800-96-ELDER to connect with your local program — processing varies from one week to several months depending on waitlists.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call Elder Helpline",
+            "description": "Call 1-800-96-ELDER (800-963-5337) to reach your local Aging and Disability Resource Center (ADRC)"
+          },
+          {
+            "step": 2,
+            "title": "Complete assessment",
+            "description": "A local program staff member will assess your parent's needs, either by phone or in-person visit"
+          },
+          {
+            "step": 3,
+            "title": "Provide documentation",
+            "description": "Submit proof of age, residence, and any medical information about dietary restrictions or health conditions"
+          },
+          {
+            "step": 4,
+            "title": "Wait for approval",
+            "description": "Your parent will be placed on the program roster or waitlist depending on local availability and priority level"
+          }
+        ],
+        "processingTime": "Varies by county — some programs start within a week, others have longer waitlists",
+        "waitlist": "Common in most local programs; varies by region and demand",
+        "tip": "If your parent has Medicaid long-term care coverage, contact their case manager directly as they may have faster access to meal benefits",
+        "urls": [
+          {
+            "label": "Florida Department of Elder Affairs Food Assistance",
+            "url": "https://elderaffairs.org/programs-and-services/food-assistance/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "How Your Parent May Qualify",
+          "tiers": [
+            {
+              "name": "Medicaid Long-Term Care",
+              "description": "If your parent has Medicaid SMMC LTC coverage",
+              "incomeLimit": "Based on Medicaid eligibility (typically around federal poverty level)",
+              "coverage": "5-10 meals per authorization period at no cost, medically tailored options available"
+            },
+            {
+              "name": "Medicare Advantage Plan",
+              "description": "If your parent's Medicare Advantage plan includes meal benefits",
+              "incomeLimit": "Varies by plan",
+              "coverage": "Benefit amount varies by plan, often post-hospital discharge"
+            },
+            {
+              "name": "Local Area Agency on Aging",
+              "description": "Standard program for eligible seniors",
+              "incomeLimit": "No statewide income limits — prioritizes low-income but may serve others",
+              "coverage": "Meals at $9.49 or less, may be free for qualifying low-income participants"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residence",
+              "items": [
+                "Proof of age (birth certificate, driver's license, or ID)",
+                "Proof of residence in the delivery area"
+              ]
+            },
+            {
+              "name": "Health Information",
+              "items": [
+                "Medical information about dietary restrictions or special needs",
+                "Documentation of conditions that limit shopping or cooking ability"
+              ]
+            },
+            {
+              "name": "Financial (Sometimes Required)",
+              "items": [
+                "Income documentation (may be required by some local programs)",
+                "Medicaid or Medicare cards if applicable"
+              ]
+            },
+            {
+              "name": "Emergency Contacts",
+              "items": [
+                "Names and phone numbers of family members or caregivers"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Most local programs have waitlists, and approval is not automatic. Your parent will need an assessment to determine their level of need, and programs prioritize those who are most homebound or have the greatest difficulty with meal preparation."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Car ownership or your parent's ability to leave home occasionally may disqualify them from some programs, as these are specifically designed for homebound individuals. Be honest during the assessment about their actual limitations."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent can still drive but has trouble cooking?",
+          "answer": "This may disqualify them from some programs, as home-delivered meals prioritize those who are homebound or cannot shop for groceries. However, eligibility varies by local provider — some may serve people who can leave home but struggle with meal preparation due to health conditions. Be specific about your parent's cooking limitations during the assessment."
+        },
+        {
+          "question": "Can my parent get meals if their income is too high for Medicaid?",
+          "answer": "Yes. Most local programs don't have strict statewide income limits and may serve people above poverty levels, though they typically charge for meals (usually $9.49 or less per meal). Low-income participants are prioritized for free meals, but others can still receive the service by paying."
+        },
+        {
+          "question": "What if we live in a rural area where delivery might be difficult?",
+          "answer": "Delivery zones vary by county and local provider. Some rural addresses may be outside delivery areas. When you call the Elder Helpline, they'll tell you if your parent's address is in the service area. Each county has different coverage areas and providers."
+        },
+        {
+          "question": "How many meals will my parent receive per week?",
+          "answer": "This varies significantly. If your parent has Medicaid long-term care, they may receive 5-10 meals per authorization period. Other participants might receive different amounts based on their assessment and local program capacity. The assessment will determine how many meals your parent needs and qualifies for."
+        },
+        {
+          "question": "What if my parent has special dietary needs like diabetic or low-sodium meals?",
+          "answer": "Many programs offer medically tailored meals, especially for participants with Medicaid coverage. During the assessment, provide detailed information about your parent's dietary restrictions, medical conditions, and any doctor's recommendations. This information helps determine both eligibility and the type of meals provided."
+        },
+        {
+          "question": "Can my parent's spouse also receive meals?",
+          "answer": "Possibly, but you need to verify this with your local program. Some programs serve spouses or other household members, while others serve only the qualified individual. Ask specifically about household members when you call for the assessment."
+        }
+      ],
+      "phone": "1-800-96-ELDER",
+      "sourceUrl": "https://elderaffairs.org/programs-and-services/food-assistance/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-relief-respite-care",
+      "name": "Respite for Elders Living in Everyday Families (RELIEF)",
+      "shortName": "RELIEF Respite",
+      "tagline": "Free temporary caregiving help so you can take breaks from caring for your aging parent.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "local",
+        "stateVariation": false
+      },
+      "intro": "If you're caring for an aging parent and need temporary relief, RELIEF may provide professional caregivers to stay with your parent while you take breaks, run errands, or handle other responsibilities. This respite care program is designed specifically for families providing daily care to elderly relatives.\n\nWe could not verify current program details, eligibility requirements, or availability in our research. The program may operate under a different name or may not be currently active in Florida.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Program details not verified",
+          "Contact Florida DOEA to confirm availability",
+          "Likely serves family caregivers of elderly adults"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Program eligibility requirements not available in current research"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact Florida Department of Elder Affairs to verify if this program exists and how to apply.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call Florida Department of Elder Affairs",
+            "description": "Verify program availability and current name"
+          },
+          {
+            "step": 2,
+            "title": "Contact your local Aging and Disability Resource Center",
+            "description": "Ask about respite care programs in your area"
+          },
+          {
+            "step": 3,
+            "title": "Inquire about similar programs",
+            "description": "Ask about Alzheimer's Disease Initiative (ADI) Respite Services or other caregiver support programs"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Ask specifically about respite care programs by describing what you need rather than asking for 'RELIEF' by name.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "We could not verify this program exists under this name in Florida. Contact the Florida Department of Elder Affairs at (850) 414-2000 to ask about current respite care programs for family caregivers."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Does this program actually exist in Florida?",
+          "answer": "We could not find official documentation for 'RELIEF' in current Florida programs. The program may operate under a different name, be locally administered, or may no longer be active. Contact your local Aging and Disability Resource Center to ask about available respite care programs."
+        },
+        {
+          "question": "What other respite care options are available in Florida?",
+          "answer": "Florida offers Alzheimer's Disease Initiative (ADI) Respite Services and other caregiver support programs through the Department of Elder Affairs. Contact (850) 414-2000 to learn about programs in your area."
+        },
+        {
+          "question": "How do I find legitimate respite care help for my parent?",
+          "answer": "Start with your local Aging and Disability Resource Center (ADRC). They maintain current lists of available programs and can help you navigate eligibility requirements for respite care services in your specific county."
+        },
+        {
+          "question": "What should I ask when I call about respite programs?",
+          "answer": "Ask about income limits, how many hours of respite care are provided, whether caregivers are trained for your parent's specific conditions, and if there's a waiting list. Also ask about backup options if your regular respite caregiver isn't available."
+        }
+      ],
+      "phone": "(850) 414-2000",
+      "sourceUrl": null,
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-scsep-employment",
+      "name": "Senior Community Service Employment Program (SCSEP)",
+      "shortName": "SCSEP",
+      "tagline": "If your parent is 55+ and struggling to find work, they can earn minimum wage while gaining job skills through community service.",
+      "programType": "employment",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Florida Department of Elder Affairs (DOEA)",
+            "type": "service-area"
+          },
+          {
+            "name": "AARP Foundation (primary contractor)",
+            "type": "service-area"
+          },
+          {
+            "name": "National Caucus and Center on Black Aged (NCBA)",
+            "type": "service-area"
+          },
+          {
+            "name": "National Urban League (NUL)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 55+ and can't find work, SCSEP provides paid job training through community service. Your parent will earn at least minimum wage ($12/hour in Florida) for 20 hours per week while learning job skills at nonprofits, schools, or government offices. Because this is a training program, it typically lasts 6 months and includes help finding permanent employment.\n\nTo qualify, your parent must be unemployed with family income at or below 125% of the federal poverty level. The program prioritizes veterans, people over 65, those with disabilities, and others with the greatest barriers to employment. Most participants work at libraries, senior centers, food banks, or schools while receiving training.",
+      "savingsRange": "$5,000 – $6,200/year in 2026",
+      "savingsSource": "20 hours/week at $12/hour Florida minimum wage",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 55+",
+          "Currently unemployed",
+          "Family income at 125% poverty level or below",
+          "Poor employment prospects"
+        ],
+        "ageRequirement": "55+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be currently unemployed",
+          "Must have poor employment prospects",
+          "Priority given to veterans, people 65+, those with disabilities, low literacy, rural residents, or homeless individuals"
+        ],
+        "povertyLevelReference": "125% FPL"
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply online or call the AARP Foundation helpline — processing time varies by region and funding availability.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Check if your county is served",
+            "description": "Use the zip code locator to find your local provider — not all Florida counties participate."
+          },
+          {
+            "step": 2,
+            "title": "Gather income documentation",
+            "description": "You'll need proof your parent's family income is at 125% of poverty level or below."
+          },
+          {
+            "step": 3,
+            "title": "Submit application",
+            "description": "Apply online or call 1-855-850-2525. Include proof of age, unemployment, and any veteran/priority status."
+          },
+          {
+            "step": 4,
+            "title": "Complete assessment",
+            "description": "Local provider will assess employment barriers and match your parent with appropriate community service training."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Possible due to funding limits — varies by region and provider",
+        "tip": "Veterans and people over 65 get priority enrollment, so mention this status upfront.",
+        "urls": [
+          {
+            "label": "Online Application",
+            "url": "https://onlineapplication.scsep.org/OnlineApplication/"
+          },
+          {
+            "label": "Find Local Provider",
+            "url": "https://my.aarpfoundation.org/locator/scsep/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Proof of age (birth certificate, driver's license, or passport)",
+                "Social Security card"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Proof of family income (Social Security statements, pension statements, any other household income)",
+                "Proof of unemployment status (termination letter, unemployment benefits statement, or signed statement)"
+              ]
+            },
+            {
+              "name": "Priority Status",
+              "items": [
+                "Veteran discharge papers (DD-214) if applicable",
+                "Disability documentation if applicable",
+                "Any documentation of homelessness or housing instability"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "This is a temporary training program — typically 6 months. Your parent must be ready to transition to permanent employment, not looking for long-term subsidized work."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Multiple agencies run SCSEP in Florida (AARP Foundation, Florida DOEA, NCBA, NUL). If one has a waitlist, ask about other providers in your area."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent has been retired but needs to go back to work?",
+          "answer": "They can qualify if they're currently unemployed and meet the income limits. Previous retirement doesn't disqualify them — the program looks at current employment status."
+        },
+        {
+          "question": "Can my parent keep their Social Security while in SCSEP?",
+          "answer": "Yes, Social Security benefits continue. However, the SCSEP wages may be counted as earned income, which could affect other benefits. Check with Social Security about earnings limits."
+        },
+        {
+          "question": "What happens after the 6 months of training?",
+          "answer": "SCSEP provides job placement assistance to help your parent find permanent employment. The goal is to transition to unsubsidized work with the skills gained during training."
+        },
+        {
+          "question": "What kind of work will my parent do?",
+          "answer": "Common placements include libraries, senior centers, food banks, schools, and government offices. The work matches your parent's abilities and provides relevant job skills training."
+        },
+        {
+          "question": "What if our family income is just over 125% of the poverty level?",
+          "answer": "Income limits are strict — there's no flexibility above 125% of poverty. However, income limits are based on total family size, so make sure the calculation includes all household members."
+        },
+        {
+          "question": "Is this available in all Florida counties?",
+          "answer": "No. SCSEP operates in many but not all Florida counties. Use the zip code locator to check availability in your parent's area before applying."
+        }
+      ],
+      "phone": "1-855-850-2525",
+      "sourceUrl": "https://elderaffairs.org/programs-and-services/senior-community-service-employment-program-scsep/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-long-term-care-ombudsman",
+      "name": "Long-Term Care Ombudsman Program",
+      "shortName": "Care Ombudsman",
+      "tagline": "Free advocate to investigate complaints and protect your parent's rights in nursing homes or assisted living facilities",
+      "programType": "resource",
+      "complexity": "simple",
+      "geographicScope": {
+        "type": "federal",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "14 district offices coordinated by the Department of Elder Affairs; contact central toll-free number for local routing.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in a nursing home, assisted living facility, or other long-term care facility in Florida and faces problems with their care, treatment, or rights, the Long-Term Care Ombudsman Program provides free advocacy to help resolve complaints. The program investigates issues like neglect, medication errors, billing problems, or violations of residents' rights — and works directly with facilities to fix problems.\n\nThe ombudsman serves as your parent's voice when they can't advocate for themselves. Trained volunteers and staff visit facilities regularly, investigate complaints confidentially, and work to resolve issues without retaliation against residents. You don't need to prove financial hardship — anyone can request help for a facility resident, including family members, friends, or facility staff who witness problems.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Resident of Florida long-term care facility",
+          "No income or age limits",
+          "Available to family members and advocates",
+          "Includes nursing homes and assisted living"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be resident (or representative of resident) of a licensed long-term care facility in Florida, including nursing homes, assisted living facilities, adult family-care homes, and continuing care retirement communities"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the toll-free number to report concerns — no forms required and help begins immediately.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the complaint hotline",
+            "description": "Call 1-888-831-0404 to speak with an ombudsman about your parent's situation. Available to residents, family members, or anyone concerned about facility conditions."
+          },
+          {
+            "step": 2,
+            "title": "Describe the problem",
+            "description": "Explain the complaint or concern verbally — no paperwork required. The ombudsman will take down details and begin investigating."
+          },
+          {
+            "step": 3,
+            "title": "Ombudsman investigates",
+            "description": "A trained volunteer or staff member will visit the facility, interview your parent confidentially, and work with facility management to resolve the issue."
+          }
+        ],
+        "processingTime": "Immediate response to complaints",
+        "waitlist": null,
+        "tip": "Call as soon as you notice a problem — early intervention often prevents issues from escalating.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is not a financial assistance program — the ombudsman advocates for residents' rights and quality of care, but doesn't provide funding for care costs. For help paying for long-term care, look into Medicaid or VA benefits separately."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Will the facility retaliate against my parent if I file a complaint?",
+          "answer": "No. Retaliation against residents for filing complaints is illegal, and ombudsmen are trained to investigate confidentially and prevent retaliation. They work with facilities to resolve issues while protecting your parent."
+        },
+        {
+          "question": "Can I call even if my parent doesn't want me to get involved?",
+          "answer": "Yes. Family members, friends, and even facility staff can report concerns about a resident's treatment. The ombudsman will assess the situation and determine the best way to help while respecting your parent's wishes."
+        },
+        {
+          "question": "What types of problems can the ombudsman help with?",
+          "answer": "The ombudsman handles complaints about neglect, medication errors, billing disputes, violations of residents' rights, poor facility conditions, staff behavior, and issues with relocations or discharges from facilities."
+        },
+        {
+          "question": "How long does it take to resolve a complaint?",
+          "answer": "Simple issues may be resolved within days, while complex problems involving facility policies or serious care issues may take weeks. The ombudsman will keep you updated on progress throughout the investigation."
+        },
+        {
+          "question": "Does this cost anything or affect my parent's benefits?",
+          "answer": "The service is completely free and doesn't affect any other benefits your parent receives. There are no income limits or financial requirements to get help from the ombudsman."
+        },
+        {
+          "question": "What if the facility won't cooperate with the ombudsman?",
+          "answer": "Ombudsmen have legal authority to access facilities and investigate complaints. If facilities don't cooperate or serious violations are found, the ombudsman can refer cases to regulatory agencies for enforcement action."
+        }
+      ],
+      "phone": "1-888-831-0404",
+      "sourceUrl": "https://elderaffairs.org/programs-and-services/long-term-care-ombudsman-program/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-home-care-elderly",
+      "name": "Home Care for the Elderly",
+      "shortName": "Home Care",
+      "tagline": "In-home support services to help your parent avoid nursing home placement if they have a live-in caregiver.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local DOEA Aging and Disability Resource Centers (ADRCs)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 60+ and at risk of nursing home placement, Florida's Home Care for the Elderly program provides in-home services to help them stay in their own home — but only if they have an adult caregiver (age 18+) living with them full-time. This isn't standard home health care. The program requires a dedicated live-in family member or caregiver who can provide daily support for your parent's social, physical, and emotional needs.\n\nServices include personal care assistance, homemaker services, and caregiver support to prevent institutionalization. Your parent must pass a clinical assessment (called a 701B assessment) showing they're at risk of nursing home placement, and their income must be under $2,982/month for a single person (2026 limits).\n\nBecause this program focuses on caregiver-supported aging in place, it's designed for families who can commit to a live-in arrangement — not for parents who live alone or only need occasional help.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 60+",
+          "Income under $2,982/month",
+          "Live-in adult caregiver required",
+          "At risk of nursing home placement"
+        ],
+        "ageRequirement": "60+",
+        "incomeTable": null,
+        "assetLimits": {
+          "individual": 2000,
+          "couple": null,
+          "countedAssets": [
+            "Savings accounts",
+            "Stocks and bonds",
+            "Additional vehicles"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle",
+            "Personal belongings"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must pass a 701B assessment showing you're at risk of nursing home placement (evaluates need for daily help with bathing, dressing, medication management, or other activities of daily living)",
+        "otherRequirements": [
+          "Florida resident with intent to remain",
+          "Adult caregiver (18+) living in home full-time",
+          "Caregiver must accept responsibility for daily care needs"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Contact your local Aging and Disability Resource Center (ADRC) to start the application and 701B assessment process.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local ADRC",
+            "description": "Call your county's Aging and Disability Resource Center to request an application for Home Care for the Elderly program"
+          },
+          {
+            "step": 2,
+            "title": "Complete financial documentation",
+            "description": "Gather income and asset verification, or provide SSI/QMB/SLMB documentation if your parent receives these benefits"
+          },
+          {
+            "step": 3,
+            "title": "Schedule 701B assessment",
+            "description": "A clinical assessor will evaluate your parent's risk of nursing home placement and need for daily care assistance"
+          },
+          {
+            "step": 4,
+            "title": "Document caregiver arrangement",
+            "description": "Provide information about the adult caregiver, living arrangement, and their commitment to full-time care responsibility"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "If your parent receives SSI, QMB, or SLMB benefits, they automatically meet the financial requirements — bring this documentation to speed up the process.",
+        "urls": [
+          {
+            "label": "Find your local ADRC",
+            "url": "https://elderaffairs.org"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Savings and checking accounts",
+            "Stocks, bonds, and investments",
+            "Additional vehicles beyond one",
+            "Property other than primary home"
+          ],
+          "excluded": [
+            "Primary home (regardless of value)",
+            "One vehicle",
+            "Personal belongings and household items",
+            "Life insurance with face value under $1,500"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity",
+              "items": [
+                "Florida ID or driver's license",
+                "Proof of Florida residency"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "Social Security award letter",
+                "Bank statements (last 3 months)",
+                "SSI, QMB, or SLMB documentation if applicable",
+                "Any other income documentation"
+              ]
+            },
+            {
+              "name": "Caregiver",
+              "items": [
+                "Adult caregiver's ID and age verification",
+                "Documentation of living arrangement",
+                "Caregiver's commitment statement"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program requires a live-in adult caregiver committed to full-time care — it won't work if your parent lives alone or only needs occasional help. The caregiver must be 18+ and willing to take responsibility for daily social, physical, and emotional support."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent keep their house if they qualify?",
+          "answer": "Yes. Your parent's primary home doesn't count toward the asset limits, regardless of its value. The program is specifically designed to help people stay in their own homes."
+        },
+        {
+          "question": "What if Mom's income is just over $2,982/month?",
+          "answer": "She won't qualify for this program. However, if she receives SSI, QMB, or SLMB benefits, she automatically meets the financial requirements regardless of other income."
+        },
+        {
+          "question": "Does the live-in caregiver have to be a family member?",
+          "answer": "No, but they must be an adult (18+) living in the home full-time and willing to accept responsibility for your parent's daily social, physical, and emotional needs. This is a significant commitment."
+        },
+        {
+          "question": "What's the difference between this and regular Medicaid home health?",
+          "answer": "This program requires a live-in caregiver and focuses on preventing nursing home placement. Regular Medicaid home health provides professional services on a visit basis. This is more like supported family caregiving."
+        },
+        {
+          "question": "How do they determine if Dad is 'at risk of nursing home placement'?",
+          "answer": "Through a clinical assessment called a 701B evaluation. This looks at your parent's ability to handle activities of daily living like bathing, dressing, medication management, and mobility safely."
+        },
+        {
+          "question": "Can we apply if we're not sure about the live-in arrangement yet?",
+          "answer": "You need to have the caregiver arrangement in place before applying. The program requires documentation that an adult caregiver is committed to providing full-time care in the home."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.agingcarefl.org/uploads/1/3/6/5/136526411/2020-chapter-6-home-care-for-the-elderly-program.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-optional-state-supplementation-oss",
+      "name": "Optional State Supplementation (OSS)",
+      "shortName": "OSS",
+      "tagline": "Monthly cash assistance for parents 65+ living in assisted living facilities when SSI isn't enough to cover costs.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local DCF offices (e.g., regional service centers).",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent is 65+ and lives in an assisted living facility, adult family care home, or mental health residential treatment facility in Florida, they may qualify for monthly cash assistance to help cover facility costs. Optional State Supplementation (OSS) provides additional money when SSI benefits aren't enough to pay for care.\n\nThis program fills the gap between what your parent receives from SSI and what their facility charges. The state calculates the payment by taking the facility's provider rate, adding a personal needs allowance (like $54/month), then subtracting your parent's countable income. Income limit: $828.40/month for an individual in assisted living, $1,656.80/month for a married couple (current rates).\n\nOSS only applies to residents of licensed facilities — not independent living or home care. Your parent must need help with daily activities like bathing, dressing, or medication management, confirmed through medical evaluation.",
+      "savingsRange": "$35 – $78/month in 2026",
+      "savingsSource": "Based on provider rate differences and personal needs allowances by facility type",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+",
+          "Income below $828/month (individual)",
+          "Lives in licensed assisted living facility",
+          "Needs help with daily activities",
+          "Florida resident"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 828
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 1657
+          }
+        ],
+        "assetLimits": {
+          "individual": 2000,
+          "couple": 3000,
+          "countedAssets": [
+            "Bank accounts",
+            "Stocks and bonds",
+            "Cash",
+            "Second vehicles",
+            "Property other than primary home"
+          ],
+          "exemptAssets": [
+            "Primary home if occupied",
+            "One vehicle",
+            "Household goods",
+            "Personal effects"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Must need assistance with activities of daily living (bathing, dressing, medication management) due to physical or mental conditions, confirmed by medical evaluation.",
+        "otherRequirements": [
+          "U.S. citizen or qualified noncitizen",
+          "Apply for all other potential benefits first",
+          "Live in licensed facility (assisted living, adult family care home, or mental health residential treatment)"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your local Florida Department of Children and Families office in person, by phone, or by mail — processing time not specified.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Contact your local DCF office",
+            "description": "Call or visit your regional Department of Children and Families service center to request OSS application."
+          },
+          {
+            "step": 2,
+            "title": "Gather required documents",
+            "description": "Collect proof of age, income, assets, residency, citizenship, and medical evaluations confirming facility placement need."
+          },
+          {
+            "step": 3,
+            "title": "Apply for other benefits first",
+            "description": "Must apply for and pursue all other potential benefits (like SSI) before OSS determination — DCF will verify this requirement."
+          },
+          {
+            "step": 4,
+            "title": "Submit application with documentation",
+            "description": "Provide all required documents to DCF for income, asset, and facility placement verification."
+          }
+        ],
+        "processingTime": "Not specified",
+        "waitlist": null,
+        "tip": "Apply for SSI first if your parent hasn't already — OSS supplements SSI payments, so you need that determination before OSS can be calculated.",
+        "urls": [
+          {
+            "label": "Find your local DCF office",
+            "url": "https://www.myflfamilies.com/service-programs/access/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "what-counts",
+          "heading": "Asset Limits: What Counts",
+          "included": [
+            "Bank accounts and cash",
+            "Stocks, bonds, and investments",
+            "Second vehicles",
+            "Real estate other than primary home",
+            "Life insurance with cash value"
+          ],
+          "excluded": [
+            "Primary home if your parent lives there",
+            "One vehicle (any value)",
+            "Household goods and personal effects",
+            "Burial funds up to SSI limits",
+            "Life insurance under $1,500 face value"
+          ]
+        },
+        {
+          "type": "tier-comparison",
+          "heading": "Payment by Facility Type",
+          "tiers": [
+            {
+              "name": "Medicaid Facility (Individual)",
+              "description": "Licensed facility accepting Medicaid residents",
+              "incomeLimit": "$828.40/month",
+              "coverage": "$35 provider rate + $5 personal needs allowance"
+            },
+            {
+              "name": "Medicaid Facility (Couple)",
+              "description": "Licensed facility accepting Medicaid residents",
+              "incomeLimit": "$1,656.80/month",
+              "coverage": "$70 provider rate + $10 personal needs allowance"
+            },
+            {
+              "name": "Assisted Living",
+              "description": "Licensed assisted living facility",
+              "incomeLimit": "$828.40/month individual",
+              "coverage": "Up to $78.40 difference between income and facility costs"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Identity & Residency",
+              "items": [
+                "Birth certificate or other proof of age",
+                "Photo ID",
+                "Proof of Florida residency and intent to remain",
+                "Proof of U.S. citizenship or qualified noncitizen status"
+              ]
+            },
+            {
+              "name": "Financial",
+              "items": [
+                "SSI award letter",
+                "Bank statements for all accounts",
+                "Asset documentation (investment statements, property deeds)",
+                "Proof of all other income sources"
+              ]
+            },
+            {
+              "name": "Medical & Facility",
+              "items": [
+                "Medical evaluation confirming need for assistance with daily activities",
+                "Facility license verification",
+                "Social evaluation from facility showing placement meets needs",
+                "Proof of application for other benefits"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "OSS is only for parents living in licensed facilities — not independent living or home care. If your parent needs facility-level care but wants to stay home, look into other programs first."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can my parent qualify for OSS if they don't get SSI?",
+          "answer": "Possibly. Your parent must apply for SSI first, but if they're denied only because their income is slightly too high, they may still qualify for OSS if they meet all other requirements and live in a qualifying facility."
+        },
+        {
+          "question": "What happens to the OSS payment — does my parent get cash?",
+          "answer": "No. OSS payments go directly to the facility to help cover care costs. Your parent gets a small personal needs allowance (like $54/month) for personal expenses, but the main payment covers facility provider rates."
+        },
+        {
+          "question": "Can my parent keep their house and still qualify?",
+          "answer": "Yes, if it's their primary residence. The home doesn't count toward the $2,000 asset limit as long as your parent intends it to remain their primary residence, even while living in a facility."
+        },
+        {
+          "question": "What if the facility costs more than SSI plus OSS combined?",
+          "answer": "Your family would need to cover the difference, or your parent would need to find a facility that accepts the combined SSI and OSS payment amounts. OSS supplements SSI but doesn't cover unlimited facility costs."
+        },
+        {
+          "question": "Does my parent have to move to a Medicaid facility to get OSS?",
+          "answer": "No. OSS works with licensed assisted living facilities, adult family care homes, and mental health residential treatment facilities — not just Medicaid facilities. The payment amount varies by facility type."
+        },
+        {
+          "question": "What other benefits must my parent apply for first?",
+          "answer": "All potential benefits your parent might qualify for, including SSI, Social Security Disability, Veterans benefits, and any other federal or state assistance programs. DCF requires proof that you've pursued all other options before approving OSS."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://www.myflfamilies.com/service-programs/access/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-homestead-exemption-seniors",
+      "name": "Homestead Exemption for Seniors",
+      "shortName": "Senior Homestead Exemption",
+      "tagline": "If your parent owns their Florida home and is 65+, they could save hundreds on property taxes with an extra $50,000 exemption.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Local County Property Appraiser offices (e.g., Monroe: mcpafl.org, Lee: leepa.org, Duval: jacksonville.gov/departments/property-appraiser)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent owns their Florida home and is 65 or older, they may qualify for an additional $50,000 homestead exemption that reduces their property tax bill. This senior exemption works on top of the standard homestead exemption, potentially removing up to $100,000 total from their home's assessed value for tax purposes.\n\nThe catch: your parent's total household income must be below specific limits that vary by county — $38,686 for most Florida counties in 2026, but as low as $31,100 in Gulf County. Because this income limit includes all household members (not just your parent), it can disqualify families where adult children or others live in the home and contribute income.\n\nThe exemption applies automatically each year once approved, but your parent must renew if their income changes. Some counties offer additional tiers for long-term residents (25+ years), and the tax savings vary significantly depending on local tax rates.",
+      "savingsRange": "",
+      "savingsSource": "Tax reduction based on $50,000 exemption and local rates",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 65+ as of January 1",
+          "Own and live in Florida home",
+          "Household income below county limits",
+          "Must already have standard homestead exemption"
+        ],
+        "ageRequirement": "65+",
+        "incomeTable": [
+          {
+            "householdSize": "All sizes",
+            "monthlyLimit": 3224
+          },
+          {
+            "householdSize": "Gulf County only",
+            "monthlyLimit": 2592
+          }
+        ],
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must qualify for standard Florida Homestead Exemption",
+          "At least one homeowner 65+ as of January 1",
+          "Some counties require 25 years continuous residency for additional benefits"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "multiple",
+        "summary": "Apply through your county property appraiser office by March 1, either online, by mail, or in person.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Confirm you have standard homestead exemption",
+            "description": "You must already qualify for Florida's basic homestead exemption. If you don't have it, apply for both at the same time."
+          },
+          {
+            "step": 2,
+            "title": "Gather income documents",
+            "description": "Collect your prior year IRS Form 1040, Social Security statements (Form 1099), and any other income documentation for all household members."
+          },
+          {
+            "step": 3,
+            "title": "Complete forms DR-501 and DR-501SC",
+            "description": "The DR-501SC is specifically for the senior income verification. Both are available from your county property appraiser."
+          },
+          {
+            "step": 4,
+            "title": "Submit by March 1",
+            "description": "File with your county property appraiser office. If you miss the income documentation deadline, you have until June 1 to provide those documents."
+          }
+        ],
+        "processingTime": "Processed by March 1 deadline, with automatic annual renewal unless changes occur",
+        "waitlist": null,
+        "tip": "Apply early in January — if your parent's income was just under the limit last year, they should apply even if they're unsure about qualification.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "income-table",
+          "heading": "Income Limits by County (2026)",
+          "rows": [
+            {
+              "description": "Most Florida counties",
+              "monthlyLimit": 3224,
+              "annualLimit": 38686
+            },
+            {
+              "description": "Gulf County",
+              "monthlyLimit": 2592,
+              "annualLimit": 31100
+            }
+          ],
+          "footnote": "2026 limits from Florida Department of Revenue. Includes all household members' income."
+        },
+        {
+          "type": "what-counts",
+          "heading": "Income: What Counts for All Household Members",
+          "included": [
+            "Social Security benefits",
+            "Pension payments",
+            "VA benefits",
+            "Wages and salary",
+            "Interest and investment income",
+            "IRS Form 1040 adjusted gross income"
+          ],
+          "excluded": [
+            "No exclusions specified in program rules"
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "What to Bring",
+          "categories": [
+            {
+              "name": "Age Verification",
+              "items": [
+                "Driver's license or Florida ID",
+                "Passport or birth certificate"
+              ]
+            },
+            {
+              "name": "Income Documentation",
+              "items": [
+                "Prior year IRS Form 1040 or 1040A",
+                "Social Security Form 1099",
+                "Pension statements",
+                "Any other income documentation for all household members"
+              ]
+            },
+            {
+              "name": "Homestead Verification",
+              "items": [
+                "Two forms of Florida ID showing residence",
+                "Social Security numbers for applicant and spouse"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Don't forget the March 1 deadline. Even if your parent is missing income documents, they can submit the application and provide income verification by June 1."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent's income is just over the limit?",
+          "answer": "The income limits are firm — there's no partial benefit. However, limits are adjusted annually for cost of living, so your parent might qualify in future years if their income stays the same but limits increase."
+        },
+        {
+          "question": "Does this affect my parent's homeowner's insurance or other benefits?",
+          "answer": "No. This only reduces the assessed value for property tax purposes. It doesn't change the actual value of the home for insurance, selling, or other programs."
+        },
+        {
+          "question": "What happens if I live with my parent and work?",
+          "answer": "Your income counts toward the household total, which could disqualify your parent. The limit applies to all household members' combined income, not just the homeowner's."
+        },
+        {
+          "question": "Can my parent lose this exemption?",
+          "answer": "Yes, if household income exceeds the annual limit or if they no longer meet age/residency requirements. The county may audit and request updated income documentation."
+        },
+        {
+          "question": "How much will this actually save on taxes?",
+          "answer": "It depends on your local tax rates. The $50,000 exemption removes that amount from the assessed value before taxes are calculated. In areas with higher tax rates, savings can be several hundred dollars per year."
+        },
+        {
+          "question": "What if my parent moves to a different Florida county?",
+          "answer": "They'll need to reapply in the new county, and income limits may be different. Some counties also have different residency requirements or additional tiers for long-term residents."
+        }
+      ],
+      "phone": null,
+      "sourceUrl": "https://floridarevenue.com/property/Documents/pt110.pdf",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-discount-drug-card",
+      "name": "Florida Discount Drug Card Program",
+      "shortName": "Florida Drug Card",
+      "tagline": "Free prescription discounts up to 75% off for all Florida residents, no income limits or forms required.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Over 60,000 pharmacies statewide and nationwide",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent lives in Florida and pays for prescription medications, they can get immediate discounts on their drugs — no income limits, no forms, no waiting. The Florida Discount Drug Card provides average savings of 30% on prescriptions, with some drugs discounted up to 75%. Because this program has no eligibility requirements beyond Florida residency, your parent can use it whether they have Medicare, private insurance, or no coverage at all.\n\nThe card works at over 60,000 pharmacies nationwide, including all major chains like CVS, Walgreens, and Publix. Your parent can also get discounts on diabetic supplies (test strips, syringes, glucose monitors), eyeglasses, hearing aids, and nutritional supplements. You can print a pre-activated card instantly online at FloridaRxCard.com — no application process needed.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Florida resident",
+          "No income limits",
+          "No age requirement",
+          "Works with or without insurance"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "Must be a Florida resident"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "online",
+        "summary": "Print a free, pre-activated card instantly online — no forms or approval needed.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Visit FloridaRxCard.com",
+            "description": "Go to the official website and click to print your card immediately"
+          },
+          {
+            "step": 2,
+            "title": "Print the card",
+            "description": "The card is pre-activated and ready to use — no waiting period"
+          },
+          {
+            "step": 3,
+            "title": "Take to pharmacy",
+            "description": "Show the card at checkout for any prescription — compare the discount price to your insurance copay"
+          }
+        ],
+        "processingTime": "Instant — cards are pre-activated and usable immediately",
+        "waitlist": null,
+        "tip": "Compare the discount price to your insurance copay — sometimes the card saves more than insurance, especially for generic drugs.",
+        "urls": [
+          {
+            "label": "Get Your Card Online",
+            "url": "http://www.FloridaRxCard.com"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This is not insurance — at most pharmacies, you cannot use the discount card and insurance on the same prescription. Ask the pharmacist to run both and choose the lower price."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "Can Mom use this if she already has Medicare Part D?",
+          "answer": "Yes, but not on the same prescription at the same time. The pharmacist can check both the Medicare copay and the discount card price, then use whichever is lower. This is especially helpful for drugs not covered by her Medicare plan or during the coverage gap (donut hole)."
+        },
+        {
+          "question": "Will this work at Dad's regular pharmacy?",
+          "answer": "Most likely — the card works at over 60,000 pharmacies including CVS, Walgreens, Publix, and other major chains. You can search for participating pharmacies on FloridaRxCard.com before printing the card."
+        },
+        {
+          "question": "How much will this actually save on expensive medications?",
+          "answer": "Savings vary by drug, pharmacy, and whether it's brand or generic. The program averages 30% off, with some drugs up to 75% off. Generic drugs typically have higher percentage discounts than brand names."
+        },
+        {
+          "question": "Is there a catch or hidden fees?",
+          "answer": "The card is completely free to get and use. Some sources mention a one-time $1.50 activation fee at first use for a permanent plastic card, but this isn't confirmed by all sources. The printable card has no fees."
+        },
+        {
+          "question": "What if Mom moves out of Florida?",
+          "answer": "The card works at participating pharmacies nationwide, but you need to be a Florida resident to be eligible for the program. If she moves permanently, she'd need to look into her new state's discount drug programs."
+        },
+        {
+          "question": "Can this help with diabetic supplies too?",
+          "answer": "Yes — the card provides discounts on test strips, syringes, glucose monitors, and other diabetic supplies. It also covers eyeglasses, hearing aids, and nutritional supplements at participating providers."
+        }
+      ],
+      "phone": "1-877-321-2652",
+      "sourceUrl": "http://www.FloridaRxCard.com",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-alzheimers-disease-initiative",
+      "name": "Alzheimer's Disease Initiative (ADI)",
+      "shortName": "ADI",
+      "tagline": "Free respite care, case management, and support services for families caring for someone with Alzheimer's or dementia.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "11 Area Agencies on Aging (AAAs)",
+            "type": "service-area"
+          },
+          {
+            "name": "17 Memory Disorder Clinics across 13 service areas",
+            "type": "service-area"
+          },
+          {
+            "name": "Local examples: Broward County Elderly Services",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If your parent has Alzheimer's disease or dementia, Florida's ADI program provides free respite care, case management, and caregiver support services. The program offers in-home respite care, adult day care, emergency respite (up to 30 days), caregiver training, and counseling to help prevent premature nursing home placement.\n\nServices are delivered through 11 Area Agencies on Aging and 17 Memory Disorder Clinics across 13 service areas statewide. Your parent needs a documented diagnosis of Alzheimer's disease or related memory disorder and must be functionally impaired. Because services are needs-based, a comprehensive assessment determines what your family receives after you're deemed eligible.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Age 18+",
+          "Alzheimer's/dementia diagnosis",
+          "Functionally impaired",
+          "At risk of nursing home placement"
+        ],
+        "ageRequirement": "18+",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Must be functionally impaired and at risk of premature nursing home placement (requires comprehensive assessment)",
+        "otherRequirements": [
+          "Documented diagnosis of Alzheimer's disease or related memory disorder",
+          "Medical records from licensed neurologist, psychiatrist, geriatric internist, or Memory Disorder Clinic medical director",
+          "Services subject to funding availability"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the Elder Helpline to connect with your local Area Agency on Aging for assessment and enrollment.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call Elder Helpline",
+            "description": "Call 1-800-96-Elder (1-800-963-5337) to reach your local Area Agency on Aging"
+          },
+          {
+            "step": 2,
+            "title": "Provide diagnosis documentation",
+            "description": "Submit medical records including neurological exams, psychiatric assessments, blood work, and CT/MRI brain scan"
+          },
+          {
+            "step": 3,
+            "title": "Complete comprehensive assessment",
+            "description": "Case manager evaluates your parent's functional impairment and unmet needs"
+          },
+          {
+            "step": 4,
+            "title": "Receive service authorization",
+            "description": "If eligible and funding available, services are authorized based on assessment results"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "Services depend on funding availability",
+        "tip": "Get your parent's diagnosis documentation organized before calling — you'll need detailed medical records, not just a doctor's note",
+        "urls": [
+          {
+            "label": "Florida Department of Elder Affairs",
+            "url": "https://elderaffairs.org/programs-services/alzheimers-disease-initiative/"
+          }
+        ]
+      },
+      "contentSections": [
+        {
+          "type": "tier-comparison",
+          "heading": "Available Services",
+          "tiers": [
+            {
+              "name": "Respite Services",
+              "description": "In-home care, adult day care, emergency respite up to 30 days",
+              "incomeLimit": "No income limits",
+              "coverage": "Based on assessment and funding availability"
+            },
+            {
+              "name": "Support Services",
+              "description": "Case management, caregiver training, counseling, consumable medical supplies",
+              "incomeLimit": "No income limits",
+              "coverage": "Based on comprehensive assessment of unmet needs"
+            },
+            {
+              "name": "Memory Disorder Clinic Services",
+              "description": "Diagnostic testing, education, referrals, research participation, caregiver support groups",
+              "incomeLimit": "No income limits",
+              "coverage": "Available through 17 clinics in 13 service areas"
+            }
+          ]
+        },
+        {
+          "type": "documents",
+          "heading": "Required Documentation",
+          "categories": [
+            {
+              "name": "Medical Records",
+              "items": [
+                "General and neurological examination reports",
+                "Psychiatric assessments",
+                "Hematological and biochemical studies (blood work)",
+                "CT or MRI brain scan results",
+                "Diagnosis from licensed neurologist, psychiatrist, geriatric internist, or Memory Disorder Clinic medical director"
+              ]
+            },
+            {
+              "name": "Assessment Information",
+              "items": [
+                "Proof of age",
+                "Documentation of functional impairment (completed during assessment process)"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "callout",
+          "tone": "warning",
+          "text": "Services depend on funding availability in your area. Even if your parent qualifies, you may need to wait for services to become available."
+        },
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "Services vary significantly by region. Contact your local Area Agency on Aging directly — eligibility requirements and available services may differ from the statewide guidelines."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What if my parent has suspected dementia but no official diagnosis yet?",
+          "answer": "Your parent can still apply with a suspected diagnosis, but documented diagnosis is required for most services. Consider starting at one of Florida's 17 Memory Disorder Clinics for diagnostic testing and evaluation."
+        },
+        {
+          "question": "Does my parent's income affect eligibility or cost?",
+          "answer": "No statewide income limits exist, but some local programs use sliding scale co-payments based on income. Contact your local Area Agency on Aging for specific cost information in your area."
+        },
+        {
+          "question": "How much respite care can my family receive?",
+          "answer": "The amount depends on your comprehensive assessment and local funding availability. Emergency respite can extend up to 30 days, but regular respite hours vary by need and resources."
+        },
+        {
+          "question": "Can my parent get services if they live in assisted living?",
+          "answer": "The program targets people at risk of premature nursing home placement. Contact your local Area Agency on Aging to discuss whether services apply to your parent's current living situation."
+        },
+        {
+          "question": "What's the difference between Area Agencies on Aging and Memory Disorder Clinics?",
+          "answer": "Area Agencies on Aging provide direct services like respite care and case management. Memory Disorder Clinics focus on diagnosis, testing, education, and research. You may use both depending on your needs."
+        },
+        {
+          "question": "What if there's no funding available in my area right now?",
+          "answer": "Ask to be placed on a waiting list and inquire about other local resources. Your case manager can help identify alternative support services while you wait for ADI funding."
+        }
+      ],
+      "phone": "1-800-963-5337",
+      "sourceUrl": "https://elderaffairs.org/programs-services/alzheimers-disease-initiative/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    },
+    {
+      "id": "florida-relief-respite-care",
+      "name": "RELIEF Program (Respite for Elders Living in Everyday Families)",
+      "shortName": "RELIEF Respite Care",
+      "tagline": "Free volunteer companions give you up to 4 hours of relief while staying with your homebound parent.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": false,
+        "localEntities": [
+          {
+            "name": "Contact local Aging and Disability Resource Center (ADRC) or Elder Helpline",
+            "type": "service-area"
+          },
+          {
+            "name": "11 area agencies on aging (AAA)",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "If you're providing constant care to a homebound parent, Florida's RELIEF program can give you a break. The program sends screened volunteers to your parent's home for up to 4 hours at a time — including evenings and weekends — to provide companionship while you handle errands, attend appointments, or simply rest.\n\nThis is a free service available statewide through local aging agencies. The volunteers don't provide medical care, but they offer companionship and supervision so your parent isn't alone. Because the program relies on volunteer matching, availability depends on your local area's volunteer pool.",
+      "savingsRange": "",
+      "savingsSource": "Free service",
+      "savingsVerified": true,
+      "structuredEligibility": {
+        "summary": [
+          "Parent must be homebound",
+          "Parent needs constant care",
+          "You must be family caregiver",
+          "No income limits specified"
+        ],
+        "ageRequirement": null,
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": "Your parent must be frail and homebound (unable to leave home without considerable difficulty)",
+        "otherRequirements": [
+          "You must be a family member or loved one providing constant care",
+          "Your parent must be homebound"
+        ],
+        "povertyLevelReference": null
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the Elder Helpline at 1-800-963-5337 to connect with your local office and start the volunteer matching process.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call Elder Helpline",
+            "description": "Call 1-800-963-5337 to reach your local Aging and Disability Resource Center (ADRC)"
+          },
+          {
+            "step": 2,
+            "title": "Complete intake assessment",
+            "description": "Provide basic information about your caregiving situation and your parent's needs"
+          },
+          {
+            "step": 3,
+            "title": "Wait for volunteer match",
+            "description": "Your local ADRC will match you with an available screened volunteer in your area"
+          },
+          {
+            "step": 4,
+            "title": "Schedule respite visits",
+            "description": "Coordinate with your matched volunteer for up to 4-hour visits, including evenings and weekends"
+          }
+        ],
+        "processingTime": null,
+        "waitlist": null,
+        "tip": "Call during business hours for fastest response, and be prepared to explain your parent's specific needs for better volunteer matching.",
+        "urls": []
+      },
+      "contentSections": [
+        {
+          "type": "callout",
+          "tone": "tip",
+          "text": "This program relies on volunteers, so availability varies by county. If no volunteers are available immediately, ask to be placed on a waiting list and inquire about other respite options through your local ADRC."
+        }
+      ],
+      "faqs": [
+        {
+          "question": "What exactly will the volunteer do with my parent?",
+          "answer": "Volunteers provide companionship and supervision — they can chat, watch TV, play cards, or simply be present while your parent rests. They cannot provide medical care, help with bathing, or give medications."
+        },
+        {
+          "question": "Can I use this service regularly or just occasionally?",
+          "answer": "The program allows up to 4 hours per visit, including evenings and weekends. How often you can schedule visits depends on your local volunteer availability and your specific needs assessment."
+        },
+        {
+          "question": "What if my parent has dementia or Alzheimer's?",
+          "answer": "Yes, the program specifically includes families caring for elders with Alzheimer's and related disorders. The volunteer matching process will consider your parent's specific condition and needs."
+        },
+        {
+          "question": "How are volunteers screened?",
+          "answer": "Volunteers go through a screening process managed by your local Aging and Disability Resource Center, but specific screening details aren't published. Ask your local ADRC about their volunteer requirements and training."
+        },
+        {
+          "question": "What if there are no volunteers available in my area?",
+          "answer": "Because this relies on local volunteer pools, some areas may have limited availability. Your ADRC can put you on a waiting list and may suggest other respite care options or programs in your county."
+        },
+        {
+          "question": "Is there any cost to my family?",
+          "answer": "No, RELIEF program services are completely free to caregivers. This includes the volunteer matching, screening, and respite care visits."
+        }
+      ],
+      "phone": "1-800-963-5337",
+      "sourceUrl": "https://elderaffairs.org/programs-and-services/respite-for-elders-living-in-everyday-families-relief/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-04-09"
+    }
+  ],
+  "stateOverview": {
+    "intro": "Florida offers 16 senior benefit programs that could save your aging parent hundreds to thousands of dollars monthly. These range from financial benefits like SNAP food assistance (up to $300+/month) and Medicare Savings Programs (help with premiums and medical costs) to free services like home-delivered meals and respite care that gives you breaks from caregiving. Most benefits require income limits — typically around $1,800-2,100/month for a single person — but several valuable resources like SHINE Medicare counseling and prescription drug discounts have no income restrictions.\n\nStart by checking the highest-impact programs first: SNAP for immediate grocery help, Medicare Savings Programs if your parent struggles with medical costs, and Statewide Medicaid for home care services. Each program has different qualification requirements, so your parent may qualify for some but not others.",
+    "startHere": [
+      {
+        "name": "SNAP Food Assistance",
+        "programId": "snap-food-assistance",
+        "why": "Provides immediate monthly grocery money with relatively high income limits for seniors 60+."
+      },
+      {
+        "name": "Medicare Savings Programs (MSP)",
+        "programId": "medicare-savings-programs",
+        "why": "Can dramatically reduce Medicare costs if your parent's income is below $1,816/month."
+      },
+      {
+        "name": "Statewide Medicaid Managed Care Long Term Care Program",
+        "programId": "statewide-medicaid-managed-care-ltc",
+        "why": "Covers expensive home care services and nursing home costs for parents who need daily help."
+      },
+      {
+        "name": "SHINE (Serving Health Insurance Needs of Elders)",
+        "programId": "shine",
+        "why": "Free expert help finding Medicare subsidies and programs your parent may not know they qualify for."
+      }
+    ],
+    "byNeed": [
+      {
+        "need": "Help paying for food and daily expenses",
+        "programs": [
+          "SNAP Food Assistance",
+          "Optional State Supplementation (OSS)"
+        ],
+        "description": "Monthly cash benefits for groceries and living expenses when SSI or Social Security isn't enough."
+      },
+      {
+        "need": "Reducing medical and Medicare costs",
+        "programs": [
+          "Medicare Savings Programs (MSP)",
+          "Florida Discount Drug Card Program"
+        ],
+        "description": "Help with Medicare premiums, medical expenses, and prescription drug costs."
+      },
+      {
+        "need": "Home care and support services",
+        "programs": [
+          "Statewide Medicaid Managed Care Long Term Care Program",
+          "Program of All-Inclusive Care for the Elderly (PACE)",
+          "Home Care for the Elderly",
+          "Home-Delivered Meals"
+        ],
+        "description": "Services to help your parent stay safely at home instead of moving to a facility."
+      },
+      {
+        "need": "Caregiver relief and support",
+        "programs": [
+          "Respite for Elders Living in Everyday Families (RELIEF)",
+          "Alzheimer's Disease Initiative (ADI)"
+        ],
+        "description": "Free temporary caregiving help so you can take breaks from caring for your parent."
+      },
+      {
+        "need": "Housing and utility costs",
+        "programs": [
+          "Florida Emergency Home Energy Assistance Program (EHEAP)",
+          "Homestead Exemption for Seniors"
+        ],
+        "description": "Help with past-due utility bills and property tax savings for Florida homeowners 65+."
+      },
+      {
+        "need": "Free advice and advocacy",
+        "programs": [
+          "SHINE (Serving Health Insurance Needs of Elders)",
+          "Long-Term Care Ombudsman Program"
+        ],
+        "description": "Expert guidance on Medicare decisions and protection of your parent's rights in care facilities."
+      }
+    ],
+    "quickFacts": [
+      "Florida residents get free prescription discounts up to 75% off through the state drug card program — no income limits or applications required.",
+      "Most financial benefits require income below $1,816-2,152/month for a single person, but limits vary by program.",
+      "Florida has specialized programs for dementia families (ADI) and volunteer respite services (RELIEF) that many other states don't offer."
+    ],
+    "resourcesVsBenefits": "Florida programs split into two types: qualification-based benefits that require income limits (like SNAP food assistance or Medicaid home care) and free resources available to all Florida residents regardless of income. Examples of free resources include SHINE Medicare counseling, the state prescription discount card, and Long-Term Care Ombudsman advocacy — your parent can access these immediately without financial screening."
+  }
+}

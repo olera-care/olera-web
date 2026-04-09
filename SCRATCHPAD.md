@@ -41,14 +41,17 @@ The pivot (Apr 8): the pipeline used to research programs and output a report fo
 - StatePageV2: hand-drawn SVG illustrations, organic blobs, wavy dividers, dark stat band, horizontal start-here cards, need-based groupings with custom SVG icons, grouped program list by type
 - Save program: auth-gated bookmark, Supabase persistence, /saved page
 - Michigan: 16 programs drafted + state overview generated. MI Choice applied as live v2 test.
-- **50-state batch run**: in progress (second run after phaseDive bug fix). Explore data exists for all 50 states. Re-running from dive phase forward.
+- **All 50 states + DC processed**: 568 programs discovered, 28 states with full draft content + state overviews. 19.4 min batch time. Raw pipeline data (explore, dive, compare, classify, drafts, reports) committed for all states.
+- **Admin dashboard taste pass**: active/backlog split, compressed scaffolding grid (8-col), single status line replaces 3 metric boxes, clean StateCards (3 fields instead of 7), serif title
+- **Post-mortem**: entity refactor variable rename pattern documented in `docs/POSTMORTEMS.md` + memory saved
 
 ### What's next
-1. **Wait for batch run to complete** — all 50 states processing
-2. Admin dashboard taste pass (critique done, ready to build: active/backlog split, compressed scaffolding, status line)
-3. Apply approved MI drafts to waiver-library.ts
-4. Run pipeline on a region — prove region system end-to-end
+1. Review v2 state pages across a few states — spot-check content quality
+2. Apply approved MI drafts to waiver-library.ts (batch via `/benefits-pipeline`)
+3. Run pipeline on a region (e.g., "Miami-Dade County, FL") — prove region system end-to-end
+4. Re-run batch with `--force` to get remaining 22 states to full draft status (they have explore+dive but drafts failed)
 5. Review draft quality with Chantel
+6. Admin dashboard: further refinements based on TJ review of live data
 
 ### Other active work (different branches)
 - Homepage de-jank + mega menu (`gifted-rosalind`) — ready for QA
@@ -179,8 +182,8 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 ## Notes & Observations
 
 - Project is a TypeScript/Next.js 16 web app for senior care discovery
-- Benefits data: 1,145 programs across 50 states in `data/waiver-library.ts` (~11,740 lines). Only 15 (1.3%, all TX) have real content. Michigan has 16 pipeline drafts.
-- Pipeline cost: ~$0.40/state (research + content generation)
+- Benefits data: 1,145 programs across 50 states in `data/waiver-library.ts` (~11,740 lines). Only 15 (1.3%, all TX) have real content. 28 states now have pipeline-drafted content in `pipeline-drafts.ts` (19,500 lines).
+- Pipeline cost: ~$0.40/state. 50-state batch: ~$20, 19.4 min with concurrency (3 states × 5 dive workers × 3 draft workers)
 - Chantel Research files: `~/Desktop/olera-hq/Senior Benefits/Chantel Research/` — TX audit CSV + accuracy docx
 - Notion docs: "Benefits Pipeline v2 — Content Production System" (spec), "Benefits Hub Next Steps" (Apr 7 meeting)
 - Waiver library pages auto-generate via `generateStaticParams` — adding programs = pages on deploy
@@ -268,7 +271,28 @@ The deep dive. Restrained, lets content breathe. Reads like a well-researched ar
 4. searchParams made state pages dynamic (SSG regression) — replaced with /current route
 5. phaseDive return referenced undefined stateCode (crashed all 49 batch states)
 
-**Commits:** `86530f8e` → `643d70bb` → `4f10a0f7` → `f1cfed6b` → `33b767fa` → `2c690789` → `ff26b594` → `c852b379` → `2e11a804`
+**50-state batch run:**
+- First run: 49/50 failed — phaseDive `stateCode` undefined (bug #5). Explore succeeded for all 50.
+- Fixed, second run: 47/50 succeeded in 19.4 min. 568 programs. 3 retried (IL, KS, MT) — all succeeded.
+- 28 states have full drafts with state overviews. 22 states have explore+dive but drafts didn't generate (likely parse errors or token limits). Need `--force` re-run.
+- Generator fix: non-string `found` values in pipeline-summary.ts (LLM returned objects, stringify them)
+- All raw pipeline data committed: 292 files, 125K+ lines across `data/pipeline/*/`
+
+**Admin dashboard taste pass** (`app/admin/benefits/page.tsx`):
+- 3 metric boxes → single status line with readiness bar
+- Grid split into Active zone (promoted cards) + Backlog zone (8-col compressed abbreviation+count)
+- StateCard stripped: 7 metadata fields → 3 (abbreviation, name, one status line)
+- Kill progress bars on scaffolding, "Template only" text, pipeline data dumps on cards
+- Serif display title (`font-serif text-display-xs`)
+- Filter pills removed (visual split handles it)
+
+**Post-mortem** (`docs/POSTMORTEMS.md`):
+- Documented entity refactor pattern: 5 bugs from incomplete variable rename
+- Root cause: renaming function params without grepping for all downstream references in return objects, template literals, console.log
+- Memory saved: `feedback_grep_after_refactor.md`
+- Slash commands reviewed — no updates needed, existing coverage is sufficient
+
+**Commits:** `86530f8e` → `643d70bb` → `4f10a0f7` → `f1cfed6b` → `33b767fa` → `2c690789` → `ff26b594` → `c852b379` → `2e11a804` → `ec460d15` → `f423eced` → `67516447` → `4eae7868`
 
 ---
 

@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { allStates, type WaiverProgram, type StateData } from "@/data/waiver-library";
 import { pipelineData, type PipelineComparison, type PipelineStateSummary } from "@/data/pipeline-summary";
-import { pipelineDrafts, type PipelineDraft } from "@/data/pipeline-drafts";
+import { pipelineDrafts, type PipelineDraft, type PipelineStateOverview } from "@/data/pipeline-drafts";
 
 // ─── Draft Review Types ────────────────────────────────────────────────────
 
@@ -837,6 +837,83 @@ function StateCard({
 
 // ─── State Detail View ──────────────────────────────────────────────────────
 
+function StateOverviewPreview({ overview, stateName }: { overview: PipelineStateOverview; stateName: string }) {
+  return (
+    <div className="space-y-5">
+      {/* Intro */}
+      <div>
+        <p className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">Intro</p>
+        <div className="text-sm text-gray-700 leading-relaxed space-y-2">
+          {overview.intro.split("\n\n").map((para, i) => (
+            <p key={i}>{para}</p>
+          ))}
+        </div>
+      </div>
+
+      {/* Start here */}
+      {overview.startHere.length > 0 && (
+        <div>
+          <p className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">Where to Start ({overview.startHere.length} picks)</p>
+          <div className="space-y-2">
+            {overview.startHere.map((pick, i) => (
+              <div key={i} className="flex items-start gap-2.5 text-sm">
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-[11px] font-semibold shrink-0 mt-0.5">{i + 1}</span>
+                <div>
+                  <span className="font-medium text-gray-900">{pick.name}</span>
+                  <span className="text-gray-500"> — {pick.why}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* By need */}
+      {overview.byNeed.length > 0 && (
+        <div>
+          <p className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">Browse by Need ({overview.byNeed.length} groups)</p>
+          <div className="space-y-3">
+            {overview.byNeed.map((group, i) => (
+              <div key={i} className="text-sm">
+                <p className="font-medium text-gray-900">{group.need}</p>
+                <p className="text-gray-500 mt-0.5">{group.description}</p>
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  {group.programs.map((name, j) => (
+                    <span key={j} className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full">{name}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Quick facts */}
+      {overview.quickFacts.length > 0 && (
+        <div>
+          <p className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">Quick Facts</p>
+          <ul className="space-y-1.5">
+            {overview.quickFacts.map((fact, i) => (
+              <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
+                <span className="text-gray-400 mt-0.5 shrink-0">&#8226;</span>
+                {fact}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Resources vs Benefits */}
+      {overview.resourcesVsBenefits && (
+        <div>
+          <p className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-1.5">Resources vs Benefits</p>
+          <p className="text-sm text-gray-700 leading-relaxed">{overview.resourcesVsBenefits}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StateDetail({
   state,
   onBack,
@@ -848,6 +925,8 @@ function StateDetail({
   const pipeline = pipelineData[state.abbreviation];
   const comparisons = pipeline?.comparisons || [];
   const stateDrafts = pipelineDrafts[state.abbreviation]?.programs || [];
+  const stateOverview = pipelineDrafts[state.abbreviation]?.stateOverview;
+  const [showStateOverview, setShowStateOverview] = useState(!!stateOverview);
 
   // Match pipeline comparisons to existing programs by ID or fuzzy name
   function findComparison(program: WaiverProgram): PipelineComparison | undefined {
@@ -924,6 +1003,36 @@ function StateDetail({
               <span> &middot; {pipeline.newPrograms} new programs discovered</span>
             )}
           </div>
+        </div>
+      )}
+
+      {/* State overview toggle */}
+      {stateOverview && (
+        <div className="mb-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowStateOverview(true)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                showStateOverview ? "bg-blue-100 text-blue-700" : "text-gray-500 hover:bg-gray-100"
+              }`}
+            >
+              Draft State Overview
+            </button>
+            <button
+              onClick={() => setShowStateOverview(false)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                !showStateOverview ? "bg-gray-200 text-gray-700" : "text-gray-500 hover:bg-gray-100"
+              }`}
+            >
+              Programs Only
+            </button>
+          </div>
+
+          {showStateOverview && (
+            <div className="mt-4 p-4 bg-white rounded-xl border border-gray-200">
+              <StateOverviewPreview overview={stateOverview} stateName={state.name} />
+            </div>
+          )}
         </div>
       )}
 

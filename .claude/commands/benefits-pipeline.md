@@ -57,30 +57,32 @@ If an approved state overview exists, the state page is already rendering from `
 ## Pipeline Script Reference
 
 ```bash
-# Dry run (preview what would happen)
-node scripts/benefits-pipeline.js --state MI
-
-# Full pipeline (~5 min for research + ~2 min for drafts)
-node scripts/benefits-pipeline.js --state MI --run
-
-# Single phase only
+# State (original shorthand)
+node scripts/benefits-pipeline.js --state MI              # dry-run
+node scripts/benefits-pipeline.js --state MI --run        # full pipeline
 node scripts/benefits-pipeline.js --state MI --phase explore --run
-node scripts/benefits-pipeline.js --state MI --phase dive --run
-node scripts/benefits-pipeline.js --state MI --phase compare --run
-node scripts/benefits-pipeline.js --state MI --phase classify --run
-node scripts/benefits-pipeline.js --state MI --phase draft --run
-node scripts/benefits-pipeline.js --state MI --phase report --run
+
+# Region (any geographic entity)
+node scripts/benefits-pipeline.js --region "Miami-Dade County, FL" --parent-state FL --run
+node scripts/benefits-pipeline.js --region "Greater Houston" --parent-state TX --run
+node scripts/benefits-pipeline.js --region "DMV" --run
 ```
 
+`--state XX` is shorthand for `--region "{state name}"`. `--parent-state` links a region to a state for comparison data.
+
 **Six phases run in order. Each reads the previous phase's output:**
-1. `explore` — finds all programs (2 Perplexity queries: federal + state-unique)
+1. `explore` — finds all programs (2 Perplexity queries adapted to entity type)
 2. `dive` — deep dives each program (1 Perplexity query per program)
-3. `compare` — cross-references against `waiver-library.ts`, surfaces diffs
+3. `compare` — cross-references against `waiver-library.ts` (uses parent state data for regions)
 4. `classify` — determines program type, geographic scope, complexity ($0, local processing)
 5. `draft` — generates structured page content via Claude API (1 call per program)
-6. `report` — generates markdown report + auto-updates `data/pipeline-summary.ts`
+6. `report` — generates markdown report + auto-updates `data/pipeline-summary.ts` and `data/pipeline-drafts.ts`
+
+**Output:** State data goes to `data/pipeline/{STATE_CODE}/`, region data to `data/pipeline/{slug}/` (e.g., `data/pipeline/miami-dade-county-fl/`).
 
 **Resumable:** If a phase was already run, its output file exists and later phases can read it.
+
+**Pages:** States render at `/waiver-library/{state-id}` (existing). All entities also render at `/benefits/{slug}` (flat routing — "michigan" and "miami-dade-county-fl" are peers).
 
 ## Step 1: Explore a State
 

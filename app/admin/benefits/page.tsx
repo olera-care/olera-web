@@ -1078,6 +1078,7 @@ type ReadinessFilter = "all" | "published" | "drafted" | "explored" | "scaffoldi
 
 export default function AdminBenefitsPage() {
   const [selectedState, setSelectedState] = useState<string | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [readinessFilter, setReadinessFilter] = useState<ReadinessFilter>("all");
 
@@ -1129,8 +1130,27 @@ export default function AdminBenefitsPage() {
     return states;
   }, [search, readinessFilter]);
 
+  // Regions from pipeline-drafts
+  const regions = useMemo(() => {
+    return Object.entries(pipelineDrafts)
+      .filter(([, d]) => d.isRegion)
+      .map(([key, d]) => ({
+        key,
+        name: d.regionName || key,
+        slug: d.slug || key,
+        parentState: d.parentState,
+        programCount: d.programs.length,
+        draftedAt: d.draftedAt,
+        hasOverview: !!d.stateOverview,
+      }));
+  }, []);
+
   const stateData = selectedState
     ? allStates.find((s) => s.abbreviation === selectedState)
+    : null;
+
+  const regionData = selectedRegion
+    ? pipelineDrafts[selectedRegion]
     : null;
 
   // Counts per readiness for filter pills
@@ -1219,6 +1239,66 @@ export default function AdminBenefitsPage() {
           state={stateData}
           onBack={() => setSelectedState(null)}
         />
+      ) : selectedRegion && regionData ? (
+        <div>
+          <button
+            onClick={() => setSelectedRegion(null)}
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors mb-4"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
+            </svg>
+            All regions
+          </button>
+          <div className="mb-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">{regionData.regionName || selectedRegion}</h2>
+              <div className="flex items-center gap-2">
+                {regionData.slug && (
+                  <a
+                    href={`/benefits/${regionData.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Preview page
+                  </a>
+                )}
+              </div>
+            </div>
+            <p className="text-sm text-gray-500 mt-0.5">
+              {regionData.programs.length} programs &middot; {regionData.parentState ? `Parent: ${regionData.parentState}` : "Multi-state"} &middot; Drafted {regionData.draftedAt}
+            </p>
+          </div>
+
+          {/* Region overview */}
+          {regionData.stateOverview && (
+            <div className="mb-4 p-4 bg-white rounded-xl border border-gray-200 space-y-5">
+              <StateOverviewPreview overview={regionData.stateOverview} stateName={regionData.regionName || selectedRegion} />
+              <div className="pt-4 border-t border-gray-100">
+                <p className="text-[13px] font-medium text-gray-400 uppercase tracking-wider mb-2">Review</p>
+                <DraftReviewPanel programId="state-overview" stateId={selectedRegion} />
+              </div>
+            </div>
+          )}
+
+          {/* Region programs */}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden divide-y divide-gray-100">
+            {regionData.programs.map((draft) => (
+              <div key={draft.id} className="px-5 py-3.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-medium text-gray-900">{draft.name}</span>
+                  <TypeBadge type={draft.programType || "benefit"} />
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5">{draft.tagline}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       ) : (
         <>
           {/* Search + filters */}
@@ -1279,6 +1359,33 @@ export default function AdminBenefitsPage() {
           {filteredStates.length === 0 && (
             <div className="text-center py-16">
               <p className="text-sm text-gray-400">No states match your search</p>
+            </div>
+          )}
+
+          {/* Regions grid */}
+          {regions.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">Regions</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {regions.map((region) => (
+                  <button
+                    key={region.key}
+                    onClick={() => { setSelectedRegion(region.key); setSelectedState(null); }}
+                    className="text-left p-4 rounded-xl border border-blue-200 hover:border-blue-300 bg-white hover:shadow-sm transition-all duration-150 group"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="w-2 h-2 rounded-full bg-blue-400" />
+                      <span className="text-sm font-semibold text-gray-900">{region.name}</span>
+                    </div>
+                    <p className="text-[11px] text-gray-400">
+                      {region.programCount} programs{region.parentState ? ` · ${region.parentState}` : ""}
+                    </p>
+                    {region.hasOverview && (
+                      <p className="text-[11px] text-blue-500 font-medium mt-1">Overview ready</p>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </>

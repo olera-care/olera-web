@@ -61,6 +61,11 @@ export interface PipelineStateDrafts {
   draftedAt: string;
   programs: PipelineDraft[];
   stateOverview?: PipelineStateOverview | null;
+  // Region metadata (present for non-state entities)
+  regionName?: string;
+  parentState?: string | null;
+  slug?: string;
+  isRegion?: boolean;
 }
 
 export const pipelineDrafts: Record<string, PipelineStateDrafts> = {

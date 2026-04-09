@@ -47,11 +47,13 @@ const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY;
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  const opts = { state: null, phase: "all", run: false };
+  const opts = { state: null, region: null, parentState: null, phase: "all", run: false };
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
       case "--state": opts.state = args[++i]?.toUpperCase(); break;
+      case "--region": opts.region = args[++i]; break;
+      case "--parent-state": opts.parentState = args[++i]?.toUpperCase(); break;
       case "--phase": opts.phase = args[++i]; break;
       case "--run":   opts.run = true; break;
       case "--help": case "-h": printUsage(); process.exit(0);
@@ -62,14 +64,65 @@ function parseArgs() {
   return opts;
 }
 
+/**
+ * Slugify a region name for directory/URL use.
+ * "Miami-Dade County, FL" → "miami-dade-county-fl"
+ * "Greater Houston" → "greater-houston"
+ */
+function slugify(name) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+/**
+ * Resolve --state or --region into a unified entity object.
+ * Everything downstream uses entity.name, entity.slug, entity.parentState.
+ */
+function resolveEntity(opts) {
+  if (opts.region) {
+    // Freeform region
+    const slug = slugify(opts.region);
+    const parentState = opts.parentState || null;
+    const parentStateName = parentState ? STATE_NAMES[parentState] : null;
+    return {
+      name: opts.region,
+      slug,
+      dirName: slug,
+      isState: false,
+      stateCode: parentState,
+      parentStateName,
+      parentState,
+    };
+  }
+  if (opts.state && STATE_NAMES[opts.state]) {
+    // State shorthand: --state MI → entity for "Michigan"
+    return {
+      name: STATE_NAMES[opts.state],
+      slug: STATE_NAMES[opts.state].toLowerCase().replace(/\s+/g, "-"),
+      dirName: opts.state, // keep 2-letter code for backwards compat
+      isState: true,
+      stateCode: opts.state,
+      parentStateName: null,
+      parentState: null,
+    };
+  }
+  return null;
+}
+
 function printUsage() {
   console.log(`
   Senior Benefits Pipeline — Content Production System
 
   Usage:
-    node scripts/benefits-pipeline.js --state MI              # dry-run
-    node scripts/benefits-pipeline.js --state MI --run        # full pipeline
+    node scripts/benefits-pipeline.js --state MI              # dry-run (state)
+    node scripts/benefits-pipeline.js --state MI --run        # full pipeline (state)
     node scripts/benefits-pipeline.js --state MI --phase dive --run
+
+    node scripts/benefits-pipeline.js --region "Miami-Dade County, FL" --parent-state FL --run
+    node scripts/benefits-pipeline.js --region "Greater Houston" --parent-state TX --run
+    node scripts/benefits-pipeline.js --region "DMV" --run
 
   Phases:
     explore   Survey the landscape: what programs exist?
@@ -78,6 +131,13 @@ function printUsage() {
     classify  Determine program type, geographic scope, complexity
     draft     Generate structured page content (needs ANTHROPIC_API_KEY)
     report    Generate human-readable markdown report
+
+  Options:
+    --state XX           US state code (shorthand for --region "State Name")
+    --region "Name"      Any geographic entity (county, metro, region, city)
+    --parent-state XX    Parent state for comparison data (optional)
+    --phase <name>       Run a single phase
+    --run                Execute (without this, dry-run only)
 
   Environment:
     PERPLEXITY_API_KEY   Required for explore + dive phases
@@ -263,20 +323,20 @@ function deduplicatePrograms(programs, stateName) {
 
 // ─── File I/O ───────────────────────────────────────────────────────────────
 
-function pipelineDir(stateCode) {
-  const dir = path.resolve(__dirname, "..", "data", "pipeline", stateCode);
+function pipelineDir(dirName) {
+  const dir = path.resolve(__dirname, "..", "data", "pipeline", dirName);
   fs.mkdirSync(dir, { recursive: true });
   return dir;
 }
 
-function writeFile(stateCode, filename, content) {
-  const filepath = path.join(pipelineDir(stateCode), filename);
+function writeFile(dirName, filename, content) {
+  const filepath = path.join(pipelineDir(dirName), filename);
   fs.writeFileSync(filepath, typeof content === "string" ? content : JSON.stringify(content, null, 2));
   console.log(`  → ${filepath}`);
 }
 
-function readJson(stateCode, filename) {
-  const filepath = path.join(pipelineDir(stateCode), filename);
+function readJson(dirName, filename) {
+  const filepath = path.join(pipelineDir(dirName), filename);
   if (!fs.existsSync(filepath)) return null;
   return JSON.parse(fs.readFileSync(filepath, "utf-8"));
 }
@@ -350,11 +410,14 @@ function getStateSection(content, stateCode) {
 // PHASE 1: EXPLORE — Survey the landscape
 // ═══════════════════════════════════════════════════════════════════════════
 
-async function phaseExplore(stateCode, stateName) {
-  console.log(`\n  ━━━ EXPLORE: What programs exist in ${stateName}? ━━━\n`);
+async function phaseExplore(entity) {
+  console.log(`\n  ━━━ EXPLORE: What programs exist in ${entity.name}? ━━━\n`);
 
-  // Split into two queries: federal programs administered by the state, then state-unique
-  const federalPrompt = `What are the major federal senior benefit programs as they are administered in ${stateName} (${stateCode})? I need the ${stateName}-specific name for each.
+  let federalPrompt, localPrompt;
+
+  if (entity.isState) {
+    // State-level: original two-query approach
+    federalPrompt = `What are the major federal senior benefit programs as they are administered in ${entity.name} (${entity.stateCode})? I need the ${entity.name}-specific name for each.
 
 Cover these categories:
 - Medicaid for seniors/disabled
@@ -371,34 +434,63 @@ Cover these categories:
 - Legal aid for seniors
 - Long-term care ombudsman
 
-For each, give: name (as used in ${stateName}), what_it_does (2 sentences), who_its_for, official_url, benefit_value.
+For each, give: name (as used in ${entity.name}), what_it_does (2 sentences), who_its_for, official_url, benefit_value.
 
 Return as a JSON array: [{"name":"...","what_it_does":"...","who_its_for":"...","official_url":"...","benefit_value":"..."}]`;
 
-  const statePrompt = `What senior benefit programs are unique to ${stateName} (${stateCode}) — programs that only exist in this state, or state-funded programs beyond the standard federal ones?
+    localPrompt = `What senior benefit programs are unique to ${entity.name} (${entity.stateCode}) — programs that only exist in this state, or state-funded programs beyond the standard federal ones?
 
-Think about: property tax relief, state pharmaceutical assistance, state-funded home care, state energy credits, veteran supplements, senior housing programs, transportation programs, companion programs, anything ${stateName} offers that not every state has.
+Think about: property tax relief, state pharmaceutical assistance, state-funded home care, state energy credits, veteran supplements, senior housing programs, transportation programs, companion programs, anything ${entity.name} offers that not every state has.
 
 For each, give: name, what_it_does (2 sentences), who_its_for, whats_unique, official_url, benefit_value.
 
 Return as a JSON array: [{"name":"...","what_it_does":"...","who_its_for":"...","whats_unique":"...","official_url":"...","benefit_value":"..."}]`;
+  } else {
+    // Region-level: adapted queries for any geographic entity
+    const parentContext = entity.parentStateName
+      ? ` (in ${entity.parentStateName})`
+      : "";
 
-  console.log(`  Query 1: Federal programs as administered in ${stateName}...`);
+    federalPrompt = `What senior benefit programs serve people in ${entity.name}${parentContext}? Include:
+- Federal programs available in this area (Medicaid, Medicare Savings, SNAP, LIHEAP, PACE, etc.) — use the local name if the program has one
+- State-level programs that serve this area
+- Any programs with specific offices, providers, or service areas in ${entity.name}
+
+For each, give: name (as used locally), what_it_does (2 sentences), who_its_for, official_url, benefit_value, geographic_notes (any specifics about how this program operates in ${entity.name}).
+
+Return as a JSON array: [{"name":"...","what_it_does":"...","who_its_for":"...","official_url":"...","benefit_value":"...","geographic_notes":"..."}]`;
+
+    localPrompt = `What senior benefit programs are specific to ${entity.name}${parentContext}? I'm looking for:
+- County-specific programs or services
+- Local Area Agency on Aging programs
+- City or municipal senior services
+- Regional nonprofits serving seniors
+- Local transportation programs for seniors
+- Community-based programs unique to ${entity.name}
+
+NOT state-wide programs unless they have a ${entity.name}-specific version or office.
+
+For each, give: name, what_it_does (2 sentences), who_its_for, whats_unique, official_url, benefit_value.
+
+Return as a JSON array: [{"name":"...","what_it_does":"...","who_its_for":"...","whats_unique":"...","official_url":"...","benefit_value":"..."}]`;
+  }
+
+  console.log(`  Query 1: ${entity.isState ? "Federal" : "General"} programs in ${entity.name}...`);
   const fedResponse = await perplexityChat(federalPrompt, 0.2);
   const fedPrograms = extractJson(fedResponse) || [];
-  console.log(`  Found ${fedPrograms.length} federal programs`);
+  console.log(`  Found ${fedPrograms.length} programs`);
 
-  console.log(`  Query 2: ${stateName}-unique programs...`);
-  const stateResponse = await perplexityChat(statePrompt, 0.2);
-  const statePrograms = extractJson(stateResponse) || [];
-  console.log(`  Found ${statePrograms.length} state-unique programs`);
+  console.log(`  Query 2: ${entity.isState ? entity.name + "-unique" : "Local"} programs...`);
+  const localResponse = await perplexityChat(localPrompt, 0.2);
+  const localPrograms = extractJson(localResponse) || [];
+  console.log(`  Found ${localPrograms.length} local programs`);
 
   // Merge and deduplicate with semantic normalization
-  const allDiscovered = [...fedPrograms, ...statePrograms];
-  const programs = deduplicatePrograms(allDiscovered, stateName);
+  const allDiscovered = [...fedPrograms, ...localPrograms];
+  const programs = deduplicatePrograms(allDiscovered, entity.name);
 
   if (!programs.length) {
-    console.log(`  ERROR: No programs found. Raw federal: ${fedResponse.slice(0, 300)}`);
+    console.log(`  ERROR: No programs found. Raw response: ${fedResponse.slice(0, 300)}`);
     return { programs: [], raw: fedResponse };
   }
 
@@ -410,8 +502,11 @@ Return as a JSON array: [{"name":"...","what_it_does":"...","who_its_for":"...",
   }
 
   return {
-    state: stateCode,
-    stateName,
+    entity: entity.name,
+    entitySlug: entity.slug,
+    state: entity.stateCode,
+    stateName: entity.isState ? entity.name : entity.parentStateName,
+    isRegion: !entity.isState,
     exploredAt: new Date().toISOString(),
     programCount: programs.length,
     programs,
@@ -422,7 +517,8 @@ Return as a JSON array: [{"name":"...","what_it_does":"...","who_its_for":"...",
 // PHASE 2: DEEP DIVE — What data matters for each program?
 // ═══════════════════════════════════════════════════════════════════════════
 
-async function phaseDive(stateCode, stateName, exploreData) {
+async function phaseDive(entity, exploreData) {
+  const stateName = entity.name; // used throughout prompts
   console.log(`\n  ━━━ DEEP DIVE: What matters for each program? ━━━\n`);
 
   const programs = exploreData?.programs || [];
@@ -533,7 +629,9 @@ Return as JSON:
 // PHASE 3: COMPARE — Cross-reference with existing data
 // ═══════════════════════════════════════════════════════════════════════════
 
-function phaseCompare(stateCode, stateName, diveData, existingPrograms) {
+function phaseCompare(entity, diveData, existingPrograms) {
+  const stateCode = entity.stateCode;
+  const stateName = entity.name;
   console.log(`\n  ━━━ COMPARE: What's different from our data? ━━━\n`);
 
   const divePrograms = diveData?.programs?.filter((p) => !p._error && !p._parseError) || [];
@@ -747,7 +845,9 @@ function phaseCompare(stateCode, stateName, diveData, existingPrograms) {
 // PHASE 4: CLASSIFY — Determine program type, geographic scope, complexity
 // ═══════════════════════════════════════════════════════════════════════════
 
-function phaseClassify(stateCode, stateName, diveData, compareData) {
+function phaseClassify(entity, diveData, compareData) {
+  const stateCode = entity.stateCode;
+  const stateName = entity.name;
   console.log(`\n  ━━━ CLASSIFY: What kind of program is each one? ━━━\n`);
 
   const divePrograms = diveData?.programs?.filter((p) => !p._error && !p._parseError) || [];
@@ -970,7 +1070,9 @@ VOICE PRINCIPLES (non-negotiable):
 7. Honest about unknowns. If savings can't be verified, say so. Fewer honest facts beat more generic claims.
 8. Write for someone who is stressed, time-pressed, and may be reading on their phone. Short paragraphs. Clear hierarchy.`;
 
-async function phaseDraft(stateCode, stateName, diveData, classifyData) {
+async function phaseDraft(entity, diveData, classifyData) {
+  const stateCode = entity.stateCode;
+  const stateName = entity.name;
   console.log(`\n  ━━━ DRAFT: Generating page content ━━━\n`);
 
   if (!ANTHROPIC_API_KEY) {
@@ -1183,7 +1285,9 @@ CRITICAL: Use only information from the researched programs. Do not invent progr
 // PHASE 6: REPORT — Human-readable markdown
 // ═══════════════════════════════════════════════════════════════════════════
 
-function phaseReport(stateCode, stateName, exploreData, diveData, compareData, classifyData, draftData) {
+function phaseReport(entity, exploreData, diveData, compareData, classifyData, draftData) {
+  const stateCode = entity.stateCode || entity.dirName;
+  const stateName = entity.name;
   console.log(`\n  ━━━ REPORT: Generating markdown report ━━━\n`);
 
   const lines = [];
@@ -1430,9 +1534,11 @@ function phaseReport(stateCode, stateName, exploreData, diveData, compareData, c
 
 async function main() {
   const opts = parseArgs();
+  const entity = resolveEntity(opts);
 
-  if (!opts.state || !STATE_NAMES[opts.state]) {
-    console.error(`  Error: Valid --state required (e.g., --state MI)`);
+  if (!entity) {
+    console.error(`  Error: --state or --region required`);
+    console.error(`  Examples: --state MI, --region "Miami-Dade County, FL" --parent-state FL`);
     printUsage();
     process.exit(1);
   }
@@ -1442,36 +1548,44 @@ async function main() {
     process.exit(1);
   }
 
-  const stateCode = opts.state;
-  const stateName = STATE_NAMES[stateCode];
+  const dirName = entity.dirName;
   const shouldRun = (phase) => opts.phase === "all" || opts.phase === phase;
 
-  console.log(`\n  Senior Benefits Pipeline — Exploration-First`);
-  console.log(`  State: ${stateName} (${stateCode})`);
-  console.log(`  Phase: ${opts.phase}`);
-  console.log(`  Mode:  ${opts.run ? "EXECUTE" : "DRY RUN"}`);
+  console.log(`\n  Senior Benefits Pipeline — Content Production System`);
+  console.log(`  Entity: ${entity.name}${entity.isState ? ` (${entity.stateCode})` : ""}`);
+  console.log(`  Type:   ${entity.isState ? "State" : "Region"}${entity.parentState ? ` (parent: ${entity.parentStateName})` : ""}`);
+  console.log(`  Slug:   ${entity.slug}`);
+  console.log(`  Phase:  ${opts.phase}`);
+  console.log(`  Mode:   ${opts.run ? "EXECUTE" : "DRY RUN"}`);
 
-  // Load existing data
-  const existing = loadExistingPrograms(stateCode);
-  console.log(`  Existing in waiver-library.ts: ${existing.length} programs`);
+  // Load existing data for comparison (from parent state if region)
+  const compareState = entity.stateCode || entity.parentState;
+  const existing = compareState ? loadExistingPrograms(compareState) : [];
+  if (existing.length > 0) {
+    console.log(`  Existing in waiver-library.ts (${compareState}): ${existing.length} programs`);
+  }
 
   if (!opts.run) {
     console.log(`\n  This is a dry run. To execute, add --run:`);
-    console.log(`  node scripts/benefits-pipeline.js --state ${stateCode} --run\n`);
+    if (entity.isState) {
+      console.log(`  node scripts/benefits-pipeline.js --state ${entity.stateCode} --run\n`);
+    } else {
+      console.log(`  node scripts/benefits-pipeline.js --region "${entity.name}"${entity.parentState ? ` --parent-state ${entity.parentState}` : ""} --run\n`);
+    }
 
     if (existing.length > 0) {
-      console.log(`  Current programs:`);
+      console.log(`  Current programs (${compareState}):`);
       for (const p of existing) {
         const v = p.lastVerifiedDate ? `✓ ${p.lastVerifiedDate}` : "✗ unverified";
         console.log(`    ${p.name.padEnd(55)} ${v}`);
       }
     }
 
-    const estPerplexity = 2 + (existing.length || 10); // 2 explore + N dives
-    const estClaude = existing.length || 10; // 1 draft per program
+    const estPerplexity = 2 + (existing.length || 10);
+    const estClaude = existing.length || 10;
     console.log(`\n  Would make ~${estPerplexity} Perplexity calls (~$${(estPerplexity * 0.005).toFixed(3)})`);
     console.log(`  Would make ~${estClaude} Claude calls for drafts`);
-    console.log(`  Output: data/pipeline/${stateCode}/`);
+    console.log(`  Output: data/pipeline/${dirName}/`);
     console.log(`    explore.json, dive.json, compare.json, classify.json, drafts.json`);
     console.log(`    exploration_report.md`);
     process.exit(0);
@@ -1479,68 +1593,68 @@ async function main() {
 
   // ─── Execute ─────────────────────────────────────────────────────────
 
-  let exploreData = readJson(stateCode, "explore.json");
-  let diveData = readJson(stateCode, "dive.json");
-  let compareData = readJson(stateCode, "compare.json");
-  let classifyData = readJson(stateCode, "classify.json");
-  let draftData = readJson(stateCode, "drafts.json");
+  let exploreData = readJson(dirName, "explore.json");
+  let diveData = readJson(dirName, "dive.json");
+  let compareData = readJson(dirName, "compare.json");
+  let classifyData = readJson(dirName, "classify.json");
+  let draftData = readJson(dirName, "drafts.json");
 
   if (shouldRun("explore")) {
-    exploreData = await phaseExplore(stateCode, stateName);
-    writeFile(stateCode, "explore.json", exploreData);
+    exploreData = await phaseExplore(entity);
+    writeFile(dirName, "explore.json", exploreData);
   }
 
   if (shouldRun("dive")) {
-    if (!exploreData) exploreData = readJson(stateCode, "explore.json");
+    if (!exploreData) exploreData = readJson(dirName, "explore.json");
     if (!exploreData?.programs?.length) {
       console.log(`\n  No explore data. Run: --phase explore --run`);
     } else {
-      diveData = await phaseDive(stateCode, stateName, exploreData);
-      writeFile(stateCode, "dive.json", diveData);
+      diveData = await phaseDive(entity, exploreData);
+      writeFile(dirName, "dive.json", diveData);
     }
   }
 
   if (shouldRun("compare")) {
-    if (!diveData) diveData = readJson(stateCode, "dive.json");
+    if (!diveData) diveData = readJson(dirName, "dive.json");
     if (!diveData?.programs?.length) {
       console.log(`\n  No dive data. Run: --phase dive --run`);
     } else {
-      compareData = phaseCompare(stateCode, stateName, diveData, existing);
-      writeFile(stateCode, "compare.json", compareData);
+      compareData = phaseCompare(entity, diveData, existing);
+      writeFile(dirName, "compare.json", compareData);
     }
   }
 
   if (shouldRun("classify")) {
-    if (!diveData) diveData = readJson(stateCode, "dive.json");
+    if (!diveData) diveData = readJson(dirName, "dive.json");
     if (!diveData?.programs?.length) {
       console.log(`\n  No dive data. Run: --phase dive --run`);
     } else {
-      if (!compareData) compareData = readJson(stateCode, "compare.json");
-      classifyData = phaseClassify(stateCode, stateName, diveData, compareData);
-      writeFile(stateCode, "classify.json", classifyData);
+      if (!compareData) compareData = readJson(dirName, "compare.json");
+      classifyData = phaseClassify(entity, diveData, compareData);
+      writeFile(dirName, "classify.json", classifyData);
     }
   }
 
   if (shouldRun("draft")) {
-    if (!diveData) diveData = readJson(stateCode, "dive.json");
-    if (!classifyData) classifyData = readJson(stateCode, "classify.json");
+    if (!diveData) diveData = readJson(dirName, "dive.json");
+    if (!classifyData) classifyData = readJson(dirName, "classify.json");
     if (!diveData?.programs?.length) {
       console.log(`\n  No dive data. Run: --phase dive --run`);
     } else if (!classifyData?.programs?.length) {
       console.log(`\n  No classify data. Run: --phase classify --run`);
     } else {
-      draftData = await phaseDraft(stateCode, stateName, diveData, classifyData);
-      writeFile(stateCode, "drafts.json", draftData);
+      draftData = await phaseDraft(entity, diveData, classifyData);
+      writeFile(dirName, "drafts.json", draftData);
     }
   }
 
   if (shouldRun("report")) {
-    if (!exploreData) exploreData = readJson(stateCode, "explore.json");
-    if (!diveData) diveData = readJson(stateCode, "dive.json");
-    if (!compareData) compareData = readJson(stateCode, "compare.json");
-    if (!classifyData) classifyData = readJson(stateCode, "classify.json");
-    if (!draftData) draftData = readJson(stateCode, "drafts.json");
-    phaseReport(stateCode, stateName, exploreData, diveData, compareData, classifyData, draftData);
+    if (!exploreData) exploreData = readJson(dirName, "explore.json");
+    if (!diveData) diveData = readJson(dirName, "dive.json");
+    if (!compareData) compareData = readJson(dirName, "compare.json");
+    if (!classifyData) classifyData = readJson(dirName, "classify.json");
+    if (!draftData) draftData = readJson(dirName, "drafts.json");
+    phaseReport(entity, exploreData, diveData, compareData, classifyData, draftData);
   }
 
   // Auto-generate pipeline-summary.ts for the admin dashboard
@@ -1679,16 +1793,17 @@ function generatePipelineDrafts() {
   const pipelineRoot = path.resolve(__dirname, "..", "data", "pipeline");
   if (!fs.existsSync(pipelineRoot)) return;
 
-  const states = fs.readdirSync(pipelineRoot).filter((d) => {
-    return /^[A-Z]{2}$/.test(d) && fs.existsSync(path.join(pipelineRoot, d, "drafts.json"));
+  const dirs = fs.readdirSync(pipelineRoot).filter((d) => {
+    return fs.statSync(path.join(pipelineRoot, d)).isDirectory() &&
+      fs.existsSync(path.join(pipelineRoot, d, "drafts.json"));
   });
 
-  if (!states.length) return;
+  if (!dirs.length) return;
 
   const entries = {};
-  for (const stateCode of states) {
+  for (const dirName of dirs) {
     const drafts = JSON.parse(
-      fs.readFileSync(path.join(pipelineRoot, stateCode, "drafts.json"), "utf-8")
+      fs.readFileSync(path.join(pipelineRoot, dirName, "drafts.json"), "utf-8")
     );
 
     const programs = (drafts.programs || [])
@@ -1708,10 +1823,21 @@ function generatePipelineDrafts() {
       });
 
     if (programs.length > 0) {
-      entries[stateCode] = {
+      // Key: state code for states (backwards compat), slug for regions
+      const isState = /^[A-Z]{2}$/.test(dirName);
+      const key = isState ? dirName : (drafts.entitySlug || dirName);
+
+      entries[key] = {
         draftedAt: (drafts.draftedAt || "").split("T")[0],
         programs,
         stateOverview: drafts.stateOverview || null,
+        // Region metadata (null for states)
+        ...(isState ? {} : {
+          regionName: drafts.entity || dirName,
+          parentState: drafts.state || null,
+          slug: drafts.entitySlug || dirName,
+          isRegion: true,
+        }),
       };
     }
   }
@@ -1781,6 +1907,11 @@ export interface PipelineStateDrafts {
   draftedAt: string;
   programs: PipelineDraft[];
   stateOverview?: PipelineStateOverview | null;
+  // Region metadata (present for non-state entities)
+  regionName?: string;
+  parentState?: string | null;
+  slug?: string;
+  isRegion?: boolean;
 }
 
 export const pipelineDrafts: Record<string, PipelineStateDrafts> = ${JSON.stringify(entries, null, 2)};
